@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CdnFrontDoorCustomDomainAssociationResource struct{}
@@ -81,10 +82,11 @@ func (r CdnFrontDoorCustomDomainAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	client := clients.Cdn.FrontDoorCustomDomainsClient
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	client := clients.Cdn.AFDCustomDomainsClient
+	customDomainId := afdcustomdomains.NewCustomDomainID(id.SubscriptionId, id.ResourceGroup, id.ProfileName, id.AssociationName)
+	resp, err := client.Get(ctx, customDomainId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
