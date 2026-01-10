@@ -9,20 +9,17 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	{{- if (gt (.KnownValueMap | len) 0) }}
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
-	{{- end }}
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	{{- if (gt (.CompareValueMap | len) 0) }}
-    customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
     {{- end }}
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
-
-{{- $resourceName := .ResourceName }}
+{{ $resourceName := .ResourceName }}
 func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
 	r := {{ ToCamel $resourceName }}Resource{}
@@ -35,16 +32,19 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				{{- if (gt (.TestParams | len) 0) }}
-				Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
+				Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{- end }}),
 				    {{- else }}
 				Config: r.{{ .TestName }}(data),
 				{{- end }}
 				ConfigStateChecks: []statecheck.StateCheck{
+					{{- if .NoSubscriptionID }} {{- else }}
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+					{{- end }}
 					{{- range $name, $val := .KnownValueMap }}
 					    {{- if (eq $name "subscription_id") }}
-					    statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact({{ $val }})),
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("{{ $name }}"), knownvalue.StringExact({{ $val }})),
 					    {{- else }}
-					    statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact("{{ $val }}")),
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("{{ $name }}"), knownvalue.StringExact("{{ $val }}")),
 					    {{- end }}
 					{{- end }}
 
