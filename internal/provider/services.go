@@ -180,6 +180,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		fluidrelay.Registration{},
 		graphservices.Registration{},
 		hybridcompute.Registration{},
+		hsm.Registration{},
 		iotcentral.Registration{},
 		iothub.Registration{},
 		keyvault.Registration{},
