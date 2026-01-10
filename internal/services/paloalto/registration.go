@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -39,8 +39,10 @@ func (r Registration) Resources() []sdk.Resource {
 		NetworkVirtualApplianceResource{},
 		NextGenerationFirewallVHubLocalRuleStackResource{},
 		NextGenerationFirewallVHubPanoramaResource{},
+		NextGenerationFirewallVHubStrataCloudManagerResource{},
 		NextGenerationFirewallVNetLocalRulestackResource{},
 		NextGenerationFirewallVNetPanoramaResource{},
+		NextGenerationFirewallVNetStrataCloudManagerResource{},
 	}
 }
 

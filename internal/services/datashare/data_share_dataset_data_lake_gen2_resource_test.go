@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataShareDataSetDataLakeGen2Resource struct{}
@@ -94,13 +94,13 @@ func (t DataShareDataSetDataLakeGen2Resource) Exists(ctx context.Context, client
 
 	if model := resp.Model; model != nil {
 		if _, ok := model.(dataset.ADLSGen2FileDataSet); ok {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 		if _, ok := model.(dataset.ADLSGen2FolderDataSet); ok {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 		if _, ok := model.(dataset.ADLSGen2FileSystemDataSet); ok {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -205,7 +205,7 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
 		db.Resource.ShardKey = map[string]*string{
-			shardKey: utils.String("Hash"), // looks like only hash is supported for now
+			shardKey: pointer.To("Hash"), // looks like only hash is supported for now
 		}
 	}
 
@@ -264,7 +264,7 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
 		db.Resource.ShardKey = map[string]*string{
-			shardKey: utils.String("Hash"), // looks like only hash is supported for now
+			shardKey: pointer.To("Hash"), // looks like only hash is supported for now
 		}
 	}
 
@@ -431,7 +431,7 @@ func expandCosmosMongoCollectionIndex(indexes []interface{}, defaultTtl *int) (*
 					Keys: utils.ExpandStringSlice(index["keys"].([]interface{})),
 				},
 				Options: &documentdb.MongoIndexOptions{
-					Unique: utils.Bool(index["unique"].(bool)),
+					Unique: pointer.To(index["unique"].(bool)),
 				},
 			})
 		}

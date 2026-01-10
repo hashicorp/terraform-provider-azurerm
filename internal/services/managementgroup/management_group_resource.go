@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var managementGroupCacheControl = "no-cache"
@@ -134,19 +133,19 @@ func resourceManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	log.Printf("[INFO] Creating Management Group %q", groupName)
 
 	properties := managementgroups.CreateManagementGroupRequest{
-		Name: utils.String(groupName),
+		Name: pointer.To(groupName),
 		Properties: &managementgroups.CreateManagementGroupProperties{
-			TenantId: utils.String(armTenantID),
+			TenantId: pointer.To(armTenantID),
 			Details: &managementgroups.CreateManagementGroupDetails{
 				Parent: &managementgroups.CreateParentGroupInfo{
-					Id: utils.String(parentManagementGroupId),
+					Id: pointer.To(parentManagementGroupId),
 				},
 			},
 		},
 	}
 
 	if v := d.Get("display_name"); v != "" {
-		properties.Properties.DisplayName = utils.String(v.(string))
+		properties.Properties.DisplayName = pointer.To(v.(string))
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, properties, managementgroups.CreateOrUpdateOperationOptions{
@@ -242,7 +241,7 @@ func resourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	tenantScopedID := parse.NewTenantScopedManagementGroupID(tenantID, id.GroupId)
 	d.Set("tenant_scoped_id", tenantScopedID.TenantScopedID())
 
-	recurse := pointer.FromBool(true)
+	recurse := pointer.To(true)
 	resp, err := client.Get(ctx, *id, managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Filter:       pointer.To("children.childType eq Subscription"),
@@ -430,7 +429,7 @@ func managementGroupCreateStateRefreshFunc(ctx context.Context, client *manageme
 		resp, err := client.Get(ctx, id, managementgroups.GetOperationOptions{
 			CacheControl: &managementGroupCacheControl,
 			Expand:       pointer.To(managementgroups.ExpandChildren),
-			Recurse:      pointer.FromBool(true),
+			Recurse:      pointer.To(true),
 		})
 		if err != nil {
 			if response.WasForbidden(resp.HttpResponse) {

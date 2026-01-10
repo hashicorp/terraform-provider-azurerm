@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountassemblies"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountAssembly() *pluginsdk.Resource {
@@ -118,8 +118,8 @@ func resourceLogicAppIntegrationAccountAssemblyCreateUpdate(d *pluginsdk.Resourc
 	parameters := integrationaccountassemblies.AssemblyDefinition{
 		Properties: integrationaccountassemblies.AssemblyProperties{
 			AssemblyName:    d.Get("assembly_name").(string),
-			AssemblyVersion: utils.String(d.Get("assembly_version").(string)),
-			ContentType:     utils.String("application/octet-stream"),
+			AssemblyVersion: pointer.To(d.Get("assembly_version").(string)),
+			ContentType:     pointer.To("application/octet-stream"),
 		},
 	}
 
@@ -129,7 +129,7 @@ func resourceLogicAppIntegrationAccountAssemblyCreateUpdate(d *pluginsdk.Resourc
 
 	if v, ok := d.GetOk("content_link_uri"); ok {
 		parameters.Properties.ContentLink = &integrationaccountassemblies.ContentLink{
-			Uri: utils.String(v.(string)),
+			Uri: pointer.To(v.(string)),
 		}
 	}
 

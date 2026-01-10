@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -22,7 +22,6 @@ import (
 	storageAccountHelper "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreDataLakeGen2 struct{}
@@ -172,7 +171,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Type: pointer.To(string(datastore.DatastoreTypeAzureDataLakeGenTwo)),
 			}
 
@@ -182,7 +181,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 				AccountName:                   containerId.StorageAccountName,
 				Filesystem:                    containerId.ContainerName,
 				Endpoint:                      pointer.To(metadata.Client.Storage.StorageDomainSuffix),
-				Description:                   utils.String(model.Description),
+				Description:                   pointer.To(model.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(model.ServiceDataIdentity)),
 				Tags:                          pointer.To(model.Tags),
 			}
@@ -239,7 +238,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			}
 
 			datastoreRaw := datastore.DatastoreResource{
-				Name: utils.String(id.DataStoreName),
+				Name: pointer.To(id.DataStoreName),
 				Type: pointer.To(string(datastore.DatastoreTypeAzureDataLakeGenTwo)),
 			}
 
@@ -248,7 +247,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 				ResourceGroup:                 &containerId.ResourceGroupName,
 				AccountName:                   containerId.StorageAccountName,
 				Filesystem:                    containerId.ContainerName,
-				Description:                   utils.String(state.Description),
+				Description:                   pointer.To(state.Description),
 				ServiceDataAccessAuthIdentity: pointer.To(datastore.ServiceDataAccessAuthIdentity(state.ServiceDataIdentity)),
 				Tags:                          pointer.To(state.Tags),
 			}

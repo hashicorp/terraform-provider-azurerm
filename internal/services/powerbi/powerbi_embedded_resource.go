@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package powerbi
@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/validate"
@@ -115,7 +114,7 @@ func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	mode := capacities.Mode(d.Get("mode").(string))
 
 	parameters := capacities.DedicatedCapacity{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &capacities.DedicatedCapacityProperties{
 			Administration: &capacities.DedicatedCapacityAdministrators{
 				Members: utils.ExpandStringSlice(administrators),

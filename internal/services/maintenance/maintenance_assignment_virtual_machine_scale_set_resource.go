@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maintenance
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmMaintenanceAssignmentVirtualMachineScaleSet() *pluginsdk.Resource {
@@ -102,11 +102,11 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 	}
 
 	configurationAssignment := configurationassignments.ConfigurationAssignment{
-		Name:     utils.String(maintenanceConfigurationId.MaintenanceConfigurationName),
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(maintenanceConfigurationId.MaintenanceConfigurationName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &configurationassignments.ConfigurationAssignmentProperties{
-			MaintenanceConfigurationId: utils.String(maintenanceConfigurationId.ID()),
-			ResourceId:                 utils.String(virtualMachineScaleSetId.ID()),
+			MaintenanceConfigurationId: pointer.To(maintenanceConfigurationId.ID()),
+			ResourceId:                 pointer.To(virtualMachineScaleSetId.ID()),
 		},
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_customer_managed_key -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
@@ -203,33 +202,37 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 			Encryption: &storageaccounts.Encryption{
 				Services: &storageaccounts.EncryptionServices{
 					Blob: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 					File: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 				},
 				Identity: &storageaccounts.EncryptionIdentity{
-					UserAssignedIdentity: utils.String(userAssignedIdentity),
+					UserAssignedIdentity: pointer.To(userAssignedIdentity),
 				},
 				KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
 				Keyvaultproperties: &storageaccounts.KeyVaultProperties{
-					Keyname:     utils.String(keyName),
-					Keyversion:  utils.String(keyVersion),
-					Keyvaulturi: utils.String(keyVaultURI),
+					Keyname:     pointer.To(keyName),
+					Keyversion:  pointer.To(keyVersion),
+					Keyvaulturi: pointer.To(keyVaultURI),
 				},
 			},
 		},
 	}
 
 	if federatedIdentityClientID != "" {
-		payload.Properties.Encryption.Identity.FederatedIdentityClientId = utils.String(federatedIdentityClientID)
+		payload.Properties.Encryption.Identity.FederatedIdentityClientId = pointer.To(federatedIdentityClientID)
 	}
 	if _, err = storageClient.Update(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating Customer Managed Key for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual); err != nil {
+		return err
+	}
+
 	return resourceStorageAccountCustomerManagedKeyRead(d, meta)
 }
 
@@ -335,10 +338,10 @@ func resourceStorageAccountCustomerManagedKeyDelete(d *pluginsdk.ResourceData, m
 			Encryption: &storageaccounts.Encryption{
 				Services: &storageaccounts.EncryptionServices{
 					Blob: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 					File: &storageaccounts.EncryptionService{
-						Enabled: utils.Bool(true),
+						Enabled: pointer.To(true),
 					},
 				},
 				KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointStorage),

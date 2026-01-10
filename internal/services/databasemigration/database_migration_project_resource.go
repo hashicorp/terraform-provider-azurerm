@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databasemigration
@@ -8,19 +8,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDatabaseMigrationProject() *pluginsdk.Resource {
@@ -112,7 +111,7 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	sourcePlatform := d.Get("source_platform").(string)
 	targetPlatform := d.Get("target_platform").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -164,7 +163,9 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("source_platform", string(props.SourcePlatform))
 			d.Set("target_platform", string(props.TargetPlatform))
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -180,7 +181,7 @@ func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	opts := projectresource.ProjectsDeleteOperationOptions{
-		DeleteRunningTasks: utils.Bool(false),
+		DeleteRunningTasks: pointer.To(false),
 	}
 	if _, err := client.ProjectsDelete(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

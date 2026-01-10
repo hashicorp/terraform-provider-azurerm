@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns_test
@@ -32,12 +32,12 @@ func TestAccNetworkProfile_list_basic(t *testing.T) {
 			{
 				Query:             true,
 				Config:            r.basicQuery(),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 			{
 				Query:             true,
 				Config:            r.basicQueryByResourceGroupName(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 		},
 	})

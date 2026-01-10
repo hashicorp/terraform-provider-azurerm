@@ -131,7 +131,7 @@ The following arguments are supported:
 
 * `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
 
-* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
+* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to. The supported value are from `1` to `1000`.
 
 * `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
 

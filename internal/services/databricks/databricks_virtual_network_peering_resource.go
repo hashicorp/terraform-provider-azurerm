@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks
@@ -166,13 +166,13 @@ func resourceDatabricksVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, me
 		// The RP always creates the same vNet ID for the Databricks internal vNet in the below format:
 		// '/subscriptions/{subscription}/resourceGroups/{group1}/providers/Microsoft.Network/virtualNetworks/workers-vnet'
 		DatabricksVirtualNetwork: &vnetpeering.VirtualNetworkPeeringPropertiesFormatDatabricksVirtualNetwork{
-			Id: utils.String(commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, "workers-vnet").ID()),
+			Id: pointer.To(commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, "workers-vnet").ID()),
 		},
 		RemoteAddressSpace: &vnetpeering.AddressSpace{
 			AddressPrefixes: remoteAddressSpace,
 		},
 		RemoteVirtualNetwork: vnetpeering.VirtualNetworkPeeringPropertiesFormatRemoteVirtualNetwork{
-			Id: utils.String(remoteVirtualNetwork),
+			Id: pointer.To(remoteVirtualNetwork),
 		},
 		AllowForwardedTraffic:     &allowForwardedTraffic,
 		AllowGatewayTransit:       &allowGatewayTransit,

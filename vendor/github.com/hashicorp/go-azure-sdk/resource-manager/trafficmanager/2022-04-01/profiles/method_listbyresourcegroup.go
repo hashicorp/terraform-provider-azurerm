@@ -16,7 +16,24 @@ import (
 type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *ProfileListResult
+	Model        *[]Profile
+}
+
+type ListByResourceGroupCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Profile
+}
+
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByResourceGroup ...
@@ -27,6 +44,7 @@ func (c ProfilesClient) ListByResourceGroup(ctx context.Context, id commonids.Re
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.Network/trafficManagerProfiles", id.ID()),
 	}
 
@@ -36,7 +54,7 @@ func (c ProfilesClient) ListByResourceGroup(ctx context.Context, id commonids.Re
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,11 +63,44 @@ func (c ProfilesClient) ListByResourceGroup(ctx context.Context, id commonids.Re
 		return
 	}
 
-	var model ProfileListResult
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]Profile `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByResourceGroupComplete retrieves all the results into a single object
+func (c ProfilesClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, ProfileOperationPredicate{})
+}
+
+// ListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ProfilesClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ProfileOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
+	items := make([]Profile, 0)
+
+	resp, err := c.ListByResourceGroup(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByResourceGroupCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

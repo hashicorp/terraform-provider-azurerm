@@ -128,9 +128,6 @@ var serviceTestConfigurationOverrides = mapOf(
         // Maps is only available in certain locations
         "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
 
-        // MobileNetwork is only available in certain locations
-        "mobilenetwork" to testConfiguration(locationOverride = LocationConfiguration("eastus", "westeurope", "centraluseuap", false)),
-
         // Mongocluster free tier is currently only available in southindia
         "mongocluster" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "southindia", false)),
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/privateendpoints"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedPrivateEndpointResource struct{}
@@ -108,7 +108,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 					ManualPrivateLinkServiceConnections: &[]privateendpoints.PrivateLinkServiceConnection{
 						{
 							Properties: &privateendpoints.PrivateLinkServiceConnectionProperties{
-								PrivateLinkServiceId: utils.String(model.TargetResourceId),
+								PrivateLinkServiceId: pointer.To(model.TargetResourceId),
 								GroupIds:             &[]string{model.SubResourceName},
 							},
 						},

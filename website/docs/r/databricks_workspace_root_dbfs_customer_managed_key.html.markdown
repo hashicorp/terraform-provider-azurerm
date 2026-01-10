@@ -3,12 +3,12 @@ subcategory: "Databricks"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_databricks_workspace_root_dbfs_customer_managed_key"
 description: |-
-  Manages a Customer Managed Key for the Databricks Workspaces Root Databricks File System(DBFS)
+  Manages a Customer Managed Key for the Databricks Workspaces Root Databricks File System (DBFS)
 ---
 
 # azurerm_databricks_workspace_root_dbfs_customer_managed_key
 
-Manages a Customer Managed Key for the Databricks Workspaces Root Databricks File System(DBFS)
+Manages a Customer Managed Key for the Databricks Workspaces Root Databricks File System (DBFS)
 
 ## Example Usage
 
@@ -18,26 +18,6 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
-}
-
-resource "azurerm_databricks_workspace" "example" {
-  name                = "databricks-test"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  sku                 = "premium"
-
-  customer_managed_key_enabled = true
-
-  tags = {
-    Environment = "Production"
-  }
-}
-
-resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example" {
-  depends_on = [azurerm_key_vault_access_policy.databricks]
-
-  workspace_id     = azurerm_databricks_workspace.example.id
-  key_vault_key_id = azurerm_key_vault_key.example.id
 }
 
 resource "azurerm_key_vault" "example" {
@@ -107,6 +87,22 @@ resource "azurerm_key_vault_access_policy" "databricks" {
     "Sign"
   ]
 }
+
+resource "azurerm_databricks_workspace" "example" {
+  name                = "example-workspace"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "premium"
+
+  customer_managed_key_enabled = true
+}
+
+resource "azurerm_databricks_workspace_root_dbfs_customer_managed_key" "example" {
+  depends_on = [azurerm_key_vault_access_policy.databricks]
+
+  workspace_id     = azurerm_databricks_workspace.example.id
+  key_vault_key_id = azurerm_key_vault_key.example.id
+}
 ```
 
 ## Example HCL Configurations
@@ -119,13 +115,13 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 
 The following arguments are supported:
 
-* `workspace_id` - (Required) The resource ID of the Databricks Workspace.
+* `workspace_id` - (Required) The Resource ID of the Databricks Workspace.
 
-* `key_vault_key_id` - (Required) The resource ID of the Key Vault Key to be used.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key to be used.
 
 * `key_vault_id` - (Optional) Specifies the Resource ID of the Key Vault which contains the `key_vault_key_id`.
 
--> **Note:** The `key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `key_vault_id` field is not specified it is assumed that the `key_vault_key_id` is hosted in the same subscriptioin as the Databricks Workspace.
+-> **Note:** The `key_vault_id` field only needs to be specified if the Key Vault which contains the `key_vault_key_id` exists in a different subscription than the Databricks Workspace. If the `key_vault_id` field is not specified it is assumed that the `key_vault_key_id` is hosted in the same subscription as the Databricks Workspace. Does not apply to managed HSM vaults.
 
 -> **Note:** If you are using multiple service principals to execute Terraform across subscriptions you will need to add an additional `azurerm_key_vault_access_policy` resource granting the service principal access to the key vault in that subscription.
 

@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain_sender_username -service-package-name communication -properties "name" -compare-values "resource_group_name:email_service_domain_id,email_service_name:email_service_domain_id,domain_name:email_service_domain_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 import (
 	"context"
@@ -11,15 +13,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = EmailCommunicationServiceDomainSenderUsernameResource{}
+var (
+	_ sdk.ResourceWithUpdate   = EmailCommunicationServiceDomainSenderUsernameResource{}
+	_ sdk.ResourceWithIdentity = EmailCommunicationServiceDomainSenderUsernameResource{}
+)
 
 type EmailCommunicationServiceDomainSenderUsernameResource struct{}
+
+func (EmailCommunicationServiceDomainSenderUsernameResource) Identity() resourceids.ResourceId {
+	return &senderusernames.SenderUsernameId{}
+}
 
 type EmailCommunicationServiceDomainSenderUsernameModel struct {
 	Name                 string `tfschema:"name"`
@@ -105,6 +115,9 @@ func (r EmailCommunicationServiceDomainSenderUsernameResource) Create() sdk.Reso
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -187,6 +200,10 @@ func (EmailCommunicationServiceDomainSenderUsernameResource) Read() sdk.Resource
 				if props := model.Properties; props != nil {
 					state.DisplayName = pointer.From(props.DisplayName)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -143,10 +144,10 @@ func resourceAppServiceHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, m
 	connectionEnvelope := web.HybridConnection{
 		HybridConnectionProperties: &web.HybridConnectionProperties{
 			RelayArmURI:  &relayArmURI,
-			Hostname:     utils.String(d.Get("hostname").(string)),
+			Hostname:     pointer.To(d.Get("hostname").(string)),
 			Port:         &port,
-			SendKeyName:  utils.String(d.Get("send_key_name").(string)),
-			SendKeyValue: utils.String(""), // The service creates this no matter what is sent, but the API requires the field to be set
+			SendKeyName:  pointer.To(d.Get("send_key_name").(string)),
+			SendKeyValue: pointer.To(""), // The service creates this no matter what is sent, but the API requires the field to be set
 		},
 	}
 

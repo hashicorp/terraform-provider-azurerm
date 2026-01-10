@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -473,7 +473,7 @@ func expandAutomationRuleActionIncident(input []interface{}) ([]automationrules.
 		var ownerPtr *automationrules.IncidentOwnerInfo
 		if ownerIdStr := b["owner_id"].(string); ownerIdStr != "" {
 			ownerPtr = &automationrules.IncidentOwnerInfo{
-				ObjectId: utils.String(ownerIdStr),
+				ObjectId: pointer.To(ownerIdStr),
 			}
 		}
 

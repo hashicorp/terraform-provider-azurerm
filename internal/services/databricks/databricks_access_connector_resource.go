@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AccessConnectorResource struct{}
@@ -173,7 +173,7 @@ func (r AccessConnectorResource) Read() sdk.ResourceFunc {
 
 			state := AccessConnectorResourceModel{
 				Name:          id.AccessConnectorName,
-				Location:      location.NormalizeNilable(utils.String(resp.Model.Location)),
+				Location:      location.NormalizeNilable(pointer.To(resp.Model.Location)),
 				ResourceGroup: id.ResourceGroupName,
 			}
 

@@ -221,9 +221,6 @@ service/management-groups:
 service/maps:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_maps_((.|\n)*)###'
 
-service/mobile-network:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mobile_network((.|\n)*)###'
-
 service/mongo-cluster:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mongo_cluster((.|\n)*)###'
 
