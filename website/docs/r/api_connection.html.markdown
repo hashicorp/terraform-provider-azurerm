@@ -55,6 +55,83 @@ resource "azurerm_api_connection" "example" {
 }
 ```
 
+### Example Usage with Managed Identity
+
+This example shows how to create an API Connection that uses a Managed Identity for authentication, which is commonly used with Logic Apps.
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "example" {
+  name                       = "examplekeyvault"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = false
+}
+
+data "azurerm_managed_api" "keyvault" {
+  name     = "keyvault"
+  location = azurerm_resource_group.example.location
+}
+
+resource "azurerm_api_connection" "example" {
+  name                = "example-keyvault-connection"
+  resource_group_name = azurerm_resource_group.example.name
+  managed_api_id      = data.azurerm_managed_api.keyvault.id
+
+  parameter_value_set {
+    name = "oauthMI"
+    values = {
+      vaultName = azurerm_key_vault.example.name
+    }
+  }
+}
+
+resource "azurerm_logic_app_workflow" "example" {
+  name                = "example-logic-app"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  parameters = {
+    "$connections" = jsonencode({
+      keyvault = {
+        connectionId   = azurerm_api_connection.example.id
+        connectionName = azurerm_api_connection.example.name
+        connectionProperties = {
+          authentication = {
+            type = "ManagedServiceIdentity"
+          }
+        }
+        id = data.azurerm_managed_api.keyvault.id
+      }
+    })
+  }
+
+  workflow_parameters = {
+    "$connections" = jsonencode({
+      defaultValue = {}
+      type         = "Object"
+    })
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -69,11 +146,25 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A display name for this API Connection.
 
+* `kind` - (Optional) The kind of API Connection. For example `V1`.
+
 * `parameter_values` - (Optional) A map of parameter values associated with this API Connection.
 
 -> **Note:** The Azure API doesn't return sensitive parameters in the API response which can lead to a diff, as such you may need to use Terraform's `ignore_changes` functionality on this field as shown in the Example Usage above.
 
+* `parameter_value_set` - (Optional) A `parameter_value_set` block as defined below. This is used for multi-auth scenarios, such as Managed Identity authentication. Conflicts with `parameter_value_type`.
+
+* `parameter_value_type` - (Optional) The parameter value type for the API Connection. For example `Alternative` for single-auth Managed Identity scenarios. Conflicts with `parameter_value_set`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the API Connection.
+
+---
+
+A `parameter_value_set` block supports the following:
+
+* `name` - (Required) The name of the parameter value set. For example `oauthMI` or `managedIdentityAuth`.
+
+* `values` - (Optional) A map of values for the parameter value set.
 
 ## Attributes Reference
 
