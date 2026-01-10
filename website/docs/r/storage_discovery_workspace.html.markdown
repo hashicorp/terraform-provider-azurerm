@@ -18,14 +18,6 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "example" {
-  name                     = "examplestoracc"
-  resource_group_name      = azurerm_resource_group.example.name
-  location                 = azurerm_resource_group.example.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_storage_discovery_workspace" "example" {
@@ -38,11 +30,9 @@ resource "azurerm_storage_discovery_workspace" "example" {
   workspace_roots = [data.azurerm_subscription.current.id]
 
   scopes {
-    display_name = "Production Storage"
-    resource_types = [
-      azurerm_storage_account.example.id,
-    ]
-    tag_keys_only = ["environment", "department"]
+    display_name   = "Production Storage"
+    resource_types = ["Microsoft.Storage/storageAccounts"]
+    tag_keys_only  = ["environment", "department"]
     tags = {
       criticality = "high"
     }
@@ -80,7 +70,7 @@ A `scopes` block supports the following:
 
 * `display_name` - (Required) The display name for this scope.
 
-* `resource_types` - (Required) A list of Azure Resource IDs that should be included in this scope. These are typically Storage Account resource IDs.
+* `resource_types` - (Required) A list of Azure resource type strings to include in this scope. For example, `"Microsoft.Storage/storageAccounts"`.
 
 * `tag_keys_only` - (Optional) A list of tag keys that will be used to filter resources. Resources with any of these tag keys will be included.
 
