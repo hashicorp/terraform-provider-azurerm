@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/powerbi/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -80,7 +81,12 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 			"mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(capacities.ModeGenOne),
+				Default: func() interface{} {
+					if features.FivePointOh() {
+						return string(capacities.ModeGenTwo)
+					}
+					return string(capacities.ModeGenOne)
+				}(),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(capacities.ModeGenOne),
