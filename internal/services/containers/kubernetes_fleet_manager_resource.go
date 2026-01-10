@@ -52,6 +52,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeString,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
+
 		"hub_profile": {
 			Deprecated: "The service team has indicated this field is now deprecated and not to be used, as such we are marking it as such and no longer sending it to the API, please see url: https://learn.microsoft.com/en-us/azure/kubernetes-fleet/architectural-overview",
 			Elem: &pluginsdk.Resource{
@@ -60,10 +61,12 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 						Required: true,
 						Type:     pluginsdk.TypeString,
 					},
+
 					"fqdn": {
 						Computed: true,
 						Type:     pluginsdk.TypeString,
 					},
+
 					"kubernetes_version": {
 						Computed: true,
 						Type:     pluginsdk.TypeString,
@@ -75,6 +78,7 @@ func (r KubernetesFleetManagerResource) Arguments() map[string]*pluginsdk.Schema
 			Optional: true,
 			Type:     pluginsdk.TypeList,
 		},
+
 		"tags": commonschema.Tags(),
 	}
 }
