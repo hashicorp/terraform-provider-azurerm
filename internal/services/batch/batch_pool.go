@@ -1438,3 +1438,43 @@ func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
 
 	return result
 }
+
+func flattenBatchPoolApplicationPackages(settings *[]pool.ApplicationPackageReference) []interface{} {
+	results := make([]interface{}, 0)
+
+	if settings == nil {
+		log.Printf("[DEBUG] settings is nil")
+		return results
+	}
+
+	for _, applicationPackage := range *settings {
+		result := make(map[string]interface{})
+		result["id"] = applicationPackage.Id
+		if applicationPackage.Version != nil {
+			result["version"] = *applicationPackage.Version
+		}
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func ExpandBatchPoolApplicationPackages(list []interface{}) ([]pool.ApplicationPackageReference, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	var result []pool.ApplicationPackageReference
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		applicationPackageReference := pool.ApplicationPackageReference{
+			Id: item["id"].(string),
+		}
+		if v, ok := item["version"]; ok && v.(string) != "" {
+			applicationPackageReference.Version = utils.String(v.(string))
+		}
+		result = append(result, applicationPackageReference)
+	}
+
+	return result, nil
+}
