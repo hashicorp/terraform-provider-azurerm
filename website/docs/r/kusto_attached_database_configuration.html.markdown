@@ -65,6 +65,8 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
   sharing {
     external_tables_to_exclude    = ["ExternalTable2"]
     external_tables_to_include    = ["ExternalTable1"]
+    functions_to_exclude          = ["Function2"]
+    functions_to_include          = ["Function1"]
     materialized_views_to_exclude = ["MaterializedViewTable2"]
     materialized_views_to_include = ["MaterializedViewTable1"]
     tables_to_exclude             = ["Table2"]
@@ -89,6 +91,10 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 
+* `database_name_override` - (Optional) Overrides the original database name. Relevant only when attaching to a specific database.
+
+* `database_name_prefix` - (Optional) Adds a prefix to the attached databases name. When following an entire cluster, that prefix would be added to all of the databases original names from leader cluster.
+
 * `default_principal_modification_kind` - (Optional) The default principals modification kind. Valid values are: `None` (default), `Replace` and `Union`. Defaults to `None`.
 
 * `sharing` - (Optional) A `sharing` block as defined below.
@@ -100,6 +106,10 @@ An `sharing` block exports the following:
 * `external_tables_to_exclude` - (Optional) List of external tables exclude from the follower database.
 
 * `external_tables_to_include` - (Optional) List of external tables to include in the follower database.
+
+* `functions_to_exclude` - (Optional) List of functions to exclude from the follower database.
+
+* `functions_to_include` - (Optional) List of functions to include in the follower database.
 
 * `materialized_views_to_exclude` - (Optional) List of materialized views exclude from the follower database.
 
