@@ -41,7 +41,9 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
+* `sku_name` - (Optional) The SKU which should be used. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`.
+
+-> **Note:** `StandardV2` SKU requires `zones` to be set to `[1,2,3]`, see [MS learn documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#standardv2-nat-gateway) for more info.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
