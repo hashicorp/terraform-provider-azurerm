@@ -1035,19 +1035,18 @@ func FlattenBatchMetaData(metadatas *[]pool.MetadataItem) map[string]interface{}
 	return output
 }
 
-func ExpandBatchPoolMountConfigurations(d *pluginsdk.ResourceData) (*[]pool.MountConfiguration, error) {
-	var result []pool.MountConfiguration
-
-	if mountConfigs, ok := d.GetOk("mount"); ok {
-		mountConfigList := mountConfigs.([]interface{})
-		for _, tempItem := range mountConfigList {
-			item := tempItem.(map[string]interface{})
-			result = append(result, expandBatchPoolMountConfiguration(item))
-		}
-		return &result, nil
+func ExpandBatchPoolMountConfigurations(input []interface{}) *[]pool.MountConfiguration {
+	if len(input) == 0 || input[0] == nil {
+		return nil
 	}
 
-	return nil, fmt.Errorf("mount either is empty or contains parsing errors")
+	result := []pool.MountConfiguration{}
+
+	for _, tempItem := range input {
+		item := tempItem.(map[string]interface{})
+		result = append(result, expandBatchPoolMountConfiguration(item))
+	}
+	return &result
 }
 
 func expandBatchPoolMountConfiguration(ref map[string]interface{}) pool.MountConfiguration {
@@ -1216,18 +1215,18 @@ func ExpandBatchPoolNetworkConfiguration(list []interface{}) (*pool.NetworkConfi
 	return networkConfiguration, nil
 }
 
-func ExpandBatchPoolTaskSchedulingPolicy(d *pluginsdk.ResourceData) (*pool.TaskSchedulingPolicy, error) {
-	var result pool.TaskSchedulingPolicy
-
-	if taskSchedulingPolicyString, ok := d.GetOk("task_scheduling_policy"); ok {
-		taskSchedulingPolicy := taskSchedulingPolicyString.([]interface{})
-		if len(taskSchedulingPolicy) > 0 {
-			item := taskSchedulingPolicy[0].(map[string]interface{})
-			result.NodeFillType = pool.ComputeNodeFillType(item["node_fill_type"].(string))
-		}
-		return &result, nil
+func ExpandBatchPoolTaskSchedulingPolicy(input []interface{}) *pool.TaskSchedulingPolicy {
+	if len(input) == 0 || input[0] == nil {
+		return nil
 	}
-	return nil, fmt.Errorf("task_scheduling_policy either is empty or contains parsing errors")
+
+	item := input[0].(map[string]interface{})
+	result := pool.TaskSchedulingPolicy{}
+
+	if v, ok := item["node_fill_type"]; ok && v != nil && v.(string) != "" {
+		result.NodeFillType = pool.ComputeNodeFillType(v.(string))
+	}
+	return &result
 }
 
 func expandPoolEndpointConfiguration(list []interface{}) (*pool.PoolEndpointConfiguration, error) {
@@ -1386,21 +1385,18 @@ func flattenBatchPoolNetworkConfiguration(input *pool.NetworkConfiguration) []in
 	}
 }
 
-func ExpandBatchPoolUserAccounts(d *pluginsdk.ResourceData) (*[]pool.UserAccount, error) {
-	var result []pool.UserAccount
-
-	if userAccountList, ok := d.GetOk("user_accounts"); ok {
-		userAccounts := userAccountList.([]interface{})
-		if len(userAccounts) > 0 && userAccounts[0] != nil {
-			for _, tempItem := range userAccounts {
-				item := tempItem.(map[string]interface{})
-				result = append(result, expandBatchPoolUserAccount(item))
-			}
-			return &result, nil
-		}
+func ExpandBatchPoolUserAccounts(input []interface{}) *[]pool.UserAccount {
+	if len(input) == 0 || input[0] == nil {
+		return nil
 	}
 
-	return nil, fmt.Errorf("user_accounts either is empty or contains parsing errors")
+	result := []pool.UserAccount{}
+
+	for _, tempItem := range input {
+		item := tempItem.(map[string]interface{})
+		result = append(result, expandBatchPoolUserAccount(item))
+	}
+	return &result
 }
 
 func expandBatchPoolUserAccount(ref map[string]interface{}) pool.UserAccount {
