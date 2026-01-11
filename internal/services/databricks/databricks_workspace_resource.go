@@ -35,6 +35,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+// The NONE standard is not allowed to be specified in the compliance security profile
+func possibleValuesForComplianceStandard() []string {
+	allStandards := workspaces.PossibleValuesForComplianceStandard()
+	forValidation := make([]string, 0, len(allStandards)-1)
+	for _, standard := range allStandards {
+		if standard != string(workspaces.ComplianceStandardNONE) {
+			forValidation = append(forValidation, standard)
+		}
+	}
+	return forValidation
+}
+
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceDatabricksWorkspaceCreate,
@@ -355,10 +367,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(workspaces.ComplianceStandardHIPAA),
-									string(workspaces.ComplianceStandardPCIDSS),
-								}, false),
+								ValidateFunc: validation.StringInSlice(
+									possibleValuesForComplianceStandard(),
+									false),
 							},
 						},
 						"enhanced_security_monitoring_enabled": {
