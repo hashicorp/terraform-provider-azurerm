@@ -68,6 +68,10 @@ func TestAccApplicationInsightsWorkbook_completeLegacy(t *testing.T) {
 }
 
 func TestAccApplicationInsightsWorkbook_complete(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("skipping as test is only valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -128,6 +132,10 @@ func TestAccApplicationInsightsWorkbook_updateLegacy(t *testing.T) {
 }
 
 func TestAccApplicationInsightsWorkbook_update(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("skipping as test is only valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
