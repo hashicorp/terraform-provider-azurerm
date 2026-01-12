@@ -282,34 +282,31 @@ func (r NetworkAnchorResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if metadata.ResourceData.HasChanges("oci_backup_cidr_block", "oracle_dns_forwarding_endpoint_enabled",
-				"oracle_dns_listening_endpoint_enabled", "oracle_to_azure_dns_zone_sync_enabled", "tags") {
-				update := &networkanchors.NetworkAnchorUpdate{
-					Properties: &networkanchors.NetworkAnchorUpdateProperties{},
-				}
+			update := &networkanchors.NetworkAnchorUpdate{
+				Properties: &networkanchors.NetworkAnchorUpdateProperties{},
+			}
 
-				if metadata.ResourceData.HasChange("tags") {
-					update.Tags = pointer.To(model.Tags)
-				}
+			if metadata.ResourceData.HasChange("tags") {
+				update.Tags = pointer.To(model.Tags)
+			}
 
-				if metadata.ResourceData.HasChange("oci_backup_cidr_block") {
-					update.Properties.OciBackupCidrBlock = pointer.To(model.OciBackupCidrBlock)
-				}
+			if metadata.ResourceData.HasChange("oci_backup_cidr_block") {
+				update.Properties.OciBackupCidrBlock = pointer.To(model.OciBackupCidrBlock)
+			}
 
-				if metadata.ResourceData.HasChange("oracle_dns_forwarding_endpoint_enabled") {
-					update.Properties.IsOracleDnsForwardingEndpointEnabled = pointer.To(model.OracleDnsForwardingEndpointEnabled)
-				}
+			if metadata.ResourceData.HasChange("oracle_dns_forwarding_endpoint_enabled") {
+				update.Properties.IsOracleDnsForwardingEndpointEnabled = pointer.To(model.OracleDnsForwardingEndpointEnabled)
+			}
 
-				if metadata.ResourceData.HasChange("oracle_dns_listening_endpoint_enabled") {
-					update.Properties.IsOracleDnsListeningEndpointEnabled = pointer.To(model.OracleDnsListeningEndpointEnabled)
-				}
+			if metadata.ResourceData.HasChange("oracle_dns_listening_endpoint_enabled") {
+				update.Properties.IsOracleDnsListeningEndpointEnabled = pointer.To(model.OracleDnsListeningEndpointEnabled)
+			}
 
-				if metadata.ResourceData.HasChange("oracle_to_azure_dns_zone_sync_enabled") {
-					update.Properties.IsOracleToAzureDnsZoneSyncEnabled = pointer.To(model.OracleToAzureDnsZoneSyncEnabled)
-				}
-				if err := client.UpdateThenPoll(ctx, *id, *update); err != nil {
-					return fmt.Errorf("updating %s: %v", id, err)
-				}
+			if metadata.ResourceData.HasChange("oracle_to_azure_dns_zone_sync_enabled") {
+				update.Properties.IsOracleToAzureDnsZoneSyncEnabled = pointer.To(model.OracleToAzureDnsZoneSyncEnabled)
+			}
+			if err := client.UpdateThenPoll(ctx, *id, *update); err != nil {
+				return fmt.Errorf("updating %s: %v", id, err)
 			}
 			return nil
 		},
