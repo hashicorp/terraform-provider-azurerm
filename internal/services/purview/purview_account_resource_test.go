@@ -194,10 +194,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                      = "acctestpurview%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  public_network_enabled    = false
+  name                   = "acctestpurview%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  public_network_enabled = false
   # Azure API limitation (error 2008): once disabled, managed event hub cannot be re-enabled
   # https://learn.microsoft.com/en-us/purview/data-map-kafa-notifications#configure-event-hubs
   # managed_event_hub_enabled = false
