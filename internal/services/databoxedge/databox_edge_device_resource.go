@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databoxedge/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databox_edge_device -service-package-name databoxedge -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type DevicePropertiesModel struct {
 	Capacity            int64    `tfschema:"capacity"`
@@ -47,6 +50,11 @@ type EdgeDeviceModel struct {
 type EdgeDeviceResource struct{}
 
 var _ sdk.ResourceWithUpdate = EdgeDeviceResource{}
+var _ sdk.ResourceWithIdentity = EdgeDeviceResource{}
+
+func (r EdgeDeviceResource) Identity() resourceids.ResourceId {
+	return &devices.DataBoxEdgeDeviceId{}
+}
 
 func (r EdgeDeviceResource) ModelObject() interface{} {
 	return &EdgeDeviceModel{}
@@ -188,6 +196,9 @@ func (r EdgeDeviceResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -228,6 +239,10 @@ func (r EdgeDeviceResource) Read() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 
 			return metadata.Encode(&state)
 		},
