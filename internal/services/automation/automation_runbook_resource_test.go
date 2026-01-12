@@ -228,14 +228,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_automation_account" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-%[3]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
 
-resource "azurerm_automation_runtime_environment" "example" {
-  name                  = "powershell_environment_custom_config"
+resource "azurerm_automation_runtime_environment" "test" {
+  name                  = "acctestruntimeenv-%[3]d"
   automation_account_id = azurerm_automation_account.test.id
 
   runtime_language = "PowerShell"
@@ -251,7 +251,7 @@ resource "azurerm_automation_runtime_environment" "example" {
 }
 
 resource "azurerm_automation_runbook" "test" {
-  name                    = "Get-AzureVMTutorial"
+  name                    = "acctestrunbook-%[3]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
@@ -261,7 +261,7 @@ resource "azurerm_automation_runbook" "test" {
   description  = "This is a test runbook for terraform acceptance test"
   runbook_type = "PowerShell"
 
-  runtime_environment_name = azurerm_automation_runtime_environment.example.name
+  runtime_environment_name = azurerm_automation_runtime_environment.test.name
 
   content = <<CONTENT
 # Some test content
