@@ -6109,7 +6109,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_policy {
-    disabled_protocols = ["TLSv1_0", "TLSv1_2"]
+    disabled_protocols = ["TLSv1_0", "TLSv1_2", "TLSv1_1"]
   }
 
   gateway_ip_configuration {
@@ -7800,7 +7800,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_policy {
-    disabled_protocols = ["TLSv1_0", "TLSv1_2"]
+    disabled_protocols = ["TLSv1_0", "TLSv1_2", "TLSv1_1"]
   }
 
   ssl_profile {
@@ -7808,7 +7808,7 @@ resource "azurerm_application_gateway" "test" {
     trusted_client_certificate_names = [local.trusted_client_cert_name]
     verify_client_cert_issuer_dn     = true
     ssl_policy {
-      disabled_protocols = ["TLSv1_0", "TLSv1_2"]
+      disabled_protocols = ["TLSv1_0", "TLSv1_2", "TLSv1_1"]
     }
   }
 
