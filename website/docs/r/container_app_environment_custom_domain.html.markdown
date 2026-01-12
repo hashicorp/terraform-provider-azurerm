@@ -12,6 +12,8 @@ Manages a Container App Environment Custom Domain Suffix.
 
 ## Example Usage
 
+### Certificate from .pfx file
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -41,17 +43,117 @@ resource "azurerm_container_app_environment_custom_domain" "example" {
 }
 ```
 
+### Certificate from Key Vault
+
+```hcl
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-workspace"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example-identity"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+}
+
+resource "azurerm_container_app_environment" "example" {
+  name                       = "example-environment"
+  location                   = azurerm_resource_group.example.location
+  resource_group_name        = azurerm_resource_group.example.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.example.id]
+  }
+}
+
+resource "azurerm_key_vault" "example" {
+  name                      = "example-keyvault"
+  location                  = azurerm_resource_group.example.location
+  resource_group_name       = azurerm_resource_group.example.name
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  sku_name                  = "standard"
+  enable_rbac_authorization = true
+}
+
+resource "azurerm_role_assignment" "user_keyvault_admin" {
+  scope                = azurerm_key_vault.example.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_role_assignment" "example" {
+  scope                = azurerm_key_vault.example.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_user_assigned_identity.example.principal_id
+}
+
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "example-certificate"
+  key_vault_id = azurerm_key_vault.example.id
+
+  certificate {
+    contents = filebase64("path/to/certificate_file.pfx")
+    password = ""
+  }
+
+  depends_on = [azurerm_role_assignment.user_keyvault_admin, azurerm_role_assignment.example]
+}
+
+resource "azurerm_container_app_environment_custom_domain" "example" {
+  container_app_environment_id = azurerm_container_app_environment.example.id
+  dns_suffix                   = "acceptancetest.contoso.com"
+
+  certificate_key_vault {
+    identity            = azurerm_user_assigned_identity.example.id
+    key_vault_secret_id = azurerm_key_vault_certificate.example.versionless_secret_id
+  }
+
+  depends_on = [azurerm_role_assignment.example]
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
 
 * `container_app_environment_id` - (Required) The ID of the Container Apps Managed Environment. Changing this forces a new resource to be created.
 
-* `certificate_blob_base64` - (Required) The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.
+* `certificate_blob_base64` - (Optional) The bundle of Private Key and Certificate for the Custom DNS Suffix as a base64 encoded PFX or PEM.
 
-* `certificate_password` - (Required) The password for the Certificate bundle.
+~> **Note:** One of `certificate_blob_base64` and `certificate_key_vault` must be set.
+
+* `certificate_password` - (Optional) The password for the Certificate bundle.
+
+~> **Note:** Required if `certificate_blob_base64` is specified.
+
+* `certificate_key_vault` - (Optional) A `certificate_key_vault` block as defined below.
+
+~> **Note:** One of `certificate_blob_base64` and `certificate_key_vault` must be set.
 
 * `dns_suffix` - (Required) Custom DNS Suffix for the Container App Environment.
+
+---
+
+A `certificate_key_vault` block supports the following:
+
+* `identity` - (Optional) The managed identity to authenticate with Azure Key Vault. Possible values are the resource ID of user-assigned identity, and `System` for system-assigned identity. Defaults to `System`.
+
+~> **Note:** Please make sure [required permissions](https://learn.microsoft.com/en-us/azure/container-apps/key-vault-certificates-manage) are correctly configured for your Key Vault and managed identity.
+
+* `key_vault_secret_id` - (Required) The ID of the Key Vault Secret containing the certificate.
 
 ## Attributes Reference
 

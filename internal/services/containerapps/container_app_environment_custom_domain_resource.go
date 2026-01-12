@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -21,12 +22,19 @@ import (
 
 type ContainerAppEnvironmentCustomDomainResource struct{}
 
+type CustomDomainCertificateKeyVaultModel struct {
+	Identity         string `tfschema:"identity"`
+	KeyVaultSecretId string `tfschema:"key_vault_secret_id"`
+}
+
 type ContainerAppEnvironmentCustomDomainModel struct {
 	ManagedEnvironmentId string `tfschema:"container_app_environment_id"`
 
 	CertificatePassword string `tfschema:"certificate_password"`
 	CertificateValue    string `tfschema:"certificate_blob_base64"`
 	DnsSuffix           string `tfschema:"dns_suffix"`
+
+	CertificateKeyVault []CustomDomainCertificateKeyVaultModel `tfschema:"certificate_key_vault"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentCustomDomainResource{}
@@ -55,16 +63,47 @@ func (r ContainerAppEnvironmentCustomDomainResource) Arguments() map[string]*plu
 
 		"certificate_blob_base64": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: validation.StringIsBase64,
+			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
+			RequiredWith: []string{"certificate_password"},
 			Description:  "The Custom Domain Certificate Private Key as a base64 encoded PFX or PEM.",
 		},
 
 		"certificate_password": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			Sensitive:   true,
-			Description: "The Custom Domain Certificate password.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			RequiredWith: []string{"certificate_blob_base64"},
+			Description:  "The Custom Domain Certificate password.",
+		},
+
+		"certificate_key_vault": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     1,
+			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
+			Description:  "A `certificate_key_vault` block as defined below.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"identity": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "System",
+						ValidateFunc: validation.Any(
+							validation.StringInSlice([]string{"System"}, false),
+							commonids.ValidateUserAssignedIdentityID,
+						),
+						Description: "The identity to use for accessing the Key Vault. Use `System` for system-assigned identity or a User Assigned Identity ID.",
+					},
+					"key_vault_secret_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeSecret),
+						Description:  "The URL of the Key Vault secret containing the certificate.",
+					},
+				},
+			},
 		},
 
 		"dns_suffix": {
@@ -132,11 +171,22 @@ func (r ContainerAppEnvironmentCustomDomainResource) Create() sdk.ResourceFunc {
 				existing.Model.Properties.AppLogsConfiguration = nil
 			}
 
-			existing.Model.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
-				DnsSuffix:           pointer.To(model.DnsSuffix),
-				CertificateValue:    pointer.To(model.CertificateValue),
-				CertificatePassword: pointer.To(model.CertificatePassword),
+			customDomainConfig := &managedenvironments.CustomDomainConfiguration{
+				DnsSuffix: pointer.To(model.DnsSuffix),
 			}
+
+			if model.CertificateValue != "" {
+				customDomainConfig.CertificateValue = pointer.To(model.CertificateValue)
+				customDomainConfig.CertificatePassword = pointer.To(model.CertificatePassword)
+			} else if len(model.CertificateKeyVault) > 0 {
+				kvConfig := model.CertificateKeyVault[0]
+				customDomainConfig.CertificateKeyVaultProperties = &managedenvironments.CertificateKeyVaultProperties{
+					Identity:    pointer.To(kvConfig.Identity),
+					KeyVaultURL: pointer.To(kvConfig.KeyVaultSecretId),
+				}
+			}
+
+			existing.Model.Properties.CustomDomainConfiguration = customDomainConfig
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
@@ -178,6 +228,14 @@ func (r ContainerAppEnvironmentCustomDomainResource) Read() sdk.ResourceFunc {
 						}
 						if certPassword, ok := metadata.ResourceData.GetOk("certificate_password"); ok {
 							state.CertificatePassword = certPassword.(string)
+						}
+						if kvProps := customdomain.CertificateKeyVaultProperties; kvProps != nil {
+							state.CertificateKeyVault = []CustomDomainCertificateKeyVaultModel{
+								{
+									Identity:         pointer.From(kvProps.Identity),
+									KeyVaultSecretId: pointer.From(kvProps.KeyVaultURL),
+								},
+							}
 						}
 						state.ManagedEnvironmentId = metadata.ResourceData.Id()
 					}
@@ -281,12 +339,24 @@ func (r ContainerAppEnvironmentCustomDomainResource) Update() sdk.ResourceFunc {
 			// If custom domain dns suffix or its certificate changed, update all the required attributes
 			if metadata.ResourceData.HasChange("dns_suffix") ||
 				metadata.ResourceData.HasChange("certificate_blob_base64") ||
-				metadata.ResourceData.HasChange("certificate_password") {
-				existing.Model.Properties.CustomDomainConfiguration = &managedenvironments.CustomDomainConfiguration{
-					DnsSuffix:           pointer.To(model.DnsSuffix),
-					CertificateValue:    pointer.To(model.CertificateValue),
-					CertificatePassword: pointer.To(model.CertificatePassword),
+				metadata.ResourceData.HasChange("certificate_password") ||
+				metadata.ResourceData.HasChange("certificate_key_vault") {
+				customDomainConfig := &managedenvironments.CustomDomainConfiguration{
+					DnsSuffix: pointer.To(model.DnsSuffix),
 				}
+
+				if model.CertificateValue != "" {
+					customDomainConfig.CertificateValue = pointer.To(model.CertificateValue)
+					customDomainConfig.CertificatePassword = pointer.To(model.CertificatePassword)
+				} else if len(model.CertificateKeyVault) > 0 {
+					kvConfig := model.CertificateKeyVault[0]
+					customDomainConfig.CertificateKeyVaultProperties = &managedenvironments.CertificateKeyVaultProperties{
+						Identity:    pointer.To(kvConfig.Identity),
+						KeyVaultURL: pointer.To(kvConfig.KeyVaultSecretId),
+					}
+				}
+
+				existing.Model.Properties.CustomDomainConfiguration = customDomainConfig
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
