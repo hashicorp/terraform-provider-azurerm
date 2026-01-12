@@ -43,13 +43,13 @@ type NetworkAnchorResourceModel struct {
 	OracleDnsForwardingEndpointEnabled bool                     `tfschema:"oracle_dns_forwarding_endpoint_enabled"`
 	OracleDnsListeningEndpointEnabled  bool                     `tfschema:"oracle_dns_listening_endpoint_enabled"`
 	OracleToAzureDnsZoneSyncEnabled    bool                     `tfschema:"oracle_to_azure_dns_zone_sync_enabled"`
-	Tags                               map[string]string        `tfschema:"tags"`
 
-	DnsForwardingRuleUrl            string `tfschema:"dns_forwarding_rule_url"`
-	DnsForwardingEndpointIpAddress  string `tfschema:"dns_forwarding_endpoint_ip_address"`
-	DnsForwardingEndpointNsgRuleUrl string `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
-	DnsListeningEndpointIpAddress   string `tfschema:"dns_listening_endpoint_ip_address"`
-	DnsListeningEndpointNsgRuleUrl  string `tfschema:"dns_listening_endpoint_nsg_rule_url"`
+	DnsForwardingRuleUrl            string            `tfschema:"dns_forwarding_rule_url"`
+	DnsForwardingEndpointIpAddress  string            `tfschema:"dns_forwarding_endpoint_ip_address"`
+	DnsForwardingEndpointNsgRuleUrl string            `tfschema:"dns_forwarding_endpoint_nsg_rule_url"`
+	DnsListeningEndpointIpAddress   string            `tfschema:"dns_listening_endpoint_ip_address"`
+	DnsListeningEndpointNsgRuleUrl  string            `tfschema:"dns_listening_endpoint_nsg_rule_url"`
+	Tags                            map[string]string `tfschema:"tags"`
 }
 
 type DnsForwardingRuleModel struct {

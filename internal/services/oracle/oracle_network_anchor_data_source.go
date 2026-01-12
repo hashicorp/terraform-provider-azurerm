@@ -45,8 +45,8 @@ type NetworkAnchorDataModel struct {
 	ResourceAnchorId                   string            `tfschema:"resource_anchor_id"`
 	SubnetId                           string            `tfschema:"subnet_id"`
 	VnetId                             string            `tfschema:"vnet_id"`
-	Tags                               map[string]string `tfschema:"tags"`
 	Zones                              zones.Schema      `tfschema:"zones"`
+	Tags                               map[string]string `tfschema:"tags"`
 }
 
 func (d NetworkAnchorDataSource) Arguments() map[string]*pluginsdk.Schema {
