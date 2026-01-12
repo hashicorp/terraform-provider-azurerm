@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerConnectedRegistryResource struct{}
@@ -238,8 +237,8 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 					Parent: connectedregistries.ParentProperties{
 						SyncProperties: connectedregistries.SyncProperties{
 							TokenId:    model.SyncTokenId,
-							Schedule:   utils.String(model.SyncSchedule),
-							SyncWindow: utils.String(model.SyncWindow),
+							Schedule:   pointer.To(model.SyncSchedule),
+							SyncWindow: pointer.To(model.SyncWindow),
 							MessageTtl: model.SyncMessageTTL,
 						},
 					},
@@ -254,9 +253,9 @@ func (r ContainerConnectedRegistryResource) Create() sdk.ResourceFunc {
 
 			if model.ParentRegistryId != "" {
 				if pid, err := registries.ParseRegistryID(model.ParentRegistryId); err == nil {
-					params.Properties.Parent.Id = utils.String(pid.ID())
+					params.Properties.Parent.Id = pointer.To(pid.ID())
 				} else if pid, err := connectedregistries.ParseConnectedRegistryID(model.ParentRegistryId); err == nil {
-					params.Properties.Parent.Id = utils.String(pid.ID())
+					params.Properties.Parent.Id = pointer.To(pid.ID())
 				}
 			}
 

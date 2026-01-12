@@ -171,8 +171,10 @@ Schema fields should be ordered as follows:
 1. Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`)
 2. The `location` field.
 3. Required fields, sorted alphabetically.
-4. Optional fields, sorted alphabetically.
+4. Optional fields, sorted alphabetically. (The `tags` field is a special case and must always be listed last even though it's an `optional` field.)
 5. Computed fields, sorted alphabetically. (Although in a typed resource these are always added within the `Attributes` method)
+
+-> **Note:** This ordering applies to both `typed` and `untyped` resources; typed implementations still need their documentation to follow this sequence even if the schema wiring differs.
 
 ---
 
@@ -752,7 +754,7 @@ type ResourceGroupExampleTestResource struct{}
 func TestAccResourceGroupExample_basic(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
@@ -767,7 +769,7 @@ func TestAccResourceGroupExample_basic(t *testing.T) {
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
@@ -782,7 +784,7 @@ func TestAccResourceGroupExample_requiresImport(t *testing.T) {
 func TestAccResourceGroupExample_complete(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.complete(data),
@@ -797,7 +799,7 @@ func TestAccResourceGroupExample_complete(t *testing.T) {
 func TestAccResourceGroupExample_update(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
