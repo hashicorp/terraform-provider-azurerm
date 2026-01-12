@@ -130,7 +130,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		errors = append(errors, fmt.Errorf("resource name is required"))
 	}
 
-	strings.TrimPrefix(d.ResourceName, "azurerm_") // catch and remove accidental provider prefix
+	d.ResourceName = strings.TrimPrefix(d.ResourceName, "azurerm_") // catch and remove accidental provider prefix
 
 	// d.PropertyNameMap = strings.Split(d.IdentityProperties, ",")
 	if len(d.IdentityProperties) > 0 {
