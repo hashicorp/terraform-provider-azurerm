@@ -173,7 +173,11 @@ resource "azurerm_kusto_attached_database_configuration" "test" {
 func (KustoAttachedDatabaseConfigurationResource) clusterResourceId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -240,7 +244,11 @@ resource "azurerm_kusto_attached_database_configuration" "test" {
 func (KustoAttachedDatabaseConfigurationResource) databaseNameOverride(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "rg" {
@@ -299,7 +307,11 @@ resource "azurerm_kusto_attached_database_configuration" "test" {
 func (KustoAttachedDatabaseConfigurationResource) databaseNamePrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 resource "azurerm_resource_group" "rg" {
