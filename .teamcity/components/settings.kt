@@ -13,7 +13,7 @@ var defaultParallelism = 20
 var defaultTimeout = 12
 
 // specifies the default version of Terraform Core which should be used for testing
-var defaultTerraformCoreVersion = "1.12.2"
+var defaultTerraformCoreVersion = "1.14.3"
 
 // This represents a cron view of days of the week, Monday - Friday.
 const val defaultDaysOfWeek = "2,3,4,5,6"
