@@ -24,6 +24,7 @@ ENHANCEMENTS:
 * `azurerm_linux_web_app_slot` - add support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
 
 FEATURES:
+* **New List Resource**: `azurerm_resource_group` [GH-31270]
 
 BUG FIXES:
 * `clients` - fix correlation id across many clients [GH-31368]
