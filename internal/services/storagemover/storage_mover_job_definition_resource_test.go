@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -76,6 +76,21 @@ func TestAccStorageMoverJobDefinition_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageMoverJobDefinition_withJobType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_mover_job_definition", "test")
+	r := StorageMoverJobDefinitionTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withJobType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("job_type").HasValue("CloudToCloud"),
 			),
 		},
 		data.ImportStep(),
@@ -240,6 +255,31 @@ resource "azurerm_storage_mover_job_definition" "test" {
   target_name              = azurerm_storage_mover_target_endpoint.test.name
   target_sub_path          = "/"
   description              = "Update example Job Definition Description"
+}
+`, template, data.RandomInteger)
+}
+
+func (r StorageMoverJobDefinitionTestResource) withJobType(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%s
+
+resource "azurerm_storage_mover_job_definition" "test" {
+  name                     = "acctest-sjd-%[2]d"
+  storage_mover_project_id = azurerm_storage_mover_project.test.id
+  copy_mode                = "Additive"
+  job_type                 = "CloudToCloud"
+  source_name              = azurerm_storage_mover_source_endpoint.test.name
+  target_name              = azurerm_storage_mover_target_endpoint.test.name
+  description              = "CloudToCloud Job Definition"
 }
 `, template, data.RandomInteger)
 }

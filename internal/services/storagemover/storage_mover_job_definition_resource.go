@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/projects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -24,6 +24,7 @@ type StorageMoverJobDefinitionResourceModel struct {
 	SourceName            string                  `tfschema:"source_name"`
 	TargetName            string                  `tfschema:"target_name"`
 	CopyMode              jobdefinitions.CopyMode `tfschema:"copy_mode"`
+	JobType               string                  `tfschema:"job_type"`
 	SourceSubpath         string                  `tfschema:"source_sub_path"`
 	TargetSubpath         string                  `tfschema:"target_sub_path"`
 	AgentName             string                  `tfschema:"agent_name"`
@@ -85,6 +86,17 @@ func (r StorageMoverJobDefinitionResource) Arguments() map[string]*pluginsdk.Sch
 			ValidateFunc: validation.StringInSlice([]string{
 				string(jobdefinitions.CopyModeMirror),
 				string(jobdefinitions.CopyModeAdditive),
+			}, false),
+		},
+
+		"job_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			Default:  string(jobdefinitions.JobTypeOnPremToCloud),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(jobdefinitions.JobTypeOnPremToCloud),
+				string(jobdefinitions.JobTypeCloudToCloud),
 			}, false),
 		},
 
@@ -151,6 +163,11 @@ func (r StorageMoverJobDefinitionResource) Create() sdk.ResourceFunc {
 					SourceName: model.SourceName,
 					TargetName: model.TargetName,
 				},
+			}
+
+			if model.JobType != "" {
+				jobType := jobdefinitions.JobType(model.JobType)
+				properties.Properties.JobType = &jobType
 			}
 
 			if model.AgentName != "" {
@@ -265,6 +282,10 @@ func (r StorageMoverJobDefinitionResource) Read() sdk.ResourceFunc {
 				state.CopyMode = v.Properties.CopyMode
 
 				state.Description = pointer.From(v.Properties.Description)
+
+				if v.Properties.JobType != nil {
+					state.JobType = string(*v.Properties.JobType)
+				}
 
 				state.SourceName = v.Properties.SourceName
 
