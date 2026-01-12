@@ -13,6 +13,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/templatehelpers"
 	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/cli"
@@ -129,6 +130,8 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 		errors = append(errors, fmt.Errorf("resource name is required"))
 	}
 
+	strings.TrimPrefix(d.ResourceName, "azurerm_") // catch and remove accidental provider prefix
+
 	// d.PropertyNameMap = strings.Split(d.IdentityProperties, ",")
 	if len(d.IdentityProperties) > 0 {
 		d.NoSubscriptionID = true
@@ -195,13 +198,14 @@ func (d *resourceIdentityData) exec() error {
 
 	if d.ExampleID != "" {
 		d.PropertyNameMap = make(map[string]string)
+		_ = provider.AzureProvider() // Registers all the ID types via init()
 		id := recaser.ResourceIdTypeFromResourceId(d.ExampleID)
 		if id == nil {
 			return fmt.Errorf("invalid or unregistred resource id: %s", d.ExampleID)
 		}
 		for _, s := range id.Segments() {
 			if s.Type == resourceids.UserSpecifiedSegmentType || s.Type == resourceids.ResourceGroupSegmentType {
-				if strings.HasPrefix(s.Name, d.ResourceName) {
+				if strings.HasPrefix(strcase.ToSnake(s.Name), d.ResourceName) {
 					d.PropertyNameMap["name"] = "name"
 					continue
 				}
@@ -227,7 +231,7 @@ func (d *resourceIdentityData) exec() error {
 		return fmt.Errorf("failed writing output test file (%s): %s", outputPath, err.Error())
 	}
 
-	if err := templatehelpers.GoImports(outputPath); err != nil {
+	if err := templatehelpers.GoImportsPath(cwd); err != nil {
 		return err
 	}
 
