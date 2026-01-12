@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -21,7 +22,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana_managed_private_endpoint -service-package-name dashboard -properties "name" -compare-values "resource_group_name:grafana_id,grafana_name:grafana_id" -known-values "subscription_id:data.Subscriptions.Primary"
+
 type ManagedPrivateEndpointResource struct{}
+
+var _ sdk.Resource = ManagedPrivateEndpointResource{}
+var _ sdk.ResourceWithIdentity = ManagedPrivateEndpointResource{}
+
+func (r ManagedPrivateEndpointResource) Identity() resourceids.ResourceId {
+	return &managedprivateendpointmodels.ManagedPrivateEndpointId{}
+}
 
 type ManagedPrivateEndpointModel struct {
 	Name                      string            `tfschema:"name"`
@@ -165,6 +175,9 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -206,6 +219,10 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 					state.RequestMessage = pointer.From(props.RequestMessage)
 					state.PrivateLinkServiceURL = pointer.From(props.PrivateLinkServiceURL)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

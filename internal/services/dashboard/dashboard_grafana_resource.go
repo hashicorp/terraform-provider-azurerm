@@ -14,12 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana -service-package-name dashboard -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type DashboardGrafanaModel struct {
 	Name                              string                                            `tfschema:"name"`
@@ -58,6 +61,11 @@ type SMTPConfigurationModel struct {
 type DashboardGrafanaResource struct{}
 
 var _ sdk.ResourceWithUpdate = DashboardGrafanaResource{}
+var _ sdk.ResourceWithIdentity = DashboardGrafanaResource{}
+
+func (r DashboardGrafanaResource) Identity() resourceids.ResourceId {
+	return &managedgrafanas.GrafanaId{}
+}
 
 func (r DashboardGrafanaResource) ResourceType() string {
 	return "azurerm_dashboard_grafana"
@@ -306,6 +314,9 @@ func (r DashboardGrafanaResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -498,6 +509,10 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
