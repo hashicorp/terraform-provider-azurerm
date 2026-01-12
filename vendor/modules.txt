@@ -1216,6 +1216,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpo
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/projects
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers
+github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/agents
+github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints
+github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions
+github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobruns
+github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/projects
+github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource
 github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource
