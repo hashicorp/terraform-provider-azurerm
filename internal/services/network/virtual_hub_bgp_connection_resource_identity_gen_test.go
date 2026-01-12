@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -30,7 +30,7 @@ func TestAccVirtualHubBgpConnection_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_hub_bgp_connection.test", tfjsonpath.New("connection_name"), tfjsonpath.New("name")),
+					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_virtual_hub_bgp_connection.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_hub_bgp_connection.test", tfjsonpath.New("hub_name"), tfjsonpath.New("virtual_hub_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_hub_bgp_connection.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_hub_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_hub_bgp_connection.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("virtual_hub_id")),

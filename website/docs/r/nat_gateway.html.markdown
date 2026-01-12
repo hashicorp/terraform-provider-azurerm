@@ -29,7 +29,7 @@ resource "azurerm_nat_gateway" "example" {
 
 For more complete examples, please see the [azurerm_nat_gateway_public_ip_association](nat_gateway_public_ip_association.html) and [azurerm_nat_gateway_public_ip_prefix_association](nat_gateway_public_ip_prefix_association.html) resources.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -78,4 +78,4 @@ terraform import azurerm_nat_gateway.test /subscriptions/00000000-0000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

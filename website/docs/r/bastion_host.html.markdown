@@ -56,7 +56,7 @@ resource "azurerm_bastion_host" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

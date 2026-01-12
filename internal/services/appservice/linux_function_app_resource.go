@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary"
@@ -606,6 +606,9 @@ func (r LinuxFunctionAppResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			stickySettings := helpers.ExpandStickySettings(functionApp.StickySettings)
 
@@ -745,14 +748,14 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 			}
 
 			basicAuthFTP := true
-			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil && basicAuthFTPResp.Model != nil {
+			if basicAuthFTPResp, err := client.GetFtpAllowed(ctx, *id); err != nil || basicAuthFTPResp.Model == nil {
 				return fmt.Errorf("retrieving state of FTP Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthFTPResp.Model.Properties; csmProps != nil {
 				basicAuthFTP = csmProps.Allow
 			}
 
 			basicAuthWebDeploy := true
-			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, *id); err != nil && basicAuthWebDeployResp.Model != nil {
+			if basicAuthWebDeployResp, err := client.GetScmAllowed(ctx, *id); err != nil || basicAuthWebDeployResp.Model == nil {
 				return fmt.Errorf("retrieving state of WebDeploy Basic Auth for %s: %+v", id, err)
 			} else if csmProps := basicAuthWebDeployResp.Model.Properties; csmProps != nil {
 				basicAuthWebDeploy = csmProps.Allow
@@ -1148,17 +1151,7 @@ func (r LinuxFunctionAppResource) Update() sdk.ResourceFunc {
 				authUpdate := helpers.ExpandAuthSettings(state.AuthSettings)
 				// (@jackofallops) - in the case of a removal of this block, we need to zero these settings
 				if authUpdate.Properties == nil {
-					authUpdate.Properties = &webapps.SiteAuthSettingsProperties{
-						Enabled:                           pointer.To(false),
-						ClientSecret:                      pointer.To(""),
-						ClientSecretSettingName:           pointer.To(""),
-						ClientSecretCertificateThumbprint: pointer.To(""),
-						GoogleClientSecret:                pointer.To(""),
-						FacebookAppSecret:                 pointer.To(""),
-						GitHubClientSecret:                pointer.To(""),
-						TwitterConsumerSecret:             pointer.To(""),
-						MicrosoftAccountClientSecret:      pointer.To(""),
-					}
+					authUpdate.Properties = helpers.DefaultAuthSettingsProperties()
 				}
 				if _, err := client.UpdateAuthSettings(ctx, *id, *authUpdate); err != nil {
 					return fmt.Errorf("updating Auth Settings for Linux %s: %+v", id, err)

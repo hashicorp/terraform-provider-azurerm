@@ -76,7 +76,7 @@ resource "azurerm_postgresql_flexible_server_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -115,4 +115,4 @@ terraform import azurerm_postgresql_flexible_server_configuration.example /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL` - 2024-08-01
+* `Microsoft.DBforPostgreSQL` - 2025-08-01

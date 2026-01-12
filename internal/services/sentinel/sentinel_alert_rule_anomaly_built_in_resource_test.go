@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel_test
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SentinelAlertRuleAnomalyBuiltInResource struct{}
@@ -39,7 +39,7 @@ func (r SentinelAlertRuleAnomalyBuiltInResource) Exists(ctx context.Context, cli
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Sentinel Alert Rule Anomaly Built In %q (Workspace %q / Resource Group %q): %+v", id.SecurityMLAnalyticsSettingName, id.WorkspaceName, id.ResourceGroup, err)
 	}
-	return utils.Bool(resp != nil && resp.Enabled != nil && *resp.Enabled == true), nil
+	return pointer.To(resp != nil && resp.Enabled != nil && *resp.Enabled == true), nil
 }
 
 func TestAccSentinelAlertRuleAnomalyBuiltIn_basic(t *testing.T) {

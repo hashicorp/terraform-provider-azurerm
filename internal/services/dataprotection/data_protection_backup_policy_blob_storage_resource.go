@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -351,7 +351,7 @@ func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},

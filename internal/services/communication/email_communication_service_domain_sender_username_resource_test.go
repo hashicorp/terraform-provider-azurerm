@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication_test
@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EmailServiceDomainSenderUsernameTestResource struct{}
+type EmailCommunicationServiceDomainSenderUsernameResource struct{}
 
 func TestAccEmailServiceDomainSenderUsername_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
-	r := EmailServiceDomainSenderUsernameTestResource{}
+	r := EmailCommunicationServiceDomainSenderUsernameResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccEmailServiceDomainSenderUsername_basic(t *testing.T) {
 
 func TestAccEmailServiceDomainSenderUsername_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
-	r := EmailServiceDomainSenderUsernameTestResource{}
+	r := EmailCommunicationServiceDomainSenderUsernameResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccEmailServiceDomainSenderUsername_requiresImport(t *testing.T) {
 
 func TestAccEmailServiceDomainSenderUsername_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
-	r := EmailServiceDomainSenderUsernameTestResource{}
+	r := EmailCommunicationServiceDomainSenderUsernameResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +65,7 @@ func TestAccEmailServiceDomainSenderUsername_complete(t *testing.T) {
 
 func TestAccEmailServiceDomainSenderUsername_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_email_communication_service_domain_sender_username", "test")
-	r := EmailServiceDomainSenderUsernameTestResource{}
+	r := EmailCommunicationServiceDomainSenderUsernameResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,7 +99,7 @@ func TestAccEmailServiceDomainSenderUsername_update(t *testing.T) {
 	})
 }
 
-func (r EmailServiceDomainSenderUsernameTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r EmailCommunicationServiceDomainSenderUsernameResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := senderusernames.ParseSenderUsernameID(state.ID)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (r EmailServiceDomainSenderUsernameTestResource) Exists(ctx context.Context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r EmailServiceDomainSenderUsernameTestResource) basic(data acceptance.TestData) string {
+func (r EmailCommunicationServiceDomainSenderUsernameResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -128,7 +128,7 @@ resource "azurerm_email_communication_service_domain_sender_username" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r EmailServiceDomainSenderUsernameTestResource) requiresImport(data acceptance.TestData) string {
+func (r EmailCommunicationServiceDomainSenderUsernameResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -139,7 +139,7 @@ resource "azurerm_email_communication_service_domain_sender_username" "import" {
 `, r.basic(data))
 }
 
-func (r EmailServiceDomainSenderUsernameTestResource) complete(data acceptance.TestData) string {
+func (r EmailCommunicationServiceDomainSenderUsernameResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -155,7 +155,7 @@ resource "azurerm_email_communication_service_domain_sender_username" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r EmailServiceDomainSenderUsernameTestResource) update(data acceptance.TestData) string {
+func (r EmailCommunicationServiceDomainSenderUsernameResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -171,7 +171,7 @@ resource "azurerm_email_communication_service_domain_sender_username" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r EmailServiceDomainSenderUsernameTestResource) template(data acceptance.TestData) string {
+func (r EmailCommunicationServiceDomainSenderUsernameResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-communicationservice-%d"

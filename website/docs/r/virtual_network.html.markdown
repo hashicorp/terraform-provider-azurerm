@@ -55,7 +55,7 @@ resource "azurerm_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `flow_timeout_in_minutes` - (Optional) The flow timeout in minutes for the Virtual Network, which is used to enable connection tracking for intra-VM flows. Possible values are between `4` and `30` minutes.
 
-* `ip_address_pool` - (Optional) One or two `ip_address_pool` blocks as defined below. Only one association of each IP type(IPv4 or IPv6) is allowed.
+* `ip_address_pool` - (Optional) One or more `ip_address_pool` blocks as defined below. Only one association of each IP type(IPv4 or IPv6) is allowed.
 
 -> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
@@ -222,4 +222,4 @@ terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

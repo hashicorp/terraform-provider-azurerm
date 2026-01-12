@@ -46,7 +46,7 @@ resource "azurerm_app_service_slot_custom_hostname_binding" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

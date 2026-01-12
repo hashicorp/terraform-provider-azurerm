@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot_test
@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
@@ -74,7 +75,7 @@ func (t BotChannelMsTeamsResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Properties != nil), nil
+	return pointer.To(resp.Properties != nil), nil
 }
 
 func (BotChannelMsTeamsResource) basicConfig(data acceptance.TestData) string {
@@ -90,7 +91,8 @@ resource "azurerm_bot_channel_ms_teams" "test" {
 }
 
 func (BotChannelMsTeamsResource) basicUpdate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_bot_channel_ms_teams" "test" {
@@ -99,6 +101,19 @@ resource "azurerm_bot_channel_ms_teams" "test" {
   resource_group_name    = azurerm_resource_group.test.name
   calling_web_hook       = "https://example.com/"
   enable_calling         = true
+  deployment_environment = "CommercialDeployment"
+}
+`, BotChannelsRegistrationResource{}.basicConfig(data))
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_ms_teams" "test" {
+  bot_name               = azurerm_bot_channels_registration.test.name
+  location               = azurerm_bot_channels_registration.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  calling_web_hook       = "https://example.com/"
+  calling_enabled        = true
   deployment_environment = "CommercialDeployment"
 }
 `, BotChannelsRegistrationResource{}.basicConfig(data))

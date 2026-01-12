@@ -369,16 +369,6 @@ service/maps:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
 
-service/mixed-reality:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mixedreality/**/*
-
-service/mobile-network:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mobilenetwork/**/*
-
 service/mongo-cluster:
 - changed-files:
   - any-glob-to-any-file:
@@ -487,6 +477,7 @@ service/redhatopenshift:
 service/redis:
 - changed-files:
   - any-glob-to-any-file:
+    - internal/services/managedredis/**/*
     - internal/services/redis/**/*
     - internal/services/redisenterprise/**/*
 
@@ -494,6 +485,11 @@ service/relay:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/relay/**/*
+
+service/resource:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/resource/**/*
 
 service/search:
 - changed-files:

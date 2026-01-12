@@ -1,5 +1,7 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_workbook_template -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
 
 package applicationinsights
 
@@ -9,14 +11,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	workbooktemplates "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-11-20/workbooktemplatesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ApplicationInsightsWorkbookTemplateModel struct {
@@ -41,7 +44,10 @@ type WorkbookTemplateGalleryModel struct {
 
 type ApplicationInsightsWorkbookTemplateResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApplicationInsightsWorkbookTemplateResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ApplicationInsightsWorkbookTemplateResource{}
+	_ sdk.ResourceWithIdentity = ApplicationInsightsWorkbookTemplateResource{}
+)
 
 func (r ApplicationInsightsWorkbookTemplateResource) ResourceType() string {
 	return "azurerm_application_insights_workbook_template"
@@ -53,6 +59,10 @@ func (r ApplicationInsightsWorkbookTemplateResource) ModelObject() interface{} {
 
 func (r ApplicationInsightsWorkbookTemplateResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workbooktemplates.ValidateWorkbookTemplateID
+}
+
+func (r ApplicationInsightsWorkbookTemplateResource) Identity() resourceids.ResourceId {
+	return &workbooktemplates.WorkbookTemplateId{}
 }
 
 func (r ApplicationInsightsWorkbookTemplateResource) Arguments() map[string]*pluginsdk.Schema {
@@ -202,6 +212,9 @@ func (r ApplicationInsightsWorkbookTemplateResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -345,6 +358,9 @@ func (r ApplicationInsightsWorkbookTemplateResource) Read() sdk.ResourceFunc {
 				state.Tags = *model.Tags
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -374,11 +390,11 @@ func expandWorkbookTemplateGalleryModel(inputList []WorkbookTemplateGalleryModel
 	outputList := make([]workbooktemplates.WorkbookTemplateGallery, 0, len(inputList))
 	for _, input := range inputList {
 		output := workbooktemplates.WorkbookTemplateGallery{
-			Category:     utils.String(input.Category),
-			Name:         utils.String(input.Name),
-			Order:        utils.Int64(input.Order),
-			ResourceType: utils.String(input.ResourceType),
-			Type:         utils.String(input.Type),
+			Category:     pointer.To(input.Category),
+			Name:         pointer.To(input.Name),
+			Order:        pointer.To(input.Order),
+			ResourceType: pointer.To(input.ResourceType),
+			Type:         pointer.To(input.Type),
 		}
 
 		outputList = append(outputList, output)

@@ -94,7 +94,7 @@ resource "azurerm_web_pubsub_custom_certificate" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

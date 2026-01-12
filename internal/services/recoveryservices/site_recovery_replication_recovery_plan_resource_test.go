@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -10,12 +10,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryplans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteRecoveryReplicationRecoveryPlan struct{}
@@ -723,5 +723,5 @@ func (r SiteRecoveryReplicationRecoveryPlan) Exists(ctx context.Context, clients
 		return nil, fmt.Errorf("reading site recovery replication plan (%s): model is nil. ", id.String())
 	}
 
-	return utils.Bool(model.Id != nil), nil
+	return pointer.To(model.Id != nil), nil
 }

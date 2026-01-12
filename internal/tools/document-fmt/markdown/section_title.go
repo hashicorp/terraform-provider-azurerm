@@ -1,9 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package markdown
 
-import "regexp"
+import (
+	"regexp"
+)
 
 type TitleSection struct {
 	heading Heading
@@ -13,8 +15,7 @@ type TitleSection struct {
 var _ SectionWithTemplate = &TitleSection{}
 
 func (s *TitleSection) Match(line string) bool {
-	match, _ := regexp.MatchString(`#+\s*([a-zA-Z0-9\s]*:\s*)?\w*_[\w_]*`, line)
-	return match
+	return regexp.MustCompile(`#+\s*([a-zA-Z0-9\s]*:\s*)?\w*_[\w_]*`).MatchString(line)
 }
 
 func (s *TitleSection) SetHeading(line string) {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redisenterprise
@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -25,11 +26,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_redis_enterprise_cluster` resource has been deprecated in favor of `azurerm_managed_redis_cluster`",
+
 		Create: resourceRedisEnterpriseClusterCreate,
 		Read:   resourceRedisEnterpriseClusterRead,
 		Update: resourceRedisEnterpriseClusterUpdate,
@@ -284,7 +286,7 @@ func expandRedisEnterpriseClusterSku(v string) redisenterprise.Sku {
 
 	return redisenterprise.Sku{
 		Name:     redisenterprise.SkuName(redisSku.Name),
-		Capacity: utils.Int64(capacity),
+		Capacity: pointer.To(capacity),
 	}
 }
 

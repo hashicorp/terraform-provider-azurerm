@@ -13,7 +13,7 @@ For example, whilst a Create method may look similar to below:
 ```go
 payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
-    Tags: tags.Expand(d.Get("tags").(map[string]interface{}),
+    Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 }
 
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -31,7 +31,7 @@ A patch/delta update would look similar to below:
 payload := resources.GroupUpdate{}
 if d.HasChanges("tags") {
   // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
-  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{}))
+  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{})))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -53,7 +53,7 @@ if resp.Model == nil {
 
 payload := *resp.Model
 if d.HasChanges("tags") {
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{})
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -221,9 +221,17 @@ In version 5 of the Terraform Protocol, if a field is created with one value at 
 
 To work around situations where we need to expose the default value from the Azure API - we've historically marked fields as both `Optional` and `Computed` - meaning that a value will be returned from the API when it's not defined.
 
-Whilst this works, a side effect is that it's hard for users to reset a field to its default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty list is specified (for example `subnets = []`) to remove this value, where this field is `Optional` and `Computed`.
+Whilst this works, there are some side effects, for example:
 
-Due to some of the issues surrounding `Optional` + `Computed` properties, avoid this usage where other options exist, e.g. specifying a `Default` if Azure consistently sets the same value. However, if no other options exist, we should mark the property `Optional` + `Computed` in favour of having users specify `ignore_changes`.
+1. It's hard for users to reset a field to its default value, for example: subnets block within the azurerm_virtual_network resource require that an explicit empty list is specified (`subnets = []`) to remove
+2. The default value set by the Azure API cannot be documented because it is not set in the Terraform schema, and not possible for [document-lint](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/document-lint) to statically check
+
+Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
+
+1. Specifying a `Default` if Azure consistently sets the same value
+2. Setting the property `Required` and force user to specify a value at creation
+
+However, if no other options exist, we can use `Optional` + `Computed` in favour of having users specify `ignore_changes`.
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
 * The properties are in this sequence: Optional, Explanatory Comment, Computed

@@ -100,14 +100,11 @@ EOF
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. 
-  An active-standby gateway requires exactly one `ip_configuration` block,
-  an active-active gateway requires exactly two `ip_configuration` blocks whereas
-  an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
+* `ip_configuration` - (Required) One or more (up to 3) `ip_configuration` blocks documented below. Changing this forces a new resource to be created. An active-standby gateway requires exactly one `ip_configuration` block, an active-active gateway requires exactly two `ip_configuration` blocks whereas an active-active zone redundant gateway with P2S configuration requires exactly three `ip_configuration` blocks.
 
 * `location` - (Required) The location/region where the Virtual Network Gateway is located. Changing this forces a new resource to be created.
 
@@ -115,7 +112,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Virtual Network Gateway. Changing this forces a new resource to be created.
 
-* `sku` - (Required) Configuration of the size and capacity of the virtual network gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`, `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`, `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and `generation` arguments. A `PolicyBased` gateway only supports the `Basic` SKU. Further, the `UltraPerformance` SKU is only supported by an `ExpressRoute` gateway.
+* `sku` - (Required) Configuration of the size and capacity of the virtual network gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`, `ErGwScale`, `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw4`,`VpnGw5`, `VpnGw1AZ`, `VpnGw2AZ`, `VpnGw3AZ`,`VpnGw4AZ` and `VpnGw5AZ` and depend on the `type`, `vpn_type` and `generation` arguments. A `PolicyBased` gateway only supports the `Basic` SKU. Further, the `UltraPerformance` and `ErGwScale` SKU is only supported by an `ExpressRoute` gateway.
 
 ~> **Note:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be SKU "Basic" not "Standard"
 
@@ -343,7 +340,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 90 minutes) Used when creating the Virtual Network Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
 * `update` - (Defaults to 1 hour) Used when updating the Virtual Network Gateway.
-* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Network Gateway.
+* `delete` - (Defaults to 2 hours) Used when deleting the Virtual Network Gateway.
 
 ## Import
 
@@ -357,4 +354,4 @@ terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01
