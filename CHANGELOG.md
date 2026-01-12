@@ -1,8 +1,9 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
-`azurerm_backup_policy_file_share` - add support for `backup_tier` and `snapshot_retention_in_days` [GH-29243]
-[ENHANCEMENT]` * `azurerm_windows_function_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-31248]
+* `azurerm_backup_policy_file_share` - add support for `backup_tier` and `snapshot_retention_in_days` [GH-29243]
+* `azurerm_windows_function_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-31248]
+* `azurerm_windows_function_app_slot` - add support for `~24` to `site_config.application_stack.node_version` [GH-31248]
 
 * `azurerm_application_insights` - support for Terraform Resource Identity
 * `azurerm_application_insights_standard_web_test` - support for Terraform Resource Identity
