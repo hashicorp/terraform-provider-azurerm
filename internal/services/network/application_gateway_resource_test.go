@@ -6302,47 +6302,47 @@ resource "azurerm_application_gateway" "test" {
 
   custom_error_configuration {
     status_code           = "HttpStatus403"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP403.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus404"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP404.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus405"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP405.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus408"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP408.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus400"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP400.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus502"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP502.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus503"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP503.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus504"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP504.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus500"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP500.html"
   }
 
   request_routing_rule {
