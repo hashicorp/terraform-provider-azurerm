@@ -145,7 +145,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Security Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Security Policy.
 * `update` - (Defaults to 30 minutes) Used when updating the Front Door Security Policy.
-* `delete` - (Defaults to 120 minutes) Used when deleting the Front Door Security Policy.
+* `delete` - (Defaults to 2 hours) Used when deleting the Front Door Security Policy.
 
 ## Import
 

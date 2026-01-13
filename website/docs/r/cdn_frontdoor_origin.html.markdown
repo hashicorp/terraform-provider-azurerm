@@ -283,7 +283,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Origin.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Origin.
 * `update` - (Defaults to 30 minutes) Used when updating the Front Door Origin.
-* `delete` - (Defaults to 120 minutes) Used when deleting the Front Door Origin.
+* `delete` - (Defaults to 2 hours) Used when deleting the Front Door Origin.
 
 ## Import
 
