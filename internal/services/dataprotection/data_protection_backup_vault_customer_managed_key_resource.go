@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_customer_managed_key -service-package-name dataprotection -compare-values "resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name complete
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_customer_managed_key -service-package-name dataprotection -compare-values "resource_group_name:data_protection_backup_vault_id,name:data_protection_backup_vault_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name complete
 
 type DataProtectionBackupVaultCustomerManagedKeyResource struct{}
 
