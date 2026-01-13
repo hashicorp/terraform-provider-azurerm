@@ -34,8 +34,8 @@ func TestAccApiManagementApiDiagnostic_resourceIdentity(t *testing.T) {
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_api_management_api_diagnostic.test", tfjsonpath.New("service_name"), tfjsonpath.New("api_management_name")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }
