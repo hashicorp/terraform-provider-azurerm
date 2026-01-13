@@ -3364,25 +3364,12 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Recover",
     "Update",
     "Purge",
-    "Wrap",
-    "Unwrap",
-  ]
-}
-
-resource "azurerm_key_vault_access_policy" "managed" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = "%[4]s"
-
-  key_permissions = [
-    "Get",
-    "GetRotationPolicy",
-    "UnwrapKey",
-    "WrapKey",
   ]
 }
 
 resource "azurerm_databricks_workspace" "test" {
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
