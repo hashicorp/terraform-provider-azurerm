@@ -3326,7 +3326,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  // depends_on = [azurerm_key_vault_access_policy.terraform]
+  depends_on = [azurerm_key_vault_access_policy.managed]
 
   name         = "acctest-certificate"
   key_vault_id = azurerm_key_vault.test.id
