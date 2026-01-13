@@ -798,8 +798,10 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
 	d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 
-	if err := d.Set("custom_parameters", custom); err != nil {
-		return fmt.Errorf("setting `custom_parameters`: %+v", err)
+	if computeMode != workspaces.ComputeModeServerless {
+		if err := d.Set("custom_parameters", custom); err != nil {
+			return fmt.Errorf("setting `custom_parameters`: %+v", err)
+		}
 	}
 
 	// Always set these even if they are empty to keep the state file
