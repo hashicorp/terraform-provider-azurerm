@@ -617,6 +617,10 @@ resource "azurerm_databricks_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku)
 }
 
+func (DatabricksWorkspaceResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return DatabricksWorkspaceResource{}.basic(data, "standard")
+}
+
 func (DatabricksWorkspaceResource) defaultStorageFirewall(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {

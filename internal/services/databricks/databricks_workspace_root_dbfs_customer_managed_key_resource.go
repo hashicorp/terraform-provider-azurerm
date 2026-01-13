@@ -15,12 +15,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace_root_dbfs_customer_managed_key -service-package-name databricks -compare-values "resource_group_name:workspace_id,workspace_name:workspace_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -52,6 +55,9 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 
 			return []*pluginsdk.ResourceData{d}, nil
 		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&workspaces.WorkspaceId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"workspace_id": {
@@ -157,6 +163,9 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
+	}
 
 	// Always set this even if it's empty to keep the state file
 	// consistent with the configuration file...
@@ -208,7 +217,7 @@ func databricksWorkspaceRootDbfsCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	d.Set("workspace_id", id.ID())
 	d.Set("key_vault_id", d.Get("key_vault_id").(string))
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func databricksWorkspaceRootDbfsCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
