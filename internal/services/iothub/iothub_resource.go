@@ -604,6 +604,12 @@ func resourceIotHub() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"data_residency_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"type": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -747,6 +753,10 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 			enabled = devices.PublicNetworkAccessEnabled
 		}
 		props.Properties.PublicNetworkAccess = enabled
+	}
+
+	if v, ok := d.GetOk("data_residency_enabled"); ok {
+		props.Properties.EnableDataResidency = pointer.FromBool(v.(bool))
 	}
 
 	retention, retentionOk := d.GetOk("event_hub_retention_in_days")
@@ -900,6 +910,12 @@ func resourceIotHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				enabled = devices.PublicNetworkAccessEnabled
 			}
 			prop.PublicNetworkAccess = enabled
+		}
+	}
+
+	if d.HasChange("data_residency_enabled") {
+		if v, ok := d.GetOk("data_residency_enabled"); ok {
+			prop.EnableDataResidency = pointer.FromBool(v.(bool))
 		}
 	}
 
@@ -1072,6 +1088,10 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		if enabled := properties.PublicNetworkAccess; enabled != "" {
 			d.Set("public_network_access_enabled", enabled == devices.PublicNetworkAccessEnabled)
+		}
+
+		if properties.EnableDataResidency != nil {
+			d.Set("data_residency_enabled", pointer.ToBool(properties.EnableDataResidency))
 		}
 
 		cloudToDevice := flattenIoTHubCloudToDevice(properties.CloudToDevice)
