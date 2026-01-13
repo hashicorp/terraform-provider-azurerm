@@ -134,7 +134,9 @@ func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err := d.Set("identity", identity.FlattenSystemAssigned(&model.Identity)); err != nil {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
-		return helperTags.FlattenAndSet(d, model.Tags)
+		if err := helperTags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
 	}
 	return pluginsdk.SetResourceIdentityData(d, id)
 }

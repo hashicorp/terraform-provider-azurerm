@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace_root_dbfs_customer_managed_key -service-package-name databricks -compare-values "resource_group_name:workspace_id,workspace_name:workspace_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace_root_dbfs_customer_managed_key -service-package-name databricks -compare-values "resource_group_name:workspace_id,name:workspace_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -39,10 +39,7 @@ func resourceDatabricksWorkspaceRootDbfsCustomerManagedKey() *pluginsdk.Resource
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := workspaces.ParseWorkspaceID(id)
-			return err
-		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&workspaces.WorkspaceId{}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			// validate that the passed ID is a valid CMK configuration ID
 			id, err := workspaces.ParseWorkspaceID(d.Id())
 			if err != nil {
