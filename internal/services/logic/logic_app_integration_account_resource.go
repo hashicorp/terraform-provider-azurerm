@@ -154,7 +154,9 @@ func resourceLogicAppIntegrationAccountRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("integration_service_environment_id", iseId)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
