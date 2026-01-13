@@ -40,9 +40,9 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 			},
 
 			"compute_mode": {
-				Type: pluginsdk.TypeString,
+				Type:     pluginsdk.TypeString,
 				Computed: true,
-			}
+			},
 
 			"workspace_id": {
 				Type:     pluginsdk.TypeString,
