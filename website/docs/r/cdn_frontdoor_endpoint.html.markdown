@@ -63,7 +63,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Endpoint.
 * `update` - (Defaults to 30 minutes) Used when updating the Front Door Endpoint.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Endpoint.
+* `delete` - (Defaults to 120 minutes) Used when deleting the Front Door Endpoint.
 
 ## Import
 

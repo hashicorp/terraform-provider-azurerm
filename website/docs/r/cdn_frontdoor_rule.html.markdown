@@ -644,7 +644,7 @@ For rules that accept values from the standard operator list, the following oper
 | Begins With                | Matches when the value begins with the specified string. | BeginsWith |
 | Ends With                  | Matches when the value ends with the specified string. | EndsWith |
 | RegEx                      | Matches when the value matches the specified regular expression. See `Condition Regular Expressions` below for more details. | RegEx |
-| Wildcard                   | Matches when the request path matches a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard | 
+| Wildcard                   | Matches when the request path matches a wildcard expression. See `Condition Wildcard Expression` below for more details. | Wildcard |
 | Not Any                    | Matches when there is no value. | Any and negateCondition = true |
 | Not Equal                  | Matches when the value does not match the specified string. | Equal and negateCondition : true |
 | Not Contains               | Matches when the value does not contain the specified string. | Contains and negateCondition = true |
@@ -710,7 +710,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Rule.
 * `update` - (Defaults to 30 minutes) Used when updating the Front Door Rule.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Rule.
+* `delete` - (Defaults to 120 minutes) Used when deleting the Front Door Rule.
 
 ## Import
 

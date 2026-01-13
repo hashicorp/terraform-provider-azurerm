@@ -150,7 +150,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Secret.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Secret.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Secret.
+* `delete` - (Defaults to 120 minutes) Used when deleting the Front Door Secret.
 
 ## Import
 
