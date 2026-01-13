@@ -274,8 +274,8 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 			}
 			d.Set("cluster_id", clusterResourceId.ID())
 			d.Set("database_name", props.DatabaseName)
-			d.Set("database_name_override", props.DatabaseNameOverride)
-			d.Set("database_name_prefix", props.DatabaseNamePrefix)
+			d.Set("database_name_override", pointer.From(props.DatabaseNameOverride))
+			d.Set("database_name_prefix", pointer.From(props.DatabaseNamePrefix))
 			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 			d.Set("attached_database_names", props.AttachedDatabaseNames)
 			d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
