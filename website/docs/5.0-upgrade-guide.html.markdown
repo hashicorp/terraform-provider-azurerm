@@ -149,11 +149,6 @@ This deprecated data source has been superseded/retired and has been removed fro
 
 * This deprecated data source has been retired and has been removed from the Azure Provider.
 
-### `azurerm_logic_app_standard`
-
-* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
-* The `client_certificate_mode` property now defaults to `Required` to match API default value.
-
 ### `azurerm_postgresql_server`
 
 * This deprecated data source has been retired and has been removed from the Azure Provider.
@@ -351,6 +346,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `client_certificate_mode` property now defaults to `Required` to match API default value.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
@@ -537,6 +533,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
 
+### `azurerm_key_vault`
+
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
+
 ### `azurerm_lb_outbound_rule`
 
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
@@ -545,10 +545,6 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
-
-### `azurerm_key_vault`
-
-* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
 
 ### `azurerm_logic_app_standard`
 
