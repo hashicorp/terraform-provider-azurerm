@@ -889,7 +889,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		var cmkEnabled, infraEnabled bool
+		cmkEnabled := false
+		infraEnabled := false
 		fmt.Println("debug0", model.Properties.Parameters, model.Properties.Parameters == nil)
 		if parameters := model.Properties.Parameters; parameters != nil {
 			if parameters.PrepareEncryption != nil {
@@ -914,6 +915,9 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
+		} else {
+			d.Set("customer_managed_key_enabled", cmkEnabled)
+			d.Set("infrastructure_encryption_enabled", infraEnabled)
 		}
 
 		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
