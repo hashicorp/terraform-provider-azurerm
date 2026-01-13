@@ -60,8 +60,10 @@ type SMTPConfigurationModel struct {
 
 type DashboardGrafanaResource struct{}
 
-var _ sdk.ResourceWithUpdate = DashboardGrafanaResource{}
-var _ sdk.ResourceWithIdentity = DashboardGrafanaResource{}
+var (
+	_ sdk.ResourceWithUpdate   = DashboardGrafanaResource{}
+	_ sdk.ResourceWithIdentity = DashboardGrafanaResource{}
+)
 
 func (r DashboardGrafanaResource) Identity() resourceids.ResourceId {
 	return &managedgrafanas.GrafanaId{}

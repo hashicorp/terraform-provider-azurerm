@@ -24,8 +24,10 @@ import (
 
 type AccessConnectorResource struct{}
 
-var _ sdk.ResourceWithUpdate = AccessConnectorResource{}
-var _ sdk.ResourceWithIdentity = AccessConnectorResource{}
+var (
+	_ sdk.ResourceWithUpdate   = AccessConnectorResource{}
+	_ sdk.ResourceWithIdentity = AccessConnectorResource{}
+)
 
 func (r AccessConnectorResource) Identity() resourceids.ResourceId {
 	return &accessconnector.AccessConnectorId{}

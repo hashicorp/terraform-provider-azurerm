@@ -49,8 +49,10 @@ type EdgeDeviceModel struct {
 
 type EdgeDeviceResource struct{}
 
-var _ sdk.ResourceWithUpdate = EdgeDeviceResource{}
-var _ sdk.ResourceWithIdentity = EdgeDeviceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = EdgeDeviceResource{}
+	_ sdk.ResourceWithIdentity = EdgeDeviceResource{}
+)
 
 func (r EdgeDeviceResource) Identity() resourceids.ResourceId {
 	return &devices.DataBoxEdgeDeviceId{}

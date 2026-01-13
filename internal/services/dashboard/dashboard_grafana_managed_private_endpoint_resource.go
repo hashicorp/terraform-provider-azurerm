@@ -26,8 +26,10 @@ import (
 
 type ManagedPrivateEndpointResource struct{}
 
-var _ sdk.Resource = ManagedPrivateEndpointResource{}
-var _ sdk.ResourceWithIdentity = ManagedPrivateEndpointResource{}
+var (
+	_ sdk.Resource             = ManagedPrivateEndpointResource{}
+	_ sdk.ResourceWithIdentity = ManagedPrivateEndpointResource{}
+)
 
 func (r ManagedPrivateEndpointResource) Identity() resourceids.ResourceId {
 	return &managedprivateendpointmodels.ManagedPrivateEndpointId{}

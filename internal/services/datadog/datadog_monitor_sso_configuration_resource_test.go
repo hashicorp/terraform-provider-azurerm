@@ -18,13 +18,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatadogMonitorSsoConfigurationResource struct {
+type SSODatadogMonitorResource struct {
 	datadogApiKey         string
 	datadogApplicationKey string
 	enterpriseAppId       string
 }
 
-func (r *DatadogMonitorSsoConfigurationResource) populateValuesFromEnvironment(t *testing.T) {
+func (r *SSODatadogMonitorResource) populateValuesFromEnvironment(t *testing.T) {
 	if os.Getenv("ARM_TEST_DATADOG_API_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_DATADOG_API_KEY is not specified")
 	}
@@ -42,7 +42,7 @@ func (r *DatadogMonitorSsoConfigurationResource) populateValuesFromEnvironment(t
 
 func TestAccDatadogMonitorSSO_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
-	r := DatadogMonitorSsoConfigurationResource{}
+	r := SSODatadogMonitorResource{}
 	r.populateValuesFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -60,7 +60,7 @@ func TestAccDatadogMonitorSSO_singleSignOnEnabled(t *testing.T) {
 		t.Skip("Skipping as single_sign_on_enabled is not supported in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
-	r := DatadogMonitorSsoConfigurationResource{}
+	r := SSODatadogMonitorResource{}
 	r.populateValuesFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -75,7 +75,7 @@ func TestAccDatadogMonitorSSO_singleSignOnEnabled(t *testing.T) {
 
 func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
-	r := DatadogMonitorSsoConfigurationResource{}
+	r := SSODatadogMonitorResource{}
 	r.populateValuesFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -90,7 +90,7 @@ func TestAccDatadogMonitorSSO_requiresImport(t *testing.T) {
 
 func TestAccDatadogMonitorSSO_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_datadog_monitor_sso_configuration", "test")
-	r := DatadogMonitorSsoConfigurationResource{}
+	r := SSODatadogMonitorResource{}
 	r.populateValuesFromEnvironment(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -117,7 +117,7 @@ func TestAccDatadogMonitorSSO_update(t *testing.T) {
 	})
 }
 
-func (r DatadogMonitorSsoConfigurationResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SSODatadogMonitorResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := singlesignon.ParseSingleSignOnConfigurationID(state.ID)
 	if err != nil {
 		return nil, err
@@ -131,7 +131,7 @@ func (r DatadogMonitorSsoConfigurationResource) Exists(ctx context.Context, clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DatadogMonitorSsoConfigurationResource) template(data acceptance.TestData) string {
+func (r SSODatadogMonitorResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-datadogrg-%[1]d"
@@ -158,7 +158,7 @@ resource "azurerm_datadog_monitor" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, r.datadogApiKey, r.datadogApplicationKey)
 }
 
-func (r DatadogMonitorSsoConfigurationResource) basic(data acceptance.TestData) string {
+func (r SSODatadogMonitorResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -174,7 +174,7 @@ resource "azurerm_datadog_monitor_sso_configuration" "test" {
 `, r.template(data), r.enterpriseAppId)
 }
 
-func (r DatadogMonitorSsoConfigurationResource) singleSignOnEnabled(data acceptance.TestData) string {
+func (r SSODatadogMonitorResource) singleSignOnEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,7 +190,7 @@ resource "azurerm_datadog_monitor_sso_configuration" "test" {
 `, r.template(data), r.enterpriseAppId)
 }
 
-func (r DatadogMonitorSsoConfigurationResource) requiresImport(data acceptance.TestData) string {
+func (r SSODatadogMonitorResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -202,7 +202,7 @@ resource "azurerm_datadog_monitor_sso_configuration" "import" {
 `, r.basic(data))
 }
 
-func (r DatadogMonitorSsoConfigurationResource) update(data acceptance.TestData) string {
+func (r SSODatadogMonitorResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
