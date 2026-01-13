@@ -3364,6 +3364,8 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Recover",
     "Update",
     "Purge",
+    "Wrap",
+    "Unwrap",
   ]
 }
 
