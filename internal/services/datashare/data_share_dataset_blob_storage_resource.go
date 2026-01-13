@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
@@ -21,8 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
-
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share_dataset_blob_storage -service-package-name datashare -properties "name" -compare-values "resource_group_name:data_share_id,account_name:data_share_id,share_name:data_share_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicFile
 
 func resourceDataShareDataSetBlobStorage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,10 +33,10 @@ func resourceDataShareDataSetBlobStorage() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&dataset.DataSetId{}),
-		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&dataset.DataSetId{}),
-		},
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := dataset.ParseDataSetID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -172,9 +169,6 @@ func resourceDataShareDataSetBlobStorageCreate(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceDataShareDataSetBlobStorageRead(d, meta)
 }
 
@@ -232,7 +226,7 @@ func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return nil
 }
 
 func resourceDataShareDataSetBlobStorageDelete(d *pluginsdk.ResourceData, meta interface{}) error {
