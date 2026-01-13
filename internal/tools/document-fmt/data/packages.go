@@ -21,11 +21,17 @@ import (
 	"golang.org/x/tools/go/ssa/ssautil"
 )
 
-type packageData struct {
+type PackageData struct {
 	cfg      *packages.Config
 	fset     *token.FileSet
 	prog     *ssa.Program
 	packages map[string][]pkg
+	pkgs     []*packages.Package
+}
+
+// GetPackages returns all loaded packages for code linting
+func (p *PackageData) GetPackages() []*packages.Package {
+	return p.pkgs
 }
 
 type pkg struct {
@@ -50,9 +56,9 @@ var (
 	servicePackageRegex  = regexp.MustCompile(`github\.com/hashicorp/terraform-provider-azurerm/internal/services/(\w*)$`)
 )
 
-// loadPackages - Loads all service packages
+// LoadPackages - Loads all service packages
 // This is very slow, which is why we do it once, and gather the data for ALL resources regardless of filters applied
-func loadPackages(dir string) *packageData {
+func LoadPackages(dir string) *PackageData {
 	cfg := &packages.Config{
 		Dir:  dir + "/internal/services",
 		Mode: packages.LoadAllSyntax,
@@ -86,11 +92,12 @@ func loadPackages(dir string) *packageData {
 		}
 	}
 
-	return &packageData{
+	return &PackageData{
 		cfg:      cfg,
 		fset:     fset,
 		prog:     prog,
 		packages: pkgsMap,
+		pkgs:     pkgs,
 	}
 }
 
@@ -196,7 +203,7 @@ func findUntypedSSAFunc(pkg pkg, e ast.Expr) *ssa.Function {
 	return nil
 }
 
-func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
+func findAPIsForUntypedResources(d *PackageData, s *Service) map[string][]API {
 	result := make(map[string][]API)
 
 	servicePackages, ok := d.packages[s.Name]
@@ -290,7 +297,7 @@ func findAPIsForUntypedResources(d packageData, s *Service) map[string][]API {
 }
 
 // Finds all APIs used by resources and returns a map of files, stores as map[<resource filename>][]API
-func findAPIsForTypedResources(d packageData, s *Service) map[string][]API {
+func findAPIsForTypedResources(d *PackageData, s *Service) map[string][]API {
 	possibleFunctionNames := []string{"Create", "Read", "Update", "Delete"}
 	result := make(map[string][]API)
 

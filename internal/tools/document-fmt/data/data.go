@@ -79,10 +79,12 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 	return &result, nil
 }
 
-func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string, resourceName string) []*TerraformNodeData {
+func GetAllTerraformNodeData(fs afero.Fs, providerDir string, pkgData *PackageData, serviceName string, resourceName string) []*TerraformNodeData {
 	result := make([]*TerraformNodeData, 0)
 
-	pkgData := loadPackages(providerDir)
+	if pkgData == nil {
+		pkgData = LoadPackages(providerDir)
+	}
 
 	for _, s := range provider.SupportedTypedServices() {
 		service, err := NewService(fs, providerDir, s, s.Name())
@@ -101,7 +103,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 			}
 		}
 
-		service.APIsByResource = findAPIsForTypedResources(*pkgData, service)
+		service.APIsByResource = findAPIsForTypedResources(pkgData, service)
 
 		for _, r := range s.DataSources() {
 			name := r.ResourceType()
@@ -162,7 +164,7 @@ func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string
 			}
 		}
 
-		service.APIsByResource = findAPIsForUntypedResources(*pkgData, service)
+		service.APIsByResource = findAPIsForUntypedResources(pkgData, service)
 
 		for name, r := range s.SupportedDataSources() {
 			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
