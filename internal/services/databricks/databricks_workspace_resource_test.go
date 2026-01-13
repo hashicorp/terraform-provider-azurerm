@@ -3393,7 +3393,7 @@ resource "azurerm_databricks_workspace" "test" {
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
-    compliance_security_profile_standards = ["PCI_DSS", "HIPAA"]
+    compliance_security_profile_standards = ["HIPAA"]
     enhanced_security_monitoring_enabled  = true
   }
 }

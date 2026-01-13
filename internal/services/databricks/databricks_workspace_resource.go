@@ -438,8 +438,19 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						return fmt.Errorf("`network_security_group_rules_required` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
+					fmt.Println("debug2", customParams)
 					if len(customParams.([]interface{})) > 0 {
 						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+					}
+
+					for _, rawEnhancedSecurityCompliance := range enhancedSecurityCompliance.([]interface{}) {
+						if complianceSecurityProfileStandards, ok := rawEnhancedSecurityCompliance.(map[string]interface{})["compliance_security_profile_standards"]; ok {
+							for _, complianceSecurityProfileStandard := range complianceSecurityProfileStandards.(*pluginsdk.Set).List() {
+								if complianceSecurityProfileStandard.(string) == string(previousWorkspaces.ComplianceStandardPCIDSS) {
+									return fmt.Errorf("`%s` `compliance_security_profile_standards` is not supported when `compute_mode` is `%s`", previousWorkspaces.ComplianceStandardPCIDSS, workspaces.ComputeModeServerless)
+								}
+							}
+						}
 					}
 				}
 
