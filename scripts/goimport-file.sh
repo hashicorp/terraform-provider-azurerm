@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 
@@ -12,7 +12,7 @@ fi
 
 # remove empty lines inside import block via sed
 sed_expression='
-  /^import/,/)/ {
+  /^import (/,/)/ {
     /^$/d
   }
 '

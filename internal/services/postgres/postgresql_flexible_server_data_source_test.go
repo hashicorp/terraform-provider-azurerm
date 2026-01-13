@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -29,6 +29,7 @@ func TestAccDataSourcePostgresqlflexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("backup_retention_days").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
+				check.That(data.ResourceName).Key("zone").Exists(),
 			),
 		},
 	})

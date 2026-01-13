@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -24,6 +25,44 @@ import (
 )
 
 func resourceStorageShareDirectory() *pluginsdk.Resource {
+	schema := map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDirectoryName,
+		},
+
+		"storage_share_url": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDataPlaneID,
+		},
+
+		"metadata": MetaDataSchema(),
+	}
+
+	if !features.FivePointOh() {
+		schema["storage_share_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDataPlaneID,
+			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
+			Deprecated:   "This property has been deprecated in favour of `storage_share_url` and will be removed in version 5.0 of the Provider.",
+		}
+		schema["storage_share_url"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageShareDataPlaneID,
+			ExactlyOneOf: []string{"storage_share_id", "storage_share_url"},
+		}
+	}
+
 	resource := &pluginsdk.Resource{
 		Create: resourceStorageShareDirectoryCreate,
 		Read:   resourceStorageShareDirectoryRead,
@@ -42,23 +81,7 @@ func resourceStorageShareDirectory() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageShareDirectoryName,
-			},
-
-			"storage_share_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.StorageShareDataPlaneID,
-			},
-
-			"metadata": MetaDataSchema(),
-		},
+		Schema: schema,
 	}
 
 	return resource
@@ -74,10 +97,21 @@ func resourceStorageShareDirectoryCreate(d *pluginsdk.ResourceData, meta interfa
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := ExpandMetaData(metaDataRaw)
 
-	var storageShareId *shares.ShareId
-	var err error
-	if v, ok := d.GetOk("storage_share_id"); ok && v.(string) != "" {
-		storageShareId, err = shares.ParseShareID(v.(string), storageClient.StorageDomainSuffix)
+	var (
+		storageShareId *shares.ShareId
+		err            error
+	)
+	if !features.FivePointOh() {
+		storageShareURL := d.Get("storage_share_url")
+		if storageShareURL == "" {
+			storageShareURL = d.Get("storage_share_id")
+		}
+		storageShareId, err = shares.ParseShareID(storageShareURL.(string), storageClient.StorageDomainSuffix)
+		if err != nil {
+			return err
+		}
+	} else {
+		storageShareId, err = shares.ParseShareID(d.Get("storage_share_url").(string), storageClient.StorageDomainSuffix)
 		if err != nil {
 			return err
 		}
@@ -225,7 +259,10 @@ func resourceStorageShareDirectoryRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.Set("name", id.DirectoryPath)
-	d.Set("storage_share_id", storageShareId.ID())
+	d.Set("storage_share_url", storageShareId.ID())
+	if !features.FivePointOh() {
+		d.Set("storage_share_id", storageShareId.ID())
+	}
 
 	if err = d.Set("metadata", FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("setting `metadata`: %v", err)
@@ -268,8 +305,12 @@ func resourceStorageShareDirectoryDelete(d *pluginsdk.ResourceData, meta interfa
 func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, id directories.DirectoryId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, id.ShareName, id.DirectoryPath)
-		if err != nil {
-			return nil, strconv.Itoa(res.HttpResponse.StatusCode), fmt.Errorf("retrieving %s: %v", id, err)
+		if err != nil && !response.WasNotFound(res.HttpResponse) {
+			state := "unknown"
+			if res.HttpResponse != nil {
+				state = strconv.Itoa(res.HttpResponse.StatusCode)
+			}
+			return nil, state, fmt.Errorf("retrieving %s: %v", id, err)
 		}
 
 		return res, strconv.Itoa(res.HttpResponse.StatusCode), nil

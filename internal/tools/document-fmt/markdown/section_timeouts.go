@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package markdown
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -15,7 +16,7 @@ type TimeoutsSection struct {
 var _ SectionWithTemplate = &TimeoutsSection{}
 
 func (s *TimeoutsSection) Match(line string) bool {
-	return strings.Contains(strings.ToLower(line), "timeout")
+	return regexp.MustCompile(`#+(\s)*timeout.*`).MatchString(strings.ToLower(line))
 }
 
 func (s *TimeoutsSection) SetHeading(line string) {

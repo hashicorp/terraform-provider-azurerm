@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/recordsets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -191,7 +191,7 @@ func resourceDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface{}) err
 				targetResourceId = *props.TargetResource.Id
 				if recordTypeID, err := recordsets.ParseRecordTypeIDInsensitively(targetResourceId); err == nil {
 					targetResourceId = recordTypeID.ID()
-				} else if trafficManagerID, err := endpoints.ParseEndpointTypeIDInsensitively(targetResourceId); err == nil {
+				} else if trafficManagerID, err := trafficmanagers.ParseEndpointTypeIDInsensitively(targetResourceId); err == nil {
 					targetResourceId = trafficManagerID.ID()
 				} else if cdnID, err := cdn.EndpointIDInsensitively(targetResourceId); err == nil {
 					targetResourceId = cdnID.ID()

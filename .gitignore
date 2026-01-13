@@ -57,6 +57,11 @@ tf.zip
 # do not upload .local folder
 .local
 
-# do not upload GitHub Copilot specific folders and copilot instructions file
+# do not upload GitHub Copilot specific folders and copilot instruction files
+.github/instructions
 .github/prompts
 .github/copilot-instructions.md
+
+# do not upload .bob instructions
+.bob
+AGENTS.md

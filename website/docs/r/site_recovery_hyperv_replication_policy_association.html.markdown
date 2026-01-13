@@ -45,7 +45,7 @@ resource "azurerm_site_recovery_hyperv_replication_policy_association" "example"
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

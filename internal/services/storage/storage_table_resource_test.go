@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
@@ -285,7 +284,7 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 		if err := tablesClient.Delete(ctx, id.TableName); err != nil {
 			return nil, fmt.Errorf("deleting Table %q (Account %q): %+v", id.TableName, id.AccountId.AccountName, err)
 		}
-		return utils.Bool(true), nil
+		return pointer.To(true), nil
 	}
 
 	id, err := tableservice.ParseTableID(state.ID)
@@ -295,7 +294,6 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 	if _, err := client.Storage.ResourceManager.TableService.TableDelete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
 	return pointer.To(true), nil
 }
 

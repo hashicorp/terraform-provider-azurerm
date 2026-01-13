@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dashboard
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -51,7 +51,7 @@ func (r ManagedPrivateEndpointResource) ResourceType() string {
 }
 
 func (r ManagedPrivateEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return managedprivateendpoints.ValidateManagedPrivateEndpointID
+	return managedprivateendpointmodels.ValidateManagedPrivateEndpointID
 }
 
 func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema {
@@ -74,7 +74,7 @@ func (r ManagedPrivateEndpointResource) Arguments() map[string]*pluginsdk.Schema
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: grafanaresource.ValidateGrafanaID,
+			ValidateFunc: managedgrafanas.ValidateGrafanaID,
 		},
 
 		"private_link_resource_id": {
@@ -133,13 +133,13 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			grafanaId, err := grafanaresource.ParseGrafanaID(model.GrafanaId)
+			grafanaId, err := managedgrafanas.ParseGrafanaID(model.GrafanaId)
 			if err != nil {
 				return err
 			}
-			id := managedprivateendpoints.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
+			id := managedprivateendpointmodels.NewManagedPrivateEndpointID(subscriptionId, grafanaId.ResourceGroupName, grafanaId.GrafanaName, model.Name)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.ManagedPrivateEndpointsGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -147,10 +147,10 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			props := managedprivateendpoints.ManagedPrivateEndpointModel{
+			props := managedprivateendpointmodels.ManagedPrivateEndpointModel{
 				Location: location.Normalize(model.Location),
 				Name:     &model.Name,
-				Properties: &managedprivateendpoints.ManagedPrivateEndpointModelProperties{
+				Properties: &managedprivateendpointmodels.ManagedPrivateEndpointModelProperties{
 					GroupIds:                  &model.GroupIds,
 					PrivateLinkResourceId:     &model.PrivateLinkResourceId,
 					PrivateLinkResourceRegion: &model.PrivateLinkResourceRegion,
@@ -160,7 +160,7 @@ func (r ManagedPrivateEndpointResource) Create() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if err := client.CreateThenPoll(ctx, id, props); err != nil {
+			if err := client.ManagedPrivateEndpointsCreateThenPoll(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -176,12 +176,12 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
-			id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
+			id, err := managedprivateendpointmodels.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.ManagedPrivateEndpointsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -189,7 +189,7 @@ func (r ManagedPrivateEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			grafanaId := grafanaresource.NewGrafanaID(id.SubscriptionId, id.ResourceGroupName, id.GrafanaName)
+			grafanaId := managedgrafanas.NewGrafanaID(id.SubscriptionId, id.ResourceGroupName, id.GrafanaName)
 			state := ManagedPrivateEndpointModel{
 				Name:      id.ManagedPrivateEndpointName,
 				GrafanaId: grafanaId.ID(),
@@ -218,14 +218,14 @@ func (r ManagedPrivateEndpointResource) Delete() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
-			id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
+			id, err := managedprivateendpointmodels.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			metadata.Logger.Infof("deleting %s", *id)
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.ManagedPrivateEndpointsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -240,7 +240,7 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Dashboard.ManagedPrivateEndpointsClient
 
-			id, err := managedprivateendpoints.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
+			id, err := managedprivateendpointmodels.ParseManagedPrivateEndpointID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -250,7 +250,7 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.ManagedPrivateEndpointsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -268,7 +268,7 @@ func (r ManagedPrivateEndpointResource) Update() sdk.ResourceFunc {
 				model.Properties.PrivateLinkServiceURL = &mpe.PrivateLinkServiceURL
 			}
 
-			if err := client.CreateThenPoll(ctx, *id, *model); err != nil {
+			if err := client.ManagedPrivateEndpointsCreateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

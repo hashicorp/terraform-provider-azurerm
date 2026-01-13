@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestStorageAccount_list_basic(t *testing.T) {
+func TestAccStorageAccount_list_basic(t *testing.T) {
 	r := StorageAccountResource{}
 
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "list1")
@@ -32,12 +32,12 @@ func TestStorageAccount_list_basic(t *testing.T) {
 			{
 				Query:             true,
 				Config:            r.basicQuery(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 			{
 				Query:             true,
 				Config:            r.basicQueryByResourceGroup(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 		},
 	})

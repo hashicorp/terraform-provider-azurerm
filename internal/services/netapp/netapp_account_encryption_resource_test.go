@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -10,12 +10,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppAccountEncryptionResource struct{}
@@ -96,7 +96,7 @@ func (t NetAppAccountEncryptionResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("reading Netapp Account (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r NetAppAccountEncryptionResource) cmkSystemAssigned(data acceptance.TestData, tenantID string) string {
@@ -210,7 +210,7 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "acctest%[2]d"
+  name                            = "acctest%[4]s"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
@@ -297,7 +297,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   encryption_key            = azurerm_key_vault_key.test.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomInteger, tenantID, data.RandomString)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate1(data acceptance.TestData, tenantID string) string {
@@ -408,7 +408,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
   encryption_key                        = azurerm_key_vault_key.test.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomIntOfLength(17), tenantID)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate2(data acceptance.TestData, tenantID string) string {
@@ -523,7 +523,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
   encryption_key                        = azurerm_key_vault_key.test-new-key.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomIntOfLength(17), tenantID)
 }
 
 func (NetAppAccountEncryptionResource) template(data acceptance.TestData) string {

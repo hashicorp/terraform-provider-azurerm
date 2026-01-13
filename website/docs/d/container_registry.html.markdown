@@ -24,7 +24,7 @@ output "login_server" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Container Registry.
 * `resource_group_name` - The Name of the Resource Group where this Container Registry exists.
@@ -63,4 +63,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry` - 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2025-04-01

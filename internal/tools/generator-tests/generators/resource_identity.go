@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package generators
@@ -22,17 +22,18 @@ type ResourceIdentityCommand struct {
 }
 
 type resourceIdentityData struct {
-	ResourceName       string
-	IdentityProperties string
-	PropertyNameMap    map[string]string
-	ServicePackageName string
-	BasicTestParams    string
-	TestParams         []string
-	KnownValues        string
-	KnownValueMap      map[string]string
-	CompareValues      string
-	CompareValueMap    map[string]string
-	TestName           string
+	ResourceName           string
+	IdentityProperties     string
+	PropertyNameMap        map[string]string
+	ServicePackageName     string
+	BasicTestParams        string
+	TestParams             []string
+	KnownValues            string
+	KnownValueMap          map[string]string
+	CompareValues          string
+	CompareValueMap        map[string]string
+	TestName               string
+	TestExpectNonEmptyPlan bool
 }
 
 var _ cli.Command = &ResourceIdentityCommand{}
@@ -59,12 +60,13 @@ Optional args:
 		'compare-values' specifies resource identity values that do not have a one to one relationship with any values in the schema or state (i.e. the schema references a parent resource id but the resource identity includes the pieces of that parent resource id).
 	- test-name [string]
 		'test-name' specifies the test config name that will be used to test Resource Identity. Defaults to 'basic'.
+	- test-expect-non-empty [bool]
+		'test-expect-non-empty' indicates whether the test should expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import.
 
 Example:
 generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "subscription_id:data.Subscriptions.Primary,kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
 
 Caveats and TODOs:
-requires that the basic test for the resource is already present and has the name 'basic' for the config. TODO - Can be extended to make this configurable.
 Expects that the test resource type is already declared in the test package for the service. (e.g. type LinuxFunctionAppResource struct{})
 `
 }
@@ -104,6 +106,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
+	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)

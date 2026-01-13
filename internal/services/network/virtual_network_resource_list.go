@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,7 +6,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -19,33 +18,26 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VirtualNetworkListResource struct {
-	sdk.ListResourceMetadata
+type VirtualNetworkListResource struct{}
+
+func (r VirtualNetworkListResource) ResourceFunc() *pluginsdk.Resource {
+	return resourceVirtualNetwork()
 }
 
-var _ sdk.ListResourceWithRawV5Schemas = &VirtualNetworkListResource{}
+var _ sdk.FrameworkListWrappedResource = &VirtualNetworkListResource{}
 
 type VirtualNetworkListModel struct {
 	ResourceGroupName types.String `tfsdk:"resource_group_name"`
 }
 
-func NewVirtualNetworkListResource() list.ListResource {
-	return &VirtualNetworkListResource{}
-}
-
-func (r *VirtualNetworkListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
+func (r VirtualNetworkListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = VirtualNetworkResourceName
 }
 
-func (r *VirtualNetworkListResource) RawV5Schemas(ctx context.Context, _ list.RawV5SchemaRequest, response *list.RawV5SchemaResponse) {
-	res := resourceVirtualNetwork()
-	response.ProtoV5Schema = res.ProtoSchema(ctx)()
-	response.ProtoV5IdentitySchema = res.ProtoIdentitySchema(ctx)()
-}
-
-func (r *VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+func (r VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = listschema.Schema{
 		Attributes: map[string]listschema.Attribute{
 			"resource_group_name": listschema.StringAttribute{
@@ -60,10 +52,8 @@ func (r *VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context,
 	}
 }
 
-func (r *VirtualNetworkListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream) {
-	client := r.Client.Network.VirtualNetworks
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute) // TODO - Is this long enough for a list call?
-	defer cancel()
+func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+	client := metadata.Client.Network.VirtualNetworks
 
 	var data VirtualNetworkListModel
 
@@ -73,7 +63,7 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 		return
 	}
 
-	resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName.ValueString()))
+	resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(metadata.SubscriptionId, data.ResourceGroupName.ValueString()))
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", VirtualNetworkResourceName), err)
 		return
@@ -89,7 +79,7 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 
 			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "parsing Virtual Network ID", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Virtual Network ID", err)
 				return
 			}
 
@@ -101,29 +91,29 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 
 			err = resourceVirtualNetworkFlatten(rd, *id, &vnet)
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "encoding resource data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "encoding Resource data", err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Identity State", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting identity data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity data", err)
 				return
 			}
 
 			tfTypeResource, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "converting Resource State data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State data", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream, "setting resource data", err)
+				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource data", err)
 				return
 			}
 
@@ -132,8 +122,4 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 			}
 		}
 	}
-}
-
-func (r *VirtualNetworkListResource) Configure(_ context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse) {
-	r.Defaults(request, response)
 }

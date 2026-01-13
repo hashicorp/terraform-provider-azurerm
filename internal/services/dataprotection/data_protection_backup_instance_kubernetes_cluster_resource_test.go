@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupInstanceKubernatesClusterTestResource struct{}
+type DataProtectionBackupInstanceKubernetesClusterTestResource struct{}
 
-func TestAccDataProtectionBackupInstanceKubernatesCluster_basic(t *testing.T) {
+func TestAccDataProtectionBackupInstanceKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
-	r := DataProtectionBackupInstanceKubernatesClusterTestResource{}
+	r := DataProtectionBackupInstanceKubernetesClusterTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -33,9 +33,9 @@ func TestAccDataProtectionBackupInstanceKubernatesCluster_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupInstanceKubernatesCluster_requiresImport(t *testing.T) {
+func TestAccDataProtectionBackupInstanceKubernetesCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
-	r := DataProtectionBackupInstanceKubernatesClusterTestResource{}
+	r := DataProtectionBackupInstanceKubernetesClusterTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -47,9 +47,9 @@ func TestAccDataProtectionBackupInstanceKubernatesCluster_requiresImport(t *test
 	})
 }
 
-func TestAccDataProtectionBackupInstanceKubernatesCluster_complete(t *testing.T) {
+func TestAccDataProtectionBackupInstanceKubernetesCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
-	r := DataProtectionBackupInstanceKubernatesClusterTestResource{}
+	r := DataProtectionBackupInstanceKubernetesClusterTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -61,7 +61,7 @@ func TestAccDataProtectionBackupInstanceKubernatesCluster_complete(t *testing.T)
 	})
 }
 
-func (r DataProtectionBackupInstanceKubernatesClusterTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataProtectionBackupInstanceKubernetesClusterTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterTestResource) Exists(ctx co
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataProtectionBackupInstanceKubernatesClusterTestResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -249,7 +249,7 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r DataProtectionBackupInstanceKubernatesClusterTestResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterTestResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -265,7 +265,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "import" {
 `, config)
 }
 
-func (r DataProtectionBackupInstanceKubernatesClusterTestResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterTestResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -281,7 +281,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstanceKubernatesClusterTestResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterTestResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
