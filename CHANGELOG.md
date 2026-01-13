@@ -1,6 +1,7 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
+* `data.azurerm_container_registry` - `admin_password` is now sensitive [GH-31428]
 * `azurerm_backup_policy_file_share` - add support for `backup_tier` and `snapshot_retention_in_days` [GH-29243]
 * `azurerm_windows_function_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-31248]
 * `azurerm_windows_function_app_slot` - add support for `~24` to `site_config.application_stack.node_version` [GH-31248]
