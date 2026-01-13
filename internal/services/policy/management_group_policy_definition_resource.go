@@ -113,7 +113,7 @@ func (r ManagementGroupPolicyDefinitionResource) Arguments() map[string]*plugins
 				Schema: map[string]*pluginsdk.Schema{
 					"policy_definition_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
@@ -139,6 +139,7 @@ func (r ManagementGroupPolicyDefinitionResource) Arguments() map[string]*plugins
 		"policy_definition_group": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -276,14 +277,14 @@ func (r ManagementGroupPolicyDefinitionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					policyType := ""
-					if props.PolicyType != nil {
-						policyType = string(*props.PolicyType)
+					displayName := ""
+					if props.DisplayName != nil {
+						displayName = *props.DisplayName
 					}
-					state.PolicyType = policyType
+					state.DisplayName = displayName
 
+					state.PolicyType =  string(pointer.From(props.PolicyType))
 					state.Mode = pointer.From(props.Mode)
-					state.DisplayName = pointer.From(props.DisplayName)
 					state.Description = pointer.From(props.Description)
 
 					if v, ok := pointer.From(props.Metadata).(map[string]interface{}); ok {
