@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
-	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratorsmicrosoftentra"
+	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupsautomaticandondemand"
 	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations"
 	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases"
@@ -34,7 +34,7 @@ type Client struct {
 	FlexibleServersConfigurationsClient *flexibleserverconfigurations.ConfigurationsClient
 	FlexibleServerFirewallRuleClient    *flexibleserverfirewallrules.FirewallRulesClient
 	FlexibleServerDatabaseClient        *flexibleserverdatabases.DatabasesClient
-	FlexibleServerAdministratorsClient  *flexibleserveradministrators.AdministratorsMicrosoftEntraClient
+	FlexibleServerAdministratorsClient  *flexibleserveradministrators.AdministratorMicrosoftEntrasClient
 	ServersClient                       *servers.ServersClient
 	ServerKeysClient                    *serverkeys.ServerKeysClient
 	ServerSecurityAlertPoliciesClient   *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient

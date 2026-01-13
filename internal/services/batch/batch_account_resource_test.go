@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
+	batchaccount "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -336,7 +336,7 @@ func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.Batch.AccountClient.Get(ctx, *id)
+	resp, err := clients.Batch.AccountClient.BatchAccountGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

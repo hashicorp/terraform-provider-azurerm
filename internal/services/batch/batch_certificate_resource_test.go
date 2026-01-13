@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
+	certificate "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,7 +91,7 @@ func (t BatchCertificateResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Batch.CertificateClient.Get(ctx, *id)
+	resp, err := clients.Batch.CertificateClient.CertificateGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s", *id)
 	}

@@ -8,43 +8,43 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/applications"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	batchDataplane "github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch"
 )
 
 type Client struct {
-	AccountClient     *batchaccount.BatchAccountClient
-	ApplicationClient *application.ApplicationClient
-	CertificateClient *certificate.CertificateClient
-	PoolClient        *pool.PoolClient
+	AccountClient     *batchaccounts.BatchAccountsClient
+	ApplicationClient *applications.ApplicationsClient
+	CertificateClient *certificates.CertificatesClient
+	PoolClient        *pools.PoolsClient
 
 	BatchManagementAuthorizer autorest.Authorizer
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	accountClient, err := batchaccount.NewBatchAccountClientWithBaseURI(o.Environment.ResourceManager)
+	accountClient, err := batchaccounts.NewBatchAccountsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Account client: %+v", err)
 	}
 	o.Configure(accountClient.Client, o.Authorizers.ResourceManager)
 
-	applicationClient, err := application.NewApplicationClientWithBaseURI(o.Environment.ResourceManager)
+	applicationClient, err := applications.NewApplicationsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Application client: %+v", err)
 	}
 	o.Configure(applicationClient.Client, o.Authorizers.ResourceManager)
 
-	certificateClient, err := certificate.NewCertificateClientWithBaseURI(o.Environment.ResourceManager)
+	certificateClient, err := certificates.NewCertificatesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Certificate client: %+v", err)
 	}
 	o.Configure(certificateClient.Client, o.Authorizers.ResourceManager)
 
-	poolClient, err := pool.NewPoolClientWithBaseURI(o.Environment.ResourceManager)
+	poolClient, err := pools.NewPoolsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Pool client: %+v", err)
 	}
@@ -59,10 +59,10 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}, nil
 }
 
-func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAccountId) (*batchDataplane.JobClient, error) {
+func (r *Client) JobClient(ctx context.Context, accountId batchaccounts.BatchAccountId) (*batchDataplane.JobClient, error) {
 	// Retrieve the batch account to find the batch account endpoint
 	accountClient := r.AccountClient
-	account, err := accountClient.Get(ctx, accountId)
+	account, err := accountClient.BatchAccountGet(ctx, accountId)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", accountId, err)
 	}

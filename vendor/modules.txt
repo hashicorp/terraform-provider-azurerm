@@ -166,7 +166,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251219.1184026
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260109.1234209 => ../go-azure-sdk/resource-manager
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -341,10 +341,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/upda
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updatesummaries
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/virtualharddisks
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/virtualmachineinstances
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate
-github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/applications
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificates
+github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pools
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/assignment
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/blueprint
 github.com/hashicorp/go-azure-sdk/resource-manager/blueprints/2018-11-01-preview/publishedblueprint
@@ -1007,6 +1007,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratorsmicrosoftentra
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupsautomaticandondemand
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations
@@ -1253,7 +1254,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20251219.1184026
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260109.1234209
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1834,3 +1835,4 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
+# github.com/hashicorp/go-azure-sdk/resource-manager => ../go-azure-sdk/resource-manager

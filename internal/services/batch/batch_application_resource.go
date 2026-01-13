@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
+	application "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/applications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,7 +84,7 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	id := application.NewApplicationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.ApplicationGet(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -106,7 +106,7 @@ func resourceBatchApplicationCreate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err := client.Create(ctx, id, parameters); err != nil {
+	if _, err = client.ApplicationCreate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -125,7 +125,7 @@ func resourceBatchApplicationRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.ApplicationGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Batch Application %q does not exist - removing from state", d.Id())
@@ -172,7 +172,7 @@ func resourceBatchApplicationUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err := client.Update(ctx, *id, parameters); err != nil {
+	if _, err := client.ApplicationUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -189,7 +189,7 @@ func resourceBatchApplicationDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if _, err := client.ApplicationDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
