@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
-
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_postgresql -service-package-name dataprotection -properties "name,resource_group_name,backup_vault_name:vault_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -40,10 +37,10 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 
 		DeprecationMessage: "The `azurerm_data_protection_backup_policy_postgresql` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&backuppolicies.BackupPolicyId{}),
-		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&backuppolicies.BackupPolicyId{}),
-		},
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := backuppolicies.ParseBackupPolicyID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -235,9 +232,6 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 	}
 
 	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceDataProtectionBackupPolicyPostgreSQLRead(d, meta)
 }
 
@@ -280,7 +274,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 			}
 		}
 	}
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return nil
 }
 
 func resourceDataProtectionBackupPolicyPostgreSQLDelete(d *pluginsdk.ResourceData, meta interface{}) error {

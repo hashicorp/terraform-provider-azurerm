@@ -22,10 +22,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
-
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_postgresql -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -43,10 +42,10 @@ func resourceDataProtectionBackupInstancePostgreSQL() *pluginsdk.Resource {
 
 		DeprecationMessage: "The `azurerm_data_protection_backup_instance_postgresql` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&backupinstances.BackupInstanceId{}),
-		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&backupinstances.BackupInstanceId{}),
-		},
+		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
+			_, err := backupinstances.ParseBackupInstanceID(id)
+			return err
+		}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -177,9 +176,6 @@ func resourceDataProtectionBackupInstancePostgreSQLCreateUpdate(d *schema.Resour
 	}
 
 	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
 	return resourceDataProtectionBackupInstancePostgreSQLRead(d, meta)
 }
 
@@ -223,7 +219,7 @@ func resourceDataProtectionBackupInstancePostgreSQLRead(d *schema.ResourceData, 
 			}
 		}
 	}
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return nil
 }
 
 func resourceDataProtectionBackupInstancePostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
