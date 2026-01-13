@@ -430,7 +430,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						return fmt.Errorf("`managed_resource_group_name` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
-					if defaultStorageFirewallEnabled.(string) == string(workspaces.DefaultStorageFirewallEnabled) {
+					if defaultStorageFirewallEnabled.(bool) {
 						return fmt.Errorf("`default_storage_firewall_enabled` argument should be removed or set to `false` when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
