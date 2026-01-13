@@ -283,7 +283,7 @@ func (r ManagementGroupPolicyDefinitionResource) Read() sdk.ResourceFunc {
 					}
 					state.DisplayName = displayName
 
-					state.PolicyType =  string(pointer.From(props.PolicyType))
+					state.PolicyType = string(pointer.From(props.PolicyType))
 					state.Mode = pointer.From(props.Mode)
 					state.Description = pointer.From(props.Description)
 
