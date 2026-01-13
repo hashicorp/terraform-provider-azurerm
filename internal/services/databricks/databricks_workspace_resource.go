@@ -710,12 +710,15 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		},
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
-			ComputeMode:            computeMode,
-			PublicNetworkAccess:    &publicNetworkAccess,
-			ManagedResourceGroupId: pointer.To(managedResourceGroupID),
-			Parameters:             customParams,
+			ComputeMode:         computeMode,
+			PublicNetworkAccess: &publicNetworkAccess,
+			Parameters:          customParams,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if computeMode != workspaces.ComputeModeServerless {
+		workspace.Properties.ManagedResourceGroupId = pointer.To(managedResourceGroupID)
 	}
 
 	if defaultStorageFirewallEnabledRaw {
