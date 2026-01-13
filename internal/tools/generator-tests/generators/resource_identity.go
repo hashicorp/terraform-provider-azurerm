@@ -125,8 +125,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	}
 
 	// check we have the essentials
-	switch {
-	case d.ResourceName == "":
+	if d.ResourceName == "" {
 		errors = append(errors, fmt.Errorf("resource name is required"))
 	}
 
