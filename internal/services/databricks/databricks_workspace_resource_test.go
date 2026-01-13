@@ -3313,6 +3313,8 @@ resource "azurerm_subnet_network_security_group_association" "private" {
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_key_vault" "test" {
   name                = "acctest-kv-%[3]s"
   location            = azurerm_resource_group.test.location
