@@ -53,8 +53,8 @@ func (r ManagementGroupPolicyDefinitionResource) Arguments() map[string]*plugins
 		},
 
 		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
 		"mode": {
