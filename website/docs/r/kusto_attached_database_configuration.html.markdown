@@ -59,7 +59,7 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.follower_cluster.name
-  cluster_resource_id = azurerm_kusto_cluster.followed_cluster.id
+  cluster_id = azurerm_kusto_cluster.followed_cluster.id
   database_name       = azurerm_kusto_database.example.name
 
   sharing {
@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 
-* `database_name_override` - (Optional) Overrides the original database name. Relevant only when attaching to a specific database.
+* `database_name_override` - (Optional) The database name to use for the attached database instead of using the original database name. Relevant only when attaching to a specific database.
 
 * `database_name_prefix` - (Optional) Adds a prefix to the attached databases name. When following an entire cluster, that prefix would be added to all of the databases original names from leader cluster.
 
