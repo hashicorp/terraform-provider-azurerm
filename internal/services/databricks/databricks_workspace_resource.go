@@ -525,14 +525,10 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	var backendPoolName, loadBalancerId string
 	skuName := d.Get("sku").(string)
+	computeMode := workspaces.ComputeMode(d.Get("compute_mode").(string))
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := location.Normalize(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
-
-	computeMode := workspaces.ComputeModeHybrid
-	if d.Get("compute_mode").(string) == string(workspaces.ComputeModeServerless) {
-		computeMode = workspaces.ComputeModeServerless
-	}
 
 	if backendPool != "" {
 		backendPoolId, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(backendPool)
@@ -1563,7 +1559,7 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 
 		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
 		for _, s := range pointer.From(v.ComplianceStandards) {
-			if s == previousWorkspaces.ComplianceStandardNONE {
+			if s == string(previousWorkspaces.ComplianceStandardNONE) {
 				continue
 			}
 			standards.Add(string(s))
@@ -1597,15 +1593,15 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 		complianceSecurityProfileEnabled = workspaces.ComplianceSecurityProfileValueEnabled
 	}
 
-	complianceStandards := []previousWorkspaces.ComplianceStandard{}
+	complianceStandards := []string{}
 	if standardSet, ok := config["compliance_security_profile_standards"].(*pluginsdk.Set); ok {
 		for _, s := range standardSet.List() {
-			complianceStandards = append(complianceStandards, previousWorkspaces.ComplianceStandard(s.(string)))
+			complianceStandards = append(complianceStandards, s.(string))
 		}
 	}
 
 	if complianceSecurityProfileEnabled == workspaces.ComplianceSecurityProfileValueEnabled && len(complianceStandards) == 0 {
-		complianceStandards = append(complianceStandards, previousWorkspaces.ComplianceStandardNONE)
+		complianceStandards = append(complianceStandards, string(previousWorkspaces.ComplianceStandardNONE))
 	}
 
 	return &workspaces.EnhancedSecurityComplianceDefinition{

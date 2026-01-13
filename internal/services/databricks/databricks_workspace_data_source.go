@@ -264,7 +264,7 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		if sku := resp.Model.Sku; sku != nil {
 			d.Set("sku", sku.Name)
 		}
-		d.Set("compute_mode", string(model.Properties.WorkspaceProperties.ComputeMode))
+		d.Set("compute_mode", string(model.Properties.ComputeMode))
 		d.Set("workspace_id", model.Properties.WorkspaceId)
 		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
