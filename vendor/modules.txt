@@ -474,6 +474,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesign
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories
+github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimedisableinteractivequery
+github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimeenableinteractivequery
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints

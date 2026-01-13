@@ -12,9 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimedisableinteractivequery"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimeenableinteractivequery"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -106,6 +110,12 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"interactive_authoring_time_to_live_in_minutes": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]int{10, 30, 60, 120}),
+			},
+
 			"time_to_live_min": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -125,6 +135,7 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 
 func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
+	enableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeEnableInteractiveQueryClient
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -187,11 +198,31 @@ func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData,
 
 	d.SetId(id.ID())
 
+	if ttl := d.Get("interactive_authoring_time_to_live_in_minutes").(int); ttl != 0 {
+		// Interactive Authoring/Query can only be modified once the integration runtime is online
+		poller := pollers.NewPoller(custompollers.NewDataFactoryIntegrationRuntimeStatusPoller(client, id), time.Second*5, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		err := poller.PollUntilDone(ctx)
+		if err != nil {
+			return fmt.Errorf("waiting for state change of %s: %+v", id, err)
+		}
+
+		payload := integrationruntimeenableinteractivequery.EnableInteractiveQueryRequest{
+			AutoTerminationMinutes: pointer.To(int64(ttl)),
+		}
+
+		if err := enableInteractiveQueryClient.IntegrationRuntimeEnableInteractiveQueryThenPoll(ctx, integrationruntimeenableinteractivequery.IntegrationRuntimeId(id), payload); err != nil {
+			return fmt.Errorf("enabling interactive authoring on %s: %+v", id, err)
+		}
+	}
+
 	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
 }
 
 func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
+	disableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeDisableInteractiveQueryClient
+	enableInteractiveQueryClient := meta.(*clients.Client).DataFactory.IntegrationRuntimeEnableInteractiveQueryClient
+
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -251,6 +282,28 @@ func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData,
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
+	if d.HasChange("interactive_authoring_time_to_live_in_minutes") {
+		poller := pollers.NewPoller(custompollers.NewDataFactoryIntegrationRuntimeStatusPoller(client, *id), time.Second*5, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		err := poller.PollUntilDone(ctx)
+		if err != nil {
+			return fmt.Errorf("waiting for state change of %s: %+v", id, err)
+		}
+
+		if ttl := d.Get("interactive_authoring_time_to_live_in_minutes").(int); ttl > 0 {
+			payload := integrationruntimeenableinteractivequery.EnableInteractiveQueryRequest{
+				AutoTerminationMinutes: pointer.To(int64(ttl)),
+			}
+
+			if err := enableInteractiveQueryClient.IntegrationRuntimeEnableInteractiveQueryThenPoll(ctx, integrationruntimeenableinteractivequery.IntegrationRuntimeId(*id), payload); err != nil {
+				return fmt.Errorf("enabling interactive authoring on %s: %+v", id, err)
+			}
+		} else {
+			if err := disableInteractiveQueryClient.IntegrationRuntimeDisableInteractiveQueryThenPoll(ctx, integrationruntimedisableinteractivequery.IntegrationRuntimeId(*id)); err != nil {
+				return fmt.Errorf("disabling interactive authoring on %s: %+v", id, err)
+			}
+		}
+	}
+
 	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
 }
 
@@ -297,6 +350,12 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 				d.Set("time_to_live_min", dataFlowProps.TimeToLive)
 				d.Set("cleanup_enabled", dataFlowProps.Cleanup)
 			}
+		}
+
+		// This is currently non-functional, the API doesn't return the InteractiveQuery properties
+		// See: https://github.com/Azure/azure-rest-api-specs/issues/39594
+		if iqProps := runTime.TypeProperties.InteractiveQuery; iqProps != nil {
+			d.Set("interactive_authoring_time_to_live_in_minutes", iqProps.AutoTerminationMinutes)
 		}
 	}
 
