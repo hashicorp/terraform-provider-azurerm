@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2025-10-01-preview/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
@@ -77,12 +77,11 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			},
 
 			"compute_mode": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				// placeholder
-				Default:      "Hybrid",
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.ComputeModeHybrid),
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{}, false),
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForComputeMode(), false),
 			},
 
 			"managed_resource_group_name": {
@@ -427,34 +426,33 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					return fmt.Errorf("`customer_managed_key_enabled`, `default_storage_firewall_enabled`, `enhanced_security_compliance`, `infrastructure_encryption_enabled`, `managed_disk_cmk_key_vault_key_id` and `managed_services_cmk_key_vault_key_id` are only available with a `premium` workspace `sku`, got %q", newSku)
 				}
 
-				// placeholder
-				if computeMode == "Serverless" {
+				if computeMode.(string) == string(workspaces.ComputeModeServerless) {
 					if managedResourceGroupName.(string) != "" {
-						return fmt.Errorf("`managed_resource_group_name` argument is not allowed when `compute_mode` argument is `Serverless`")
+						return fmt.Errorf("`managed_resource_group_name` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
-					if defaultStorageFirewallEnabled.(string) == "Enabled" {
-						return fmt.Errorf("`default_storage_firewall_enabled` argument should be removed or set to `false` when `compute_mode` argument is `Serverless`")
+					if defaultStorageFirewallEnabled.(string) == string(workspaces.DefaultStorageFirewallEnabled) {
+						return fmt.Errorf("`default_storage_firewall_enabled` argument should be removed or set to `false` when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
 					if requireNsgRules.(string) != "" {
-						return fmt.Errorf("`network_security_group_rules_required` argument is not allowed when `compute_mode` argument is `Serverless`")
+						return fmt.Errorf("`network_security_group_rules_required` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
 					if len(customParams.([]interface{})) > 0 {
-						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `Serverless`")
+						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
 					if managedDiskCMKKeyVaultId.(string) != "" {
-						return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `Serverless`")
+						return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
 					if managedDiskCMK.(string) != "" {
-						return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `Serverless`")
+						return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
 					if accessConnectorIdRaw.(string) != "" {
-						return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `Serverless`")
+						return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 				}
 
@@ -560,8 +558,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	// placeholder
-	if managedResourceGroupName == "" && computeMode == "Hybrid" {
+	if managedResourceGroupName == "" && computeMode == string(workspaces.ComputeModeServerless) {
 		// no managed resource group name was provided, we use the default pattern
 		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
 		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
