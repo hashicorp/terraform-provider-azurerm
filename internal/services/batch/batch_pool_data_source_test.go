@@ -40,11 +40,6 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.0.scope").HasValue("Task"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.0.elevation_level").HasValue("NonAdmin"),
-				check.That(data.ResourceName).Key("certificate.#").HasValue("1"),
-				check.That(data.ResourceName).Key("certificate.0.id").Exists(),
-				check.That(data.ResourceName).Key("certificate.0.store_location").HasValue("CurrentUser"),
-				check.That(data.ResourceName).Key("certificate.0.store_name").HasValue(""),
-				check.That(data.ResourceName).Key("certificate.0.visibility.#").HasValue("2"),
 				check.That(data.ResourceName).Key("container_configuration.0.type").HasValue("DockerCompatible"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
@@ -109,16 +104,6 @@ resource "azurerm_batch_account" "test" {
   }
 }
 
-resource "azurerm_batch_certificate" "test" {
-  resource_group_name  = azurerm_resource_group.test.name
-  account_name         = azurerm_batch_account.test.name
-  certificate          = filebase64("testdata/batch_certificate_password.pfx")
-  format               = "Pfx"
-  password             = "terraform"
-  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
-  thumbprint_algorithm = "SHA1"
-}
-
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = azurerm_resource_group.test.name
@@ -138,12 +123,6 @@ resource "azurerm_batch_pool" "test" {
     offer     = "ubuntu-server-container"
     sku       = "20-04-lts"
     version   = "latest"
-  }
-
-  certificate {
-    id             = azurerm_batch_certificate.test.id
-    store_location = "CurrentUser"
-    visibility     = ["StartTask", "RemoteUser"]
   }
 
   container_configuration {

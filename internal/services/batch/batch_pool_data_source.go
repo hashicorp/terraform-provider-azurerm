@@ -13,13 +13,14 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceBatchPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	d := &pluginsdk.Resource{
 		Read: dataSourceBatchPoolRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -145,33 +146,6 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 							Computed: true,
 							Elem: &pluginsdk.Resource{
 								Schema: batchPoolDataContainerRegistry(),
-							},
-						},
-					},
-				},
-			},
-			"certificate": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"store_location": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"store_name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-						"visibility": {
-							Type:     pluginsdk.TypeSet,
-							Computed: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -577,6 +551,39 @@ func dataSourceBatchPool() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		d.Schema["certificate"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Computed:   true,
+			Deprecated: "the `certificate` property has been deprecated and will be removed in v5.0 of the AzureRM provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"store_location": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"store_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"visibility": {
+						Type:     pluginsdk.TypeSet,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
+		}
+	}
+
+	return d
 }
 
 func startTaskDSSchema() map[string]*pluginsdk.Schema {
@@ -882,8 +889,10 @@ func dataSourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				}
 			}
 
-			if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-				return fmt.Errorf("setting `certificate`: %v", err)
+			if !features.FivePointOh() {
+				if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+					return fmt.Errorf("setting `certificate`: %v", err)
+				}
 			}
 
 			d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))

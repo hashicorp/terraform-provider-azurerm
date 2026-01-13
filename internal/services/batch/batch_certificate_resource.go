@@ -23,6 +23,8 @@ import (
 
 func resourceBatchCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_batch_certificate` resource has been deprecated and will be removed in v5.0 of the AzureRM provider.",
+
 		Create: resourceBatchCertificateCreate,
 		Read:   resourceBatchCertificateRead,
 		Update: resourceBatchCertificateUpdate,
