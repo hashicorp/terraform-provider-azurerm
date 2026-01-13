@@ -310,7 +310,7 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 		}
 
 		// Workaround for race-condition bug after force-linking
-		// The API bug will be fixed in https://msazure.visualstudio.com/RedisCache/_workitems/edit/36267535
+		// The API bug will be fixed in https://github.com/Azure/azure-rest-api-specs/issues/39598
 		pollerType := custompollers.NewGeoReplicationPoller(client, primaryId, inv.LinkedDatabaseIds)
 		poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 		if err := poller.PollUntilDone(ctx); err != nil {
