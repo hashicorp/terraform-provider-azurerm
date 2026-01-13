@@ -6208,6 +6208,48 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
   path_rule_name                 = "${azurerm_virtual_network.test.name}-pathrule1"
   url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
+
+  error_codes = [400, 403, 404, 405, 408, 500, 502, 503, 504]
+}
+
+resource "azurerm_storage_account" "errors" {
+  name                      = "acctestsa%s"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+
+  static_website {
+    index_document = "index.html"
+  }
+}
+
+resource "azurerm_storage_container" "errors" {
+  name                  = "errors"
+  storage_account_name  = azurerm_storage_account.errors.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "error_pages" {
+  count                  = length(local.error_codes)
+  name                   = "${local.error_codes[count.index]}.html"
+  storage_account_name   = azurerm_storage_account.errors.name
+  storage_container_name = azurerm_storage_container.errors.name
+  type                   = "Block"
+  content_type           = "text/html"
+
+  source_content = <<HTML
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${local.error_codes[count.index]}</title>
+  </head>
+  <body>
+    <h1>${local.error_codes[count.index]}</h1>
+  </body>
+</html>
+HTML
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -6254,95 +6296,21 @@ resource "azurerm_application_gateway" "test" {
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
 
-    custom_error_configuration {
-      status_code           = "HttpStatus403"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP403.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus404"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP404.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus405"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP405.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus408"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP408.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus400"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP400.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus502"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP502.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus503"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP503.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus504"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP504.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus500"
-      custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP500.html"
+    dynamic "custom_error_configuration" {
+      for_each = local.error_codes
+      content {
+        status_code           = "HttpStatus${custom_error_configuration.value}"
+        custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/${custom_error_configuration.value}.html"
+      }
     }
   }
 
-  custom_error_configuration {
-    status_code           = "HttpStatus403"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP403.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus404"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP404.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus405"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP405.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus408"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP408.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus400"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP400.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus502"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP502.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus503"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP503.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus504"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP504.html"
-  }
-
-  custom_error_configuration {
-    status_code           = "HttpStatus500"
-    custom_error_page_url = "https://httperrorpages.github.io/HttpErrorPages/HTTP500.html"
+  dynamic "custom_error_configuration" {
+    for_each = local.error_codes
+    content {
+      status_code           = "HttpStatus${custom_error_configuration.value}"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/${custom_error_configuration.value}.html"
+    }
   }
 
   request_routing_rule {
@@ -6354,7 +6322,7 @@ resource "azurerm_application_gateway" "test" {
     priority                   = 10
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) rewriteRuleSets_backend(data acceptance.TestData) string {
