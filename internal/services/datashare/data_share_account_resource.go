@@ -15,12 +15,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	helperTags "github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share_account -service-package-name datashare -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataShareAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,10 +39,10 @@ func resourceDataShareAccount() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := account.ParseAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&account.AccountId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&account.AccountId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -97,6 +100,9 @@ func resourceDataShareAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceDataShareAccountRead(d, meta)
 }
@@ -130,7 +136,7 @@ func resourceDataShareAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		return helperTags.FlattenAndSet(d, model.Tags)
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataShareAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share_dataset_data_lake_gen2 -service-package-name datashare -properties "name" -compare-values "resource_group_name:share_id,account_name:share_id,share_name:share_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicFile
 
 func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,10 +35,10 @@ func resourceDataShareDataSetDataLakeGen2() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := dataset.ParseDataSetID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&dataset.DataSetId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&dataset.DataSetId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -154,6 +157,9 @@ func resourceDataShareDataSetDataLakeGen2Create(d *pluginsdk.ResourceData, meta 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDataShareDataSetDataLakeGen2Read(d, meta)
 }
 
@@ -203,7 +209,7 @@ func resourceDataShareDataSetDataLakeGen2Read(d *pluginsdk.ResourceData, meta in
 			return fmt.Errorf("%s is not a datalake store gen2 dataset", *id)
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataShareDataSetDataLakeGen2Delete(d *pluginsdk.ResourceData, meta interface{}) error {

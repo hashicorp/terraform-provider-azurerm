@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataShareDataSetDataLakeGen2Resource struct{}
+type DataShareDatasetDataLakeGen2Resource struct{}
 
 func TestAccDataShareDataSetDataLakeGen2_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
-	r := DataShareDataSetDataLakeGen2Resource{}
+	r := DataShareDatasetDataLakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccDataShareDataSetDataLakeGen2_basicFile(t *testing.T) {
 
 func TestAccDataShareDataSetDataLakeGen2_basicFolder(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
-	r := DataShareDataSetDataLakeGen2Resource{}
+	r := DataShareDatasetDataLakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -52,7 +52,7 @@ func TestAccDataShareDataSetDataLakeGen2_basicFolder(t *testing.T) {
 
 func TestAccDataShareDataSetDataLakeGen2File_basicSystem(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
-	r := DataShareDataSetDataLakeGen2Resource{}
+	r := DataShareDatasetDataLakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +68,7 @@ func TestAccDataShareDataSetDataLakeGen2File_basicSystem(t *testing.T) {
 
 func TestAccDataShareDataLakeGen2DataSet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_data_lake_gen2", "test")
-	r := DataShareDataSetDataLakeGen2Resource{}
+	r := DataShareDatasetDataLakeGen2Resource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,7 +81,7 @@ func TestAccDataShareDataLakeGen2DataSet_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DataShareDataSetDataLakeGen2Resource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataShareDatasetDataLakeGen2Resource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataset.ParseDataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (t DataShareDataSetDataLakeGen2Resource) Exists(ctx context.Context, client
 	return nil, fmt.Errorf("%s is not a datalake store gen2 dataset", *id)
 }
 
-func (DataShareDataSetDataLakeGen2Resource) template(data acceptance.TestData) string {
+func (DataShareDatasetDataLakeGen2Resource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -162,7 +162,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r DataShareDataSetDataLakeGen2Resource) basicFile(data acceptance.TestData) string {
+func (r DataShareDatasetDataLakeGen2Resource) basicFile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -179,7 +179,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataShareDataSetDataLakeGen2Resource) basicFolder(data acceptance.TestData) string {
+func (r DataShareDatasetDataLakeGen2Resource) basicFolder(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -196,7 +196,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataShareDataSetDataLakeGen2Resource) basicSystem(data acceptance.TestData) string {
+func (r DataShareDatasetDataLakeGen2Resource) basicSystem(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -212,7 +212,7 @@ resource "azurerm_data_share_dataset_data_lake_gen2" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataShareDataSetDataLakeGen2Resource) requiresImport(data acceptance.TestData) string {
+func (r DataShareDatasetDataLakeGen2Resource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
