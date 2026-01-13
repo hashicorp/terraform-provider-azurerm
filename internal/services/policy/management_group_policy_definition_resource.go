@@ -55,7 +55,6 @@ func (r ManagementGroupPolicyDefinitionResource) Arguments() map[string]*plugins
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"mode": {
@@ -84,13 +83,21 @@ func (r ManagementGroupPolicyDefinitionResource) Arguments() map[string]*plugins
 			ValidateFunc: validation.StringInSlice(policydefinitions.PossibleValuesForPolicyType(), false),
 		},
 
+		"metadata": metadataSchema(),
+
 		"description": {
 			Type:         pluginsdk.TypeString,
+			Computed:     true,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"metadata": metadataSchema(),
+		"policy_rule": {
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ValidateFunc:     validation.StringIsJSON,
+			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		},
 
 		"parameters": {
 			Type:             pluginsdk.TypeString,
@@ -99,11 +106,48 @@ func (r ManagementGroupPolicyDefinitionResource) Arguments() map[string]*plugins
 			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
 		},
 
-		"policy_rule": {
-			Type:             pluginsdk.TypeString,
-			Optional:         true,
-			ValidateFunc:     validation.StringIsJSON,
-			DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+		"policy_definition_reference": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"policy_definition_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"parameter_values": {
+						Type:             pluginsdk.TypeString,
+						Optional:         true,
+						ValidateFunc:     validation.StringIsJSON,
+						DiffSuppressFunc: pluginsdk.SuppressJsonDiff,
+					},
+
+					"policy_group_names": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+		},
+
+		"policy_definition_group": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
 		},
 	}
 }
@@ -159,7 +203,7 @@ func (r ManagementGroupPolicyDefinitionResource) Create() sdk.ResourceFunc {
 				Properties: &policydefinitions.PolicyDefinitionProperties{
 					DisplayName: pointer.To(model.DisplayName),
 					Description: pointer.To(model.Description),
-					PolicyType:  pointer.ToEnum[policydefinitions.PolicyType](model.PolicyType),
+					PolicyType:  pointer.To(policydefinitions.PolicyType(model.PolicyType)),
 					Mode:        pointer.To(model.Mode),
 				},
 			}
@@ -232,7 +276,12 @@ func (r ManagementGroupPolicyDefinitionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.PolicyType = string(pointer.From(props.PolicyType))
+					policyType := ""
+					if props.PolicyType != nil {
+						policyType = string(*props.PolicyType)
+					}
+					state.PolicyType = policyType
+
 					state.Mode = pointer.From(props.Mode)
 					state.DisplayName = pointer.From(props.DisplayName)
 					state.Description = pointer.From(props.Description)
@@ -369,7 +418,7 @@ func (r ManagementGroupPolicyDefinitionResource) Delete() sdk.ResourceFunc {
 			}
 
 			if _, err := client.DeleteAtManagementGroup(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+				return fmt.Errorf("deleting resource %s: %+v", *id, err)
 			}
 
 			return nil
@@ -395,7 +444,7 @@ func (r ManagementGroupPolicyDefinitionResource) CustomizeDiff() sdk.ResourceFun
 
 					oldParameters, err := expandParameterDefinitionsValueForPolicyDefinition(oldParametersString)
 					if err != nil {
-						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+						return fmt.Errorf("expanding JSON for `parameters`")
 					}
 
 					newParameters, err := expandParameterDefinitionsValueForPolicyDefinition(newParametersString)
