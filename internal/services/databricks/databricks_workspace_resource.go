@@ -559,7 +559,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if managedResourceGroupName == "" && computeMode == workspaces.ComputeModeServerless {
+	if managedResourceGroupName == "" && computeMode != workspaces.ComputeModeServerless {
 		// no managed resource group name was provided, we use the default pattern
 		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
 		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
