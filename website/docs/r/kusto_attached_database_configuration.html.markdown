@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the database which you would like to attach, use * if you want to follow all current and future databases. Changing this forces a new resource to be created.
 
-* `database_name_override` - (Optional) Overrides the original database name. Relevant only when attaching to a specific database.
+* `database_name_override` - (Optional) The database name to use for the attached database instead of using the original database name. Relevant only when attaching to a specific database.
 
 * `database_name_prefix` - (Optional) Adds a prefix to the attached databases name. When following an entire cluster, that prefix would be added to all of the databases original names from leader cluster.
 
