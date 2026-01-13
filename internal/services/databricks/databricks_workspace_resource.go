@@ -845,7 +845,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku", sku.Name)
 		}
 
-		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(model.Properties.ManagedResourceGroupId)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
@@ -1563,7 +1563,7 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 
 		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
 		for _, s := range pointer.From(v.ComplianceStandards) {
-			if s == workspaces.ComplianceStandardNONE {
+			if s == previousWorkspaces.ComplianceStandardNONE {
 				continue
 			}
 			standards.Add(string(s))
@@ -1597,15 +1597,15 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 		complianceSecurityProfileEnabled = workspaces.ComplianceSecurityProfileValueEnabled
 	}
 
-	complianceStandards := []workspaces.ComplianceStandard{}
+	complianceStandards := []previousWorkspaces.ComplianceStandard{}
 	if standardSet, ok := config["compliance_security_profile_standards"].(*pluginsdk.Set); ok {
 		for _, s := range standardSet.List() {
-			complianceStandards = append(complianceStandards, workspaces.ComplianceStandard(s.(string)))
+			complianceStandards = append(complianceStandards, previousWorkspaces.ComplianceStandard(s.(string)))
 		}
 	}
 
 	if complianceSecurityProfileEnabled == workspaces.ComplianceSecurityProfileValueEnabled && len(complianceStandards) == 0 {
-		complianceStandards = append(complianceStandards, workspaces.ComplianceStandardNONE)
+		complianceStandards = append(complianceStandards, previousWorkspaces.ComplianceStandardNONE)
 	}
 
 	return &workspaces.EnhancedSecurityComplianceDefinition{
