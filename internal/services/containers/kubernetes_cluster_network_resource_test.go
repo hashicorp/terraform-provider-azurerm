@@ -84,7 +84,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkPluginError(t *testing.T)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.advancedNetworkingBlock(data, "kubenet", "cilium"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `azure`"),
+			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to true, `network_profile.0.network_plugin` must be set to `azure`"),
 		},
 	})
 }
@@ -96,7 +96,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkDataplane(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.advancedNetworkingBlock(data, "azure", "azure"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `cilium`"),
+			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to true, `network_profile.0.network_data_plane` must be set to `cilium`"),
 		},
 	})
 }
@@ -4663,4 +4663,92 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
+}
+
+func TestAccKubernetesCluster_advancedNetworkingObservabilityOnlyAzureNetworkPlugin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingObservabilityOnlyBlock(data, "azure", "azure"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesCluster_advancedNetworkingObservabilityOnlyKubenetNetworkPlugin(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.advancedNetworkingObservabilityOnlyBlock(data, "kubenet", "azure"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (KubernetesClusterResource) advancedNetworkingObservabilityOnlyBlock(data acceptance.TestData, networkPlugin, networkDataPlane string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[2]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/16"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 2
+    vm_size        = "Standard_a2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin     = "%[3]s"
+    network_data_plane = "%[4]s"
+
+    advanced_networking {
+      observability_enabled = true
+      security_enabled      = false
+    }
+  }
+}
+`, data.Locations.Primary, data.RandomInteger, networkPlugin, networkDataPlane)
 }
