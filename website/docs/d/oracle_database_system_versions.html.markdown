@@ -38,7 +38,7 @@ The following arguments are supported:
 
 * `storage_management` - (Optional) The DB system storage management option. Used to list database versions available for that storage manager. Possible value is `LVM`.
 
-* `upgrade_support_enabled` - (Optional) Whether to filter the results to the set of database versions which are supported for Upgrade.
+* `upgrade_supported` - (Optional) Whether to filter the results to the set of database versions which are supported for Upgrade.
 
 ## Attributes Reference
 

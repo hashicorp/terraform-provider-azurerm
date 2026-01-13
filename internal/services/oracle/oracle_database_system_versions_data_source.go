@@ -23,7 +23,7 @@ type DatabaseVersionsModel struct {
 	DatabaseSystemShape            string                     `tfschema:"database_system_shape"`
 	ShapeFamily                    string                     `tfschema:"shape_family"`
 	StorageManagement              string                     `tfschema:"storage_management"`
-	UpgradeSupportEnabled          bool                       `tfschema:"upgrade_support_enabled"`
+	UpgradeSupported               bool                       `tfschema:"upgrade_supported"`
 	Versions                       []DatabaseVersionItemModel `tfschema:"versions"`
 }
 
@@ -61,7 +61,7 @@ func (d DatabaseVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForStorageManagementType(), false),
 		},
-		"upgrade_support_enabled": {
+		"upgrade_supported": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -127,7 +127,7 @@ func (d DatabaseVersionsDataSource) Read() sdk.ResourceFunc {
 			options := dbversions.DefaultListByLocationOperationOptions()
 
 			options.IsDatabaseSoftwareImageSupported = pointer.To(state.DatabaseSoftwareImageSupported)
-			options.IsUpgradeSupported = pointer.To(state.UpgradeSupportEnabled)
+			options.IsUpgradeSupported = pointer.To(state.UpgradeSupported)
 
 			if state.DatabaseSystemShape != "" {
 				options.DbSystemShape = pointer.ToEnum[dbversions.BaseDbSystemShapes](state.DatabaseSystemShape)
