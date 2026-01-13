@@ -3,6 +3,8 @@
 
 package cosmos
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_postgresql_cluster -service-package-name cosmos -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
+
 import (
 	"context"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,7 +64,10 @@ type MaintenanceWindow struct {
 
 type CosmosDbPostgreSQLClusterResource struct{}
 
-var _ sdk.ResourceWithUpdate = CosmosDbPostgreSQLClusterResource{}
+var (
+	_ sdk.ResourceWithUpdate   = CosmosDbPostgreSQLClusterResource{}
+	_ sdk.ResourceWithIdentity = CosmosDbPostgreSQLClusterResource{}
+)
 
 func (r CosmosDbPostgreSQLClusterResource) ResourceType() string {
 	return CosmosDbPostgreSQLClusterResourceName
@@ -73,6 +79,10 @@ func (r CosmosDbPostgreSQLClusterResource) ModelObject() interface{} {
 
 func (r CosmosDbPostgreSQLClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return clusters.ValidateServerGroupsv2ID
+}
+
+func (r CosmosDbPostgreSQLClusterResource) Identity() resourceids.ResourceId {
+	return &clusters.ServerGroupsv2Id{}
 }
 
 func (r CosmosDbPostgreSQLClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -425,6 +435,9 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -599,6 +612,10 @@ func (r CosmosDbPostgreSQLClusterResource) Read() sdk.ResourceFunc {
 
 			if model.Tags != nil {
 				state.Tags = *model.Tags
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

@@ -3,6 +3,11 @@
 
 package cosmos
 
+// NOTE: Resource Identity is NOT implemented for this resource.
+// The service name is always "SqlDedicatedGateway" (a constant, not user-configurable),
+// which means during import the user would be going name = "SqlDedicatedGateway".
+// This will have to wait until our wrapper/framework has a way to handle this.
+
 import (
 	"context"
 	"fmt"
