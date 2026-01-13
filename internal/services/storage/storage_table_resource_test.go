@@ -294,6 +294,7 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 	if _, err := client.Storage.ResourceManager.TableService.TableDelete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
 	return pointer.To(true), nil
 }
 
