@@ -844,12 +844,16 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		d.Set("compute_mode", string(model.Properties.ComputeMode))
-		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
-		if err != nil {
-			return err
+
+		if model.Properties.managedResourceGroupId != nil {
+			managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.managedResourceGroupId))
+			if err != nil {
+				return err
+			}
+
+			d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
+			d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 		}
-		d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
-		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 
 		if defaultStorageFirewall := model.Properties.DefaultStorageFirewall; defaultStorageFirewall != nil {
 			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)
