@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_mysql_flexible_server -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type BackupPolicyMySQLFlexibleServerModel struct {
 	Name                         string                                                `tfschema:"name"`
@@ -56,6 +59,11 @@ type BackupPolicyMySQLFlexibleServerCriteria struct {
 type DataProtectionBackupPolicyMySQLFlexibleServerResource struct{}
 
 var _ sdk.Resource = DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+var _ sdk.ResourceWithIdentity = DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+
+func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Identity() resourceids.ResourceId {
+	return &backuppolicies.BackupPolicyId{}
+}
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_mysql_flexible_server"
@@ -295,6 +303,9 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Create() sdk.Reso
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -336,6 +347,9 @@ func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Read() sdk.Resour
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}

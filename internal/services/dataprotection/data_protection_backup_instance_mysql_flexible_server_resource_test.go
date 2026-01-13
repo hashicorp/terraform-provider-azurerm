@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupInstanceMySQLFlexibleServerResource struct{}
+type DataProtectionBackupInstanceMysqlFlexibleServerResource struct{}
 
 func TestAccDataProtectionBackupInstanceMySQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_mysql_flexible_server", "test")
-	r := DataProtectionBackupInstanceMySQLFlexibleServerResource{}
+	r := DataProtectionBackupInstanceMysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDataProtectionBackupInstanceMySQLFlexibleServer_basic(t *testing.T) 
 
 func TestAccDataProtectionBackupInstanceMySQLFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_mysql_flexible_server", "test")
-	r := DataProtectionBackupInstanceMySQLFlexibleServerResource{}
+	r := DataProtectionBackupInstanceMysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataProtectionBackupInstanceMySQLFlexibleServer_requiresImport(t *te
 
 func TestAccDataProtectionBackupInstanceMySQLFlexibleServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_mysql_flexible_server", "test")
-	r := DataProtectionBackupInstanceMySQLFlexibleServerResource{}
+	r := DataProtectionBackupInstanceMysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccDataProtectionBackupInstanceMySQLFlexibleServer_update(t *testing.T)
 	})
 }
 
-func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) Exists(ctx cont
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-dataprotection-%d"
@@ -142,7 +142,7 @@ resource "azurerm_data_protection_backup_policy_mysql_flexible_server" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -160,7 +160,7 @@ resource "azurerm_data_protection_backup_instance_mysql_flexible_server" "test" 
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -174,7 +174,7 @@ resource "azurerm_data_protection_backup_instance_mysql_flexible_server" "import
 `, r.basic(data))
 }
 
-func (r DataProtectionBackupInstanceMySQLFlexibleServerResource) update(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceMysqlFlexibleServerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

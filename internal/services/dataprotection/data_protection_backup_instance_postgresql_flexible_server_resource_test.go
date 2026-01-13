@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
+type DataProtectionBackupInstancePostgresqlFlexibleServerResource struct{}
 
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
-	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+	r := DataProtectionBackupInstancePostgresqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_basic(t *testin
 
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
-	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+	r := DataProtectionBackupInstancePostgresqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_requiresImport(
 
 func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql_flexible_server", "test")
-	r := DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+	r := DataProtectionBackupInstancePostgresqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,7 +70,7 @@ func TestAccDataProtectionBackupInstancePostgreSQLFlexibleServer_update(t *testi
 	})
 }
 
-func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataProtectionBackupInstancePostgresqlFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Exists(ctx
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlFlexibleServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-dataprotection-%d"
@@ -143,7 +143,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlFlexibleServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -161,7 +161,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "t
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -175,7 +175,7 @@ resource "azurerm_data_protection_backup_instance_postgresql_flexible_server" "i
 `, r.basic(data))
 }
 
-func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) update(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlFlexibleServerResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

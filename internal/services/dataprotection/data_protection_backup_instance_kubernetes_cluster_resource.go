@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -20,6 +21,8 @@ import (
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_kubernetes_cluster -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type BackupInstanceKubernatesClusterModel struct {
 	Name                       string                       `tfschema:"name"`
@@ -45,6 +48,11 @@ type BackupDatasourceParameters struct {
 type DataProtectionBackupInstanceKubernatesClusterResource struct{}
 
 var _ sdk.Resource = DataProtectionBackupInstanceKubernatesClusterResource{}
+var _ sdk.ResourceWithIdentity = DataProtectionBackupInstanceKubernatesClusterResource{}
+
+func (r DataProtectionBackupInstanceKubernatesClusterResource) Identity() resourceids.ResourceId {
+	return &backupinstances.BackupInstanceId{}
+}
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_kubernetes_cluster"
@@ -246,6 +254,9 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -306,6 +317,9 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
