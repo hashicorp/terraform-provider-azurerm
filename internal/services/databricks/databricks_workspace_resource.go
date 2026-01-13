@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	previousWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2025-10-01-preview/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
@@ -364,8 +365,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(workspaces.ComplianceStandardHIPAA),
-									string(workspaces.ComplianceStandardPCIDSS),
+									string(previousWorkspaces.ComplianceStandardHIPAA),
+									string(previousWorkspaces.ComplianceStandardPCIDSS),
 								}, false),
 							},
 						},
@@ -524,10 +525,14 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	var backendPoolName, loadBalancerId string
 	skuName := d.Get("sku").(string)
-	computeMode := d.Get("compute_mode").(string)
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := location.Normalize(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
+
+	computeMode := workspaces.ComputeModeHybrid
+	if d.Get("compute_mode").(string) == string(workspaces.ComputeModeServerless) {
+		computeMode = workspaces.ComputeModeServerless
+	}
 
 	if backendPool != "" {
 		backendPoolId, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(backendPool)
@@ -558,7 +563,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if managedResourceGroupName == "" && computeMode == string(workspaces.ComputeModeServerless) {
+	if managedResourceGroupName == "" && computeMode == workspaces.ComputeModeServerless {
 		// no managed resource group name was provided, we use the default pattern
 		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
 		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
@@ -715,8 +720,9 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		},
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
+			ComputeMode:            computeMode,
 			PublicNetworkAccess:    &publicNetworkAccess,
-			ManagedResourceGroupId: managedResourceGroupID,
+			ManagedResourceGroupId: pointer.To(managedResourceGroupID),
 			Parameters:             customParams,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),

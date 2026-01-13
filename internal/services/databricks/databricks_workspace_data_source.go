@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2025-10-01-preview/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -38,6 +38,11 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+
+			"compute_mode": {
+				Type: pluginsdk.TypeString,
+				Computed: true,
+			}
 
 			"workspace_id": {
 				Type:     pluginsdk.TypeString,
@@ -259,6 +264,7 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		if sku := resp.Model.Sku; sku != nil {
 			d.Set("sku", sku.Name)
 		}
+		d.Set("compute_mode", string(model.Properties.WorkspaceProperties.ComputeMode))
 		d.Set("workspace_id", model.Properties.WorkspaceId)
 		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
 			return fmt.Errorf("setting `storage_account_identity`: %+v", err)
