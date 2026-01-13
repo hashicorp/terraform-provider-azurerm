@@ -1210,32 +1210,6 @@ resource "azurerm_backup_protected_vm" "test" {
 `, r.baseWithoutVM(data))
 }
 
-func (r BackupProtectedVmResource) updateVaultFirstBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  backup_policy_id    = azurerm_backup_policy_vm.test.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
-}
-
-func (r BackupProtectedVmResource) updateVaultSecondBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test2.name
-  backup_policy_id    = azurerm_backup_policy_vm.test2.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
-}
-
 func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
