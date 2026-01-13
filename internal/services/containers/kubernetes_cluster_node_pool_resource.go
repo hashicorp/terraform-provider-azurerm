@@ -448,7 +448,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clusterId, err := commonids.ParseKubernetesClusterID(d.Get("kubernetes_cluster_id").(string))
+	clusterId, err := commonids.ParseKubernetesClusterIDInsensitively(d.Get("kubernetes_cluster_id").(string))
 	if err != nil {
 		return err
 	}
@@ -739,7 +739,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := agentpools.ParseAgentPoolID(d.Id())
+	id, err := agentpools.ParseAgentPoolIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -899,7 +899,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("vnet_subnet_id") {
 		if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
-			subnetID, err := commonids.ParseSubnetID(subnetIDValue.(string))
+			subnetID, err := commonids.ParseSubnetIDInsensitively(subnetIDValue.(string))
 			if err != nil {
 				return err
 			}
@@ -1061,7 +1061,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := agentpools.ParseAgentPoolID(d.Id())
+	id, err := agentpools.ParseAgentPoolIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1244,7 +1244,7 @@ func resourceKubernetesClusterNodePoolDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := agentpools.ParseAgentPoolID(d.Id())
+	id, err := agentpools.ParseAgentPoolIDInsensitively(d.Id())
 	if err != nil {
 		return err
 	}
