@@ -622,6 +622,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		if computeMode == workspaces.ComputeModeServerless {
 			return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 		}
+
 		diskKeyVaultId = v.(string)
 	}
 
@@ -839,6 +840,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku", sku.Name)
 		}
 
+		d.Set("compute_mode", string(model.Properties.ComputeMode))
 		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
 		if err != nil {
 			return err
@@ -1006,12 +1008,17 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	model := *existing.Model
 
 	props := model.Properties
+	computeMode := workspaces.ComputeMode(d.Get("compute_mode").(string))
 
 	if d.HasChange("sku") {
 		if model.Sku == nil {
 			model.Sku = &workspaces.Sku{}
 		}
 		model.Sku.Name = d.Get("sku").(string)
+	}
+
+	if d.HasChange("compute_mode") {
+		model.Properties.ComputeMode = computeMode
 	}
 
 	if d.HasChange("tags") {
@@ -1045,6 +1052,11 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 			accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 			accessConnectorIdRaw := d.Get("access_connector_id").(string)
+
+			if accessConnectorIdRaw != "" && computeMode == workspaces.ComputeModeServerless {
+				return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
+			}
+
 			accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
 			if err != nil {
 				return err
@@ -1204,10 +1216,18 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_key_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		diskKeyId = v.(string)
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		diskKeyVaultId = v.(string)
 	}
 
