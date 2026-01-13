@@ -1,5 +1,4 @@
 ---
-mode: agent
 description: "Code Review Prompt for Terraform AzureRM Provider Local Changes"
 ---
 

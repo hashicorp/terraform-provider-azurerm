@@ -459,7 +459,7 @@ if response.WasNotFound(resp.HttpResponse) {
 ### Copyright Header (Required)
 All Go files must include this exact copyright header at the top:
 ```go
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 ```
 

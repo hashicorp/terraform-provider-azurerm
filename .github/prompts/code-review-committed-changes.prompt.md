@@ -1,5 +1,4 @@
 ﻿---
-mode: agent
 description: "Code Review Prompt for Terraform AzureRM Provider Committed Changes"
 ---
 
@@ -23,7 +22,7 @@ git log --oneline origin/main..HEAD
 git status
 ```
 
-**⚠️ IMPORTANT**: If the commands do not show any changes, abandon the code review and display: 
+**⚠️ IMPORTANT**: If the commands do not show any changes, abandon the code review and display:
 **"☠️ Argh! Shiver me source files! This branch be cleaner than a swabbed deck! Push some code, Ye Lily-livered scallywag! ☠️"**
 
 **2. REVIEW THE CHANGES** - Apply expertise as principal Terraform provider engineer
@@ -99,7 +98,7 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 ### 🟢 **STRENGTHS**
 [List positive aspects and well-implemented features]
 
-### 🟡 **OBSERVATIONS** 
+### 🟡 **OBSERVATIONS**
 [List areas for consideration or minor improvements]
 
 ### 🔴 **ISSUES** (if any)
@@ -125,7 +124,7 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 * **File**: ${relative/path/to/file}
 * **Details**: Clear explanation
 * **Azure Context** (if applicable): Service behavior reference
-* **Terraform Impact** (if applicable): Configuration/state effects  
+* **Terraform Impact** (if applicable): Configuration/state effects
 * **Suggested Change** (if applicable): Code snippet
 
 # Summary
@@ -151,7 +150,7 @@ Concise assessment and any follow-up items.
 ## Console Line Wrapping Detection *(If Needed)*
 
 **⚠️ ONLY IF git diff content appears corrupted:**
-- Use `read_file filename` to verify actual content  
+- Use `read_file filename` to verify actual content
 - Note: `*(Verified: console wrapping - content clean)*`
 - Continue with technical review
 
@@ -162,20 +161,20 @@ Concise assessment and any follow-up items.
 **Git Commands to Execute:**
 ```powershell
 git branch --show-current
-git --no-pager diff --stat --no-prefix origin/main...HEAD  
+git --no-pager diff --stat --no-prefix origin/main...HEAD
 git --no-pager diff --no-prefix origin/main...HEAD
 git log --oneline origin/main..HEAD
 git status
 ```
 
-**If no changes found:** 
+**If no changes found:**
 **"☠️ Argh! Shiver me source files! This branch be cleaner than a swabbed deck! Push some code, Ye Lily-livered scallywag! ☠️"**
 
 ## Verification Protocol *(Edge Cases Only)*
 
 **When to verify:**
 - Text breaks mid-word without logical reason
-- Missing quotes/brackets that don't make contextual sense  
+- Missing quotes/brackets that don't make contextual sense
 - Emojis appear as `??`
 - JSON/YAML looks syntactically broken
 
@@ -197,16 +196,16 @@ git status
 - **Code Comments Policy**: Comments only for Azure API quirks, complex business logic, or SDK workarounds that cannot be expressed through code structure
 - **Comment Quality**: All comments must have clear justification and add genuine value beyond code structure
 - **Refactoring Preference**: Consider if code restructuring could eliminate need for comments
-- **Documentation Standards**: 
+- **Documentation Standards**:
   - Spelling accuracy in all text content
-  - Grammar and syntax correctness  
+  - Grammar and syntax correctness
   - Consistent terminology and naming
   - Professional language standards
 
 ## Provider-Specific Excellence
 
 - **Testing Standards**: ExistsInAzure() + ImportStep() only, no redundant field validation
-- **CustomizeDiff Patterns**: Correct imports based on implementation type  
+- **CustomizeDiff Patterns**: Correct imports based on implementation type
 - **Azure Patterns**: PATCH operations, "None" value handling, SDK integration
 - **Implementation Approach**: Typed for new resources, Untyped for maintenance only
 
