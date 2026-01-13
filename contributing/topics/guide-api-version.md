@@ -16,8 +16,7 @@ go run internal/tools/preview-api-version-linter/main.go
 
 ## Obtaining exception to use preview API
 
-> [!WARNING]
-> Using a preview API version can be risky, prone to human error, and can result in a substandard user experience. An exception is a last resort only when all the consequences are fully understood and there is no alternative.
+> **Warning:** Using a preview API version can be risky, prone to human error, and can result in a substandard user experience. An exception is a last resort only when all the consequences are fully understood and there is no alternative.
 
 To add an exception to use preview API version, the following criteria must be met:
 
@@ -27,8 +26,7 @@ To add an exception to use preview API version, the following criteria must be m
 1. There is a responsible individual with deep knowledge of the API that can be contacted in the future if required.
 1. There is an agreement between Microsoft and Hashicorp that the exception is appropriate.
 
-> [!NOTE]
-> A feature being in preview phase is not a sufficient reason to add this exception. The concept of preview should be decoupled between feature and ARM API. It is okay to leave the feature in preview phase while having the API promoted to stable. This will safeguard the API against breaking changes and ensure azurerm support for the feature can be shipped sooner to customers.
+> **Note:** A feature being in preview phase is not a sufficient reason to add this exception. The concept of preview should be decoupled between feature and ARM API. It is okay to leave the feature in preview phase while having the API promoted to stable. This will safeguard the API against breaking changes and ensure azurerm support for the feature can be shipped sooner to customers.
 
 To add an exception, insert an entry to `internal/tools/preview-api-version-linter/exceptions.yml` as per below example:
 

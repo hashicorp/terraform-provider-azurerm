@@ -221,6 +221,8 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Required) Maximum storage space for the SQL Managed instance. This should be a multiple of 32 (GB).
 
+-> **Note:** The maximum storage size varies depending on the service tier and hardware generation. For General Purpose Next-gen instances, the maximum is 32,768 GB (32 TB), while Business Critical instances support up to 16,384 GB (16 TB). Refer to [Azure SQL Managed Instance resource limits](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/resource-limits) for detailed information.
+
 * `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
 
 * `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `6`, `8`, `10`, `12`, `16`, `20`, `24`, `32`, `40`, `48`, `56`, `64`, `80`, `96` or `128` for Gen5 SKUs.

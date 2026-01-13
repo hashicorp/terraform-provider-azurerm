@@ -98,6 +98,21 @@ func resourceKustoDatabaseScript() *pluginsdk.Resource {
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"script_level": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(scripts.ScriptLevelDatabase),
+				ValidateFunc: validation.StringInSlice(scripts.PossibleValuesForScriptLevel(), false),
+			},
+
+			"principal_permissions_action": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(scripts.PrincipalPermissionsActionRetainPermissionOnScriptCompletion),
+				ValidateFunc: validation.StringInSlice(scripts.PossibleValuesForPrincipalPermissionsAction(), false),
+			},
 		},
 	}
 }
@@ -152,6 +167,14 @@ func resourceKustoDatabaseScriptCreateUpdate(d *pluginsdk.ResourceData, meta int
 		parameters.Properties.ScriptContent = pointer.To(scriptContent.(string))
 	}
 
+	if scriptLevel, ok := d.GetOk("script_level"); ok {
+		parameters.Properties.ScriptLevel = pointer.ToEnum[scripts.ScriptLevel](scriptLevel.(string))
+	}
+
+	if principalPermissionsAction, ok := d.GetOk("principal_permissions_action"); ok {
+		parameters.Properties.PrincipalPermissionsAction = pointer.ToEnum[scripts.PrincipalPermissionsAction](principalPermissionsAction.(string))
+	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %q: %+v", id, err)
 	}
@@ -187,6 +210,12 @@ func resourceKustoDatabaseScriptRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("continue_on_errors_enabled", props.ContinueOnErrors)
 			d.Set("force_an_update_when_value_changed", props.ForceUpdateTag)
 			d.Set("url", props.ScriptURL)
+			if props.ScriptLevel != nil {
+				d.Set("script_level", pointer.FromEnum(props.ScriptLevel))
+			}
+			if props.PrincipalPermissionsAction != nil {
+				d.Set("principal_permissions_action", pointer.FromEnum(props.PrincipalPermissionsAction))
+			}
 		}
 	}
 	return nil

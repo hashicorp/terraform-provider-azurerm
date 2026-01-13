@@ -175,6 +175,10 @@ resource "azurerm_application_insights_workbook" "test" {
 `, template, intValue)
 }
 
+func (r ApplicationInsightsWorkbookResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.basic(data, data.RandomInteger)
+}
+
 func (r ApplicationInsightsWorkbookResource) hiddenTitleInTags(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`

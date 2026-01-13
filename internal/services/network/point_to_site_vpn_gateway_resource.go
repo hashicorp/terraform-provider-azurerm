@@ -346,7 +346,9 @@ func resourcePointToSiteVPNGatewayRead(d *pluginsdk.ResourceData, meta interface
 			}
 			d.Set("routing_preference_internet_enabled", routingPreferenceInternetEnabled)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

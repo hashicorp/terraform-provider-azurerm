@@ -141,7 +141,9 @@ func resourcePortalDashboardRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("dashboard_properties", string(v))
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -12,7 +12,7 @@ fi
 
 # remove empty lines inside import block via sed
 sed_expression='
-  /^import/,/)/ {
+  /^import (/,/)/ {
     /^$/d
   }
 '

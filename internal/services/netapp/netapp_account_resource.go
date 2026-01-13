@@ -321,7 +321,9 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -36,8 +36,8 @@ func TestAccGalleryApplication_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_gallery_application.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("gallery_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }
