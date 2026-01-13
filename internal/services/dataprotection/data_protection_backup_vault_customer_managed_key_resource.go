@@ -12,11 +12,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_customer_managed_key -service-package-name dataprotection -compare-values "resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type DataProtectionBackupVaultCustomerManagedKeyResource struct{}
 
@@ -26,6 +29,11 @@ type DataProtectionBackupVaultCustomerManagedKeyModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = DataProtectionBackupVaultCustomerManagedKeyResource{}
+var _ sdk.ResourceWithIdentity = DataProtectionBackupVaultCustomerManagedKeyResource{}
+
+func (r DataProtectionBackupVaultCustomerManagedKeyResource) Identity() resourceids.ResourceId {
+	return &backupvaults.BackupVaultId{}
+}
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) ModelObject() interface{} {
 	return &DataProtectionBackupVaultCustomerManagedKeyResource{}
@@ -119,6 +127,9 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -154,6 +165,9 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Read() sdk.Resource
 						state.KeyVaultKeyID = pointer.From(props.SecuritySettings.EncryptionSettings.KeyVaultProperties.KeyUri)
 					}
 				}
+			}
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 			return metadata.Encode(&state)
 		},
