@@ -438,6 +438,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						return fmt.Errorf("`network_security_group_rules_required` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
+					if backendPool.(string) != "" {
+						return fmt.Errorf("`load_balancer_backend_address_pool_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+					}
+
 					fmt.Println("debug2", customParams)
 					if len(customParams.([]interface{})) > 0 {
 						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
@@ -795,10 +799,10 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	// I have to set the custom_parameters so I can pass the public and private
 	// subnet NSG association along with the backend Pool Id since they are not
 	// returned in the read from Azure...
-	custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
-	d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
-
 	if computeMode != workspaces.ComputeModeServerless {
+		custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
+		d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
+
 		if err := d.Set("custom_parameters", custom); err != nil {
 			return fmt.Errorf("setting `custom_parameters`: %+v", err)
 		}
