@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name datadog_monitor_sso_configuration -service-package-name datadog -properties "name" -compare-values "resource_group_name:datadog_monitor_id,monitor_name:datadog_monitor_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 // @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
 // since this appears to be a 1:1 with it (given the name defaults to `default`)
@@ -37,10 +40,10 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := singlesignon.ParseSingleSignOnConfigurationID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&singlesignon.SingleSignOnConfigurationId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&singlesignon.SingleSignOnConfigurationId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"datadog_monitor_id": {
@@ -137,6 +140,9 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDatadogSingleSignOnConfigurationsRead(d, meta)
 }
 
@@ -175,7 +181,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

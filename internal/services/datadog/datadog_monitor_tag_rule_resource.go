@@ -12,12 +12,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name datadog_monitor_tag_rule -service-package-name datadog -properties "name:tag_rule_name" -compare-values "resource_group_name:datadog_monitor_id,monitor_name:datadog_monitor_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 // @tombuildsstuff: in 4.0 consider inlining this within the `azurerm_datadog_monitors` resource
 // since this appears to be a 1:1 with it (given the name defaults to `default`)
@@ -36,10 +39,10 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := rules.ParseTagRuleID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&rules.TagRuleId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&rules.TagRuleId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"datadog_monitor_id": {
@@ -165,6 +168,9 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDatadogTagRulesRead(d, meta)
 }
 
@@ -202,7 +208,7 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
