@@ -8,8 +8,6 @@ description: |-
 
 # Action: azurerm_managed_redis_databases_flush
 
-~> **Note:** `azurerm_managed_redis_databases_flush` is in beta. Its interface and behaviour may change as the feature evolves, and breaking changes are possible. It is offered as a technical preview without compatibility guarantees until Terraform 1.14 is generally available.
-
 Flushes all the keys in the Managed Redis Database and also from its linked databases.
 
 ## Example Usage
