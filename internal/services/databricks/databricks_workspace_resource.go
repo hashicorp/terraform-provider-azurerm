@@ -873,6 +873,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		var cmkEnabled, infraEnabled bool
+		fmt.Println("debug0", model.Properties.Parameters, model.Properties.Parameters == nil)
 		if parameters := model.Properties.Parameters; parameters != nil {
 			if parameters.PrepareEncryption != nil {
 				cmkEnabled = parameters.PrepareEncryption.Value
@@ -887,6 +888,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			// The subnet associations only exist in the statefile, so we need to do a Get before we Set
 			// with what has come back from the Azure response...
 			customParamsRaw := d.Get("custom_parameters").([]interface{})
+			fmt.Println("debug1", customParamsRaw)
 			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, cmkEnabled, infraEnabled, "", "")
 
 			custom, backendPoolReadId := flattenWorkspaceCustomParameters(parameters, pubSubAssoc, priSubAssoc)
