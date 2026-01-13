@@ -6,6 +6,8 @@ package cdn
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -336,11 +338,39 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		props.Properties.TlsSettings = tls
 	}
 
-	if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
+	timeout := d.Timeout(pluginsdk.TimeoutUpdate)
+	if deadline, ok := ctx.Deadline(); ok {
+		if until := time.Until(deadline); until > 0 {
+			timeout = until
+		}
+	}
+
+	if err := pluginsdk.RetryableThenPoll(ctx, timeout, func(attemptCtx context.Context) (pluginsdk.Poller, *http.Response, error) {
+		resp, err := client.Update(attemptCtx, *id, props)
+		if err != nil {
+			return nil, resp.HttpResponse, err
+		}
+		return &resp.Poller, resp.HttpResponse, nil
+	}, isFrontDoorCustomDomainOperationInProgressConflict); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
+}
+
+func isFrontDoorCustomDomainOperationInProgressConflict(httpResponse *http.Response, err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// Azure Front Door can return 409 Conflict while it synchronizes internal state after a change.
+	// Treat only the specific "operation in progress" case as retryable.
+	if httpResponse == nil || !response.WasConflict(httpResponse) {
+		return false
+	}
+
+	message := strings.ToLower(err.Error())
+	return strings.Contains(message, "another operation is in progress") || strings.Contains(message, "operation is in progress")
 }
 
 func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta interface{}) error {
