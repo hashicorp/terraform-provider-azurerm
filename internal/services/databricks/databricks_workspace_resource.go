@@ -845,8 +845,8 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("compute_mode", string(model.Properties.ComputeMode))
 
-		if model.Properties.managedResourceGroupId != nil {
-			managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.managedResourceGroupId))
+		if model.Properties.ManagedResourceGroupId != nil {
+			managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
 			if err != nil {
 				return err
 			}
