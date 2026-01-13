@@ -59,7 +59,7 @@ resource "azurerm_kusto_attached_database_configuration" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   cluster_name        = azurerm_kusto_cluster.follower_cluster.name
-  cluster_resource_id = azurerm_kusto_cluster.followed_cluster.id
+  cluster_id = azurerm_kusto_cluster.followed_cluster.id
   database_name       = azurerm_kusto_database.example.name
 
   sharing {
