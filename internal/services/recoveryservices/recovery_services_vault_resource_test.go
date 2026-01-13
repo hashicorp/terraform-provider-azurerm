@@ -37,6 +37,8 @@ func TestAccRecoveryServicesVault_basic(t *testing.T) {
 	})
 }
 
+// This test validates the conditional ForceNew behavior in the resource CustomizeDiff
+// when updating cross_region_restore_enabled from true to false, which requires recreation
 func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
