@@ -391,13 +391,11 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, requireNsgRules := d.GetChange("network_security_group_rules_required")
 				_, backendPool := d.GetChange("load_balancer_backend_address_pool_id")
 				_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
-				_, managedDiskCMKKeyVaultId := d.GetChange("managed_disk_cmk_key_vault_id")
 				_, managedDiskCMK := d.GetChange("managed_disk_cmk_key_vault_key_id")
 				_, enhancedSecurityCompliance := d.GetChange("enhanced_security_compliance")
 				_, computeMode := d.GetChange("compute_mode")
 				_, managedResourceGroupName := d.GetChange("managed_resource_group_name")
 				_, customParams := d.GetChange("custom_parameters")
-				_, accessConnectorIdRaw := d.GetChange("access_connector_id")
 
 				oldSku, newSku := d.GetChange("sku")
 
@@ -442,18 +440,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 					if len(customParams.([]interface{})) > 0 {
 						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
-					}
-
-					if managedDiskCMKKeyVaultId.(string) != "" {
-						return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
-					}
-
-					if managedDiskCMK.(string) != "" {
-						return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
-					}
-
-					if accessConnectorIdRaw.(string) != "" {
-						return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 				}
 
@@ -625,10 +611,17 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_key_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		diskKeyId = v.(string)
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
 		diskKeyVaultId = v.(string)
 	}
 
@@ -727,6 +720,11 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	if defaultStorageFirewallEnabledRaw {
 		accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 		accessConnectorIdRaw := d.Get("access_connector_id").(string)
+
+		if accessConnectorIdRaw != "" && computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
 		if err != nil {
 			return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
