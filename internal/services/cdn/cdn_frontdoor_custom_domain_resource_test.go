@@ -481,6 +481,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
+
 func (r CdnFrontDoorCustomDomainResource) cipherSuitesTls12Single(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
