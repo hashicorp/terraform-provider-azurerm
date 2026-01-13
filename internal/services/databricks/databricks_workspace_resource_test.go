@@ -3326,7 +3326,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  depends_on = [azurerm_key_vault_access_policy.managed]
+  depends_on = [azurerm_key_vault_access_policy.terraform]
 
   name         = "acctest-certificate"
   key_vault_id = azurerm_key_vault.test.id
@@ -3342,7 +3342,7 @@ resource "azurerm_key_vault_key" "test" {
     "wrapKey",
   ]
 }
-/*
+
 resource "azurerm_key_vault_access_policy" "terraform" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
@@ -3366,7 +3366,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
     "Purge",
   ]
 }
-*/
+
 resource "azurerm_key_vault_access_policy" "managed" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
@@ -3381,11 +3381,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  depends_on = [
-    azurerm_key_vault_access_policy.managed,
-    azurerm_key_vault_key.test,
-    azurerm_key_vault.test
-  ]
+  depends_on = [azurerm_key_vault_access_policy.managed]
 
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
