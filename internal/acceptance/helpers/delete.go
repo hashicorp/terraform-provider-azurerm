@@ -20,7 +20,14 @@ func DeleteResourceFunc(client *clients.Client, testResource types.TestResourceV
 		// @tombuildsstuff: the delete function shouldn't take more than an hour
 		// on the off-chance that it's not for a given resource, we may want to add an optional interface
 		// to return the deletion timeout, rather than extending this for all resources
-		ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(1*time.Hour))
+		// @WodansSon: Added optional interface for custom deletion timeout
+		timeout := 1 * time.Hour
+		if custom, ok := testResource.(types.TestResourceVerifyingRemovedWithCustomDestroyTimeout); ok {
+			if override := custom.DestroyTimeout(); override > 0 {
+				timeout = override
+			}
+		}
+		ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(timeout))
 		defer cancel()
 
 		rs, ok := state.RootModule().Resources[resourceName]
