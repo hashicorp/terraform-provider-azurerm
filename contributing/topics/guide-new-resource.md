@@ -608,15 +608,6 @@ For example, in this case:
 var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 ```
 
-:no_entry: **DO NOT**
-
-```
-var (
-	_ sdk.Resource           = ResourceGroupExampleResource{}
-	_ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
-)
-```
-
 - Sometimes, for complex data types like `pluginsdk.TypeList`, we need to define `expand` and `flatten` methods. When defining such methods, please make sure to define them as global methods.
 
 For example, in this case:
@@ -625,14 +616,6 @@ For example, in this case:
 
 ```
 func expandComplexResource(input []ComplexResource) *resource.ComplexResource {
-	...
-}
-```
-
-:no_entry: **DO NOT**
-
-```
-func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResource) *resource.ComplexResource {
 	...
 }
 ```
@@ -653,20 +636,6 @@ For example, in this case:
 	ValidateFunc: validation.StringMatch(
 		regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
 		"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
-	),
-},
-```
-
-:no_entry: **DO NOT**
-
-```
-"name": {
-	Type:     pluginsdk.TypeString,
-	Required: true,
-	ForceNew: true,
-	ValidateFunc: validation.StringMatch(
-		regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
-		"The name can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
 	),
 },
 ```
@@ -699,30 +668,6 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
 }
 ```
 
-:no_entry: **DO NOT**
-
-```
-func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
-    return sdk.ResourceFunc{
-        ...
-        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            ...
-
-            if existing.Model == nil {
-               return fmt.Errorf("retrieving %s: model was nil", id)
-            }
-            
-            if existing.Model.Properties == nil {
-               return fmt.Errorf("retrieving %s: properties was nil", id)
-            }
-            
-            ...
-            return nil
-        },
-    }
-}
-```
-
 - Avoid returning errors in `Update` or `CustomizeDiff` for valid configurations that cannot be updated in-place. Instead, use `ForceNew` in `CustomizeDiff` to trigger resource recreation.
 
 :white_check_mark: **DO**
@@ -745,28 +690,6 @@ func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
 
 			...
 
-			return nil
-		},
-	}
-}
-```
-
-:no_entry: **DO NOT**
-
-```go
-func (r ExampleResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			...
-            o, n := metadata.ResourceData.GetChange("zone_balancing_enabled")
-			if o.(bool) != n.(bool) {
-				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
-					return errors.New("Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.")
-				}
-			}
-
-			...
 			return nil
 		},
 	}

@@ -277,27 +277,6 @@ When designing schemas, consider flattening properties with `MaxItems: 1` that c
 }
 ```
 
-:no_entry: **DO NOT**
-```go
-"credential": {
-    Type:     pluginsdk.TypeList,
-    Optional: true,
-    MaxItems: 1,
-    Elem:     &pluginsdk.Resource{
-        Schema: map[string]*pluginsdk.Schema{
-            "certificate": {
-                Type:     pluginsdk.TypeList,
-                Optional: true,
-                Elem:     &pluginsdk.Schema{
-                    Type:         pluginsdk.TypeString,
-                    ValidateFunc: validation.StringIsNotEmpty,
-                },
-            },
-        },
-    },
-}
-```
-
 ## Array fields with MinItems and MaxItems
 
 If a field is an array, proper `MinItems` and `MaxItems` should be set based on the API constraints to provide clear validation feedback to users.
