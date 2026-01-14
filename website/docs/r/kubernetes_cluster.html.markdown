@@ -738,6 +738,8 @@ An `advanced_networking` block supports the following:
 
 * `security_enabled` - (Optional) Is security enabled? Defaults to `false`. This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
 
+* `policy` - (Optional) Specifies the advanced network policy applied to the cluster. Possible values are `FQDN`, `L7` and `None`. When `security_enabled` is set to `true` and `policy` is not specified, the API defaults this to `FQDN`; set it to `None` to disable advanced network policy enforcement. `FQDN` and `L7` can only be set when `security_enabled` is set to `true`. `L7` cannot be set when `service_mesh_profile` `mode` is set to `Istio`.
+
 ---
 
 A `load_balancer_profile` block supports the following:
