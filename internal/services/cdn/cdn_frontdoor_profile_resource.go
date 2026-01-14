@@ -6,6 +6,7 @@ package cdn
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -269,7 +270,31 @@ func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, pointer.From(id))
+	retryTimeout := d.Timeout(pluginsdk.TimeoutDelete)
+	if deadline, ok := ctx.Deadline(); ok {
+		if until := time.Until(deadline); until > 0 {
+			retryTimeout = until
+		}
+	}
+
+	isRetryableConflict := func(err error) bool {
+		if err == nil {
+			return false
+		}
+		msg := strings.ToLower(err.Error())
+		return strings.Contains(msg, "another operation is in progress") || strings.Contains(msg, "operation is in progress")
+	}
+
+	err = pluginsdk.Retry(retryTimeout, func() *pluginsdk.RetryError {
+		err := client.DeleteThenPoll(ctx, pointer.From(id))
+		if err != nil {
+			if isRetryableConflict(err) {
+				return pluginsdk.RetryableError(err)
+			}
+			return pluginsdk.NonRetryableError(err)
+		}
+		return nil
+	})
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}

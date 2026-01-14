@@ -6,6 +6,7 @@ package cdn
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -151,6 +152,8 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 												"tls13": {
 													Type:     pluginsdk.TypeSet,
 													Optional: true,
+													// NOTE: O+C Azure Front Door returns TLS 1.3 cipher suites even when `tls13` is not specified (see https://learn.microsoft.com/azure/frontdoor/standard-premium/tls-policy#custom-tls-policy)
+													Computed: true,
 													Elem: &pluginsdk.Schema{
 														Type: pluginsdk.TypeString,
 														ValidateFunc: validation.StringInSlice(
@@ -314,6 +317,8 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
+	updateStartedAt := time.Now()
+
 	id, err := afdcustomdomains.ParseCustomDomainID(d.Id())
 	if err != nil {
 		return err
@@ -345,13 +350,104 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if err := pluginsdk.RetryableThenPoll(ctx, timeout, func(attemptCtx context.Context) (pluginsdk.Poller, *http.Response, error) {
-		resp, err := client.Update(attemptCtx, *id, props)
-		if err != nil {
-			return nil, resp.HttpResponse, err
+	type updatePhase int
+	const (
+		phaseWaitBeforePatch updatePhase = iota
+		phasePatchAndPoll
+		phaseWaitAfterPatch
+	)
+
+	phase := phaseWaitBeforePatch
+	conflictBackoff := time.Duration(0)
+
+	waitForReadyOnce := func() *pluginsdk.RetryError {
+		// If we've previously observed a 409 Conflict, throttle attempts even if
+		// the service reports provisioningState=Succeeded.
+		if conflictBackoff > 0 {
+			log.Printf("[DEBUG] AFD Custom Domain %s busy (409 previously observed), backing off for %s (elapsed %s)", *id, conflictBackoff, time.Since(updateStartedAt))
+			time.Sleep(conflictBackoff)
 		}
-		return &resp.Poller, resp.HttpResponse, nil
-	}, isFrontDoorCustomDomainOperationInProgressConflict); err != nil {
+
+		if err := ctx.Err(); err != nil {
+			return pluginsdk.NonRetryableError(err)
+		}
+
+		getResp, err := client.Get(ctx, *id)
+		if err != nil {
+			if response.WasNotFound(getResp.HttpResponse) {
+				return pluginsdk.NonRetryableError(fmt.Errorf("retrieving %s while waiting for pending operation to complete: %+v", *id, err))
+			}
+			time.Sleep(30 * time.Second)
+			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s while waiting for pending operation to complete: %+v", *id, err))
+		}
+
+		if model := getResp.Model; model != nil {
+			if model.Properties != nil && model.Properties.ProvisioningState != nil {
+				state := *model.Properties.ProvisioningState
+				switch state {
+				case afdcustomdomains.AfdProvisioningStateSucceeded:
+					return nil
+				case afdcustomdomains.AfdProvisioningStateFailed:
+					return pluginsdk.NonRetryableError(fmt.Errorf("%s is in a failed provisioning state", *id))
+				default:
+					log.Printf("[DEBUG] AFD Custom Domain %s provisioningState=%q; waiting before update (elapsed %s)", *id, state, time.Since(updateStartedAt))
+					time.Sleep(30 * time.Second)
+					return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to finish pending operation (current state: %q)", *id, state))
+				}
+			}
+		}
+
+		time.Sleep(30 * time.Second)
+		return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to finish pending operation", *id))
+	}
+
+	if err := pluginsdk.Retry(timeout, func() *pluginsdk.RetryError {
+		switch phase {
+		case phaseWaitBeforePatch:
+			if err := waitForReadyOnce(); err != nil {
+				return err
+			}
+			phase = phasePatchAndPoll
+			fallthrough
+		case phasePatchAndPoll:
+			resp, err := client.Update(ctx, *id, props)
+			if err != nil {
+				if isFrontDoorCustomDomainOperationInProgressConflict(resp.HttpResponse, err) {
+					// Backoff on 409 conflicts. GET can report provisioningState=Succeeded
+					// even when writes are blocked, so don't hammer PATCH.
+					if conflictBackoff == 0 {
+						conflictBackoff = 30 * time.Second
+					} else {
+						conflictBackoff = conflictBackoff * 2
+						if conflictBackoff > 10*time.Minute {
+							conflictBackoff = 10 * time.Minute
+						}
+					}
+					log.Printf("[DEBUG] AFD Custom Domain %s returned 409 Conflict; next retry in %s (elapsed %s)", *id, conflictBackoff, time.Since(updateStartedAt))
+					phase = phaseWaitBeforePatch
+					return pluginsdk.RetryableError(err)
+				}
+				return pluginsdk.NonRetryableError(err)
+			}
+
+			if err := resp.Poller.PollUntilDone(ctx); err != nil {
+				return pluginsdk.NonRetryableError(err)
+			}
+
+			// Reset conflict backoff once the service accepts the update.
+			conflictBackoff = 0
+
+			phase = phaseWaitAfterPatch
+			fallthrough
+		case phaseWaitAfterPatch:
+			if err := waitForReadyOnce(); err != nil {
+				return err
+			}
+			return nil
+		default:
+			return pluginsdk.NonRetryableError(fmt.Errorf("unexpected update phase"))
+		}
+	}); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -402,12 +498,19 @@ func resourceCdnFrontDoorCustomDomainDelete(d *pluginsdk.ResourceData, meta inte
 }
 
 func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-	tlsRaw := diff.Get("tls").([]interface{})
+	tlsAny := diff.Get("tls")
+	tlsRaw, ok := tlsAny.([]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected value for `tls`: expected list")
+	}
 	if len(tlsRaw) == 0 || tlsRaw[0] == nil {
 		return nil
 	}
 
-	tls := tlsRaw[0].(map[string]interface{})
+	tls, ok := tlsRaw[0].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected value for `tls`: expected object")
+	}
 
 	if !features.FivePointOh() {
 		if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
@@ -425,15 +528,43 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 		}
 	}
 
-	cipherSuiteRaw := tls["cipher_suite"].([]interface{})
+	cipherSuiteAny, exists := tls["cipher_suite"]
+	if !exists || cipherSuiteAny == nil {
+		return nil
+	}
+
+	cipherSuiteRaw, ok := cipherSuiteAny.([]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected value for `tls.cipher_suite`: expected list")
+	}
+	if cipherSuiteRaw == nil {
+		return nil
+	}
 
 	if len(cipherSuiteRaw) == 0 || cipherSuiteRaw[0] == nil {
 		return nil
 	}
 
-	cipherSuite := cipherSuiteRaw[0].(map[string]interface{})
-	cipherSuiteType := cipherSuite["type"].(string)
-	customCiphersRaw := cipherSuite["custom_ciphers"].([]interface{})
+	cipherSuite, ok := cipherSuiteRaw[0].(map[string]interface{})
+	if !ok {
+		return fmt.Errorf("unexpected value for `tls.cipher_suite`: expected object")
+	}
+	cipherSuiteTypeAny, exists := cipherSuite["type"]
+	if !exists || cipherSuiteTypeAny == nil {
+		return fmt.Errorf("unexpected value for `tls.cipher_suite.type`: expected string")
+	}
+	cipherSuiteType, ok := cipherSuiteTypeAny.(string)
+	if !ok {
+		return fmt.Errorf("unexpected value for `tls.cipher_suite.type`: expected string")
+	}
+	customCiphersRaw := make([]interface{}, 0)
+	if raw, exists := cipherSuite["custom_ciphers"]; exists && raw != nil {
+		v, ok := raw.([]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected value for `tls.cipher_suite.custom_ciphers`: expected list")
+		}
+		customCiphersRaw = v
+	}
 
 	if cipherSuiteType == string(afdcustomdomains.AfdCipherSuiteSetTypeCustomized) {
 		if len(customCiphersRaw) == 0 {
@@ -444,18 +575,97 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 			return fmt.Errorf("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
 		}
 
-		customCiphers := customCiphersRaw[0].(map[string]interface{})
-		tls12Suites := customCiphers["tls12"].(*pluginsdk.Set)
-		tls13Suites := customCiphers["tls13"].(*pluginsdk.Set)
+		customCiphers, ok := customCiphersRaw[0].(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected value for `tls.cipher_suite.custom_ciphers`: expected object")
+		}
 
-		if tls12Suites.Len() == 0 && tls13Suites.Len() == 0 {
+		setLen := func(s *pluginsdk.Set) int {
+			if s == nil {
+				return 0
+			}
+			return s.Len()
+		}
+
+		var tls12Suites *pluginsdk.Set
+		if raw, exists := customCiphers["tls12"]; exists && raw != nil {
+			v, ok := raw.(*pluginsdk.Set)
+			if !ok {
+				return fmt.Errorf("unexpected value for `custom_ciphers.tls12`: expected set")
+			}
+			tls12Suites = v
+		}
+
+		var tls13Suites *pluginsdk.Set
+		if raw, exists := customCiphers["tls13"]; exists && raw != nil {
+			v, ok := raw.(*pluginsdk.Set)
+			if !ok {
+				return fmt.Errorf("unexpected value for `custom_ciphers.tls13`: expected set")
+			}
+			tls13Suites = v
+		}
+
+		tls13Configured := false
+		if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+			tlsConfig := rawConfig.GetAttr("tls")
+			if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+				tlsBlock := tlsConfig.AsValueSlice()[0]
+				if !tlsBlock.IsNull() {
+					cipherConfig := tlsBlock.GetAttr("cipher_suite")
+					if !cipherConfig.IsNull() && cipherConfig.LengthInt() > 0 {
+						cipherBlock := cipherConfig.AsValueSlice()[0]
+						if !cipherBlock.IsNull() {
+							customCiphersConfig := cipherBlock.GetAttr("custom_ciphers")
+							if !customCiphersConfig.IsNull() && customCiphersConfig.LengthInt() > 0 {
+								customCiphersBlock := customCiphersConfig.AsValueSlice()[0]
+								if !customCiphersBlock.IsNull() {
+									tls13Config := customCiphersBlock.GetAttr("tls13")
+									tls13Configured = !tls13Config.IsNull()
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if setLen(tls12Suites) == 0 && setLen(tls13Suites) == 0 {
 			return fmt.Errorf("at least one cipher suite must be selected in `custom_ciphers` when `type` is set to `Customized`")
+		}
+
+		if tls13Configured {
+			has128 := false
+			has256 := false
+			if tls13Suites != nil {
+				for _, raw := range tls13Suites.List() {
+					v, ok := raw.(string)
+					if !ok {
+						continue
+					}
+					switch v {
+					case "TLS_AES_128_GCM_SHA256":
+						has128 = true
+					case "TLS_AES_256_GCM_SHA384":
+						has256 = true
+					}
+				}
+			}
+
+			if !has128 || !has256 {
+				return fmt.Errorf("`custom_ciphers.tls13` must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when specified")
+			}
 		}
 
 		minimumVersion := ""
 
 		if features.FivePointOh() {
-			minimumVersion = tls["minimum_version"].(string)
+			if rawMin := tls["minimum_version"]; rawMin != nil {
+				if minStr, ok := rawMin.(string); ok {
+					minimumVersion = minStr
+				} else {
+					return fmt.Errorf("unexpected value for `tls.minimum_version`: expected string")
+				}
+			}
 		}
 
 		if !features.FivePointOh() {
@@ -477,32 +687,14 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 			}
 		}
 
-		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo) && tls12Suites.Len() == 0 {
+		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneTwo) && setLen(tls12Suites) == 0 {
 			return fmt.Errorf("at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12` when `minimum_version` is set to `TLS12`")
 		}
 
-		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Suites.Len() == 0 {
+		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
 			return fmt.Errorf("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
 		}
 
-		requiredTls13Suites := []string{
-			string(afdcustomdomains.AfdCustomizedCipherSuiteForTls13TLSAESOneTwoEightGCMSHATwoFiveSix),
-			string(afdcustomdomains.AfdCustomizedCipherSuiteForTls13TLSAESTwoFiveSixGCMSHAThreeEightFour),
-		}
-
-		tls13Configured := make(map[string]struct{}, tls13Suites.Len())
-		for _, suite := range tls13Suites.List() {
-			if suite == nil {
-				continue
-			}
-			tls13Configured[suite.(string)] = struct{}{}
-		}
-
-		for _, requiredSuite := range requiredTls13Suites {
-			if _, exists := tls13Configured[requiredSuite]; !exists {
-				return fmt.Errorf("`custom_ciphers.tls13` must include `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when `type` is `Customized`")
-			}
-		}
 	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
 		return fmt.Errorf("`custom_ciphers` cannot be specified when `type` is not `Customized`")
 	}

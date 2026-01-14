@@ -133,7 +133,11 @@ A `custom_ciphers` block supports the following:
 
 * `tls13` - (Optional) A set of `TLS 1.3` cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
 
-~> **Note:** When `cipher_suite.type` is set to `Customized`, the `tls13` collection must include both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` or Azure Front Door will reject the configuration.
+~> **Note:** Azure Front Door supports TLS 1.2 and TLS 1.3, and TLS 1.3 is always enabled regardless of the configured minimum version. The TLS 1.3 cipher suite values supported by Azure Front Door are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` (see [product documentation](https://learn.microsoft.com/en-us/azure/frontdoor/standard-premium/tls-policy#custom-tls-policy)).
+
+~> **Note:** Azure Front Door returns the TLS 1.3 cipher suites even when `tls13` is not configured. The AzureRM Provider will record the service-returned values in state; `tls13` behaves as a computed value unless explicitly configured.
+
+~> **Note:** If `tls13` is explicitly configured, it must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
 
 ---
 
