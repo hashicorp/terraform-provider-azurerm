@@ -76,7 +76,7 @@ func (t BatchApplicationResource) Exists(ctx context.Context, clients *clients.C
 		return nil, err
 	}
 
-	resp, err := clients.Batch.ApplicationClient.Get(ctx, *id)
+	resp, err := clients.Batch.ApplicationClient.ApplicationGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s", *id)
 	}

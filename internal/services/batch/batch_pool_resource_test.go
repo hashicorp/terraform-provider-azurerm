@@ -791,7 +791,7 @@ func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Batch.PoolClient.Get(ctx, *id)
+	resp, err := clients.Batch.PoolClient.PoolGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s", *id)
 	}

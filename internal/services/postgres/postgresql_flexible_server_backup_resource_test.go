@@ -54,7 +54,7 @@ func (r PostgresqlFlexibleServerBackupResource) Exists(ctx context.Context, clie
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.BackupsClient.Get(ctx, *id)
+	resp, err := clients.Postgres.BackupsClient.BackupsAutomaticAndOnDemandGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

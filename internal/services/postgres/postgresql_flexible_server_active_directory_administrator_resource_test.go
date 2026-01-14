@@ -69,7 +69,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Exists(ctx context.Contex
 		return nil, err
 	}
 
-	resp, err := clients.Postgres.FlexibleServerAdministratorsClient.Get(ctx, *id)
+	resp, err := clients.Postgres.FlexibleServerAdministratorsClient.AdministratorsMicrosoftEntraGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
@@ -83,7 +83,7 @@ func (r PostgresqlFlexibleServerAdministratorResource) Destroy(ctx context.Conte
 		return nil, err
 	}
 
-	if _, err := client.Postgres.FlexibleServerAdministratorsClient.Delete(ctx, *id); err != nil {
+	if _, err := client.Postgres.FlexibleServerAdministratorsClient.AdministratorsMicrosoftEntraDelete(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Postgresql AAD Administrator (%s): %+v", id.String(), err)
 	}
 

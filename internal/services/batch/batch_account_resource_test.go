@@ -336,7 +336,7 @@ func (t BatchAccountResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, err
 	}
 
-	resp, err := clients.Batch.AccountClient.Get(ctx, *id)
+	resp, err := clients.Batch.AccountClient.BatchAccountGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
