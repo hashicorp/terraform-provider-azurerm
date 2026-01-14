@@ -3392,7 +3392,7 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   compute_mode = "Serverless"
 
-  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.resource_id
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
   // public_network_access_enabled         = false
   /*
   enhanced_security_compliance {
