@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,13 +6,13 @@ package network
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterassociations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,7 +25,7 @@ type NetworkSecurityPerimeterAssociationResource struct{}
 
 type NetworkSecurityPerimeterAssociationResourceModel struct {
 	Name       string `tfschema:"name"`
-	ProfileId  string `tfschema:"profile_id"`
+	ProfileId  string `tfschema:"network_security_perimeter_profile_id"`
 	ResourceId string `tfschema:"resource_id"`
 	AccessMode string `tfschema:"access_mode"`
 }
@@ -35,7 +35,11 @@ func (NetworkSecurityPerimeterAssociationResource) Arguments() map[string]*plugi
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
+				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
+			),
+
 			ForceNew:     true,
 		},
 
@@ -46,7 +50,7 @@ func (NetworkSecurityPerimeterAssociationResource) Arguments() map[string]*plugi
 			ForceNew:     true,
 		},
 
-		"profile_id": {
+		"network_security_perimeter_profile_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -95,9 +99,7 @@ func (r NetworkSecurityPerimeterAssociationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			nspId := networksecurityperimeters.NewNetworkSecurityPerimeterID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.NetworkSecurityPerimeterName)
-
-			id := networksecurityperimeterassociations.NewResourceAssociationID(subscriptionId, nspId.ResourceGroupName, nspId.NetworkSecurityPerimeterName, config.Name)
+			id := networksecurityperimeterassociations.NewResourceAssociationID(subscriptionId, profileId.ResourceGroupName, profileId.NetworkSecurityPerimeterName, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -158,27 +160,12 @@ func (r NetworkSecurityPerimeterAssociationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("profile_id") {
-				existing.Model.Properties.Profile = &networksecurityperimeterassociations.SubResource{
-					Id: pointer.To(config.ProfileId),
-				}
-			}
-			if metadata.ResourceData.HasChange("resource_id") {
-
-				existing.Model.Properties.PrivateLinkResource = &networksecurityperimeterassociations.SubResource{
-					Id: pointer.To(config.ResourceId),
-				}
-
-			}
 			if metadata.ResourceData.HasChange("access_mode") {
 				existing.Model.Properties.AccessMode = pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode))
 
 			}
 
-			param := networksecurityperimeterassociations.NspAssociation{
-				Properties: existing.Model.Properties,
-			}
-			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil  {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -232,38 +219,12 @@ func (NetworkSecurityPerimeterAssociationResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			time.Sleep(5 * time.Second)
 
-			// stateConf := &pluginsdk.StateChangeConf{
-			// 	Pending: []string{"Present"},
-			// 	Target:  []string{"Deleted"},
-			// 	Refresh: func() (interface{}, string, error) {
-			// 		resp, err := client.Get(ctx, *id)
-			// 		if err != nil {
-			// 			if resp.HttpResponse == nil {
-			// 				return nil, "Present", err
-			// 			}
-
-			// 			if response.WasNotFound(resp.HttpResponse) || response.WasNotFound(resp.HttpResponse) {
-			// 				return nil, "Deleted", nil
-			// 			}
-			// 			return nil, "Present", err
-			// 		}
-			// 		return resp, "Present", nil
-			// 	},
-
-			// 	Timeout:    15 * time.Minute,
-			// 	MinTimeout: 15 * time.Second,
-			// }
-
-			// _, err = stateConf.WaitForStateContext(ctx)
-			// if err != nil {
-			// 	return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
-			// }
 			return nil
 		},
 	}

@@ -19,7 +19,7 @@ func TestAccNetworkSecurityPerimeterProfileDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestProfile-%d", data.RandomInteger)),
-				check.That(data.ResourceName).Key("perimeter_id").Exists(),
+				check.That(data.ResourceName).Key("network_security_perimeter_id").Exists(),
 				check.That(data.ResourceName).Key("id").Exists(),
 			),
 		},
@@ -49,12 +49,12 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 data "azurerm_network_security_perimeter_profile" "test" {
 	name = azurerm_network_security_perimeter_profile.test.name 
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

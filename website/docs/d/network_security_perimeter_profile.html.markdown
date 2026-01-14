@@ -21,7 +21,7 @@ data "azurerm_network_security_perimeter" "example" {
 
 data "azurerm_network_security_perimeter_profile" "example" {
   name = "existing"
-  perimeter_id = data.azurerm_network_security_perimeter.example.id
+  network_security_perimeter_id = data.azurerm_network_security_perimeter.example.id
 }
 
 output "id" {
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Network Security Perimeter Profile.
 
-* `perimeter_id` - (Required) The ID of the Network Security Perimeter.
+* `network_security_perimeter_id` - (Required) The ID of the Network Security Perimeter.
 
 ## Attributes Reference
 

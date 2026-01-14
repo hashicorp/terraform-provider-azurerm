@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -22,7 +23,7 @@ type NetworkSecurityPerimeterProfileDataSource struct{}
 
 type NetworkSecurityPerimeterProfileDataSourceModel struct {
 	Name        string `tfschema:"name"`
-	PerimeterId string `tfschema:"perimeter_id"`
+	PerimeterId string `tfschema:"network_security_perimeter_id"`
 }
 
 func (NetworkSecurityPerimeterProfileDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -30,10 +31,13 @@ func (NetworkSecurityPerimeterProfileDataSource) Arguments() map[string]*plugins
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
+				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
+			),
 		},
 
-		"perimeter_id": {
+		"network_security_perimeter_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: networksecurityperimeterprofiles.ValidateNetworkSecurityPerimeterID,

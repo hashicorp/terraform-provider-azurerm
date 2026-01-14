@@ -32,14 +32,14 @@ resource "azurerm_network_security_perimeter" "example" {
 
 resource "azurerm_network_security_perimeter_profile" "example" {
   name = "example"
-  perimeter_id = azurerm_network_security_perimeter.example.id
+  network_security_perimeter_id = azurerm_network_security_perimeter.example.id
 }
 
 resource "azurerm_network_security_perimeter_association" "example" {
   name = "example"
   access_mode = "Enforced"
 
-  profile_id = azurerm_network_security_perimeter_profile.example.id
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.example.id
   resource_id = azurerm_log_analytics_workspace.example.id
 }
 ```
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `access_mode` - (Required) Access mode for the associated resource on the Network Security Perimeter. Possible values are `Audit`, `Enforced`, and `Learning`.
 
-* `profile_id` - (Required) The ID of the Network Security Perimeter Profile. Changing this forces a new Network Security Perimeter Association to be created.
+* `network_security_perimeter_profile_id` - (Required) The ID of the Network Security Perimeter Profile. Changing this forces a new Network Security Perimeter Association to be created.
 
 * `resource_id` - (Required) The ID of the associated resource. Changing this forces a new Network Security Perimeter Association to be created.
 

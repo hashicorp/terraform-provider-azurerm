@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -34,7 +35,10 @@ func (NetworkSecurityPerimeterDataSource) Arguments() map[string]*pluginsdk.Sche
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
+				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -85,8 +89,8 @@ func (NetworkSecurityPerimeterDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(pointer.To(model.Location))
-				state.Tags = pointer.ToMapOfStringStrings(model.Tags)
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
 			}
 			return metadata.Encode(&state)
 		},

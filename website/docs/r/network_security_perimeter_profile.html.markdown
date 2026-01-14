@@ -26,7 +26,7 @@ resource "azurerm_network_security_perimeter" "example" {
 
 resource "azurerm_network_security_perimeter_profile" "example" {
   name = "example"
-  perimeter_id = azurerm_network_security_perimeter.example.id
+  network_security_perimeter_id = azurerm_network_security_perimeter.example.id
 }
 ```
 
@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Network Security Perimeter Profile. Changing this forces a new Network Security Perimeter Profile to be created.
 
-* `perimeter_id` - (Required) The ID of the Network Security Perimeter within this Profile is created. Changing this forces a new Network Security Perimeter Profile to be created.
+* `network_security_perimeter_id` - (Required) The ID of the Network Security Perimeter within this Profile is created. Changing this forces a new Network Security Perimeter Profile to be created.
 
 ## Attributes Reference
 

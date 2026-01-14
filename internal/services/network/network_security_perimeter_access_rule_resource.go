@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeteraccessrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +25,7 @@ type NetworkSecurityPerimeterAccessRuleResource struct{}
 
 type NetworkSecurityPerimeterAccessRuleResourceModel struct {
 	Name                      string   `tfschema:"name"`
-	ProfileId                 string   `tfschema:"profile_id"`
+	ProfileId                 string   `tfschema:"network_security_perimeter_profile_id"`
 	Direction                 string   `tfschema:"direction"`
 	AddressPrefixes           []string `tfschema:"address_prefixes"`
 	FullyQualifiedDomainNames []string `tfschema:"fqdns"`
@@ -37,11 +37,14 @@ func (NetworkSecurityPerimeterAccessRuleResource) Arguments() map[string]*plugin
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
+				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
+			),
 			ForceNew:     true,
 		},
 
-		"profile_id": {
+		"network_security_perimeter_profile_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: networksecurityperimeteraccessrules.ValidateProfileID,
@@ -114,7 +117,7 @@ func (r NetworkSecurityPerimeterAccessRuleResource) CustomizeDiff() sdk.Resource
 				return fmt.Errorf("`address_prefixes` can only be set when `direction` is Inbound")
 			}
 
-			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionOutbound) && rd.HasChange("subscription_id") {
+			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionOutbound) && rd.HasChange("subscription_ids") {
 				return fmt.Errorf("`subscription_ids` can only be set when `direction` is Inbound")
 			}
 
@@ -145,11 +148,10 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Create() sdk.ResourceFunc {
 
 			profileId, err := networksecurityperimeterprofiles.ParseProfileID(config.ProfileId)
 			if err != nil {
-				return fmt.Errorf("parsing profile ID: %+v", err)
+				return err
 			}
-			nspId := networksecurityperimeters.NewNetworkSecurityPerimeterID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.NetworkSecurityPerimeterName)
 
-			id := networksecurityperimeteraccessrules.NewAccessRuleID(subscriptionId, nspId.ResourceGroupName, nspId.NetworkSecurityPerimeterName, profileId.ProfileName, config.Name)
+			id := networksecurityperimeteraccessrules.NewAccessRuleID(subscriptionId, profileId.ResourceGroupName, profileId.NetworkSecurityPerimeterName, profileId.ProfileName, config.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -159,8 +161,6 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			direction := networksecurityperimeteraccessrules.AccessRuleDirection(config.Direction)
-
 			subscriptions := make([]networksecurityperimeteraccessrules.SubscriptionId, len(config.Subscriptions))
 			for i, s := range config.Subscriptions {
 				subscriptions[i] = networksecurityperimeteraccessrules.SubscriptionId{
@@ -169,7 +169,7 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Create() sdk.ResourceFunc {
 			}
 			param := networksecurityperimeteraccessrules.NspAccessRule{
 				Properties: &networksecurityperimeteraccessrules.NspAccessRuleProperties{
-					Direction:                 &direction,
+					Direction:                 pointer.To(networksecurityperimeteraccessrules.AccessRuleDirection(config.Direction)),
 					AddressPrefixes:           pointer.To(config.AddressPrefixes),
 					FullyQualifiedDomainNames: pointer.To(config.FullyQualifiedDomainNames),
 					Subscriptions:             &subscriptions,
@@ -221,10 +221,6 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("fqdns") {
 				existing.Model.Properties.FullyQualifiedDomainNames = pointer.To(config.FullyQualifiedDomainNames)
 			}
-			if metadata.ResourceData.HasChange("direction") {
-				direction := networksecurityperimeteraccessrules.AccessRuleDirection(config.Direction)
-				existing.Model.Properties.Direction = &direction
-			}
 			if metadata.ResourceData.HasChange("subscription_ids") {
 				subs := make([]networksecurityperimeteraccessrules.SubscriptionId, len(config.Subscriptions))
 				for i, s := range config.Subscriptions {
@@ -235,10 +231,7 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Update() sdk.ResourceFunc {
 				existing.Model.Properties.Subscriptions = &subs
 			}
 
-			param := networksecurityperimeteraccessrules.NspAccessRule{
-				Properties: existing.Model.Properties,
-			}
-			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil  {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
