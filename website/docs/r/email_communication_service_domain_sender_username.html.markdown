@@ -63,11 +63,33 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Communication Service Domain Sender Usernames can be imported using the `resource id`, e.g.
+`azurerm_email_communication_service_domain_sender_username` resources can be imported using one of the following methods:
 
-```shell
-terraform import azurerm_email_communication_service_domain_sender_username.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Communication/emailServices/service1/domains/domain1/senderUsernames/username1
-```
+* The `terraform import` CLI command with an `id` string:
+
+  ```shell
+  terraform import azurerm_email_communication_service_domain_sender_username.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Communication/emailServices/{emailServiceName}/domains/{domainName}/senderUsernames/{senderUsernameName}
+  ```
+
+* An `import` block with an `id` argument:
+  
+  ```hcl
+  import {
+    to = azurerm_email_communication_service_domain_sender_username.example
+    id = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Communication/emailServices/{emailServiceName}/domains/{domainName}/senderUsernames/{senderUsernameName}"
+  }
+  ```
+
+* An `import` block with an `identity` argument:
+
+  ```hcl
+  import {
+    to       = azurerm_email_communication_service_domain_sender_username.example
+    identity = {
+      TODO Resource Identity Format
+    }
+  }
+  ```
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

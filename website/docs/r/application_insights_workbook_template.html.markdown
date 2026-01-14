@@ -139,11 +139,33 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Application Insights Workbook Template can be imported using the `resource id`, e.g.
+`azurerm_application_insights_workbook_template` resources can be imported using one of the following methods:
 
-```shell
-terraform import azurerm_application_insights_workbook_template.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Insights/workbookTemplates/resource1
-```
+* The `terraform import` CLI command with an `id` string:
+
+  ```shell
+  terraform import azurerm_application_insights_workbook_template.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/workbookTemplates/{workbookTemplateName}
+  ```
+
+* An `import` block with an `id` argument:
+  
+  ```hcl
+  import {
+    to = azurerm_application_insights_workbook_template.example
+    id = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Insights/workbookTemplates/{workbookTemplateName}"
+  }
+  ```
+
+* An `import` block with an `identity` argument:
+
+  ```hcl
+  import {
+    to       = azurerm_application_insights_workbook_template.example
+    identity = {
+      TODO Resource Identity Format
+    }
+  }
+  ```
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

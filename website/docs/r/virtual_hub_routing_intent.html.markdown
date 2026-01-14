@@ -94,11 +94,33 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Virtual Hub Routing Intents can be imported using the `resource id`, e.g.
+`azurerm_virtual_hub_routing_intent` resources can be imported using one of the following methods:
 
-```shell
-terraform import azurerm_virtual_hub_routing_intent.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/virtualHubs/virtualHub1/routingIntent/routingIntent1
-```
+* The `terraform import` CLI command with an `id` string:
+
+  ```shell
+  terraform import azurerm_virtual_hub_routing_intent.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualHubs/{virtualHubName}/routingIntent/{routingIntentName}
+  ```
+
+* An `import` block with an `id` argument:
+  
+  ```hcl
+  import {
+    to = azurerm_virtual_hub_routing_intent.example
+    id = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/virtualHubs/{virtualHubName}/routingIntent/{routingIntentName}"
+  }
+  ```
+
+* An `import` block with an `identity` argument:
+
+  ```hcl
+  import {
+    to       = azurerm_virtual_hub_routing_intent.example
+    identity = {
+      TODO Resource Identity Format
+    }
+  }
+  ```
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

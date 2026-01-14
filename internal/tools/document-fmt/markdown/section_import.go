@@ -36,5 +36,66 @@ func (s *ImportSection) GetContent() []string {
 }
 
 func (s *ImportSection) Template() string {
-	panic("implement me")
+	return `## Import
+
+[bt]{{ .Name }}[bt] resources can be imported using one of the following methods:
+
+* The [bt]terraform import[bt] CLI command with an [bt]id[bt] string:
+
+  [bt][bt][bt]shell
+  terraform import {{ .Name }}.example {{ .ResourceID | id }}
+  [bt][bt][bt]
+
+* An [bt]import[bt] block with an [bt]id[bt] argument:
+  
+  [bt][bt][bt]hcl
+  import {
+    to = {{ .Name }}.example
+    id = "{{ .ResourceID | id }}"
+  }
+  [bt][bt][bt]
+
+* An [bt]import[bt] block with an [bt]identity[bt] argument:
+
+  [bt][bt][bt]hcl
+  import {
+    to       = {{ .Name }}.example
+    identity = {
+      {{ .ResourceID | identity }}
+    }
+  }
+  [bt][bt][bt]
+`
 }
+
+/*
+`azurerm_subnet` resources can be imported using one of the following methods:
+
+* The `terraform import` CLI command with an `id` string
+
+```shell
+terraform import azurerm_subnet.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1
+```
+
+* An `import` block with an `id` argument
+
+```hcl
+import {
+  to = azurerm_subnet.example
+  id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1"
+}
+```
+
+* An `import` block with an `identity` argument
+
+```hcl
+import {
+  to = azurerm_subnet.example
+  identity = {
+    subscription_id      = "00000000-0000-0000-0000-000000000000"
+    resource_group_name  = "mygroup1"
+    virtual_network_name = "myvnet1"
+    subnet_name          = "mysubnet1"
+  }
+}
+*/

@@ -46,4 +46,5 @@ var Registration = map[string]Rule{
 	S003{}.ID(): S003{}, // Title Section Heading
 	S004{}.ID(): S004{}, // Arguments Section Heading
 	S005{}.ID(): S005{}, // Attributes Section Heading
+	S006{}.ID(): S006{}, // Import Section
 }

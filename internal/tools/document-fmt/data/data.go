@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	log "github.com/sirupsen/logrus"
@@ -23,10 +25,12 @@ type TerraformNodeData struct {
 	ShortName    string // resource name minus provider prefix
 	ProviderName string // provider name
 
-	Service  Service          // resource's service package
-	Type     ResourceType     // resource type
-	Path     string           // resource expected code file path
-	Resource *schema.Resource // sdk resource
+	Service              Service          // resource's service package
+	Type                 ResourceType     // resource type
+	Path                 string           // resource expected code file path
+	Resource             *schema.Resource // sdk resource
+	ResourceID           resourceids.ResourceId
+	ResourceIdentityType pluginsdk.ResourceTypeForIdentity
 
 	APIs     []API     // APIs used by this resource -- best effort, may not be populated
 	Timeouts []Timeout // Timeouts from *schema.Resource
@@ -63,6 +67,15 @@ func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name
 			return nil, fmt.Errorf("wrapping resource: %+v", err)
 		}
 		result.Resource = wr
+
+		if rExt, ok := r.(sdk.ResourceWithIdentity); ok {
+			result.ResourceID = rExt.Identity()
+			result.ResourceIdentityType = sdk.ResourceTypeForIdentityDefault
+		}
+
+		if rExt, ok := r.(sdk.ResourceWithIdentityTypeOverride); ok {
+			result.ResourceIdentityType = rExt.IdentityType()
+		}
 	case sdk.DataSource:
 		w := sdk.NewDataSourceWrapper(r)
 		wr, err := w.DataSource()

@@ -40,10 +40,10 @@ func identityType(idType []ResourceTypeForIdentity) ResourceTypeForIdentity {
 	return t
 }
 
-// segmentTypeSupported contains a list of segments that should be used to construct the resource identity schema
+// SegmentTypeSupported contains a list of segments that should be used to construct the resource identity schema
 // this list will need to be extended to support hierarchical resource IDs for management groups or resources
 // that begin with a different prefix to /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1
-func segmentTypeSupported(segment resourceids.SegmentType) bool {
+func SegmentTypeSupported(segment resourceids.SegmentType) bool {
 	supportedSegmentTypes := []resourceids.SegmentType{
 		resourceids.SubscriptionIdSegmentType,
 		resourceids.ResourceGroupSegmentType,
@@ -53,7 +53,7 @@ func segmentTypeSupported(segment resourceids.SegmentType) bool {
 	return slices.Contains(supportedSegmentTypes, segment)
 }
 
-func segmentName(segment resourceids.Segment, idType ResourceTypeForIdentity, numSegments, idx int) string {
+func SegmentName(segment resourceids.Segment, idType ResourceTypeForIdentity, numSegments, idx int) string {
 	switch idType {
 	case ResourceTypeForIdentityVirtual:
 		return strcase.ToSnake(segment.Name)
@@ -79,8 +79,8 @@ func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) m
 	segments := id.Segments()
 	numSegments := len(segments)
 	for idx, segment := range segments {
-		if segmentTypeSupported(segment.Type) {
-			name := segmentName(segment, idType, numSegments, idx)
+		if SegmentTypeSupported(segment.Type) {
+			name := SegmentName(segment, idType, numSegments, idx)
 
 			idSchema[name] = &schema.Schema{
 				Type:              schema.TypeString,
@@ -106,8 +106,8 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 		if segment.Type == resourceids.StaticSegmentType || segment.Type == resourceids.ResourceProviderSegmentType {
 			identityString += pointer.From(segment.FixedValue) + "/"
 		}
-		if segmentTypeSupported(segment.Type) {
-			name := segmentName(segment, identityType(idType), numSegments, idx)
+		if SegmentTypeSupported(segment.Type) {
+			name := SegmentName(segment, identityType(idType), numSegments, idx)
 
 			field, ok := identity.GetOk(name)
 			if !ok {
@@ -165,8 +165,8 @@ func resourceIdentityData(identity *schema.IdentityData, id resourceids.Resource
 	segments := id.Segments()
 	numSegments := len(segments)
 	for idx, segment := range segments {
-		if segmentTypeSupported(segment.Type) {
-			name := segmentName(segment, idType, numSegments, idx)
+		if SegmentTypeSupported(segment.Type) {
+			name := SegmentName(segment, idType, numSegments, idx)
 
 			field, ok := parsed.Parsed[segment.Name]
 			if !ok {

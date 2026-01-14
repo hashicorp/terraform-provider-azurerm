@@ -141,8 +141,30 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Storage Account Queue Properties can be imported using the `resource id`, e.g.
+`azurerm_storage_account_queue_properties` resources can be imported using one of the following methods:
 
-```shell
-terraform import azurerm_storage_account_queue_properties.queueprops /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
-```
+* The `terraform import` CLI command with an `id` string:
+
+  ```shell
+  terraform import azurerm_storage_account_queue_properties.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}
+  ```
+
+* An `import` block with an `id` argument:
+  
+  ```hcl
+  import {
+    to = azurerm_storage_account_queue_properties.example
+    id = "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}"
+  }
+  ```
+
+* An `import` block with an `identity` argument:
+
+  ```hcl
+  import {
+    to       = azurerm_storage_account_queue_properties.example
+    identity = {
+      TODO Resource Identity Format
+    }
+  }
+  ```

@@ -11,6 +11,7 @@ func RegisteredSections() []Section {
 		&ArgumentsSection{},
 		&AttributesSection{},
 		&TimeoutsSection{},
+		&ImportSection{},
 		&APISection{},
 	}
 }
