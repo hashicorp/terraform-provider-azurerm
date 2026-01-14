@@ -4,6 +4,7 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AgentPoolSecurityProfile struct {
-	EnableSecureBoot *bool `json:"enableSecureBoot,omitempty"`
-	EnableVTPM       *bool `json:"enableVTPM,omitempty"`
+	EnableSecureBoot *bool               `json:"enableSecureBoot,omitempty"`
+	EnableVTPM       *bool               `json:"enableVTPM,omitempty"`
+	SshAccess        *AgentPoolSSHAccess `json:"sshAccess,omitempty"`
 }

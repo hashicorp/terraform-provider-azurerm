@@ -9,6 +9,50 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AdvancedNetworkPolicies string
+
+const (
+	AdvancedNetworkPoliciesFQDN   AdvancedNetworkPolicies = "FQDN"
+	AdvancedNetworkPoliciesLSeven AdvancedNetworkPolicies = "L7"
+	AdvancedNetworkPoliciesNone   AdvancedNetworkPolicies = "None"
+)
+
+func PossibleValuesForAdvancedNetworkPolicies() []string {
+	return []string{
+		string(AdvancedNetworkPoliciesFQDN),
+		string(AdvancedNetworkPoliciesLSeven),
+		string(AdvancedNetworkPoliciesNone),
+	}
+}
+
+func (s *AdvancedNetworkPolicies) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAdvancedNetworkPolicies(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAdvancedNetworkPolicies(input string) (*AdvancedNetworkPolicies, error) {
+	vals := map[string]AdvancedNetworkPolicies{
+		"fqdn": AdvancedNetworkPoliciesFQDN,
+		"l7":   AdvancedNetworkPoliciesLSeven,
+		"none": AdvancedNetworkPoliciesNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AdvancedNetworkPolicies(input)
+	return &out, nil
+}
+
 type AgentPoolMode string
 
 const (
@@ -50,6 +94,47 @@ func parseAgentPoolMode(input string) (*AgentPoolMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := AgentPoolMode(input)
+	return &out, nil
+}
+
+type AgentPoolSSHAccess string
+
+const (
+	AgentPoolSSHAccessDisabled  AgentPoolSSHAccess = "Disabled"
+	AgentPoolSSHAccessLocalUser AgentPoolSSHAccess = "LocalUser"
+)
+
+func PossibleValuesForAgentPoolSSHAccess() []string {
+	return []string{
+		string(AgentPoolSSHAccessDisabled),
+		string(AgentPoolSSHAccessLocalUser),
+	}
+}
+
+func (s *AgentPoolSSHAccess) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAgentPoolSSHAccess(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAgentPoolSSHAccess(input string) (*AgentPoolSSHAccess, error) {
+	vals := map[string]AgentPoolSSHAccess{
+		"disabled":  AgentPoolSSHAccessDisabled,
+		"localuser": AgentPoolSSHAccessLocalUser,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AgentPoolSSHAccess(input)
 	return &out, nil
 }
 
@@ -686,6 +771,302 @@ func parseLoadBalancerSku(input string) (*LoadBalancerSku, error) {
 	return &out, nil
 }
 
+type LocalDNSForwardDestination string
+
+const (
+	LocalDNSForwardDestinationClusterCoreDNS LocalDNSForwardDestination = "ClusterCoreDNS"
+	LocalDNSForwardDestinationVnetDNS        LocalDNSForwardDestination = "VnetDNS"
+)
+
+func PossibleValuesForLocalDNSForwardDestination() []string {
+	return []string{
+		string(LocalDNSForwardDestinationClusterCoreDNS),
+		string(LocalDNSForwardDestinationVnetDNS),
+	}
+}
+
+func (s *LocalDNSForwardDestination) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalDNSForwardDestination(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLocalDNSForwardDestination(input string) (*LocalDNSForwardDestination, error) {
+	vals := map[string]LocalDNSForwardDestination{
+		"clustercoredns": LocalDNSForwardDestinationClusterCoreDNS,
+		"vnetdns":        LocalDNSForwardDestinationVnetDNS,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LocalDNSForwardDestination(input)
+	return &out, nil
+}
+
+type LocalDNSForwardPolicy string
+
+const (
+	LocalDNSForwardPolicyRandom     LocalDNSForwardPolicy = "Random"
+	LocalDNSForwardPolicyRoundRobin LocalDNSForwardPolicy = "RoundRobin"
+	LocalDNSForwardPolicySequential LocalDNSForwardPolicy = "Sequential"
+)
+
+func PossibleValuesForLocalDNSForwardPolicy() []string {
+	return []string{
+		string(LocalDNSForwardPolicyRandom),
+		string(LocalDNSForwardPolicyRoundRobin),
+		string(LocalDNSForwardPolicySequential),
+	}
+}
+
+func (s *LocalDNSForwardPolicy) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalDNSForwardPolicy(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLocalDNSForwardPolicy(input string) (*LocalDNSForwardPolicy, error) {
+	vals := map[string]LocalDNSForwardPolicy{
+		"random":     LocalDNSForwardPolicyRandom,
+		"roundrobin": LocalDNSForwardPolicyRoundRobin,
+		"sequential": LocalDNSForwardPolicySequential,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LocalDNSForwardPolicy(input)
+	return &out, nil
+}
+
+type LocalDNSMode string
+
+const (
+	LocalDNSModeDisabled  LocalDNSMode = "Disabled"
+	LocalDNSModePreferred LocalDNSMode = "Preferred"
+	LocalDNSModeRequired  LocalDNSMode = "Required"
+)
+
+func PossibleValuesForLocalDNSMode() []string {
+	return []string{
+		string(LocalDNSModeDisabled),
+		string(LocalDNSModePreferred),
+		string(LocalDNSModeRequired),
+	}
+}
+
+func (s *LocalDNSMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalDNSMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLocalDNSMode(input string) (*LocalDNSMode, error) {
+	vals := map[string]LocalDNSMode{
+		"disabled":  LocalDNSModeDisabled,
+		"preferred": LocalDNSModePreferred,
+		"required":  LocalDNSModeRequired,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LocalDNSMode(input)
+	return &out, nil
+}
+
+type LocalDNSProtocol string
+
+const (
+	LocalDNSProtocolForceTCP  LocalDNSProtocol = "ForceTCP"
+	LocalDNSProtocolPreferUDP LocalDNSProtocol = "PreferUDP"
+)
+
+func PossibleValuesForLocalDNSProtocol() []string {
+	return []string{
+		string(LocalDNSProtocolForceTCP),
+		string(LocalDNSProtocolPreferUDP),
+	}
+}
+
+func (s *LocalDNSProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalDNSProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLocalDNSProtocol(input string) (*LocalDNSProtocol, error) {
+	vals := map[string]LocalDNSProtocol{
+		"forcetcp":  LocalDNSProtocolForceTCP,
+		"preferudp": LocalDNSProtocolPreferUDP,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LocalDNSProtocol(input)
+	return &out, nil
+}
+
+type LocalDNSQueryLogging string
+
+const (
+	LocalDNSQueryLoggingError LocalDNSQueryLogging = "Error"
+	LocalDNSQueryLoggingLog   LocalDNSQueryLogging = "Log"
+)
+
+func PossibleValuesForLocalDNSQueryLogging() []string {
+	return []string{
+		string(LocalDNSQueryLoggingError),
+		string(LocalDNSQueryLoggingLog),
+	}
+}
+
+func (s *LocalDNSQueryLogging) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalDNSQueryLogging(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLocalDNSQueryLogging(input string) (*LocalDNSQueryLogging, error) {
+	vals := map[string]LocalDNSQueryLogging{
+		"error": LocalDNSQueryLoggingError,
+		"log":   LocalDNSQueryLoggingLog,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LocalDNSQueryLogging(input)
+	return &out, nil
+}
+
+type LocalDNSServeStale string
+
+const (
+	LocalDNSServeStaleDisable   LocalDNSServeStale = "Disable"
+	LocalDNSServeStaleImmediate LocalDNSServeStale = "Immediate"
+	LocalDNSServeStaleVerify    LocalDNSServeStale = "Verify"
+)
+
+func PossibleValuesForLocalDNSServeStale() []string {
+	return []string{
+		string(LocalDNSServeStaleDisable),
+		string(LocalDNSServeStaleImmediate),
+		string(LocalDNSServeStaleVerify),
+	}
+}
+
+func (s *LocalDNSServeStale) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalDNSServeStale(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLocalDNSServeStale(input string) (*LocalDNSServeStale, error) {
+	vals := map[string]LocalDNSServeStale{
+		"disable":   LocalDNSServeStaleDisable,
+		"immediate": LocalDNSServeStaleImmediate,
+		"verify":    LocalDNSServeStaleVerify,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LocalDNSServeStale(input)
+	return &out, nil
+}
+
+type LocalDNSState string
+
+const (
+	LocalDNSStateDisabled LocalDNSState = "Disabled"
+	LocalDNSStateEnabled  LocalDNSState = "Enabled"
+)
+
+func PossibleValuesForLocalDNSState() []string {
+	return []string{
+		string(LocalDNSStateDisabled),
+		string(LocalDNSStateEnabled),
+	}
+}
+
+func (s *LocalDNSState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseLocalDNSState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseLocalDNSState(input string) (*LocalDNSState, error) {
+	vals := map[string]LocalDNSState{
+		"disabled": LocalDNSStateDisabled,
+		"enabled":  LocalDNSStateEnabled,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := LocalDNSState(input)
+	return &out, nil
+}
+
 type ManagedClusterPodIdentityProvisioningState string
 
 const (
@@ -1259,6 +1640,7 @@ const (
 	OSSKUAzureLinuxThree       OSSKU = "AzureLinux3"
 	OSSKUCBLMariner            OSSKU = "CBLMariner"
 	OSSKUUbuntu                OSSKU = "Ubuntu"
+	OSSKUUbuntuTwoFourZeroFour OSSKU = "Ubuntu2404"
 	OSSKUUbuntuTwoTwoZeroFour  OSSKU = "Ubuntu2204"
 	OSSKUWindowsTwoZeroOneNine OSSKU = "Windows2019"
 	OSSKUWindowsTwoZeroTwoTwo  OSSKU = "Windows2022"
@@ -1270,6 +1652,7 @@ func PossibleValuesForOSSKU() []string {
 		string(OSSKUAzureLinuxThree),
 		string(OSSKUCBLMariner),
 		string(OSSKUUbuntu),
+		string(OSSKUUbuntuTwoFourZeroFour),
 		string(OSSKUUbuntuTwoTwoZeroFour),
 		string(OSSKUWindowsTwoZeroOneNine),
 		string(OSSKUWindowsTwoZeroTwoTwo),
@@ -1295,6 +1678,7 @@ func parseOSSKU(input string) (*OSSKU, error) {
 		"azurelinux3": OSSKUAzureLinuxThree,
 		"cblmariner":  OSSKUCBLMariner,
 		"ubuntu":      OSSKUUbuntu,
+		"ubuntu2404":  OSSKUUbuntuTwoFourZeroFour,
 		"ubuntu2204":  OSSKUUbuntuTwoTwoZeroFour,
 		"windows2019": OSSKUWindowsTwoZeroOneNine,
 		"windows2022": OSSKUWindowsTwoZeroTwoTwo,
@@ -1821,12 +2205,14 @@ func parseUpgradeChannel(input string) (*UpgradeChannel, error) {
 type WorkloadRuntime string
 
 const (
-	WorkloadRuntimeOCIContainer WorkloadRuntime = "OCIContainer"
-	WorkloadRuntimeWasmWasi     WorkloadRuntime = "WasmWasi"
+	WorkloadRuntimeKataVMIsolation WorkloadRuntime = "KataVmIsolation"
+	WorkloadRuntimeOCIContainer    WorkloadRuntime = "OCIContainer"
+	WorkloadRuntimeWasmWasi        WorkloadRuntime = "WasmWasi"
 )
 
 func PossibleValuesForWorkloadRuntime() []string {
 	return []string{
+		string(WorkloadRuntimeKataVMIsolation),
 		string(WorkloadRuntimeOCIContainer),
 		string(WorkloadRuntimeWasmWasi),
 	}
@@ -1847,8 +2233,9 @@ func (s *WorkloadRuntime) UnmarshalJSON(bytes []byte) error {
 
 func parseWorkloadRuntime(input string) (*WorkloadRuntime, error) {
 	vals := map[string]WorkloadRuntime{
-		"ocicontainer": WorkloadRuntimeOCIContainer,
-		"wasmwasi":     WorkloadRuntimeWasmWasi,
+		"katavmisolation": WorkloadRuntimeKataVMIsolation,
+		"ocicontainer":    WorkloadRuntimeOCIContainer,
+		"wasmwasi":        WorkloadRuntimeWasmWasi,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
