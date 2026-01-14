@@ -84,7 +84,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkPluginError(t *testing.T)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.advancedNetworkingBlock(data, "kubenet", "cilium"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to true, `network_profile.0.network_plugin` must be set to `azure`"),
+			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_plugin` must be set to `azure`"),
 		},
 	})
 }
@@ -96,7 +96,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkDataplane(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.advancedNetworkingBlock(data, "azure", "azure"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to true, `network_profile.0.network_data_plane` must be set to `cilium`"),
+			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_data_plane` must be set to `cilium`"),
 		},
 	})
 }

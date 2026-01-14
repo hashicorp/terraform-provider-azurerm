@@ -150,10 +150,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 					if securityEnabled {
 						if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
-							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to true, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
 						}
 						if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
-							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to true, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
 						}
 					}
 				}
