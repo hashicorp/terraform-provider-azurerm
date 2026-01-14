@@ -24,7 +24,7 @@ import (
 )
 
 func resourcePowerBIEmbedded() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourcePowerBIEmbeddedCreate,
 		Read:   resourcePowerBIEmbeddedRead,
 		Update: resourcePowerBIEmbeddedUpdate,
@@ -81,12 +81,7 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 			"mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default: func() interface{} {
-					if features.FivePointOh() {
-						return string(capacities.ModeGenTwo)
-					}
-					return string(capacities.ModeGenOne)
-				}(),
+				Default:  string(capacities.ModeGenTwo),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(capacities.ModeGenOne),
@@ -97,6 +92,12 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["mode"].Default = string(capacities.ModeGenOne)
+	}
+
+	return resource
 }
 
 func resourcePowerBIEmbeddedCreate(d *pluginsdk.ResourceData, meta interface{}) error {
