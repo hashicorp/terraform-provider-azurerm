@@ -26,6 +26,7 @@ type ManagedClusterAgentPoolProfile struct {
 	KubeletConfig              *KubeletConfig            `json:"kubeletConfig,omitempty"`
 	KubeletDiskType            *KubeletDiskType          `json:"kubeletDiskType,omitempty"`
 	LinuxOSConfig              *LinuxOSConfig            `json:"linuxOSConfig,omitempty"`
+	LocalDNSProfile            *LocalDNSProfile          `json:"localDNSProfile,omitempty"`
 	MaxCount                   *int64                    `json:"maxCount,omitempty"`
 	MaxPods                    *int64                    `json:"maxPods,omitempty"`
 	MessageOfTheDay            *string                   `json:"messageOfTheDay,omitempty"`
