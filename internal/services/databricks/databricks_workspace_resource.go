@@ -791,11 +791,10 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	enhancedSecurityCompliance := d.Get("enhanced_security_compliance")
 	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
 
-	if _, err := client.CreateOrUpdate(ctx, id, workspace); err != nil {
-		panic("debug2")
+	if _, err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
-	panic("debug3")
+
 	d.SetId(id.ID())
 
 	// I have to set the custom_parameters so I can pass the public and private

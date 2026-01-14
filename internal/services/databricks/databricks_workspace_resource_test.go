@@ -3343,6 +3343,12 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
 resource "azurerm_key_vault_access_policy" "terraform" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
@@ -3380,10 +3386,63 @@ resource "azurerm_key_vault_access_policy" "managed" {
   ]
 }
 
+resource "azurerm_key_vault_access_policy" "storage" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = azurerm_user_assigned_identity.test.principal_id
+
+  key_permissions    = [
+    "Get",
+    "Create",
+    "List",
+    "Restore",
+    "Recover",
+    "UnwrapKey",
+    "WrapKey",
+    "Purge",
+    "Encrypt",
+    "Decrypt",
+    "Sign",
+    "Verify"
+  ]
+  
+  secret_permissions = [
+    "Get"
+  ]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+  
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+  /*
+  infrastructure_encryption_enabled = true
+  table_encryption_key_type         = "Account"
+  queue_encryption_key_type         = "Account"
+  */
+}
+
 resource "azurerm_databricks_workspace" "test" {
   depends_on = [
     azurerm_key_vault_access_policy.managed,
-    azurerm_key_vault_access_policy.terraform
+    azurerm_key_vault_access_policy.terraform,
+    azurerm_key_vault_access_policy.storage,
+    azurerm_storage_account.test
   ]
 
   name                        = "acctestDBW-%[1]d"
