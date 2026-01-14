@@ -6296,21 +6296,86 @@ resource "azurerm_application_gateway" "test" {
     frontend_port_name             = local.frontend_port_name
     protocol                       = "Http"
 
-    dynamic "custom_error_configuration" {
-      for_each = local.error_codes
-      content {
-        status_code           = "HttpStatus${custom_error_configuration.value}"
-        custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/${custom_error_configuration.value}.html"
-      }
+    custom_error_configuration {
+      status_code           = "HttpStatus400"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
     }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus403"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus404"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus405"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus500"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus502"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus503"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
+    }
+
+    custom_error_configuration {
+      status_code           = "HttpStatus504"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
+    }
+
   }
 
-  dynamic "custom_error_configuration" {
-    for_each = local.error_codes
-    content {
-      status_code           = "HttpStatus${custom_error_configuration.value}"
-      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/${custom_error_configuration.value}.html"
-    }
+  custom_error_configuration {
+    status_code           = "HttpStatus400"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus403"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus404"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus405"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus500"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus502"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus503"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus504"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
   }
 
   request_routing_rule {
