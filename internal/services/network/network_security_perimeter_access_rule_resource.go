@@ -169,7 +169,7 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Create() sdk.ResourceFunc {
 			}
 			param := networksecurityperimeteraccessrules.NspAccessRule{
 				Properties: &networksecurityperimeteraccessrules.NspAccessRuleProperties{
-					Direction:                 pointer.To(networksecurityperimeteraccessrules.AccessRuleDirection(config.Direction)),
+					Direction:                 pointer.ToEnum[networksecurityperimeteraccessrules.AccessRuleDirection](config.Direction),
 					AddressPrefixes:           pointer.To(config.AddressPrefixes),
 					FullyQualifiedDomainNames: pointer.To(config.FullyQualifiedDomainNames),
 					Subscriptions:             &subscriptions,
