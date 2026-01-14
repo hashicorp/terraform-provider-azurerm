@@ -130,6 +130,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 							string(volumegroups.ServiceLevelPremium),
 							string(volumegroups.ServiceLevelStandard),
 							string(volumegroups.ServiceLevelUltra),
+							string(volumes.ServiceLevelFlexible),
 						}, false),
 					},
 
