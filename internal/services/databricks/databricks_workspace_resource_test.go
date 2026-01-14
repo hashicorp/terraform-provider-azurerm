@@ -3381,13 +3381,16 @@ resource "azurerm_key_vault_access_policy" "managed" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  depends_on = [azurerm_key_vault_access_policy.managed]
+  depends_on = [
+    azurerm_key_vault_access_policy.managed,
+    azurerm_key_vault_access_policy.terraform
+  ]
 
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku                         = "premium"
-  // compute_mode = "Serverless"
+  compute_mode = "Serverless"
 
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
   // public_network_access_enabled         = false
