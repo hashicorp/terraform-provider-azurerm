@@ -3231,19 +3231,14 @@ resource "azurerm_databricks_workspace" "test" {
 func (DatabricksWorkspaceResource) serverlessComplete(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = false
-      purge_soft_deleted_keys_on_destroy = false
-    }
-  }
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
-/*
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3317,7 +3312,7 @@ resource "azurerm_subnet_network_security_group_association" "private" {
   subnet_id                 = azurerm_subnet.private.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
-*/
+/*
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
@@ -3347,12 +3342,6 @@ resource "azurerm_key_vault_key" "test" {
     "verify",
     "wrapKey",
   ]
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestmi%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_key_vault_access_policy" "terraform" {
@@ -3391,65 +3380,9 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "WrapKey",
   ]
 }
-
-resource "azurerm_key_vault_access_policy" "storage" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = azurerm_user_assigned_identity.test.principal_id
-
-  key_permissions    = [
-    "Get",
-    "Create",
-    "List",
-    "Restore",
-    "Recover",
-    "UnwrapKey",
-    "WrapKey",
-    "Purge",
-    "Encrypt",
-    "Decrypt",
-    "Sign",
-    "Verify"
-  ]
-  
-  secret_permissions = [
-    "Get"
-  ]
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "unlikely23exst2acct%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-  account_kind             = "StorageV2"
-  
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      azurerm_user_assigned_identity.test.id,
-    ]
-  }
-  
-  customer_managed_key {
-    key_vault_key_id          = azurerm_key_vault_key.test.id
-    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
-  }
-  /*
-  infrastructure_encryption_enabled = true
-  table_encryption_key_type         = "Account"
-  queue_encryption_key_type         = "Account"
-  */
-}
-
+*/
 resource "azurerm_databricks_workspace" "test" {
-  depends_on = [
-    azurerm_key_vault_access_policy.managed,
-    azurerm_key_vault_access_policy.terraform,
-    azurerm_key_vault_access_policy.storage,
-    azurerm_storage_account.test
-  ]
+  // depends_on = [azurerm_key_vault_access_policy.managed]
 
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
@@ -3457,18 +3390,17 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   compute_mode = "Serverless"
 
-  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
-  // public_network_access_enabled         = false
-  /*
+  // managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
+  public_network_access_enabled         = false
+  
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
     compliance_security_profile_standards = ["HIPAA"]
     enhanced_security_monitoring_enabled  = true
   }
-  */
 }
-/*
+
 resource "azurerm_private_endpoint" "databricks" {
   name                = "acctest-endpoint-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3497,6 +3429,5 @@ resource "azurerm_private_dns_cname_record" "test" {
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
-*/
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
