@@ -60,6 +60,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_blob":                         resourceStorageBlob(),
 		"azurerm_storage_blob_inventory_policy":        resourceStorageBlobInventoryPolicy(),
 		"azurerm_storage_container":                    resourceStorageContainer(),
+		"azurerm_storage_discovery_workspace":          resourceStorageDiscoveryWorkspace(),
 		"azurerm_storage_encryption_scope":             resourceStorageEncryptionScope(),
 		"azurerm_storage_data_lake_gen2_filesystem":    resourceStorageDataLakeGen2FileSystem(),
 		"azurerm_storage_data_lake_gen2_path":          resourceStorageDataLakeGen2Path(),
