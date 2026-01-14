@@ -3390,14 +3390,15 @@ resource "azurerm_databricks_workspace" "test" {
   compute_mode = "Serverless"
 
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
-  public_network_access_enabled         = false
-
+  // public_network_access_enabled         = false
+  /*
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
     compliance_security_profile_standards = ["HIPAA"]
     enhanced_security_monitoring_enabled  = true
   }
+  */
 }
 /*
 resource "azurerm_private_endpoint" "databricks" {
