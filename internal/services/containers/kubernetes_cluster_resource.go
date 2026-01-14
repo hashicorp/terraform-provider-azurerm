@@ -154,6 +154,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
 						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
 					}
+					securityEnabled := d.Get("network_profile.0.advanced_networking.0.security_enabled").(bool)
+					advancedNetworkPolicies := d.Get("network_profile.0.advanced_networking.0.advanced_network_policies").(string)
+					if !securityEnabled && advancedNetworkPolicies != "" && advancedNetworkPolicies != string(managedclusters.AdvancedNetworkPoliciesNone) {
+						return fmt.Errorf("`network_profile.0.advanced_networking.0.advanced_network_policies` can only be set to `%s` or `%s` when `network_profile.0.advanced_networking.0.security_enabled` is set to `true`", managedclusters.AdvancedNetworkPoliciesFQDN, managedclusters.AdvancedNetworkPoliciesLSeven)
+					}
+					if advancedNetworkPolicies != "" && advancedNetworkPolicies != string(managedclusters.AdvancedNetworkPoliciesNone) {
+						if serviceMeshProfiles := d.Get("service_mesh_profile").([]interface{}); len(serviceMeshProfiles) > 0 {
+							serviceMeshProfile := serviceMeshProfiles[0].(map[string]interface{})
+							if serviceMeshProfile["mode"].(string) == string(managedclusters.ServiceMeshModeIstio) {
+								return fmt.Errorf("`network_profile.0.advanced_networking.0.advanced_network_policies` cannot be set to `%s` or `%s` when `service_mesh_profile.0.mode` is set to `%s`", managedclusters.AdvancedNetworkPoliciesFQDN, managedclusters.AdvancedNetworkPoliciesLSeven, managedclusters.ServiceMeshModeIstio)
+							}
+						}
+					}
 				}
 				return nil
 			},
@@ -1338,6 +1351,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Optional:     true,
 										Default:      false,
 										AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									},
+									"advanced_network_policies": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForAdvancedNetworkPolicies(), false),
 									},
 								},
 							},
@@ -3680,14 +3698,20 @@ func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk
 	observabilityEnabled := config["observability_enabled"].(bool)
 	securityEnabled := config["security_enabled"].(bool)
 
+	security := &managedclusters.AdvancedNetworkingSecurity{
+		Enabled: pointer.To(securityEnabled),
+	}
+
+	if v, ok := config["advanced_network_policies"].(string); ok && v != "" {
+		security.AdvancedNetworkPolicies = pointer.ToEnum[managedclusters.AdvancedNetworkPolicies](v)
+	}
+
 	return &managedclusters.AdvancedNetworking{
 		Enabled: pointer.To(true),
 		Observability: &managedclusters.AdvancedNetworkingObservability{
 			Enabled: pointer.To(observabilityEnabled),
 		},
-		Security: &managedclusters.AdvancedNetworkingSecurity{
-			Enabled: pointer.To(securityEnabled),
-		},
+		Security: security,
 	}
 }
 
@@ -3702,14 +3726,17 @@ func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclust
 	}
 
 	securityEnabled := false
+	advancedNetworkPolicies := ""
 	if advancedNetworking.Security != nil {
 		securityEnabled = pointer.From(advancedNetworking.Security.Enabled)
+		advancedNetworkPolicies = string(pointer.From(advancedNetworking.Security.AdvancedNetworkPolicies))
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"observability_enabled": observabilityEnabled,
-			"security_enabled":      securityEnabled,
+			"observability_enabled":     observabilityEnabled,
+			"security_enabled":          securityEnabled,
+			"advanced_network_policies": advancedNetworkPolicies,
 		},
 	}
 }
