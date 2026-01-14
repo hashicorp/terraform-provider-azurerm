@@ -3430,5 +3430,5 @@ resource "azurerm_private_dns_cname_record" "test" {
   record              = "eastus2-c2.azuredatabricks.net"
 }
 */
-`, data.RandomInteger, data.Locations.Secondary, data.RandomString, databricksPrincipalID)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
