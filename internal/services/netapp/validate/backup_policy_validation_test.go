@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicies"
 )
 
 const (
@@ -23,12 +23,12 @@ const (
 func TestValidateNetAppBackupPolicyCombinedRetention(t *testing.T) {
 	cases := []struct {
 		Name             string
-		BackupPolicyData backuppolicy.BackupPolicyProperties
+		BackupPolicyData backuppolicies.BackupPolicyProperties
 		Errors           int
 	}{
 		{
 			Name: "ValidateCombinedRetentionWithValidValues",
-			BackupPolicyData: backuppolicy.BackupPolicyProperties{
+			BackupPolicyData: backuppolicies.BackupPolicyProperties{
 				DailyBackupsToKeep:   pointer.To(minDataDailyBackupsToKeep),
 				WeeklyBackupsToKeep:  pointer.To(minDataWeeklyBackupsToKeep),
 				MonthlyBackupsToKeep: pointer.To(minDataMonthlyBackupsToKeep),
@@ -37,7 +37,7 @@ func TestValidateNetAppBackupPolicyCombinedRetention(t *testing.T) {
 		},
 		{
 			Name: "ValidateCombinedRetentionWithValidValuesMaximumReachedFailure",
-			BackupPolicyData: backuppolicy.BackupPolicyProperties{
+			BackupPolicyData: backuppolicies.BackupPolicyProperties{
 				DailyBackupsToKeep:   pointer.To(maxDataDailyBackupsToKeep),
 				WeeklyBackupsToKeep:  pointer.To(maxDataWeeklyBackupsToKeep),
 				MonthlyBackupsToKeep: pointer.To(maxDataMonthlyBackupsToKeep),

@@ -61,3 +61,7 @@ tf.zip
 .github/instructions
 .github/prompts
 .github/copilot-instructions.md
+
+# do not upload .bob instructions
+.bob
+AGENTS.md

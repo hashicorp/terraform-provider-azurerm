@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageAccountLocalUserResource struct{}
@@ -193,12 +193,12 @@ func (r StorageAccountLocalUserResource) Exists(ctx context.Context, clients *cl
 
 	if resp, err := client.Get(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageAccountLocalUserResource) passwordOnly(data acceptance.TestData) string {
@@ -412,8 +412,8 @@ resource "azurerm_storage_account" "test" {
   is_hns_enabled           = true
 }
 resource "azurerm_storage_container" "test" {
-  name                 = "acctestcontainer"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestcontainer"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 locals {

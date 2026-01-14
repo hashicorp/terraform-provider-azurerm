@@ -135,7 +135,7 @@ Example:
 - [ ] New Feature
 
 
-> [!NOTE] If this PR changes meaningfully during the course of review please update the title and description as required.
+> **Note:** If this PR changes meaningfully during the course of review please update the title and description as required.
 
 
 

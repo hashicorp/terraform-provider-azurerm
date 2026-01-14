@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -36,8 +36,8 @@ func TestAccPostgresqlFlexibleServerFirewallRule_resourceIdentity(t *testing.T) 
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_postgresql_flexible_server_firewall_rule.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("server_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

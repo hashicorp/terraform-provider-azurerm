@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -22,12 +22,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBatchPool() *pluginsdk.Resource {
@@ -238,49 +238,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-			},
-			"certificate": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							// The ID returned for the certificate in the batch account and the certificate applied to the pool
-							// are not consistent in their casing which causes issues when referencing IDs across resources
-							// (as Terraform still sees differences to apply due to the casing)
-							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-						"store_location": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"CurrentUser",
-								"LocalMachine",
-							}, false),
-						},
-						"store_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"visibility": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"StartTask",
-									"Task",
-									"RemoteUser",
-								}, false),
-							},
-						},
-					},
-				},
 			},
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
@@ -862,6 +819,53 @@ func resourceBatchPool() *pluginsdk.Resource {
 		},
 	}
 
+	if !features.FivePointOh() {
+		resource.Schema["certificate"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Deprecated: "the `certificate` property has been deprecated and will be removed in v5.0 of the AzureRM provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceID,
+						// The ID returned for the certificate in the batch account and the certificate applied to the pool
+						// are not consistent in their casing which causes issues when referencing IDs across resources
+						// (as Terraform still sees differences to apply due to the casing)
+						// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
+						DiffSuppressFunc: suppress.CaseDifference,
+					},
+					"store_location": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"CurrentUser",
+							"LocalMachine",
+						}, false),
+					},
+					"store_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"visibility": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"StartTask",
+								"Task",
+								"RemoteUser",
+							}, false),
+						},
+					},
+				},
+			},
+		}
+	}
+
 	return resource
 }
 
@@ -873,25 +877,23 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	id := pool.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
 	}
 
 	parameters := pool.Pool{
 		Properties: &pool.PoolProperties{
-			VMSize:                 utils.String(d.Get("vm_size").(string)),
-			DisplayName:            utils.String(d.Get("display_name").(string)),
+			VMSize:                 pointer.To(d.Get("vm_size").(string)),
+			DisplayName:            pointer.To(d.Get("display_name").(string)),
 			InterNodeCommunication: pointer.To(pool.InterNodeCommunicationState(d.Get("inter_node_communication").(string))),
-			TaskSlotsPerNode:       utils.Int64(int64(d.Get("max_tasks_per_node").(int))),
+			TaskSlotsPerNode:       pointer.To(int64(d.Get("max_tasks_per_node").(int))),
 		},
 	}
 
@@ -945,12 +947,14 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return deploymentErr
 	}
 
-	if v, ok := d.GetOk("certificate"); ok {
-		certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `certificate`: %+v", err)
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("certificate"); ok {
+			certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `certificate`: %+v", err)
+			}
+			parameters.Properties.Certificates = certificateReferences
 		}
-		parameters.Properties.Certificates = certificateReferences
 	}
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
@@ -1089,12 +1093,15 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 	}
-	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-	if err != nil {
-		return fmt.Errorf("expanding `certificate`: %+v", err)
+
+	if !features.FivePointOh() {
+		certificates := d.Get("certificate").([]interface{})
+		certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
+		if err != nil {
+			return fmt.Errorf("expanding `certificate`: %+v", err)
+		}
+		parameters.Properties.Certificates = certificateReferences
 	}
-	parameters.Properties.Certificates = certificateReferences
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
@@ -1312,8 +1319,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				}
 			}
 
-			if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-				return fmt.Errorf("flattening `certificate`: %+v", err)
+			if !features.FivePointOh() {
+				if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+					return fmt.Errorf("flattening `certificate`: %+v", err)
+				}
 			}
 
 			d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
@@ -1403,8 +1412,8 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 		scaleSettings.FixedScale = &pool.FixedScaleSettings{
 			NodeDeallocationOption: &nodeDeallocationOption,
 			ResizeTimeout:          &resizeTimeout,
-			TargetDedicatedNodes:   utils.Int64(int64(targetDedicatedNodes)),
-			TargetLowPriorityNodes: utils.Int64(int64(targetLowPriorityNodes)),
+			TargetDedicatedNodes:   pointer.To(int64(targetDedicatedNodes)),
+			TargetLowPriorityNodes: pointer.To(int64(targetLowPriorityNodes)),
 		}
 	}
 

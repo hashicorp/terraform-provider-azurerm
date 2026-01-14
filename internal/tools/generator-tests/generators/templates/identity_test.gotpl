@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package {{ToLower .ServicePackageName}}_test
@@ -57,8 +57,8 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 					{{- end }}
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep({{ .TestExpectNonEmptyPlan }}),
+			data.ImportBlockWithIDStep({{ .TestExpectNonEmptyPlan }}),
 		},
 	})
 }

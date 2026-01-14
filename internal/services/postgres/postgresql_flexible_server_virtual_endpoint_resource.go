@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/virtualendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/virtualendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/migration"
@@ -137,7 +137,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Create() sdk.ResourceFu
 
 			// This API can be a bit flaky if the same named resource is created/destroyed quickly
 			// usually waiting a minute or two before redeploying is enough to resolve the conflict
-			if err = client.CreateThenPoll(ctx, sourceEndpointId, virtualendpoints.VirtualEndpointResource{
+			if err = client.CreateThenPoll(ctx, sourceEndpointId, virtualendpoints.VirtualEndpoint{
 				Name: &virtualEndpoint.Name,
 				Properties: &virtualendpoints.VirtualEndpointResourceProperties{
 					EndpointType: pointer.To(virtualendpoints.VirtualEndpointType(virtualEndpoint.Type)),
@@ -180,7 +180,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
 					resp, err = client.Get(ctx, virtualEndpointId)
 					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
+						if response.WasNotFound(resp.HttpResponse) || response.WasBadRequest(resp.HttpResponse) { // Can return a 400 if attempting to query the replica for the virtual endpoint resource
 							// the endpoint was not found under the source or the replica server so it can safely be removed from state
 							log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
 							return metadata.MarkAsGone(id)
@@ -267,7 +267,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Delete() sdk.ResourceFu
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
 					resp, err = client.Get(ctx, virtualEndpointId)
 					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
+						if response.WasNotFound(resp.HttpResponse) || response.WasBadRequest(resp.HttpResponse) { // Can return a 400 if attempting to query the replica for the virtual endpoint resource
 							// the endpoint was not found under the source or the replica server so we can exit here
 							return nil
 						}
@@ -361,7 +361,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Update() sdk.ResourceFu
 // The flexible endpoint API does not store the location/rg information on replicas it only stores the name.
 // This lookup is safe because replicas for a given source server are *not* allowed to have identical names
 func lookupFlexibleServerByName(ctx context.Context, flexibleServerClient *servers.ServersClient, virtualEndpointId virtualendpoints.VirtualEndpointId, replicaServerName string, sourceServerId string) (*servers.Server, error) {
-	postgresServers, err := flexibleServerClient.ListCompleteMatchingPredicate(ctx, commonids.NewSubscriptionID(virtualEndpointId.SubscriptionId), servers.ServerOperationPredicate{
+	postgresServers, err := flexibleServerClient.ListBySubscriptionCompleteMatchingPredicate(ctx, commonids.NewSubscriptionID(virtualEndpointId.SubscriptionId), servers.ServerOperationPredicate{
 		Name: &replicaServerName,
 	})
 	if err != nil {

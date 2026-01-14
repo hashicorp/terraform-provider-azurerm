@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -9,12 +9,14 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RecoveryServicesVaultResource struct{}
@@ -35,11 +37,13 @@ func TestAccRecoveryServicesVault_basic(t *testing.T) {
 	})
 }
 
+// This test validates the conditional ForceNew behavior in the resource CustomizeDiff
+// when updating cross_region_restore_enabled from true to false, which requires recreation
 func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicWithCrossRegionRestore(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -58,6 +62,11 @@ func TestAccRecoveryServicesVault_ToggleCrossRegionRestore(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicWithCrossRegionRestore(data, false),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("cross_region_restore_enabled").HasValue("false"),
@@ -199,7 +208,7 @@ func TestAccRecoveryServicesVault_immutabilityLocked(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			// To test creation with `Locked`, it is irreversible.
 			Config: r.basicWithImmutability(data, "Locked"),
@@ -210,6 +219,11 @@ func TestAccRecoveryServicesVault_immutabilityLocked(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicWithImmutability(data, "Disabled"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -423,7 +437,7 @@ func (t RecoveryServicesVaultResource) Exists(ctx context.Context, clients *clie
 		return nil, fmt.Errorf("reading Recovery Service (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func TestAccRecoveryServicesVault_encryptionWithKeyVaultKey(t *testing.T) {

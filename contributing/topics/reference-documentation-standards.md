@@ -1,6 +1,6 @@
 # Provider Documentation Standards
 
-In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on. 
+In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on.
 
 This page will grow over time, and suggestions are welcome!
 
@@ -24,7 +24,9 @@ Arguments in the documentation are expected to be ordered as follows:
 1. Any arguments that make up the resource's ID, with the last user specified segment (usually `name`) first. E.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`.
 2. The `location` field if present.
 3. Required arguments, sorted alphabetically.
-4. Optional arguments, sorted alphabetically.
+4. Optional arguments, sorted alphabetically, with the exception of `tags`, which must always be documented last.
+
+-> **Note:** This ordering applies to both `typed` and `untyped` implementations. Even when typed resources or data sources surface computed or optional fields via `Attributes()`/`model` structs, the published documentation must still follow the sequence described above.
 
 ### Descriptions
 
@@ -48,7 +50,7 @@ Examples:
 Block arguments must have two entries in the documentation:
 
 1. The initial entry, e.g. `` * `block_argument` - (Optional) A `block_argument` as defined below. ``
-2. A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. 
+2. A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
 
 Example:
 
@@ -93,7 +95,7 @@ Attribute descriptions should be concise, and must not include possible or defau
 Block attributes must have two entries in the documentation:
 
 1. The initial entry, e.g. `` * `block_attribute` - A `block_attribute` as defined below. ``
-2. A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. 
+2. A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
 
 Example:
 
@@ -143,7 +145,7 @@ These should no longer be included, instead follow these guidelines:
 
 > We may revisit the guidelines above and/or add a specific place in the documentation for all breaking changes in minor versions.
 
-<!-- 
+<!--
     - TODO: Considerations for when to add notes? We probably don't want to overdo it (More relevant to informational notes)
 -->
 

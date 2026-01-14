@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -23,6 +23,8 @@ import (
 
 func resourceBatchCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_batch_certificate` resource has been deprecated and will be removed in v5.0 of the AzureRM provider.",
+
 		Create: resourceBatchCertificateCreate,
 		Read:   resourceBatchCertificateRead,
 		Update: resourceBatchCertificateUpdate,

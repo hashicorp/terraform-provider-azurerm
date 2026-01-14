@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization_test
@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualDesktopWorkspaceApplicationGroupAssociationResource struct{}
@@ -110,7 +110,7 @@ func (t VirtualDesktopWorkspaceApplicationGroupAssociationResource) Exists(ctx c
 		}
 	}
 
-	return utils.Bool(found), nil
+	return pointer.To(found), nil
 }
 
 func (VirtualDesktopWorkspaceApplicationGroupAssociationResource) basic(data acceptance.TestData) string {

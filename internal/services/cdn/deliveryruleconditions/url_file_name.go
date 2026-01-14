@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package deliveryruleconditions
@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -71,9 +72,9 @@ func ExpandArmCdnEndpointConditionURLFileName(input []interface{}) []cdn.BasicDe
 		requestURICondition := cdn.DeliveryRuleURLFileNameCondition{
 			Name: cdn.NameURLFileName,
 			Parameters: &cdn.URLFileNameMatchConditionParameters{
-				OdataType:       utils.String("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlFilenameConditionParameters"),
+				OdataType:       pointer.To("Microsoft.Azure.Cdn.Models.DeliveryRuleUrlFilenameConditionParameters"),
 				Operator:        cdn.URLFileNameOperator(item["operator"].(string)),
-				NegateCondition: utils.Bool(item["negate_condition"].(bool)),
+				NegateCondition: pointer.To(item["negate_condition"].(bool)),
 				MatchValues:     utils.ExpandStringSlice(item["match_values"].(*pluginsdk.Set).List()),
 			},
 		}

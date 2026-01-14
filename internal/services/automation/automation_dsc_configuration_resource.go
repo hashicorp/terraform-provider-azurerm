@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -13,16 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/dscconfiguration"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationDscConfiguration() *pluginsdk.Resource {
@@ -117,20 +116,20 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	contentEmbedded := d.Get("content_embedded").(string)
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	logVerbose := d.Get("log_verbose").(bool)
 	description := d.Get("description").(string)
 
 	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
 		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
-			LogVerbose:  utils.Bool(logVerbose),
-			Description: utils.String(description),
+			LogVerbose:  pointer.To(logVerbose),
+			Description: pointer.To(description),
 			Source: dscconfiguration.ContentSource{
 				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
-				Value: utils.String(contentEmbedded),
+				Value: pointer.To(contentEmbedded),
 			},
 		},
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{}))),
 	}
 
@@ -168,7 +167,7 @@ func resourceAutomationDscConfigurationRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("automation_account_name", id.AutomationAccountName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("log_verbose", props.LogVerbose)
