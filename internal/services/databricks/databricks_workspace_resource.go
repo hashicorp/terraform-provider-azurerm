@@ -789,7 +789,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	enhancedSecurityCompliance := d.Get("enhanced_security_compliance")
 	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
-	time.Sleep(10 * time.Minute)
+	time.Sleep(20 * time.Minute)
 	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
