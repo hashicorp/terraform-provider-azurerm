@@ -131,7 +131,7 @@ func (r NetAppVolumeGroupOracleResource) Arguments() map[string]*pluginsdk.Schem
 							string(volumegroups.ServiceLevelPremium),
 							string(volumegroups.ServiceLevelStandard),
 							string(volumegroups.ServiceLevelUltra),
-							string(volumes.ServiceLevelFlexible),
+							string(volumegroups.ServiceLevelFlexible),
 						}, false),
 					},
 
