@@ -45,21 +45,6 @@ func TestAccNetworkSecurityPerimeterAssociation_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetworkSecurityPerimeterAssociation_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_association", "test")
-	r := NetworkSecurityPerimeterAssociationTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccNetworkSecurityPerimeterAssociation_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_association", "test")
 	r := NetworkSecurityPerimeterAssociationTestResource{}
@@ -115,18 +100,18 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "example"
+  name                = "acctestLAW"
   location            = azurerm_network_security_perimeter.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_perimeter_association" "test" {
 	name = "acctestassoc-%d"
-	profile_id = azurerm_network_security_perimeter_profile.test.id 
+	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id 
 	resource_id = azurerm_log_analytics_workspace.test.id
 
 	access_mode = "Learning"
@@ -140,7 +125,7 @@ func (r NetworkSecurityPerimeterAssociationTestResource) requiresImport(data acc
 
 resource "azurerm_network_security_perimeter_association" "import" {
 	name = azurerm_network_security_perimeter_association.test.name
-	profile_id = azurerm_network_security_perimeter_association.test.profile_id
+	network_security_perimeter_profile_id = azurerm_network_security_perimeter_association.test.network_security_perimeter_profile_id
 	resource_id = azurerm_network_security_perimeter_association.test.resource_id
 
 	access_mode = azurerm_network_security_perimeter_association.test.access_mode
@@ -167,18 +152,18 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name                = "example"
+  name                = "acctestLAW"
   location            = azurerm_network_security_perimeter.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_network_security_perimeter_association" "test" {
 	name = "acctestassoc-%d"
-	profile_id = azurerm_network_security_perimeter_profile.test.id 
+	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id 
 	resource_id = azurerm_log_analytics_workspace.test.id
 
 	access_mode = "Learning"

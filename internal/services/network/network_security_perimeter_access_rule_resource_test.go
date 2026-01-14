@@ -148,12 +148,12 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "test" {
 	name = "acctestRule-%d"
-	profile_id = azurerm_network_security_perimeter_profile.test.id
+	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
 
 	direction = "Inbound"
 	address_prefixes = [
@@ -169,12 +169,10 @@ func (r NetworkSecurityPerimeterAccessRuleTestResource) requiresImport(data acce
 
 resource "azurerm_network_security_perimeter_access_rule" "import" {
 	name = azurerm_network_security_perimeter_access_rule.test.name
-	profile_id =azurerm_network_security_perimeter_access_rule.test.profile_id
+	network_security_perimeter_profile_id =azurerm_network_security_perimeter_access_rule.test.network_security_perimeter_profile_id
 
-	direction = "Inbound"
-	address_prefixes = [
-		"8.8.8.8/32"
-	]	
+	direction = azurerm_network_security_perimeter_access_rule.test.direction
+	address_prefixes = azurerm_network_security_perimeter_access_rule.test.address_prefixes
 }
 `, r.basic(data))
 }
@@ -198,12 +196,12 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "test" {
 	name = "acctestRule-%d"
-	profile_id = azurerm_network_security_perimeter_profile.test.id
+	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
 
 	direction = "Inbound"
 	address_prefixes = [
@@ -236,12 +234,12 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "test" {
 	name = "acctestRule-%d"
-	profile_id = azurerm_network_security_perimeter_profile.test.id
+	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
 
 	direction = "Inbound"
 	subscription_ids = [
@@ -270,12 +268,12 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "test" {
 	name = "acctestRule-%d"
-	profile_id = azurerm_network_security_perimeter_profile.test.id
+	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
 
 	direction = "Outbound"
 	fqdns = [

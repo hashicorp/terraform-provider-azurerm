@@ -45,43 +45,6 @@ func TestAccNetworkSecurityPerimeterProfile_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccNetworkSecurityPerimeterProfile_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_profile", "test")
-	r := NetworkSecurityPerimeterProfileTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccNetworkSecurityPerimeterProfile_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_profile", "test")
-	r := NetworkSecurityPerimeterProfileTestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (NetworkSecurityPerimeterProfileTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecurityperimeterprofiles.ParseProfileID(state.ID)
 	if err != nil {
@@ -115,7 +78,7 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -126,7 +89,7 @@ func (r NetworkSecurityPerimeterProfileTestResource) requiresImport(data accepta
 
 resource "azurerm_network_security_perimeter_profile" "import" {
 	name = azurerm_network_security_perimeter_profile.test.name
-	perimeter_id = azurerm_network_security_perimeter_profile.test.perimeter_id
+	network_security_perimeter_id = azurerm_network_security_perimeter_profile.test.network_security_perimeter_id
 }
 `, r.basic(data))
 }
@@ -150,7 +113,7 @@ resource "azurerm_network_security_perimeter" "test" {
 
 resource "azurerm_network_security_perimeter_profile" "test" {
 	name = "acctestProfile-%d"
-	perimeter_id = azurerm_network_security_perimeter.test.id
+	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

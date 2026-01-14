@@ -26,12 +26,12 @@ resource "azurerm_network_security_perimeter" "example" {
 
 resource "azurerm_network_security_perimeter_profile" "example" {
   name = "example"
-  perimeter_id = azurerm_network_security_perimeter.example.id
+  network_security_perimeter_id = azurerm_network_security_perimeter.example.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "example" {
   name = "example"
-  profile_id = azurerm_network_security_perimeter_profile.example.id
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.example.id
   direction = "Inbound"
 
   address_prefixes = [
@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Network Security Perimeter Access Rule. Changing this forces a new Network Security Perimeter Access Rule to be created.
 
-* `profile_id` - (Required) The ID of the Network Security Perimeter Profile within which this Access Rule is created. Changing this forces a new Network Security Perimeter Access Rule to be created.
+* `network_security_perimeter_profile_id` - (Required) The ID of the Network Security Perimeter Profile within which this Access Rule is created. Changing this forces a new Network Security Perimeter Access Rule to be created.
 
 ---
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -22,7 +23,7 @@ type NetworkSecurityPerimeterProfileResource struct{}
 
 type NetworkSecurityPerimeterProfileResourceModel struct {
 	Name        string `tfschema:"name"`
-	PerimeterId string `tfschema:"perimeter_id"`
+	PerimeterId string `tfschema:"network_security_perimeter_id"`
 }
 
 func (NetworkSecurityPerimeterProfileResource) Arguments() map[string]*pluginsdk.Schema {
@@ -30,11 +31,14 @@ func (NetworkSecurityPerimeterProfileResource) Arguments() map[string]*pluginsdk
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
+				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
+			),
 			ForceNew:     true,
 		},
 
-		"perimeter_id": {
+		"network_security_perimeter_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: networksecurityperimeterprofiles.ValidateNetworkSecurityPerimeterID,
@@ -85,9 +89,7 @@ func (r NetworkSecurityPerimeterProfileResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			param := networksecurityperimeterprofiles.NspProfile{}
-
-			if _, err := client.CreateOrUpdate(ctx, id, param); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, networksecurityperimeterprofiles.NspProfile{}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
