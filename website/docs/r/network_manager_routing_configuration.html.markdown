@@ -35,7 +35,6 @@ resource "azurerm_network_manager_routing_configuration" "example" {
   name                   = "example-routing-configuration"
   network_manager_id     = azurerm_network_manager.example.id
   description            = "example routing configuration"
-  route_table_usage_mode = "ManagedOnly"
 }
 ```
 
