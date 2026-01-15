@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
+	pool "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -791,7 +791,7 @@ func (t BatchPoolResource) Exists(ctx context.Context, clients *clients.Client, 
 		return nil, err
 	}
 
-	resp, err := clients.Batch.PoolClient.Get(ctx, *id)
+	resp, err := clients.Batch.PoolClient.PoolGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s", *id)
 	}

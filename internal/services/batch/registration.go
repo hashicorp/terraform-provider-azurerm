@@ -31,7 +31,7 @@ func (r Registration) WebsiteCategories() []string {
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	dataSources := map[string]*pluginsdk.Resource{
+	datasources := map[string]*pluginsdk.Resource{
 		"azurerm_batch_account":     dataSourceBatchAccount(),
 		"azurerm_batch_application": dataSourceBatchApplication(),
 		"azurerm_batch_pool":        dataSourceBatchPool(),
@@ -39,10 +39,10 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 	// The batch certificate feature was retired by Azure on 2024-02-29
 	if !features.FivePointOh() {
-		dataSources["azurerm_batch_certificate"] = dataSourceBatchCertificate()
+		datasources["azurerm_batch_certificate"] = dataSourceBatchCertificate()
 	}
 
-	return dataSources
+	return datasources
 }
 
 // SupportedResources returns the supported Resources supported by this Service

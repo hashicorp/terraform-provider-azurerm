@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
+	batchaccount "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -205,7 +205,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	storageAccountId := d.Get("storage_account_id").(string)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.BatchAccountGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -292,7 +292,7 @@ func resourceBatchAccountCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if err := client.CreateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.BatchAccountCreateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -314,7 +314,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.BatchAccountGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -328,9 +328,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		if loc := model.Location; loc != nil {
-			d.Set("location", location.Normalize(*loc))
-		}
+		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 		if err != nil {
@@ -375,7 +373,7 @@ func resourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 			if d.Get("pool_allocation_mode").(string) == string(batchaccount.PoolAllocationModeBatchService) &&
 				isShardKeyAllowed(d.Get("allowed_authentication_modes").(*pluginsdk.Set).List()) {
-				keys, err := client.GetKeys(ctx, *id)
+				keys, err := client.BatchAccountGetKeys(ctx, *id)
 				if err != nil {
 					return fmt.Errorf("cannot read keys for Batch account %s: %v", *id, err)
 				}
@@ -476,7 +474,7 @@ func resourceBatchAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	if _, err = client.Update(ctx, *id, parameters); err != nil {
+	if _, err = client.BatchAccountUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -495,7 +493,7 @@ func resourceBatchAccountDelete(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.BatchAccountDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

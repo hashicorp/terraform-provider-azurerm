@@ -17,11 +17,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
+	pool "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pools"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -237,49 +238,6 @@ func resourceBatchPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
-			},
-			"certificate": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-							// The ID returned for the certificate in the batch account and the certificate applied to the pool
-							// are not consistent in their casing which causes issues when referencing IDs across resources
-							// (as Terraform still sees differences to apply due to the casing)
-							// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
-							DiffSuppressFunc: suppress.CaseDifference,
-						},
-						"store_location": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"CurrentUser",
-								"LocalMachine",
-							}, false),
-						},
-						"store_name": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-						"visibility": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									"StartTask",
-									"Task",
-									"RemoteUser",
-								}, false),
-							},
-						},
-					},
-				},
 			},
 
 			"identity": commonschema.UserAssignedIdentityOptional(),
@@ -861,6 +819,53 @@ func resourceBatchPool() *pluginsdk.Resource {
 		},
 	}
 
+	if !features.FivePointOh() {
+		resource.Schema["certificate"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Deprecated: "the `certificate` property has been deprecated and will be removed in v5.0 of the AzureRM provider.",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceID,
+						// The ID returned for the certificate in the batch account and the certificate applied to the pool
+						// are not consistent in their casing which causes issues when referencing IDs across resources
+						// (as Terraform still sees differences to apply due to the casing)
+						// Handling by ignoring casing for now. Raised as an issue: https://github.com/Azure/azure-rest-api-specs/issues/5574
+						DiffSuppressFunc: suppress.CaseDifference,
+					},
+					"store_location": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"CurrentUser",
+							"LocalMachine",
+						}, false),
+					},
+					"store_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"visibility": {
+						Type:     pluginsdk.TypeSet,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+							ValidateFunc: validation.StringInSlice([]string{
+								"StartTask",
+								"Task",
+								"RemoteUser",
+							}, false),
+						},
+					},
+				},
+			},
+		}
+	}
+
 	resource.Identity = &schema.ResourceIdentity{
 		SchemaFunc: pluginsdk.GenerateIdentitySchema(&pool.PoolId{}),
 	}
@@ -876,17 +881,15 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	id := pool.NewPoolID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.PoolGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_batch_pool", id.ID())
 	}
 
 	parameters := pool.Pool{
@@ -948,12 +951,14 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return deploymentErr
 	}
 
-	if v, ok := d.GetOk("certificate"); ok {
-		certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `certificate`: %+v", err)
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("certificate"); ok {
+			certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `certificate`: %+v", err)
+			}
+			parameters.Properties.Certificates = certificateReferences
 		}
-		parameters.Properties.Certificates = certificateReferences
 	}
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
@@ -979,12 +984,12 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
 	}
 
-	_, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{})
+	_, err = client.PoolCreate(ctx, id, parameters, pool.PoolCreateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	read, err := client.Get(ctx, id)
+	read, err := client.PoolGet(ctx, id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -1016,7 +1021,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.PoolGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -1030,7 +1035,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 
 			log.Printf("[INFO] stopping the pending resize operation on this pool...")
-			if _, err = client.StopResize(ctx, *id); err != nil {
+			if _, err = client.PoolStopResize(ctx, *id); err != nil {
 				return fmt.Errorf("stopping resize operation for %s: %+v", *id, err)
 			}
 
@@ -1095,12 +1100,15 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 	}
-	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-	if err != nil {
-		return fmt.Errorf("expanding `certificate`: %+v", err)
+
+	if !features.FivePointOh() {
+		certificates := d.Get("certificate").([]interface{})
+		certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
+		if err != nil {
+			return fmt.Errorf("expanding `certificate`: %+v", err)
+		}
+		parameters.Properties.Certificates = certificateReferences
 	}
-	parameters.Properties.Certificates = certificateReferences
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
@@ -1123,7 +1131,7 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(d.Get("target_node_communication_mode").(string)))
 	}
 
-	result, err := client.Update(ctx, *id, parameters, pool.UpdateOperationOptions{})
+	result, err := client.PoolUpdate(ctx, *id, parameters, pool.PoolUpdateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
@@ -1150,7 +1158,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.PoolGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", *id)
@@ -1318,8 +1326,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				}
 			}
 
-			if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
-				return fmt.Errorf("flattening `certificate`: %+v", err)
+			if !features.FivePointOh() {
+				if err := d.Set("certificate", flattenBatchPoolCertificateReferences(props.Certificates)); err != nil {
+					return fmt.Errorf("flattening `certificate`: %+v", err)
+				}
 			}
 
 			d.Set("start_task", flattenBatchPoolStartTask(d, props.StartTask))
@@ -1358,7 +1368,7 @@ func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.PoolDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -1417,12 +1427,12 @@ func expandBatchPoolScaleSettings(d *pluginsdk.ResourceData) (*pool.ScaleSetting
 	return scaleSettings, nil
 }
 
-func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *pool.PoolClient, id pool.PoolId) error {
+func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *pool.PoolsClient, id pool.PoolId) error {
 	// waiting for the pool to be in steady state
 	log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
 	isSteady := false
 	for !isSteady {
-		resp, err := client.Get(ctx, id)
+		resp, err := client.PoolGet(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
