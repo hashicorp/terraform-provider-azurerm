@@ -1,29 +1,34 @@
 ## 4.58.0 (Unreleased)
 
-ENHANCEMENTS:
-* `data.azurerm_container_registry` - `admin_password` is now sensitive [GH-31428]
-* `azurerm_backup_policy_file_share` - add support for `backup_tier` and `snapshot_retention_in_days` [GH-29243]
-* `azurerm_windows_function_app` - add support for `~24` to `site_config.application_stack.node_version` [GH-31248]
-* `azurerm_windows_function_app_slot` - add support for `~24` to `site_config.application_stack.node_version` [GH-31248]
 
-* `azurerm_application_insights` - support for Terraform Resource Identity
-* `azurerm_application_insights_standard_web_test` - support for Terraform Resource Identity
-* `azurerm_application_insights_web_test` - support for Terraform Resource Identity
-* `azurerm_application_insights_workbook` - support for Terraform Resource Identity
-* `azurerm_application_insights_workbook_template` - support for Terraform Resource Identity
-* `azurerm_arc_kubernetes_provisioned_cluster` - support for Terraform Resource Identity
+ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` [GH-31397]
+* `data.azurerm_container_registry` - `admin_password` is now sensitive [GH-31428]
+* `azurerm_arc_kubernetes_provisioned_cluster` - support for Terraform Resource Identity [GH-31453]
+* `azurerm_application_insights` - support for Terraform Resource Identity [GH-31453]
+* `azurerm_application_insights_standard_web_test` - support for Terraform Resource Identity [GH-31453]
+* `azurerm_application_insights_web_test` - support for Terraform Resource Identity [GH-31453]
+* `azurerm_application_insights_workbook` - support for Terraform Resource Identity [GH-31453]
+* `azurerm_application_insights_workbook_template` - support for Terraform Resource Identity [GH-31453]
+* `azurerm_attestation_provider` - support for Terraform Resource Identity [GH-31458]
+* `azurerm_automanage_configuration` - support for Terraform Resource Identity [GH-31458]
+* `azurerm_batch_account` - support for Terraform Resource Identity [GH-31458]
+* `azurerm_batch_application` - support for Terraform Resource Identity [GH-31458]
+* `azurerm_batch_pool` - support for Terraform Resource Identity [GH-31458]
+* `azurerm_backup_policy_file_share` - support for `backup_tier` and `snapshot_retention_in_days` [GH-29243]
+* `azurerm_windows_function_app` - support for `~24` to `site_config.application_stack.node_version` [GH-31248]
+* `azurerm_windows_function_app_slot` - support for `~24` to `site_config.application_stack.node_version` [GH-31248]
 * `azurerm_kubernetes_cluster` - `network_data_plane` and `network_policy` support update to `cilium` [GH-30958]
 * `azurerm_kusto_eventhub_data_connection` - support for`retrieval_start_date` [GH-31445]
 * `azurerm_kusto_iothub_data_connection` - support for `retrieval_start_date` [GH-31413]
 * `azurerm_kusto_script` - support for `script_level` and `principal_permissions_action` [GH-31403]
-* dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` [GH-31397]
 * `azurerm_mssql_managed_instance` - increase `storage_size_in_gb` maximum to `32768` [GH-31387]
 * `azurerm_cosmosdb_cassandra_cluster` - `version` now supports `4.1` and `5.0` [GH-31424]
 * `azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now allows values from `1` - `1000` [GH-31392]
-* `azurerm_linux_function_app` - add support for `24` to `site_config.application_stack.node_version` [GH-31098]
-* `azurerm_linux_function_app_slot` - add support for `24` to `site_config.application_stack.node_version` [GH-31098]
-* `azurerm_linux_web_app` - add support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
-* `azurerm_linux_web_app_slot` - add support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_linux_function_app` - support for `24` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_linux_function_app_slot` - support for `24` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_linux_web_app` - support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_linux_web_app_slot` - support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
 
 FEATURES:
 * **New List Resource**: `azurerm_resource_group` [GH-31270]
