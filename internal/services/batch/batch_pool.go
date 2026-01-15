@@ -326,7 +326,7 @@ func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer
 func findSensitiveInfoForMountConfig(targetType string, sourceType string, sourceValue string, mountType string, d *pluginsdk.ResourceData) string {
 	if num, ok := d.GetOk("mount.#"); ok {
 		n := num.(int)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			if src, ok := d.GetOk(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, sourceType)); ok && src == sourceValue {
 				return d.Get(fmt.Sprintf("mount.%d.%v.0.%v", i, mountType, targetType)).(string)
 			}
@@ -438,7 +438,7 @@ func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAc
 
 	if num, ok := d.GetOk("user_accounts.#"); ok {
 		n := num.(int)
-		for i := 0; i < n; i++ {
+		for i := range n {
 			if src, nameOk := d.GetOk(fmt.Sprintf("user_accounts.%d.name", i)); nameOk && src == account.Name {
 				userAccount["password"] = d.Get(fmt.Sprintf("user_accounts.%d.password", i)).(string)
 				userAccountIndex = i
