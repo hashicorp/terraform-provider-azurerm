@@ -30,6 +30,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name batch_pool -service-package-name batch -properties "name,resource_group_name,batch_account_name:account_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceBatchPool() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceBatchPoolCreate,
@@ -44,10 +46,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := pool.ParsePoolID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&pool.PoolId{}),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -866,6 +866,10 @@ func resourceBatchPool() *pluginsdk.Resource {
 		}
 	}
 
+	resource.Identity = &schema.ResourceIdentity{
+		SchemaFunc: pluginsdk.GenerateIdentitySchema(&pool.PoolId{}),
+	}
+
 	return resource
 }
 
@@ -991,6 +995,9 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// if the pool is not Steady after the create operation, wait for it to be Steady
 	if model := read.Model; model != nil {
@@ -1348,7 +1355,7 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBatchPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -37,6 +37,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_batch_pool":        dataSourceBatchPool(),
 	}
 
+	// The batch certificate feature was retired by Azure on 2024-02-29
 	if !features.FivePointOh() {
 		datasources["azurerm_batch_certificate"] = dataSourceBatchCertificate()
 	}
@@ -52,6 +53,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_batch_pool":        resourceBatchPool(),
 	}
 
+	// The batch certificate feature was retired by Azure on 2024-02-29
 	if !features.FivePointOh() {
 		resources["azurerm_batch_certificate"] = resourceBatchCertificate()
 	}
