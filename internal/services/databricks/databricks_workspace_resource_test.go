@@ -3238,7 +3238,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-databricks-%[1]d"
   location = "%[2]s"
 }
-
+/*
 resource "azurerm_virtual_network" "test" {
   name                = "acctest-vnet-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3312,7 +3312,7 @@ resource "azurerm_subnet_network_security_group_association" "private" {
   subnet_id                 = azurerm_subnet.private.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
-/*
+*/
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
@@ -3380,9 +3380,9 @@ resource "azurerm_key_vault_access_policy" "managed" {
     "WrapKey",
   ]
 }
-*/
+
 resource "azurerm_databricks_workspace" "test" {
-  // depends_on = [azurerm_key_vault_access_policy.managed]
+  depends_on = [azurerm_key_vault_access_policy.managed]
 
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
@@ -3390,17 +3390,18 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   compute_mode = "Serverless"
 
-  // managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
   public_network_access_enabled         = false
-  
+  /*
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
     compliance_security_profile_standards = ["HIPAA"]
     enhanced_security_monitoring_enabled  = true
   }
+  */
 }
-
+/*
 resource "azurerm_private_endpoint" "databricks" {
   name                = "acctest-endpoint-%[1]d"
   location            = azurerm_resource_group.test.location
@@ -3429,5 +3430,6 @@ resource "azurerm_private_dns_cname_record" "test" {
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
+*/
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
