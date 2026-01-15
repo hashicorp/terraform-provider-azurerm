@@ -1904,9 +1904,24 @@ resource "azurerm_shared_image" "test" {
   os_type             = "Linux"
 
   identifier {
-    publisher = "AccTesPublisher%d"
-    offer     = "AccTesOffer%d"
-    sku       = "AccTesSku%d"
+    publisher = "AccTestPublisher%d"
+    offer     = "AccTestOffer%d"
+    sku       = "AccTestSku%d"
+  }
+}
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image.test.gallery_name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Standard_LRS"
   }
 }
 
@@ -1935,7 +1950,7 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    id = azurerm_shared_image.test.id
+    id = azurerm_shared_image_version.test.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
