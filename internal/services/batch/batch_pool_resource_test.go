@@ -958,6 +958,7 @@ resource "azurerm_batch_pool" "test" {
   account_name                  = azurerm_batch_account.test.name
   display_name                  = "Test Acc Pool"
   vm_size                       = "STANDARD_A1_V2"
+  max_tasks_per_node            = 2
   node_agent_sku_id             = "batch.node.ubuntu 22.04"
   stop_pending_resize_operation = true
 
