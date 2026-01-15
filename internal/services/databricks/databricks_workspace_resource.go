@@ -442,7 +442,6 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 						return fmt.Errorf("`load_balancer_backend_address_pool_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
-					fmt.Println("debug2", customParams)
 					if len(customParams.([]interface{})) > 0 {
 						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
@@ -657,7 +656,6 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if servicesKeyId != "" {
-		fmt.Println("debug0", servicesKeyId)
 		setEncrypt = true
 		key, err := keyVaultParse.ParseNestedItemID(servicesKeyId)
 		if err != nil {
@@ -792,6 +790,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
+		panic("debug0")
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -892,7 +891,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 
 		cmkEnabled := false
 		infraEnabled := false
-		fmt.Println("debug0", model.Properties.Parameters, model.Properties.Parameters == nil)
+
 		if parameters := model.Properties.Parameters; parameters != nil {
 			if parameters.PrepareEncryption != nil {
 				cmkEnabled = parameters.PrepareEncryption.Value
@@ -907,7 +906,6 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			// The subnet associations only exist in the statefile, so we need to do a Get before we Set
 			// with what has come back from the Azure response...
 			customParamsRaw := d.Get("custom_parameters").([]interface{})
-			fmt.Println("debug1", customParamsRaw)
 			_, pubSubAssoc, priSubAssoc := expandWorkspaceCustomParameters(customParamsRaw, cmkEnabled, infraEnabled, "", "")
 
 			custom, backendPoolReadId := flattenWorkspaceCustomParameters(parameters, pubSubAssoc, priSubAssoc)
