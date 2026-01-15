@@ -32,9 +32,9 @@ resource "azurerm_network_manager" "example" {
 }
 
 resource "azurerm_network_manager_routing_configuration" "example" {
-  name                   = "example-routing-configuration"
-  network_manager_id     = azurerm_network_manager.example.id
-  description            = "example routing configuration"
+  name               = "example-routing-configuration"
+  network_manager_id = azurerm_network_manager.example.id
+  description        = "example routing configuration"
 }
 ```
 
