@@ -24,11 +24,10 @@ resource "azurerm_private_dns_zone" "example" {
 }
 
 resource "azurerm_private_dns_ptr_record" "example" {
-  name                = "15"
-  zone_name           = azurerm_private_dns_zone.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  ttl                 = 300
-  records             = ["test.example.com"]
+  name            = "15"
+  private_zone_id = azurerm_private_dns_zone.example.id
+  ttl             = 300
+  records         = ["test.example.com"]
 }
 ```
 
@@ -38,9 +37,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the DNS PTR Record. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
-
-* `zone_name` - (Required) Specifies the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `private_zone_id` - (Required) Specifies the Private DNS ID where the resource exists. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
