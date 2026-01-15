@@ -29,6 +29,8 @@ ENHANCEMENTS:
 * `azurerm_linux_function_app_slot` - support for `24` to `site_config.application_stack.node_version` [GH-31098]
 * `azurerm_linux_web_app` - support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
 * `azurerm_linux_web_app_slot` - support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
+* `azurerm_netapp_volume_group_oracle` - `service_level` now supports `Flexible` [GH-31508]
+* `azurerm_netapp_volume_group_sap_hana` - `service_level` now supports `Flexible` [GH-31508]
 
 FEATURES:
 * **New List Resource**: `azurerm_resource_group` [GH-31270]
