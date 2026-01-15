@@ -37,8 +37,8 @@ func TestAccStorageSyncCloudEndpoint_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_sync_cloud_endpoint.test", tfjsonpath.New("sync_group_name"), tfjsonpath.New("storage_sync_group_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

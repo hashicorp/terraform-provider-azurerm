@@ -35,8 +35,8 @@ func TestAccEmailCommunicationService_resourceIdentity(t *testing.T) {
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_email_communication_service.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

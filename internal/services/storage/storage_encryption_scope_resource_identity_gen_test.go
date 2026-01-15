@@ -36,8 +36,8 @@ func TestAccStorageEncryptionScope_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_encryption_scope.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_account_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }
