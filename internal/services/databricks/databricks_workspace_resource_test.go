@@ -312,6 +312,13 @@ func TestAccDatabricksWorkspace_managedDiskCMK(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.managedDiskCMKDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
+		{
 			Config: r.managedDiskCMK(data, databricksPrincipalID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -561,6 +568,9 @@ func TestAccDatabricksWorkspace_withForceDeleteSetToFalse(t *testing.T) {
 }
 
 func getDatabricksPrincipalId(subscriptionId string) string {
+	if id := os.Getenv("ARM_DATABRICKS_APP_PRINCIPAL_ID"); id != "" {
+		return id
+	}
 	databricksPrincipalID := "bb9ef821-a78b-4312-90cc-5ece3fad3430"
 	if strings.HasPrefix(strings.ToLower(subscriptionId), "85b3dbca") {
 		databricksPrincipalID = "fe597bb2-377c-44f1-8515-82c8a1a62e3d"
@@ -2161,6 +2171,32 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
 
+func (DatabricksWorkspaceResource) managedDiskCMKDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                        = "acctestDBW-%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
+  tags = {
+    State = "CMKDisabled"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
 func (DatabricksWorkspaceResource) managedDiskCMK(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2175,7 +2211,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_databricks_workspace" "test" {
-  depends_on = [azurerm_key_vault_access_policy.managed]
+  depends_on = [azurerm_key_vault_access_policy.databricks]
 
   name                        = "acctestDBW-%[1]d"
   resource_group_name         = azurerm_resource_group.test.name
@@ -2183,12 +2219,12 @@ resource "azurerm_databricks_workspace" "test" {
   sku                         = "premium"
   managed_resource_group_name = "acctestRG-DBW-%[1]d-managed"
 
-  customer_managed_key_enabled      = true
-  managed_disk_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
+  customer_managed_key_enabled                        = true
+  managed_disk_cmk_key_vault_key_id                   = azurerm_key_vault_key.test.id
+  managed_disk_cmk_rotation_to_latest_version_enabled = true
 
   tags = {
-    Environment = "Production"
-    Pricing     = "Premium"
+    State = "CMKEnabled"
   }
 }
 
@@ -2244,7 +2280,7 @@ resource "azurerm_key_vault_access_policy" "terraform" {
   ]
 }
 
-resource "azurerm_key_vault_access_policy" "managed" {
+resource "azurerm_key_vault_access_policy" "databricks" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
   object_id    = "%[4]s"
@@ -2260,12 +2296,15 @@ resource "azurerm_key_vault_access_policy" "managed" {
   ]
 }
 
-resource "azurerm_key_vault_access_policy" "databricks" {
-  depends_on = [azurerm_databricks_workspace.test]
+data "azurerm_databricks_workspace" "test" {
+  name                = azurerm_databricks_workspace.test.name
+  resource_group_name = azurerm_databricks_workspace.test.resource_group_name
+}
 
+resource "azurerm_key_vault_access_policy" "diskencryption" {
   key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_databricks_workspace.test.managed_disk_identity.0.tenant_id
-  object_id    = azurerm_databricks_workspace.test.managed_disk_identity.0.principal_id
+  tenant_id    = data.azurerm_databricks_workspace.test.managed_disk_identity.0.tenant_id
+  object_id    = data.azurerm_databricks_workspace.test.managed_disk_identity.0.principal_id
 
   key_permissions = [
     "Get",

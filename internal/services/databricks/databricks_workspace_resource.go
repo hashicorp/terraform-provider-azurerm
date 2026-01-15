@@ -1252,10 +1252,12 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	model.Properties = props
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
+	// The order matters, especially when the user both update the tags and enables the `managed_disk_cmk_rotation_to_latest_version_enabled` together.
+	// Enabling `managed_disk_cmk_rotation_to_latest_version_enabled` will cause updating the `tags` (via PATCH) on the managed resources requires additional
+	// data plane roles on the `managed_disk_identity.0.principal_id`, which is only available after enabling `managed_disk_cmk_rotation_to_latest_version_enabled`.
+	//
+	// For this reason, patch the `tags` first (before enabling the `managed_disk_cmk_rotation_to_latest_version_enabled`), then update the workspace as a whole via
+	// the PUT.
 	if d.HasChange("tags") {
 		workspaceUpdate := workspaces.WorkspaceUpdate{
 			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -1265,6 +1267,9 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 		if err != nil {
 			return fmt.Errorf("updating %s Tags: %+v", id, err)
 		}
+	}
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceDatabricksWorkspaceRead(d, meta)
