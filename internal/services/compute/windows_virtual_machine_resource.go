@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securityprofile"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -250,11 +251,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				},
 			},
 
-			"encryption_at_host_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-			},
-
 			"eviction_policy": {
 				// only applicable when `priority` is set to `Spot`
 				Type:     pluginsdk.TypeString,
@@ -387,12 +383,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"secret": windowsSecretSchemaVM(),
 
-			"secure_boot_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
-			},
-
 			"source_image_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -452,10 +442,34 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsBase64,
 			},
 
-			"vtpm_enabled": {
-				Type:     pluginsdk.TypeBool,
+			"security_profile": {
+				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"host_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"security_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(virtualmachines.PossibleValuesForSecurityTypes(), false),
+						},
+						"secure_boot_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+						},
+						"vtpm_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+						},
+					},
+				},
 			},
 
 			"winrm_listener": winRmListenerSchemaVM(),
@@ -497,6 +511,41 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["security_profile"].ConflictsWith = []string{
+			"encryption_at_host_enabled",
+			"secure_boot_enabled",
+			"vtpm_enabled",
+		}
+
+		resource.Schema["encryption_at_host_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Deprecated: features.DeprecatedInFivePointOh("`encryption_at_host_enabled` has been deprecated in favour of `security_profile.host_encryption_enabled` and will be removed in v5.0 of the AzureRM Provider"),
+			ConflictsWith: []string{
+				"security_profile",
+			},
+		}
+
+		resource.Schema["secure_boot_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: features.DeprecatedInFivePointOh("`secure_boot_enabled` has been deprecated in favour of `security_profile.secure_boot_enabled` and will be removed in v5.0 of the AzureRM Provider"),
+			ConflictsWith: []string{
+				"security_profile",
+			},
+		}
+
+		resource.Schema["vtpm_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			ForceNew:   true,
+			Deprecated: features.DeprecatedInFivePointOh("`vtpm_enabled` has been deprecated in favour of `security_profile.vtpm_enabled` and will be removed in v5.0 of the AzureRM Provider"),
+			ConflictsWith: []string{
+				"security_profile",
+			},
+		}
+
 		resource.Schema["vm_agent_platform_updates_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
@@ -804,62 +853,11 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if encryptionAtHostEnabled, ok := d.GetOk("encryption_at_host_enabled"); ok {
-		if encryptionAtHostEnabled.(bool) {
-			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
-				return fmt.Errorf("`encryption_at_host_enabled` cannot be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-			}
-		}
-
-		if params.Properties.SecurityProfile == nil {
-			params.Properties.SecurityProfile = &virtualmachines.SecurityProfile{}
-		}
-		params.Properties.SecurityProfile.EncryptionAtHost = pointer.To(encryptionAtHostEnabled.(bool))
+	securityProfile, err := expandVirtualMachineSecurityProfile(d, securityEncryptionType)
+	if err != nil {
+		return err
 	}
-
-	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
-	vtpmEnabled := d.Get("vtpm_enabled").(bool)
-	if securityEncryptionType != "" {
-		if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) && !secureBootEnabled {
-			return fmt.Errorf("`secure_boot_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set to `DiskWithVMGuestState`")
-		}
-		if !vtpmEnabled {
-			return fmt.Errorf("`vtpm_enabled` must be set to `true` when `os_disk.0.security_encryption_type` is set")
-		}
-
-		if params.Properties.SecurityProfile == nil {
-			params.Properties.SecurityProfile = &virtualmachines.SecurityProfile{}
-		}
-		params.Properties.SecurityProfile.SecurityType = pointer.To(virtualmachines.SecurityTypesConfidentialVM)
-
-		if params.Properties.SecurityProfile.UefiSettings == nil {
-			params.Properties.SecurityProfile.UefiSettings = &virtualmachines.UefiSettings{}
-		}
-		params.Properties.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
-		params.Properties.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
-	} else {
-		if secureBootEnabled {
-			if params.Properties.SecurityProfile == nil {
-				params.Properties.SecurityProfile = &virtualmachines.SecurityProfile{}
-			}
-			if params.Properties.SecurityProfile.UefiSettings == nil {
-				params.Properties.SecurityProfile.UefiSettings = &virtualmachines.UefiSettings{}
-			}
-			params.Properties.SecurityProfile.SecurityType = pointer.To(virtualmachines.SecurityTypesTrustedLaunch)
-			params.Properties.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
-		}
-
-		if vtpmEnabled {
-			if params.Properties.SecurityProfile == nil {
-				params.Properties.SecurityProfile = &virtualmachines.SecurityProfile{}
-			}
-			if params.Properties.SecurityProfile.UefiSettings == nil {
-				params.Properties.SecurityProfile.UefiSettings = &virtualmachines.UefiSettings{}
-			}
-			params.Properties.SecurityProfile.SecurityType = pointer.To(virtualmachines.SecurityTypesTrustedLaunch)
-			params.Properties.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
-		}
-	}
+	params.Properties.SecurityProfile = securityProfile
 
 	if evictionPolicyRaw, ok := d.GetOk("eviction_policy"); ok {
 		if params.Properties.Priority != nil && *params.Properties.Priority != virtualmachines.VirtualMachinePriorityTypesSpot {
@@ -1175,25 +1173,37 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				}
 			}
 
-			encryptionAtHostEnabled := false
-			vtpmEnabled := false
-			secureBootEnabled := false
-			if securityProfile := props.SecurityProfile; securityProfile != nil {
-				if securityProfile.EncryptionAtHost != nil {
-					encryptionAtHostEnabled = *securityProfile.EncryptionAtHost
+			if features.FivePointOh() {
+				if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile)); err != nil {
+					return fmt.Errorf("setting `security_profile`: %+v", err)
 				}
-				if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
-					if uefi.VTpmEnabled != nil {
-						vtpmEnabled = *uefi.VTpmEnabled
+			} else if _, ok := d.GetOk("security_profile"); ok {
+				if err := d.Set("security_profile", flattenVirtualMachineSecurityProfile(props.SecurityProfile)); err != nil {
+					return fmt.Errorf("setting `security_profile`: %+v", err)
+				}
+			} else {
+				encryptionAtHostEnabled := false
+				vtpmEnabled := false
+				secureBootEnabled := false
+
+				if securityProfile := props.SecurityProfile; securityProfile != nil {
+					if securityProfile.EncryptionAtHost != nil {
+						encryptionAtHostEnabled = *securityProfile.EncryptionAtHost
 					}
-					if uefi.SecureBootEnabled != nil {
-						secureBootEnabled = *uefi.SecureBootEnabled
+					if uefi := props.SecurityProfile.UefiSettings; uefi != nil {
+						if uefi.VTpmEnabled != nil {
+							vtpmEnabled = *uefi.VTpmEnabled
+						}
+						if uefi.SecureBootEnabled != nil {
+							secureBootEnabled = *uefi.SecureBootEnabled
+						}
 					}
 				}
+
+				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+				d.Set("vtpm_enabled", vtpmEnabled)
+				d.Set("secure_boot_enabled", secureBootEnabled)
 			}
-			d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
-			d.Set("vtpm_enabled", vtpmEnabled)
-			d.Set("secure_boot_enabled", secureBootEnabled)
 			d.Set("user_data", props.UserData)
 
 			connectionInfo := retrieveConnectionInformation(ctx, networkInterfacesClient, publicIPAddressesClient, props)
@@ -1664,8 +1674,35 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		update.Properties.AdditionalCapabilities = expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 	}
 
-	if d.HasChange("encryption_at_host_enabled") {
-		if d.Get("encryption_at_host_enabled").(bool) {
+	hostEncryptionOld, hostEncryptionNew := func() (bool, bool) {
+		// Maintain consistent ForceNew behaviour by evaluating both the legacy scalar
+		// and the structured security_profile block regardless of which interface callers used.
+		var scalarOld interface{}
+		var scalarNew interface{}
+		if !features.FivePointOh() {
+			scalarOld, scalarNew = d.GetChange("encryption_at_host_enabled")
+		}
+
+		blockOld, blockNew := d.GetChange("security_profile")
+
+		resolve := func(block interface{}, scalar interface{}) bool {
+			if blockSlice, ok := block.([]interface{}); ok {
+				if values := securityprofile.FromBlock(blockSlice); values != nil && values.HostEncryption != nil {
+					return *values.HostEncryption
+				}
+			}
+
+			if scalarBool, ok := scalar.(bool); ok {
+				return scalarBool
+			}
+
+			return false
+		}
+
+		return resolve(blockOld, scalarOld), resolve(blockNew, scalarNew)
+	}()
+	if hostEncryptionOld != hostEncryptionNew {
+		if hostEncryptionNew {
 			osDiskRaw := d.Get("os_disk").([]interface{})
 			securityEncryptionType := osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
 			if virtualmachines.SecurityEncryptionTypesDiskWithVMGuestState == virtualmachines.SecurityEncryptionTypes(securityEncryptionType) {
@@ -1675,10 +1712,10 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 		shouldUpdate = true
 		shouldDeallocate = true // API returns the following error if not deallocate: 'securityProfile.encryptionAtHost' can be updated only when VM is in deallocated state
-		if update.Properties.SecurityProfile == nil {
-			update.Properties.SecurityProfile = &virtualmachines.SecurityProfile{}
+
+		update.Properties.SecurityProfile = &virtualmachines.SecurityProfile{
+			EncryptionAtHost: pointer.To(hostEncryptionNew),
 		}
-		update.Properties.SecurityProfile.EncryptionAtHost = pointer.To(d.Get("encryption_at_host_enabled").(bool))
 	}
 
 	if d.HasChange("license_type") {
