@@ -58,8 +58,10 @@ type BackupPolicyPostgreSQLFlexibleServerCriteria struct {
 
 type DataProtectionBackupPolicyPostgreSQLFlexibleServerResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
-var _ sdk.ResourceWithIdentity = DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+)
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Identity() resourceids.ResourceId {
 	return &backuppolicies.BackupPolicyId{}

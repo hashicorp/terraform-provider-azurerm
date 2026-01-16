@@ -47,8 +47,10 @@ type BackupDatasourceParameters struct {
 
 type DataProtectionBackupInstanceKubernatesClusterResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupInstanceKubernatesClusterResource{}
-var _ sdk.ResourceWithIdentity = DataProtectionBackupInstanceKubernatesClusterResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupInstanceKubernatesClusterResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupInstanceKubernatesClusterResource{}
+)
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Identity() resourceids.ResourceId {
 	return &backupinstances.BackupInstanceId{}

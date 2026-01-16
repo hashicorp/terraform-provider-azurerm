@@ -59,8 +59,10 @@ type Criteria struct {
 
 type DataProtectionBackupPolicyKubernatesClusterResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupPolicyKubernatesClusterResource{}
-var _ sdk.ResourceWithIdentity = DataProtectionBackupPolicyKubernatesClusterResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupPolicyKubernatesClusterResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyKubernatesClusterResource{}
+)
 
 func (r DataProtectionBackupPolicyKubernatesClusterResource) Identity() resourceids.ResourceId {
 	return &backuppolicies.BackupPolicyId{}

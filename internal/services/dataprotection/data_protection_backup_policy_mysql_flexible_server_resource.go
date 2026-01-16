@@ -58,8 +58,10 @@ type BackupPolicyMySQLFlexibleServerCriteria struct {
 
 type DataProtectionBackupPolicyMySQLFlexibleServerResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupPolicyMySQLFlexibleServerResource{}
-var _ sdk.ResourceWithIdentity = DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+)
 
 func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Identity() resourceids.ResourceId {
 	return &backuppolicies.BackupPolicyId{}

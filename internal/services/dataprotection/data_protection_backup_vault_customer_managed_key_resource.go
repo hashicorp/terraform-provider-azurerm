@@ -28,8 +28,10 @@ type DataProtectionBackupVaultCustomerManagedKeyModel struct {
 	KeyVaultKeyID               string `tfschema:"key_vault_key_id"`
 }
 
-var _ sdk.ResourceWithUpdate = DataProtectionBackupVaultCustomerManagedKeyResource{}
-var _ sdk.ResourceWithIdentity = DataProtectionBackupVaultCustomerManagedKeyResource{}
+var (
+	_ sdk.ResourceWithUpdate   = DataProtectionBackupVaultCustomerManagedKeyResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupVaultCustomerManagedKeyResource{}
+)
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) Identity() resourceids.ResourceId {
 	return &backupvaults.BackupVaultId{}

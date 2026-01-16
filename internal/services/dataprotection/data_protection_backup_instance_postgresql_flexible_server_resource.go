@@ -34,8 +34,10 @@ type BackupInstancePostgreSQLFlexibleServerModel struct {
 
 type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
-var _ sdk.ResourceWithIdentity = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+)
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Identity() resourceids.ResourceId {
 	return &backupinstances.BackupInstanceId{}
