@@ -69,6 +69,24 @@ func TestAccEventGridSystemTopicEventSubscription_eventHubID(t *testing.T) {
 	})
 }
 
+func TestAccEventGridSystemTopicEventSubscription_azureActionGroupMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureActionGroupMonitor(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.severity").HasValue("Sev4"),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.description").HasValue("Keyvault activity"),
+				check.That(data.ResourceName).Key("azure_alert_monitor.0.action_groups.0").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventGridSystemTopicEventSubscription_azureFunction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}
@@ -839,6 +857,78 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   event_delivery_schema = "CloudEventSchemaV1_0"
 
   eventhub_endpoint_id = azurerm_eventhub.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) azureActionGroupMonitor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy    = true
+      recover_soft_deleted_key_vaults = true
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_key_vault.test.id
+  topic_type          = "Microsoft.KeyVault.Vaults"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestAG-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestAG"
+
+  email_receiver {
+    name          = "sendtoadmin"
+    email_address = "admin@contoso.com"
+  }
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                  = "acctest-eg-%[1]d"
+  resource_group_name   = azurerm_resource_group.test.name
+  system_topic          = azurerm_eventgrid_system_topic.test.name
+  event_delivery_schema = "CloudEventSchemaV1_0"
+
+  azure_alert_monitor {
+    action_groups = [azurerm_monitor_action_group.test.id]
+    description   = "Keyvault activity"
+    severity      = "Sev4"
+  }
+
+  depends_on = [
+    azurerm_monitor_action_group.test,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
