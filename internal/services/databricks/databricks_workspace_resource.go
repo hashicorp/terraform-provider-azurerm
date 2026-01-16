@@ -740,7 +740,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		accessConnectorIdRaw := d.Get("access_connector_id").(string)
 
 		if accessConnectorIdRaw != "" && computeMode == workspaces.ComputeModeServerless {
-			return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
+			// return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
 		}
 
 		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
@@ -1083,7 +1083,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 			accessConnectorIdRaw := d.Get("access_connector_id").(string)
 
 			if accessConnectorIdRaw != "" && computeMode == workspaces.ComputeModeServerless {
-				return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
+				// return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
 			}
 
 			accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
