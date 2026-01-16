@@ -36,8 +36,8 @@ func TestAccCapacityReservation_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_capacity_reservation.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("capacity_reservation_group_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

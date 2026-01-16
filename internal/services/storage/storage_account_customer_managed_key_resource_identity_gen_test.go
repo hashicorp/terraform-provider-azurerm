@@ -35,8 +35,8 @@ func TestAccStorageAccountCustomerManagedKey_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_customer_managed_key.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_account_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

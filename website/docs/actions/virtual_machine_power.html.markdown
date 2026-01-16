@@ -8,8 +8,6 @@ description: |-
 
 # Action: azurerm_virtual_machine_power
 
-~> **Note:** `azurerm_virtual_machine_power` is in beta. Its interface and behaviour may change as the feature evolves, and breaking changes are possible. It is offered as a technical preview without compatibility guarantees until Terraform 1.14 is generally available.
-
 Changes the Power state of a Virtual Machine to the specified value, or restarts the Virtual Machine.
 
 ## Example Usage
