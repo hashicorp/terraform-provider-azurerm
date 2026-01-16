@@ -38,8 +38,8 @@ func TestAccEmailCommunicationServiceDomainSenderUsername_resourceIdentity(t *te
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_email_communication_service_domain_sender_username.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("email_service_domain_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }
