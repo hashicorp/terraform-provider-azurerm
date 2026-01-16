@@ -873,19 +873,11 @@ resource "azurerm_private_link_service" "test" {
     primary                    = false
   }
 
-  nat_ip_configuration {
-    name                       = "ternaryIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.1.42"
-    private_ip_address_version = "IPv4"
-    primary                    = false
-  }
-
   tags = {
     env = "test"
   }
 }
-`, data.RandomInteger, "UK South", data.RandomInteger, data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, "UK South", data.RandomInteger, data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
