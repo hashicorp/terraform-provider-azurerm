@@ -59,6 +59,20 @@ func TestAdbsRegularResource_complete(t *testing.T) {
 	})
 }
 
+func TestAdbsRegularResource_completeOwnLicense(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
+	r := AdbsRegularResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeOwnLicense(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAdbsRegularResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseRegularResource{}.ResourceType(), "test")
 	r := AdbsRegularResource{}
@@ -200,7 +214,7 @@ resource "azurerm_oracle_autonomous_database" "test" {
   location                         = "%[3]s"
   compute_model                    = "ECPU"
   compute_count                    = 2
-  license_model                    = "BringYourOwnLicense"
+  license_model                    = "LicenseIncluded"
   backup_retention_period_in_days  = 12
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = false
@@ -221,6 +235,42 @@ resource "azurerm_oracle_autonomous_database" "test" {
     retention_period_in_days = 200
     enabled                  = true
   }
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a AdbsRegularResource) completeOwnLicense(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_oracle_autonomous_database" "test" {
+  name                             = "OFake%[2]d"
+  display_name                     = "OFake%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "BringYourOwnLicense"
+  database_edition                 = "EnterpriseEdition"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = false
+  data_storage_size_in_tbs         = 1
+  db_workload                      = "OLTP"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  national_character_set           = "AL16UTF16"
+  customer_contacts                = ["test@test.com"]
+  subnet_id                        = azurerm_subnet.test.id
+  virtual_network_id               = azurerm_virtual_network.test.id
+  allowed_ips                      = []
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
