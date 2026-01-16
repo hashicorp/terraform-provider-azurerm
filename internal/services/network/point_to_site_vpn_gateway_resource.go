@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,7 +26,7 @@ import (
 )
 
 func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourcePointToSiteVPNGatewayCreate,
 		Read:   resourcePointToSiteVPNGatewayRead,
 		Update: resourcePointToSiteVPNGatewayUpdate,
@@ -156,7 +155,7 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  false,
 						},
 					},
 				},
@@ -189,12 +188,6 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(pointToSiteVpnGatewayCustomizeDiff),
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["connection_configuration"].Elem.(*pluginsdk.Resource).Schema["internet_security_enabled"].Default = false
-	}
-
-	return resource
 }
 
 func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -473,11 +466,7 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 
 		route := make([]interface{}, 0)
 		addressPrefixes := make([]interface{}, 0)
-		enableInternetSecurity := true
-
-		if !features.FivePointOh() {
-			enableInternetSecurity = false
-		}
+		enableInternetSecurity := false
 
 		if props := v.Properties; props != nil {
 			if props.VpnClientAddressPool == nil {
