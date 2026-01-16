@@ -114,7 +114,7 @@ func runComplete(pass *analysis.Pass) (interface{}, error) {
 func extractCompleteSchemaInfoFromMap(pass *analysis.Pass, smap *ast.CompositeLit, commonSchemaInfo *CommonSchemaInfo) []helper.SchemaFieldInfo {
 	fields := make([]helper.SchemaFieldInfo, 0, len(smap.Elts))
 
-	for i, elt := range smap.Elts {
+	for _, elt := range smap.Elts {
 		kv, ok := elt.(*ast.KeyValueExpr)
 		if !ok {
 			continue
@@ -138,7 +138,8 @@ func extractCompleteSchemaInfoFromMap(pass *analysis.Pass, smap *ast.CompositeLi
 		fields = append(fields, helper.SchemaFieldInfo{
 			Name:       *fieldName,
 			SchemaInfo: resolvedSchema,
-			Position:   i,
+			Pos:        kv.Key.Pos(),
+			Position:   pass.Fset.Position(kv.Key.Pos()),
 		})
 	}
 

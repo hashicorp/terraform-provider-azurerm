@@ -82,11 +82,6 @@ func runTypedResourceInfo(pass *analysis.Pass) (interface{}, error) {
 			return
 		}
 
-		fileName := pass.Fset.Position(genDecl.Pos()).Filename
-		if !strings.HasSuffix(fileName, "_resource.go") {
-			return
-		}
-
 		for _, spec := range genDecl.Specs {
 			valueSpec, ok := spec.(*ast.ValueSpec)
 			if !ok {
@@ -119,10 +114,6 @@ func runTypedResourceInfo(pass *analysis.Pass) (interface{}, error) {
 			seen[resourceTypeName] = true
 
 			for _, file := range pass.Files {
-				if pass.Fset.Position(file.Pos()).Filename != fileName {
-					continue
-				}
-
 				resourceInfo := helper.NewTypedResourceInfo(resourceTypeName, file, pass.TypesInfo)
 				if resourceInfo.ArgumentsFunc == nil {
 					continue
@@ -135,6 +126,10 @@ func runTypedResourceInfo(pass *analysis.Pass) (interface{}, error) {
 				}
 
 				resourceInfo.ArgumentsProperties = completeSchemaInfo.SchemaFields[schemaMap.Pos()]
+
+				if resourceInfo.UpdateFunc != nil {
+					resourceInfo.UpdateFuncBody = helper.GetFuncBody(pass, resourceInfo.UpdateFunc)
+				}
 
 				result = append(result, resourceInfo)
 			}

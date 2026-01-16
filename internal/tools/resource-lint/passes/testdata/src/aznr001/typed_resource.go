@@ -42,14 +42,14 @@ func arguments() map[string]*schema.Schema {
 
 // Test: Typed resource with wrong order
 func argumentsWrong() map[string]*schema.Schema {
-	return map[string]*schema.Schema{ // want `name, resource_group_name, location, sku_name, enabled, tags`
-		"resource_group_name": {
+	return map[string]*schema.Schema{ // want `name, resource_group_name, location, sku_name, not_inline, tags`
+		"name": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
 
-		"name": {
+		"resource_group_name": {
 			Type:     schema.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -65,31 +65,11 @@ func argumentsWrong() map[string]*schema.Schema {
 			Required: true,
 		},
 
-		"enabled": {
-			Type:     schema.TypeBool,
-			Optional: true,
-		},
+		"not_inline": GetPercentageSchema(),
 
 		"sku_name": {
 			Type:     schema.TypeString,
 			Required: true,
-		},
-	}
-}
-
-// Test: Using schema from helper function in same package
-func argumentsWithImportedSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{ // want `name, enabled, not_inline`
-		"name": {
-			Type:     schema.TypeString,
-			Required: true,
-		},
-
-		"not_inline": GetPercentageSchema(),
-
-		"enabled": {
-			Type:     schema.TypeBool,
-			Optional: true,
 		},
 	}
 }

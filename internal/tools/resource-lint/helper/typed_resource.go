@@ -95,7 +95,6 @@ func NewTypedResourceInfo(resourceTypeName string, file *ast.File, info *types.I
 				result.ReadFunc = d
 			case "Update":
 				result.UpdateFunc = d
-				result.UpdateFuncBody = extractFuncFromResourceFunc(d)
 			case "Delete":
 				result.DeleteFunc = d
 			}
@@ -150,34 +149,73 @@ func GetReceiverTypeName(expr ast.Expr) string {
 	return ""
 }
 
-// extractFuncFromResourceFunc extracts the function body from sdk.ResourceFunc{ Func: func(...) {...} }
-func extractFuncFromResourceFunc(resourceFunc *ast.FuncDecl) *ast.BlockStmt {
-	if resourceFunc == nil || resourceFunc.Body == nil {
+// extractFuncBodyFromCompositeLit extracts Func body from sdk.ResourceFunc{Func: func(){...}}
+// Validates that the composite literal is of type sdk.ResourceFunc
+func extractFuncBodyFromCompositeLit(compLit *ast.CompositeLit, typesInfo *types.Info) *ast.BlockStmt {
+	typ := typesInfo.TypeOf(compLit)
+	// Check type name ends with "ResourceFunc" to support both real SDK and test mock
+	if typ != nil {
+		if named, ok := typ.(*types.Named); !ok || !strings.HasSuffix(named.Obj().Name(), "ResourceFunc") {
+			return nil
+		}
+	}
+
+	for _, elt := range compLit.Elts {
+		kv, ok := elt.(*ast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+		if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == "Func" {
+			if funcLit, ok := kv.Value.(*ast.FuncLit); ok {
+				return funcLit.Body
+			}
+		}
+	}
+	return nil
+}
+
+// GetFuncBody extracts the actual function body from sdk.ResourceFunc
+// Handles three cases:
+// 1. Direct: return sdk.ResourceFunc{Func: func(){...}}
+// 2. Base method: return r.base.someFunc()
+// 3. Helper function: return someHelper()
+func GetFuncBody(pass *analysis.Pass, funcDecl *ast.FuncDecl) *ast.BlockStmt {
+	if funcDecl == nil || funcDecl.Body == nil {
 		return nil
 	}
 
 	var funcBody *ast.BlockStmt
-	ast.Inspect(resourceFunc.Body, func(n ast.Node) bool {
+	ast.Inspect(funcDecl.Body, func(n ast.Node) bool {
 		ret, ok := n.(*ast.ReturnStmt)
 		if !ok || len(ret.Results) == 0 {
 			return true
 		}
 
-		// Look for sdk.ResourceFunc{ Func: func(...) { ... } }
-		compLit, ok := ret.Results[0].(*ast.CompositeLit)
-		if !ok {
-			return true
+		// Case 1: Direct sdk.ResourceFunc{Func: func(){...}}
+		if compLit, ok := ret.Results[0].(*ast.CompositeLit); ok {
+			funcBody = extractFuncBodyFromCompositeLit(compLit, pass.TypesInfo)
+			if funcBody != nil {
+				return false
+			}
 		}
 
-		for _, elt := range compLit.Elts {
-			kv, ok := elt.(*ast.KeyValueExpr)
-			if !ok {
-				continue
+		// Case 2 & 3: Function call
+		if callExpr, ok := ret.Results[0].(*ast.CallExpr); ok {
+			// Case 2: r.base.updateFunc() - method call
+			if selExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
+				if methodObj := pass.TypesInfo.Uses[selExpr.Sel]; methodObj != nil {
+					if baseFunc := FindFuncDecl(pass, methodObj); baseFunc != nil {
+						funcBody = GetFuncBody(pass, baseFunc)
+						return false
+					}
+				}
 			}
 
-			if ident, ok := kv.Key.(*ast.Ident); ok && ident.Name == "Func" {
-				if funcLit, ok := kv.Value.(*ast.FuncLit); ok {
-					funcBody = funcLit.Body
+			// Case 3: someHelper() - standalone function call
+			if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+				funcObj := pass.TypesInfo.Uses[ident]
+				if helperDecl := FindFuncDecl(pass, funcObj); helperDecl != nil {
+					funcBody = GetFuncBody(pass, helperDecl)
 					return false
 				}
 			}
@@ -211,6 +249,33 @@ func GetSchemaMapReturnedFromFunc(pass *analysis.Pass, funcDecl *ast.FuncDecl) *
 			if compLit := TraceIdentToCompositeLit(pass.TypesInfo, ident, funcDecl); compLit != nil {
 				if IsSchemaMap(compLit, pass.TypesInfo) {
 					schemaMap = compLit
+					return false
+				}
+			}
+		}
+
+		// Case 3: Return from function call
+		if callExpr, ok := ret.Results[0].(*ast.CallExpr); ok {
+			// Case 3a: r.base.arguments(schema) - method call with merge
+			if selExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
+				if methodObj := pass.TypesInfo.Uses[selExpr.Sel]; methodObj != nil {
+					if baseFunc := FindFuncDecl(pass, methodObj); baseFunc != nil {
+						baseSchemaMap := GetSchemaMapReturnedFromFunc(pass, baseFunc)
+						if baseSchemaMap != nil && len(callExpr.Args) > 0 {
+							if childMap := extractSchemaFromArg(pass, callExpr.Args[0], funcDecl); childMap != nil {
+								schemaMap = mergeSchemaMaps(baseSchemaMap, childMap)
+								return false
+							}
+						}
+					}
+				}
+			}
+
+			// Case 3b: getDeploymentScriptArguments() - standalone helper function
+			if ident, ok := callExpr.Fun.(*ast.Ident); ok {
+				funcObj := pass.TypesInfo.Uses[ident]
+				if funcDecl := FindFuncDecl(pass, funcObj); funcDecl != nil {
+					schemaMap = GetSchemaMapReturnedFromFunc(pass, funcDecl)
 					return false
 				}
 			}
@@ -279,4 +344,89 @@ func IsNamedSDKResource(t *types.Named, name string) bool {
 
 	return obj.Pkg().Path() == PackagePathSDK &&
 		strings.HasPrefix(obj.Name(), name)
+}
+
+// extractSchemaFromArg extracts the schema map from a function argument
+func extractSchemaFromArg(pass *analysis.Pass, arg ast.Expr, funcDecl *ast.FuncDecl) *ast.CompositeLit {
+	switch v := arg.(type) {
+	case *ast.CompositeLit:
+		if IsSchemaMap(v, pass.TypesInfo) {
+			return v
+		}
+	case *ast.Ident:
+		if compLit := TraceIdentToCompositeLit(pass.TypesInfo, v, funcDecl); compLit != nil {
+			if IsSchemaMap(compLit, pass.TypesInfo) {
+				return compLit
+			}
+		}
+	}
+	return nil
+}
+
+// mergeSchemaMaps merges base schema map with child schema map (child overrides base)
+func mergeSchemaMaps(baseMap, childMap *ast.CompositeLit) *ast.CompositeLit {
+	if baseMap == nil {
+		return childMap
+	}
+	if childMap == nil {
+		return baseMap
+	}
+
+	// Build child field names set
+	childFields := make(map[string]bool)
+	for _, elt := range childMap.Elts {
+		if kv, ok := elt.(*ast.KeyValueExpr); ok {
+			if key, ok := kv.Key.(*ast.BasicLit); ok {
+				childFields[strings.Trim(key.Value, `"`)] = true
+			}
+		}
+	}
+
+	// Merge: base fields (not overridden) + all child fields
+	merged := &ast.CompositeLit{
+		Type:   baseMap.Type,
+		Lbrace: baseMap.Lbrace,
+		Rbrace: childMap.Rbrace,
+	}
+
+	for _, elt := range baseMap.Elts {
+		if kv, ok := elt.(*ast.KeyValueExpr); ok {
+			if key, ok := kv.Key.(*ast.BasicLit); ok {
+				if !childFields[strings.Trim(key.Value, `"`)] {
+					merged.Elts = append(merged.Elts, elt)
+				}
+			}
+		}
+	}
+	merged.Elts = append(merged.Elts, childMap.Elts...)
+
+	return merged
+}
+
+// IsModelType checks if expression has the model type (handles: model, &model, *model, type aliases)
+func IsModelType(expr ast.Expr, modelTypeName string, typesInfo *types.Info) bool {
+	// Unwrap &model or *model at AST level
+	if unary, ok := expr.(*ast.UnaryExpr); ok && (unary.Op == token.AND || unary.Op == token.MUL) {
+		expr = unary.X
+	}
+	typ := typesInfo.TypeOf(expr)
+	if typ == nil {
+		return false
+	}
+	return isModelTypeRecursive(typ, modelTypeName)
+}
+
+// isModelTypeRecursive checks type recursively
+func isModelTypeRecursive(t types.Type, modelTypeName string) bool {
+	switch t := t.(type) {
+	case *types.Alias:
+		return isModelTypeRecursive(types.Unalias(t), modelTypeName)
+	case *types.Pointer:
+		return isModelTypeRecursive(t.Elem(), modelTypeName)
+	case *types.Named:
+		if obj := t.Obj(); obj != nil {
+			return obj.Name() == modelTypeName
+		}
+	}
+	return false
 }

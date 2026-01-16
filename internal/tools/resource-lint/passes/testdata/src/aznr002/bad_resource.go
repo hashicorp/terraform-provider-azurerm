@@ -44,8 +44,8 @@ func (r BadResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
-		"description": descriptionSchema(),
-		"enabled": {
+		"description": descriptionSchema(), // want `AZNR002`
+		"enabled": { // want `AZNR002`
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -69,7 +69,7 @@ func (r BadResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{}
 }
 
-func (r BadResource) Update() sdk.ResourceFunc { // want "AZNR002: resource has updatable properties not handled in Update function: `description, enabled`. If they are non-updatable, mark them as ForceNew: true in Arguments\\(\\) schema"
+func (r BadResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var config BadResourceModel

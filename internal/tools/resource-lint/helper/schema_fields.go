@@ -25,28 +25,29 @@ const (
 type SchemaFieldInfo struct {
 	Name       string
 	SchemaInfo *schema.SchemaInfo
-	Position   int
+	Pos        token.Pos      // AST position of the schema field key (for current package)
+	Position   token.Position // Resolved position (for cross-package resolution)
 }
 
 // IsSchemaMap checks if a composite literal is a map[string]*schema.Schema or map[string]*pluginsdk.Schema
 func IsSchemaMap(cl *ast.CompositeLit, info *types.Info) bool {
-    // Check if it's a map literal
-    mapType, ok := cl.Type.(*ast.MapType)
-    if !ok {
-        return false
-    }
+	// Check if it's a map literal
+	mapType, ok := cl.Type.(*ast.MapType)
+	if !ok {
+		return false
+	}
 
-    // Check if key is string
-    switch k := mapType.Key.(type) {
-    case *ast.Ident:
-        if k.Name != "string" {
-            return false
-        }
-    default:
-        return false
-    }
+	// Check if key is string
+	switch k := mapType.Key.(type) {
+	case *ast.Ident:
+		if k.Name != "string" {
+			return false
+		}
+	default:
+		return false
+	}
 
-    return isTypeSchema(info.TypeOf(mapType.Value))
+	return isTypeSchema(info.TypeOf(mapType.Value))
 }
 
 // IsSchemaSchema checks if a composite literal is of type schema.Schema or pluginsdk.Schema
@@ -160,11 +161,11 @@ func GetResourceSchemaFromElem(elemKV *ast.KeyValueExpr) *ast.CompositeLit {
 // GetNestedSchemaMap extracts the Schema field value from a &schema.Resource{...} composite literal
 // Returns nil if the Schema field is not found or is not a composite literal
 func GetNestedSchemaMap(resourceSchema *ast.CompositeLit) *ast.CompositeLit {
-    fields := astutils.CompositeLitFields(resourceSchema)
-    if kvExpr := fields[schema.ResourceFieldSchema]; kvExpr != nil {
-        if compLit, ok := kvExpr.Value.(*ast.CompositeLit); ok {
-            return compLit
-        }
-    }
-    return nil
+	fields := astutils.CompositeLitFields(resourceSchema)
+	if kvExpr := fields[schema.ResourceFieldSchema]; kvExpr != nil {
+		if compLit, ok := kvExpr.Value.(*ast.CompositeLit); ok {
+			return compLit
+		}
+	}
+	return nil
 }

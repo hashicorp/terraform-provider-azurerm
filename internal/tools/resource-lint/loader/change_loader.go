@@ -21,29 +21,11 @@ var (
 	// globalChangeSet holds the current loaded ChangeSet
 	// Set once by LoadChanges() before analyzers run, then only read by analyzers
 	globalChangeSet *ChangeSet
+
+	// worktreeCleanup holds the cleanup function for PR worktree
+	worktreeCleanup func() error
+	originalDir     string
 )
-
-// FindGitRoot searches upward from the current directory to find the git repository root
-func FindGitRoot() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	// Try current directory and parent directories
-	for {
-		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
-			return dir, nil
-		}
-
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			// Reached root directory
-			return "", fmt.Errorf("not in a git repository")
-		}
-		dir = parent
-	}
-}
 
 // ChangeSet represents a set of changes loaded from a source
 type ChangeSet struct {
@@ -69,6 +51,7 @@ type ChangeLoader interface {
 // LoaderOptions holds configuration for change loading
 type LoaderOptions struct {
 	NoFilter   bool
+	PRNumber   int
 	RemoteName string
 	BaseBranch string
 	DiffFile   string
@@ -89,21 +72,17 @@ func LoadChanges(opts LoaderOptions) (*ChangeSet, error) {
 	case opts.DiffFile != "":
 		log.Printf("Using diff file: %s", opts.DiffFile)
 		loader = &DiffFileLoader{filePath: opts.DiffFile}
+	case opts.PRNumber > 0:
+		loader = selectGitLoader(opts)
 	default:
-		// Try to open git repository from current directory or parent
-		gitRoot, err := FindGitRoot()
-		if err != nil {
-			return nil, fmt.Errorf("not in a git repository. Please run from repository root, use --diff to provide a diff file, or use --no-filter to analyze all files")
-		}
-
-		if _, err := git.PlainOpen(gitRoot); err == nil {
+		if _, err := git.PlainOpen("."); err == nil {
 			log.Println("Using local git diff mode")
 			loader = &LocalGitLoader{
 				remoteName: opts.RemoteName,
 				baseBranch: opts.BaseBranch,
 			}
 		} else {
-			return nil, fmt.Errorf("failed to open git repository: %w", err)
+			return nil, fmt.Errorf("not in a git repository. Please run from a git repository, use --diff to provide a diff file, or use --no-filter to analyze all files")
 		}
 	}
 
@@ -124,6 +103,43 @@ func LoadChanges(opts LoaderOptions) (*ChangeSet, error) {
 	globalChangeSet = cs
 
 	return cs, nil
+}
+
+// selectGitLoader selects the appropriate git-based loader
+func selectGitLoader(opts LoaderOptions) ChangeLoader {
+	if opts.PRNumber > 0 {
+		setupPRWorktree(opts.PRNumber, opts.RemoteName, opts.BaseBranch)
+
+		log.Printf("Using GitHub API for PR #%d changed lines", opts.PRNumber)
+		return &GitHubLoader{prNumber: opts.PRNumber}
+	}
+
+	return &LocalGitLoader{
+		remoteName: opts.RemoteName,
+		baseBranch: opts.BaseBranch,
+	}
+}
+
+func setupPRWorktree(prNum int, remoteName, baseBranch string) {
+	worktreeLoader := NewWorktreeLoader(prNum, remoteName, baseBranch)
+
+	// Setup worktree
+	worktreePath, err := worktreeLoader.Setup()
+	if err != nil {
+		log.Fatalf("Failed to setup worktree: %v", err)
+	}
+
+	worktreeCleanup = worktreeLoader.Cleanup
+
+	// Save current directory and switch to worktree
+	originalDir, err = os.Getwd()
+	if err != nil {
+		log.Fatalf("Failed to get current directory: %v", err)
+	}
+
+	if err := os.Chdir(worktreePath); err != nil {
+		log.Fatalf("Failed to change to worktree directory: %v", err)
+	}
 }
 
 // ShouldReport checks if a specific line in a file should be reported
@@ -174,16 +190,29 @@ func GetChangedPackages() []string {
 	return globalChangeSet.getChangedPackages()
 }
 
+// CleanupWorktree cleans up the PR worktree and restores original directory
+func CleanupWorktree() {
+	if originalDir != "" {
+		if err := os.Chdir(originalDir); err != nil {
+			log.Printf("Warning: failed to return to original directory: %v", err)
+		}
+	}
+	if worktreeCleanup != nil {
+		if err := worktreeCleanup(); err != nil {
+			log.Printf("Warning: failed to cleanup worktree: %v", err)
+		}
+	}
+}
+
 // ShouldReport checks if a specific line in a file should be reported
 func (cs *ChangeSet) ShouldReport(filename string, line int) bool {
 	if len(cs.changedLines) == 0 {
-		return true
+		return false
 	}
 
 	relPath := normalizeFilePath(filename)
-
 	if !isServiceFile(relPath) {
-		return true
+		return false
 	}
 
 	if lineMap, exists := cs.changedLines[relPath]; exists {
@@ -196,12 +225,12 @@ func (cs *ChangeSet) ShouldReport(filename string, line int) bool {
 // IsFileChanged checks if a file has any changes
 func (cs *ChangeSet) IsFileChanged(filename string) bool {
 	if len(cs.changedFiles) == 0 {
-		return true
+		return false
 	}
 
 	relPath := normalizeFilePath(filename)
 	if !isServiceFile(relPath) {
-		return true
+		return false
 	}
 
 	return cs.changedFiles[relPath]
@@ -210,12 +239,12 @@ func (cs *ChangeSet) IsFileChanged(filename string) bool {
 // IsNewFile checks if a file is newly added
 func (cs *ChangeSet) IsNewFile(filename string) bool {
 	if len(cs.newFiles) == 0 {
-		return true
+		return false
 	}
 
 	relPath := normalizeFilePath(filename)
 	if !isServiceFile(relPath) {
-		return true
+		return false
 	}
 
 	return cs.newFiles[relPath]

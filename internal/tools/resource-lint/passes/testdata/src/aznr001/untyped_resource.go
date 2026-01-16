@@ -8,7 +8,7 @@ import (
 
 func resourceInValid() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Schema: map[string]*schema.Schema{ // want `name, resource_group_name, location, account_replication_type, account_tier, enable_https, tags, primary_key`
+		Schema: map[string]*schema.Schema{ // want `resource_group_name, name, location, account_replication_type, account_tier, enable_https, primary_key, tags`
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -91,14 +91,14 @@ func resourceValid() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
-			},
-
 			"primary_key": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
 			},
 		},
 	}

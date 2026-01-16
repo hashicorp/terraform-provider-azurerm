@@ -7,8 +7,8 @@ import (
 	"go/types"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"

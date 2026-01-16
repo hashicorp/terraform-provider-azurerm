@@ -7,7 +7,7 @@ import (
 // Test: Proper categorization - Required, Optional, Computed
 func resourceFieldCategories() *schema.Resource {
 	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
+		Schema: map[string]*schema.Schema{// want `name, resource_group_name, location, account_tier, sku, enable_https, created_time, primary_key, tags`
 			// ID fields first
 			"name": {
 				Type:     schema.TypeString,
@@ -19,6 +19,11 @@ func resourceFieldCategories() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"enable_https": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			// Location
@@ -40,15 +45,6 @@ func resourceFieldCategories() *schema.Resource {
 			},
 
 			// Optional fields (alphabetical)
-			"enable_https": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"tags": {
-				Type:     schema.TypeMap,
-				Optional: true,
-			},
 
 			// Computed fields (alphabetical)
 			"created_time": {
@@ -60,6 +56,11 @@ func resourceFieldCategories() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": {
+				Type:     schema.TypeMap,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -67,7 +68,7 @@ func resourceFieldCategories() *schema.Resource {
 // Test: Wrong category order
 func resourceWrongCategoryOrder() *schema.Resource {
 	return &schema.Resource{
-		Schema: map[string]*schema.Schema{ // want `name, resource_group_name, location, account_tier, sku, enable_https, tags, created_time, primary_key`
+		Schema: map[string]*schema.Schema{ // want `name, resource_group_name, location, account_tier, sku, enable_https, created_time, primary_key, tags`
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,

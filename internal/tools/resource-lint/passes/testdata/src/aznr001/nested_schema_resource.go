@@ -73,7 +73,7 @@ func resourceWithBadNestedSchema() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{ // want `enabled, name, value`
+					Schema: map[string]*schema.Schema{
 						"value": {
 							Type:     schema.TypeString,
 							Optional: true,

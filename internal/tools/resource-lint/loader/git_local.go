@@ -20,13 +20,7 @@ type LocalGitLoader struct {
 func (l *LocalGitLoader) Load() (*ChangeSet, error) {
 	cs := NewChangeSet()
 
-	// Find git repository root
-	gitRoot, err := FindGitRoot()
-	if err != nil {
-		return nil, fmt.Errorf("failed to find git repository: %w", err)
-	}
-
-	repo, err := git.PlainOpen(gitRoot)
+	repo, err := git.PlainOpen(".")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open repository: %w", err)
 	}
@@ -36,7 +30,7 @@ func (l *LocalGitLoader) Load() (*ChangeSet, error) {
 		return nil, fmt.Errorf("failed to resolve target: %w", err)
 	}
 
-	if err := processDiffWithWorktree(cs, targetCommit, gitRoot); err != nil {
+	if err := processDiffWithWorktree(cs, targetCommit); err != nil {
 		return nil, fmt.Errorf("failed to parse diff: %w", err)
 	}
 
@@ -47,9 +41,8 @@ func (l *LocalGitLoader) Load() (*ChangeSet, error) {
 }
 
 // processDiffWithWorktree compares a commit with the current worktree using git diff
-func processDiffWithWorktree(cs *ChangeSet, baseCommit *object.Commit, gitRoot string) error {
+func processDiffWithWorktree(cs *ChangeSet, baseCommit *object.Commit) error {
 	cmd := exec.Command("git", "diff", baseCommit.Hash.String())
-	cmd.Dir = gitRoot // Set working directory to git root
 	output, err := cmd.Output()
 	if err != nil {
 		return fmt.Errorf("failed to run git diff: %w", err)

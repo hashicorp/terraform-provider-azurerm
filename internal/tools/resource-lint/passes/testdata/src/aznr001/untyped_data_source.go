@@ -41,7 +41,7 @@ func unTypedDataSourceValid() *pluginsdk.Resource {
 // Test: Data source with wrong order
 func unTypedDataSourceInvalid() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Schema: map[string]*schema.Schema{ // want `name, resource_group_name, account_tier, location, tags`
+		Schema: map[string]*schema.Schema{ // want `resource_group_name, name, location, account_tier, tags`
 			"resource_group_name": {
 				Type:     schema.TypeString,
 				Required: true,
