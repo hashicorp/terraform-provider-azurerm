@@ -36,8 +36,8 @@ func TestAccDataProtectionBackupPolicyKubernetesCluster_resourceIdentity(t *test
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_protection_backup_policy_kubernetes_cluster.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

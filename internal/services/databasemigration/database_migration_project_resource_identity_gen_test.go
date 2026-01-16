@@ -36,8 +36,8 @@ func TestAccDatabaseMigrationProject_resourceIdentity(t *testing.T) {
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_database_migration_project.test", tfjsonpath.New("service_name"), tfjsonpath.New("service_name")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

@@ -37,8 +37,8 @@ func TestAccDataProtectionBackupInstanceDisk_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_instance_disk.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("vault_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

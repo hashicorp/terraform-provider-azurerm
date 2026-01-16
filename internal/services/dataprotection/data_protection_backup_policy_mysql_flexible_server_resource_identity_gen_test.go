@@ -37,8 +37,8 @@ func TestAccDataProtectionBackupPolicyMysqlFlexibleServer_resourceIdentity(t *te
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_policy_mysql_flexible_server.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("vault_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

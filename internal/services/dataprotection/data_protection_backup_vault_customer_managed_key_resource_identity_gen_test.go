@@ -36,8 +36,8 @@ func TestAccDataProtectionBackupVaultCustomerManagedKey_resourceIdentity(t *test
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_protection_backup_vault_customer_managed_key.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("data_protection_backup_vault_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

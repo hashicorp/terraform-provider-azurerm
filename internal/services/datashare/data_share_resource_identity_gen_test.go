@@ -37,8 +37,8 @@ func TestAccDataShare_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("account_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

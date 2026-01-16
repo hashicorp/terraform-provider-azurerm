@@ -37,8 +37,8 @@ func TestAccDatabricksVirtualNetworkPeering_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_virtual_network_peering.test", tfjsonpath.New("workspace_name"), tfjsonpath.New("workspace_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

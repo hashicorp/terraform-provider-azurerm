@@ -36,8 +36,8 @@ func TestAccDatabricksWorkspaceRootDbfsCustomerManagedKey_resourceIdentity(t *te
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_databricks_workspace_root_dbfs_customer_managed_key.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("workspace_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

@@ -37,8 +37,8 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_resourceIdentity(t *testing.T
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("grafana_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

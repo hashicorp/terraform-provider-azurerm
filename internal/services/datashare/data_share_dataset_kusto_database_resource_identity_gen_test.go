@@ -38,8 +38,8 @@ func TestAccDataShareDatasetKustoDatabase_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("share_name"), tfjsonpath.New("share_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }
