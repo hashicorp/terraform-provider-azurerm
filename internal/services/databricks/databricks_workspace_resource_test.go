@@ -341,13 +341,6 @@ func TestAccDatabricksWorkspace_managedDiskCMKRotation(t *testing.T) {
 			),
 		},
 		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
-		{
-			Config: r.managedDiskCMKRotationDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("custom_parameters.0.public_subnet_network_security_group_association_id", "custom_parameters.0.private_subnet_network_security_group_association_id"),
 	})
 }
 

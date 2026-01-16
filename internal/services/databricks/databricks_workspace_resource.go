@@ -1237,16 +1237,14 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 				KeyVaultUri: key.KeyVaultBaseUrl,
 			},
 		}
+	}
 
-		if rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool); rotationEnabled {
-			encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = pointer.To(rotationEnabled)
-		}
+	if rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool); rotationEnabled {
+		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = pointer.To(rotationEnabled)
 	}
 
 	if setEncrypt {
 		props.Encryption = encrypt
-	} else {
-		props.Encryption = nil
 	}
 
 	enhancedSecurityCompliance := d.Get("enhanced_security_compliance")
@@ -1257,38 +1255,21 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	// The order matters, especially when the user both update the tags and enables the `managed_disk_cmk_rotation_to_latest_version_enabled` together.
 	// Enabling `managed_disk_cmk_rotation_to_latest_version_enabled` will cause updating the `tags` (via PATCH) on the managed resources requires additional
 	// data plane roles on the `managed_disk_identity.0.principal_id`, which is only available after enabling `managed_disk_cmk_rotation_to_latest_version_enabled`.
-	if d.HasChange("managed_disk_cmk_rotation_to_latest_version_enabled") && d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool) {
-		// When this change enables the `managed_disk_cmk_rotation_to_latest_version_enabled`, do the patch first.
-		if d.HasChange("tags") {
-			workspaceUpdate := workspaces.WorkspaceUpdate{
-				Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-			}
+	//
+	// For this reason, patch the `tags` first (before enabling the `managed_disk_cmk_rotation_to_latest_version_enabled`), then update the workspace as a whole via
+	// the PUT.
+	if d.HasChange("tags") {
+		workspaceUpdate := workspaces.WorkspaceUpdate{
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
 
-			err := client.UpdateThenPoll(ctx, *id, workspaceUpdate)
-			if err != nil {
-				return fmt.Errorf("updating %s Tags: %+v", id, err)
-			}
+		err := client.UpdateThenPoll(ctx, *id, workspaceUpdate)
+		if err != nil {
+			return fmt.Errorf("updating %s Tags: %+v", id, err)
 		}
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-	} else {
-		// On the other hand, if there is no change on `managed_disk_cmk_rotation_to_latest_version_enabled` or disabling it, a normal module will most likely also
-		// has the role assigned on the `managed_disk_identity.0.principal_id` revoked during the execution (i.e. the revert order of the creation dependency).
-		// In this case, we need to PUT the workspace first to disable disk encryption auto rotation first, then patch the tags (so there is no access to the key vault).
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
-		}
-		if d.HasChange("tags") {
-			workspaceUpdate := workspaces.WorkspaceUpdate{
-				Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-			}
-
-			err := client.UpdateThenPoll(ctx, *id, workspaceUpdate)
-			if err != nil {
-				return fmt.Errorf("updating %s Tags: %+v", id, err)
-			}
-		}
+	}
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceDatabricksWorkspaceRead(d, meta)
