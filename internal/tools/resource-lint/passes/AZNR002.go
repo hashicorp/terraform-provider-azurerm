@@ -1,10 +1,12 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package passes
 
 import (
 	"go/ast"
 	"go/token"
 	"go/types"
-	"log"
 	"sort"
 	"strings"
 
@@ -97,10 +99,8 @@ func runAZNR002(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		// Filter: must have extracted ArgumentsProperties
+		// Skip resource - failed to extract schema properties
 		if len(resource.ArgumentsProperties) == 0 {
-			pos := pass.Fset.Position(resource.ArgumentsFunc.Pos())
-			log.Printf("%s:%d: %s: Skipping resource %q - failed to extract schema properties",
-				pos.Filename, pos.Line, aznr002Name, resource.ResourceTypeName)
 			continue
 		}
 
@@ -286,12 +286,7 @@ func reportMissingProperties(pass *analysis.Pass, ignorer *commentignore.Ignorer
 		}
 	}
 
-	if len(missingProps) == 0 || len(handledProps) == 0 {
-		if len(handledProps) == 0 && len(updatableProps) != 0 {
-			pos := pass.Fset.Position(resource.UpdateFunc.Pos())
-			log.Printf("%s:%d: %s: Skipping resource %q - update likely delegated to helper function",
-				pos.Filename, pos.Line, aznr002Name, resource.ResourceTypeName)
-		}
+	if len(missingProps) == 0 || len(handledProps) == 0 { // Skipping resource - update likely delegated to helper function
 		return
 	}
 

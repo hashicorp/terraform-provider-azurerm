@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 // Package passes provides analysis passes for the azurerm-linter.
 //
 // This package contains multiple analyzers that enforce coding standards and best practices

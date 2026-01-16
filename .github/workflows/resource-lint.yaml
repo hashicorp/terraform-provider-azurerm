@@ -1,0 +1,40 @@
+---
+name: Resource Linting
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    types: ["opened", "synchronize"]
+    paths:
+      - ".github/workflows/resource-lint.yaml"
+      - "internal/services/**"
+
+jobs:
+  resource-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+            fetch-depth: 2
+
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: ./.go-version
+
+      - run: bash scripts/gogetcookie.sh
+
+      - name: Generate git diff
+        run: |
+          git diff HEAD^1 HEAD > /tmp/changes.diff
+          echo "Generated diff file with $(wc -l < /tmp/changes.diff) lines"
+
+      - name: Run resource lint checker
+        run: |
+          if make resource-lint RESOURCE_LINT_ARGS="-diff=/tmp/changes.diff"; then
+            echo "::notice::Resource lint success."
+          else
+            echo "::warning::Resource lint failed. Please fix the issues."
+          fi

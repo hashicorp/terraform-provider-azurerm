@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package cmd
 
 import (
@@ -65,7 +68,6 @@ Usage:
 
 Examples:
   go run ./internal/tools/resource-lint ./internal/services/compute/...
-  go run ./internal/tools/resource-lint --pr=12345
   go run ./internal/tools/resource-lint --diff=changes.txt
   go run ./internal/tools/resource-lint --no-filter ./internal/services/...
 

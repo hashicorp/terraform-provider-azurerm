@@ -100,6 +100,7 @@ github.com/bflad/tfproviderlint/helper/astutils
 github.com/bflad/tfproviderlint/helper/terraformtype
 github.com/bflad/tfproviderlint/helper/terraformtype/diag
 github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema
+github.com/bflad/tfproviderlint/passes/commentignore
 # github.com/bgentry/speakeasy v0.2.0
 ## explicit
 github.com/bgentry/speakeasy

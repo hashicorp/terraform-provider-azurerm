@@ -1,10 +1,12 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package loader
 
 import (
 	"bufio"
 	"fmt"
 	"log"
-	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -21,10 +23,6 @@ var (
 	// globalChangeSet holds the current loaded ChangeSet
 	// Set once by LoadChanges() before analyzers run, then only read by analyzers
 	globalChangeSet *ChangeSet
-
-	// worktreeCleanup holds the cleanup function for PR worktree
-	worktreeCleanup func() error
-	originalDir     string
 )
 
 // ChangeSet represents a set of changes loaded from a source
@@ -51,7 +49,6 @@ type ChangeLoader interface {
 // LoaderOptions holds configuration for change loading
 type LoaderOptions struct {
 	NoFilter   bool
-	PRNumber   int
 	RemoteName string
 	BaseBranch string
 	DiffFile   string
@@ -72,8 +69,6 @@ func LoadChanges(opts LoaderOptions) (*ChangeSet, error) {
 	case opts.DiffFile != "":
 		log.Printf("Using diff file: %s", opts.DiffFile)
 		loader = &DiffFileLoader{filePath: opts.DiffFile}
-	case opts.PRNumber > 0:
-		loader = selectGitLoader(opts)
 	default:
 		if _, err := git.PlainOpen("."); err == nil {
 			log.Println("Using local git diff mode")
@@ -103,43 +98,6 @@ func LoadChanges(opts LoaderOptions) (*ChangeSet, error) {
 	globalChangeSet = cs
 
 	return cs, nil
-}
-
-// selectGitLoader selects the appropriate git-based loader
-func selectGitLoader(opts LoaderOptions) ChangeLoader {
-	if opts.PRNumber > 0 {
-		setupPRWorktree(opts.PRNumber, opts.RemoteName, opts.BaseBranch)
-
-		log.Printf("Using GitHub API for PR #%d changed lines", opts.PRNumber)
-		return &GitHubLoader{prNumber: opts.PRNumber}
-	}
-
-	return &LocalGitLoader{
-		remoteName: opts.RemoteName,
-		baseBranch: opts.BaseBranch,
-	}
-}
-
-func setupPRWorktree(prNum int, remoteName, baseBranch string) {
-	worktreeLoader := NewWorktreeLoader(prNum, remoteName, baseBranch)
-
-	// Setup worktree
-	worktreePath, err := worktreeLoader.Setup()
-	if err != nil {
-		log.Fatalf("Failed to setup worktree: %v", err)
-	}
-
-	worktreeCleanup = worktreeLoader.Cleanup
-
-	// Save current directory and switch to worktree
-	originalDir, err = os.Getwd()
-	if err != nil {
-		log.Fatalf("Failed to get current directory: %v", err)
-	}
-
-	if err := os.Chdir(worktreePath); err != nil {
-		log.Fatalf("Failed to change to worktree directory: %v", err)
-	}
 }
 
 // ShouldReport checks if a specific line in a file should be reported
@@ -188,20 +146,6 @@ func GetChangedPackages() []string {
 		return nil
 	}
 	return globalChangeSet.getChangedPackages()
-}
-
-// CleanupWorktree cleans up the PR worktree and restores original directory
-func CleanupWorktree() {
-	if originalDir != "" {
-		if err := os.Chdir(originalDir); err != nil {
-			log.Printf("Warning: failed to return to original directory: %v", err)
-		}
-	}
-	if worktreeCleanup != nil {
-		if err := worktreeCleanup(); err != nil {
-			log.Printf("Warning: failed to cleanup worktree: %v", err)
-		}
-	}
 }
 
 // ShouldReport checks if a specific line in a file should be reported

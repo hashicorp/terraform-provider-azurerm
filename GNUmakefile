@@ -154,6 +154,12 @@ schemagen:
 resource-counts:
 	go test -v ./internal/provider -run=TestProvider_counts
 
-pr-check: generate build test lint tflint website-lint
+resource-lint:
+	@echo "==> Installing resource-lint..."
+	@cd internal/tools/resource-lint && go install .
+	@echo "==> Running resource linter..."
+	@resource-lint $(RESOURCE_LINT_ARGS)
+
+pr-check: generate build test lint tflint website-lint resource-lint
 
 .PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts
