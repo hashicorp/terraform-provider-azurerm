@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
+TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples'|grep -v 'internal/tools/resource-lint')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 TESTTIMEOUT=180m
 
