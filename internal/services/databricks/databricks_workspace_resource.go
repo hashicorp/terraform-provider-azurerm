@@ -431,7 +431,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					}
 
 					if defaultStorageFirewallEnabled.(bool) {
-						return fmt.Errorf("`default_storage_firewall_enabled` argument should be removed or set to `false` when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+						// return fmt.Errorf("`default_storage_firewall_enabled` argument should be removed or set to `false` when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
 					}
 
 					if requireNsgRules.(string) != "" {

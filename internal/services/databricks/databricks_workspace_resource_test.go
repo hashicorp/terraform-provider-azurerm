@@ -3407,6 +3407,7 @@ resource "azurerm_databricks_workspace" "test" {
 
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
   access_connector_id              = azurerm_databricks_access_connector.test.id
+  default_storage_firewall_enabled = true
   // public_network_access_enabled         = false
   /*
   enhanced_security_compliance {
