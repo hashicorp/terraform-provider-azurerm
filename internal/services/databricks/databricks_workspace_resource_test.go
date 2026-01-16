@@ -3344,6 +3344,16 @@ resource "azurerm_key_vault_key" "test" {
   ]
 }
 
+resource "azurerm_databricks_access_connector" "test" {
+  name                = "acctestDBWACC%[3]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
 resource "azurerm_key_vault_access_policy" "terraform" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
@@ -3369,9 +3379,14 @@ resource "azurerm_key_vault_access_policy" "terraform" {
 }
 
 resource "azurerm_key_vault_access_policy" "managed" {
+  /*
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
   object_id    = "%[4]s"
+  */
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = azurerm_databricks_access_connector.test.principal_id
 
   key_permissions = [
     "Get",
@@ -3391,14 +3406,16 @@ resource "azurerm_databricks_workspace" "test" {
   compute_mode = "Serverless"
 
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
-  public_network_access_enabled         = false
-  
+  access_connector_id              = azurerm_databricks_access_connector.test.id
+  // public_network_access_enabled         = false
+  /*
   enhanced_security_compliance {
     automatic_cluster_update_enabled      = true
     compliance_security_profile_enabled   = true
     compliance_security_profile_standards = ["HIPAA"]
     enhanced_security_monitoring_enabled  = true
   }
+  */
 }
 
 resource "azurerm_private_endpoint" "databricks" {

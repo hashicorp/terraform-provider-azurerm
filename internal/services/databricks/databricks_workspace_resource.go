@@ -790,6 +790,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
+		panic("debug0")
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
