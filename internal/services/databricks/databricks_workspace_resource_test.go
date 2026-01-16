@@ -3386,7 +3386,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
   */
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = azurerm_databricks_access_connector.test.principal_id
+  object_id    = azurerm_databricks_access_connector.test.identity.principal_id
 
   key_permissions = [
     "Get",
