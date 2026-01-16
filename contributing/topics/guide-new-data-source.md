@@ -168,7 +168,7 @@ Schema fields should be ordered as follows:
 4. Optional fields, sorted alphabetically. (As with resources, `tags` is a special case and must always be the final entry in the `optional`/`Attributes` fields list.)
 5. Computed fields, sorted alphabetically. (Although in a typed data source these are always added within the `Attributes` method)
 
--> **Note:** This ordering applies to both `typed` and `untyped` data sources; even when the schema is generated via `Attributes()`, the documentation must follow the same rules.
+> **Note:** This ordering applies to both `typed` and `untyped` data sources; even when the schema is generated via `Attributes()`, the documentation must follow the same rules.
 
 ---
 
