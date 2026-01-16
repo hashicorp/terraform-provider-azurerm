@@ -610,18 +610,6 @@ For example, in this case:
 var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 ```
 
-- Sometimes, for complex data types like `pluginsdk.TypeList`, we need to define `expand` and `flatten` methods. When defining such methods, please make sure to define them as global methods.
-
-For example, in this case:
-
-:white_check_mark: **DO**
-
-```
-func expandComplexResource(input []ComplexResource) *resource.ComplexResource {
-	...
-}
-```
-
 - Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
 - Argument names must be wrapped in backticks in error messages.
