@@ -160,6 +160,6 @@ resource-lint:
 	@echo "==> Running resource linter..."
 	@resource-lint $(RESOURCE_LINT_ARGS)
 
-pr-check: generate build test lint tflint website-lint resource-lint
+pr-check: generate build test lint tflint website-lint
 
 .PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts

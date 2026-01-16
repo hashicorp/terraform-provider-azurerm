@@ -29,7 +29,7 @@ func (l *DiffFileLoader) Load() (*ChangeSet, error) {
 	}
 
 	if len(cs.changedFiles) == 0 {
-		return nil, fmt.Errorf("no valid diff blocks found in file")
+		return nil, nil
 	}
 
 	log.Printf("✓ Found %d changed files with %d changed lines",

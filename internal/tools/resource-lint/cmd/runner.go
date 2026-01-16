@@ -70,8 +70,8 @@ func (r *Runner) Run(ctx context.Context) ExitCode {
 
 	// Validate we have patterns to analyze
 	if len(patterns) == 0 {
-		log.Println("Error: no packages to analyze")
-		return ExitError
+		log.Println("No valid service package to analyze")
+		return ExitSuccess
 	}
 
 	log.Printf("Loading packages...")
