@@ -467,7 +467,6 @@ func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]virtualwans.P2
 		route := make([]interface{}, 0)
 		addressPrefixes := make([]interface{}, 0)
 		enableInternetSecurity := false
-
 		if props := v.Properties; props != nil {
 			if props.VpnClientAddressPool == nil {
 				continue
