@@ -26,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -service-package-name resource -properties "name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -id "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
 
 const resourceGroupResourceName = "azurerm_resource_group"
 

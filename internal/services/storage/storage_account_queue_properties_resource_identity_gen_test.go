@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
@@ -30,6 +31,7 @@ func TestAccStorageAccountQueueProperties_resourceIdentity(t *testing.T) {
 			{
 				Config: r.corsOnly(data),
 				ConfigStateChecks: []statecheck.StateCheck{
+					statecheck.ExpectIdentityValue("azurerm_storage_account_queue_properties.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_queue_properties.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("storage_account_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_queue_properties.test", tfjsonpath.New("storage_account_name"), tfjsonpath.New("storage_account_id")),
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_account_queue_properties.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_account_id")),

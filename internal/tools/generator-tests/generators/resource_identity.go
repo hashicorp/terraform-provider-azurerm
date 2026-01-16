@@ -11,11 +11,17 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/templatehelpers"
+	"github.com/iancoleman/strcase"
 	"github.com/mitchellh/cli"
 )
 
-var riOutputFileFmt = "../../services/%s/%s_resource_identity_gen_test.go"
+var riOutputFileFmt = "/%s_resource_identity_gen_test.go"
+
+var cwd, _ = os.Getwd()
 
 type ResourceIdentityCommand struct {
 	Ui cli.Ui
@@ -34,6 +40,8 @@ type resourceIdentityData struct {
 	CompareValueMap        map[string]string
 	TestName               string
 	TestExpectNonEmptyPlan bool
+	NoSubscriptionID       bool
+	ExampleID              string
 }
 
 var _ cli.Command = &ResourceIdentityCommand{}
@@ -100,13 +108,16 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet := flag.NewFlagSet("ri", flag.ExitOnError)
 
 	argSet.StringVar(&d.ResourceName, "resource-name", "", "(Required) the name of the resource to generate the resource identity test for.")
-	argSet.StringVar(&d.IdentityProperties, "properties", "", "(Required) a comma separated list of schema property names that make up the resource identity for this resource. Do not include 'known' values here, only schema comparisons are supported.")
-	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Required) the path to the directory containing the service package to write the generated test to.")
+	argSet.StringVar(&d.IdentityProperties, "properties", "", "(Optional) a comma separated list of schema property names that make up the resource identity for this resource. Do not include 'known' values here, only schema comparisons are supported. Conflicts with '-id'")
+	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Optional) the path to the directory containing the service package to write the generated test to. for go generate this will be picked up from the cwd")
 	argSet.StringVar(&d.BasicTestParams, "test-params", "", "(Optional) comma separated list of additional properties that need to be passed to the basic test config for this resource.")
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
+	argSet.BoolVar(&d.NoSubscriptionID, "", false, "(Optional) Resource does not use subscription_id in ID (e.g. managementgroupid. Defaults to `false`.")
+	argSet.BoolVar(&d.NoSubscriptionID, "no-subscription-id", false, "(Optional) Resource does not use subscription_id in ID (e.g. managementgroupid. Defaults to `false`.")
+	argSet.StringVar(&d.ExampleID, "id", "", "an example of the resource id for this resource, can be used when all the id segments and the schema property names match. Conflicts with '-properties'")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
@@ -114,15 +125,15 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	}
 
 	// check we have the essentials
-	switch {
-	case d.ResourceName == "":
+	if d.ResourceName == "" {
 		errors = append(errors, fmt.Errorf("resource name is required"))
-	case d.ServicePackageName == "":
-		errors = append(errors, fmt.Errorf("service-package-path is required"))
 	}
+
+	d.ResourceName = strings.TrimPrefix(d.ResourceName, "azurerm_") // catch and remove accidental provider prefix
 
 	// d.PropertyNameMap = strings.Split(d.IdentityProperties, ",")
 	if len(d.IdentityProperties) > 0 {
+		d.NoSubscriptionID = true
 		d.PropertyNameMap = map[string]string{}
 		propertiesList := strings.Split(d.IdentityProperties, ",")
 		for _, property := range propertiesList {
@@ -180,7 +191,28 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 func (d *resourceIdentityData) exec() error {
 	tpl := template.Must(template.New("identity_test.gotpl").Funcs(templatehelpers.TplFuncMap).ParseFS(Templatedir, "templates/identity_test.gotpl"))
 
-	outputPath := fmt.Sprintf(riOutputFileFmt, d.ServicePackageName, d.ResourceName)
+	outputPath := cwd + fmt.Sprintf(riOutputFileFmt, d.ResourceName)
+	cwdParts := strings.Split(cwd, "internal/services/")
+	d.ServicePackageName = cwdParts[len(cwdParts)-1]
+
+	if d.ExampleID != "" {
+		d.PropertyNameMap = make(map[string]string)
+		_ = provider.AzureProvider() // Registers all the ID types via init()
+		id := recaser.ResourceIdTypeFromResourceId(d.ExampleID)
+		if id == nil {
+			return fmt.Errorf("invalid or unregistred resource id: %s", d.ExampleID)
+		}
+		for _, s := range id.Segments() {
+			if s.Type == resourceids.UserSpecifiedSegmentType || s.Type == resourceids.ResourceGroupSegmentType {
+				if strings.HasPrefix(strcase.ToSnake(s.Name), d.ResourceName) {
+					d.PropertyNameMap["name"] = "name"
+					continue
+				}
+				v := strcase.ToSnake(s.Name)
+				d.PropertyNameMap[v] = v
+			}
+		}
+	}
 
 	f, err := os.Create(outputPath)
 	if err != nil {
@@ -198,7 +230,7 @@ func (d *resourceIdentityData) exec() error {
 		return fmt.Errorf("failed writing output test file (%s): %s", outputPath, err.Error())
 	}
 
-	if err := templatehelpers.GoImports(outputPath); err != nil {
+	if err := templatehelpers.GoImportsPath(cwd); err != nil {
 		return err
 	}
 
