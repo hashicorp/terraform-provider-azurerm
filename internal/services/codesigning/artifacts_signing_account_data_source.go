@@ -80,7 +80,7 @@ func (d ArtifactsSigningAccountDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CodeSigning.DeprecatedClient.CodeSigningAccounts
+			client := metadata.Client.CodeSigning.Client.CodeSigningAccounts
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
