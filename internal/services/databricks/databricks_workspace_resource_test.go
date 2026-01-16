@@ -3345,7 +3345,7 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_databricks_access_connector" "test" {
-  name                = "acctestDBWACC%[3]d"
+  name                = "acctestDBWACC%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
