@@ -168,9 +168,7 @@ The `ip_configuration` block supports:
 
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in which the virtual network gateway will be created. It is mandatory that the associated subnet is named `GatewaySubnet`. Therefore, each virtual network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Optional) The ID of the public IP address to associate with the Virtual Network Gateway.
-
-~> **Note:** `public_ip_address_id` should not be specified when `type` is set to `ExpressRoute`.
+* `public_ip_address_id` - (Optional) The ID of the public IP address to associate with the Virtual Network Gateway. This cannot be specified when `type` is set to `ExpressRoute`.
 
 ---
 
