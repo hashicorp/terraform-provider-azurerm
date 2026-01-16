@@ -156,7 +156,7 @@ For example, extra information on the supported values for an argument, possibly
 ```markdown
 * `type` - (Required) The type. Possible values include `This`, `That`, and `Other`.
 
-> **Note:** More information on each of the supported types can be found in [type documentation](link-to-additional-info)
+-> **Note:** More information on each of the supported types can be found in [type documentation](link-to-additional-info)
 ```
 
 ### Warning Note
