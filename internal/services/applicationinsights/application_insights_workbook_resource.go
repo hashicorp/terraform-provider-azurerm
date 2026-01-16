@@ -1,6 +1,8 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_workbook -test-name basicForResourceIdentity -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
+
 package applicationinsights
 
 import (
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	workbooks "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-04-01/workbooksapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/validate"
@@ -35,7 +38,10 @@ type ApplicationInsightsWorkbookModel struct {
 
 type ApplicationInsightsWorkbookResource struct{}
 
-var _ sdk.ResourceWithUpdate = ApplicationInsightsWorkbookResource{}
+var (
+	_ sdk.ResourceWithUpdate   = ApplicationInsightsWorkbookResource{}
+	_ sdk.ResourceWithIdentity = ApplicationInsightsWorkbookResource{}
+)
 
 func (r ApplicationInsightsWorkbookResource) ResourceType() string {
 	return "azurerm_application_insights_workbook"
@@ -47,6 +53,10 @@ func (r ApplicationInsightsWorkbookResource) ModelObject() interface{} {
 
 func (r ApplicationInsightsWorkbookResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workbooks.ValidateWorkbookID
+}
+
+func (r ApplicationInsightsWorkbookResource) Identity() resourceids.ResourceId {
+	return &workbooks.WorkbookId{}
 }
 
 func (r ApplicationInsightsWorkbookResource) Arguments() map[string]*pluginsdk.Schema {
@@ -179,6 +189,9 @@ func (r ApplicationInsightsWorkbookResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -308,6 +321,9 @@ func (r ApplicationInsightsWorkbookResource) Read() sdk.ResourceFunc {
 				state.Tags = *model.Tags
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}

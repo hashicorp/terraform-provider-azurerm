@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
+	certificate "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,6 +23,8 @@ import (
 
 func resourceBatchCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_batch_certificate` resource has been deprecated because the Azure Batch Certificates feature was retired on 2024-02-29. This resource will be removed in v5.0 of the AzureRM Provider.",
+
 		Create: resourceBatchCertificateCreate,
 		Read:   resourceBatchCertificateRead,
 		Update: resourceBatchCertificateUpdate,
@@ -123,7 +125,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.CertificateGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
@@ -148,7 +150,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: &certificateProperties,
 	}
 
-	_, err := client.Create(ctx, id, parameters, certificate.CreateOperationOptions{})
+	_, err := client.CertificateCreate(ctx, id, parameters, certificate.CertificateCreateOperationOptions{})
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -167,7 +169,7 @@ func resourceBatchCertificateRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.CertificateGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -245,11 +247,11 @@ func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 	}
 
-	if _, err = client.Update(ctx, *id, parameters, certificate.UpdateOperationOptions{}); err != nil {
+	if _, err = client.CertificateUpdate(ctx, *id, parameters, certificate.CertificateUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	_, err = client.Get(ctx, *id)
+	_, err = client.CertificateGet(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -267,7 +269,7 @@ func resourceBatchCertificateDelete(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.CertificateDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

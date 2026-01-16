@@ -28,6 +28,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -service-package-name resource -properties "name" -known-values "subscription_id:data.Subscriptions.Primary"
 
+const resourceGroupResourceName = "azurerm_resource_group"
+
 func resourceResourceGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create:   resourceResourceGroupCreate,
@@ -78,7 +80,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_resource_group", id.ID())
+		return tf.ImportAsExistsError(resourceGroupResourceName, id.ID())
 	}
 
 	parameters := resourcegroups.ResourceGroup{
@@ -157,11 +159,21 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("reading resource group: %+v", err)
 	}
 
+	if err := resourceResourceGroupFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceResourceGroupFlatten(d *pluginsdk.ResourceData, id *commonids.ResourceGroupId, group *resourcegroups.ResourceGroup) error {
 	d.Set("name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-		d.Set("managed_by", pointer.From(model.ManagedBy))
-		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+
+	if group != nil {
+		d.Set("location", location.Normalize(group.Location))
+		d.Set("managed_by", pointer.From(group.ManagedBy))
+
+		if err := tags.FlattenAndSet(d, group.Tags); err != nil {
 			return err
 		}
 	}

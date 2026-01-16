@@ -451,7 +451,9 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("ip_address", props.IPAddress)
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

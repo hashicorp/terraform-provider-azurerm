@@ -3593,6 +3593,10 @@ resource "azurerm_application_gateway" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
   backend_http_settings {
     name                  = local.http_setting_name
     cookie_based_affinity = "Disabled"
@@ -6105,7 +6109,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_policy {
-    disabled_protocols = ["TLSv1_0", "TLSv1_2"]
+    disabled_protocols = ["TLSv1_0", "TLSv1_2", "TLSv1_1"]
   }
 
   gateway_ip_configuration {
@@ -6204,6 +6208,48 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
   path_rule_name                 = "${azurerm_virtual_network.test.name}-pathrule1"
   url_path_map_name              = "${azurerm_virtual_network.test.name}-urlpath1"
+
+  error_codes = [400, 403, 404, 405, 408, 500, 502, 503, 504]
+}
+
+resource "azurerm_storage_account" "errors" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  static_website {
+    index_document = "index.html"
+  }
+}
+
+resource "azurerm_storage_container" "errors" {
+  name                  = "errors"
+  storage_account_name  = azurerm_storage_account.errors.name
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "error_pages" {
+  count                  = length(local.error_codes)
+  name                   = "${local.error_codes[count.index]}.html"
+  storage_account_name   = azurerm_storage_account.errors.name
+  storage_container_name = azurerm_storage_container.errors.name
+  type                   = "Block"
+  content_type           = "text/html"
+
+  source_content = <<HTML
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>${local.error_codes[count.index]}</title>
+  </head>
+  <body>
+    <h1>${local.error_codes[count.index]}</h1>
+  </body>
+</html>
+HTML
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -6251,94 +6297,85 @@ resource "azurerm_application_gateway" "test" {
     protocol                       = "Http"
 
     custom_error_configuration {
+      status_code           = "HttpStatus400"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
+    }
+
+    custom_error_configuration {
       status_code           = "HttpStatus403"
-      custom_error_page_url = "http://azure.com/error403_listener.html"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus404"
-      custom_error_page_url = "http://azure.com/error404_listener.html"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus405"
-      custom_error_page_url = "http://azure.com/error405_listener.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus408"
-      custom_error_page_url = "http://azure.com/error408_listener.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus400"
-      custom_error_page_url = "http://azure.com/error400_listener.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus502"
-      custom_error_page_url = "http://azure.com/error502_listener.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus503"
-      custom_error_page_url = "http://azure.com/error503_listener.html"
-    }
-
-    custom_error_configuration {
-      status_code           = "HttpStatus504"
-      custom_error_page_url = "http://azure.com/error504_listener.html"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
     }
 
     custom_error_configuration {
       status_code           = "HttpStatus500"
-      custom_error_page_url = "http://azure.com/error500_listener.html"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
     }
-  }
 
-  custom_error_configuration {
-    status_code           = "HttpStatus403"
-    custom_error_page_url = "http://azure.com/error.html"
-  }
+    custom_error_configuration {
+      status_code           = "HttpStatus502"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
+    }
 
-  custom_error_configuration {
-    status_code           = "HttpStatus404"
-    custom_error_page_url = "http://azure.com/error.html"
-  }
+    custom_error_configuration {
+      status_code           = "HttpStatus503"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
+    }
 
-  custom_error_configuration {
-    status_code           = "HttpStatus405"
-    custom_error_page_url = "http://azure.com/error.html"
-  }
+    custom_error_configuration {
+      status_code           = "HttpStatus504"
+      custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
+    }
 
-  custom_error_configuration {
-    status_code           = "HttpStatus408"
-    custom_error_page_url = "http://azure.com/error.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus400"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/400.html"
   }
 
   custom_error_configuration {
-    status_code           = "HttpStatus502"
-    custom_error_page_url = "http://azure.com/error.html"
+    status_code           = "HttpStatus403"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/403.html"
   }
 
   custom_error_configuration {
-    status_code           = "HttpStatus503"
-    custom_error_page_url = "http://azure.com/error.html"
+    status_code           = "HttpStatus404"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/404.html"
   }
 
   custom_error_configuration {
-    status_code           = "HttpStatus504"
-    custom_error_page_url = "http://azure.com/error.html"
+    status_code           = "HttpStatus405"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/405.html"
   }
 
   custom_error_configuration {
     status_code           = "HttpStatus500"
-    custom_error_page_url = "http://azure.com/error.html"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/500.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus502"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/502.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus503"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/503.html"
+  }
+
+  custom_error_configuration {
+    status_code           = "HttpStatus504"
+    custom_error_page_url = "https://${azurerm_storage_account.errors.name}.blob.core.windows.net/${azurerm_storage_container.errors.name}/504.html"
   }
 
   request_routing_rule {
@@ -6350,7 +6387,7 @@ resource "azurerm_application_gateway" "test" {
     priority                   = 10
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomString, data.RandomInteger)
 }
 
 func (r ApplicationGatewayResource) rewriteRuleSets_backend(data acceptance.TestData) string {
@@ -7796,7 +7833,7 @@ resource "azurerm_application_gateway" "test" {
   }
 
   ssl_policy {
-    disabled_protocols = ["TLSv1_0", "TLSv1_2"]
+    disabled_protocols = ["TLSv1_0", "TLSv1_2", "TLSv1_1"]
   }
 
   ssl_profile {
@@ -7804,7 +7841,7 @@ resource "azurerm_application_gateway" "test" {
     trusted_client_certificate_names = [local.trusted_client_cert_name]
     verify_client_cert_issuer_dn     = true
     ssl_policy {
-      disabled_protocols = ["TLSv1_0", "TLSv1_2"]
+      disabled_protocols = ["TLSv1_0", "TLSv1_2", "TLSv1_1"]
     }
   }
 

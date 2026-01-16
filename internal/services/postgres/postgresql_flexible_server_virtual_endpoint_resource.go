@@ -180,7 +180,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Read() sdk.ResourceFunc
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
 					resp, err = client.Get(ctx, virtualEndpointId)
 					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
+						if response.WasNotFound(resp.HttpResponse) || response.WasBadRequest(resp.HttpResponse) { // Can return a 400 if attempting to query the replica for the virtual endpoint resource
 							// the endpoint was not found under the source or the replica server so it can safely be removed from state
 							log.Printf("[INFO] %s does not exist - removing from state", metadata.ResourceData.Id())
 							return metadata.MarkAsGone(id)
@@ -267,7 +267,7 @@ func (r PostgresqlFlexibleServerVirtualEndpointResource) Delete() sdk.ResourceFu
 					// if the endpoint doesn't exist under the source server, look for it under the replica server
 					resp, err = client.Get(ctx, virtualEndpointId)
 					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
+						if response.WasNotFound(resp.HttpResponse) || response.WasBadRequest(resp.HttpResponse) { // Can return a 400 if attempting to query the replica for the virtual endpoint resource
 							// the endpoint was not found under the source or the replica server so we can exit here
 							return nil
 						}

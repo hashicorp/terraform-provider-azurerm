@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
-	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratorsmicrosoftentra"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupsautomaticandondemand"
+	flexibleserveradministrators "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/administratormicrosoftentras"
+	backupsautomaticandondemand "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands"
 	flexibleserverconfigurations "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/configurations"
 	flexibleserverdatabases "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/databases"
 	flexibleserverfirewallrules "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/firewallrules"
@@ -26,7 +26,7 @@ import (
 )
 
 type Client struct {
-	BackupsClient                       *backupsautomaticandondemand.BackupsAutomaticAndOnDemandClient
+	BackupsClient                       *backupsautomaticandondemand.BackupAutomaticAndOnDemandsClient
 	ConfigurationsClient                *configurations.ConfigurationsClient
 	DatabasesClient                     *databases.DatabasesClient
 	FirewallRulesClient                 *firewallrules.FirewallRulesClient
@@ -34,7 +34,7 @@ type Client struct {
 	FlexibleServersConfigurationsClient *flexibleserverconfigurations.ConfigurationsClient
 	FlexibleServerFirewallRuleClient    *flexibleserverfirewallrules.FirewallRulesClient
 	FlexibleServerDatabaseClient        *flexibleserverdatabases.DatabasesClient
-	FlexibleServerAdministratorsClient  *flexibleserveradministrators.AdministratorsMicrosoftEntraClient
+	FlexibleServerAdministratorsClient  *flexibleserveradministrators.AdministratorMicrosoftEntrasClient
 	ServersClient                       *servers.ServersClient
 	ServerKeysClient                    *serverkeys.ServerKeysClient
 	ServerSecurityAlertPoliciesClient   *serversecurityalertpolicies.ServerSecurityAlertPoliciesClient
@@ -45,7 +45,7 @@ type Client struct {
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	backupsClient, err := backupsautomaticandondemand.NewBackupsAutomaticAndOnDemandClientWithBaseURI(o.Environment.ResourceManager)
+	backupsClient, err := backupsautomaticandondemand.NewBackupAutomaticAndOnDemandsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Backups client: %+v", err)
 	}
@@ -129,7 +129,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(flexibleServerConfigurationsClient.Client, o.Authorizers.ResourceManager)
 
-	flexibleServerAdministratorsClient, err := flexibleserveradministrators.NewAdministratorsMicrosoftEntraClientWithBaseURI(o.Environment.ResourceManager)
+	flexibleServerAdministratorsClient, err := flexibleserveradministrators.NewAdministratorMicrosoftEntrasClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building FlexibleServerAdministrators client: %+v", err)
 	}

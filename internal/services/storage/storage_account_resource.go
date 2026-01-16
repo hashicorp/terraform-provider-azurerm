@@ -18,12 +18,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -32,10 +32,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
-	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -266,16 +262,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
-						},
-
-						"managed_hsm_key_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+							Required:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 
 						"user_assigned_identity_id": {
@@ -1226,116 +1214,146 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 			Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_static_website` resource and will be removed in v5.0 of the AzureRM provider",
 		}
-	}
 
-	resource.Schema["queue_properties"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
-				"hour_metrics": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"version": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"include_apis": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-							},
-							"retention_policy_days": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 365),
-							},
-						},
+		resource.Schema["customer_managed_key"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 					},
-				},
-				"logging": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"version": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"delete": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"read": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"write": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"retention_policy_days": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 365),
-							},
-						},
+
+					"managed_hsm_key_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+						Deprecated:   "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
 					},
-				},
-				"minute_metrics": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"version": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"include_apis": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-							},
-							"retention_policy_days": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 365),
-							},
-						},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 				},
 			},
-		},
-		Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
-	}
+		}
 
-	if !features.FivePointOh() {
 		resource.Schema["min_tls_version"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
 			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
+		}
+
+		resource.Schema["queue_properties"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
+					"hour_metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"include_apis": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+					"logging": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"delete": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"read": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"write": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+					"minute_metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"include_apis": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+				},
+			},
+			Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
 		}
 	}
 
@@ -2089,7 +2107,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	storageUtils := meta.(*clients.Client).Storage
 	client := storageClient.StorageAccounts
 	dataPlaneAvailable := meta.(*clients.Client).Features.Storage.DataPlaneAvailable
-	env := meta.(*clients.Client).Account.Environment
 	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
 	if !ok {
 		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
@@ -2247,7 +2264,11 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
 		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 
-		customerManagedKey := flattenAccountCustomerManagedKey(props.Encryption, env)
+		customerManagedKey, err := flattenAccountCustomerManagedKey(props.Encryption)
+		if err != nil {
+			return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
+		}
+
 		if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
 			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 		}
@@ -2486,60 +2507,59 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 
 	v := input[0].(map[string]interface{})
 
-	var keyName, keyVersion, keyVaultURI *string
+	var keyID *keyvault.NestedItemID
+	// When cleaning up `features.FivePointOh()` flags, this condition can be removed as `key_vault_key_id` will be required in 5.0.
+	// The variable instantiation above can be removed as well, and `keyId` below can be renamed to `KeyID`.
 	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && keyVaultKeyId != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId.(string))
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 
-		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-		keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseUrl)
-		if err != nil {
-			return nil, err
-		}
-		if keyVaultIdRaw == nil {
-			return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyId.KeyVaultBaseUrl, subscriptionResourceId)
-		}
-		keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-		if err != nil {
-			return nil, err
-		}
-
-		vaultsClient := keyVaultClient.VaultsClient
-		keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
-		}
-
-		softDeleteEnabled := false
-		purgeProtectionEnabled := false
-		if model := keyVault.Model; model != nil {
-			if esd := model.Properties.EnableSoftDelete; esd != nil {
-				softDeleteEnabled = *esd
+		if !keyId.IsManagedHSM() {
+			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseURL)
+			if err != nil {
+				return nil, err
 			}
-			if epp := model.Properties.EnablePurgeProtection; epp != nil {
-				purgeProtectionEnabled = *epp
+			if keyVaultIdRaw == nil {
+				return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyId.KeyVaultBaseURL, subscriptionResourceId)
+			}
+			keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
+			if err != nil {
+				return nil, err
+			}
+
+			vaultsClient := keyVaultClient.VaultsClient
+			keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
+			}
+
+			softDeleteEnabled := false
+			purgeProtectionEnabled := false
+			if model := keyVault.Model; model != nil {
+				if esd := model.Properties.EnableSoftDelete; esd != nil {
+					softDeleteEnabled = *esd
+				}
+				if epp := model.Properties.EnablePurgeProtection; epp != nil {
+					purgeProtectionEnabled = *epp
+				}
+			}
+			if !softDeleteEnabled || !purgeProtectionEnabled {
+				return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
 			}
 		}
-		if !softDeleteEnabled || !purgeProtectionEnabled {
-			return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
-		}
 
-		keyName = pointer.To(keyId.Name)
-		keyVersion = pointer.To(keyId.Version)
-		keyVaultURI = pointer.To(keyId.KeyVaultBaseUrl)
-	} else if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
-		if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = pointer.To(keyId.KeyName)
-			keyVersion = pointer.To(keyId.KeyVersion)
-			keyVaultURI = pointer.To(keyId.BaseUri())
-		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = pointer.To(keyId.KeyName)
-			keyVersion = pointer.To("")
-			keyVaultURI = pointer.To(keyId.BaseUri())
-		} else {
-			return nil, fmt.Errorf("parsing %q as HSM key ID", managedHSMKeyId.(string))
+		keyID = keyId
+	} else if !features.FivePointOh() {
+		if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
+			keyId, err := keyvault.ParseNestedItemID(managedHSMKeyId.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+			if err != nil {
+				return nil, err
+			}
+
+			keyID = keyId
 		}
 	}
 
@@ -2565,33 +2585,41 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 		},
 		KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
 		Keyvaultproperties: &storageaccounts.KeyVaultProperties{
-			Keyname:     keyName,
-			Keyversion:  keyVersion,
-			Keyvaulturi: keyVaultURI,
+			Keyname:     pointer.To(keyID.Name),
+			Keyversion:  pointer.To(keyID.Version),
+			Keyvaulturi: pointer.To(keyID.KeyVaultBaseURL),
 		},
 	}
 
 	return encryption, nil
 }
 
-func flattenAccountCustomerManagedKey(input *storageaccounts.Encryption, env environments.Environment) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAccountCustomerManagedKey(input *storageaccounts.Encryption) ([]any, error) {
+	output := make([]any, 0)
 
-	if input != nil && input.KeySource != nil && *input.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
-		userAssignedIdentityId := ""
+	if input != nil && pointer.From(input.KeySource) == storageaccounts.KeySourceMicrosoftPointKeyvault {
+		cmk := make(map[string]any)
+
 		if props := input.Identity; props != nil {
-			userAssignedIdentityId = pointer.From(props.UserAssignedIdentity)
+			cmk["user_assigned_identity_id"] = pointer.From(props.UserAssignedIdentity)
 		}
 
-		customerManagedKey := flattenCustomerManagedKey(input.Keyvaultproperties, env.KeyVault, env.ManagedHSM)
-		output = append(output, map[string]interface{}{
-			"key_vault_key_id":          customerManagedKey.keyVaultKeyUri,
-			"managed_hsm_key_id":        customerManagedKey.managedHsmKeyUri,
-			"user_assigned_identity_id": userAssignedIdentityId,
-		})
+		if props := input.Keyvaultproperties; props != nil {
+			keyID, err := keyvault.NewNestedItemID(pointer.From(props.Keyvaulturi), keyvault.NestedItemTypeKey, pointer.From(props.Keyname), pointer.From(props.Keyversion))
+			if err != nil {
+				return output, err
+			}
+			cmk["key_vault_key_id"] = keyID.ID()
+
+			if !features.FivePointOh() && keyID.IsManagedHSM() {
+				cmk["managed_hsm_key_id"] = keyID.ID()
+			}
+		}
+
+		output = append(output, cmk)
 	}
 
-	return output
+	return output, nil
 }
 
 func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.ImmutableStorageAccount {
