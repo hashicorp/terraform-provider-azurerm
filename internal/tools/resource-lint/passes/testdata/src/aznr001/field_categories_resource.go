@@ -10,7 +10,7 @@ import (
 // Test: Proper categorization - Required, Optional, Computed
 func resourceFieldCategories() *schema.Resource {
 	return &schema.Resource{
-		Schema: map[string]*schema.Schema{// want `name, resource_group_name, location, account_tier, sku, enable_https, created_time, primary_key, tags`
+		Schema: map[string]*schema.Schema{ // want `name, resource_group_name, location, account_tier, sku, enable_https, created_time, primary_key, tags`
 			// ID fields first
 			"name": {
 				Type:     schema.TypeString,

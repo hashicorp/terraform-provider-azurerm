@@ -51,9 +51,9 @@ var aznr001SkipPackages = []string{"_test", "/migration", "/client", "/validate"
 var aznr001FileSuffix = []string{"_resource.go", "_data_source.go"}
 
 var AZNR001Analyzer = &analysis.Analyzer{
-	Name:     aznr001Name,
-	Doc:      AZNR001Doc,
-	Run:      runAZNR001,
+	Name: aznr001Name,
+	Doc:  AZNR001Doc,
+	Run:  runAZNR001,
 	Requires: []*analysis.Analyzer{
 		inspect.Analyzer,
 		schema.CompleteSchemaAnalyzer,

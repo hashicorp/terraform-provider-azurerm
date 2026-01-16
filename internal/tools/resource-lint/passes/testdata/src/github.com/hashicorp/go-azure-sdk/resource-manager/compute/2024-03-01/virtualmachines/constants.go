@@ -21,16 +21,16 @@ const (
 )
 
 func PossibleValuesForVirtualMachinePriorityTypes() []string {
-    return []string{
-        string(VirtualMachinePriorityTypesLow),
-        string(VirtualMachinePriorityTypesRegular),
-        string(VirtualMachinePriorityTypesSpot),
-    }
+	return []string{
+		string(VirtualMachinePriorityTypesLow),
+		string(VirtualMachinePriorityTypesRegular),
+		string(VirtualMachinePriorityTypesSpot),
+	}
 }
 
 func PossibleValuesForOperatingSystemTypes() []string {
-    return []string{
-        string(OperatingSystemTypesLinux),
-        string(OperatingSystemTypesWindows),
-    }
+	return []string{
+		string(OperatingSystemTypesLinux),
+		string(OperatingSystemTypesWindows),
+	}
 }
