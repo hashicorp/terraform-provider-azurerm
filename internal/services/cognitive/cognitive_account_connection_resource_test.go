@@ -248,7 +248,7 @@ provider "azurerm" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "AAD"
+  authentication_type  = "AAD"
   category             = "AzureBlob"
   target               = azurerm_storage_account.test.primary_blob_endpoint
 
@@ -267,7 +267,7 @@ func (r CognitiveAccountConnectionResource) requiresImport(data acceptance.TestD
 resource "azurerm_cognitive_account_connection" "import" {
   name                 = azurerm_cognitive_account_connection.test.name
   cognitive_account_id = azurerm_cognitive_account_connection.test.cognitive_account_id
-  auth_type            = azurerm_cognitive_account_connection.test.auth_type
+  authentication_type  = azurerm_cognitive_account_connection.test.authentication_type
   category             = azurerm_cognitive_account_connection.test.category
   target               = azurerm_cognitive_account_connection.test.target
 
@@ -290,7 +290,7 @@ provider "azurerm" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ApiKey"
+  authentication_type  = "ApiKey"
   category             = "AzureOpenAI"
   target               = azurerm_cognitive_account.openai.endpoint
   api_key              = azurerm_cognitive_account.openai.primary_access_key
@@ -316,7 +316,7 @@ provider "azurerm" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "OAuth2"
+  authentication_type  = "OAuth2"
   category             = "AzureBlob"
   target               = azurerm_storage_account.test.primary_blob_endpoint
 
@@ -326,7 +326,7 @@ resource "azurerm_cognitive_account_connection" "test" {
   }
 
   oauth2 {
-    auth_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
+    authentication_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -349,7 +349,7 @@ resource "azurerm_storage_container" "test2" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[3]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "OAuth2"
+  authentication_type  = "OAuth2"
   category             = "AzureBlob"
   target               = azurerm_storage_account.test.primary_blob_endpoint
 
@@ -359,7 +359,7 @@ resource "azurerm_cognitive_account_connection" "test" {
   }
 
   oauth2 {
-    auth_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
+    authentication_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
   }
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
@@ -376,7 +376,7 @@ provider "azurerm" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "OAuth2"
+  authentication_type  = "OAuth2"
   category             = "AzureBlob"
   target               = azurerm_storage_account.test.primary_blob_endpoint
 
@@ -386,14 +386,14 @@ resource "azurerm_cognitive_account_connection" "test" {
   }
 
   oauth2 {
-    auth_url        = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
-    client_id       = "00000000-0000-0000-0000-000000000000"
-    client_secret   = "placeHolderClientSecret"
-    tenant_id       = "00000000-0000-0000-0000-000000000000"
-    developer_token = "placeHolderDevToken"
-    refresh_token   = "placeRefreshToken"
-    username        = "placeHolderUsername"
-    password        = "placeHolderPassword"
+    authentication_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/oauth2/v2.0/token"
+    client_id          = "00000000-0000-0000-0000-000000000000"
+    client_secret      = "placeHolderClientSecret"
+    tenant_id          = "00000000-0000-0000-0000-000000000000"
+    developer_token    = "placeHolderDevToken"
+    refresh_token      = "placeRefreshToken"
+    username           = "placeHolderUsername"
+    password           = "placeHolderPassword"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -410,7 +410,7 @@ provider "azurerm" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "CustomKeys"
+  authentication_type  = "CustomKeys"
   category             = "CustomKeys"
   target               = azurerm_cognitive_account.openai.endpoint
 
@@ -451,7 +451,7 @@ resource "azurerm_cognitive_account" "openai2" {
 resource "azurerm_cognitive_account_connection" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
-  auth_type            = "ApiKey"
+  authentication_type  = "ApiKey"
   category             = "AzureOpenAI"
   target               = azurerm_cognitive_account.openai2.endpoint
   api_key              = azurerm_cognitive_account.openai2.primary_access_key
