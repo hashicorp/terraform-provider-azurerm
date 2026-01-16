@@ -31,7 +31,7 @@ resource "azurerm_kubernetes_cluster" "example" {
 
   # Enable static egress gateway for the cluster
   network_profile {
-    network_plugin = "azure"
+    network_plugin                        = "azure"
     static_egress_gateway_profile_enabled = true
   }
 
@@ -54,7 +54,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "egress_gateway" {
   mode                  = "Gateway"
 
   # Configure the gateway profile with public IP prefix size
-  gateway_public_ip_prefix_size = 30  # Supports 28-31, defaults to 31
+  gateway_public_ip_prefix_size = 30 # Supports 28-31, defaults to 31
 
   tags = {
     Environment = "Demo"
