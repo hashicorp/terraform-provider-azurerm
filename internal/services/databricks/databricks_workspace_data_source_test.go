@@ -22,6 +22,7 @@ func TestAccDatabricksWorkspaceDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "compute_mode", regexp.MustCompile("Hybrid")),
 				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
@@ -38,6 +39,7 @@ func TestAccDatabricksWorkspaceDataSource_storageAccountIdentity(t *testing.T) {
 		{
 			Config: r.storageAccountIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "compute_mode", regexp.MustCompile("Hybrid")),
 				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
@@ -54,6 +56,7 @@ func TestAccDatabricksWorkspaceDataSource_enhancedComplianceSecurity(t *testing.
 		{
 			Config: r.enhancedSecurityCompliance(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "compute_mode", regexp.MustCompile("Hybrid")),
 				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
@@ -75,6 +78,7 @@ func TestAccDatabricksWorkspaceDataSource_customParameters(t *testing.T) {
 		{
 			Config: r.customProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "compute_mode", regexp.MustCompile("Hybrid")),
 				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
 				check.That(data.ResourceName).Key("workspace_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
