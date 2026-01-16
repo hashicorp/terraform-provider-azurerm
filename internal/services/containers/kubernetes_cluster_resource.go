@@ -3987,6 +3987,11 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 	advancedNetworking := flattenKubernetesClusterAdvancedNetworking(profile.AdvancedNetworking)
 
+	staticEgressGatewayProfileEnabled := false
+	if profile.StaticEgressGatewayProfile != nil {
+		staticEgressGatewayProfileEnabled = pointer.From(profile.StaticEgressGatewayProfile.Enabled)
+	}
+
 	result := map[string]interface{}{
 		"dns_service_ip":                        dnsServiceIP,
 		"network_data_plane":                    networkDataPlane,
@@ -4002,7 +4007,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		"pod_cidrs":                             utils.FlattenStringSlice(profile.PodCidrs),
 		"service_cidr":                          serviceCidr,
 		"service_cidrs":                         utils.FlattenStringSlice(profile.ServiceCidrs),
-		"static_egress_gateway_profile_enabled": pointer.From(profile.StaticEgressGatewayProfile.Enabled),
+		"static_egress_gateway_profile_enabled": staticEgressGatewayProfileEnabled,
 		"outbound_type":                         outboundType,
 		"advanced_networking":                   advancedNetworking,
 	}
