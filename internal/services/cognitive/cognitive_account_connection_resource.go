@@ -38,7 +38,7 @@ func (r CognitiveAccountConnectionResource) IDValidationFunc() pluginsdk.SchemaV
 
 type CognitiveAccountConnectionModel struct {
 	ApiKey             string            `tfschema:"api_key"`
-	AuthType           string            `tfschema:"auth_type"`
+	AuthenticationType string            `tfschema:"authentication_type"`
 	Category           string            `tfschema:"category"`
 	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
 	CustomKeys         map[string]string `tfschema:"custom_keys"`
@@ -49,14 +49,14 @@ type CognitiveAccountConnectionModel struct {
 }
 
 type OAuth2AuthModel struct {
-	AuthURL        string `tfschema:"auth_url"`
-	ClientId       string `tfschema:"client_id"`
-	ClientSecret   string `tfschema:"client_secret"`
-	DeveloperToken string `tfschema:"developer_token"`
-	Password       string `tfschema:"password"`
-	RefreshToken   string `tfschema:"refresh_token"`
-	TenantId       string `tfschema:"tenant_id"`
-	Username       string `tfschema:"username"`
+	AuthenticationURL string `tfschema:"authentication_url"`
+	ClientId          string `tfschema:"client_id"`
+	ClientSecret      string `tfschema:"client_secret"`
+	DeveloperToken    string `tfschema:"developer_token"`
+	Password          string `tfschema:"password"`
+	RefreshToken      string `tfschema:"refresh_token"`
+	TenantId          string `tfschema:"tenant_id"`
+	Username          string `tfschema:"username"`
 }
 
 func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Schema {
@@ -73,7 +73,7 @@ func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Sc
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&accountconnectionresource.AccountId{}),
 
-		"auth_type": {
+		"authentication_type": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			// From service team we only support these auth types for Nov 2025
@@ -134,7 +134,7 @@ func (r CognitiveAccountConnectionResource) Arguments() map[string]*pluginsdk.Sc
 			ConflictsWith: []string{"api_key", "custom_keys"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"auth_url": {
+					"authentication_url": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
@@ -214,9 +214,74 @@ func (r CognitiveAccountConnectionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties, err := expandConnectionProperties(model)
-			if err != nil {
-				return fmt.Errorf("expanding `properties`: %+v", err)
+			var properties accountconnectionresource.ConnectionPropertiesV2
+			switch authType := accountconnectionresource.ConnectionAuthType(model.AuthenticationType); authType {
+			case accountconnectionresource.ConnectionAuthTypeApiKey:
+				if model.ApiKey == "" {
+					return errors.New("when `authentication_type` is `ApiKey`, `api_key` must be specified")
+				}
+
+				properties = accountconnectionresource.ApiKeyAuthConnectionProperties{
+					AuthType: authType,
+					Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+					Metadata: pointer.To(model.Metadata),
+					Target:   pointer.To(model.Target),
+					Credentials: &accountconnectionresource.ConnectionApiKey{
+						Key: pointer.To(model.ApiKey),
+					},
+				}
+
+			case accountconnectionresource.ConnectionAuthTypeOAuthTwo:
+				if len(model.OAuth2) == 0 {
+					return errors.New("when `authentication_type` is `OAuth2`, `oauth2` block must be specified")
+				}
+
+				properties = accountconnectionresource.OAuth2AuthTypeConnectionProperties{
+					AuthType: authType,
+					Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+					Metadata: pointer.To(model.Metadata),
+					Target:   pointer.To(model.Target),
+					Credentials: &accountconnectionresource.ConnectionOAuth2{
+						AuthURL:        pointer.To(model.OAuth2[0].AuthenticationURL),
+						ClientId:       pointer.To(model.OAuth2[0].ClientId),
+						ClientSecret:   pointer.To(model.OAuth2[0].ClientSecret),
+						DeveloperToken: pointer.To(model.OAuth2[0].DeveloperToken),
+						Password:       pointer.To(model.OAuth2[0].Password),
+						RefreshToken:   pointer.To(model.OAuth2[0].RefreshToken),
+						TenantId:       pointer.To(model.OAuth2[0].TenantId),
+						Username:       pointer.To(model.OAuth2[0].Username),
+					},
+				}
+
+			case accountconnectionresource.ConnectionAuthTypeCustomKeys:
+				if len(model.CustomKeys) == 0 {
+					return errors.New("when `authentication_type` is `CustomKeys`, `custom_keys` must be specified")
+				}
+
+				properties = accountconnectionresource.CustomKeysConnectionProperties{
+					AuthType: authType,
+					Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+					Metadata: pointer.To(model.Metadata),
+					Target:   pointer.To(model.Target),
+					Credentials: &accountconnectionresource.CustomKeys{
+						Keys: &model.CustomKeys,
+					},
+				}
+
+			case accountconnectionresource.ConnectionAuthTypeAAD:
+				if model.ApiKey != "" || len(model.OAuth2) > 0 || len(model.CustomKeys) > 0 {
+					return errors.New("when `authentication_type` is `AAD`, no other auth configuration blocks should be specified")
+				}
+
+				properties = accountconnectionresource.AADAuthTypeConnectionProperties{
+					AuthType: authType,
+					Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
+					Metadata: pointer.To(model.Metadata),
+					Target:   pointer.To(model.Target),
+				}
+
+			default:
+				return fmt.Errorf("unsupported `authentication_type`: %q", model.AuthenticationType)
 			}
 
 			connection := accountconnectionresource.ConnectionPropertiesV2BasicResource{
@@ -268,12 +333,14 @@ func (r CognitiveAccountConnectionResource) Read() sdk.ResourceFunc {
 				props := model.Properties
 
 				base := props.ConnectionPropertiesV2()
-				state.AuthType = string(base.AuthType)
+				state.AuthenticationType = string(base.AuthType)
 				state.Category = pointer.FromEnum(base.Category)
 				state.Target = pointer.From(base.Target)
 				state.Metadata = map[string]string{}
 
-				// Only include metadata fields that were in the original config
+				// Only include metadata fields that were in the original config.
+				// The API returns additional metadata fields beyond what was configured (e.g., `ApiVersion`,
+				// `DeploymentApiVersion`), which would cause unwanted diffs.
 				if len(currentState.Metadata) > 0 {
 					apiMetadata := pointer.From(base.Metadata)
 
@@ -296,14 +363,14 @@ func (r CognitiveAccountConnectionResource) Read() sdk.ResourceFunc {
 				case accountconnectionresource.OAuth2AuthTypeConnectionProperties:
 					if len(currentState.OAuth2) > 0 {
 						state.OAuth2 = []OAuth2AuthModel{{
-							AuthURL:        currentState.OAuth2[0].AuthURL,
-							ClientId:       currentState.OAuth2[0].ClientId,
-							ClientSecret:   currentState.OAuth2[0].ClientSecret,
-							DeveloperToken: currentState.OAuth2[0].DeveloperToken,
-							Password:       currentState.OAuth2[0].Password,
-							RefreshToken:   currentState.OAuth2[0].RefreshToken,
-							TenantId:       currentState.OAuth2[0].TenantId,
-							Username:       currentState.OAuth2[0].Username,
+							AuthenticationURL: currentState.OAuth2[0].AuthenticationURL,
+							ClientId:          currentState.OAuth2[0].ClientId,
+							ClientSecret:      currentState.OAuth2[0].ClientSecret,
+							DeveloperToken:    currentState.OAuth2[0].DeveloperToken,
+							Password:          currentState.OAuth2[0].Password,
+							RefreshToken:      currentState.OAuth2[0].RefreshToken,
+							TenantId:          currentState.OAuth2[0].TenantId,
+							Username:          currentState.OAuth2[0].Username,
 						}}
 					}
 
@@ -333,9 +400,105 @@ func (r CognitiveAccountConnectionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			properties, err := expandConnectionPropertiesForUpdate(model, metadata.ResourceData)
-			if err != nil {
-				return fmt.Errorf("expanding `properties`: %+v", err)
+			d := metadata.ResourceData
+			var properties accountconnectionresource.ConnectionPropertiesV2
+			switch authType := accountconnectionresource.ConnectionAuthType(model.AuthenticationType); authType {
+			case accountconnectionresource.ConnectionAuthTypeApiKey:
+				props := accountconnectionresource.ApiKeyAuthConnectionProperties{
+					AuthType: authType,
+				}
+
+				if d.HasChange("api_key") {
+					if model.ApiKey == "" {
+						return errors.New("when `authentication_type` is `ApiKey`, `api_key` must be specified")
+					}
+					props.Credentials = &accountconnectionresource.ConnectionApiKey{
+						Key: pointer.To(model.ApiKey),
+					}
+				}
+
+				if d.HasChange("target") {
+					props.Target = pointer.To(model.Target)
+				}
+
+				if d.HasChange("metadata") {
+					props.Metadata = pointer.To(model.Metadata)
+				}
+
+				properties = props
+
+			case accountconnectionresource.ConnectionAuthTypeOAuthTwo:
+				props := accountconnectionresource.OAuth2AuthTypeConnectionProperties{
+					AuthType: authType,
+				}
+
+				if d.HasChange("oauth2") {
+					if len(model.OAuth2) == 0 {
+						return errors.New("when `authentication_type` is `OAuth2`, `oauth2` block must be specified")
+					}
+					props.Credentials = &accountconnectionresource.ConnectionOAuth2{
+						AuthURL:        pointer.To(model.OAuth2[0].AuthenticationURL),
+						ClientId:       pointer.To(model.OAuth2[0].ClientId),
+						ClientSecret:   pointer.To(model.OAuth2[0].ClientSecret),
+						DeveloperToken: pointer.To(model.OAuth2[0].DeveloperToken),
+						Password:       pointer.To(model.OAuth2[0].Password),
+						RefreshToken:   pointer.To(model.OAuth2[0].RefreshToken),
+						TenantId:       pointer.To(model.OAuth2[0].TenantId),
+						Username:       pointer.To(model.OAuth2[0].Username),
+					}
+				}
+
+				if d.HasChange("target") {
+					props.Target = pointer.To(model.Target)
+				}
+
+				if d.HasChange("metadata") {
+					props.Metadata = pointer.To(model.Metadata)
+				}
+
+				properties = props
+
+			case accountconnectionresource.ConnectionAuthTypeCustomKeys:
+				props := accountconnectionresource.CustomKeysConnectionProperties{
+					AuthType: authType,
+				}
+
+				if d.HasChange("custom_keys") {
+					if len(model.CustomKeys) == 0 {
+						return errors.New("when `authentication_type` is `CustomKeys`, `custom_keys` must be specified")
+					}
+					props.Credentials = &accountconnectionresource.CustomKeys{
+						Keys: &model.CustomKeys,
+					}
+				}
+
+				if d.HasChange("target") {
+					props.Target = pointer.To(model.Target)
+				}
+
+				if d.HasChange("metadata") {
+					props.Metadata = pointer.To(model.Metadata)
+				}
+
+				properties = props
+
+			case accountconnectionresource.ConnectionAuthTypeAAD:
+				props := accountconnectionresource.AADAuthTypeConnectionProperties{
+					AuthType: authType,
+				}
+
+				if d.HasChange("target") {
+					props.Target = pointer.To(model.Target)
+				}
+
+				if d.HasChange("metadata") {
+					props.Metadata = pointer.To(model.Metadata)
+				}
+
+				properties = props
+
+			default:
+				return fmt.Errorf("unsupported `authentication_type`: %q", model.AuthenticationType)
 			}
 
 			updateContent := accountconnectionresource.ConnectionUpdateContent{
@@ -368,178 +531,5 @@ func (r CognitiveAccountConnectionResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
-	}
-}
-
-func expandConnectionProperties(model CognitiveAccountConnectionModel) (accountconnectionresource.ConnectionPropertiesV2, error) {
-	switch authType := accountconnectionresource.ConnectionAuthType(model.AuthType); authType {
-	case accountconnectionresource.ConnectionAuthTypeApiKey:
-		if model.ApiKey == "" {
-			return nil, errors.New("when `auth_type` is `ApiKey`, `api_key` must be specified")
-		}
-
-		return accountconnectionresource.ApiKeyAuthConnectionProperties{
-			AuthType: authType,
-			Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-			Metadata: pointer.To(model.Metadata),
-			Target:   pointer.To(model.Target),
-			Credentials: &accountconnectionresource.ConnectionApiKey{
-				Key: pointer.To(model.ApiKey),
-			},
-		}, nil
-
-	case accountconnectionresource.ConnectionAuthTypeOAuthTwo:
-		if len(model.OAuth2) == 0 {
-			return nil, errors.New("when `auth_type` is `OAuth2`, `oauth2` block must be specified")
-		}
-
-		return accountconnectionresource.OAuth2AuthTypeConnectionProperties{
-			AuthType: authType,
-			Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-			Metadata: pointer.To(model.Metadata),
-			Target:   pointer.To(model.Target),
-			Credentials: &accountconnectionresource.ConnectionOAuth2{
-				AuthURL:        pointer.To(model.OAuth2[0].AuthURL),
-				ClientId:       pointer.To(model.OAuth2[0].ClientId),
-				ClientSecret:   pointer.To(model.OAuth2[0].ClientSecret),
-				DeveloperToken: pointer.To(model.OAuth2[0].DeveloperToken),
-				Password:       pointer.To(model.OAuth2[0].Password),
-				RefreshToken:   pointer.To(model.OAuth2[0].RefreshToken),
-				TenantId:       pointer.To(model.OAuth2[0].TenantId),
-				Username:       pointer.To(model.OAuth2[0].Username),
-			},
-		}, nil
-
-	case accountconnectionresource.ConnectionAuthTypeCustomKeys:
-		if len(model.CustomKeys) == 0 {
-			return nil, errors.New("when `auth_type` is `CustomKeys`, `custom_keys` must be specified")
-		}
-
-		return accountconnectionresource.CustomKeysConnectionProperties{
-			AuthType: authType,
-			Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-			Metadata: pointer.To(model.Metadata),
-			Target:   pointer.To(model.Target),
-			Credentials: &accountconnectionresource.CustomKeys{
-				Keys: &model.CustomKeys,
-			},
-		}, nil
-
-	case accountconnectionresource.ConnectionAuthTypeAAD:
-		if model.ApiKey != "" || len(model.OAuth2) > 0 || len(model.CustomKeys) > 0 {
-			return nil, errors.New("when `auth_type` is `AAD`, no other auth configuration blocks should be specified")
-		}
-
-		return accountconnectionresource.AADAuthTypeConnectionProperties{
-			AuthType: authType,
-			Category: pointer.ToEnum[accountconnectionresource.ConnectionCategory](model.Category),
-			Metadata: pointer.To(model.Metadata),
-			Target:   pointer.To(model.Target),
-		}, nil
-
-	default:
-		return nil, fmt.Errorf("unsupported `auth_type`: %q", model.AuthType)
-	}
-}
-
-func expandConnectionPropertiesForUpdate(model CognitiveAccountConnectionModel, d *pluginsdk.ResourceData) (accountconnectionresource.ConnectionPropertiesV2, error) {
-	// The auth_type will be used to decide which properties need updating, so we do not check hasChange for auth_type.
-	switch authType := accountconnectionresource.ConnectionAuthType(model.AuthType); authType {
-	case accountconnectionresource.ConnectionAuthTypeApiKey:
-		props := accountconnectionresource.ApiKeyAuthConnectionProperties{
-			AuthType: authType,
-		}
-
-		if d.HasChange("api_key") {
-			if model.ApiKey == "" {
-				return nil, errors.New("when `auth_type` is `ApiKey`, `api_key` must be specified")
-			}
-			props.Credentials = &accountconnectionresource.ConnectionApiKey{
-				Key: pointer.To(model.ApiKey),
-			}
-		}
-
-		if d.HasChange("target") {
-			props.Target = pointer.To(model.Target)
-		}
-
-		if d.HasChange("metadata") {
-			props.Metadata = pointer.To(model.Metadata)
-		}
-
-		return props, nil
-
-	case accountconnectionresource.ConnectionAuthTypeOAuthTwo:
-		props := accountconnectionresource.OAuth2AuthTypeConnectionProperties{
-			AuthType: authType,
-		}
-
-		if d.HasChange("oauth2") {
-			if len(model.OAuth2) == 0 {
-				return nil, errors.New("when `auth_type` is `OAuth2`, `oauth2` block must be specified")
-			}
-			props.Credentials = &accountconnectionresource.ConnectionOAuth2{
-				AuthURL:        pointer.To(model.OAuth2[0].AuthURL),
-				ClientId:       pointer.To(model.OAuth2[0].ClientId),
-				ClientSecret:   pointer.To(model.OAuth2[0].ClientSecret),
-				DeveloperToken: pointer.To(model.OAuth2[0].DeveloperToken),
-				Password:       pointer.To(model.OAuth2[0].Password),
-				RefreshToken:   pointer.To(model.OAuth2[0].RefreshToken),
-				TenantId:       pointer.To(model.OAuth2[0].TenantId),
-				Username:       pointer.To(model.OAuth2[0].Username),
-			}
-		}
-
-		if d.HasChange("target") {
-			props.Target = pointer.To(model.Target)
-		}
-
-		if d.HasChange("metadata") {
-			props.Metadata = pointer.To(model.Metadata)
-		}
-
-		return props, nil
-
-	case accountconnectionresource.ConnectionAuthTypeCustomKeys:
-		props := accountconnectionresource.CustomKeysConnectionProperties{
-			AuthType: authType,
-		}
-
-		if d.HasChange("custom_keys") {
-			if len(model.CustomKeys) == 0 {
-				return nil, errors.New("when `auth_type` is `CustomKeys`, `custom_keys` must be specified")
-			}
-			props.Credentials = &accountconnectionresource.CustomKeys{
-				Keys: &model.CustomKeys,
-			}
-		}
-
-		if d.HasChange("target") {
-			props.Target = pointer.To(model.Target)
-		}
-
-		if d.HasChange("metadata") {
-			props.Metadata = pointer.To(model.Metadata)
-		}
-
-		return props, nil
-
-	case accountconnectionresource.ConnectionAuthTypeAAD:
-		props := accountconnectionresource.AADAuthTypeConnectionProperties{
-			AuthType: authType,
-		}
-
-		if d.HasChange("target") {
-			props.Target = pointer.To(model.Target)
-		}
-
-		if d.HasChange("metadata") {
-			props.Metadata = pointer.To(model.Metadata)
-		}
-
-		return props, nil
-
-	default:
-		return nil, fmt.Errorf("unsupported `auth_type`: %q", model.AuthType)
 	}
 }

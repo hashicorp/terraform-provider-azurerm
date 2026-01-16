@@ -51,7 +51,7 @@ resource "azurerm_storage_container" "example" {
 resource "azurerm_cognitive_account_connection" "example" {
   name                 = "example-connection"
   cognitive_account_id = azurerm_cognitive_account.example.id
-  auth_type            = "AAD"
+  authentication_type  = "AAD"
   category             = "AzureBlob"
   target               = azurerm_storage_account.example.primary_blob_endpoint
 
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
 
-* `auth_type` - (Required) The authentication type for the connection. Possible values are `AAD`, `ApiKey`, `CustomKeys`, and `OAuth2`.
+* `authentication_type` - (Required) The authentication type for the connection. Possible values are `AAD`, `ApiKey`, `CustomKeys`, and `OAuth2`.
 
 * `category` - (Required) The category of the connection. Possible values are `ADLSGen2`, `AIServices`, `AmazonMws`, `AmazonRdsForOracle`, `AmazonRdsForSqlServer`, `AmazonRedshift`, `AmazonS3Compatible`, `ApiKey`, `AzureBlob`, `AzureDataExplorer`, `AzureDatabricksDeltaLake`, `AzureMariaDb`, `AzureMySqlDb`, `AzureOneLake`, `AzureOpenAI`, `AzurePostgresDb`, `AzureSqlDb`, `AzureSqlMi`, `AzureSynapseAnalytics`, `AzureTableStorage`, `BingLLMSearch`, `Cassandra`, `CognitiveSearch`, `CognitiveService`, `Concur`, `ContainerRegistry`, `CosmosDb`, `CosmosDbMongoDbApi`, `Couchbase`, `CustomKeys`, `Db2`, `Drill`, `Dynamics`, `DynamicsAx`, `DynamicsCrm`, `Elasticsearch`, `Eloqua`, `FileServer`, `FtpServer`, `GenericContainerRegistry`, `GenericHttp`, `GenericRest`, `Git`, `GoogleAdWords`, `GoogleBigQuery`, `GoogleCloudStorage`, `Greenplum`, `Hbase`, `Hdfs`, `Hive`, `Hubspot`, `Impala`, `Informix`, `Jira`, `Magento`, `ManagedOnlineEndpoint`, `MariaDb`, `Marketo`, `MicrosoftAccess`, `MongoDbAtlas`, `MongoDbV2`, `MySql`, `Netezza`, `ODataRest`, `Odbc`, `Office365`, `OpenAI`, `Oracle`, `OracleCloudStorage`, `OracleServiceCloud`, `PayPal`, `Phoenix`, `Pinecone`, `PostgreSql`, `Presto`, `PythonFeed`, `QuickBooks`, `Redis`, `Responsys`, `S3`, `Salesforce`, `SalesforceMarketingCloud`, `SalesforceServiceCloud`, `SapBw`, `SapCloudForCustomer`, `SapEcc`, `SapHana`, `SapOpenHub`, `SapTable`, `Serp`, `Serverless`, `ServiceNow`, `Sftp`, `SharePointOnlineList`, `Shopify`, `Snowflake`, `Spark`, `SqlServer`, `Square`, `Sybase`, `Teradata`, `Vertica`, `WebTable`, `Xero`, and `Zoho`. Changing this forces a new resource to be created.
 
@@ -80,21 +80,21 @@ The following arguments are supported:
 
 * `api_key` - (Optional) The API key for authentication. This field is sensitive.
 
-~> **Note:** `api_key` is required when `auth_type` is set to `ApiKey`. `api_key` cannot be set together with `oauth2` or `custom_keys`.
+~> **Note:** `api_key` is required when `authentication_type` is set to `ApiKey`. `api_key` cannot be set together with `oauth2` or `custom_keys`.
 
 * `custom_keys` - (Optional) A mapping of custom keys for authentication. All values in this map are sensitive.
 
-~> **Note:** `custom_keys` is required when `auth_type` is set to `CustomKeys`. `custom_keys` cannot be set together with `api_key` or `oauth2`.
+~> **Note:** `custom_keys` is required when `authentication_type` is set to `CustomKeys`. `custom_keys` cannot be set together with `api_key` or `oauth2`.
 
 * `oauth2` - (Optional) An `oauth2` block as defined below.
 
-~> **Note:** `oauth2` is required when `auth_type` is set to `OAuth2`. `oauth2` cannot be set together with `api_key` or `custom_keys`.
+~> **Note:** `oauth2` is required when `authentication_type` is set to `OAuth2`. `oauth2` cannot be set together with `api_key` or `custom_keys`.
 
 ---
 
 An `oauth2` block supports the following:
 
-* `auth_url` - (Required) The OAuth2 authorization URL.
+* `authentication_url` - (Required) The OAuth2 authorization URL.
 
 * `client_id` - (Optional) The OAuth2 client ID.
 
