@@ -96,7 +96,18 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return true
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old != ""
+				oldStr := old.(string)
+				newStr := new.(string)
+
+				if oldStr == "" {
+					return false
+				}
+
+				if oldStr == "azure" && newStr == "cilium" {
+					return false
+				}
+
+				return true
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
@@ -108,14 +119,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-				// Following scenarios are not supported as in-place update:
-				// * Updating from Cilium, Azure or Calico
-				// * Removing network policy if it has been set
-				//
-				// Omit network_policy does not uninstall the network policy, since it requires an explicit 'none' value.
-				// And an uninstallation of network policy engine is not GA yet.
-				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
-				return old.(string) != ""
+				// Azure supports in-place upgrade from Azure Network Policy Manager to Cilium
+				// Other transitions (Calico to any, removing policy, etc.) require cluster recreation
+				oldStr := old.(string)
+				newStr := new.(string)
+
+				if oldStr == "" {
+					return false
+				}
+
+				if oldStr == "azure" && newStr == "cilium" {
+					return false
+				}
+
+				return true
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				outboundType := d.Get("network_profile.0.outbound_type").(string)

@@ -36,8 +36,8 @@ func TestAccVirtualHubRoutingIntent_resourceIdentity(t *testing.T) {
 					customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_virtual_hub_routing_intent.test", tfjsonpath.New("virtual_hub_name"), tfjsonpath.New("virtual_hub_id")),
 				},
 			},
-			data.ImportBlockWithResourceIdentityStep(),
-			data.ImportBlockWithIDStep(),
+			data.ImportBlockWithResourceIdentityStep(false),
+			data.ImportBlockWithIDStep(false),
 		},
 	})
 }

@@ -308,7 +308,9 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 				d.Set("fqdn", dns.Fqdn)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

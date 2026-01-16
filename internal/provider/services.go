@@ -352,6 +352,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		mssql.Registration{},
 		network.Registration{},
 		privatedns.Registration{},
+		resource.Registration{},
 		storage.Registration{},
 	}
 
