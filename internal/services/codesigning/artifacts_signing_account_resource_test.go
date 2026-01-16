@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,23 +17,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type TrustedSigningAccountResource struct{}
+type ArtifactsSigningAccountResource struct{}
 
-func (a TrustedSigningAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (a ArtifactsSigningAccountResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := codesigningaccounts.ParseCodeSigningAccountID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.CodeSigning.DeprecatedClient.CodeSigningAccounts.Get(ctx, *id)
+	resp, err := client.CodeSigning.Client.CodeSigningAccounts.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
 
-func TestAccTrustedSigningAccount_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
-	r := TrustedSigningAccountResource{}
+func TestAccArtifactsSigningAccount_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, codesigning.ArtifactsSigningAccountResource{}.ResourceType(), "test")
+	r := ArtifactsSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -45,9 +45,9 @@ func TestAccTrustedSigningAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccTrustedSigningAccount_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
-	r := TrustedSigningAccountResource{}
+func TestAccArtifactsSigningAccount_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, codesigning.ArtifactsSigningAccountResource{}.ResourceType(), "test")
+	r := ArtifactsSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -73,9 +73,9 @@ func TestAccTrustedSigningAccount_update(t *testing.T) {
 	})
 }
 
-func TestAccTrustedSigningAccount_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
-	r := TrustedSigningAccountResource{}
+func TestAccArtifactsSigningAccount_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, codesigning.ArtifactsSigningAccountResource{}.ResourceType(), "test")
+	r := ArtifactsSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -87,11 +87,11 @@ func TestAccTrustedSigningAccount_complete(t *testing.T) {
 	})
 }
 
-func (a TrustedSigningAccountResource) basic(data acceptance.TestData) string {
+func (a ArtifactsSigningAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_trusted_signing_account" "test" {
+resource "azurerm_artifacts_signing_account" "test" {
   name                = "acctest-%[2]s"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -100,11 +100,11 @@ resource "azurerm_trusted_signing_account" "test" {
 `, a.template(data), data.RandomString, data.Locations.Primary)
 }
 
-func (a TrustedSigningAccountResource) complete(data acceptance.TestData) string {
+func (a ArtifactsSigningAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_trusted_signing_account" "test" {
+resource "azurerm_artifacts_signing_account" "test" {
   name                = "acctest-%[2]s"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -116,10 +116,14 @@ resource "azurerm_trusted_signing_account" "test" {
 `, a.template(data), data.RandomString, data.Locations.Primary)
 }
 
-func (a TrustedSigningAccountResource) template(data acceptance.TestData) string {
+func (a ArtifactsSigningAccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
+
+  resource_providers_to_register = [
+    "Microsoft.CodeSigning",
+  ]
 }
 
 resource "azurerm_resource_group" "test" {

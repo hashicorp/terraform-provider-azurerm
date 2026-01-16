@@ -10,6 +10,8 @@ description: |-
 
 Use this data source to access information about an existing Trusted Signing Account.
 
+~> **Note:** The `azurerm_trusted_signing_account` resource has been deprecated in favour of `azurerm_artifacts_signing_account` and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl

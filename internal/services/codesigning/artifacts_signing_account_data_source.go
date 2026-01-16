@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type TrustedSigningAccountDataSourceModel struct {
+type ArtifactsSigningAccountDataSourceModel struct {
 	Name              string            `tfschema:"name"`
 	Location          string            `tfschema:"location"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
@@ -28,17 +28,11 @@ type TrustedSigningAccountDataSourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type TrustedSigningAccountDataSource struct{}
+type ArtifactsSigningAccountDataSource struct{}
 
-var _ sdk.DataSource = TrustedSigningAccountDataSource{}
+var _ sdk.DataSource = ArtifactsSigningAccountDataSource{}
 
-var _ sdk.DataSourceWithDeprecationReplacedBy = TrustedSigningAccountDataSource{}
-
-func (d TrustedSigningAccountDataSource) DeprecatedInFavourOfDataSource() string {
-	return "azurerm_artifacts_signing_account"
-}
-
-func (d TrustedSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d ArtifactsSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -56,7 +50,7 @@ func (d TrustedSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (d TrustedSigningAccountDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d ArtifactsSigningAccountDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_uri": {
 			Type:     pluginsdk.TypeString,
@@ -74,23 +68,23 @@ func (d TrustedSigningAccountDataSource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (d TrustedSigningAccountDataSource) ModelObject() interface{} {
-	return &TrustedSigningAccountDataSourceModel{}
+func (d ArtifactsSigningAccountDataSource) ModelObject() interface{} {
+	return &ArtifactsSigningAccountDataSourceModel{}
 }
 
-func (d TrustedSigningAccountDataSource) ResourceType() string {
-	return "azurerm_trusted_signing_account"
+func (d ArtifactsSigningAccountDataSource) ResourceType() string {
+	return "azurerm_artifacts_signing_account"
 }
 
-func (d TrustedSigningAccountDataSource) Read() sdk.ResourceFunc {
+func (d ArtifactsSigningAccountDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.CodeSigning.DeprecatedClient.CodeSigningAccounts
+			client := metadata.Client.CodeSigning.Client.CodeSigningAccounts
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state TrustedSigningAccountDataSourceModel
+			var state ArtifactsSigningAccountDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

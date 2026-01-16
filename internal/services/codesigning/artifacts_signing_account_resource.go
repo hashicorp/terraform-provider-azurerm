@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type TrustedSigningAccountModel struct {
+type ArtifactsSigningAccountModel struct {
 	Name              string            `tfschema:"name"`
 	Location          string            `tfschema:"location"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
@@ -28,17 +28,11 @@ type TrustedSigningAccountModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type TrustedSigningAccountResource struct{}
+type ArtifactsSigningAccountResource struct{}
 
-var _ sdk.Resource = TrustedSigningAccountResource{}
+var _ sdk.Resource = ArtifactsSigningAccountResource{}
 
-var _ sdk.ResourceWithDeprecationReplacedBy = TrustedSigningAccountResource{}
-
-func (r TrustedSigningAccountResource) DeprecatedInFavourOfResource() string {
-	return `azurerm_artifacts_signing_account`
-}
-
-func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ArtifactsSigningAccountResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -69,7 +63,7 @@ func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (m TrustedSigningAccountResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ArtifactsSigningAccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_uri": {
 			Type:     pluginsdk.TypeString,
@@ -78,21 +72,21 @@ func (m TrustedSigningAccountResource) Attributes() map[string]*pluginsdk.Schema
 	}
 }
 
-func (m TrustedSigningAccountResource) ModelObject() interface{} {
-	return &TrustedSigningAccountModel{}
+func (r ArtifactsSigningAccountResource) ModelObject() interface{} {
+	return &ArtifactsSigningAccountModel{}
 }
 
-func (m TrustedSigningAccountResource) ResourceType() string {
-	return "azurerm_trusted_signing_account"
+func (r ArtifactsSigningAccountResource) ResourceType() string {
+	return "azurerm_artifacts_signing_account"
 }
 
-func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
+func (r ArtifactsSigningAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.CodeSigning.DeprecatedClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 
-			var model TrustedSigningAccountModel
+			var model ArtifactsSigningAccountModel
 			if err := meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -104,7 +98,7 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("retrieving %s: %v", id, err)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
+				return meta.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			req := codesigningaccounts.CodeSigningAccount{
@@ -129,11 +123,11 @@ func (m TrustedSigningAccountResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
+func (r ArtifactsSigningAccountResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.CodeSigning.DeprecatedClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
@@ -145,7 +139,7 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			output := TrustedSigningAccountModel{
+			output := ArtifactsSigningAccountModel{
 				Name:              id.CodeSigningAccountName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -167,16 +161,16 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
+func (r ArtifactsSigningAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.CodeSigning.DeprecatedClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			var model TrustedSigningAccountModel
+			var model ArtifactsSigningAccountModel
 			if err = meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -202,11 +196,11 @@ func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
+func (r ArtifactsSigningAccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.CodeSigning.DeprecatedClient.CodeSigningAccounts
+			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 
 			id, err := codesigningaccounts.ParseCodeSigningAccountID(meta.ResourceData.Id())
 			if err != nil {
@@ -223,6 +217,6 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (m TrustedSigningAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ArtifactsSigningAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return codesigningaccounts.ValidateCodeSigningAccountID
 }

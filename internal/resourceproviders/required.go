@@ -127,6 +127,7 @@ func All() ResourceProviders {
 		"Microsoft.PolicyInsights":          {},
 		"Microsoft.RecoveryServices":        {},
 		"Microsoft.Search":                  {},
+		"Microsoft.CodeSigning":             {},
 	})
 }
 
