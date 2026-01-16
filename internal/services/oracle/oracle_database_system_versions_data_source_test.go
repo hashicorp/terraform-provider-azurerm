@@ -10,7 +10,7 @@ import (
 
 type DatabaseVersionsDataSource struct{}
 
-func TestDbVersionsDataSource_basic(t *testing.T) {
+func TestDatabaseVersionsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}
 
@@ -25,15 +25,13 @@ func TestDbVersionsDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestDbVersionsDataSource_complete(t *testing.T) {
+func TestDatabaseVersionsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}
 
-	const testShape = "VM.Standard.x86"
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.complete(data, testShape),
+			Config: r.complete(data, "VM.Standard.x86"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.0.version").Exists(),
 				check.That(data.ResourceName).Key("versions.0.pluggable_database_supported").Exists(),
@@ -42,15 +40,13 @@ func TestDbVersionsDataSource_complete(t *testing.T) {
 	})
 }
 
-func TestDbVersionsDataSource_ShapeFamilyFilter(t *testing.T) {
+func TestDatabaseVersionsDataSource_ShapeFamilyFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}
 
-	const testFamily = "VIRTUALMACHINE"
-
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.shapeFamilyFilter(data, testFamily),
+			Config: r.shapeFamilyFilter(data, "VIRTUALMACHINE"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.0.version").Exists(),
 				check.That(data.ResourceName).Key("versions.0.pluggable_database_supported").Exists(),

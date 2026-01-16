@@ -13,12 +13,12 @@ Use this data source to access information about existing Oracle Database System
 ## Example Usage
 
 ```hcl
-data "azurerm_oracle_db_system_versions" "example" {
+data "azurerm_oracle_database_system_versions" "example" {
   location = "eastus"
 }
 
 output "id" {
-  value = data.azurerm_oracle_db_system_versions.example.id
+  value = data.azurerm_oracle_database_system_versions.example.id
 }
 ```
 
@@ -32,11 +32,11 @@ The following arguments are supported:
 
 * `database_software_image_supported` - (Optional) Whether to filter the results to the set of Oracle Database versions that are supported for the database software images.
 
-* `database_system_shape` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape. Possible value is `VM.Standard.x86`.
+* `database_system_shape` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape. The only possible value is `VM.Standard.x86`.
 
-* `shape_family` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape family. Possible values are  `EXADATA`, `EXADB_XS`, `SINGLENODE`, `VIRTUALMACHINE` 
+* `shape_family` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape family. Possible values are  `EXADATA`, `EXADB_XS`, `SINGLENODE` and `VIRTUALMACHINE`.
 
-* `storage_management` - (Optional) The DB system storage management option. Used to list database versions available for that storage manager. Possible value is `LVM`.
+* `storage_management` - (Optional) The DB system storage management option. Used to list database versions available for that storage manager. The only possible value is `LVM`.
 
 * `upgrade_supported` - (Optional) Whether to filter the results to the set of database versions which are supported for Upgrade.
 
@@ -52,7 +52,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `versions` block exports the following:
 
-* `name` - The name of Oracle Database version. 
+* `name` - The name of the Oracle Database version. 
 
 * `latest_version` - Indicates if this version of the Oracle Database software is the latest version for a release.
 
