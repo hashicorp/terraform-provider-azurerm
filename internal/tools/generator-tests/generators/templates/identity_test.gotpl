@@ -23,11 +23,20 @@ import (
 )
 
 {{- $resourceName := .ResourceName }}
+{{- if .TestSequential }}
+func testAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
+{{- else }}
 func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
+{{- end }}
 	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
 	r := {{ ToCamel $resourceName }}Resource{}
 
+
+{{ if .TestSequential }}
+	resource.Test(t, resource.TestCase{
+{{ else }}
 	resource.ParallelTest(t, resource.TestCase{
+{{ end -}}
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(version.Must(version.NewVersion("1.12.0-rc2"))),
 		},

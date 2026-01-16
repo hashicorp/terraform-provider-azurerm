@@ -34,6 +34,7 @@ type resourceIdentityData struct {
 	CompareValueMap        map[string]string
 	TestName               string
 	TestExpectNonEmptyPlan bool
+	TestSequential         bool
 }
 
 var _ cli.Command = &ResourceIdentityCommand{}
@@ -62,12 +63,20 @@ Optional args:
 		'test-name' specifies the test config name that will be used to test Resource Identity. Defaults to 'basic'.
 	- test-expect-non-empty [bool]
 		'test-expect-non-empty' indicates whether the test should expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import.
+	- test-sequential [bool]
+		'test-sequential' generates a lowercase test function name (testAcc... instead of TestAcc...) and uses resource.Test instead of resource.ParallelTest.
+		This is used for resources that need to run in a sequential test suite.	
 
 Example:
 generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "subscription_id:data.Subscriptions.Primary,kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
 
 Caveats and TODOs:
 Expects that the test resource type is already declared in the test package for the service. (e.g. type LinuxFunctionAppResource struct{})
+
+CAUTION: Do not implement Resource Identity for resources with numbers in their ID segment names (e.g., 'ServerGroupsv2Name')
+until the strcase.ToSnake() issue is resolved. The current implementation splits on number boundaries,
+converting 'ServerGroupsv2Name' to 'server_groupsv_2_name' (not 'server_groupsv2_name').
+This causes test failures and incorrect identity schema field names.
 `
 }
 
@@ -107,6 +116,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
+	argSet.BoolVar(&d.TestSequential, "test-sequential", false, "(Optional) generates a lowercase test function name for use in sequential test suites.")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
