@@ -15,8 +15,10 @@ import (
 	"golang.org/x/tools/go/ast/inspector"
 )
 
-const PointerPkgPath = "github.com/hashicorp/go-azure-helpers/lang/pointer"
-const azbp003Name = "AZBP003"
+const (
+	PointerPkgPath = "github.com/hashicorp/go-azure-helpers/lang/pointer"
+	azbp003Name    = "AZBP003"
+)
 
 const AZBP003Doc = `check enum conversion for go-azure-sdk
 

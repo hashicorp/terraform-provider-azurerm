@@ -209,7 +209,7 @@
 //
 // Reference: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-new-resource.md
 //
-// When git filter is enabled, it only validates on newly created files
+// # When git filter is enabled, it only validates on newly created files
 //
 // Required order:
 //  1. Special ID fields (name, resource_group_name in order)

@@ -47,8 +47,10 @@ const (
 	fieldTags              = "tags"
 )
 
-var aznr001SkipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
-var aznr001FileSuffix = []string{"_resource.go", "_data_source.go"}
+var (
+	aznr001SkipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
+	aznr001FileSuffix   = []string{"_resource.go", "_data_source.go"}
+)
 
 var AZNR001Analyzer = &analysis.Analyzer{
 	Name: aznr001Name,

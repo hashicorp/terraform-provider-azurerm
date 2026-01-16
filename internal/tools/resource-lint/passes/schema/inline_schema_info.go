@@ -64,8 +64,10 @@ var LocalAnalyzer = &analysis.Analyzer{
 	ResultType: reflect.TypeOf(LocalSchemaInfoList{}),
 }
 
-var skipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
-var skipFileSuffix = []string{"_test.go", "registration.go"}
+var (
+	skipPackages   = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
+	skipFileSuffix = []string{"_test.go", "registration.go"}
+)
 
 func runLocal(pass *analysis.Pass) (interface{}, error) {
 	var schemaInfoList LocalSchemaInfoList
