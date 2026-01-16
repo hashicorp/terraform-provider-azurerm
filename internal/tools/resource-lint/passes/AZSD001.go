@@ -4,6 +4,7 @@ import (
 	"go/ast"
 
 	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
@@ -47,11 +48,15 @@ var AZSD001Analyzer = &analysis.Analyzer{
 	Name:     azsd001Name,
 	Doc:      AZSD001Doc,
 	Run:      runAZSD001,
-	Requires: []*analysis.Analyzer{localschema.LocalAnalyzer},
+	Requires: []*analysis.Analyzer{localschema.LocalAnalyzer, commentignore.Analyzer},
 }
 
 func runAZSD001(pass *analysis.Pass) (interface{}, error) {
-	schemaInfoCache, ok := pass.ResultOf[localschema.LocalAnalyzer].(map[*ast.CompositeLit]*localschema.LocalSchemaInfoWithName)
+	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
+	if !ok {
+		return nil, nil
+	}
+	schemaInfoList, ok := pass.ResultOf[localschema.LocalAnalyzer].(localschema.LocalSchemaInfoList)
 	if !ok {
 		return nil, nil
 	}
@@ -64,8 +69,13 @@ func runAZSD001(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	// Iterate over cached schema infos
-	for schemaLit, cached := range schemaInfoCache {
+	for _, cached := range schemaInfoList {
 		schemaInfo := cached.Info
+		schemaLit := schemaInfo.AstCompositeLit
+
+		if ignorer.ShouldIgnore(azsd001Name, schemaLit) {
+			continue
+		}
 
 		// Check if MaxItems is 1
 		if schemaInfo.Schema.MaxItems != 1 {

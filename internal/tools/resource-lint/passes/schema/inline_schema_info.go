@@ -12,6 +12,9 @@ import (
 	"golang.org/x/tools/go/ast/inspector"
 )
 
+// LocalSchemaInfoList is the result type for LocalAnalyzer
+type LocalSchemaInfoList []*LocalSchemaInfoWithName
+
 const localAnalyzerName = "localschemainfo"
 
 const localAnalyzerDoc = `Gathers all inline schema definitions declared in the current package.
@@ -55,25 +58,25 @@ var LocalAnalyzer = &analysis.Analyzer{
 	Doc:        localAnalyzerDoc,
 	Run:        runLocal,
 	Requires:   []*analysis.Analyzer{inspect.Analyzer},
-	ResultType: reflect.TypeOf(map[*ast.CompositeLit]*LocalSchemaInfoWithName{}),
+	ResultType: reflect.TypeOf(LocalSchemaInfoList{}),
 }
 
 var skipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
 var skipFileSuffix = []string{"_test.go", "registration.go"}
 
 func runLocal(pass *analysis.Pass) (interface{}, error) {
-	schemaInfoMap := make(map[*ast.CompositeLit]*LocalSchemaInfoWithName)
+	var schemaInfoList LocalSchemaInfoList
 
 	pkgPath := pass.Pkg.Path()
 	for _, skip := range skipPackages {
 		if strings.Contains(pkgPath, skip) {
-			return schemaInfoMap, nil
+			return schemaInfoList, nil
 		}
 	}
 
 	inspector, ok := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	if !ok {
-		return schemaInfoMap, nil
+		return schemaInfoList, nil
 	}
 
 	skipSchemas := make(map[*ast.CompositeLit]bool)
@@ -146,10 +149,10 @@ func runLocal(pass *analysis.Pass) (interface{}, error) {
 
 				schemaInfo := schema.NewSchemaInfo(schemaLit, pass.TypesInfo)
 				if schemaInfo != nil {
-					schemaInfoMap[schemaLit] = &LocalSchemaInfoWithName{
+					schemaInfoList = append(schemaInfoList, &LocalSchemaInfoWithName{
 						Info:         schemaInfo,
 						PropertyName: propertyName,
-					}
+					})
 				}
 			}
 			return
@@ -164,15 +167,15 @@ func runLocal(pass *analysis.Pass) (interface{}, error) {
 
 			schemaInfo := schema.NewSchemaInfo(comp, pass.TypesInfo)
 			if schemaInfo != nil {
-				schemaInfoMap[comp] = &LocalSchemaInfoWithName{
+				schemaInfoList = append(schemaInfoList, &LocalSchemaInfoWithName{
 					Info:         schemaInfo,
 					PropertyName: "",
-				}
+				})
 			}
 		}
 	})
 
-	return schemaInfoMap, nil
+	return schemaInfoList, nil
 }
 
 // shouldProcessFile checks if a file should be processed based on filters

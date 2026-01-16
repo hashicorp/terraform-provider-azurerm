@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
@@ -50,7 +51,11 @@ var AZNR001Analyzer = &analysis.Analyzer{
 	Name:     aznr001Name,
 	Doc:      AZNR001Doc,
 	Run:      runAZNR001,
-	Requires: []*analysis.Analyzer{inspect.Analyzer, schema.CompleteSchemaAnalyzer},
+	Requires: []*analysis.Analyzer{
+		inspect.Analyzer,
+		schema.CompleteSchemaAnalyzer,
+		commentignore.Analyzer,
+	},
 }
 
 func runAZNR001(pass *analysis.Pass) (interface{}, error) {
@@ -62,6 +67,10 @@ func runAZNR001(pass *analysis.Pass) (interface{}, error) {
 		}
 	}
 
+	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
+	if !ok {
+		return nil, nil
+	}
 	inspector, ok := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	if !ok {
 		return nil, nil
@@ -75,6 +84,10 @@ func runAZNR001(pass *analysis.Pass) (interface{}, error) {
 	inspector.Preorder(nodeFilter, func(n ast.Node) {
 		comp, ok := n.(*ast.CompositeLit)
 		if !ok {
+			return
+		}
+
+		if ignorer.ShouldIgnore(aznr001Name, comp) {
 			return
 		}
 

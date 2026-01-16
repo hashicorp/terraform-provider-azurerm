@@ -1,9 +1,9 @@
 package passes
 
 import (
-	"go/ast"
 	"strings"
 
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
@@ -26,20 +26,32 @@ Valid usage:
 const azrn001Name = "AZRN001"
 
 var AZRN001Analyzer = &analysis.Analyzer{
-	Name:     azrn001Name,
-	Doc:      AZRN001Doc,
-	Run:      runAZRN001,
-	Requires: []*analysis.Analyzer{localschema.LocalAnalyzer},
+	Name: azrn001Name,
+	Doc:  AZRN001Doc,
+	Run:  runAZRN001,
+	Requires: []*analysis.Analyzer{
+		localschema.LocalAnalyzer,
+		commentignore.Analyzer,
+	},
 }
 
 func runAZRN001(pass *analysis.Pass) (interface{}, error) {
-	schemaInfoCache, ok := pass.ResultOf[localschema.LocalAnalyzer].(map[*ast.CompositeLit]*localschema.LocalSchemaInfoWithName)
+	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
+	if !ok {
+		return nil, nil
+	}
+	schemaInfoList, ok := pass.ResultOf[localschema.LocalAnalyzer].(localschema.LocalSchemaInfoList)
 	if !ok {
 		return nil, nil
 	}
 
-	for schemaLit, cached := range schemaInfoCache {
+	for _, cached := range schemaInfoList {
+		schemaLit := cached.Info.AstCompositeLit
 		fieldName := cached.PropertyName
+
+		if ignorer.ShouldIgnore(azrn001Name, schemaLit) {
+			continue
+		}
 
 		// Check if field name contains "_in_percent"
 		if strings.Contains(fieldName, "_in_percent") {

@@ -1,9 +1,8 @@
 package passes
 
 import (
-	"go/ast"
-
 	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
@@ -40,17 +39,27 @@ var AZBP001Analyzer = &analysis.Analyzer{
 	Name:     azbp001Name,
 	Doc:      AZBP001Doc,
 	Run:      runAZBP001,
-	Requires: []*analysis.Analyzer{localschema.LocalAnalyzer},
+	Requires: []*analysis.Analyzer{localschema.LocalAnalyzer, commentignore.Analyzer},
 }
 
 func runAZBP001(pass *analysis.Pass) (interface{}, error) {
-	schemaInfoCache, ok := pass.ResultOf[localschema.LocalAnalyzer].(map[*ast.CompositeLit]*localschema.LocalSchemaInfoWithName)
+	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
 	if !ok {
 		return nil, nil
 	}
 
-	for schemaLit, cached := range schemaInfoCache {
+	schemaInfoList, ok := pass.ResultOf[localschema.LocalAnalyzer].(localschema.LocalSchemaInfoList)
+	if !ok {
+		return nil, nil
+	}
+
+	for _, cached := range schemaInfoList {
 		schemaInfo := cached.Info
+		schemaLit := schemaInfo.AstCompositeLit
+
+		if ignorer.ShouldIgnore(azbp001Name, schemaInfo.AstCompositeLit) {
+			continue
+		}
 
 		// Type check: only check String fields
 		if !schemaInfo.IsType(schema.SchemaValueTypeString) {

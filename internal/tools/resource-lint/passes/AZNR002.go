@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/bflad/tfproviderlint/helper/astutils"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
@@ -67,7 +68,10 @@ var AZNR002Analyzer = &analysis.Analyzer{
 	Name:     aznr002Name,
 	Doc:      AZNR002Doc,
 	Run:      runAZNR002,
-	Requires: []*analysis.Analyzer{schema.TypedResourceInfoAnalyzer},
+	Requires: []*analysis.Analyzer{
+		schema.TypedResourceInfoAnalyzer,
+		commentignore.Analyzer,
+	},
 }
 
 func runAZNR002(pass *analysis.Pass) (interface{}, error) {
@@ -78,6 +82,10 @@ func runAZNR002(pass *analysis.Pass) (interface{}, error) {
 		}
 	}
 
+	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
+	if !ok {
+		return nil, nil
+	}
 	allTypedResources, ok := pass.ResultOf[schema.TypedResourceInfoAnalyzer].([]*helper.TypedResourceInfo)
 	if !ok {
 		return nil, nil
@@ -102,7 +110,7 @@ func runAZNR002(pass *analysis.Pass) (interface{}, error) {
 		}
 
 		handledProps := findHandledPropertiesInUpdate(pass, resource)
-		reportMissingProperties(pass, resource, updatableProps, handledProps)
+		reportMissingProperties(pass, ignorer, resource, updatableProps, handledProps)
 	}
 
 	return nil, nil
@@ -270,7 +278,7 @@ func traceResourceDataCalls(body *ast.BlockStmt, resource *helper.TypedResourceI
 }
 
 // reportMissingProperties reports properties that are updatable but not handled
-func reportMissingProperties(pass *analysis.Pass, resource *helper.TypedResourceInfo, updatableProps map[string]string, handledProps map[string]bool) {
+func reportMissingProperties(pass *analysis.Pass, ignorer *commentignore.Ignorer, resource *helper.TypedResourceInfo, updatableProps map[string]string, handledProps map[string]bool) {
 	var missingProps []string
 	for tfSchemaName := range updatableProps {
 		if !handledProps[tfSchemaName] {
@@ -300,6 +308,10 @@ func reportMissingProperties(pass *analysis.Pass, resource *helper.TypedResource
 			}
 		}
 		if fieldInfo == nil {
+			continue
+		}
+
+		if ignorer.ShouldIgnore(aznr002Name, fieldInfo.SchemaInfo.AstCompositeLit) {
 			continue
 		}
 

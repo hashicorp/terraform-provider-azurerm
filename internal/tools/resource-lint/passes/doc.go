@@ -214,4 +214,44 @@
 //  3. Required fields (sorted alphabetically for nested schemas)
 //  4. Optional fields (sorted alphabetically)
 //  5. Computed fields (sorted alphabetically)
+//
+// # AZNR002 - Update Function Property Handling
+//
+// Reports when updatable properties (not marked as ForceNew) are not properly handled
+// in the Update function for typed resources. This ensures that all properties that can
+// be updated are explicitly checked for changes.
+//
+// Reference: https://github.com/hashicorp/terraform-provider-azurerm/blob/main/contributing/topics/guide-new-resource.md
+//
+// Flagged:
+//
+//	// In Arguments()
+//	"display_name": {
+//	    Type:     pluginsdk.TypeString,
+//	    Required: true,
+//	    // No ForceNew - this is updatable
+//	}
+//
+//	// In Update() - missing HasChange check
+//	func (r Resource) Update() sdk.ResourceFunc {
+//	    return sdk.ResourceFunc{
+//	        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+//	            // Missing: if metadata.ResourceData.HasChange("display_name") { ... }
+//	            return nil
+//	        },
+//	    }
+//	}
+//
+// Correct:
+//
+//	func (r Resource) Update() sdk.ResourceFunc {
+//	    return sdk.ResourceFunc{
+//	        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+//	            if metadata.ResourceData.HasChange("display_name") {
+//	                props.DisplayName = pointer.To(config.DisplayName)
+//	            }
+//	            return nil
+//	        },
+//	    }
+//	}
 package passes

@@ -4,6 +4,7 @@ import (
 	"go/ast"
 
 	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
+	"github.com/bflad/tfproviderlint/passes/commentignore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
 	localschema "github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/passes/schema"
@@ -60,20 +61,38 @@ Valid usage:
 const azsd002Name = "AZSD002"
 
 var AZSD002Analyzer = &analysis.Analyzer{
-	Name:     azsd002Name,
-	Doc:      AZSD002Doc,
-	Run:      runAZSD002,
-	Requires: []*analysis.Analyzer{localschema.LocalAnalyzer},
+	Name: azsd002Name,
+	Doc:  AZSD002Doc,
+	Run:  runAZSD002,
+	Requires: []*analysis.Analyzer{
+		localschema.LocalAnalyzer,
+		commentignore.Analyzer,
+	},
 }
 
 func runAZSD002(pass *analysis.Pass) (interface{}, error) {
-	schemaInfoCache, ok := pass.ResultOf[localschema.LocalAnalyzer].(map[*ast.CompositeLit]*localschema.LocalSchemaInfoWithName)
+	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
+	if !ok {
+		return nil, nil
+	}
+	schemaInfoList, ok := pass.ResultOf[localschema.LocalAnalyzer].(localschema.LocalSchemaInfoList)
 	if !ok {
 		return nil, nil
 	}
 
-	for schemaLit, cached := range schemaInfoCache {
+	// Build a lookup map for nested schema lookups
+	schemaInfoByLit := make(map[*ast.CompositeLit]*localschema.LocalSchemaInfoWithName)
+	for _, cached := range schemaInfoList {
+		schemaInfoByLit[cached.Info.AstCompositeLit] = cached
+	}
+
+	for _, cached := range schemaInfoList {
 		schemaInfo := cached.Info
+		schemaLit := schemaInfo.AstCompositeLit
+
+		if ignorer.ShouldIgnore(azsd002Name, schemaLit) {
+			continue
+		}
 
 		// Skip Computed fields
 		if cached.Info.Schema.Computed {
@@ -118,7 +137,7 @@ func runAZSD002(pass *analysis.Pass) (interface{}, error) {
 				continue
 			}
 
-			nestedCached, exists := schemaInfoCache[nestedSchemaLit]
+			nestedCached, exists := schemaInfoByLit[nestedSchemaLit]
 			if !exists {
 				continue
 			}
