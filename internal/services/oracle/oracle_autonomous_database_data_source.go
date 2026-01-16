@@ -37,11 +37,13 @@ type AutonomousDatabaseRegularDataModel struct {
 	CharacterSet                            string                          `tfschema:"character_set"`
 	ComputeCount                            float64                         `tfschema:"compute_count"`
 	CpuCoreCount                            int64                           `tfschema:"cpu_core_count"`
+	DatabaseEdition                         string                          `tfschema:"database_edition"`
 	DataStorageSizeInGbs                    int64                           `tfschema:"data_storage_size_in_gbs"`
 	DataStorageSizeInTbs                    int64                           `tfschema:"data_storage_size_in_tbs"`
 	DbVersion                               string                          `tfschema:"db_version"`
 	DisplayName                             string                          `tfschema:"display_name"`
 	FailedDataRecoveryInSeconds             int64                           `tfschema:"failed_data_recovery_in_seconds"`
+	LicenseModel                            string                          `tfschema:"license_model"`
 	LifecycleDetails                        string                          `tfschema:"lifecycle_details"`
 	LocalAdgAutoFailoverMaxDataLossLimit    int64                           `tfschema:"local_adg_auto_failover_max_data_loss_limit"`
 	LocalDataGuardEnabled                   bool                            `tfschema:"local_data_guard_enabled"`
@@ -160,6 +162,11 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
+		"database_edition": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"data_storage_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -192,6 +199,11 @@ func (d AutonomousDatabaseRegularDataSource) Attributes() map[string]*pluginsdk.
 
 		"in_memory_area_in_gbs": {
 			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"license_model": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
@@ -471,11 +483,13 @@ func (d AutonomousDatabaseRegularDataSource) Read() sdk.ResourceFunc {
 					state.CharacterSet = pointer.From(adbsProps.CharacterSet)
 					state.ComputeCount = pointer.From(adbsProps.ComputeCount)
 					state.CpuCoreCount = pointer.From(adbsProps.CpuCoreCount)
+					state.DatabaseEdition = pointer.FromEnum(adbsProps.DatabaseEdition)
 					state.DataStorageSizeInGbs = pointer.From(adbsProps.DataStorageSizeInGbs)
 					state.DataStorageSizeInTbs = pointer.From(adbsProps.DataStorageSizeInTbs)
 					state.DbVersion = pointer.From(adbsProps.DbVersion)
 					state.DisplayName = pointer.From(adbsProps.DisplayName)
 					state.FailedDataRecoveryInSeconds = pointer.From(adbsProps.FailedDataRecoveryInSeconds)
+					state.LicenseModel = pointer.FromEnum(adbsProps.LicenseModel)
 					state.LifecycleDetails = pointer.From(adbsProps.LifecycleDetails)
 					state.LocalAdgAutoFailoverMaxDataLossLimit = pointer.From(adbsProps.LocalAdgAutoFailoverMaxDataLossLimit)
 					state.LocalDataGuardEnabled = pointer.From(adbsProps.IsLocalDataGuardEnabled)

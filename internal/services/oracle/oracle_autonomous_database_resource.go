@@ -51,6 +51,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	AllowedIps                   []string                        `tfschema:"allowed_ips"`
 
 	// Optional
+	DatabaseEdition  string   `tfschema:"database_edition"`
 	CustomerContacts []string `tfschema:"customer_contacts"`
 }
 
@@ -101,6 +102,13 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validate.AdbsComputeModel,
 		},
 
+		"database_edition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDatabaseEditionType(), false),
+		},
+
 		"data_storage_size_in_tbs": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
@@ -139,13 +147,10 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.LicenseModelLicenseIncluded),
-				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForLicenseModel(), false),
 		},
 
 		"long_term_backup_schedule": {
@@ -281,6 +286,10 @@ func (r AutonomousDatabaseRegularResource) Create() sdk.ResourceFunc {
 				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+			}
+
+			if model.DatabaseEdition != "" {
+				properties.DatabaseEdition = pointer.To(autonomousdatabases.DatabaseEditionType(model.DatabaseEdition))
 			}
 
 			if len(model.CustomerContacts) > 0 {
@@ -457,6 +466,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
+				state.DatabaseEdition = pointer.FromEnum(props.DatabaseEdition)
 				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DbVersion = pointer.From(props.DbVersion)

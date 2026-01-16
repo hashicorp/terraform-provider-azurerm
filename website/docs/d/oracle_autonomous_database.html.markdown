@@ -53,6 +53,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
 
+* `database_edition` - The Oracle Database Edition that applies to the Autonomous databases.
+
 * `data_storage_size_in_gbs` - The quantity of data in the database, in gigabytes.
 
 * `data_storage_size_in_tbs` - The maximum storage that can be allocated for the database, in terabytes.
@@ -66,6 +68,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `failed_data_recovery_in_seconds` - Indicates the number of seconds of data loss for a Data Guard failover.
 
 * `in_memory_area_in_gbs` - The area assigned to In-Memory tables in Autonomous Database.
+
+* `license_model` - The Oracle license model that applied to the Oracle Autonomous Database.
 
 * `auto_scaling_enabled` - Indicates if auto scaling is enabled for the Autonomous Database CPU core count.
 
