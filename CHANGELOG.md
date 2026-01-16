@@ -2,6 +2,7 @@
 
 
 ENHANCEMENTS:
+`azurerm_network_manager_routing_configuration` - support for the `route_table_usage_mode` property [GH-31463]
 * dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` [GH-31397]
 * `data.azurerm_container_registry` - `admin_password` is now sensitive [GH-31428]
 * `azurerm_arc_kubernetes_provisioned_cluster` - support for Terraform Resource Identity [GH-31453]
