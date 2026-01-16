@@ -5,6 +5,7 @@ package cdn_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,6 +18,7 @@ type CdnFrontDoorCustomDomainDataSource struct{}
 func TestAccCdnFrontDoorCustomDomainDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_custom_domain", "test")
 	d := CdnFrontDoorCustomDomainDataSource{}
+	d.preCheck(t)
 
 	checks := []acceptance.TestCheckFunc{
 		check.That(data.ResourceName).Key("dns_zone_id").Exists(),
@@ -44,6 +46,7 @@ func TestAccCdnFrontDoorCustomDomainDataSource_basic(t *testing.T) {
 func TestAccCdnFrontDoorCustomDomainDataSource_cipherSuite_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_custom_domain", "test")
 	d := CdnFrontDoorCustomDomainDataSource{}
+	d.preCheck(t)
 
 	checks := []acceptance.TestCheckFunc{
 		check.That(data.ResourceName).Key("dns_zone_id").Exists(),
@@ -90,4 +93,13 @@ data "azurerm_cdn_frontdoor_custom_domain" "test" {
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
 `, CdnFrontDoorCustomDomainResource{}.cipherSuitesMixedWithTls12MinMultiple(data))
+}
+
+func (CdnFrontDoorCustomDomainDataSource) preCheck(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+	}
+	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+	}
 }

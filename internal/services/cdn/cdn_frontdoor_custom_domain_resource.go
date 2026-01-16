@@ -255,11 +255,50 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	props.Properties.TlsSettings = tlsSettings
 
-	if err := client.CreateThenPoll(ctx, id, props); err != nil {
+	// NOTE: Azure Front Door custom domains that use Managed Certificates require a DNS TXT record
+	// ("_dnsauth.<subdomain>") for domain ownership validation. The service may keep the long-running
+	// Create operation pending until validation succeeds, which prevents Terraform from returning the
+	// `validation_token` needed to create that TXT record.
+	//
+	// To avoid deadlock, we issue the Create request but do not wait for the long-running operation
+	// to reach a terminal state. Instead, we wait only until the resource becomes readable and a
+	// validation token is available.
+	if _, err := client.Create(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	readinessTimeout := 10 * time.Minute
+	if deadline, ok := ctx.Deadline(); ok {
+		if until := time.Until(deadline); until > 0 && until < readinessTimeout {
+			readinessTimeout = until
+		}
+	}
+
+	if err := pluginsdk.Retry(readinessTimeout, func() *pluginsdk.RetryError {
+		getResp, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(getResp.HttpResponse) {
+				return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to become available", id))
+			}
+			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s while waiting for validation token: %+v", id, err))
+		}
+
+		if model := getResp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if v := props.ValidationProperties; v != nil {
+					if v.ValidationToken != nil && *v.ValidationToken != "" {
+						return nil
+					}
+				}
+			}
+		}
+
+		return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to return a validation token", id))
+	}); err != nil {
+		return fmt.Errorf("waiting for %s validation token: %+v", id, err)
+	}
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
