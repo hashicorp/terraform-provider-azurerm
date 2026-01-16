@@ -26,7 +26,7 @@ Arguments in the documentation are expected to be ordered as follows:
 3. Required arguments, sorted alphabetically.
 4. Optional arguments, sorted alphabetically, with the exception of `tags`, which must always be documented last.
 
--> **Note:** This ordering applies to both `typed` and `untyped` implementations. Even when typed resources or data sources surface computed or optional fields via `Attributes()`/`model` structs, the published documentation must still follow the sequence described above.
+> **Note:** This ordering applies to both `typed` and `untyped` implementations. Even when typed resources or data sources surface computed or optional fields via `Attributes()`/`model` structs, the published documentation must still follow the sequence described above.
 
 ### Descriptions
 
@@ -156,7 +156,7 @@ For example, extra information on the supported values for an argument, possibly
 ```markdown
 * `type` - (Required) The type. Possible values include `This`, `That`, and `Other`.
 
--> **Note:** More information on each of the supported types can be found in [type documentation](link-to-additional-info)
+> **Note:** More information on each of the supported types can be found in [type documentation](link-to-additional-info)
 ```
 
 ### Warning Note
