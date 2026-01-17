@@ -1,4 +1,4 @@
-TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples')
+TEST?=$$(go list ./... |grep -v 'vendor'|grep -v 'examples'|grep -v 'internal/tools/resource-lint')
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 TESTTIMEOUT=180m
 
@@ -153,6 +153,12 @@ schemagen:
 
 resource-counts:
 	go test -v ./internal/provider -run=TestProvider_counts
+
+resource-lint:
+	@echo "==> Installing resource-lint..."
+	@cd internal/tools/resource-lint && go install .
+	@echo "==> Running resource linter..."
+	@resource-lint $(RESOURCE_LINT_ARGS)
 
 pr-check: generate build test lint tflint website-lint
 
