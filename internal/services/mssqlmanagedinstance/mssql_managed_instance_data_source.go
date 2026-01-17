@@ -28,6 +28,7 @@ type MsSqlManagedInstanceDataSourceModel struct {
 	DnsZonePartnerId          string                              `tfschema:"dns_zone_partner_id"`
 	Fqdn                      string                              `tfschema:"fqdn"`
 	Identity                  []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	IsGeneralPurposeV2        bool                                `tfschema:"is_general_purpose_v2"`
 	LicenseType               string                              `tfschema:"license_type"`
 	Location                  string                              `tfschema:"location"`
 	MinimumTlsVersion         string                              `tfschema:"minimum_tls_version"`
@@ -101,6 +102,11 @@ func (d MsSqlManagedInstanceDataSource) Attributes() map[string]*pluginsdk.Schem
 		},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
+
+		"is_general_purpose_v2": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
 
 		"license_type": {
 			Type:     schema.TypeString,
@@ -214,6 +220,7 @@ func (d MsSqlManagedInstanceDataSource) Read() sdk.ResourceFunc {
 				model.SubnetId = pointer.From(props.SubnetId)
 				model.TimezoneId = pointer.From(props.TimezoneId)
 				model.VCores = pointer.From(props.VCores)
+				model.IsGeneralPurposeV2 = pointer.From(props.IsGeneralPurposeV2)
 			}
 
 			metadata.SetID(id)
