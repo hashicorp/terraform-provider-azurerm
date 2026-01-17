@@ -11,6 +11,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnFrontDoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
@@ -69,6 +70,16 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 							ForceNew: true,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
+									"key_vault_id": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: commonids.ValidateKeyVaultID,
+										DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+											return new == ""
+										},
+									},
+
 									"key_vault_certificate_id": {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
@@ -243,6 +254,9 @@ func flattenSecretParametersResource(ctx context.Context, input cdn.BasicSecretP
 		return nil, fmt.Errorf("unable to parse the 'Secret Source' field of the 'Customer Certificate', got %q", *customerCertificate.SecretSource.ID)
 	}
 
+	keyVaultId := commonids.NewKeyVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
+	fields["key_vault_id"] = keyVaultId.ID()
+
 	if customerCertificate.UseLatestVersion != nil {
 		// The API always sends back the version...
 		var certificateVersion string
@@ -256,7 +270,6 @@ func flattenSecretParametersResource(ctx context.Context, input cdn.BasicSecretP
 			useLatest = *customerCertificate.UseLatestVersion
 		}
 
-		keyVaultId := commonids.NewKeyVaultID(secretSourceId.SubscriptionId, secretSourceId.ResourceGroup, secretSourceId.VaultName)
 		keyVaultBaseUri, err := client.BaseUriForKeyVault(ctx, keyVaultId)
 		if err != nil {
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
