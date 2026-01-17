@@ -187,13 +187,16 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                              = "a-dg-%[2]d"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  api_key_enabled                   = true
-  deterministic_outbound_ip_enabled = true
-  public_network_access_enabled     = false
-  grafana_major_version             = "11"
+  name                                         = "a-dg-%[2]d"
+  resource_group_name                          = azurerm_resource_group.test.name
+  location                                     = azurerm_resource_group.test.location
+  api_key_enabled                              = true
+  csrf_always_check                            = true
+  deterministic_outbound_ip_enabled            = true
+  public_network_access_enabled                = false
+  snapshot_external_enabled                    = true
+  unified_alerting_screenshots_capture_enabled = true
+  grafana_major_version                        = "11"
   smtp {
     enabled          = true
     host             = "localhost:25"
@@ -202,6 +205,11 @@ resource "azurerm_dashboard_grafana" "test" {
     from_address     = "admin@grafana.localhost"
     from_name        = "Grafana"
     start_tls_policy = "OpportunisticStartTLS"
+  }
+
+  users {
+    editors_can_admin = true
+    viewers_can_edit  = true
   }
 
   identity {
@@ -232,10 +240,13 @@ resource "azurerm_monitor_workspace" "test2" {
 }
 
 resource "azurerm_dashboard_grafana" "test" {
-  name                  = "a-dg-%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  grafana_major_version = "11"
+  name                                         = "a-dg-%d"
+  resource_group_name                          = azurerm_resource_group.test.name
+  location                                     = azurerm_resource_group.test.location
+  csrf_always_check                            = true
+  snapshot_external_enabled                    = true
+  unified_alerting_screenshots_capture_enabled = true
+  grafana_major_version                        = "11"
 
   identity {
     type = "SystemAssigned"
@@ -257,6 +268,11 @@ resource "azurerm_dashboard_grafana" "test" {
     from_address     = "admin@grafana.localhost"
     from_name        = "Grafana"
     start_tls_policy = "OpportunisticStartTLS"
+  }
+
+  users {
+    editors_can_admin = false
+    viewers_can_edit  = true
   }
 
   tags = {
