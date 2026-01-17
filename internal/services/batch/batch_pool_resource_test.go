@@ -734,6 +734,19 @@ func TestAccBatchPool_securityProfileWithUEFISettings(t *testing.T) {
 	})
 }
 
+func TestAccBatchPool_securityProfileWithConfidentialVM(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
+	r := BatchPoolResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityProfileWithConfidentialVM(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccBatchPool_linuxUserAccounts(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
@@ -2672,4 +2685,58 @@ resource "azurerm_batch_pool" "test" {
   }
 }
 `, template, data.RandomString, data.RandomString)
+}
+
+func (BatchPoolResource) securityProfileWithConfidentialVM(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-batch-%d"
+  location = "%s"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "acctestbatch%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "acctestpool%s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_batch_account.test.name
+  vm_size             = "Standard_DC2as_v5"
+  node_agent_sku_id   = "batch.node.ubuntu 22.04"
+  max_tasks_per_node  = 1
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-confidential-vm-jammy"
+    sku       = "22_04-lts-cvm"
+    version   = "latest"
+  }
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  network_configuration {
+    accelerated_networking_enabled = false
+  }
+
+  security_profile {
+    host_encryption_enabled = false
+    security_type           = "confidentialVM"
+    secure_boot_enabled     = false
+    vtpm_enabled            = true
+  }
+
+  managed_disk {
+    security_encryption_type = "VMGuestStateOnly"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }
