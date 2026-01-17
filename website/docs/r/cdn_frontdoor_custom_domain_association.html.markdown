@@ -135,7 +135,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Custom Domain Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain Association.
 * `update` - (Defaults to 30 minutes) Used when updating the Front Door Custom Domain Association.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Custom Domain Association.
+* `delete` - (Defaults to 2 hours) Used when deleting the Front Door Custom Domain Association.
 
 ## Import
 
@@ -144,3 +144,9 @@ Front Door Custom Domain Associations can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_cdn_frontdoor_custom_domain_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-04-15

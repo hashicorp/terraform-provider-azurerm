@@ -269,7 +269,7 @@ func TestAccExampleResource_basic(t *testing.T) {
 }
 
 func (r ExampleResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)  
+	template := r.basic(data)
     return fmt.Sprintf(`
 %[1]s
 
@@ -320,7 +320,7 @@ However, this doesn't necessarily cover all use-cases for this resource - or may
 func TestAccExampleResource_someSetting(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
     r := ExampleResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {   // first provision the resource
             Config: r.someSetting(data, true),
