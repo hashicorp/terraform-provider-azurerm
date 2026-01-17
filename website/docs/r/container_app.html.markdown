@@ -156,6 +156,8 @@ A `custom_scale_rule` block supports the following:
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
+* `identity` - (Optional) The identity to use for the scale rule. This can either be the Resource ID of a User Assigned Identity, or `System` for the System Assigned Identity.
+
 ---
 
 A `http_scale_rule` block supports the following:
