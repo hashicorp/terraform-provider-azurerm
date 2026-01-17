@@ -80,6 +80,7 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				MinItems: 1,
+				MaxItems: 1,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: commonids.ValidateScopeID,
