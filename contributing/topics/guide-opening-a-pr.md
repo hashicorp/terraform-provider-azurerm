@@ -47,6 +47,8 @@ In general, Pull Requests which add/change either code or SDK's go through the f
 * The PR Title is obvious/clear about what it's changing (see `Title` below).
 * The PR Body contains a summary of what/why is included (see `Body` below).
 * any linked Issues (see `Body` below)
+* Avoid force pushing - it removes commit history and forces reviewers to re-review everything
+* Reply to every reviewer comment and only mark it as resolved if you are 100% sure it has been resolved, such as "remove this comment" and you have removed it.
 
 ### Title
 
