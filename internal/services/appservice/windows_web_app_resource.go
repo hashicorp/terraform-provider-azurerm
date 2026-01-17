@@ -69,6 +69,7 @@ type WindowsWebAppModel struct {
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
 	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
+	E2eEncryptionEnabled               bool                                       `tfschema:"e2e_encryption_enabled"`
 }
 
 var (
@@ -213,6 +214,12 @@ func (r WindowsWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
+		},
+
+		"e2e_encryption_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 	}
 
@@ -394,15 +401,16 @@ func (r WindowsWebAppResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(webApp.Tags),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
-					ServerFarmId:             pointer.To(webApp.ServicePlanId),
-					Enabled:                  pointer.To(webApp.Enabled),
-					HTTPSOnly:                pointer.To(webApp.HttpsOnly),
-					SiteConfig:               siteConfig,
-					ClientAffinityEnabled:    pointer.To(webApp.ClientAffinityEnabled),
-					ClientCertEnabled:        pointer.To(webApp.ClientCertEnabled),
-					ClientCertMode:           pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
-					VnetBackupRestoreEnabled: pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
-					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
+					ServerFarmId:              pointer.To(webApp.ServicePlanId),
+					Enabled:                   pointer.To(webApp.Enabled),
+					HTTPSOnly:                 pointer.To(webApp.HttpsOnly),
+					SiteConfig:                siteConfig,
+					ClientAffinityEnabled:     pointer.To(webApp.ClientAffinityEnabled),
+					ClientCertEnabled:         pointer.To(webApp.ClientCertEnabled),
+					ClientCertMode:            pointer.To(webapps.ClientCertMode(webApp.ClientCertMode)),
+					VnetBackupRestoreEnabled:  pointer.To(webApp.VirtualNetworkBackupRestoreEnabled),
+					VnetRouteAllEnabled:       siteConfig.VnetRouteAllEnabled,
+					EndToEndEncryptionEnabled: pointer.To(webApp.E2eEncryptionEnabled),
 				},
 			}
 
@@ -691,6 +699,7 @@ func (r WindowsWebAppResource) Read() sdk.ResourceFunc {
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 					state.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
+					state.E2eEncryptionEnabled = pointer.From(props.EndToEndEncryptionEnabled)
 
 					serverFarmId, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(props.ServerFarmId))
 					if err != nil {
@@ -902,6 +911,10 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 				}
+			}
+
+			if metadata.ResourceData.HasChange("e2e_encryption_enabled") {
+				model.Properties.EndToEndEncryptionEnabled = pointer.To(state.E2eEncryptionEnabled)
 			}
 
 			currentStack := ""
