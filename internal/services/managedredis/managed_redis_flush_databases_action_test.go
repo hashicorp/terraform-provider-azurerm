@@ -87,5 +87,5 @@ resource "terraform_data" "trigger" {
     }
   }
 }
-`, ManagedRedisResource{}.update(data))
+`, ManagedRedisResource{}.update(data, "Balanced_B3"))
 }
