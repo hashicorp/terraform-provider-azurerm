@@ -33,14 +33,14 @@ type NetworkSecurityPerimeterAssociationResourceModel struct {
 func (NetworkSecurityPerimeterAssociationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
 				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
 			),
 
-			ForceNew:     true,
+			ForceNew: true,
 		},
 
 		"resource_id": {
@@ -165,7 +165,7 @@ func (r NetworkSecurityPerimeterAssociationResource) Update() sdk.ResourceFunc {
 
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil  {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -196,10 +196,22 @@ func (NetworkSecurityPerimeterAssociationResource) Read() sdk.ResourceFunc {
 			}
 
 			state := NetworkSecurityPerimeterAssociationResourceModel{
-				Name:       id.ResourceAssociationName,
-				ProfileId:  pointer.From(resp.Model.Properties.Profile.Id),
-				ResourceId: pointer.From(resp.Model.Properties.PrivateLinkResource.Id),
-				AccessMode: string(pointer.From(resp.Model.Properties.AccessMode)),
+				Name: id.ResourceAssociationName,
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+
+					if props.Profile != nil {
+						state.ProfileId = pointer.From(props.Profile.Id)
+					}
+
+					if props.PrivateLinkResource != nil {
+						state.ResourceId = pointer.From(props.PrivateLinkResource.Id)
+					}
+
+					state.AccessMode = string(pointer.From(props.AccessMode))
+				}
 			}
 
 			return metadata.Encode(&state)

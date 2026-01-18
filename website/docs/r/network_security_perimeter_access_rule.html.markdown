@@ -19,20 +19,20 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_network_security_perimeter" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location = "West Europe"
+  location            = "West Europe"
 }
 
 resource "azurerm_network_security_perimeter_profile" "example" {
-  name = "example"
+  name                          = "example"
   network_security_perimeter_id = azurerm_network_security_perimeter.example.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "example" {
-  name = "example"
+  name                                  = "example"
   network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.example.id
-  direction = "Inbound"
+  direction                             = "Inbound"
 
   address_prefixes = [
     "8.8.8.8/32"
@@ -52,11 +52,13 @@ The following arguments are supported:
 
 ---
 
-* `address_prefixes` - (Optional) Specifies a list of CIDRs. Can only be specified when direction is set to `Inbound`. Conflicts with `fqdns` and `subscription_ids`. 
+* `address_prefixes` - (Optional) Specifies a list of CIDRs. Can only be specified when direction is set to `Inbound`. Conflicts with `fqdns`, `service_tags`, `subscription_ids`. 
 
-* `fqdns` - (Optional) Specifies a list of fully qualified domain names. Can only be specified when direction is set to `Outbound`. Conflicts with `address_prefixes` and `subscription_ids`. 
+* `fqdns` - (Optional) Specifies a list of fully qualified domain names. Can only be specified when direction is set to `Outbound`. Conflicts with `fqdns`, `service_tags`, and `subscription_ids`.
 
-* `subscription_ids` - (Optional) Specifies a list of subscription IDs this rule applies to. Can only be specified when direction is set to `Inbound`. Conflicts with `address_prefixes` and `fqdns`. 
+* `service_tags` - (Optional) Specifies a list of service tags. Can only be specified when direction is set to `Inbound`. Conflicts with `fqdns`, `service_tags`, and `subscription_ids`.
+
+* `subscription_ids` - (Optional) Specifies a list of subscription IDs this rule applies to. Can only be specified when direction is set to `Inbound`. Conflicts with `fqdns`, `service_tags`, and `subscription_ids`.
 
 
 ## Attributes Reference

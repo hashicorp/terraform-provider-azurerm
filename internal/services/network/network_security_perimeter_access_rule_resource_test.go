@@ -115,6 +115,22 @@ func TestAccNetworkSecurityPerimeterAccessRule_fdqns(t *testing.T) {
 	})
 }
 
+func TestAccNetworkSecurityPerimeterAccessRule_serviceTags(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_security_perimeter_access_rule", "test")
+	r := NetworkSecurityPerimeterAccessRuleTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceTags(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_tags.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (NetworkSecurityPerimeterAccessRuleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networksecurityperimeteraccessrules.ParseAccessRuleID(state.ID)
 	if err != nil {
@@ -141,24 +157,24 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "test" {
-	name = "acctestRule-%d"
-	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+  name                                  = "acctestRule-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
 
-	direction = "Inbound"
-	address_prefixes = [
-		"8.8.8.8/32"
-	]	
+  direction = "Inbound"
+  address_prefixes = [
+    "8.8.8.8/32"
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -168,11 +184,11 @@ func (r NetworkSecurityPerimeterAccessRuleTestResource) requiresImport(data acce
 %s
 
 resource "azurerm_network_security_perimeter_access_rule" "import" {
-	name = azurerm_network_security_perimeter_access_rule.test.name
-	network_security_perimeter_profile_id =azurerm_network_security_perimeter_access_rule.test.network_security_perimeter_profile_id
+  name                                  = azurerm_network_security_perimeter_access_rule.test.name
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_access_rule.test.network_security_perimeter_profile_id
 
-	direction = azurerm_network_security_perimeter_access_rule.test.direction
-	address_prefixes = azurerm_network_security_perimeter_access_rule.test.address_prefixes
+  direction        = azurerm_network_security_perimeter_access_rule.test.direction
+  address_prefixes = azurerm_network_security_perimeter_access_rule.test.address_prefixes
 }
 `, r.basic(data))
 }
@@ -189,25 +205,98 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "test" {
-	name = "acctestRule-%d"
-	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+  name                                  = "acctestRule-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
 
-	direction = "Inbound"
-	address_prefixes = [
-		"8.8.8.8/32",
-		"8.8.4.4/32"
-	]	
+  direction = "Inbound"
+  address_prefixes = [
+    "8.8.8.8/32",
+    "8.8.4.4/32"
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetworkSecurityPerimeterAccessRuleTestResource) fqdns(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_perimeter" "test" {
+  name                = "acctestNsp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+}
+
+resource "azurerm_network_security_perimeter_profile" "test" {
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+}
+
+resource "azurerm_network_security_perimeter_access_rule" "test" {
+  name                                  = "acctestRule-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+
+  direction = "Outbound"
+  fqdns = [
+    "hashicorp.com",
+    "google.com",
+    "azure.com"
+  ]
+
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetworkSecurityPerimeterAccessRuleTestResource) serviceTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_security_perimeter" "test" {
+  name                = "acctestNsp-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%s"
+}
+
+resource "azurerm_network_security_perimeter_profile" "test" {
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+}
+
+resource "azurerm_network_security_perimeter_access_rule" "test" {
+  name                                  = "acctestRule-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+
+  direction = "Inbound"
+  service_tags = [
+  	"AzureDatabricksServerless.KoreaCentral",
+    "AzureDatabricksServerless.WestUS3",
+  ]
+
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -227,61 +316,24 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_network_security_perimeter_access_rule" "test" {
-	name = "acctestRule-%d"
-	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+  name                                  = "acctestRule-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
 
-	direction = "Inbound"
-	subscription_ids = [
-		data.azurerm_subscription.current.id
-	]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (NetworkSecurityPerimeterAccessRuleTestResource) fqdns(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
-}
-
-resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
-}
-
-resource "azurerm_network_security_perimeter_access_rule" "test" {
-	name = "acctestRule-%d"
-	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
-
-	direction = "Outbound"
-	fqdns = [
-		"hashicorp.com",
-		"google.com",
-		"azure.com"
-	]
-
+  direction = "Inbound"
+  subscription_ids = [
+    data.azurerm_subscription.current.id
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

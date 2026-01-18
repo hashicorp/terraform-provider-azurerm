@@ -38,9 +38,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 
   tags = {
     env = "test"
@@ -48,13 +48,13 @@ resource "azurerm_network_security_perimeter" "test" {
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 data "azurerm_network_security_perimeter_profile" "test" {
-	name = azurerm_network_security_perimeter_profile.test.name 
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = azurerm_network_security_perimeter_profile.test.name
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

@@ -14,7 +14,7 @@ Use this data source to access information about an existing Network Security Pe
 
 ```hcl
 data "azurerm_network_security_perimeter" "example" {
-  name = "existing"
+  name                = "existing"
   resource_group_name = "existing"
 }
 

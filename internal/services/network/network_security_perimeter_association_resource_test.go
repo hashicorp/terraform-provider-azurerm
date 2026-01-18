@@ -93,14 +93,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
@@ -110,11 +110,11 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_network_security_perimeter_association" "test" {
-	name = "acctestassoc-%d"
-	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id 
-	resource_id = azurerm_log_analytics_workspace.test.id
+  name                                  = "acctestassoc-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+  resource_id                           = azurerm_log_analytics_workspace.test.id
 
-	access_mode = "Learning"
+  access_mode = "Learning"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -124,11 +124,11 @@ func (r NetworkSecurityPerimeterAssociationTestResource) requiresImport(data acc
 %s
 
 resource "azurerm_network_security_perimeter_association" "import" {
-	name = azurerm_network_security_perimeter_association.test.name
-	network_security_perimeter_profile_id = azurerm_network_security_perimeter_association.test.network_security_perimeter_profile_id
-	resource_id = azurerm_network_security_perimeter_association.test.resource_id
+  name                                  = azurerm_network_security_perimeter_association.test.name
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_association.test.network_security_perimeter_profile_id
+  resource_id                           = azurerm_network_security_perimeter_association.test.resource_id
 
-	access_mode = azurerm_network_security_perimeter_association.test.access_mode
+  access_mode = azurerm_network_security_perimeter_association.test.access_mode
 }
 `, r.basic(data))
 }
@@ -145,14 +145,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
@@ -162,11 +162,11 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_network_security_perimeter_association" "test" {
-	name = "acctestassoc-%d"
-	network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id 
-	resource_id = azurerm_log_analytics_workspace.test.id
+  name                                  = "acctestassoc-%d"
+  network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.test.id
+  resource_id                           = azurerm_log_analytics_workspace.test.id
 
-	access_mode = "Learning"
+  access_mode = "Enforced"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

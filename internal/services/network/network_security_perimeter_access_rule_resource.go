@@ -30,18 +30,19 @@ type NetworkSecurityPerimeterAccessRuleResourceModel struct {
 	AddressPrefixes           []string `tfschema:"address_prefixes"`
 	FullyQualifiedDomainNames []string `tfschema:"fqdns"`
 	Subscriptions             []string `tfschema:"subscription_ids"`
+	ServiceTags               []string `tfschema:"service_tags"`
 }
 
 func (NetworkSecurityPerimeterAccessRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`(^[a-zA-Z0-9]+[a-zA-Z0-9_.-]{0,78}[a-zA-Z0-9_]+$)|(^[a-zA-Z0-9]$)`),
 				"`name` must be between 1 and 80 characters long, start with a letter or number, end with a letter, number, or underscore, and may contain only letters, numbers, underscores (_), periods (.), or hyphens (-).",
 			),
-			ForceNew:     true,
+			ForceNew: true,
 		},
 
 		"network_security_perimeter_profile_id": {
@@ -69,7 +70,7 @@ func (NetworkSecurityPerimeterAccessRuleResource) Arguments() map[string]*plugin
 			},
 			Optional:     true,
 			MinItems:     1,
-			ExactlyOneOf: []string{"address_prefixes", "fqdns", "subscription_ids"},
+			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
 		},
 
 		"fqdns": {
@@ -79,7 +80,17 @@ func (NetworkSecurityPerimeterAccessRuleResource) Arguments() map[string]*plugin
 			},
 			Optional:     true,
 			MinItems:     1,
-			ExactlyOneOf: []string{"address_prefixes", "fqdns", "subscription_ids"},
+			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
+		},
+
+		"service_tags": {
+			Type: pluginsdk.TypeList,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+			Optional:     true,
+			MinItems:     1,
+			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
 		},
 
 		"subscription_ids": {
@@ -90,7 +101,7 @@ func (NetworkSecurityPerimeterAccessRuleResource) Arguments() map[string]*plugin
 			},
 			Optional:     true,
 			MinItems:     1,
-			ExactlyOneOf: []string{"address_prefixes", "fqdns", "subscription_ids"},
+			ExactlyOneOf: []string{"address_prefixes", "fqdns", "service_tags", "subscription_ids"},
 		},
 	}
 }
@@ -113,16 +124,24 @@ func (r NetworkSecurityPerimeterAccessRuleResource) CustomizeDiff() sdk.Resource
 			rd := metadata.ResourceDiff
 			direction := rd.Get("direction").(string)
 
-			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionOutbound) && rd.HasChange("address_prefixes") {
-				return fmt.Errorf("`address_prefixes` can only be set when `direction` is Inbound")
+			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionOutbound) {
+				if v, ok := rd.GetOk("address_prefixes"); ok && len(v.([]interface{})) > 0 {
+					return fmt.Errorf("`address_prefixes` cannot be specified when `direction` is Outbound")
+				}
+
+				if v, ok := rd.GetOk("subscription_ids"); ok && len(v.([]interface{})) > 0 {
+					return fmt.Errorf("`subscription_ids` cannot be specified when `direction` is Outbound")
+				}
+
+				if v, ok := rd.GetOk("service_tags"); ok && len(v.([]interface{})) > 0 {
+					return fmt.Errorf("`service_tags` cannot be specified when `direction` is Outbound")
+				}
 			}
 
-			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionOutbound) && rd.HasChange("subscription_ids") {
-				return fmt.Errorf("`subscription_ids` can only be set when `direction` is Inbound")
-			}
-
-			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionInbound) && rd.HasChange("fqdns") {
-				return fmt.Errorf("`fqdns` cannot be specified when `direction` is Outbound")
+			if direction == string(networksecurityperimeteraccessrules.AccessRuleDirectionInbound) {
+				if v, ok := rd.GetOk("fqdns"); ok && len(v.([]interface{})) > 0 {
+					return fmt.Errorf("`fqdns` cannot be specified when `direction` is Inbound")
+				}
 			}
 
 			return nil
@@ -161,18 +180,13 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			subscriptions := make([]networksecurityperimeteraccessrules.SubscriptionId, len(config.Subscriptions))
-			for i, s := range config.Subscriptions {
-				subscriptions[i] = networksecurityperimeteraccessrules.SubscriptionId{
-					Id: pointer.To(s),
-				}
-			}
 			param := networksecurityperimeteraccessrules.NspAccessRule{
 				Properties: &networksecurityperimeteraccessrules.NspAccessRuleProperties{
 					Direction:                 pointer.ToEnum[networksecurityperimeteraccessrules.AccessRuleDirection](config.Direction),
 					AddressPrefixes:           pointer.To(config.AddressPrefixes),
 					FullyQualifiedDomainNames: pointer.To(config.FullyQualifiedDomainNames),
-					Subscriptions:             &subscriptions,
+					ServiceTags:               pointer.To(config.ServiceTags),
+					Subscriptions:             expandAccessRuleSubscriptionIDs(config.Subscriptions),
 				},
 			}
 
@@ -221,17 +235,14 @@ func (r NetworkSecurityPerimeterAccessRuleResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("fqdns") {
 				existing.Model.Properties.FullyQualifiedDomainNames = pointer.To(config.FullyQualifiedDomainNames)
 			}
+			if metadata.ResourceData.HasChange("service_tags") {
+				existing.Model.Properties.ServiceTags = pointer.To(config.ServiceTags)
+			}
 			if metadata.ResourceData.HasChange("subscription_ids") {
-				subs := make([]networksecurityperimeteraccessrules.SubscriptionId, len(config.Subscriptions))
-				for i, s := range config.Subscriptions {
-					subs[i] = networksecurityperimeteraccessrules.SubscriptionId{
-						Id: pointer.To(s),
-					}
-				}
-				existing.Model.Properties.Subscriptions = &subs
+				existing.Model.Properties.Subscriptions = expandAccessRuleSubscriptionIDs(config.Subscriptions)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil  {
+			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -262,11 +273,10 @@ func (NetworkSecurityPerimeterAccessRuleResource) Read() sdk.ResourceFunc {
 			}
 
 			var subscriptions []string
-			if resp.Model.Properties.Subscriptions != nil {
-				subscriptions = make([]string, len(*resp.Model.Properties.Subscriptions))
-				for i, s := range *resp.Model.Properties.Subscriptions {
-					if s.Id != nil {
-						subscriptions[i] = *s.Id
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if props.Subscriptions != nil {
+						subscriptions = flattenAccessRuleSubscriptionIDs(*props.Subscriptions)
 					}
 				}
 			}
@@ -274,12 +284,18 @@ func (NetworkSecurityPerimeterAccessRuleResource) Read() sdk.ResourceFunc {
 			profileId := networksecurityperimeterprofiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.NetworkSecurityPerimeterName, id.ProfileName)
 
 			state := NetworkSecurityPerimeterAccessRuleResourceModel{
-				Name:                      id.AccessRuleName,
-				ProfileId:                 profileId.ID(),
-				AddressPrefixes:           pointer.From(resp.Model.Properties.AddressPrefixes),
-				Direction:                 string(pointer.From(resp.Model.Properties.Direction)),
-				FullyQualifiedDomainNames: pointer.From(resp.Model.Properties.FullyQualifiedDomainNames),
-				Subscriptions:             subscriptions,
+				Name:      id.AccessRuleName,
+				ProfileId: profileId.ID(),
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.AddressPrefixes = pointer.From(props.AddressPrefixes)
+					state.Direction = string(pointer.From(props.Direction))
+					state.FullyQualifiedDomainNames = pointer.From(props.FullyQualifiedDomainNames)
+					state.ServiceTags = pointer.From(props.ServiceTags)
+					state.Subscriptions = subscriptions
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -309,4 +325,34 @@ func (NetworkSecurityPerimeterAccessRuleResource) Delete() sdk.ResourceFunc {
 
 func (NetworkSecurityPerimeterAccessRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return networksecurityperimeteraccessrules.ValidateAccessRuleID
+}
+
+func expandAccessRuleSubscriptionIDs(subscriptionIDs []string) *[]networksecurityperimeteraccessrules.SubscriptionId {
+	if len(subscriptionIDs) == 0 {
+		return nil
+	}
+
+	result := make([]networksecurityperimeteraccessrules.SubscriptionId, 0, len(subscriptionIDs))
+	for _, id := range subscriptionIDs {
+		result = append(result, networksecurityperimeteraccessrules.SubscriptionId{
+			Id: pointer.To(id),
+		})
+	}
+
+	return &result
+}
+
+func flattenAccessRuleSubscriptionIDs(subscriptions []networksecurityperimeteraccessrules.SubscriptionId) []string {
+	if len(subscriptions) == 0 {
+		return nil
+	}
+
+	result := make([]string, 0, len(subscriptions))
+	for _, s := range subscriptions {
+		if s.Id != nil {
+			result = append(result, *s.Id)
+		}
+	}
+
+	return result
 }

@@ -25,22 +25,22 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_network_security_perimeter" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location = "West Europe"
+  location            = "West Europe"
 }
 
 resource "azurerm_network_security_perimeter_profile" "example" {
-  name = "example"
+  name                          = "example"
   network_security_perimeter_id = azurerm_network_security_perimeter.example.id
 }
 
 resource "azurerm_network_security_perimeter_association" "example" {
-  name = "example"
+  name        = "example"
   access_mode = "Enforced"
 
   network_security_perimeter_profile_id = azurerm_network_security_perimeter_profile.example.id
-  resource_id = azurerm_log_analytics_workspace.example.id
+  resource_id                           = azurerm_log_analytics_workspace.example.id
 }
 ```
 

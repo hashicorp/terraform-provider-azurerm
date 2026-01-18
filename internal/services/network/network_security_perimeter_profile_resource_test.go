@@ -71,14 +71,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -88,8 +88,8 @@ func (r NetworkSecurityPerimeterProfileTestResource) requiresImport(data accepta
 %s
 
 resource "azurerm_network_security_perimeter_profile" "import" {
-	name = azurerm_network_security_perimeter_profile.test.name
-	network_security_perimeter_id = azurerm_network_security_perimeter_profile.test.network_security_perimeter_id
+  name                          = azurerm_network_security_perimeter_profile.test.name
+  network_security_perimeter_id = azurerm_network_security_perimeter_profile.test.network_security_perimeter_id
 }
 `, r.basic(data))
 }
@@ -106,14 +106,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 
 resource "azurerm_network_security_perimeter_profile" "test" {
-	name = "acctestProfile-%d"
-	network_security_perimeter_id = azurerm_network_security_perimeter.test.id
+  name                          = "acctestProfile-%d"
+  network_security_perimeter_id = azurerm_network_security_perimeter.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

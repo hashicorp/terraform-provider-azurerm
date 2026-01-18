@@ -39,9 +39,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 
   tags = {
     env = "test"
@@ -49,7 +49,7 @@ resource "azurerm_network_security_perimeter" "test" {
 }
 
 data "azurerm_network_security_perimeter" "test" {
-  name = azurerm_network_security_perimeter.test.name
+  name                = azurerm_network_security_perimeter.test.name
   resource_group_name = azurerm_network_security_perimeter.test.resource_group_name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)

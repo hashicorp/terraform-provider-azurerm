@@ -19,9 +19,9 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_network_security_perimeter" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = azurerm_resource_group.example.name
-  location = "West Europe"
+  location            = "West Europe"
 }
 ```
 

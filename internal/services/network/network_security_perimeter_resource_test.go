@@ -110,9 +110,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
@@ -122,8 +122,8 @@ func (r NetworkSecurityPerimeterTestResource) requiresImport(data acceptance.Tes
 %s
 
 resource "azurerm_network_security_perimeter" "import" {
-  name     = azurerm_network_security_perimeter.test.name
-  location = azurerm_network_security_perimeter.test.location
+  name                = azurerm_network_security_perimeter.test.name
+  location            = azurerm_network_security_perimeter.test.location
   resource_group_name = azurerm_network_security_perimeter.test.resource_group_name
 }
 `, r.basic(data))
@@ -141,9 +141,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_perimeter" "test" {
-  name     = "acctestNsp-%d"
+  name                = "acctestNsp-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = "%s"
+  location            = "%s"
 
   tags = {
     env = "test"
