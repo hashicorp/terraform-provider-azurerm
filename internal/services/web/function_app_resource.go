@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -270,7 +270,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(id.SiteName),
+		Name: pointer.To(id.SiteName),
 		Type: web.CheckNameResourceTypesMicrosoftWebsites,
 	}
 	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
@@ -282,7 +282,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("the name %q used for the Function App needs to be globally unique and isn't available: %s", id.SiteName, *available.Message)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
@@ -322,17 +322,17 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			ClientCertEnabled:    utils.Bool(clientCertEnabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			ClientCertEnabled:    pointer.To(clientCertEnabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(dailyMemoryTimeQuota)),
 			SiteConfig:           &siteConfig,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	if clientCertMode != "" {
@@ -380,7 +380,7 @@ func resourceFunctionAppCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	authSettings := expandAppServiceAuthSettings(authSettingsRaw)
 
 	auth := web.SiteAuthSettings{
-		ID:                         utils.String(id.ID()),
+		ID:                         pointer.To(id.ID()),
 		SiteAuthSettingsProperties: &authSettings,
 	}
 
@@ -406,7 +406,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	kind := "functionapp"
 	if osTypeRaw, ok := d.GetOk("os_type"); ok {
 		osType := osTypeRaw.(string)
@@ -462,17 +462,17 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Location: &location,
 		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
-			ServerFarmID:         utils.String(appServicePlanID),
-			Enabled:              utils.Bool(enabled),
-			ClientCertEnabled:    utils.Bool(clientCertEnabled),
-			HTTPSOnly:            utils.Bool(httpsOnly),
-			DailyMemoryTimeQuota: utils.Int32(int32(dailyMemoryTimeQuota)),
+			ServerFarmID:         pointer.To(appServicePlanID),
+			Enabled:              pointer.To(enabled),
+			ClientCertEnabled:    pointer.To(clientCertEnabled),
+			HTTPSOnly:            pointer.To(httpsOnly),
+			DailyMemoryTimeQuota: pointer.To(int32(dailyMemoryTimeQuota)),
 			SiteConfig:           &siteConfig,
 		},
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = pointer.To(v.(string))
 	}
 
 	if clientCertMode != "" {
@@ -555,7 +555,7 @@ func resourceFunctionAppUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		authSettingsRaw := d.Get("auth_settings").([]interface{})
 		authSettingsProperties := expandAppServiceAuthSettings(authSettingsRaw)
 		authSettings := web.SiteAuthSettings{
-			ID:                         utils.String(d.Id()),
+			ID:                         pointer.To(d.Id()),
 			SiteAuthSettingsProperties: &authSettingsProperties,
 		}
 
@@ -640,8 +640,8 @@ func resourceFunctionAppRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 	d.Set("os_type", osType)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	appServicePlanID := ""

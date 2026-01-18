@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -150,7 +150,9 @@ func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, me
 				d.Set("virtual_hub_id", props.VirtualHub.Id)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

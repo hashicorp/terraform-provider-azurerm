@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `client_certificate_enabled` - (Optional) Should Client Certificates be enabled?
 
-* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_cert_enabled` is `false`. Defaults to `Required`.
+* `client_certificate_mode` - (Optional) The Client Certificate mode. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. This property has no effect when `client_certificate_enabled` is `false`. Defaults to `Required`.
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 

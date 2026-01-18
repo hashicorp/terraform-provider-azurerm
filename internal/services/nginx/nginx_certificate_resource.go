@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -190,12 +190,12 @@ func (m CertificateResource) Read() sdk.ResourceFunc {
 			}
 			var output CertificateModel
 
-			output.Name = pointer.ToString(result.Model.Name)
+			output.Name = pointer.From(result.Model.Name)
 			output.NginxDeploymentId = nginxdeployment.NewNginxDeploymentID(id.SubscriptionId, id.ResourceGroupName, id.NginxDeploymentName).ID()
 			prop := result.Model.Properties
-			output.KeyVirtualPath = pointer.ToString(prop.KeyVirtualPath)
-			output.KeyVaultSecretId = pointer.ToString(prop.KeyVaultSecretId)
-			output.CertificateVirtualPath = pointer.ToString(prop.CertificateVirtualPath)
+			output.KeyVirtualPath = pointer.From(prop.KeyVirtualPath)
+			output.KeyVaultSecretId = pointer.From(prop.KeyVaultSecretId)
+			output.CertificateVirtualPath = pointer.From(prop.CertificateVirtualPath)
 			return meta.Encode(&output)
 		},
 	}
