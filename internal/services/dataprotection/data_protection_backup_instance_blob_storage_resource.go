@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -20,10 +20,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_blob_storage -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 	return &schema.Resource{
@@ -39,10 +40,10 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backupinstances.ParseBackupInstanceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&backupinstances.BackupInstanceId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&backupinstances.BackupInstanceId{}),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -131,15 +132,15 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
 			DataSourceInfo: backupinstances.Datasource{
-				DatasourceType:   utils.String("Microsoft.Storage/storageAccounts/blobServices"),
-				ObjectType:       utils.String("Datasource"),
+				DatasourceType:   pointer.To("Microsoft.Storage/storageAccounts/blobServices"),
+				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       storageAccountId.ID(),
-				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(storageAccountId.StorageAccountName),
-				ResourceType:     utils.String("Microsoft.Storage/storageAccounts"),
-				ResourceUri:      utils.String(storageAccountId.ID()),
+				ResourceLocation: pointer.To(location),
+				ResourceName:     pointer.To(storageAccountId.StorageAccountName),
+				ResourceType:     pointer.To("Microsoft.Storage/storageAccounts"),
+				ResourceUri:      pointer.To(storageAccountId.ID()),
 			},
-			FriendlyName: utils.String(id.BackupInstanceName),
+			FriendlyName: pointer.To(id.BackupInstanceName),
 			PolicyInfo: backupinstances.PolicyInfo{
 				PolicyId: policyId.ID(),
 			},
@@ -177,6 +178,9 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDataProtectionBackupInstanceBlobStorageRead(d, meta)
 }
 
@@ -219,7 +223,7 @@ func resourceDataProtectionBackupInstanceBlobStorageRead(d *schema.ResourceData,
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {

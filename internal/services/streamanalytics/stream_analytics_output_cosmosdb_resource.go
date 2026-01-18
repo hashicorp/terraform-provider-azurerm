@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type OutputCosmosDBResource struct{}
@@ -144,17 +143,17 @@ func (r OutputCosmosDBResource) Create() sdk.ResourceFunc {
 			}
 
 			documentDbOutputProps := &outputs.DocumentDbOutputDataSourceProperties{
-				AccountId:             utils.String(databaseId.DatabaseAccountName),
-				AccountKey:            utils.String(model.AccountKey),
-				Database:              utils.String(databaseId.Name),
-				CollectionNamePattern: utils.String(model.ContainerName),
-				DocumentId:            utils.String(model.DocumentID),
-				PartitionKey:          utils.String(model.PartitionKey),
+				AccountId:             pointer.To(databaseId.DatabaseAccountName),
+				AccountKey:            pointer.To(model.AccountKey),
+				Database:              pointer.To(databaseId.Name),
+				CollectionNamePattern: pointer.To(model.ContainerName),
+				DocumentId:            pointer.To(model.DocumentID),
+				PartitionKey:          pointer.To(model.PartitionKey),
 				AuthenticationMode:    pointer.To(outputs.AuthenticationMode(model.AuthenticationMode)),
 			}
 
 			props := outputs.Output{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.DocumentDbOutputDataSource{
 						Properties: documentDbOutputProps,

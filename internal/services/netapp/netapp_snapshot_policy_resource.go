@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -14,11 +14,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshotpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -237,14 +237,14 @@ func resourceNetAppSnapshotPolicyCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	parameters := snapshotpolicies.SnapshotPolicy{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
-		Name:     utils.String(id.SnapshotPolicyName),
+		Location: location.Normalize(d.Get("location").(string)),
+		Name:     pointer.To(id.SnapshotPolicyName),
 		Properties: snapshotpolicies.SnapshotPolicyProperties{
 			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]interface{})),
 			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]interface{})),
 			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]interface{})),
 			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]interface{})),
-			Enabled:         utils.Bool(d.Get("enabled").(bool)),
+			Enabled:         pointer.To(d.Get("enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -275,14 +275,14 @@ func resourceNetAppSnapshotPolicyUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	parameters := snapshotpolicies.SnapshotPolicyPatch{
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
-		Name:     utils.String(id.SnapshotPolicyName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Name:     pointer.To(id.SnapshotPolicyName),
 		Properties: &snapshotpolicies.SnapshotPolicyProperties{
 			HourlySchedule:  expandNetAppSnapshotPolicyHourlySchedule(d.Get("hourly_schedule").([]interface{})),
 			DailySchedule:   expandNetAppSnapshotPolicyDailySchedule(d.Get("daily_schedule").([]interface{})),
 			WeeklySchedule:  expandNetAppSnapshotPolicyWeeklySchedule(d.Get("weekly_schedule").([]interface{})),
 			MonthlySchedule: expandNetAppSnapshotPolicyMonthlySchedule(d.Get("monthly_schedule").([]interface{})),
-			Enabled:         utils.Bool(d.Get("enabled").(bool)),
+			Enabled:         pointer.To(d.Get("enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -319,7 +319,7 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("account_name", id.NetAppAccountName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
 		d.Set("enabled", props.Enabled)
@@ -336,7 +336,9 @@ func resourceNetAppSnapshotPolicyRead(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("setting `monthly_schedule`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -469,10 +471,10 @@ func expandNetAppSnapshotPolicyHourlySchedule(input []interface{}) *snapshotpoli
 	hourlyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := hourlyScheduleRaw["snapshots_to_keep"]; ok {
-		hourlyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
+		hourlyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if v, ok := hourlyScheduleRaw["minute"]; ok {
-		hourlyScheduleObject.Minute = utils.Int64(int64(v.(int)))
+		hourlyScheduleObject.Minute = pointer.To(int64(v.(int)))
 	}
 
 	return &hourlyScheduleObject
@@ -488,13 +490,13 @@ func expandNetAppSnapshotPolicyDailySchedule(input []interface{}) *snapshotpolic
 	dailyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := dailyScheduleRaw["snapshots_to_keep"]; ok {
-		dailyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
+		dailyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if v, ok := dailyScheduleRaw["hour"]; ok {
-		dailyScheduleObject.Hour = utils.Int64(int64(v.(int)))
+		dailyScheduleObject.Hour = pointer.To(int64(v.(int)))
 	}
 	if v, ok := dailyScheduleRaw["minute"]; ok {
-		dailyScheduleObject.Minute = utils.Int64(int64(v.(int)))
+		dailyScheduleObject.Minute = pointer.To(int64(v.(int)))
 	}
 
 	return &dailyScheduleObject
@@ -510,16 +512,16 @@ func expandNetAppSnapshotPolicyWeeklySchedule(input []interface{}) *snapshotpoli
 	weeklyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := weeklyScheduleRaw["snapshots_to_keep"]; ok {
-		weeklyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
+		weeklyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if _, ok := weeklyScheduleRaw["days_of_week"]; ok {
 		weeklyScheduleObject.Day = utils.ExpandStringSliceWithDelimiter(weeklyScheduleRaw["days_of_week"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := weeklyScheduleRaw["hour"]; ok {
-		weeklyScheduleObject.Hour = utils.Int64(int64(v.(int)))
+		weeklyScheduleObject.Hour = pointer.To(int64(v.(int)))
 	}
 	if v, ok := weeklyScheduleRaw["minute"]; ok {
-		weeklyScheduleObject.Minute = utils.Int64(int64(v.(int)))
+		weeklyScheduleObject.Minute = pointer.To(int64(v.(int)))
 	}
 
 	return &weeklyScheduleObject
@@ -535,16 +537,16 @@ func expandNetAppSnapshotPolicyMonthlySchedule(input []interface{}) *snapshotpol
 	monthlyScheduleRaw := input[0].(map[string]interface{})
 
 	if v, ok := monthlyScheduleRaw["snapshots_to_keep"]; ok {
-		monthlyScheduleObject.SnapshotsToKeep = utils.Int64(int64(v.(int)))
+		monthlyScheduleObject.SnapshotsToKeep = pointer.To(int64(v.(int)))
 	}
 	if _, ok := monthlyScheduleRaw["days_of_month"]; ok {
 		monthlyScheduleObject.DaysOfMonth = utils.ExpandIntSliceWithDelimiter(monthlyScheduleRaw["days_of_month"].(*pluginsdk.Set).List(), ",")
 	}
 	if v, ok := monthlyScheduleRaw["hour"]; ok {
-		monthlyScheduleObject.Hour = utils.Int64(int64(v.(int)))
+		monthlyScheduleObject.Hour = pointer.To(int64(v.(int)))
 	}
 	if v, ok := monthlyScheduleRaw["minute"]; ok {
-		monthlyScheduleObject.Minute = utils.Int64(int64(v.(int)))
+		monthlyScheduleObject.Minute = pointer.To(int64(v.(int)))
 	}
 
 	return &monthlyScheduleObject
