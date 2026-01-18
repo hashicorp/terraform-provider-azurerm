@@ -293,7 +293,7 @@ resource "azurerm_network_security_perimeter_access_rule" "test" {
 
   direction = "Inbound"
   service_tags = [
-  	"AzureDatabricksServerless.KoreaCentral",
+    "AzureDatabricksServerless.KoreaCentral",
     "AzureDatabricksServerless.WestUS3",
   ]
 
