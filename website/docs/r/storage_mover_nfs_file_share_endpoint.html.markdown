@@ -28,10 +28,10 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "example-share"
-  storage_account_id   = azurerm_storage_account.example.id
-  enabled_protocol     = "NFS"
-  quota                = 100
+  name               = "example-share"
+  storage_account_id = azurerm_storage_account.example.id
+  enabled_protocol   = "NFS"
+  quota              = 100
 }
 
 resource "azurerm_storage_mover" "example" {

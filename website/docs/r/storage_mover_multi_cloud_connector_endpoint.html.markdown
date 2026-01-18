@@ -25,11 +25,11 @@ resource "azurerm_storage_mover" "example" {
 }
 
 resource "azurerm_storage_mover_multi_cloud_connector_endpoint" "example" {
-  name                    = "example-mcce"
-  storage_mover_id        = azurerm_storage_mover.example.id
+  name                     = "example-mcce"
+  storage_mover_id         = azurerm_storage_mover.example.id
   multi_cloud_connector_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.HybridConnectivity/publicCloudConnectors/example-connector"
-  aws_s3_bucket_id        = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/aws-rg/providers/Microsoft.AWSConnector/s3Buckets/example-bucket"
-  description             = "Example Multi-Cloud Connector Endpoint"
+  aws_s3_bucket_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/aws-rg/providers/Microsoft.AWSConnector/s3Buckets/example-bucket"
+  description              = "Example Multi-Cloud Connector Endpoint"
 }
 ```
 

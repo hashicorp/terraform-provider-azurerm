@@ -116,10 +116,10 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "accshare%s"
-  storage_account_id   = azurerm_storage_account.test.id
-  enabled_protocol     = "NFS"
-  quota                = 100
+  name               = "accshare%s"
+  storage_account_id = azurerm_storage_account.test.id
+  enabled_protocol   = "NFS"
+  quota              = 100
 }
 
 resource "azurerm_storage_mover" "test" {
