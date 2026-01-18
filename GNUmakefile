@@ -155,10 +155,7 @@ resource-counts:
 	go test -v ./internal/provider -run=TestProvider_counts
 
 resource-lint:
-	@echo "==> Installing resource-lint..."
-	@cd internal/tools/resource-lint && go install .
-	@echo "==> Running resource linter..."
-	@resource-lint $(RESOURCE_LINT_ARGS)
+	go run ./internal/tools/resource-lint/main.go $(RESOURCE_LINT_ARGS)
 
 pr-check: generate build test lint tflint website-lint
 
