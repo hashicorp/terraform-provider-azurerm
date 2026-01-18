@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageMoverMultiCloudConnectorEndpointModel struct {
@@ -118,7 +118,7 @@ func (r StorageMoverMultiCloudConnectorEndpointResource) Create() sdk.ResourceFu
 			}
 
 			if model.Description != "" {
-				endpointProperties.Description = utils.String(model.Description)
+				endpointProperties.Description = pointer.To(model.Description)
 			}
 
 			properties := endpoints.Endpoint{
@@ -163,7 +163,7 @@ func (r StorageMoverMultiCloudConnectorEndpointResource) Update() sdk.ResourceFu
 
 			if metadata.ResourceData.HasChange("description") {
 				if v, ok := properties.Properties.(endpoints.AzureMultiCloudConnectorEndpointProperties); ok {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
 			}

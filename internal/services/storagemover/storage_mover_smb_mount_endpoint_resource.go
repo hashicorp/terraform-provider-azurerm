@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageMoverSmbMountEndpointModel struct {
@@ -135,13 +135,13 @@ func (r StorageMoverSmbMountEndpointResource) Create() sdk.ResourceFunc {
 			if model.UsernameUri != "" || model.PasswordUri != "" {
 				endpointProperties.Credentials = &endpoints.AzureKeyVaultSmbCredentials{
 					Type:        endpoints.CredentialTypeAzureKeyVaultSmb,
-					UsernameUri: utils.String(model.UsernameUri),
-					PasswordUri: utils.String(model.PasswordUri),
+					UsernameUri: pointer.To(model.UsernameUri),
+					PasswordUri: pointer.To(model.PasswordUri),
 				}
 			}
 
 			if model.Description != "" {
-				endpointProperties.Description = utils.String(model.Description)
+				endpointProperties.Description = pointer.To(model.Description)
 			}
 
 			properties := endpoints.Endpoint{
@@ -186,15 +186,15 @@ func (r StorageMoverSmbMountEndpointResource) Update() sdk.ResourceFunc {
 
 			if v, ok := properties.Properties.(endpoints.SmbMountEndpointProperties); ok {
 				if metadata.ResourceData.HasChange("description") {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 				}
 
 				if metadata.ResourceData.HasChange("username_uri") || metadata.ResourceData.HasChange("password_uri") {
 					if model.UsernameUri != "" || model.PasswordUri != "" {
 						v.Credentials = &endpoints.AzureKeyVaultSmbCredentials{
 							Type:        endpoints.CredentialTypeAzureKeyVaultSmb,
-							UsernameUri: utils.String(model.UsernameUri),
-							PasswordUri: utils.String(model.PasswordUri),
+							UsernameUri: pointer.To(model.UsernameUri),
+							PasswordUri: pointer.To(model.PasswordUri),
 						}
 					} else {
 						v.Credentials = nil

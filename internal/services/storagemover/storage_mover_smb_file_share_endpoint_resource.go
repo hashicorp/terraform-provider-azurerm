@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageMoverSmbFileShareEndpointModel struct {
@@ -122,7 +122,7 @@ func (r StorageMoverSmbFileShareEndpointResource) Create() sdk.ResourceFunc {
 
 			if model.Description != "" {
 				if v, ok := properties.Properties.(endpoints.AzureStorageSmbFileShareEndpointProperties); ok {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
 			}
@@ -165,7 +165,7 @@ func (r StorageMoverSmbFileShareEndpointResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				if v, ok := properties.Properties.(endpoints.AzureStorageSmbFileShareEndpointProperties); ok {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
 			}
