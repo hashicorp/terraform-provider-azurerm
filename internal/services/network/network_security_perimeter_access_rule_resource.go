@@ -152,7 +152,6 @@ func (r NetworkSecurityPerimeterAccessRuleResource) CustomizeDiff() sdk.Resource
 
 func (r NetworkSecurityPerimeterAccessRuleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

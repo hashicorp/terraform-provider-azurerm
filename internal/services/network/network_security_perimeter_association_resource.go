@@ -82,7 +82,6 @@ func (NetworkSecurityPerimeterAssociationResource) ResourceType() string {
 
 func (r NetworkSecurityPerimeterAssociationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -162,7 +161,6 @@ func (r NetworkSecurityPerimeterAssociationResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("access_mode") {
 				existing.Model.Properties.AccessMode = pointer.To(networksecurityperimeterassociations.AssociationAccessMode(config.AccessMode))
-
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model); err != nil {

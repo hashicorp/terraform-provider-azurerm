@@ -61,7 +61,6 @@ func (NetworkSecurityPerimeterProfileResource) ResourceType() string {
 
 func (r NetworkSecurityPerimeterProfileResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-
 		Timeout: 30 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

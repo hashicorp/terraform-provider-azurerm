@@ -83,3 +83,9 @@ Network Security Perimeter Access Rules can be imported using the `resource id`,
 ```shell
 terraform import azurerm_network_security_perimeter_access_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/networkSecurityPerimeters/example-nsp/profiles/defaultProfile/accessRules/example-accessrule
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

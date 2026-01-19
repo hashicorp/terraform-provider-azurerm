@@ -63,7 +63,6 @@ func (NetworkSecurityPerimeterDataSource) ResourceType() string {
 
 func (NetworkSecurityPerimeterDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
