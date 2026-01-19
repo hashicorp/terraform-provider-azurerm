@@ -134,7 +134,7 @@ func runAZNR003(pass *analysis.Pass) (interface{}, error) {
 			funcType = "flatten"
 		}
 
-		pass.Reportf(funcDecl.Name.Pos(), "%s: %s function '%s' should be defined as a receiver method on the resource type, not as a global function",
+		pass.Reportf(funcDecl.Name.Pos(), "%s: %s function '%s' should be defined as a receiver method on the resource type, not as a global function\n",
 			aznr003Name,
 			funcType,
 			helper.IssueLine(funcName))
