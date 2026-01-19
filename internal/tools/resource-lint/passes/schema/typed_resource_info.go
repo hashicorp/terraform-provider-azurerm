@@ -150,7 +150,7 @@ func isSDKResourceInterface(pass *analysis.Pass, expr ast.Expr) bool {
 	}
 
 	typ := pass.TypesInfo.TypeOf(selExpr)
-	if typ != nil && helper.IsTypedSDKResource(typ, "Resource") {
+	if typ != nil && (helper.IsTypedSDKResource(typ, "Resource") || helper.IsTypedSDKResource(typ, "DataSource")) {
 		return true
 	}
 
@@ -160,5 +160,5 @@ func isSDKResourceInterface(pass *analysis.Pass, expr ast.Expr) bool {
 		return false
 	}
 
-	return strings.HasPrefix(selExpr.Sel.Name, "Resource")
+	return strings.HasPrefix(selExpr.Sel.Name, "Resource") || strings.HasPrefix(selExpr.Sel.Name, "DataSource")
 }

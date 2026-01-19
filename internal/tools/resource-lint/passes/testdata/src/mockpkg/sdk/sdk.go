@@ -24,13 +24,17 @@ type ResourceFunc struct {
 	Timeout int
 }
 
-type ResourceWithUpdate interface {
+type Resource interface {
 	ResourceType() string
 	ModelObject() interface{}
 	Arguments() map[string]*pluginsdk.Schema
 	Attributes() map[string]*pluginsdk.Schema
 	Create() ResourceFunc
 	Read() ResourceFunc
-	Update() ResourceFunc
 	Delete() ResourceFunc
+}
+
+type ResourceWithUpdate interface {
+	Resource
+	Update() ResourceFunc
 }
