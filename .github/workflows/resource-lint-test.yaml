@@ -11,8 +11,6 @@ on:
     paths:
       - ".github/workflows/resource-lint-test.yaml"
       - "internal/tools/resource-lint/**"
-      - "internal/services/**"
-      - "vendor/**"
     branches: ["main"]
 
 jobs:
