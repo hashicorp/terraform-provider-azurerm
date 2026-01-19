@@ -113,7 +113,7 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   name                              = "OFakeacctest%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
   location                          = "%[3]s"
-  zones                             = ["2"]
+	zones                             = ["1"]
   display_name                      = "OFakeacctest%[2]d"
   additional_flash_cache_percentage = 100
   high_capacity_database_storage {
@@ -135,7 +135,7 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   name                = "OFakeacctest%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
-  zones               = ["2"]
+	zones               = ["1"]
   display_name        = "OFakeacctest%[2]d"
   high_capacity_database_storage {
     total_size_in_gb = 300
@@ -162,7 +162,7 @@ resource "azurerm_oracle_exascale_database_storage_vault" "test" {
   name                              = "OFakeacctest%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
   location                          = "%[3]s"
-  zones                             = ["2"]
+	zones                             = ["1"]
   display_name                      = "OFakeacctest%[2]d"
   additional_flash_cache_percentage = 100
   high_capacity_database_storage {
