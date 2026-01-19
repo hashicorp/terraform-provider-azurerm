@@ -197,3 +197,4 @@ resource "azurerm_storage_mover_smb_file_share_endpoint" "test" {
 }
 `, template, data.RandomInteger)
 }
+

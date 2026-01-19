@@ -105,3 +105,4 @@ This resource uses the following Azure API Providers:
 
 * `Microsoft.StorageMover` - 2025-07-01
 
+

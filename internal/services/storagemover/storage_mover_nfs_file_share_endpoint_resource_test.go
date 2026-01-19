@@ -199,3 +199,4 @@ resource "azurerm_storage_mover_nfs_file_share_endpoint" "test" {
 }
 `, template, data.RandomInteger)
 }
+
