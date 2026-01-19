@@ -1296,9 +1296,9 @@ func SiteConfigSchemaWindowsFunctionAppComputed() *pluginsdk.Schema {
 
 type ApplicationStackLinuxFunctionApp struct {
 	// Note - Function Apps differ to Web Apps here. They do not use the named properties in the SiteConfig block and exclusively use the app_settings map
-	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0`, `8.0`, `9.0` and `10.0`.
+	DotNetVersion         string                   `tfschema:"dotnet_version"`              // Supported values `3.1`, `6.0`, `7.0`, `8.0`, `9.0` and `10.0`
 	DotNetIsolated        bool                     `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
-	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS``
+	NodeVersion           string                   `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`
 	PythonVersion         string                   `tfschema:"python_version"`              // Supported values `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8`, `3.7`
 	PowerShellCoreVersion string                   `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
 	JavaVersion           string                   `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`
@@ -1309,7 +1309,7 @@ type ApplicationStackLinuxFunctionApp struct {
 type ApplicationStackWindowsFunctionApp struct {
 	DotNetVersion         string `tfschema:"dotnet_version"`              // Supported values `v3.0`, `v4.0`, `v6.0`, `v7.0`, `v8.0`, `v9.0` and `v10.0`
 	DotNetIsolated        bool   `tfschema:"use_dotnet_isolated_runtime"` // Supported values `true` for `dotnet-isolated`, `false` otherwise
-	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`
+	NodeVersion           string `tfschema:"node_version"`                // Supported values `12LTS`, `14LTS`, `16LTS`, `18LTS, `20LTS`, `22LTS`, `24LTS`
 	JavaVersion           string `tfschema:"java_version"`                // Supported values `8`, `11`, `17`, `21`
 	PowerShellCoreVersion string `tfschema:"powershell_core_version"`     // Supported values are `7.0`, `7.2`
 	CustomHandler         bool   `tfschema:"use_custom_runtime"`          // Supported values `true`
@@ -1661,6 +1661,7 @@ func windowsFunctionAppStackSchema() *pluginsdk.Schema {
 						"~18",
 						"~20",
 						"~22",
+						"~24",
 					}, false),
 					ExactlyOneOf: []string{
 						"site_config.0.application_stack.0.dotnet_version",

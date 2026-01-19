@@ -22,6 +22,7 @@ import (
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,6 +36,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace -service-package-name databricks -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -50,10 +53,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := workspaces.ParseWorkspaceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&workspaces.WorkspaceId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&workspaces.WorkspaceId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -794,6 +797,9 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// I have to set the custom_parameters so I can pass the public and private
 	// subnet NSG association along with the backend Pool Id since they are not
@@ -987,7 +993,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
