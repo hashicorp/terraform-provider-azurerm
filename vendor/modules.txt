@@ -471,6 +471,12 @@ github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsre
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/refreshsetpasswordlink
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogs
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/monitoredsubscriptions
+github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories
