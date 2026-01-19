@@ -40,15 +40,6 @@ resource "azurerm_batch_account" "example" {
   }
 }
 
-resource "azurerm_batch_certificate" "example" {
-  resource_group_name  = azurerm_resource_group.example.name
-  account_name         = azurerm_batch_account.example.name
-  certificate          = filebase64("certificate.cer")
-  format               = "Cer"
-  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
-  thumbprint_algorithm = "SHA1"
-}
-
 resource "azurerm_batch_pool" "example" {
   name                = "testaccpool"
   resource_group_name = azurerm_resource_group.example.name
@@ -102,12 +93,6 @@ EOF
       }
     }
   }
-
-  certificate {
-    id             = azurerm_batch_certificate.example.id
-    store_location = "CurrentUser"
-    visibility     = ["StartTask"]
-  }
 }
 ```
 
@@ -149,9 +134,9 @@ The following arguments are supported:
 
 * `auto_scale` - (Optional) A `auto_scale` block that describes the scale settings when using auto scale as defined below.
 
-* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool as defined below.
+~> **Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
-* `certificate` - (Optional) One or more `certificate` blocks that describe the certificates to be installed on each compute node in the pool as defined below.
+* `start_task` - (Optional) A `start_task` block that describes the start task settings for the Batch pool as defined below.
 
 * `container_configuration` - (Optional) The container configuration used in the pool's VMs. One `container_configuration` block as defined below.
 
@@ -174,10 +159,6 @@ The following arguments are supported:
 * `user_accounts` - (Optional) A `user_accounts` block that describes the list of user accounts to be created on each node in the pool as defined below.
 
 * `windows` - (Optional) A `windows` block that describes the Windows configuration in the pool as defined below.
-
--> **Note:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
-
-~> **Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
 ---
 
@@ -329,20 +310,6 @@ A `auto_user` block supports the following:
 * `elevation_level` - (Optional) The elevation level of the user identity under which the start task runs. Possible values are `Admin` or `NonAdmin`. Defaults to `NonAdmin`.
 
 * `scope` - (Optional) The scope of the user identity under which the start task runs. Possible values are `Task` or `Pool`. Defaults to `Task`.
-
----
-
-A `certificate` block supports the following:
-
-* `id` - (Required) The ID of the Batch Certificate to install on the Batch Pool, which must be inside the same Batch Account.
-
-* `store_location` - (Required) The location of the certificate store on the compute node into which to install the certificate. Possible values are `CurrentUser` or `LocalMachine`.
-
--> **Note:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
-
-* `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used.
-
-* `visibility` - (Optional) Which user accounts on the compute node should have access to the private data of the certificate. Possible values are `StartTask`, `Task` and `RemoteUser`.
 
 ---
 

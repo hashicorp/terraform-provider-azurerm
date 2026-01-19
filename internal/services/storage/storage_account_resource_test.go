@@ -1202,6 +1202,10 @@ func TestAccStorageAccount_sharedKeyAccess(t *testing.T) {
 }
 
 func TestAccStorageAccount_sharedKeyAccessUnsupported(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as this test is no longer relevant in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -4015,14 +4019,14 @@ func (r StorageAccountResource) shareSoftDeleteWithShareFile(data acceptance.Tes
 %s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "dir"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "dir"
+  storage_share_url = azurerm_storage_share.test.url
 
   source = "%s"
 
