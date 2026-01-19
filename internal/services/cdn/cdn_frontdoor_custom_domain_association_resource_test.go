@@ -228,13 +228,23 @@ resource "azurerm_cdn_frontdoor_origin_group" "test" {
   restore_traffic_time_to_healed_or_new_endpoint_in_minutes = 10
 }
 
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+}
+
 resource "azurerm_cdn_frontdoor_origin" "test" {
   name                          = "acctest-origin-%[1]d"
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
   enabled                       = true
 
-  certificate_name_check_enabled = false
-  host_name                      = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+  certificate_name_check_enabled = true
+  host_name                      = azurerm_storage_account.test.primary_blob_host
+  origin_host_header             = azurerm_storage_account.test.primary_blob_host
   priority                       = 1
   weight                         = 1
 }

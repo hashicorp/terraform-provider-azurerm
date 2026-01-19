@@ -213,10 +213,10 @@ func TestAccCdnFrontDoorCustomDomain_cipherSuites_update(t *testing.T) {
 
 func (r CdnFrontDoorCustomDomainResource) preCheck(t *testing.T) {
 	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests")
 	}
 	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
-		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests")
 	}
 }
 
@@ -604,40 +604,40 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (r CdnFrontDoorCustomDomainResource) cipherSuitesMixedWithTls12MinSingle(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%[1]s
+// func (r CdnFrontDoorCustomDomainResource) cipherSuitesMixedWithTls12MinSingle(data acceptance.TestData) string {
+// 	return fmt.Sprintf(`
+// %[1]s
 
-resource "azurerm_cdn_frontdoor_custom_domain" "test" {
-  name                     = "acctestcustomdomain-%[2]d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+// resource "azurerm_cdn_frontdoor_custom_domain" "test" {
+//   name                     = "acctestcustomdomain-%[2]d"
+//   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  depends_on = [azurerm_dns_ns_record.delegation]
+//   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+//   dns_zone_id              = azurerm_dns_zone.child.id
+//   host_name                = join(".", ["%[3]s", azurerm_dns_zone.child.name])
 
-  tls {
-    certificate_type = "ManagedCertificate"
-    minimum_version  = "TLS12"
+//   tls {
+//     certificate_type = "ManagedCertificate"
+//     minimum_version  = "TLS12"
 
-    cipher_suite {
-      type = "Customized"
+//     cipher_suite {
+//       type = "Customized"
 
-      custom_ciphers {
-        tls12 = [
-          "ECDHE_RSA_AES128_GCM_SHA256",
-        ]
-        tls13 = [
-          "TLS_AES_128_GCM_SHA256",
-          "TLS_AES_256_GCM_SHA384",
-        ]
-      }
-    }
-  }
-}
-`, r.template(data), data.RandomInteger, data.RandomString)
-}
+//       custom_ciphers {
+//         tls12 = [
+//           "ECDHE_RSA_AES128_GCM_SHA256",
+//         ]
+//         tls13 = [
+//           "TLS_AES_128_GCM_SHA256",
+//           "TLS_AES_256_GCM_SHA384",
+//         ]
+//       }
+//     }
+//   }
+// }
+// `, r.template(data), data.RandomInteger, data.RandomString)
+// }
 
 func (r CdnFrontDoorCustomDomainResource) cipherSuitesMixedWithTls12MinMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`

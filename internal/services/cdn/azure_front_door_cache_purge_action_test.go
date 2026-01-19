@@ -3,6 +3,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -12,6 +13,15 @@ import (
 )
 
 type AzureFrontDoorCachePurgeAction struct{}
+
+func (a AzureFrontDoorCachePurgeAction) preCheck(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+	}
+	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+	}
+}
 
 func TestAccAzureFrontDoorCachePurgeAction_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_front_door_cache_purge", "test")
@@ -35,6 +45,7 @@ func TestAccAzureFrontDoorCachePurgeAction_complete(t *testing.T) {
 	t.Skip("skipping test: custom domains take a long, long time to deploy to an endpoint")
 	data := acceptance.BuildTestData(t, "azurerm_cdn_front_door_cache_purge", "test")
 	a := AzureFrontDoorCachePurgeAction{}
+	a.preCheck(t)
 
 	resource.ParallelTest(t, resource.TestCase{
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
@@ -95,6 +106,8 @@ action "azurerm_cdn_front_door_cache_purge" "test" {
 }
 
 func (a *AzureFrontDoorCachePurgeAction) complete(data acceptance.TestData) string {
+	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE_NAME")
+	dnsZoneRG := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME")
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -116,20 +129,57 @@ resource "azurerm_cdn_frontdoor_endpoint" "test" {
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%[1]d.com"
+data "azurerm_dns_zone" "test" {
+  name                = "%[4]s"
+  resource_group_name = "%[5]s"
+}
+
+locals {
+  # Create a delegated child zone inside the test RG.
+  # NOTE: ARM_TEST_DNS_ZONE_NAME / ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME must refer to a real, delegated parent zone.
+  child_zone_label = "acctest%[1]d"
+  child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
+}
+
+resource "azurerm_dns_zone" "child" {
+  name                = local.child_zone_name
   resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_ns_record" "delegation" {
+  name                = local.child_zone_label
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.test.name
+  ttl                 = 300
+
+  records = azurerm_dns_zone.child.name_servers
 }
 
 resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "acctestcustomdomain-%[1]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  dns_zone_id              = azurerm_dns_zone.test.id
-  host_name                = join(".", ["%[3]s", azurerm_dns_zone.test.name])
+
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id              = azurerm_dns_zone.child.id
+  host_name                = join(".", ["%[3]s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
+  }
+}
+
+resource "azurerm_dns_txt_record" "validation" {
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  name                = join(".", ["_dnsauth", split(".", azurerm_cdn_frontdoor_custom_domain.test.host_name)[0]])
+  zone_name           = azurerm_dns_zone.child.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.test.validation_token
   }
 }
 
@@ -156,5 +206,5 @@ action "azurerm_cdn_front_door_cache_purge" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, dnsZoneName, dnsZoneRG)
 }

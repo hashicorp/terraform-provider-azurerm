@@ -10,6 +10,8 @@ description: |-
 
 Manages the association between a Front Door (standard/premium) Custom Domain and one or more Front Door (standard/premium) Routes.
 
+-> **Note:** Domain ownership validation for Azure Front Door custom domains is performed asynchronously by the service (typically transitioning through states like `Submitting` and `Pending` before becoming `Approved`). For details on the required `_dnsauth` TXT record and the possible validation states, see the Azure Front Door documentation on [domain validation](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation).
+
 ## Example Usage
 
 ```hcl

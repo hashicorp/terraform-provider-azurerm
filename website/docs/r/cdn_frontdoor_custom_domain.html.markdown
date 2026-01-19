@@ -48,6 +48,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 
 The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the Front Door Custom Domains `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.
 
+-> **Note:** Domain ownership validation is performed asynchronously by the Azure Front Door service (the domain typically transitions through states like `Submitting` and `Pending` before becoming `Approved`). If validation appears to be taking longer than expected, refer to the Azure Front Door documentation on [domain validation](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation) and [domain validation states](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation).
+
 ```terraform
 resource "azurerm_dns_txt_record" "example" {
   name                = join(".", ["_dnsauth", "contoso"])
@@ -154,6 +156,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
+
+-> **Note:** Deleting a Front Door Custom Domain can take a significant amount of time while the Azure Front Door service performs backend synchronization. During this period, the domain may remain visible in the Azure Portal with a provisioning state of `Deleting`. If you encounter `context deadline exceeded` during deletion, increase the `delete` timeout accordingly.
 
 * `create` - (Defaults to 12 hours) Used when creating the Front Door Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain.

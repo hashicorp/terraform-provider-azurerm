@@ -256,13 +256,19 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	props.Properties.TlsSettings = tlsSettings
 
 	// NOTE: Azure Front Door custom domains that use Managed Certificates require a DNS TXT record
-	// ("_dnsauth.<subdomain>") for domain ownership validation. The service may keep the long-running
-	// Create operation pending until validation succeeds, which prevents Terraform from returning the
-	// `validation_token` needed to create that TXT record.
+	// ("_dnsauth.<subdomain>") for domain ownership validation.
+	//
+	// In addition, the service is eventually-consistent for a short period after Create (for example,
+	// due to backend sync/replication), during which the resource might be temporarily unreadable or
+	// might not yet return the `validation_token`.
+	//
+	// The service may also keep the long-running Create operation pending until validation succeeds,
+	// which prevents Terraform from returning the `validation_token` needed to create that TXT record.
 	//
 	// To avoid deadlock, we issue the Create request but do not wait for the long-running operation
 	// to reach a terminal state. Instead, we wait only until the resource becomes readable and a
 	// validation token is available.
+	// For more information, see: https://learn.microsoft.com/azure/frontdoor/domain#domain-validation.
 	if _, err := client.Create(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -753,8 +759,23 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 
 	certType := v["certificate_type"].(string)
 	secretRaw := v["cdn_frontdoor_secret_id"].(string)
+	secretWasConfigured := false
 
 	minTlsVersion := ""
+
+	// `cdn_frontdoor_secret_id` is Optional+Computed. When `certificate_type` is
+	// ManagedCertificate, the service may populate a value in state even when
+	// the user didn't configure it. Only treat it as user-specified when it
+	// exists in raw config.
+	if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+		tlsConfig := rawConfig.GetAttr("tls")
+		if !tlsConfig.IsNull() && tlsConfig.LengthInt() > 0 {
+			tlsBlock := tlsConfig.AsValueSlice()[0]
+			if !tlsBlock.IsNull() {
+				secretWasConfigured = !tlsBlock.GetAttr("cdn_frontdoor_secret_id").IsNull()
+			}
+		}
+	}
 
 	if features.FivePointOh() {
 		minTlsVersion = v["minimum_version"].(string)
@@ -789,8 +810,15 @@ func expandAfdDomainTlsParameters(d *pluginsdk.ResourceData, input []interface{}
 
 	if certType == string(afdcustomdomains.AfdCertificateTypeCustomerCertificate) && secretRaw == "" {
 		return nil, fmt.Errorf("the `cdn_frontdoor_secret_id` field must be set if the `certificate_type` is `CustomerCertificate`")
-	} else if certType == string(afdcustomdomains.AfdCertificateTypeManagedCertificate) && secretRaw != "" {
-		return nil, fmt.Errorf("the `cdn_frontdoor_secret_id` field is not supported if the `certificate_type` is `ManagedCertificate`")
+	} else if certType == string(afdcustomdomains.AfdCertificateTypeManagedCertificate) {
+		// Ignore computed `cdn_frontdoor_secret_id` for managed certs unless the
+		// user explicitly configured it.
+		if secretRaw != "" && secretWasConfigured {
+			return nil, fmt.Errorf("the `cdn_frontdoor_secret_id` field is not supported if the `certificate_type` is `ManagedCertificate`")
+		}
+		if !secretWasConfigured {
+			secretRaw = ""
+		}
 	}
 
 	// NOTE: Secret always needs to be passed if it is defined else you will
