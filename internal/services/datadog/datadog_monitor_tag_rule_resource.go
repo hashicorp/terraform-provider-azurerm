@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/rules"
+	monitorsresource "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources"
+	rules "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/tagrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -134,7 +134,7 @@ func resourceDatadogTagRules() *pluginsdk.Resource {
 }
 
 func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.Rules
+	client := meta.(*clients.Client).Datadog.TagRules
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -144,7 +144,7 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	id := rules.NewTagRuleID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.TagRulesGet(ctx, id)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for an existing %s: %+v", id, err)
@@ -160,7 +160,7 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
 		},
 	}
-	if _, err := client.TagRulesCreateOrUpdate(ctx, id, payload); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -169,7 +169,7 @@ func resourceDatadogTagRulesCreate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.Rules
+	client := meta.(*clients.Client).Datadog.TagRules
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -178,7 +178,7 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return err
 	}
 
-	resp, err := client.TagRulesGet(ctx, *id)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
@@ -206,7 +206,7 @@ func resourceDatadogTagRulesRead(d *pluginsdk.ResourceData, meta interface{}) er
 }
 
 func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.Rules
+	client := meta.(*clients.Client).Datadog.TagRules
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -221,7 +221,7 @@ func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			MetricRules: expandMetricRules(d.Get("metric").([]interface{})),
 		},
 	}
-	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -229,7 +229,7 @@ func resourceDatadogTagRulesUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.Rules
+	client := meta.(*clients.Client).Datadog.TagRules
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,7 +252,7 @@ func resourceDatadogTagRulesDelete(d *pluginsdk.ResourceData, meta interface{}) 
 			},
 		},
 	}
-	if _, err := client.TagRulesCreateOrUpdate(ctx, *id, payload); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
 		return fmt.Errorf("removing %s: %+v", *id, err)
 	}
 
