@@ -166,7 +166,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251219.1184026
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20251219.1184026 => c:/go-azure-sdk/resource-manager
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -461,6 +461,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/vnetpeering
 github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2025-10-01-preview/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/apikey
@@ -1253,7 +1254,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20251219.1184026
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260109.1234209
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1834,3 +1835,4 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
+# github.com/hashicorp/go-azure-sdk/resource-manager => c:/go-azure-sdk/resource-manager
