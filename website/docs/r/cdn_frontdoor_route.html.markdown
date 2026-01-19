@@ -190,10 +190,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Route.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Route.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Route.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Route.
-* `delete` - (Defaults to 2 hours) Used when deleting the Front Door Route.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Route.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Route.
 
 ## Import
 
