@@ -171,6 +171,10 @@ resource "azurerm_database_migration_project" "test" {
 `, DatabaseMigrationServiceResource{}.basic(data), data.RandomInteger, sourcePlatform, targetPlatform)
 }
 
+func (DatabaseMigrationProjectResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return DatabaseMigrationProjectResource{}.basic(data, "SQL", "SQLDB")
+}
+
 func (DatabaseMigrationProjectResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
