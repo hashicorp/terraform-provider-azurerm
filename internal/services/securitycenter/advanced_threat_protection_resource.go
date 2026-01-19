@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -82,7 +82,7 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 
 	setting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-			IsEnabled: utils.Bool(d.Get("enabled").(bool)),
+			IsEnabled: pointer.To(d.Get("enabled").(bool)),
 		},
 	}
 
@@ -169,7 +169,7 @@ func resourceAdvancedThreatProtectionDelete(d *pluginsdk.ResourceData, meta inte
 	// there is no delete.. so lets just do best effort and set it to false?
 	setting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-			IsEnabled: utils.Bool(false),
+			IsEnabled: pointer.To(false),
 		},
 	}
 

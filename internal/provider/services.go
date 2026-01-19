@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -82,7 +82,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/maps"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql"
@@ -193,7 +192,6 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		maintenance.Registration{},
 		managedhsm.Registration{},
 		managedredis.Registration{},
-		mobilenetwork.Registration{},
 		mongocluster.Registration{},
 		monitor.Registration{},
 		mssql.Registration{},
@@ -350,9 +348,11 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		compute.Registration{},
 		dataprotection.Registration{},
 		keyvault.Registration{},
+		managedredis.Registration{},
 		mssql.Registration{},
 		network.Registration{},
-		managedredis.Registration{},
+		privatedns.Registration{},
+		resource.Registration{},
 		storage.Registration{},
 	}
 
