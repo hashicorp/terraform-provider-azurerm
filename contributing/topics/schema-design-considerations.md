@@ -298,9 +298,9 @@ If a field is an array, proper `MinItems` and `MaxItems` should be set based on 
 
 Fields marked as required in the Azure Portal (indicated by `*`) should be defined as `Required` in Terraform, unless the API accepts the request without them and still functions.
 
-## AtLeastOneOf validation for TypeList fields
+## Validation for TypeList fields with no Required fields
 
-When a `pluginsdk.TypeList` block has no required nested fields, `AtLeastOneOf` must be set on the optional fields to ensure at least one is specified.
+When a `pluginsdk.TypeList` block has no required nested fields, conditional validation such as `AtLeastOneOf` or `ExactlyOneOf` must be set on the optional fields to ensure the block is not empty and has at least one property configured.
 
 ```go
 "setting": {
