@@ -321,6 +321,27 @@ func TestAccDatabricksWorkspace_managedDiskCMK(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspace_managedHsmCMK(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedHsmCMK(data, databricksPrincipalID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDatabricksWorkspace_managedServicesRootDbfsCMKAndPrivateLink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
 	databricksPrincipalID := getDatabricksPrincipalId(data.Client().SubscriptionID)
@@ -562,8 +583,12 @@ func TestAccDatabricksWorkspace_withForceDeleteSetToFalse(t *testing.T) {
 
 func getDatabricksPrincipalId(subscriptionId string) string {
 	databricksPrincipalID := "bb9ef821-a78b-4312-90cc-5ece3fad3430"
-	if strings.HasPrefix(strings.ToLower(subscriptionId), "85b3dbca") {
+	if sub := strings.ToLower(subscriptionId); strings.HasPrefix(sub, "85b3dbca") {
 		databricksPrincipalID = "fe597bb2-377c-44f1-8515-82c8a1a62e3d"
+	} else if strings.HasPrefix(sub, "2350ac68") {
+		// update databricks principal id of tenant: azclitools20251114
+		// intended not use azuread data source as test service principal may not have directory read permissions
+		databricksPrincipalID = "2f1b5070-cfa2-4b49-8a3d-ba64dfcd4a83"
 	}
 
 	return databricksPrincipalID
@@ -583,13 +608,13 @@ func altSubscriptionCheck() *DatabricksWorkspaceAlternateSubscription {
 	}
 }
 
-func (DatabricksWorkspaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DatabricksWorkspaceResource) Exists(ctx context.Context, acctClients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataBricks.WorkspacesClient.Get(ctx, *id)
+	resp, err := acctClients.DataBricks.WorkspacesClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Analysis Services Server %q (resource group: %q): %+v", id.WorkspaceName, id.ResourceGroupName, err)
 	}
@@ -2279,6 +2304,197 @@ resource "azurerm_key_vault_access_policy" "databricks" {
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
+}
+
+func (r DatabricksWorkspaceResource) managedHsmTemplate(data acceptance.TestData, databricksPrincipalID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_deleted_hardware_security_modules_on_destroy = true
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-hsm-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "security_domain" {
+  name                       = "acctest%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "DeleteIssuers",
+      "Get",
+      "Purge",
+      "Update"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "security_domain" {
+  count        = 3
+  name         = "acchsmcert${count.index}"
+  key_vault_id = azurerm_key_vault.security_domain.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module" "test" {
+  name                     = "accHsm%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku_name                 = "Standard_B1"
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  admin_object_ids         = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled = false
+
+  security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.security_domain : cert.id]
+  security_domain_quorum                    = 3
+}
+
+data "azurerm_key_vault_managed_hardware_security_module_role_definition" "crypto_user" {
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
+}
+
+data "azurerm_key_vault_managed_hardware_security_module_role_definition" "crypto_officer" {
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  name           = "515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "crypto_user_admin" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad22"
+  scope              = "/keys"
+  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto_user.resource_manager_id
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "crypto_officer_admin" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "1e243909-064c-6ac3-84e9-1c8bf8d6ad23"
+  scope              = "/keys"
+  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto_officer.resource_manager_id
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "crypto_user_databricks" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "2b3c4d5e-6f70-4780-8a91-b2c3d4e5f6a7"
+  scope              = "/keys"
+  role_definition_id = data.azurerm_key_vault_managed_hardware_security_module_role_definition.crypto_user.resource_manager_id
+  principal_id       = "%[4]s"
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "primary" {
+  name           = "acctest-hsmk1-%[3]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["wrapKey", "unwrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.crypto_user_admin,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.crypto_officer_admin,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
+}
+
+func (r DatabricksWorkspaceResource) managedHsmCMK(data acceptance.TestData, databricksPrincipalID string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_databricks_workspace" "test" {
+  name                        = "acctestDBW-hsm-%[2]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "premium"
+  managed_resource_group_name = "acctestRG-DBW-%[2]d-managed"
+
+  customer_managed_key_enabled = true
+
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_managed_hardware_security_module_key.primary.versioned_id
+  managed_disk_cmk_key_vault_key_id     = azurerm_key_vault_managed_hardware_security_module_key.primary.versioned_id
+
+  tags = {
+    Environment = "Production"
+    Pricing     = "Premium"
+  }
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.crypto_user_databricks,
+  ]
+}
+`, r.managedHsmTemplate(data, databricksPrincipalID), data.RandomInteger)
 }
 
 func (DatabricksWorkspaceResource) managedServicesRootDbfsCMKAndPrivateLink(data acceptance.TestData, databricksPrincipalID string) string {
