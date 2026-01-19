@@ -173,6 +173,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ~> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
 
+* `node_resource_group_restriction_level` - (Optional) The restriction level applied to the Node Resource Group. Possible values are `ReadOnly` and `Unrestricted`.
+
 * `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://learn.microsoft.com/en-gb/azure/aks/use-oidc-issuer)
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.

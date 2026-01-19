@@ -83,6 +83,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("api_server_access_profile.0.subnet_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			pluginsdk.ForceNewIfChange("node_resource_group_restriction_level", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old != "" && new == ""
+			}),
 			pluginsdk.ForceNewIf("default_node_pool.0.name", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
 				old, new := d.GetChange("default_node_pool.0.name")
 				defaultName := d.Get("default_node_pool.0.name")
@@ -1363,6 +1366,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
+			"node_resource_group_restriction_level": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.RestrictionLevelReadOnly),
+					string(managedclusters.RestrictionLevelUnrestricted),
+				}, false),
+			},
+
 			"current_kubernetes_version": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -1950,6 +1962,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("node_resource_group_restriction_level"); ok {
+		parameters.Properties.NodeResourceGroupProfile = &managedclusters.ManagedClusterNodeResourceGroupProfile{
+			RestrictionLevel: pointer.To(managedclusters.RestrictionLevel(v.(string))),
+		}
+	}
+
 	if d.Get("ai_toolchain_operator_enabled").(bool) {
 		parameters.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
 			Enabled: pointer.To(true),
@@ -2382,6 +2400,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		windowsProfileRaw := d.Get("windows_profile").([]interface{})
 		windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 		existing.Model.Properties.WindowsProfile = windowsProfile
+	}
+
+	if d.HasChange("node_resource_group_restriction_level") {
+		updateCluster = true
+		if existing.Model.Properties.NodeResourceGroupProfile == nil {
+			existing.Model.Properties.NodeResourceGroupProfile = &managedclusters.ManagedClusterNodeResourceGroupProfile{}
+		}
+		if v, ok := d.GetOk("node_resource_group_restriction_level"); ok {
+			existing.Model.Properties.NodeResourceGroupProfile.RestrictionLevel = pointer.To(managedclusters.RestrictionLevel(v.(string)))
+		}
 	}
 
 	if d.HasChange("identity") {
@@ -2884,6 +2912,10 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
 			d.Set("node_resource_group_id", nodeResourceGroupId.ID())
+
+			if props.NodeResourceGroupProfile != nil && props.NodeResourceGroupProfile.RestrictionLevel != nil {
+				d.Set("node_resource_group_restriction_level", string(*props.NodeResourceGroupProfile.RestrictionLevel))
+			}
 
 			upgradeChannel := ""
 			nodeOSUpgradeChannel := ""
