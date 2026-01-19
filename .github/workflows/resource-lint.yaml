@@ -31,16 +31,17 @@ jobs:
           git diff HEAD^1 HEAD > /tmp/changes.diff
           echo "Generated diff file with $(wc -l < /tmp/changes.diff) lines"
 
-      # - name: Check for internal/services changes
-      #   id: check_changes
-      #   run: |
-      #     if git diff --name-only HEAD^1 HEAD | grep -q "^internal/services/"; then
-      #       echo "has_service_changes=true" >> $GITHUB_OUTPUT
-      #       echo "Changes detected in internal/services/"
-      #     else
-      #       echo "has_service_changes=false" >> $GITHUB_OUTPUT
-      #       echo "No changes in internal/services/, skipping lint"
-      #     fi
+      - name: Check for internal/services changes
+        id: check_changes
+        run: |
+          if git diff --name-only HEAD^1 HEAD | grep -q "^internal/services/"; then
+            echo "has_service_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in internal/services/"
+          else
+            echo "has_service_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes in internal/services/, skipping lint"
+          fi
 
       - name: Run resource lint checker
-        run: make resource-lint RESOURCE_LINT_ARGS="-no-filter ./internal/services/..."
+        if: steps.check_changes.outputs.has_service_changes == 'true'
+        run: make resource-lint RESOURCE_LINT_ARGS="-diff=/tmp/changes.diff"
