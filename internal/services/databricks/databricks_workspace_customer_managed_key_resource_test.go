@@ -239,6 +239,7 @@ resource "azurerm_key_vault" "test" {
   sku_name            = "premium"
 
   soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_key" "test" {
