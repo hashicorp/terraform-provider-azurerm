@@ -189,15 +189,6 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
-			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
-			if err != nil {
-				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
-			}
-			if resourceManagerId == nil {
-				return fmt.Errorf("unable to determine the Resource Manager ID for %s", id)
-			}
-
 			resp, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
@@ -205,6 +196,15 @@ func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
+			if err != nil {
+				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
+			}
+			if resourceManagerId == nil {
+				return fmt.Errorf("unable to determine the Resource Manager ID for %s", id)
 			}
 
 			model := KeyVaultManagedHSMRoleAssignmentModel{
