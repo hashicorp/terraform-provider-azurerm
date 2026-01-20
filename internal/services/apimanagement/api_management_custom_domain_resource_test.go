@@ -110,9 +110,7 @@ func TestAccApiManagementCustomDomain_update(t *testing.T) {
 			Config: r.updateCertificate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// features.FivePointOh()
-				// These checks must be done manually as we can't rely on the refresh diff due to this property being O+C while in 4.x
-				// They can be removed after 5.0 releases
+				// Ensure the property contains the expected certificate value
 				check.That(data.ResourceName).Key("gateway.0.key_vault_certificate_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
 				check.That(data.ResourceName).Key("gateway.1.key_vault_certificate_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestcert-2-%s", data.RandomString))),
 			),
