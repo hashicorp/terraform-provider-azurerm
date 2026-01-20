@@ -353,6 +353,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		network.Registration{},
 		privatedns.Registration{},
 		storage.Registration{},
+		mysql.Registration{},
 	}
 
 	return services
