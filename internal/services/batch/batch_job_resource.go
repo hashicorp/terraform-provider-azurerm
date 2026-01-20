@@ -10,6 +10,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -17,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	batchDataplane "github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch"
 )
 
@@ -89,7 +91,7 @@ func (r BatchJobResource) ModelObject() interface{} {
 }
 
 func (r BatchJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.JobID
+	return jobs.ValidateJobID
 }
 
 func (r BatchJobResource) Create() sdk.ResourceFunc {
@@ -107,37 +109,44 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 			}
 
 			accountId := batchaccount.NewBatchAccountID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName)
-			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
-			if err != nil {
+
+			account, err := metadata.Client.Batch.AccountClient.Get(ctx, accountId)
+			if err != nil || account.Model == nil {
 				return err
 			}
 
-			id := parse.NewJobID(poolId.SubscriptionId, poolId.ResourceGroupName, poolId.BatchAccountName, poolId.PoolName, model.Name)
+			loc := location.NormalizeNilable(account.Model.Location)
 
-			existing, err := r.getJob(ctx, client, id)
+			client := metadata.Client.Batch.JobsDataPlaneClient
+
+			id := jobs.NewJobID(fmt.Sprintf(dataPlaneEndpointFmt, poolId.BatchAccountName, loc), model.Name)
+
+			client.JobsClientSetEndpoint(id.BaseURI)
+
+			existing, err := client.JobGet(ctx, id, jobs.DefaultJobGetOperationOptions())
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			params := batchDataplane.JobAddParameter{
-				ID:          &model.Name,
+			params := jobs.JobAddParameter{
+				Id:          model.Name,
 				DisplayName: &model.DisplayName,
-				Priority:    pointer.To(int32(model.Priority)),
-				Constraints: &batchDataplane.JobConstraints{
-					MaxTaskRetryCount: pointer.To(int32(model.TaskRetryMaximum)),
+				Priority:    pointer.To(model.Priority),
+				Constraints: &jobs.JobConstraints{
+					MaxTaskRetryCount: pointer.To(model.TaskRetryMaximum),
 				},
 				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentProperties),
-				PoolInfo: &batchDataplane.PoolInformation{
-					PoolID: &poolId.PoolName,
+				PoolInfo: jobs.PoolInformation{
+					PoolId: &poolId.PoolName,
 				},
 			}
 
-			if err := r.addJob(ctx, client, id, params); err != nil {
+			if _, err = client.JobAdd(ctx, params, jobs.DefaultJobAddOperationOptions()); err != nil {
 				return err
 			}
 
@@ -149,49 +158,48 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 
 func (r BatchJobResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.JobID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			client := metadata.Client.Batch.JobsDataPlaneClient
+
+			data := BatchJobModel{}
+
+			if err := metadata.Decode(&data); err != nil {
+				return fmt.Errorf("decoding %+v", err)
 			}
-			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
-			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
+
+			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := r.getJob(ctx, client, *id)
+			// client, err := metadata.Client.Batch.JobClient(ctx, accountId)
+			client.JobsClientSetEndpoint(id.BaseURI)
+
+			resp, err := client.JobGet(ctx, *id, jobs.DefaultJobGetOperationOptions())
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := BatchJobModel{
-				Name:             id.Name,
-				BatchPoolId:      pool.NewPoolID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName, id.PoolName).ID(),
-				TaskRetryMaximum: 0,
-			}
+			data.Name = id.JobId
 
-			if resp.Priority != nil {
-				model.Priority = int64(*resp.Priority)
-			}
-
-			if resp.DisplayName != nil {
-				model.DisplayName = *resp.DisplayName
-			}
-
-			if prop := resp.Constraints; prop != nil {
-				if prop.MaxTaskRetryCount != nil {
-					model.TaskRetryMaximum = int64(*prop.MaxTaskRetryCount)
+			if model := resp.Model; model != nil {
+				data.Priority = pointer.From(model.Priority)
+				data.DisplayName = pointer.From(model.DisplayName)
+				if constraints := model.Constraints; constraints != nil {
+					data.TaskRetryMaximum = pointer.From(constraints.MaxTaskRetryCount)
 				}
+
+				data.CommonEnvironmentProperties = r.flattenEnvironmentSettings(model.CommonEnvironmentSettings)
+
+				// retrieve `batch_pool_id` from config if we can, will fail for import
+				data.BatchPoolId = metadata.ResourceData.Get("batch_pool_id").(string)
 			}
 
-			model.CommonEnvironmentProperties = r.flattenEnvironmentSettings(resp.CommonEnvironmentSettings)
-
-			return metadata.Encode(&model)
+			return metadata.Encode(&data)
 		},
 	}
 }
@@ -200,37 +208,36 @@ func (r BatchJobResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			patch := batchDataplane.JobPatchParameter{}
+			client := metadata.Client.Batch.JobsDataPlaneClient
+
+			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+			client.JobsClientSetEndpoint(id.BaseURI)
 
 			var model BatchJobModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
+			patch := jobs.JobPatchParameter{}
+
 			if metadata.ResourceData.HasChange("priority") {
-				patch.Priority = pointer.To(int32(model.Priority))
+				patch.Priority = pointer.To(model.Priority)
 			}
 
 			if metadata.ResourceData.HasChange("task_retry_maximum") {
 				if patch.Constraints == nil {
-					patch.Constraints = new(batchDataplane.JobConstraints)
+					patch.Constraints = new(jobs.JobConstraints)
 				}
-				patch.Constraints.MaxTaskRetryCount = pointer.To(int32(model.TaskRetryMaximum))
+				patch.Constraints.MaxTaskRetryCount = pointer.To(model.TaskRetryMaximum)
 			}
 
-			id, err := parse.JobID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
-			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
-			if err != nil {
+			if _, err = client.JobPatch(ctx, *id, patch, jobs.DefaultJobPatchOperationOptions()); err != nil {
 				return err
 			}
 
-			if err := r.patchJob(ctx, client, *id, patch); err != nil {
-				return err
-			}
 			return nil
 		},
 	}
@@ -240,18 +247,19 @@ func (r BatchJobResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := parse.JobID(metadata.ResourceData.Id())
+			client := metadata.Client.Batch.JobsDataPlaneClient
+
+			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			accountId := batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName)
-			client, err := metadata.Client.Batch.JobClient(ctx, accountId)
-			if err != nil {
+
+			client.JobsClientSetEndpoint(id.BaseURI)
+
+			if _, err := client.JobDelete(ctx, *id, jobs.DefaultJobDeleteOperationOptions()); err != nil {
 				return err
 			}
-			if err := r.deleteJob(ctx, client, *id); err != nil {
-				return err
-			}
+
 			return nil
 		},
 	}
@@ -291,31 +299,31 @@ func (r BatchJobResource) deleteJob(ctx context.Context, client *batchDataplane.
 	return err
 }
 
-func (r BatchJobResource) expandEnvironmentSettings(input map[string]string) *[]batchDataplane.EnvironmentSetting {
+func (r BatchJobResource) expandEnvironmentSettings(input map[string]string) *[]jobs.EnvironmentSetting {
 	if len(input) == 0 {
 		return nil
 	}
-	m := make([]batchDataplane.EnvironmentSetting, 0, len(input))
+	m := make([]jobs.EnvironmentSetting, 0, len(input))
 	for k, v := range input {
-		m = append(m, batchDataplane.EnvironmentSetting{
-			Name:  pointer.To(k),
+		m = append(m, jobs.EnvironmentSetting{
+			Name:  k,
 			Value: pointer.To(v),
 		})
 	}
 	return &m
 }
 
-func (r BatchJobResource) flattenEnvironmentSettings(input *[]batchDataplane.EnvironmentSetting) map[string]string {
+func (r BatchJobResource) flattenEnvironmentSettings(input *[]jobs.EnvironmentSetting) map[string]string {
 	if input == nil {
 		return nil
 	}
 
 	m := make(map[string]string)
 	for _, setting := range *input {
-		if setting.Name == nil || setting.Value == nil {
+		if setting.Value == nil {
 			continue
 		}
-		m[*setting.Name] = *setting.Value
+		m[setting.Name] = *setting.Value
 	}
 	return m
 }

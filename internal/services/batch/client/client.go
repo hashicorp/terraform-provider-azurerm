@@ -8,11 +8,13 @@ import (
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/application"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/certificate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+
 	batchDataplane "github.com/jackofallops/kermit/sdk/batch/2022-01.15.0/batch"
 )
 
@@ -22,8 +24,12 @@ type Client struct {
 	CertificateClient *certificate.CertificateClient
 	PoolClient        *pool.PoolClient
 
+	JobsDataPlaneClient *jobs.JobsClient
+
 	BatchManagementAuthorizer autorest.Authorizer
 }
+
+var BatchClientEndpointFmt = "https://%.%s.batch.azure.com"
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
 	accountClient, err := batchaccount.NewBatchAccountClientWithBaseURI(o.Environment.ResourceManager)
@@ -50,11 +56,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(poolClient.Client, o.Authorizers.ResourceManager)
 
+	jobsClient, err := jobs.NewJobsClientUnconfigured()
+	if err != nil {
+		return nil, fmt.Errorf("building Jobs Data Plane client: %+v", err)
+	}
+	o.Configure(jobsClient.Client, o.Authorizers.BatchManagement)
+
 	return &Client{
 		AccountClient:             accountClient,
 		ApplicationClient:         applicationClient,
 		CertificateClient:         certificateClient,
 		PoolClient:                poolClient,
+		JobsDataPlaneClient:       jobsClient,
 		BatchManagementAuthorizer: o.BatchManagementAuthorizer,
 	}, nil
 }
@@ -80,3 +93,9 @@ func (r *Client) JobClient(ctx context.Context, accountId batchaccount.BatchAcco
 	c.Authorizer = r.BatchManagementAuthorizer
 	return &c, nil
 }
+
+// func (r *Client) JobsClient(ctx context.Context, accountName string, location string) (*jobs.JobsClient, error) {
+// 	// c, err := jobs.NewJobsClientWithBaseURI(fmt.Sprintf("https://%s.%s.batch.azure.com", accountName, location))
+// 	// // c.Authorizer = r.BatchManagementAuthorizer
+// 	// return &c, nil
+// }

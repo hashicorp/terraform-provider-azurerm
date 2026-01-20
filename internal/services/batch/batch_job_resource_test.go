@@ -9,13 +9,12 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BatchJobResource struct{}
@@ -31,7 +30,7 @@ func TestAccBatchJob_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("batch_pool_id"), // Not resolvable from the Data API response on read
 	})
 }
 
@@ -46,7 +45,7 @@ func TestAccBatchJob_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("batch_pool_id"),
 	})
 }
 
@@ -61,21 +60,21 @@ func TestAccBatchJob_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("batch_pool_id"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("batch_pool_id"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("batch_pool_id"),
 	})
 }
 
@@ -95,18 +94,16 @@ func TestAccBatchJob_requiresImport(t *testing.T) {
 }
 
 func (r BatchJobResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.JobID(state.ID)
+	id, err := jobs.ParseJobID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client, err := clients.Batch.JobClient(ctx, batchaccount.NewBatchAccountID(id.SubscriptionId, id.ResourceGroup, id.BatchAccountName))
-	if err != nil {
-		return nil, err
-	}
+	client := clients.Batch.JobsDataPlaneClient
+	client.JobsClientSetEndpoint(id.BaseURI)
 
-	if resp, err := client.Get(ctx, id.Name, "", "", nil, nil, nil, nil, "", "", nil, nil); err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+	if resp, err := clients.Batch.JobsDataPlaneClient.JobGet(ctx, *id, jobs.DefaultJobGetOperationOptions()); err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
