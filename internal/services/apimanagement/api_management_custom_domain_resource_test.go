@@ -67,7 +67,7 @@ func TestAccApiManagementCustomDomain_requiresImport(t *testing.T) {
 }
 
 func TestAccApiManagementCustomDomain_updateCertificateFourPointOh(t *testing.T) {
-	if !features.FivePointOh() {
+	if features.FivePointOh() {
 		t.Skip("Skipping as this test is no longer functional in 5.x")
 	}
 
