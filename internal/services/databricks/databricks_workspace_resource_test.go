@@ -321,7 +321,7 @@ func TestAccDatabricksWorkspace_managedDiskCMK(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksWorkspace_managedHsmCMK(t *testing.T) {
+func TestAccDatabricksWorkspace_managedHSMCMK(t *testing.T) {
 	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
@@ -333,7 +333,7 @@ func TestAccDatabricksWorkspace_managedHsmCMK(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managedHsmCMK(data, databricksPrincipalID),
+			Config: r.managedHSMCMK(data, databricksPrincipalID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -582,6 +582,10 @@ func TestAccDatabricksWorkspace_withForceDeleteSetToFalse(t *testing.T) {
 }
 
 func getDatabricksPrincipalId(subscriptionId string) string {
+	if envID := os.Getenv("ARM_DATABRICKS_SERVICE_PRINCIPAL_ID"); envID != "" {
+		return envID
+	}
+
 	databricksPrincipalID := "bb9ef821-a78b-4312-90cc-5ece3fad3430"
 	if sub := strings.ToLower(subscriptionId); strings.HasPrefix(sub, "85b3dbca") {
 		databricksPrincipalID = "fe597bb2-377c-44f1-8515-82c8a1a62e3d"
@@ -2469,7 +2473,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "primary" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
 }
 
-func (r DatabricksWorkspaceResource) managedHsmCMK(data acceptance.TestData, databricksPrincipalID string) string {
+func (r DatabricksWorkspaceResource) managedHSMCMK(data acceptance.TestData, databricksPrincipalID string) string {
 	return fmt.Sprintf(`
 %[1]s
 
