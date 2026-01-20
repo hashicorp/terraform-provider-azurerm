@@ -50,9 +50,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Network Security Perimeter Association. Changing this forces a new Network Security Perimeter Association to be created.
 
-* `access_mode` - (Required) Access mode for the associated resource on the Network Security Perimeter. Possible values are `Audit`, `Enforced`, and `Learning`.
-
 * `network_security_perimeter_profile_id` - (Required) The ID of the Network Security Perimeter Profile. Changing this forces a new Network Security Perimeter Association to be created.
+
+* `access_mode` - (Required) Access mode for the associated resource on the Network Security Perimeter. Possible values are `Audit`, `Enforced`, and `Learning`.
 
 * `resource_id` - (Required) The ID of the associated resource. Changing this forces a new Network Security Perimeter Association to be created.
 
@@ -84,6 +84,7 @@ terraform import azurerm_network_security_perimeter_association.example /subscri
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
-This data source uses the following Azure API Providers:
+This resource uses the following Azure API Providers:
 
 * `Microsoft.Network` - 2025-01-01
+

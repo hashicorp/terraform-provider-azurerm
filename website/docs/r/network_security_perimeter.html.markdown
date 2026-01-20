@@ -29,11 +29,11 @@ resource "azurerm_network_security_perimeter" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Network Security Perimeter should exist. Changing this forces a new Network Security Perimeter to be created.
-
 * `name` - (Required) The name which should be used for this Network Security Perimeter. Changing this forces a new Network Security Perimeter to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Network Security Perimeter should exist.
+
+* `location` - (Required) The Azure Region where the Network Security Perimeter should exist. Changing this forces a new Network Security Perimeter to be created.
 
 ---
 
@@ -64,6 +64,7 @@ terraform import azurerm_network_security_perimeter.example /subscriptions/00000
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
-This data source uses the following Azure API Providers:
+This resource uses the following Azure API Providers:
 
 * `Microsoft.Network` - 2025-01-01
+

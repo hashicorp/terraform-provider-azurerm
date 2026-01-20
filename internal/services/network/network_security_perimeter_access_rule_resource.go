@@ -271,15 +271,6 @@ func (NetworkSecurityPerimeterAccessRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var subscriptions []string
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if props.Subscriptions != nil {
-						subscriptions = flattenAccessRuleSubscriptionIDs(*props.Subscriptions)
-					}
-				}
-			}
-
 			profileId := networksecurityperimeterprofiles.NewProfileID(id.SubscriptionId, id.ResourceGroupName, id.NetworkSecurityPerimeterName, id.ProfileName)
 
 			state := NetworkSecurityPerimeterAccessRuleResourceModel{
@@ -293,7 +284,7 @@ func (NetworkSecurityPerimeterAccessRuleResource) Read() sdk.ResourceFunc {
 					state.Direction = string(pointer.From(props.Direction))
 					state.FullyQualifiedDomainNames = pointer.From(props.FullyQualifiedDomainNames)
 					state.ServiceTags = pointer.From(props.ServiceTags)
-					state.Subscriptions = subscriptions
+					state.Subscriptions = flattenAccessRuleSubscriptionIDs(props.Subscriptions)
 				}
 			}
 
@@ -341,13 +332,13 @@ func expandAccessRuleSubscriptionIDs(subscriptionIDs []string) *[]networksecurit
 	return &result
 }
 
-func flattenAccessRuleSubscriptionIDs(subscriptions []networksecurityperimeteraccessrules.SubscriptionId) []string {
-	if len(subscriptions) == 0 {
+func flattenAccessRuleSubscriptionIDs(subscriptions *[]networksecurityperimeteraccessrules.SubscriptionId) []string {
+	if subscriptions == nil || len(*subscriptions) == 0 {
 		return nil
 	}
 
-	result := make([]string, 0, len(subscriptions))
-	for _, s := range subscriptions {
+	result := make([]string, 0, len(*subscriptions))
+	for _, s := range *subscriptions {
 		if s.Id != nil {
 			result = append(result, *s.Id)
 		}

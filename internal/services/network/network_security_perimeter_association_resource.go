@@ -233,8 +233,6 @@ func (NetworkSecurityPerimeterAssociationResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			time.Sleep(5 * time.Second)
-
 			return nil
 		},
 	}

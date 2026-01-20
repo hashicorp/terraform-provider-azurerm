@@ -44,21 +44,21 @@ resource "azurerm_network_security_perimeter_access_rule" "example" {
 
 The following arguments are supported:
 
-* `direction` - (Required) The direction of the rule. Possible values are `Inbound` and `Outbound`. Changing this forces a new Network Security Perimeter Access Rule to be created.
-
 * `name` - (Required) The name which should be used for this Network Security Perimeter Access Rule. Changing this forces a new Network Security Perimeter Access Rule to be created.
 
 * `network_security_perimeter_profile_id` - (Required) The ID of the Network Security Perimeter Profile within which this Access Rule is created. Changing this forces a new Network Security Perimeter Access Rule to be created.
+
+* `direction` - (Required) The direction of the rule. Possible values are `Inbound` and `Outbound`. Changing this forces a new Network Security Perimeter Access Rule to be created.
 
 ---
 
 * `address_prefixes` - (Optional) Specifies a list of CIDRs. Can only be specified when direction is set to `Inbound`. Conflicts with `fqdns`, `service_tags`, `subscription_ids`. 
 
-* `fqdns` - (Optional) Specifies a list of fully qualified domain names. Can only be specified when direction is set to `Outbound`. Conflicts with `fqdns`, `service_tags`, and `subscription_ids`.
+* `fqdns` - (Optional) Specifies a list of fully qualified domain names. Can only be specified when direction is set to `Outbound`. Conflicts with `address_prefixes`, `service_tags`, and `subscription_ids`.
 
-* `service_tags` - (Optional) Specifies a list of service tags. Can only be specified when direction is set to `Inbound`. Conflicts with `fqdns`, `service_tags`, and `subscription_ids`.
+* `service_tags` - (Optional) Specifies a list of service tags. Can only be specified when direction is set to `Inbound`. Conflicts with `address_prefixes`, `fqdns`, and `subscription_ids`.
 
-* `subscription_ids` - (Optional) Specifies a list of subscription IDs this rule applies to. Can only be specified when direction is set to `Inbound`. Conflicts with `fqdns`, `service_tags`, and `subscription_ids`.
+* `subscription_ids` - (Optional) Specifies a list of subscription IDs this rule applies to. Can only be specified when direction is set to `Inbound`. Conflicts with `address_prefixes`, `fqdns`, and `service_tags`.
 
 
 ## Attributes Reference
@@ -86,6 +86,7 @@ terraform import azurerm_network_security_perimeter_access_rule.example /subscri
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
-This data source uses the following Azure API Providers:
+This resource uses the following Azure API Providers:
 
 * `Microsoft.Network` - 2025-01-01
+
