@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -174,22 +176,13 @@ func TestAccApiManagementLogger_complete(t *testing.T) {
 	})
 }
 
+// Uses ResourceTestIgnoreRecreate because eventhub, application_insights, and resource_id
+// are ForceNew attributes - switching between them triggers resource recreation (replacement).
 func TestAccApiManagementLogger_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicApplicationInsights(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("buffered").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
-				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
-				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
-			),
-		},
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEventHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -202,7 +195,22 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.complete(data, "Logger from Terraform test", "false"),
+			// Switching from eventhub to application_insights triggers recreation
+			Config:           r.basicApplicationInsights(data),
+			ConfigPlanChecks: preApplyExpectActionCheck(data.ResourceName, plancheck.ResourceActionReplace),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			// applications_insights resource_id is ForceNew - changing it triggers recreation
+			Config:           r.complete(data, "Logger from Terraform test", "false"),
+			ConfigPlanChecks: preApplyExpectActionCheck(data.ResourceName, plancheck.ResourceActionReplace),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("false"),
@@ -213,7 +221,8 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.complete(data, "Logger from Terraform update test", "true"),
+			Config:           r.complete(data, "Logger from Terraform update test", "true"),
+			ConfigPlanChecks: preApplyExpectActionCheck(data.ResourceName, plancheck.ResourceActionUpdate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
@@ -224,7 +233,8 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.complete(data, "Logger from Terraform test", "false"),
+			Config:           r.complete(data, "Logger from Terraform test", "false"),
+			ConfigPlanChecks: preApplyExpectActionCheck(data.ResourceName, plancheck.ResourceActionUpdate),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("false"),
@@ -235,7 +245,9 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basicEventHub(data),
+			// Switching from application_insights to eventhub triggers recreation
+			Config:           r.basicEventHub(data),
+			ConfigPlanChecks: preApplyExpectActionCheck(data.ResourceName, plancheck.ResourceActionReplace),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
@@ -246,6 +258,14 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 	})
+}
+
+func preApplyExpectActionCheck(resourceName string, actionType plancheck.ResourceActionType) resource.ConfigPlanChecks {
+	return resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			plancheck.ExpectResourceAction(resourceName, actionType),
+		},
+	}
 }
 
 func (ApiManagementLoggerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
