@@ -1250,10 +1250,6 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	model.Properties = props
 
-	if d.HasChange("tags") {
-		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
