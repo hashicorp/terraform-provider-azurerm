@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_batch_application` - support for Terraform Resource Identity [GH-31458]
 * `azurerm_batch_pool` - support for Terraform Resource Identity [GH-31458]
 * `azurerm_backup_policy_file_share` - support for `backup_tier` and `snapshot_retention_in_days` [GH-29243]
+* `azurerm_custom_provider` - support for resource identity support [GH-31487]
 * `azurerm_dashboard_grafana` - support for Terraform Resource Identity [GH-31513]
 * `azurerm_dashboard_grafana_managed_private_endpoint` - support for Terraform Resource Identity [GH-31513]
 * `azurerm_database_migration_project` - support for Terraform Resource Identity [GH-31513]
