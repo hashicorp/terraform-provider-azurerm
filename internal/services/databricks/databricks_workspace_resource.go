@@ -623,15 +623,15 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 			managedHsmId, err := managedHSMsClient.ManagedHSMIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseURL, domainSuffix)
 			if err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Managed HSM in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving managed service Managed HSM at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 			if managedHsmId == nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Managed HSM in subscription %q at URL %q: not found", servicesResourceSubscriptionId, key.KeyVaultBaseURL)
+				return fmt.Errorf("retrieving managed service Managed HSM at URL %q: not found", key.KeyVaultBaseURL)
 			}
 		} else {
 			// make sure the key vault exists
 			if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 		}
 
@@ -675,15 +675,15 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 			managedHsmId, err := managedHSMsClient.ManagedHSMIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseURL, domainSuffix)
 			if err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Managed HSM in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving managed disk Managed HSM at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 			if managedHsmId == nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Managed HSM in subscription %q at URL %q: not found", diskResourceSubscriptionId, key.KeyVaultBaseURL)
+				return fmt.Errorf("retrieving managed disk Managed HSM at URL %q: not found", key.KeyVaultBaseURL)
 			}
 		} else {
 			// make sure the key vault exists
 			if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving for managed disk Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 		}
 
@@ -1243,15 +1243,15 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 			managedHsmId, err := managedHSMsClient.ManagedHSMIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseURL, domainSuffix)
 			if err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Managed HSM in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving managed services Managed HSM at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 			if managedHsmId == nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Managed HSM in subscription %q at URL %q: not found", servicesResourceSubscriptionId, key.KeyVaultBaseURL)
+				return fmt.Errorf("retrieving managed services Managed HSM at URL %q: not found", key.KeyVaultBaseURL)
 			}
 		} else {
 			// make sure the key vault exists
 			if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving managed services Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 		}
 
@@ -1295,15 +1295,15 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 			managedHsmId, err := managedHSMsClient.ManagedHSMIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseURL, domainSuffix)
 			if err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Managed HSM in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving managed disk Managed HSM at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 			if managedHsmId == nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Managed HSM in subscription %q at URL %q: not found", diskResourceSubscriptionId, key.KeyVaultBaseURL)
+				return fmt.Errorf("retrieving managed disk Managed HSM at URL %q: not found", key.KeyVaultBaseURL)
 			}
 		} else {
 			// make sure the key vault exists
 			if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
-				return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseURL, err)
+				return fmt.Errorf("retrieving managed disk Key Vault at URL %q: %+v", key.KeyVaultBaseURL, err)
 			}
 		}
 
