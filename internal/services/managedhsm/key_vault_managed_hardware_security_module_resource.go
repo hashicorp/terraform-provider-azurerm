@@ -95,7 +95,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"purge_protection_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"soft_delete_retention_days": {
@@ -192,6 +191,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
 	}
 
+	createMode := managedhsms.CreateModeDefault
+	deletedID := managedhsms.NewDeletedManagedHSMID(subscriptionId, location.Normalize(d.Get("location").(string)), id.ManagedHSMName)
+	if deleted, _ := client.ManagedHsmClient.GetDeleted(ctx, deletedID); deleted.Model != nil {
+		createMode = managedhsms.CreateModeRecover
+	}
+
 	publicNetworkAccessEnabled := managedhsms.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
@@ -200,7 +205,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
 			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
-			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
+			CreateMode:                pointer.To(createMode),
 			EnableSoftDelete:          pointer.To(true),
 			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
 			EnablePurgeProtection:     pointer.To(d.Get("purge_protection_enabled").(bool)),
@@ -290,6 +295,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		}
 		model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 	}
+
+	if d.HasChange("purge_protection_enabled") {
+		hasUpdate = true
+		model.Properties.EnablePurgeProtection = pointer.To(d.Get("purge_protection_enabled").(bool))
+	}
+
 	if hasUpdate {
 		if err := hsmClient.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 			return fmt.Errorf("updating %s tags: %+v", id, err)
@@ -548,6 +559,15 @@ func keyVaultHSMCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ in
 	if oldVal, newVal := d.GetChange("security_domain_quorum"); oldVal.(int) != 0 && newVal.(int) == 0 {
 		if err := d.ForceNew("security_domain_quorum"); err != nil {
 			return err
+		}
+	}
+
+	if oldVal, newVal := d.GetChange("purge_protection_enabled"); oldVal.(bool) != newVal.(bool) {
+		// force new only when changing from enabled to disabled purge protection
+		if oldVal.(bool) && !newVal.(bool) {
+			if err := d.ForceNew("purge_protection_enabled"); err != nil {
+				return err
+			}
 		}
 	}
 
