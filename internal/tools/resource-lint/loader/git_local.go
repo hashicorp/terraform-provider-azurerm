@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 // LocalGitLoader loads changes from local git repository
@@ -28,7 +28,7 @@ func (l *LocalGitLoader) Load() (*ChangeSet, error) {
 		return nil, fmt.Errorf("failed to open repository: %w", err)
 	}
 
-	targetCommit, _, err := resolveForLocal(repo, l.remoteName, l.baseBranch)
+	targetCommit, err := resolveForLocal(repo, l.remoteName, l.baseBranch)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve target: %w", err)
 	}
@@ -44,11 +44,11 @@ func (l *LocalGitLoader) Load() (*ChangeSet, error) {
 }
 
 // processDiffWithWorktree compares a commit with the current worktree using git diff
-func processDiffWithWorktree(cs *ChangeSet, baseCommit *object.Commit) error {
-	cmd := exec.Command("git", "diff", baseCommit.Hash.String())
-	output, err := cmd.Output()
+func processDiffWithWorktree(cs *ChangeSet, diffRef string) error {
+	cmd := exec.Command("git", "diff", diffRef)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("failed to run git diff: %w", err)
+		return fmt.Errorf("failed to run git diff: %w, output: %s", err, strings.TrimSpace(string(output)))
 	}
 
 	diffOutput := string(output)
@@ -59,58 +59,64 @@ func processDiffWithWorktree(cs *ChangeSet, baseCommit *object.Commit) error {
 	return cs.parseDiffOutput(diffOutput)
 }
 
-// resolveForLocal resolves the target commit and worktree for comparison
-func resolveForLocal(repo *git.Repository, remoteName, baseBranch string) (*object.Commit, *git.Worktree, error) {
+// resolveForLocal resolves the diff reference for comparison.
+func resolveForLocal(repo *git.Repository, remoteName, baseBranch string) (string, error) {
 	head, err := repo.Head()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get HEAD: %w", err)
+		return "", fmt.Errorf("failed to get HEAD: %w", err)
 	}
 
 	if !head.Name().IsBranch() {
-		return nil, nil, fmt.Errorf("not on a branch (detached HEAD)")
+		return "", fmt.Errorf("not on a branch (detached HEAD)")
 	}
 
 	currentBranch := head.Name().Short()
 	log.Printf("Current branch: %s", currentBranch)
 
-	headCommit, err := repo.CommitObject(head.Hash())
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get head commit: %w", err)
-	}
-
-	worktree, err := repo.Worktree()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get worktree: %w", err)
-	}
-
 	targetRemote, targetBranch, err := detectTargetBranch(repo, currentBranch, remoteName, baseBranch)
 	if err != nil {
-		return nil, nil, err
+		return "", err
 	}
 
-	targetRef, err := repo.Reference(
+	// Verify the remote reference exists
+	targetRefName := fmt.Sprintf("%s/%s", targetRemote, targetBranch)
+	_, err = repo.Reference(
 		plumbing.NewRemoteReferenceName(targetRemote, targetBranch),
 		true,
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get %s/%s: %w", targetRemote, targetBranch, err)
+		return "", fmt.Errorf("failed to get %s: %w (try running 'git fetch %s %s')", targetRefName, err, targetRemote, targetBranch)
 	}
 
-	targetCommit, err := repo.CommitObject(targetRef.Hash())
+	// Use shell 'git merge-base' command for robust merge-base detection
+	mergeBaseHash, err := getMergeBase(targetRefName, "HEAD")
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get target commit: %w", err)
+		return targetRefName, err
 	}
 
-	mergeBases, err := headCommit.MergeBase(targetCommit)
-	if err != nil || len(mergeBases) == 0 {
-		log.Printf("Warning: failed to find merge-base, using target directly: %v", err)
-		return targetCommit, worktree, nil
+	log.Printf("Merge-base with %s: %s", targetRefName, mergeBaseHash[:7])
+
+	return mergeBaseHash, nil
+}
+
+// getMergeBase uses 'git merge-base' command to find the common ancestor
+func getMergeBase(ref1, ref2 string) (string, error) {
+	cmd := exec.Command("git", "merge-base", ref1, ref2)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		outputStr := strings.TrimSpace(string(output))
+		if outputStr != "" {
+			return "", fmt.Errorf("git merge-base failed: %s", outputStr)
+		}
+		return "", fmt.Errorf("git merge-base failed: %w", err)
 	}
 
-	mergeBase := mergeBases[0]
-	log.Printf("Merge-base: %s", mergeBase.Hash.String()[:7])
+	hash := strings.TrimSpace(string(output))
+	if hash == "" {
+		return "", fmt.Errorf("git merge-base returned empty result")
+	}
 
-	return mergeBase, worktree, nil
+	return hash, nil
 }
 
 // detectTargetBranch detects the target remote and branch for comparison
