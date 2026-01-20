@@ -18,14 +18,14 @@ import (
 )
 
 type Client struct {
-	CertificatesClient                *certificates.CertificatesClient
-	ContainerAppClient                *containerapps.ContainerAppsClient
-	ContainerAppRevisionClient        *containerappsrevisions.ContainerAppsRevisionsClient
-	DaprComponentsClient              *daprcomponents.DaprComponentsClient
-	MaintenanceConfigurationsClient   *maintenanceconfigurations.MaintenanceConfigurationsClient
-	ManagedEnvironmentClient          *managedenvironments.ManagedEnvironmentsClient
-	StorageClient                     *managedenvironmentsstorages.ManagedEnvironmentsStoragesClient
-	JobClient                         *jobs.JobsClient
+	CertificatesClient              *certificates.CertificatesClient
+	ContainerAppClient              *containerapps.ContainerAppsClient
+	ContainerAppRevisionClient      *containerappsrevisions.ContainerAppsRevisionsClient
+	DaprComponentsClient            *daprcomponents.DaprComponentsClient
+	MaintenanceConfigurationsClient *maintenanceconfigurations.MaintenanceConfigurationsClient
+	ManagedEnvironmentClient        *managedenvironments.ManagedEnvironmentsClient
+	StorageClient                   *managedenvironmentsstorages.ManagedEnvironmentsStoragesClient
+	JobClient                       *jobs.JobsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
