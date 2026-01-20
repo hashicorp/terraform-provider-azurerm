@@ -62,6 +62,7 @@ FEATURES:
 * **New List Resource**: `azurerm_resource_group` [GH-31270]
 
 BUG FIXES:
+* `azurerm_container_app_custom_domain` - no longer error during read when container app is deleted outside of Terraform [GH-31523]
 * `clients` - fix correlation id across many clients [GH-31368]
 * `azurerm_storage_account` - can now update a Storage Standard ZRS account [GH-31431]
 
