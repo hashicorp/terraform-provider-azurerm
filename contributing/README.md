@@ -18,7 +18,7 @@ More granular documentation covers how these fit together - and the most common 
 
 ## Topics
 
-Basics:
+### Getting Started
 
 * [Overview of the Provider](topics/high-level-overview.md)
 * [Building the Provider](topics/building-the-provider.md)
@@ -26,37 +26,43 @@ Basics:
 * [Running the Tests](topics/running-the-tests.md)
 * [Opening a Pull Request](topics/guide-opening-a-pr.md)
 
-Common Topics/Guides:
+### Creating New Resources & Data Sources
 
-* [Adding a new Feature](topics/guide-new-feature.md)
 * [Adding a new Service Package](topics/guide-new-service-package.md)
-* [Adding a new Data Source](topics/guide-new-data-source.md)
 * [Adding a new Resource](topics/guide-new-resource.md)
-* [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md)
-* [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md)
-* [Adding Resource Identity](topics/guide-resource-identity.md)
-* [Adding State Migrations](topics/guide-state-migrations.md)
-* [Adding Write-Only Attributes](topics/guide-new-write-only-attribute.md)
-* [Breaking Changes and Deprecations](topics/guide-breaking-changes.md)
-* [Updating API Versions](topics/guide-api-version.md)
+* [Adding a new Data Source](topics/guide-new-data-source.md)
 * [When to create a new Resource vs Inline Block](topics/guide-new-resource-vs-inline.md)
 
-References:
+### Extending Existing Resources
+
+* [Adding a new Feature](topics/guide-new-feature.md)
+* [Adding fields to an existing Resource](topics/guide-new-fields-to-resource.md)
+* [Adding fields to an existing Data Source](topics/guide-new-fields-to-data-source.md)
+* [Adding Resource Identity](topics/guide-resource-identity.md)
+* [Adding Write-Only Attributes](topics/guide-new-write-only-attribute.md)
+
+### Maintenance & Updates
+
+* [Updating API Versions](topics/guide-api-version.md)
+* [Adding State Migrations](topics/guide-state-migrations.md)
+* [Breaking Changes and Deprecations](topics/guide-breaking-changes.md)
+
+### Reference
 
 * [Acceptance Testing](topics/reference-acceptance-testing.md)
 * [Best Practices](topics/best-practices.md)
 * [Glossary](topics/reference-glossary.md)
 * [Naming](topics/reference-naming.md)
-* [Provider Documentation Standards](topics/reference-documentation-standards.md)
 * [Resource IDs](topics/guide-resource-ids.md)
 * [Schema Design](topics/schema-design-considerations.md)
+* [Provider Documentation Standards](topics/reference-documentation-standards.md)
 * [Working with Errors](topics/reference-errors.md)
 
+### Maintainers
 
-Maintainer specific:
+* [Merging PRs](topics/maintainer-merging.md)
 
-* [Merging Prs](topics/maintainer-merging.md)
-
-FAQ:
+### FAQ
 
 * [Frequently Asked Questions](topics/frequently-asked-questions.md)
+
