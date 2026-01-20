@@ -249,8 +249,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -290,8 +290,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -312,8 +312,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -335,8 +335,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%s", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
@@ -421,8 +421,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -446,8 +446,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["acctest-empty-%[2]d", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-empty-%[2]d", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -476,8 +476,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["acctest-tls12-%[2]d", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-tls12-%[2]d", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -488,8 +488,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
       custom_ciphers {
         tls13 = [
-            "TLS_AES_128_GCM_SHA256",
-            "TLS_AES_256_GCM_SHA384",
+          "TLS_AES_128_GCM_SHA256",
+          "TLS_AES_256_GCM_SHA384",
         ]
       }
     }
@@ -508,8 +508,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["acctest-tls13-single-%[2]d", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-tls13-single-%[2]d", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -542,8 +542,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -577,8 +577,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -649,8 +649,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["%[3]s", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -684,8 +684,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -716,8 +716,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
 
   depends_on = [azurerm_dns_ns_record.delegation]
 
-  dns_zone_id              = azurerm_dns_zone.child.id
-  host_name                = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["acctest-%[2]d", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type    = "ManagedCertificate"

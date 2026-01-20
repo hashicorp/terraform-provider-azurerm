@@ -463,7 +463,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 					if conflictBackoff == 0 {
 						conflictBackoff = 30 * time.Second
 					} else {
-						conflictBackoff = conflictBackoff * 2
+						conflictBackoff *= 2
 						if conflictBackoff > 10*time.Minute {
 							conflictBackoff = 10 * time.Minute
 						}
@@ -739,7 +739,6 @@ func validateCipherSuiteConfiguration(ctx context.Context, diff *pluginsdk.Resou
 		if minimumVersion == string(afdcustomdomains.AfdMinimumTlsVersionTLSOneThree) && tls13Configured && setLen(tls13Suites) == 0 {
 			return fmt.Errorf("at least one TLS 1.3 cipher suite must be specified in `custom_ciphers.tls13` when `minimum_version` is set to `TLS13`")
 		}
-
 	} else if len(customCiphersRaw) > 0 && customCiphersRaw[0] != nil {
 		return fmt.Errorf("`custom_ciphers` cannot be specified when `type` is not `Customized`")
 	}
