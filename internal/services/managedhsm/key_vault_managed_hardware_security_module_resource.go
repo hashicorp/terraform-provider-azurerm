@@ -191,12 +191,6 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		return tf.ImportAsExistsError("azurerm_key_vault_managed_hardware_security_module", id.ID())
 	}
 
-	createMode := managedhsms.CreateModeDefault
-	deletedID := managedhsms.NewDeletedManagedHSMID(subscriptionId, location.Normalize(d.Get("location").(string)), id.ManagedHSMName)
-	if deleted, _ := client.ManagedHsmClient.GetDeleted(ctx, deletedID); deleted.Model != nil {
-		createMode = managedhsms.CreateModeRecover
-	}
-
 	publicNetworkAccessEnabled := managedhsms.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		publicNetworkAccessEnabled = managedhsms.PublicNetworkAccessDisabled
@@ -205,7 +199,7 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleCreate(d *pluginsdk.Resourc
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &managedhsms.ManagedHsmProperties{
 			InitialAdminObjectIds:     utils.ExpandStringSlice(d.Get("admin_object_ids").(*pluginsdk.Set).List()),
-			CreateMode:                pointer.To(createMode),
+			CreateMode:                pointer.To(managedhsms.CreateModeDefault),
 			EnableSoftDelete:          pointer.To(true),
 			SoftDeleteRetentionInDays: pointer.To(int64(d.Get("soft_delete_retention_days").(int))),
 			EnablePurgeProtection:     pointer.To(d.Get("purge_protection_enabled").(bool)),
