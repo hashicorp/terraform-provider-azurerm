@@ -74,4 +74,4 @@ terraform import azurerm_Artifacts_signing_account.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CodeSigning` - 2024-09-30-preview
+* `Microsoft.CodeSigning` - 2025-10-13
