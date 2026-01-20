@@ -227,7 +227,6 @@ func resourceDatadogMonitorRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.SetId("")
 			return nil
 		}
-
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
