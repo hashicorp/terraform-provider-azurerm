@@ -564,12 +564,16 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMysqlFlexibleServerSetResourceData(d, id, resp.Model, meta)
+}
+
+func resourceMysqlFlexibleServerSetResourceData(d *pluginsdk.ResourceData, id *servers.FlexibleServerId, server *servers.Server, meta interface{}) error {
 	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
-		if props := model.Properties; props != nil {
+	if server != nil {
+		d.Set("location", location.NormalizeNilable(&server.Location))
+		if props := server.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin)
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", string(pointer.From(props.Version)))
@@ -594,7 +598,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			identity, err := flattenFlexibleServerIdentity(model.Identity)
+			identity, err := flattenFlexibleServerIdentity(server.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -621,7 +625,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("replication_role", string(pointer.From(props.ReplicationRole)))
 			d.Set("replica_capacity", props.ReplicaCapacity)
 		}
-		sku, err := flattenFlexibleServerSku(model.Sku)
+		sku, err := flattenFlexibleServerSku(server.Sku)
 		if err != nil {
 			return fmt.Errorf("flattening `sku_name`: %+v", err)
 		}
@@ -629,7 +633,7 @@ func resourceMysqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interface{}
 
 		d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, server.Tags); err != nil {
 			return err
 		}
 	}
