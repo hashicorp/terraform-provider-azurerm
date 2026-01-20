@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,10 +20,6 @@ import (
 type MysqlFlexibleServerListResource struct{}
 
 var _ sdk.FrameworkListWrappedResource = new(MysqlFlexibleServerListResource)
-
-type MysqlFlexibleServerListModel struct {
-	SubscriptionId types.String `tfsdk:"subscription_id"`
-}
 
 func (r MysqlFlexibleServerListResource) ResourceFunc() *pluginsdk.Resource {
 	return resourceMysqlFlexibleServer()
