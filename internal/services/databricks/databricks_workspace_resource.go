@@ -663,8 +663,6 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = pointer.To(rotationEnabled)
 	}
 
-	// Including the Tags in the workspace parameters will update the tags on
-	// the workspace only
 	workspace := workspaces.Workspace{
 		Sku: &workspaces.Sku{
 			Name: skuName,
@@ -1252,22 +1250,10 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	model.Properties = props
 
-	// The order matters, especially when the user both update the tags and enables the `managed_disk_cmk_rotation_to_latest_version_enabled` together.
-	// Enabling `managed_disk_cmk_rotation_to_latest_version_enabled` will cause updating the `tags` (via PATCH) on the managed resources requires additional
-	// data plane roles on the `managed_disk_identity.0.principal_id`, which is only available after enabling `managed_disk_cmk_rotation_to_latest_version_enabled`.
-	//
-	// For this reason, patch the `tags` first (before enabling the `managed_disk_cmk_rotation_to_latest_version_enabled`), then update the workspace as a whole via
-	// the PUT.
 	if d.HasChange("tags") {
-		workspaceUpdate := workspaces.WorkspaceUpdate{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		}
-
-		err := client.UpdateThenPoll(ctx, *id, workspaceUpdate)
-		if err != nil {
-			return fmt.Errorf("updating %s Tags: %+v", id, err)
-		}
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
+
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
