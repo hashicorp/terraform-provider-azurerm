@@ -67,7 +67,7 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableTotalRetention(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
+				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("35"),
 			),
 		},
 		{
@@ -75,6 +75,7 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableTotalRetention(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
+				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("0"),
 			),
 		},
 	})
@@ -113,16 +114,19 @@ func (LogAnalyticsWorkspaceTableResource) basic(data acceptance.TestData) string
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
 }
+
 resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppEvents"
   workspace_id            = azurerm_log_analytics_workspace.test.id
@@ -137,16 +141,19 @@ func (LogAnalyticsWorkspaceTableResource) updateRetention(data acceptance.TestDa
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
 }
+
 resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppEvents"
   workspace_id            = azurerm_log_analytics_workspace.test.id
@@ -180,21 +187,25 @@ resource "azurerm_log_analytics_workspace_table" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
+
 func (LogAnalyticsWorkspaceTableResource) plan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
 }
+
 resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppTraces"
   workspace_id            = azurerm_log_analytics_workspace.test.id
@@ -209,16 +220,19 @@ func (LogAnalyticsWorkspaceTableResource) removeRetentionDays(data acceptance.Te
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
 }
+
 resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppEvents"
   workspace_id            = azurerm_log_analytics_workspace.test.id
@@ -232,16 +246,19 @@ func (LogAnalyticsWorkspaceTableResource) removeTotalRetentionDays(data acceptan
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
 }
+
 resource "azurerm_log_analytics_workspace_table" "test" {
   name              = "AppEvents"
   workspace_id      = azurerm_log_analytics_workspace.test.id
