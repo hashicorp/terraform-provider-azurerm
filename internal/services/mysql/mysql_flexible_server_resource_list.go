@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -47,14 +46,24 @@ func (r MysqlFlexibleServerListResource) List(ctx context.Context, request list.
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	// mysql only supports subscription list
-	resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
-	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", mysqlFlexibleServerResourceName), err)
-		return
-	}
+	switch {
+	case !data.ResourceGroupName.IsNull():
+		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
+		if err != nil {
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", mysqlFlexibleServerResourceName), err)
+			return
+		}
 
-	results = resp.Items
+		results = resp.Items
+	default:
+		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
+		if err != nil {
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", mysqlFlexibleServerResourceName), err)
+			return
+		}
+
+		results = resp.Items
+	}
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, server := range results {
@@ -65,11 +74,6 @@ func (r MysqlFlexibleServerListResource) List(ctx context.Context, request list.
 			if err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mysql Server ID", err)
 				return
-			}
-
-			// filter out based on resource_group_name if supplied
-			if !data.ResourceGroupName.IsNull() && !data.ResourceGroupName.Equal(basetypes.NewStringValue(id.ResourceGroupName)) {
-				continue
 			}
 
 			rd := resourceMysqlFlexibleServer().Data(&terraform.InstanceState{})
