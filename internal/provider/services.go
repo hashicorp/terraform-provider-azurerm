@@ -350,11 +350,11 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		keyvault.Registration{},
 		managedredis.Registration{},
 		mssql.Registration{},
+		mysql.Registration{},
 		network.Registration{},
 		privatedns.Registration{},
 		resource.Registration{},
 		storage.Registration{},
-		mysql.Registration{},
 	}
 
 	return services
