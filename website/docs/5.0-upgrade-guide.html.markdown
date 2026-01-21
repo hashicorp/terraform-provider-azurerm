@@ -161,6 +161,10 @@ This deprecated data source has been superseded/retired and has been removed fro
 
 * This deprecated data source has been retired and has been removed from the Azure Provider.
 
+### `azurerm_trusted_signing_account`
+
+* This deprecated data source has been retired and has been removed in favour of `azurerm_artifacts_signing_account`.
+
 ## Breaking Changes in Resources
 
 Please follow the format in the example below for listing breaking changes in resources:
