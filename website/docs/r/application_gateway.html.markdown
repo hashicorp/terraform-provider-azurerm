@@ -252,7 +252,9 @@ A `backend_http_settings` block supports the following:
 
 * `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
 
-* `sni_name` - (Optional) The Server Name Indication (SNI) hostname to send to the backend servers. Can only be set when `sni_validation_enabled` is set to `true`.
+* `sni_name` - (Optional) The Server Name Indication (SNI) hostname to send to the backend servers. 
+
+~> **Note:** `sni_name` can only be set when `sni_validation_enabled` is set to `true`.
 
 * `sni_validation_enabled` - (Optional) Whether to enable Server Name Indication (SNI) validation on the backend HTTPS servers. Defaults to `true`.
 
