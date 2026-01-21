@@ -344,6 +344,20 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		aadb2c.Registration{},
+		advisor.Registration{},
+		analysisservices.Registration{},
+		apimanagement.Registration{},
+		appconfiguration.Registration{},
+		applicationinsights.Registration{},
+		appservice.Registration{},
+		arckubernetes.Registration{},
+		arcresourcebridge.Registration{},
+		attestation.Registration{},
+		authorization.Registration{},
+		automanage.Registration{},
+		automation.Registration{},
+		azurestackhci.Registration{},
 		cdn.Registration{},
 		compute.Registration{},
 		dataprotection.Registration{},
