@@ -537,7 +537,7 @@ func (r VirtualHubConnectionResource) withRoutingConfiguration(data acceptance.T
 %[1]s
 
 resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctest-vhubconn-%[2]d"
+  name                      = "acctestvhubconn-%[2]d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
 
