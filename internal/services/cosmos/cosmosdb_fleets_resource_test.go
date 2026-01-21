@@ -110,7 +110,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctest-cosmos-%d"
+  name     = "acctest-cosmos-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -121,9 +121,9 @@ func (r CosmosDbFleetsResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cosmosdb_fleets" "test" {
-  name     = "acctest-cosfleets-%d"
+  name                = "acctest-cosfleets-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  location            = azurerm_resource_group.test.location
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -133,9 +133,9 @@ func (r CosmosDbFleetsResource) requiresImport(data acceptance.TestData) string 
 %s
 
 resource "azurerm_cosmosdb_fleets" "import" {
-  name     = azurerm_cosmosdb_fleets.test.name
+  name                = azurerm_cosmosdb_fleets.test.name
   resource_group_name = azurerm_cosmosdb_fleets.test.resource_group_name
-  location = azurerm_cosmosdb_fleets.test.location
+  location            = azurerm_cosmosdb_fleets.test.location
 }
 `, r.basic(data))
 }
@@ -145,9 +145,9 @@ func (r CosmosDbFleetsResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cosmosdb_fleets" "test" {
-  name     = "acctest-cosfleets-%d"
+  name                = "acctest-cosfleets-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
+  location            = azurerm_resource_group.test.location
 
   tags = {
     env = "test"

@@ -14,9 +14,9 @@ Manages a Cosmos DB Fleets.
 
 ```hcl
 resource "azurerm_cosmosdb_fleets" "example" {
-  name = "example"
+  name                = "example"
   resource_group_name = "example"
-  location = "West Europe"
+  location            = "West Europe"
 }
 ```
 
