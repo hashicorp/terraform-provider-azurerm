@@ -21,11 +21,9 @@ func TestAccMysqlFlexibleServer_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
 
-	importIdentityStep := data.ImportBlockWithResourceIdentityStep()
-	importIdentityStep.ExpectNonEmptyPlan = true
+	importIdentityStep := data.ImportBlockWithResourceIdentityStep(true)
 
-	importIDStep := data.ImportBlockWithIDStep()
-	importIDStep.ExpectNonEmptyPlan = true
+	importIDStep := data.ImportBlockWithIDStep(true)
 
 	resource.ParallelTest(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
