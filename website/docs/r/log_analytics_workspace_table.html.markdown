@@ -10,7 +10,7 @@ description: |-
 
 Manages a Table in a Log Analytics (formally Operational Insights) Workspace.
 
-~> **Note:** This resource does not create or destroy tables. This resource is used to update attributes (currently only retention_in_days) of the tables created when a Log Analytics Workspace is created. Deleting an azurerm_log_analytics_workspace_table resource will not delete the table. Instead, the table's retention_in_days field will be set to the value of azurerm_log_analytics_workspace retention_in_days
+~> **Note:** This resource does not create or destroy tables. This resource is used to update attributes (currently only retention_in_days) of the tables created when a Log Analytics Workspace is created. Deleting an azurerm_log_analytics_workspace_table resource will not delete the table. Instead, the table's `retention_in_days` and `total_retention_in_days` field will be set to the value of `azurerm_log_analytics_workspace.retention_in_days` and `azurerm_log_analytics_workspace.total_retention_in_days`
 
 ## Example Usage
 

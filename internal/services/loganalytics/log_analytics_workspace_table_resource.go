@@ -199,6 +199,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 					}
 
 					if metadata.ResourceData.HasChange("total_retention_in_days") {
+						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
 						// `0` is not a valid value for `total_retention_in_days`, and the service will return HTTP 400
 						// to reset it to its default value, we need to pass `-1`
 						if state.RetentionInDays == 0 {
