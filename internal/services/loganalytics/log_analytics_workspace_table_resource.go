@@ -247,15 +247,11 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					// when the specified value is as same as the default value
-					// `props.RetentionInDaysAsDefault` or `props.TotalRetentionInDays` will still be set to true.
-					// In this case we shall still set the value to state.
-					// But during plan stage the `getRawConfig()` may return `nil`.
-					if !metadata.ResourceData.GetRawConfig().IsNull() && !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "retention_in_days") {
+					if !pointer.From(props.RetentionInDaysAsDefault) && pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
 
-					if !metadata.ResourceData.GetRawConfig().IsNull() && !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "total_retention_in_days") {
+					if !pointer.From(props.TotalRetentionInDaysAsDefault) {
 						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
 
