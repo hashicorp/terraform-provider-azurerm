@@ -73,7 +73,7 @@ func TestAccMySqlFlexibleServer_list_by_resource_group(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.scopedListQuery(data1),
+				Config: r.basicListQueryByResourceGroupName(data1),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_mysql_flexible_server.list", 1), // only 1 should be returned
 					querycheck.ExpectIdentity(
@@ -134,7 +134,7 @@ list "azurerm_mysql_flexible_server" "list" {
 `
 }
 
-func (r MySqlFlexibleServerResource) scopedListQuery(data acceptance.TestData) string {
+func (r MySqlFlexibleServerResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_mysql_flexible_server" "list" {
   provider = azurerm
