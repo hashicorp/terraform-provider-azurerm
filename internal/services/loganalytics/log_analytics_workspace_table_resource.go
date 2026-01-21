@@ -199,7 +199,11 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 					}
 
 					if metadata.ResourceData.HasChange("total_retention_in_days") {
-						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
+						// `0` is not a valid value for `total_retention_in_days`, and the service will return HTTP 400
+						// to reset it to its default value, we need to pass `-1`
+						if state.RetentionInDays == 0 {
+							updateInput.Properties.TotalRetentionInDays = pointer.FromInt64(-1)
+						}
 					}
 
 					if err := client.UpdateThenPoll(ctx, *id, updateInput); err != nil {
@@ -248,7 +252,7 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
 
-					if !pointer.From(props.TotalRetentionInDaysAsDefault) {
+					if !pointer.From(props.TotalRetentionInDaysAsDefault) && pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
 						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
 
