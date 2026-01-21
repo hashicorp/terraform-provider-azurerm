@@ -158,7 +158,7 @@ The following arguments are supported:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
--> **Note** `authentication_certificate` has been deprecated in accordance with the [deprecation of Application Gateway V1](https://aka.ms/V1retirement) and will be removed in v5.0 of the AzureRM Provider.
+-> **Note:** `authentication_certificate` has been deprecated in accordance with the [deprecation of Application Gateway V1](https://aka.ms/V1retirement) and will be removed in v5.0 of the AzureRM Provider.
 
 * `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
@@ -238,7 +238,7 @@ A `backend_http_settings` block supports the following:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
 
--> **Note** `backend_http_settings.authentication_certificate` has been deprecated in accordance with the [deprecation of Application Gateway V1](https://aka.ms/V1retirement) and will be removed in v5.0 of the AzureRM Provider.
+-> **Note:** `backend_http_settings.authentication_certificate` has been deprecated in accordance with the [deprecation of Application Gateway V1](https://aka.ms/V1retirement) and will be removed in v5.0 of the AzureRM Provider.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 
