@@ -128,6 +128,7 @@ resource "azurerm_artifacts_signing_account" "import" {
 }
 `, a.basic(data))
 }
+
 func (a ArtifactsSigningAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
