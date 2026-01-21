@@ -57,7 +57,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `oci_subnet_id` - Oracle Cloud Infrastructure subnet OCID.
 
-* `oci_vcn_dns_label` - Oracle Cloud Infrastructure DNS label. This is optional if DNS config is provided.
+* `oci_vcn_dns_label` - Oracle Cloud Infrastructure DNS label.
 
 * `oci_vcn_id` - Oracle Cloud Infrastructure VCN OCID.
 

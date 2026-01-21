@@ -101,7 +101,7 @@ func (a NetworkAnchorResource) basic(data acceptance.TestData) string {
   %s
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
-  name                = "OFakeNA%[2]s"
+  name                = "acctestNA%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   zones               = local.zones
 
@@ -115,7 +115,7 @@ func (a NetworkAnchorResource) complete(data acceptance.TestData) string {
   %s
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
-  name                = "OFakeNA%[2]s"
+  name                = "acctestNA%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   zones               = local.zones
 
@@ -145,7 +145,7 @@ func (a NetworkAnchorResource) update(data acceptance.TestData) string {
   %s
 resource "azurerm_oracle_network_anchor" "test" {
   location            = "%[3]s"
-  name                = "OFakeNA%[2]s"
+  name                = "acctestNA%[2]s"
   resource_group_name = azurerm_resource_group.test.name
   zones               = local.zones
 
@@ -184,7 +184,7 @@ provider "azurerm" {
 }
 
 locals {
-  zones = ["2"]
+  zones = ["1"]
 }
 
 data "azurerm_client_config" "current" {}
@@ -195,14 +195,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "virtual_network" {
-  name                = "OFakeacctest%[1]d_vnet"
+  name                = "acctest%[1]d_vnet"
   address_space       = ["10.0.0.0/16"]
   location            = "%[2]s"
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "virtual_network_subnet" {
-  name                 = "OFakeacctest%[1]d"
+  name                 = "acctest%[1]d_delegated"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.virtual_network.name
   address_prefixes     = ["10.0.1.0/24"]

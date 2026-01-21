@@ -13,13 +13,50 @@ Manages an Oracle Network Anchor.
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "virtual_network" {
+  name                = "example-vnet"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_subnet" "virtual_network_subnet" {
+  name                 = "example-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.virtual_network.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      actions = [
+        "Microsoft.Network/networkinterfaces/*",
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+      name = "Oracle.Database/networkAttachments"
+    }
+  }
+}
+
+resource "azurerm_oracle_resource_anchor" "example" {
+  name                = "example-resource-anchor"
+  resource_group_name = azurerm_resource_group.example.name
+}
+
 resource "azurerm_oracle_network_anchor" "example" {
   name                = "example-network-anchor"
-  resource_group_name = "example-resource-group"
-  location            = "West Europe"
-  resource_anchor_id  = "example-azure-resource-anchor-id"
-  subnet_id           = "example-azure-delegated-subnet-id"
-  zones               = ["2"]
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  resource_anchor_id = azurerm_oracle_resource_anchor.example.id
+  subnet_id          = azurerm_subnet.virtual_network_subnet.id
+  zones              = ["2"]
 }
 ```
 

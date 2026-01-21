@@ -44,7 +44,7 @@ type NetworkAnchorDataModel struct {
 	ProvisioningState                  string            `tfschema:"provisioning_state"`
 	ResourceAnchorId                   string            `tfschema:"resource_anchor_id"`
 	SubnetId                           string            `tfschema:"subnet_id"`
-	VnetId                             string            `tfschema:"vnet_id"`
+	VirtualNetworkId                   string            `tfschema:"virtual_network_id"`
 	Zones                              zones.Schema      `tfschema:"zones"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
@@ -76,7 +76,7 @@ func (d NetworkAnchorDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"vnet_id": {
+		"virtual_network_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -186,7 +186,7 @@ func (d NetworkAnchorDataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.ResourceAnchorId = props.ResourceAnchorId
 					state.ProvisioningState = pointer.FromEnum(props.ProvisioningState)
-					state.VnetId = pointer.From(props.VnetId)
+					state.VirtualNetworkId = pointer.From(props.VnetId)
 					state.SubnetId = props.SubnetId
 					state.CidrBlock = pointer.From(props.CidrBlock)
 					state.OciVcnId = pointer.From(props.OciVcnId)

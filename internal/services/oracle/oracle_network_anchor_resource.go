@@ -91,9 +91,8 @@ func (NetworkAnchorResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// NOTE: O+C if the value not specified, this gets set to the name of the Network Anchor
-			Computed:    true,
-			Description: "If the `oci_vcn_dns_label` is omitted it will be set to the `name` field of the network anchor resource.",
-			ForceNew:    true,
+			Computed: true,
+			ForceNew: true,
 		},
 
 		"oci_backup_cidr_block": {
@@ -277,12 +276,7 @@ func (r NetworkAnchorResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
-			}
-
-			update := &networkanchors.NetworkAnchorUpdate{
+			update := networkanchors.NetworkAnchorUpdate{
 				Properties: &networkanchors.NetworkAnchorUpdateProperties{},
 			}
 
@@ -305,7 +299,7 @@ func (r NetworkAnchorResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("oracle_to_azure_dns_zone_sync_enabled") {
 				update.Properties.IsOracleToAzureDnsZoneSyncEnabled = pointer.To(model.OracleToAzureDnsZoneSyncEnabled)
 			}
-			if err := client.UpdateThenPoll(ctx, *id, *update); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 			return nil
