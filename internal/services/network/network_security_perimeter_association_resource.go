@@ -199,7 +199,6 @@ func (NetworkSecurityPerimeterAssociationResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-
 					if props.Profile != nil {
 						state.ProfileId = pointer.From(props.Profile.Id)
 					}

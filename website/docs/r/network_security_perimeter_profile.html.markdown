@@ -65,4 +65,3 @@ terraform import azurerm_network_security_perimeter_profile.example /subscriptio
 This resource uses the following Azure API Providers:
 
 * `Microsoft.Network` - 2025-01-01
-
