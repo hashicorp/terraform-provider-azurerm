@@ -41,7 +41,8 @@ func TestAccMySqlFlexibleServer_list_no_config(t *testing.T) {
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary)},
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+						},
 					),
 				},
 			},
@@ -72,7 +73,8 @@ func TestAccMySqlFlexibleServer_list_by_resource_group(t *testing.T) {
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary)},
+							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+						},
 					),
 				},
 			},

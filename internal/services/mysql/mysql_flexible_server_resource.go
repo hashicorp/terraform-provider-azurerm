@@ -34,7 +34,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server -service-package-name mysql -properties "name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server -service-package-name mysql -properties "name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-expect-non-empty
 
 const (
 	ServerMaintenanceWindowEnabled  = "Enabled"
