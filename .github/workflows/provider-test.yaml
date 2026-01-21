@@ -51,19 +51,6 @@ jobs:
           subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           allow-no-subscriptions: true
 
-      - name: Set OIDC Token
-        run: |
-          echo "ARM_OIDC_TOKEN=$(curl -H "Accept: application/json; api-version=2.0" -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" -H "Content-Type: application/json" -G --data-urlencode "audience=api://AzureADTokenExchange" "${ACTIONS_ID_TOKEN_REQUEST_URL}" | jq -r '.value')" >>${GITHUB_ENV}
-
-      - name: Set OIDC Token File Path
-        run: echo "${ARM_OIDC_TOKEN}" >"${RUNNER_TEMP}/oidc-token.jwt" && echo "ARM_OIDC_TOKEN_FILE_PATH=${RUNNER_TEMP}/oidc-token.jwt" >>${GITHUB_ENV}
-
-      - name: Set Client ID Path
-        run: echo "${{ secrets.ARM_CLIENT_ID }}" >"${RUNNER_TEMP}/client-id" && echo "ARM_CLIENT_ID_PATH=${RUNNER_TEMP}/client-id" >>${GITHUB_ENV}
-
-      - name: Set Client Secret Path
-        run: echo "${{ secrets.ARM_CLIENT_SECRET }}" >"${RUNNER_TEMP}/client-secret" && echo "ARM_CLIENT_SECRET_PATH=${RUNNER_TEMP}/client-secret" >>${GITHUB_ENV}
-
       - name: Run provider tests
         run: make testacc TEST=./internal/provider TESTARGS="-run '^TestAcc'"
         env:
@@ -74,7 +61,7 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
-      - name: Run provider tests  save-artifacts-on-fail:
+  save-artifacts-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
     uses: ./.github/workflows/save-artifacts.yaml
