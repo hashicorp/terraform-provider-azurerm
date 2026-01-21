@@ -46,6 +46,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
@@ -377,7 +378,26 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		cosmos.Registration{},
 		costmanagement.Registration{},
 		customproviders.Registration{},
+		dashboard.Registration{},
+		databasemigration.Registration{},
+		databoxedge.Registration{},
+		databricks.Registration{},
+		datadog.Registration{},
+		datafactory.Registration{},
 		dataprotection.Registration{},
+		datashare.Registration{},
+		desktopvirtualization.Registration{},
+		devcenter.Registration{},
+		devtestlabs.Registration{},
+		digitaltwins.Registration{},
+		dns.Registration{},
+		domainservices.Registration{},
+		dynatrace.Registration{},
+		elastic.Registration{},
+		elasticsan.Registration{},
+		eventgrid.Registration{},
+		eventhub.Registration{},
+		extendedlocation.Registration{},
 		keyvault.Registration{},
 		managedredis.Registration{},
 		mssql.Registration{},
