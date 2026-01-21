@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -87,12 +87,12 @@ func resourceBotChannelAlexaCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	channel := botservice.BotChannel{
 		Properties: botservice.AlexaChannel{
 			Properties: &botservice.AlexaChannelProperties{
-				AlexaSkillID: utils.String(d.Get("skill_id").(string)),
-				IsEnabled:    utils.Bool(true),
+				AlexaSkillID: pointer.To(d.Get("skill_id").(string)),
+				IsEnabled:    pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameAlexaChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
@@ -170,12 +170,12 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	channel := botservice.BotChannel{
 		Properties: botservice.AlexaChannel{
 			Properties: &botservice.AlexaChannelProperties{
-				AlexaSkillID: utils.String(d.Get("skill_id").(string)),
-				IsEnabled:    utils.Bool(true),
+				AlexaSkillID: pointer.To(d.Get("skill_id").(string)),
+				IsEnabled:    pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameAlexaChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 

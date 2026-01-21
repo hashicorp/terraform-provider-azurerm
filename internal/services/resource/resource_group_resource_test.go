@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupResource struct{}
@@ -27,7 +27,7 @@ func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+		data.ApplyStep(testResource.basic, testResource),
 		data.ImportStep(),
 	})
 }
@@ -36,7 +36,7 @@ func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+		data.ApplyStep(testResource.basic, testResource),
 		data.RequiresImportErrorStep(testResource.requiresImportConfig),
 	})
 }
@@ -46,7 +46,7 @@ func TestAccResourceGroup_disappears(t *testing.T) {
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       testResource.basicConfig,
+			Config:       testResource.basic,
 			TestResource: testResource,
 		}),
 	})
@@ -123,14 +123,7 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 	})
 }
 
-func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
-	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
-	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
-	// updated and a state migration is added to account for it, but this required additional coordination.
-	//
-	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
-	// parsing method instead.
+func (r ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
@@ -138,21 +131,20 @@ func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Clie
 
 	opts := resourcegroups.DefaultDeleteOperationOptions()
 	opts.ForceDeletionTypes = pointer.To("Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
-	if err := client.Resource.ResourceGroupsClient.DeleteThenPoll(ctx, *id, opts); err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
+	if resp, err := client.Resource.ResourceGroupsClient.Delete(ctx, *id, opts); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("deleting test %s: %+v", *id, err)
+		}
+	} else {
+		if err := resp.Poller.PollUntilDone(ctx); err != nil {
+			return nil, fmt.Errorf("polling deleting %s: %+v", *id, err)
+		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
-func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
-	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
-	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
-	// updated and a state migration is added to account for it, but this required additional coordination.
-	//
-	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
-	// parsing method instead.
+func (r ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
@@ -163,10 +155,10 @@ func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+func (r ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		client := clients.Network.VirtualNetworks
 
@@ -197,7 +189,7 @@ func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(c
 	}
 }
 
-func (t ResourceGroupResource) basicConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -210,8 +202,8 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
-	template := t.basicConfig(data)
+func (r ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -222,7 +214,7 @@ resource "azurerm_resource_group" "import" {
 `, template)
 }
 
-func (t ResourceGroupResource) withFeatureFlag(data acceptance.TestData, featureFlagEnabled bool) string {
+func (r ResourceGroupResource) withFeatureFlag(data acceptance.TestData, featureFlagEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -239,7 +231,7 @@ resource "azurerm_resource_group" "test" {
 `, featureFlagEnabled, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withTagsConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -257,7 +249,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withTagsUpdatedConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withTagsUpdatedConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -274,7 +266,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (t ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
+func (r ResourceGroupResource) withManagedByConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

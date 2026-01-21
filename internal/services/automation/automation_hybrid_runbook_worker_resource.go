@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HybridRunbookWorkerModel struct {
@@ -133,7 +132,7 @@ func (m HybridRunbookWorkerResource) Create() sdk.ResourceFunc {
 				Properties: &hybridrunbookworker.HybridRunbookWorkerCreateOrUpdateParameters{},
 			}
 			if model.VmResourceId != "" {
-				req.Properties.VMResourceId = utils.String(model.VmResourceId)
+				req.Properties.VMResourceId = pointer.To(model.VmResourceId)
 			}
 
 			future, err := client.Create(ctx, id, req)

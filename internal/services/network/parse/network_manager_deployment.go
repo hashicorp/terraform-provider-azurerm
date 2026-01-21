@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 )
 
 type ManagerDeploymentId struct {
@@ -19,12 +19,12 @@ type ManagerDeploymentId struct {
 	ScopeAccess        string
 }
 
-func NewNetworkManagerDeploymentID(subscriptionId string, resourceGroup string, networkManagerName string, location string, scopeAccess string) *ManagerDeploymentId {
+func NewNetworkManagerDeploymentID(subscriptionId string, resourceGroup string, networkManagerName string, deploymentLocation string, scopeAccess string) *ManagerDeploymentId {
 	return &ManagerDeploymentId{
 		SubscriptionId:     subscriptionId,
 		ResourceGroup:      resourceGroup,
 		NetworkManagerName: networkManagerName,
-		Location:           azure.NormalizeLocation(location),
+		Location:           location.Normalize(deploymentLocation),
 		ScopeAccess:        scopeAccess,
 	}
 }
@@ -44,7 +44,7 @@ func NetworkManagerDeploymentID(networkManagerDeploymentId string) (*ManagerDepl
 	if v[1] == "" {
 		return nil, fmt.Errorf("expected location in network manager deployment ID with format `{networkManagerId}/commit|{location}|{scopeAccess}`, but got %s in %s", v[1], networkManagerDeploymentId)
 	}
-	normalizedLocation := azure.NormalizeLocation(v[1])
+	normalizedLocation := location.Normalize(v[1])
 
 	if v[2] == "" {
 		return nil, fmt.Errorf("expected scopeAccess in network manager deployment ID with format `{networkManagerId}/commit|{location}|{scopeAccess} to be one of the [Connectivity, SecurityAdmin]`, but got %s in %s", v[2], networkManagerDeploymentId)

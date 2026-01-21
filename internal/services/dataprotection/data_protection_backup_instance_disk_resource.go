@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -20,11 +21,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_disk -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 	return &schema.Resource{
@@ -40,10 +41,10 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backupinstances.ParseBackupInstanceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&backupinstances.BackupInstanceId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&backupinstances.BackupInstanceId{}),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -99,6 +100,11 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 					return false
 				},
 			},
+
+			"protection_state": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -144,21 +150,21 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
 			DataSourceInfo: backupinstances.Datasource{
-				DatasourceType:   utils.String("Microsoft.Compute/disks"),
-				ObjectType:       utils.String("Datasource"),
+				DatasourceType:   pointer.To("Microsoft.Compute/disks"),
+				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       diskId.ID(),
-				ResourceLocation: utils.String(location),
-				ResourceName:     utils.String(diskId.DiskName),
-				ResourceType:     utils.String("Microsoft.Compute/disks"),
-				ResourceUri:      utils.String(diskId.ID()),
+				ResourceLocation: pointer.To(location),
+				ResourceName:     pointer.To(diskId.DiskName),
+				ResourceType:     pointer.To("Microsoft.Compute/disks"),
+				ResourceUri:      pointer.To(diskId.ID()),
 			},
-			FriendlyName: utils.String(id.BackupInstanceName),
+			FriendlyName: pointer.To(id.BackupInstanceName),
 			PolicyInfo: backupinstances.PolicyInfo{
 				PolicyId: policyId.ID(),
 				PolicyParameters: &backupinstances.PolicyParameters{
 					DataStoreParametersList: &[]backupinstances.DataStoreParameters{
 						backupinstances.AzureOperationalStoreParameters{
-							ResourceGroupId: utils.String(snapshotResourceGroupId.ID()),
+							ResourceGroupId: pointer.To(snapshotResourceGroupId.ID()),
 							DataStoreType:   backupinstances.DataStoreTypesOperationalStore,
 						},
 					},
@@ -188,6 +194,9 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDataProtectionBackupInstanceDiskRead(d, meta)
 }
 
@@ -219,6 +228,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 			d.Set("disk_id", props.DataSourceInfo.ResourceID)
 			d.Set("location", props.DataSourceInfo.ResourceLocation)
 
+			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 			if props.PolicyInfo.PolicyParameters != nil && props.PolicyInfo.PolicyParameters.DataStoreParametersList != nil && len(*props.PolicyInfo.PolicyParameters.DataStoreParametersList) > 0 {
 				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstances.AzureOperationalStoreParameters)
@@ -234,7 +244,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta interface{}) error {

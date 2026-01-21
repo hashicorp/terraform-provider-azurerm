@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -12,25 +12,36 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_postgresql_flexible_server -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
+
 type BackupInstancePostgreSQLFlexibleServerModel struct {
-	Name           string `tfschema:"name"`
-	Location       string `tfschema:"location"`
-	VaultId        string `tfschema:"vault_id"`
-	BackupPolicyId string `tfschema:"backup_policy_id"`
-	ServerId       string `tfschema:"server_id"`
+	Name            string `tfschema:"name"`
+	Location        string `tfschema:"location"`
+	VaultId         string `tfschema:"vault_id"`
+	BackupPolicyId  string `tfschema:"backup_policy_id"`
+	ServerId        string `tfschema:"server_id"`
+	ProtectionState string `tfschema:"protection_state"`
 }
 
 type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+)
+
+func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Identity() resourceids.ResourceId {
+	return &backupinstances.BackupInstanceId{}
+}
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_postgresql_flexible_server"
@@ -64,7 +75,12 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments(
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"protection_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() sdk.ResourceFunc {
@@ -157,6 +173,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -204,9 +223,14 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 						return err
 					}
 					state.BackupPolicyId = backupPolicyId.ID()
+
+					state.ProtectionState = pointer.FromEnum(props.CurrentProtectionState)
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}

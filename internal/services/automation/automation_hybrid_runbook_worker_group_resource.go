@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HybridRunbookWorkerGroupModel struct {
@@ -92,7 +91,7 @@ func (m HybridRunbookWorkerGroupResource) Create() sdk.ResourceFunc {
 			if model.CredentialName != "" {
 				req.Properties = &hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateProperties{}
 				req.Properties.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
-					Name: utils.String(model.CredentialName),
+					Name: pointer.To(model.CredentialName),
 				}
 			}
 			// return 201 cause err in autorest sdk
@@ -163,7 +162,7 @@ func (m HybridRunbookWorkerGroupResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("credential_name") {
 				upd.Properties = &hybridrunbookworkergroup.HybridRunbookWorkerGroupCreateOrUpdateProperties{}
 				upd.Properties.Credential = &hybridrunbookworkergroup.RunAsCredentialAssociationProperty{
-					Name: utils.String(model.CredentialName),
+					Name: pointer.To(model.CredentialName),
 				}
 			}
 			if _, err = client.Update(ctx, *id, upd); err != nil {

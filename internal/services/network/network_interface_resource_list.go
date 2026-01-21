@@ -3,7 +3,6 @@ package network
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -35,9 +34,6 @@ func (r NetworkInterfaceListResource) ResourceFunc() *pluginsdk.Resource {
 
 func (r NetworkInterfaceListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Network.NetworkInterfaces
-
-	ctx, cancel := context.WithTimeout(ctx, time.Minute*60)
-	defer cancel()
 
 	var data NetworkInterfaceListModel
 	diags := request.Config.Get(ctx, &data)

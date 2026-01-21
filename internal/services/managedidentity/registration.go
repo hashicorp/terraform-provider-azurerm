@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity
@@ -8,9 +8,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type Registration struct {
-	autoRegistration
-}
+type Registration struct{}
 
 var (
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
@@ -23,26 +21,27 @@ func (r Registration) AssociatedGitHubLabel() string {
 
 // Name is the name of this Service
 func (r Registration) Name() string {
-	return r.autoRegistration.Name()
+	return "ManagedIdentity"
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
 	dataSources := []sdk.DataSource{}
-	dataSources = append(dataSources, r.autoRegistration.DataSources()...)
 	return dataSources
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
 		FederatedIdentityCredentialResource{},
+		UserAssignedIdentityResource{},
 	}
-	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
-	return r.autoRegistration.WebsiteCategories()
+	return []string{
+		"Authorization",
+	}
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service

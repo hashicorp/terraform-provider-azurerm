@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -12,14 +12,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_postgresql_flexible_server -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type BackupPolicyPostgreSQLFlexibleServerModel struct {
 	Name                         string                                                     `tfschema:"name"`
@@ -56,7 +58,14 @@ type BackupPolicyPostgreSQLFlexibleServerCriteria struct {
 
 type DataProtectionBackupPolicyPostgreSQLFlexibleServerResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+)
+
+func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Identity() resourceids.ResourceId {
+	return &backuppolicies.BackupPolicyId{}
+}
 
 func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_postgresql_flexible_server"
@@ -296,6 +305,9 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Create() sdk
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -337,6 +349,9 @@ func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Read() sdk.R
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -392,7 +407,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(input []Backu
 	for _, item := range input {
 		results = append(results, backuppolicies.AzureRetentionRule{
 			Name:       item.Name,
-			IsDefault:  utils.Bool(false),
+			IsDefault:  pointer.To(false),
 			Lifecycles: expandBackupPolicyPostgreSQLFlexibleServerLifeCycle(item.LifeCycle),
 		})
 	}
@@ -403,7 +418,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerAzureRetentionRules(input []Backu
 func expandBackupPolicyPostgreSQLFlexibleServerDefaultAzureRetentionRule(input []BackupPolicyPostgreSQLFlexibleServerDefaultRetentionRule) backuppolicies.BasePolicyRule {
 	result := backuppolicies.AzureRetentionRule{
 		Name:      "Default",
-		IsDefault: utils.Bool(true),
+		IsDefault: pointer.To(true),
 	}
 
 	if len(input) > 0 {
@@ -441,7 +456,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPol
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},
@@ -453,7 +468,7 @@ func expandBackupPolicyPostgreSQLFlexibleServerTaggingCriteria(input []BackupPol
 			Criteria:        expandBackupPolicyPostgreSQLFlexibleServerCriteria(item.Criteria),
 			TaggingPriority: item.Priority,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String(item.Name + "_"),
+				Id:      pointer.To(item.Name + "_"),
 				TagName: item.Name,
 			},
 		}

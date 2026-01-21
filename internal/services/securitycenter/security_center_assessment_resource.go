@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -197,8 +198,8 @@ func expandSecurityCenterAssessmentStatus(input []interface{}) *security.Assessm
 	v := input[0].(map[string]interface{})
 	return &security.AssessmentStatus{
 		Code:        security.AssessmentStatusCode(v["code"].(string)),
-		Cause:       utils.String(v["cause"].(string)),
-		Description: utils.String(v["description"].(string)),
+		Cause:       pointer.To(v["cause"].(string)),
+		Description: pointer.To(v["description"].(string)),
 	}
 }
 

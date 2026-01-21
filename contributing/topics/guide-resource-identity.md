@@ -4,6 +4,8 @@ This guide covers adding Resource Identity to a new or existing resource. For mo
 
 > The provider's Resource Identity generator does not yet support all identity types. `commonids.CompositeResourceID` and any custom resource IDs (i.e. not one provided by `commonids` or `go-azure-sdk/resource-manager`) are not supported.
 
+> **Caution:** Do not implement Resource Identity for resources with numbers in their ID segment names (e.g., `ServerGroupsv2Name`) until the `strcase.ToSnake()` issue is resolved. The current implementation splits on number boundaries, converting `ServerGroupsv2Name` to `server_groupsv_2_name` instead of the expected `server_groupsv2_name`. This causes test failures and incorrect identity schema field names.
+
 ## Adding Resource Identity
 
 ### Typed Resources
@@ -39,7 +41,37 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     }
     ```
 
-3. Update the `Read()` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+3. Update the `Create()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function. 
+
+    ```go
+    func (r ExampleResource) Create() sdk.ResourceFunc {
+        return sdk.ResourceFunc{
+            Timeout: 30 * time.Minute,
+            Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+                client := metadata.Client.Service.ExampleClient
+                
+                id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+                ...
+                
+                if err := client.CreateOrUpdateThenPoll; err != nil {
+                    return fmt.Errorf("creating %s: %+v", &id, err)
+                }
+                
+                metadata.SetID(id)
+                if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+                    return err
+                }
+                
+                return metadata.Encode(&model)
+            },
+        }
+    }
+    ```
+   
+   > **Note:** While this may seem redundant given `Read()` gets called after `Create()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event something errors after setting the `id` attribute.
+
+4. Update the `Read()` function to include a step setting the Resource Identity data into state.
 
     ```go
     func (r ExampleResource) Read() sdk.ResourceFunc {
@@ -64,7 +96,7 @@ To add Resource Identity to a typed resource, we will need to implement the `sdk
     }
     ```
 
-4. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
 
 ### Untyped Resources
 
@@ -128,8 +160,37 @@ To add Resource Identity to an untyped resource, follow the steps below.
             }
         }
     ```
+3. Update the `resourceExampleCreate()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
-3. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+    ```go
+    func resourceExampleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := meta.(*clients.Client).Compute.DedicatedHostsClient
+            ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+            defer cancel()
+            
+            id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+            ...
+            
+            if err := client.CreateOrUpdateThenPoll; err != nil {
+               return fmt.Errorf("creating %s: %+v", &id, err)
+            }
+            
+            d.SetId(id.ID())
+            if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+                return err
+            }
+            
+            return resourceExampleRead(d, meta)
+        }
+    }
+    ```
+
+   > **Note:** While this may seem redundant given `resourceExampleRead()` gets called after `resourceExampleCreate()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event a function call errors after setting the `id` attribute.
+
+4. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
 
     ```go
         func resourceExampleRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -151,7 +212,7 @@ To add Resource Identity to an untyped resource, follow the steps below.
         }
     ```
 
-4. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
 
 ## Resource Identity Tests
 
@@ -168,6 +229,9 @@ To go through these in order:
 - `-known-values`: This flag specifies values that are not exposed in the resource schema, but are present in the Resource Identity schema, e.g. a subscription ID. This would be specified as `{id_field_name}:{known_value}`, e.g. `subscription_id:data.Subscriptions.Primary`.
 
 - `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the Resource Identity Schema uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `virtual_network_name:virtual_network_id`.
+
+
+> **Note:** The identity schema field names are generated using `strcase.ToSnake()` which splits on number boundaries. For example, `ServerGroupsv2Name` becomes `server_groupsv_2_name` (not `server_groupsv2_name`). This affects how you reference identity fields in `-properties` and `-compare-values` arguments.
 
 Please reference the [Resource Identity Test Generator](../../internal/tools/generator-tests/generators/resource_identity.go) for additional options that are used less frequently.
 

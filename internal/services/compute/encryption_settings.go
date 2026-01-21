@@ -1,13 +1,13 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func encryptionSettingsSchema() *pluginsdk.Schema {
@@ -77,7 +77,7 @@ func expandSnapshotDiskEncryptionSettings(settingsList []interface{}) *snapshots
 		diskEncryptionKey = &snapshots.KeyVaultAndSecretReference{
 			SecretURL: secretURL,
 			SourceVault: snapshots.SourceVault{
-				Id: utils.String(sourceVaultId),
+				Id: pointer.To(sourceVaultId),
 			},
 		}
 	}
@@ -91,7 +91,7 @@ func expandSnapshotDiskEncryptionSettings(settingsList []interface{}) *snapshots
 		keyEncryptionKey = &snapshots.KeyVaultAndKeyReference{
 			KeyURL: secretURL,
 			SourceVault: snapshots.SourceVault{
-				Id: utils.String(sourceVaultId),
+				Id: pointer.To(sourceVaultId),
 			},
 		}
 	}
@@ -183,7 +183,7 @@ func expandManagedDiskEncryptionSettings(settingsList []interface{}) *disks.Encr
 		diskEncryptionKey = &disks.KeyVaultAndSecretReference{
 			SecretURL: secretURL,
 			SourceVault: disks.SourceVault{
-				Id: utils.String(sourceVaultId),
+				Id: pointer.To(sourceVaultId),
 			},
 		}
 	}
@@ -197,7 +197,7 @@ func expandManagedDiskEncryptionSettings(settingsList []interface{}) *disks.Encr
 		keyEncryptionKey = &disks.KeyVaultAndKeyReference{
 			KeyURL: secretURL,
 			SourceVault: disks.SourceVault{
-				Id: utils.String(sourceVaultId),
+				Id: pointer.To(sourceVaultId),
 			},
 		}
 	}

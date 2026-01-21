@@ -177,7 +177,7 @@ A `application_stack` block supports the following:
 
 * `docker` - (Optional) One or more `docker` blocks as defined below.
 
-* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6.0`, `7.0`, `8.0` and `9.0`.
+* `dotnet_version` - (Optional) The version of .NET to use. Possible values include `3.1`, `6.0`, `7.0`, `8.0`, `9.0` and `10.0`.
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
@@ -185,7 +185,7 @@ A `application_stack` block supports the following:
 
 ~> **Note:** The value `21` is currently in Preview for `java_version`.
 
-* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18` `20` and `22`.
+* `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`.
 
 * `python_version` - (Optional) The version of Python to run. Possible values are `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
