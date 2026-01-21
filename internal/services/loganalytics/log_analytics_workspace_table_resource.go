@@ -186,8 +186,6 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 					}
 
 					if state.Plan == string(tables.TablePlanEnumAnalytics) {
-						updateInput.Properties.RetentionInDays = existing.Model.Properties.RetentionInDays
-
 						if metadata.ResourceData.HasChange("retention_in_days") {
 							updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
 							// `0` is not a valid value for `retention_in_days`, and the service will return HTTP 400
@@ -202,7 +200,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
 						// `0` is not a valid value for `total_retention_in_days`, and the service will return HTTP 400
 						// to reset it to its default value, we need to pass `-1`
-						if state.RetentionInDays == 0 {
+						if state.TotalRetentionInDays == 0 {
 							updateInput.Properties.TotalRetentionInDays = pointer.FromInt64(-1)
 						}
 					}
@@ -249,11 +247,11 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if !pointer.From(props.RetentionInDaysAsDefault) && pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
+					if metadata.ResourceData != nil && !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "retention_in_days") {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
 
-					if !pointer.From(props.TotalRetentionInDaysAsDefault) && pointer.From(props.Plan) == tables.TablePlanEnumAnalytics {
+					if metadata.ResourceData != nil && !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "total_retention_in_days") {
 						state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					}
 
