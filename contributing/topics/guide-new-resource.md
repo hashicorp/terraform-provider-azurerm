@@ -598,6 +598,8 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 Things worth noting here:
 
+- An argument must either be marked `ForceNew: true`, or added to `Update()` function.
+
 - In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
 
 For example, in this case:
@@ -608,16 +610,81 @@ For example, in this case:
 var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 ```
 
-:no_entry: **DO NOT**
-
-```
-var (
-	_ sdk.Resource           = ResourceGroupExampleResource{}
-	_ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
-)
-```
-
 - Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
+
+- Argument names must be wrapped in backticks in error messages.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+"name": {
+	Type:     pluginsdk.TypeString,
+	Required: true,
+	ForceNew: true,
+	ValidateFunc: validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
+		"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
+	),
+},
+```
+
+- Wrap `model` and `properties` in backticks in error messages.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        ...
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            ...
+
+            if existing.Model == nil {
+               return fmt.Errorf("retrieving %s: `model` was nil", id)
+            }
+
+            if existing.Model.Properties == nil {
+               return fmt.Errorf("retrieving %s: `properties` was nil", id)
+            }
+            
+            ...
+            return nil
+        },
+    }
+}
+```
+
+- Avoid returning errors in `Update` or `CustomizeDiff` for valid configurations that cannot be updated in-place. Instead, use `ForceNew` in `CustomizeDiff` to trigger resource recreation.
+
+:white_check_mark: **DO**
+
+```go
+func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			...
+			o, n := metadata.ResourceDiff.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
+						return err
+					}
+				}
+			}
+
+			...
+
+			return nil
+		},
+	}
+}
+```
 
 ### Step 4: Adding Resource Identity
 
