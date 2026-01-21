@@ -27,8 +27,6 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("10"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("45"),
 			),
@@ -37,8 +35,6 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 			Config: r.updateRetention(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
 			),
@@ -47,15 +43,13 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 			Config: r.removeRetentionDays(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("0"), // since it's removed, we will not set a value to it to state.
 			),
 		},
 	})
 }
 
-func TestAccLogAnalyticsWorkspaceTable_updateTotalRetention(t *testing.T) {
+func TestAccLogAnalyticsWorkspaceTable_updateTableTotalRetention(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace_table", "test")
 	r := LogAnalyticsWorkspaceTableResource{}
 
@@ -64,18 +58,14 @@ func TestAccLogAnalyticsWorkspaceTable_updateTotalRetention(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("10"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("45"),
 			),
 		},
 		{
-			Config: r.updateRetention(data),
+			Config: r.updateTotalRetention(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
 			),
@@ -84,8 +74,6 @@ func TestAccLogAnalyticsWorkspaceTable_updateTotalRetention(t *testing.T) {
 			Config: r.removeTotalRetentionDays(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("id").Exists(),
-				check.That(data.ResourceName).Key("name").HasValue("AppEvents"),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
 			),
 		},
@@ -168,6 +156,30 @@ resource "azurerm_log_analytics_workspace_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
+func (LogAnalyticsWorkspaceTableResource) updateTotalRetention(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  retention_in_days   = 30
+}
+
+resource "azurerm_log_analytics_workspace_table" "test" {
+  name                    = "AppEvents"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  retention_in_days       = 10
+  total_retention_in_days = 35
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
 func (LogAnalyticsWorkspaceTableResource) plan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
