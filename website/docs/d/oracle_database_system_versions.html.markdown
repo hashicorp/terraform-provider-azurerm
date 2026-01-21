@@ -34,17 +34,17 @@ The following arguments are supported:
 
 * `database_system_shape` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape. The only possible value is `VM.Standard.x86`.
 
-* `shape_family` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape family. Possible values are  `EXADATA`, `EXADB_XS`, `SINGLENODE` and `VIRTUALMACHINE`.
+* `shape_family` - (Optional) If provided, filters the results to the set of database versions which are supported for the given shape family. Possible values are `EXADATA`, `EXADB_XS`, `SINGLENODE` and `VIRTUALMACHINE`.
 
-* `storage_management` - (Optional) The DB system storage management option. Used to list database versions available for that storage manager. The only possible value is `LVM`.
+* `storage_management` - (Optional) The database system storage management option. Used to list database versions available for that storage manager. The only possible value is `LVM`.
 
-* `upgrade_supported` - (Optional) Whether to filter the results to the set of database versions which are supported for Upgrade.
+* `upgrade_supported` - (Optional) Whether to filter the results to the set of database versions which are supported for upgrade.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the azurerm Oracle Database Systems Versions.
+* `id` - The ID of the Oracle Database Systems Versions.
 
 * `versions` - A `versions` block as defined below.
 
@@ -52,7 +52,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `versions` block exports the following:
 
-* `name` - The name of the Oracle Database version. 
+* `name` - The name of the Oracle Database version.
 
 * `latest_version` - Indicates if this version of the Oracle Database software is the latest version for a release.
 
@@ -64,7 +64,7 @@ A `versions` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the azurerm Oracle Database Systems Versions.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Oracle Database Systems Versions.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

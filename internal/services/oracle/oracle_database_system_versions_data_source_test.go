@@ -40,7 +40,7 @@ func TestDatabaseVersionsDataSource_complete(t *testing.T) {
 	})
 }
 
-func TestDatabaseVersionsDataSource_ShapeFamilyFilter(t *testing.T) {
+func TestDatabaseVersionsDataSource_shapeFamilyFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}
 
