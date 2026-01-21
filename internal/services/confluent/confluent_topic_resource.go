@@ -21,20 +21,20 @@ import (
 type ConfluentTopicResource struct{}
 
 type ConfluentTopicResourceModel struct {
-	TopicName         string                       `tfschema:"topic_name"`
-	ClusterId         string                       `tfschema:"cluster_id"`
-	EnvironmentId     string                       `tfschema:"environment_id"`
-	OrganizationId    string                       `tfschema:"organization_id"`
-	ResourceGroupName string                       `tfschema:"resource_group_name"`
-	PartitionsCount   string                       `tfschema:"partitions_count"`
-	ReplicationFactor string                       `tfschema:"replication_factor"`
-	Configs           []ConfluentTopicConfigModel  `tfschema:"configs"`
+	TopicName         string                      `tfschema:"topic_name"`
+	ClusterId         string                      `tfschema:"cluster_id"`
+	EnvironmentId     string                      `tfschema:"environment_id"`
+	OrganizationId    string                      `tfschema:"organization_id"`
+	ResourceGroupName string                      `tfschema:"resource_group_name"`
+	PartitionsCount   string                      `tfschema:"partitions_count"`
+	ReplicationFactor string                      `tfschema:"replication_factor"`
+	Configs           []ConfluentTopicConfigModel `tfschema:"configs"`
 
 	// Computed
-	Id       string                         `tfschema:"id"`
-	TopicId  string                         `tfschema:"topic_id"`
-	Kind     string                         `tfschema:"kind"`
-	Metadata []ConfluentTopicMetadataModel  `tfschema:"metadata"`
+	Id       string                        `tfschema:"id"`
+	TopicId  string                        `tfschema:"topic_id"`
+	Kind     string                        `tfschema:"kind"`
+	Metadata []ConfluentTopicMetadataModel `tfschema:"metadata"`
 }
 
 type ConfluentTopicConfigModel struct {
