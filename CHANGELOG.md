@@ -1,7 +1,7 @@
 ## 4.58.0 (Unreleased)
 
 ENHANCEMENTS:
-`azurerm_network_manager_routing_configuration` - support for the `route_table_usage_mode` property [GH-31463]
+* `azurerm_network_manager_routing_configuration` - support for the `route_table_usage_mode` property [GH-31463]
 * dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` [GH-31397]
 * `data.azurerm_container_registry` - `admin_password` is now sensitive [GH-31428]
 * `azurerm_arc_kubernetes_provisioned_cluster` - support for Terraform Resource Identity [GH-31453]
@@ -60,11 +60,20 @@ ENHANCEMENTS:
 
 FEATURES:
 * **New List Resource**: `azurerm_resource_group` [GH-31270]
+* **New Resource**: `azurerm_network_security_perimeter` [GH-31356]
+* **New Resource**: `azurerm_network_security_perimeter_profile` [GH-31356]
+* **New Resource**: `azurerm_network_security_perimeter_access_rule` [GH-31356]
+* **New Resource**: `azurerm_network_security_perimeter_association` [GH-31356]
+* **New Data Source**: `azurerm_network_security_perimeter` [GH-31356]
+* **New Data Source**: `azurerm_network_security_perimeter_profile` [GH-31356]
 
 BUG FIXES:
 * `azurerm_container_app_custom_domain` - no longer error during read when container app is deleted outside of Terraform [GH-31523]
 * `clients` - fix correlation id across many clients [GH-31368]
 * `azurerm_storage_account` - can now update a Storage Standard ZRS account [GH-31431]
+* `azurerm_databricks_workspace` - removed a legacy workaround that prevented apply operations from succeeding when `managed_disk_cmk_rotation_to_latest_version_enabled` and `tags` were updated simultaneously [GH-31509]
+* `azurerm_api_management` - fix an issue that prevented updates to `hostname_configuration.*.key_vault_certificate_id` [GH-31534]
+* `azurerm_api_management_custom_domain` - fix an issue that prevented updates to `[management|portal|developer_portal|scm|gateway].key_vault_certificate_id` [GH-31534]
 
 ## 4.57.0 (December 18, 2025)
 
