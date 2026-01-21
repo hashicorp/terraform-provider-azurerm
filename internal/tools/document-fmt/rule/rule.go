@@ -52,6 +52,8 @@ var Registration = map[string]Rule{
 	S009{}.ID(): S009{}, // Arguments Existence
 	S010{}.ID(): S010{}, // Arguments Default Value
 	S011{}.ID(): S011{}, // Arguments Possible Values
+	S012{}.ID(): S012{}, // Arguments ID Description
+	S013{}.ID(): S013{}, // Attributes ID at Top
 }
 
 // RulesRequiringPackageLoad contains rule IDs that need package loading and API analysis
@@ -68,6 +70,7 @@ var RulesRequiringNormalizingMd = map[string]bool{
 	S009{}.ID(): true,
 	S010{}.ID(): true,
 	S011{}.ID(): true,
+	S012{}.ID(): true,
 }
 
 func ShouldLoadPackages(ruleIDs []string) bool {
