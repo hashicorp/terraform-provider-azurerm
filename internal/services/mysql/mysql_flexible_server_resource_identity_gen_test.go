@@ -14,7 +14,7 @@ import (
 
 func TestAccMysqlFlexibleServer_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{

@@ -20,7 +20,7 @@ import (
 
 func TestAccMySqlFlexibleServer_list_no_config(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "testlist1")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -52,7 +52,7 @@ func TestAccMySqlFlexibleServer_list_no_config(t *testing.T) {
 
 func TestAccMySqlFlexibleServer_list_by_resource_group(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "testlist")
-	r := MySqlFlexibleServerResource{}
+	r := MysqlFlexibleServerResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -82,7 +82,7 @@ func TestAccMySqlFlexibleServer_list_by_resource_group(t *testing.T) {
 	})
 }
 
-func (r MySqlFlexibleServerResource) basicListQuery() string {
+func (r MysqlFlexibleServerResource) basicListQuery() string {
 	return `
 list "azurerm_mysql_flexible_server" "list" {
   provider = azurerm
@@ -91,7 +91,7 @@ list "azurerm_mysql_flexible_server" "list" {
 `
 }
 
-func (r MySqlFlexibleServerResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
+func (r MysqlFlexibleServerResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_mysql_flexible_server" "list" {
   provider = azurerm
