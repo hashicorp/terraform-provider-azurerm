@@ -10,8 +10,6 @@ description: |-
 
 Manages a Artifacts Signing Account.
 
-~> **Note:** The `azurerm_artifacts_signing_account` resource has been deprecated in favour of `azurerm_artifacts_signing_account` and will be removed in v5.0 of the AzureRM Provider.
-
 ## Example Usage
 
 ```hcl
@@ -34,9 +32,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Artifacts Signing Account. Changing this forces a new Artifacts Signing Account to be created.
 
-* `location` - (Required) The Azure Region where the Artifacts Signing Account should exist. Changing this forces a new Artifacts Signing Account to be created.
-
 * `resource_group_name` - (Required) The name of the Resource Group where the Artifacts Signing Account should exist. Changing this forces a new Artifacts Signing Account to be created.
+
+* `location` - (Required) The Azure Region where the Artifacts Signing Account should exist. Changing this forces a new Artifacts Signing Account to be created.
 
 * `sku_name` - (Required) The sku name of this Artifacts Signing Account. Possible values are `Basic` and `Premium`.
 
@@ -67,7 +65,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Artifacts Signing Accounts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_Artifacts_signing_account.example /subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.CodeSigning/codeSigningAccounts/example-account
+terraform import azurerm_artifacts_signing_account.example /subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.CodeSigning/codeSigningAccounts/example-account
 ```
 
 ## API Providers

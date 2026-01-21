@@ -32,6 +32,8 @@ func (a TrustedSigningAccountResource) Exists(ctx context.Context, client *clien
 }
 
 func TestAccTrustedSigningAccount_basic(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -46,6 +48,8 @@ func TestAccTrustedSigningAccount_basic(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_update(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -74,6 +78,8 @@ func TestAccTrustedSigningAccount_update(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_complete(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

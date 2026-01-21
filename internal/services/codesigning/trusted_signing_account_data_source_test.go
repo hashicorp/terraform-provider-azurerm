@@ -15,6 +15,7 @@ import (
 type TrustedSigningAccountDataSource struct{}
 
 func TestAccTrustedSigningAccountDataSource_basic(t *testing.T) {
+	t.Skipf("Skipping since `data.azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
 	data := acceptance.BuildTestData(t, "data.azurerm_trusted_signing_account", "test")
 	r := TrustedSigningAccountDataSource{}
 

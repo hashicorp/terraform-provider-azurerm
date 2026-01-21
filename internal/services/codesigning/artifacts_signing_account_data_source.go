@@ -21,8 +21,8 @@ import (
 
 type ArtifactsSigningAccountDataSourceModel struct {
 	Name              string            `tfschema:"name"`
-	Location          string            `tfschema:"location"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
 	AccountUri        string            `tfschema:"account_uri"`
 	SkuName           string            `tfschema:"sku_name"`
 	Tags              map[string]string `tfschema:"tags"`

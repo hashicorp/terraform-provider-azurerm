@@ -134,6 +134,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_trusted_signing_account`
+
+* This deprecated resource has been removed in favour of `azurerm_artifacts_signing_account`.
+
 
 ## Removed Data Sources
 

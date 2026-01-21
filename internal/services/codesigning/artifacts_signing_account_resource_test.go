@@ -76,6 +76,7 @@ func TestAccArtifactsSigningAccount_update(t *testing.T) {
 func TestAccArtifactsSigningAccount_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, codesigning.ArtifactsSigningAccountResource{}.ResourceType(), "test")
 	r := ArtifactsSigningAccountResource{}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -84,6 +85,21 @@ func TestAccArtifactsSigningAccount_complete(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccArtifactsSigningAccount_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, codesigning.ArtifactsSigningAccountResource{}.ResourceType(), "test")
+	r := ArtifactsSigningAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
@@ -100,6 +116,18 @@ resource "azurerm_artifacts_signing_account" "test" {
 `, a.template(data), data.RandomString, data.Locations.Primary)
 }
 
+func (a ArtifactsSigningAccountResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_artifacts_signing_account" "import" {
+  name                = azurerm_artifacts_signing_account.test.name
+  resource_group_name = azurerm_artifacts_signing_account.test.resource_group_name
+  location            = azurerm_artifacts_signing_account.test.location
+  sku_name            = azurerm_artifacts_signing_account.test.sku_name
+}
+`, a.basic(data))
+}
 func (a ArtifactsSigningAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

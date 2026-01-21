@@ -21,8 +21,8 @@ import (
 
 type ArtifactsSigningAccountModel struct {
 	Name              string            `tfschema:"name"`
-	Location          string            `tfschema:"location"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
 	AccountUri        string            `tfschema:"account_uri"`
 	SkuName           string            `tfschema:"sku_name"`
 	Tags              map[string]string `tfschema:"tags"`
@@ -47,9 +47,9 @@ func (r ArtifactsSigningAccountResource) Arguments() map[string]*pluginsdk.Schem
 			),
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
