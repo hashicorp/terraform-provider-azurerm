@@ -427,7 +427,7 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 			}
 
-			flattenedRadius := flattenVpnServerConfigurationRadius(props)
+			flattenedRadius := flattenVpnServerConfigurationRadius(props, d)
 			if err := d.Set("radius", flattenedRadius); err != nil {
 				return fmt.Errorf("setting `radius`: %+v", err)
 			}
@@ -819,7 +819,7 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	}
 }
 
-func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties) []interface{} {
+func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties, d *pluginsdk.ResourceData) []interface{} {
 	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []interface{}{}
 	}
@@ -866,10 +866,22 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 
 	servers := make([]interface{}, 0)
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {
-		for _, v := range *input.RadiusServers {
+		for i, v := range *input.RadiusServers {
+			SetSecret := ""
+			if radius, ok := d.Get("radius").([]interface{}); ok && len(radius) > 0 {
+				if radiusMap, ok := radius[0].(map[string]interface{}); ok {
+					if server, ok := radiusMap["server"].([]interface{}); ok && len(server) > i {
+						if serverMap, ok := server[i].(map[string]interface{}); ok {
+							if secret, ok := serverMap["secret"].(string); ok {
+								SetSecret = secret
+							}
+						}
+					}
+				}
+			}
 			servers = append(servers, map[string]interface{}{
 				"address": v.RadiusServerAddress,
-				"secret":  pointer.From(v.RadiusServerSecret),
+				"secret":  pointer.To(SetSecret),
 				"score":   pointer.From(v.RadiusServerScore),
 			})
 		}
