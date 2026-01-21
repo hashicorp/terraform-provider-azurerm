@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
@@ -358,8 +359,24 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		automanage.Registration{},
 		automation.Registration{},
 		azurestackhci.Registration{},
+		batch.Registration{},
+		billing.Registration{},
+		blueprints.Registration{},
+		bot.Registration{},
 		cdn.Registration{},
+		chaosstudio.Registration{},
+		codesigning.Registration{},
+		cognitive.Registration{},
+		communication.Registration{},
 		compute.Registration{},
+		confidentialledger.Registration{},
+		connections.Registration{},
+		consumption.Registration{},
+		containerapps.Registration{},
+		containers.Registration{},
+		cosmos.Registration{},
+		costmanagement.Registration{},
+		customproviders.Registration{},
 		dataprotection.Registration{},
 		keyvault.Registration{},
 		managedredis.Registration{},
