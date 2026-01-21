@@ -74,7 +74,18 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
-      - name: Run provider tests  save-artifacts-on-fail:
+      - name: Clean Up OIDC Token File Path
+        run: rm -f "${RUNNER_TEMP}/oidc-token.jwt"
+        if: always()
+
+      - name: Clean Up Client ID Path
+        run: rm -f "${RUNNER_TEMP}/client-id"
+        if: always()
+
+      - name: Clean Up Client Secret Path
+        run: rm -f "${RUNNER_TEMP}/client-secret"
+        if: always()
+  save-artifacts-on-fail:
     needs: provider-tests
     if: ${{ failure() }}
     uses: ./.github/workflows/save-artifacts.yaml
