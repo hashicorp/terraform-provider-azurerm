@@ -92,9 +92,9 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			},
 
 			"eventhub_consumer_group_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.Any(
 					eventhubValidate.ValidateEventHubConsumerName(),
 					validation.StringInSlice([]string{"$Default"}, false)),
