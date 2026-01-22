@@ -2703,7 +2703,6 @@ resource "azurerm_container_app" "test" {
       custom_rule_type = "rabbitmq"
 
       metadata = {
-        foo = "bar"
         mode = "QueueLength"
         value = 100
         queueName = "test"
