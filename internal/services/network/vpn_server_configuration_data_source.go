@@ -69,6 +69,7 @@ type RadiusModel struct {
 
 type ServerModel struct {
 	Address string `tfschema:"address"`
+	Secret  string `tfschema:"secret"`
 	Score   int64  `tfschema:"score"`
 }
 
@@ -226,6 +227,11 @@ func (d VPNServerConfigurationDataSource) Attributes() map[string]*pluginsdk.Sch
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"address": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"secret": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
@@ -452,6 +458,7 @@ func dataSourceFlattenVpnServerConfigurationRadius(input *virtualwans.VpnServerC
 		for _, v := range *input.RadiusServers {
 			servers = append(servers, ServerModel{
 				Address: v.RadiusServerAddress,
+				Secret:  pointer.From(v.RadiusServerSecret),
 				Score:   pointer.From(v.RadiusServerScore),
 			})
 		}
