@@ -82,5 +82,4 @@ terraform import azurerm_dns_cname_record_public_ip_address_association.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
-* `Microsoft.Network` - 2018-05-01
+* `Microsoft.Network` - 2025-01-01, 2018-05-01
