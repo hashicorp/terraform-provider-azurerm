@@ -55,6 +55,14 @@ func UnmarshalEndpointBasePropertiesImplementation(input []byte) (EndpointBasePr
 		value = fmt.Sprintf("%v", v)
 	}
 
+	if strings.EqualFold(value, "AzureMultiCloudConnector") {
+		var out AzureMultiCloudConnectorEndpointProperties
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AzureMultiCloudConnectorEndpointProperties: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "AzureStorageBlobContainer") {
 		var out AzureStorageBlobContainerEndpointProperties
 		if err := json.Unmarshal(input, &out); err != nil {
@@ -63,10 +71,34 @@ func UnmarshalEndpointBasePropertiesImplementation(input []byte) (EndpointBasePr
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "AzureStorageNfsFileShare") {
+		var out AzureStorageNfsFileShareEndpointProperties
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AzureStorageNfsFileShareEndpointProperties: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "AzureStorageSmbFileShare") {
+		var out AzureStorageSmbFileShareEndpointProperties
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into AzureStorageSmbFileShareEndpointProperties: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "NfsMount") {
 		var out NfsMountEndpointProperties
 		if err := json.Unmarshal(input, &out); err != nil {
 			return nil, fmt.Errorf("unmarshaling into NfsMountEndpointProperties: %+v", err)
+		}
+		return out, nil
+	}
+
+	if strings.EqualFold(value, "SmbMount") {
+		var out SmbMountEndpointProperties
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into SmbMountEndpointProperties: %+v", err)
 		}
 		return out, nil
 	}

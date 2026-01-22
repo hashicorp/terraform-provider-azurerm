@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/projects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/jobdefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -145,15 +145,15 @@ func (r StorageMoverJobDefinitionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := jobdefinitions.JobDefinition{
-				Properties: jobdefinitions.JobDefinitionProperties{
-					CopyMode:   model.CopyMode,
-					SourceName: model.SourceName,
-					TargetName: model.TargetName,
-				},
-			}
+		properties := jobdefinitions.JobDefinition{
+			Properties: jobdefinitions.JobDefinitionProperties{
+				CopyMode:   model.CopyMode,
+				SourceName: model.SourceName,
+				TargetName: model.TargetName,
+			},
+		}
 
-			if model.AgentName != "" {
+		if model.AgentName != "" {
 				properties.Properties.AgentName = &model.AgentName
 			}
 
@@ -262,11 +262,11 @@ func (r StorageMoverJobDefinitionResource) Read() sdk.ResourceFunc {
 			if v := resp.Model; v != nil {
 				state.AgentName = pointer.From(v.Properties.AgentName)
 
-				state.CopyMode = v.Properties.CopyMode
+			state.CopyMode = v.Properties.CopyMode
 
-				state.Description = pointer.From(v.Properties.Description)
+			state.Description = pointer.From(v.Properties.Description)
 
-				state.SourceName = v.Properties.SourceName
+			state.SourceName = v.Properties.SourceName
 
 				state.SourceSubpath = pointer.From(v.Properties.SourceSubpath)
 
