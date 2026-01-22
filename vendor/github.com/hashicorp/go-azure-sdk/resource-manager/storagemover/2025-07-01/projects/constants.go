@@ -12,11 +12,17 @@ import (
 type ProvisioningState string
 
 const (
+	ProvisioningStateCanceled  ProvisioningState = "Canceled"
+	ProvisioningStateDeleting  ProvisioningState = "Deleting"
+	ProvisioningStateFailed    ProvisioningState = "Failed"
 	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
 )
 
 func PossibleValuesForProvisioningState() []string {
 	return []string{
+		string(ProvisioningStateCanceled),
+		string(ProvisioningStateDeleting),
+		string(ProvisioningStateFailed),
 		string(ProvisioningStateSucceeded),
 	}
 }
@@ -36,6 +42,9 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
+		"canceled":  ProvisioningStateCanceled,
+		"deleting":  ProvisioningStateDeleting,
+		"failed":    ProvisioningStateFailed,
 		"succeeded": ProvisioningStateSucceeded,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {

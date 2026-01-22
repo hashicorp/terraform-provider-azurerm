@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
@@ -11,27 +12,30 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type Endpoint struct {
-	Id         *string                `json:"id,omitempty"`
-	Name       *string                `json:"name,omitempty"`
-	Properties EndpointBaseProperties `json:"properties"`
-	SystemData *systemdata.SystemData `json:"systemData,omitempty"`
-	Type       *string                `json:"type,omitempty"`
+	Id         *string                                  `json:"id,omitempty"`
+	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
+	Name       *string                                  `json:"name,omitempty"`
+	Properties EndpointBaseProperties                   `json:"properties"`
+	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
+	Type       *string                                  `json:"type,omitempty"`
 }
 
 var _ json.Unmarshaler = &Endpoint{}
 
 func (s *Endpoint) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Id         *string                `json:"id,omitempty"`
-		Name       *string                `json:"name,omitempty"`
-		SystemData *systemdata.SystemData `json:"systemData,omitempty"`
-		Type       *string                `json:"type,omitempty"`
+		Id         *string                                  `json:"id,omitempty"`
+		Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
+		Name       *string                                  `json:"name,omitempty"`
+		SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
+		Type       *string                                  `json:"type,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.Id = decoded.Id
+	s.Identity = decoded.Identity
 	s.Name = decoded.Name
 	s.SystemData = decoded.SystemData
 	s.Type = decoded.Type
