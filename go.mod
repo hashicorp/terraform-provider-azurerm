@@ -16,10 +16,10 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.76.1
-	github.com/hashicorp/go-azure-sdk/data-plane v0.0.0-00010101000000-000000000000
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260114.1164646
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260123.1165823-0.20260126121440-e4c0d8af420a
+	github.com/hashicorp/go-azure-helpers v0.75.2-0.20260122123014-aa3ad08cde20
+	github.com/hashicorp/go-azure-sdk/data-plane v0.0.0-20260122130401-f2743f430eac
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260129.1200123
+	github.com/hashicorp/go-azure-sdk/sdk v0.20260129.1200123
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
@@ -109,11 +109,3 @@ require (
 )
 
 go 1.25.5
-
-replace github.com/hashicorp/go-azure-sdk/resource-manager => ../go-azure-sdk/resource-manager
-
-replace github.com/hashicorp/go-azure-sdk/data-plane => ../go-azure-sdk/data-plane
-
-replace github.com/hashicorp/go-azure-sdk/sdk => ../go-azure-sdk/sdk
-
-replace github.com/hashicorp/go-azure-helpers => ../go-azure-helpers

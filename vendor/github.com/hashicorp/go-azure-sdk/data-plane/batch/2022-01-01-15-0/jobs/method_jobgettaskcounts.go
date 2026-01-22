@@ -66,7 +66,7 @@ func (c JobsClient) JobGetTaskCounts(ctx context.Context, id JobId, options JobG
 		},
 		HttpMethod:    http.MethodGet,
 		OptionsObject: options,
-		Path:          fmt.Sprintf("%s/taskcounts", id.Path()),
+		Path:          fmt.Sprintf("%s/taskcounts", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

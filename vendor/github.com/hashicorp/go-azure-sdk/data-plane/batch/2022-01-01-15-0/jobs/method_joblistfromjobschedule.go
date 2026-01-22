@@ -100,7 +100,7 @@ func (c JobsClient) JobListFromJobSchedule(ctx context.Context, id JobscheduleId
 		HttpMethod:    http.MethodGet,
 		OptionsObject: options,
 		Pager:         &JobListFromJobScheduleCustomPager{},
-		Path:          fmt.Sprintf("%s/jobs", id.Path()),
+		Path:          fmt.Sprintf("%s/jobs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

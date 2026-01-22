@@ -21,7 +21,7 @@ type JobId struct {
 // NewJobID returns a new JobId struct
 func NewJobID(baseURI string, jobId string) JobId {
 	return JobId{
-		BaseURI: strings.TrimSuffix(baseURI, "/"),
+		BaseURI: baseURI,
 		JobId:   jobId,
 	}
 }
@@ -91,24 +91,19 @@ func ValidateJobID(input interface{}, key string) (warnings []string, errors []e
 // ID returns the formatted Job ID
 func (id JobId) ID() string {
 	fmtString := "%s/jobs/%s"
-	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.JobId)
+	return fmt.Sprintf(fmtString, id.BaseURI, id.JobId)
 }
 
-// Path returns the formatted Job ID without the BaseURI
+// Path returns the formatted Job ID without the Scope / BaseURI
 func (id JobId) Path() string {
 	fmtString := "/jobs/%s"
 	return fmt.Sprintf(fmtString, id.JobId)
 }
 
-// PathElements returns the values of Job ID Segments without the BaseURI
-func (id JobId) PathElements() []any {
-	return []any{id.JobId}
-}
-
 // Segments returns a slice of Resource ID Segments which comprise this Job ID
 func (id JobId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
 		resourceids.StaticSegment("staticJobs", "jobs", "jobs"),
 		resourceids.UserSpecifiedSegment("jobId", "jobId"),
 	}

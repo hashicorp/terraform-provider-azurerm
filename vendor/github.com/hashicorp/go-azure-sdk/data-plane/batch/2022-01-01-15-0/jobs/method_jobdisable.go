@@ -81,7 +81,7 @@ func (c JobsClient) JobDisable(ctx context.Context, id JobId, input JobDisablePa
 		},
 		HttpMethod:    http.MethodPost,
 		OptionsObject: options,
-		Path:          fmt.Sprintf("%s/disable", id.Path()),
+		Path:          fmt.Sprintf("%s/disable", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
