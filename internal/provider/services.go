@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/blueprints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/chaosstudio"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication"
@@ -45,6 +46,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devcenter"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
@@ -344,9 +346,58 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		// Services with Framework Resources, Data Sources, or Ephemeral Resources to be listed here
 		// e.g.
 		// resource.Registration{}
+		aadb2c.Registration{},
+		advisor.Registration{},
+		analysisservices.Registration{},
+		apimanagement.Registration{},
+		appconfiguration.Registration{},
+		applicationinsights.Registration{},
+		appservice.Registration{},
+		arckubernetes.Registration{},
+		arcresourcebridge.Registration{},
+		attestation.Registration{},
+		authorization.Registration{},
+		automanage.Registration{},
+		automation.Registration{},
+		azurestackhci.Registration{},
+		batch.Registration{},
+		billing.Registration{},
+		blueprints.Registration{},
+		bot.Registration{},
 		cdn.Registration{},
+		chaosstudio.Registration{},
+		codesigning.Registration{},
+		cognitive.Registration{},
+		communication.Registration{},
 		compute.Registration{},
+		confidentialledger.Registration{},
+		connections.Registration{},
+		consumption.Registration{},
+		containerapps.Registration{},
+		containers.Registration{},
+		cosmos.Registration{},
+		costmanagement.Registration{},
+		customproviders.Registration{},
+		dashboard.Registration{},
+		databasemigration.Registration{},
+		databoxedge.Registration{},
+		databricks.Registration{},
+		datadog.Registration{},
+		datafactory.Registration{},
 		dataprotection.Registration{},
+		datashare.Registration{},
+		desktopvirtualization.Registration{},
+		devcenter.Registration{},
+		devtestlabs.Registration{},
+		digitaltwins.Registration{},
+		dns.Registration{},
+		domainservices.Registration{},
+		dynatrace.Registration{},
+		elastic.Registration{},
+		elasticsan.Registration{},
+		eventgrid.Registration{},
+		eventhub.Registration{},
+		extendedlocation.Registration{},
 		keyvault.Registration{},
 		managedredis.Registration{},
 		mssql.Registration{},
