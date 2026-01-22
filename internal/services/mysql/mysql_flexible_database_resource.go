@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/databases"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
@@ -19,20 +20,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_database -service-package-name mysql -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMySqlFlexibleDatabaseCreate,
-		Read:   resourceMySqlFlexibleDatabaseRead,
-		Delete: resourceMySqlFlexibleDatabaseDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := databases.ParseDatabaseID(id)
-			return err
-		}),
+		Create:   resourceMySqlFlexibleDatabaseCreate,
+		Read:     resourceMySqlFlexibleDatabaseRead,
+		Delete:   resourceMySqlFlexibleDatabaseDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&databases.DatabaseId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&databases.DatabaseId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -99,6 +103,10 @@ func resourceMySqlFlexibleDatabaseCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceMySqlFlexibleDatabaseRead(d, meta)
 }
 
@@ -132,7 +140,7 @@ func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMySqlFlexibleDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {
