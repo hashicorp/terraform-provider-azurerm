@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -34,6 +34,8 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
+
+		DeprecationMessage: "The `azurerm_data_protection_backup_policy_postgresql` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := backuppolicies.ParseBackupPolicyID(id)
