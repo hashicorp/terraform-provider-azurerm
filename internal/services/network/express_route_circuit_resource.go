@@ -163,6 +163,7 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				WriteOnly:     true,
 				RequiredWith:  []string{"authorization_key_wo_version"},
 				ConflictsWith: []string{"authorization_key"},
+				ValidateFunc:  validation.StringIsNotEmpty,
 			},
 
 			"authorization_key_wo_version": {
