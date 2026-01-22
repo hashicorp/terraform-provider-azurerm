@@ -91,5 +91,3 @@ terraform import azurerm_storage_mover_nfs_file_share_endpoint.example /subscrip
 This resource uses the following Azure API Providers:
 
 * `Microsoft.StorageMover` - 2025-07-01
-
-
