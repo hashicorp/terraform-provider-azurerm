@@ -195,7 +195,7 @@ func TestAccVPNServerConfiguration_withoutRadiusServerRootCertificate(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
