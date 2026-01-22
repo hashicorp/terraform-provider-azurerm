@@ -31,13 +31,13 @@ func TestAccContainerAppEnvironmentCertificateDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppEnvironmentCertificateDataSource_keyVault(t *testing.T) {
+func TestAccContainerAppEnvironmentCertificateDataSource_keyVaultSystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_container_app_environment_certificate", "test")
 	r := ContainerAppEnvironmentCertificateDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.keyVault(data),
+			Config: r.keyVaultSystemAssigned(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("subject_name").IsSet(),
 				check.That(data.ResourceName).Key("thumbprint").IsSet(),
@@ -62,7 +62,7 @@ data "azurerm_container_app_environment_certificate" "test" {
 `, ContainerAppEnvironmentCertificateResource{}.basic(data))
 }
 
-func (d ContainerAppEnvironmentCertificateDataSource) keyVaultUserAssigned(data acceptance.TestData) string {
+func (d ContainerAppEnvironmentCertificateDataSource) keyVaultSystemAssigned(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -70,5 +70,5 @@ data "azurerm_container_app_environment_certificate" "test" {
   name                         = azurerm_container_app_environment_certificate.test.name
   container_app_environment_id = azurerm_container_app_environment_certificate.test.container_app_environment_id
 }
-`, ContainerAppEnvironmentCertificateResource{}.keyVaultUserAssigned(data))
+`, ContainerAppEnvironmentCertificateResource{}.keyVaultSystemAssigned(data))
 }
