@@ -2704,6 +2704,9 @@ resource "azurerm_container_app" "test" {
 
       metadata = {
         foo = "bar"
+        mode = "QueueLength"
+        value = 100
+        queueName = "test"
       }
 
       authentication {
