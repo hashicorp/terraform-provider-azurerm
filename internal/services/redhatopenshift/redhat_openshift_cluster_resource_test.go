@@ -214,7 +214,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.18.0"
+    version = "4.17.27"
   }
 
   network_profile {
