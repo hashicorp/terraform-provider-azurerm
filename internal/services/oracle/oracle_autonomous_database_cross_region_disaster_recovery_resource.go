@@ -24,30 +24,28 @@ var _ sdk.Resource = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
 type AutonomousDatabaseCrossRegionDisasterRecoveryResource struct{}
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
-	Location                     string            `tfschema:"location"`
-	Name                         string            `tfschema:"name"`
-	ResourceGroupName            string            `tfschema:"resource_group_name"`
-	Tags                         map[string]string `tfschema:"tags"`
-	RemoteDisasterRecoveryType   string            `tfschema:"remote_disaster_recovery_type"`
-	SourceAutonomousDatabaseId   string            `tfschema:"source_autonomous_database_id"`
-	AutoScalingEnabled           bool              `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled bool              `tfschema:"auto_scaling_for_storage_enabled"`
-	BackupRetentionPeriodInDays  int64             `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                 string            `tfschema:"character_set"`
-	ComputeCount                 float64           `tfschema:"compute_count"`
-	ComputeModel                 string            `tfschema:"compute_model"`
-	DataStorageSizeInTb          int64             `tfschema:"data_storage_size_in_tb"`
-	DatabaseVersion              string            `tfschema:"database_version"`
-	DatabaseWorkload             string            `tfschema:"database_workload"`
-	DisplayName                  string            `tfschema:"display_name"`
-	LicenseModel                 string            `tfschema:"license_model"`
-	MtlsConnectionRequired       bool              `tfschema:"mtls_connection_required"`
-	NationalCharacterSet         string            `tfschema:"national_character_set"`
-	SubnetId                     string            `tfschema:"subnet_id"`
-
-	// Optional
-	CustomerContacts                 []string `tfschema:"customer_contacts"`
-	ReplicateAutomaticBackupsEnabled bool     `tfschema:"replicate_automatic_backups_enabled"`
+	Location                         string            `tfschema:"location"`
+	Name                             string            `tfschema:"name"`
+	ResourceGroupName                string            `tfschema:"resource_group_name"`
+	Tags                             map[string]string `tfschema:"tags"`
+	RemoteDisasterRecoveryType       string            `tfschema:"remote_disaster_recovery_type"`
+	SourceAutonomousDatabaseId       string            `tfschema:"source_autonomous_database_id"`
+	AutoScalingEnabled               bool              `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled     bool              `tfschema:"auto_scaling_for_storage_enabled"`
+	BackupRetentionPeriodInDays      int64             `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                     string            `tfschema:"character_set"`
+	ComputeCount                     float64           `tfschema:"compute_count"`
+	ComputeModel                     string            `tfschema:"compute_model"`
+	DataStorageSizeInTb              int64             `tfschema:"data_storage_size_in_tb"`
+	DatabaseVersion                  string            `tfschema:"database_version"`
+	DatabaseWorkload                 string            `tfschema:"database_workload"`
+	DisplayName                      string            `tfschema:"display_name"`
+	LicenseModel                     string            `tfschema:"license_model"`
+	MtlsConnectionRequired           bool              `tfschema:"mtls_connection_required"`
+	NationalCharacterSet             string            `tfschema:"national_character_set"`
+	SubnetId                         string            `tfschema:"subnet_id"`
+	CustomerContacts                 []string          `tfschema:"customer_contacts"`
+	ReplicateAutomaticBackupsEnabled bool              `tfschema:"replicate_automatic_backups_enabled"`
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[string]*pluginsdk.Schema {
@@ -74,12 +72,8 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 			Required: true,
 			ForceNew: true,
 		},
-		"source_autonomous_database_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
-		},
+		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
+
 		"subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -288,7 +282,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
-				state.Location = model.Location
+				state.Location = location.Normalize(model.Location)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(model.Tags)

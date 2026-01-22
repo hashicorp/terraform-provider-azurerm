@@ -419,7 +419,7 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 				state.DataBaseType = string(adbsProps.DataBaseType)
 				state.Source = string(adbsProps.Source)
 				state.SourceAutonomousDatabaseId = adbsProps.SourceId
-				state.SourceLocation = pointer.From(adbsProps.SourceLocation)
+				state.SourceLocation = location.NormalizeNilable(adbsProps.SourceLocation)
 				state.SourceOcid = pointer.From(adbsProps.SourceOcid)
 				state.ActualUsedDataStorageSizeInTb = pointer.From(adbsProps.ActualUsedDataStorageSizeInTbs)
 				state.AllocatedStorageSizeInTb = pointer.From(adbsProps.AllocatedStorageSizeInTbs)

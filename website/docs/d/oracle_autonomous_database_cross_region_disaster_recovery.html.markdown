@@ -54,11 +54,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
-* `cpu_core_count` - The number of CPU cores available to the database. When the ECPU is selected, the value for cpuCoreCount is 0.
+* `cpu_core_count` - The number of CPU cores available to the database.
+
+-> **Note:** When the `ECPU` is selected, the value for `cpu_core_count` is 0.
 
 -> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
 
-* `customer_contacts` - A list of Customer's contact email addresses
+* `customer_contacts` - A list of Customer's contact email addresses.
 
 * `data_storage_size_in_gb` - The quantity of data in the database in Gigabytes.
 
@@ -122,9 +124,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `source_autonomous_database_id` - The ID of autonomous database for which cross region disaster recovery autonomous database was created.
 
-* `source_location` - The Azure Region where source autonomous database for which cross region disaster recovery autonomous database is located
+* `source_location` - The Azure Region where source autonomous database for which cross region disaster recovery autonomous database is located.
 
-* `source_ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database for which cross region disaster recovery autonomous database was created.
+* `source_ocid` - The [OCID](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database for which cross region disaster recovery autonomous database was created.
 
 * `subnet_id` - The ID of the Azure Resource Manager subnet resource.
 

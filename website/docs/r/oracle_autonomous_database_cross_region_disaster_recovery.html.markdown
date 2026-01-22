@@ -8,8 +8,8 @@ description: |-
 
 # azurerm_oracle_autonomous_database_cross_region_disaster_recovery
 
-Manages Cross Region Disaster Recovery Autonomous Database.
-Cross Region Disaster Recovery Autonomous Database is an Autonomous Database with a specific Cross-Region Disaster Recovery role. It must be an exact copy of Autonomous Database for which you want to create a Disaster Recovery instance. Cross Region Disaster Recovery Autonomous Database must reside in a region that is different from region of main Autonomous Database. You must create a separate virtual network and subnet in this second region for Cross Region Disaster Recovery Autonomous Database to be able to communicate with its original database.
+Manages a Cross Region Disaster Recovery Autonomous Database.
+A Cross Region Disaster Recovery Autonomous Database is an Autonomous Database with a specific Cross-Region Disaster Recovery role. It must be an exact copy of the Autonomous Database for which you want to create a Disaster Recovery instance. The Cross Region Disaster Recovery Autonomous Database must reside in a region that is different from the region of the main Autonomous Database. You must create a separate virtual network and subnet in this second region for the Cross Region Disaster Recovery Autonomous Database to be able to communicate with its original database.
 
 ## Example Usage
 

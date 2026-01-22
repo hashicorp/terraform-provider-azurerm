@@ -14,15 +14,15 @@ import (
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryDataSource struct{}
 
-func TestAdbsCrossRegionDisasterRecoveryDataSource_complete(t *testing.T) {
+func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}.ResourceType(), "adbs_secondary_crdr")
 	r := AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.complete(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 
-				check.That(data.ResourceName).Key("remote_disaster_recovery_type").Exists(),
+				check.That(data.ResourceName).Key("remote_disaster_recovery_type").HasValue("Adg"),
 				check.That(data.ResourceName).Key("source_autonomous_database_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
@@ -31,7 +31,7 @@ func TestAdbsCrossRegionDisasterRecoveryDataSource_complete(t *testing.T) {
 	})
 }
 
-func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) complete(data acceptance.TestData) string {
+func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
