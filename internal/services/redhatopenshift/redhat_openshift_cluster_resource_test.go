@@ -923,7 +923,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  client_id = azuread_application.test.client_id
+  client_id = "/servicePrincipals/${azuread_application.test.client_id}"
 }
 
 resource "azuread_service_principal_password" "test" {
@@ -932,7 +932,7 @@ resource "azuread_service_principal_password" "test" {
 
 data "azuread_service_principal" "redhatopenshift" {
   // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
-  client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
+  client_id = "/servicePrincipals/f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
 }
 
 resource "azurerm_role_assignment" "role_network1" {
