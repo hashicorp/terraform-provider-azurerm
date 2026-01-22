@@ -43,8 +43,8 @@ resource "azurerm_dns_cname_record" "example" {
 }
 
 resource "azurerm_dns_cname_record_public_ip_address_association" "example" {
-  dns_cname_record_id   = azurerm_dns_cname_record.example.id
-  public_ip_address_id  = azurerm_public_ip.example.id
+  dns_cname_record_id  = azurerm_dns_cname_record.example.id
+  public_ip_address_id = azurerm_public_ip.example.id
 }
 ```
 
@@ -77,3 +77,10 @@ DNS CNAME Record Public IP Address Associations can be imported using the `resou
 ```shell
 terraform import azurerm_dns_cname_record_public_ip_address_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/example.com/CNAME/www|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPAddresses/mypip1"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2018-05-01

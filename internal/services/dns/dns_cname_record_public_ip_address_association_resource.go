@@ -97,36 +97,36 @@ func (r DnsCnameRecordPublicIpAddressAssociationResource) Create() sdk.ResourceF
 			cnameRecord, err := dnsClient.Get(ctx, *cnameRecordId)
 			if err != nil {
 				if response.WasNotFound(cnameRecord.HttpResponse) {
-					return fmt.Errorf("CNAME Record %s was not found", cnameRecordId)
+					return fmt.Errorf("cname record %s was not found", cnameRecordId)
 				}
-				return fmt.Errorf("retrieving CNAME Record %s: %+v", cnameRecordId, err)
+				return fmt.Errorf("retrieving cname record %s: %+v", cnameRecordId, err)
 			}
 
 			if cnameRecord.Model == nil || cnameRecord.Model.Properties == nil {
-				return fmt.Errorf("model/properties was nil for CNAME Record %s", cnameRecordId)
+				return fmt.Errorf("model/properties was nil for cname record %s", cnameRecordId)
 			}
 
 			fqdn := pointer.From(cnameRecord.Model.Properties.Fqdn)
 			if fqdn == "" {
-				return fmt.Errorf("FQDN was empty for CNAME Record %s", cnameRecordId)
+				return fmt.Errorf("fqdn was empty for cname record %s", cnameRecordId)
 			}
 
 			publicIp, err := publicIpClient.Get(ctx, *publicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
 			if err != nil {
 				if response.WasNotFound(publicIp.HttpResponse) {
-					return fmt.Errorf("Public IP Address %s was not found", publicIpAddressId)
+					return fmt.Errorf("public ip address %s was not found", publicIpAddressId)
 				}
-				return fmt.Errorf("retrieving Public IP Address %s: %+v", publicIpAddressId, err)
+				return fmt.Errorf("retrieving public ip address %s: %+v", publicIpAddressId, err)
 			}
 
 			if publicIp.Model == nil || publicIp.Model.Properties == nil {
-				return fmt.Errorf("model/properties was nil for Public IP Address %s", publicIpAddressId)
+				return fmt.Errorf("model/properties was nil for public ip address %s", publicIpAddressId)
 			}
 
 			if publicIp.Model.Properties.DnsSettings != nil && publicIp.Model.Properties.DnsSettings.ReverseFqdn != nil {
 				existingReverseFqdn := *publicIp.Model.Properties.DnsSettings.ReverseFqdn
 				if existingReverseFqdn != "" && existingReverseFqdn != fqdn {
-					return fmt.Errorf("Public IP Address %s already has a reverse_fqdn set to %q, cannot set to %q", publicIpAddressId, existingReverseFqdn, fqdn)
+					return fmt.Errorf("public ip address %s already has a reverse_fqdn set to %q, cannot set to %q", publicIpAddressId, existingReverseFqdn, fqdn)
 				}
 			}
 
@@ -136,7 +136,7 @@ func (r DnsCnameRecordPublicIpAddressAssociationResource) Create() sdk.ResourceF
 			publicIp.Model.Properties.DnsSettings.ReverseFqdn = pointer.To(fqdn)
 
 			if err := publicIpClient.CreateOrUpdateThenPoll(ctx, *publicIpAddressId, *publicIp.Model); err != nil {
-				return fmt.Errorf("updating reverse_fqdn for Public IP Address %s: %+v", publicIpAddressId, err)
+				return fmt.Errorf("updating reverse_fqdn for public ip address %s: %+v", publicIpAddressId, err)
 			}
 
 			resourceId := parse.NewDnsCnameRecordPublicIpAddressAssociationId(*cnameRecordId, *publicIpAddressId)
@@ -165,7 +165,7 @@ func (r DnsCnameRecordPublicIpAddressAssociationResource) Read() sdk.ResourceFun
 					log.Printf("[DEBUG] CNAME Record %s was not found - removing from state", resourceId.CnameRecordId)
 					return metadata.MarkAsGone(&resourceId.CnameRecordId)
 				}
-				return fmt.Errorf("retrieving CNAME Record %s: %+v", resourceId.CnameRecordId, err)
+				return fmt.Errorf("retrieving cname record %s: %+v", resourceId.CnameRecordId, err)
 			}
 
 			publicIp, err := publicIpClient.Get(ctx, resourceId.PublicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
@@ -174,7 +174,7 @@ func (r DnsCnameRecordPublicIpAddressAssociationResource) Read() sdk.ResourceFun
 					log.Printf("[DEBUG] Public IP Address %s was not found - removing from state", resourceId.PublicIpAddressId)
 					return metadata.MarkAsGone(&resourceId.PublicIpAddressId)
 				}
-				return fmt.Errorf("retrieving Public IP Address %s: %+v", resourceId.PublicIpAddressId, err)
+				return fmt.Errorf("retrieving public ip address %s: %+v", resourceId.PublicIpAddressId, err)
 			}
 
 			if publicIp.Model == nil || publicIp.Model.Properties == nil {
@@ -229,7 +229,7 @@ func (r DnsCnameRecordPublicIpAddressAssociationResource) Delete() sdk.ResourceF
 				if response.WasNotFound(publicIp.HttpResponse) {
 					return nil
 				}
-				return fmt.Errorf("retrieving Public IP Address %s: %+v", resourceId.PublicIpAddressId, err)
+				return fmt.Errorf("retrieving public ip address %s: %+v", resourceId.PublicIpAddressId, err)
 			}
 
 			if publicIp.Model == nil || publicIp.Model.Properties == nil {
@@ -241,7 +241,7 @@ func (r DnsCnameRecordPublicIpAddressAssociationResource) Delete() sdk.ResourceF
 			}
 
 			if err := publicIpClient.CreateOrUpdateThenPoll(ctx, resourceId.PublicIpAddressId, *publicIp.Model); err != nil {
-				return fmt.Errorf("removing reverse_fqdn from Public IP Address %s: %+v", resourceId.PublicIpAddressId, err)
+				return fmt.Errorf("removing reverse_fqdn from public ip address %s: %+v", resourceId.PublicIpAddressId, err)
 			}
 
 			return nil
