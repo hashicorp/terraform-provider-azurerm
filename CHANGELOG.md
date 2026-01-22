@@ -1,79 +1,82 @@
-## 4.58.0 (Unreleased)
-
-ENHANCEMENTS:
-* `azurerm_network_manager_routing_configuration` - support for the `route_table_usage_mode` property [GH-31463]
-* dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` [GH-31397]
-* `data.azurerm_container_registry` - `admin_password` is now sensitive [GH-31428]
-* `azurerm_arc_kubernetes_provisioned_cluster` - support for Terraform Resource Identity [GH-31453]
-* `azurerm_application_insights` - support for Terraform Resource Identity [GH-31453]
-* `azurerm_application_insights_standard_web_test` - support for Terraform Resource Identity [GH-31453]
-* `azurerm_application_insights_web_test` - support for Terraform Resource Identity [GH-31453]
-* `azurerm_application_insights_workbook` - support for Terraform Resource Identity [GH-31453]
-* `azurerm_application_insights_workbook_template` - support for Terraform Resource Identity [GH-31453]
-* `azurerm_attestation_provider` - support for Terraform Resource Identity [GH-31458]
-* `azurerm_automanage_configuration` - support for Terraform Resource Identity [GH-31458]
-* `azurerm_batch_account` - support for Terraform Resource Identity [GH-31458]
-* `azurerm_batch_application` - support for Terraform Resource Identity [GH-31458]
-* `azurerm_batch_pool` - support for Terraform Resource Identity [GH-31458]
-* `azurerm_backup_policy_file_share` - support for `backup_tier` and `snapshot_retention_in_days` [GH-29243]
-* `azurerm_custom_provider` - support for resource identity support [GH-31487]
-* `azurerm_dashboard_grafana` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_dashboard_grafana_managed_private_endpoint` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_database_migration_project` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_database_migration_service` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_databox_edge_device` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_databricks_access_connector` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_databricks_virtual_network_peering` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_databricks_workspace` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_vault` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_resource_guard` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_vault_customer_managed_key` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_policy_kubernetes_cluster` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_policy_postgresql_flexible_server` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_policy_mysql_flexible_server` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_instance_kubernetes_cluster` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_instance_postgresql_flexible_server` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_instance_blob_storage` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_instance_disk` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_policy_blob_storage` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_protection_backup_policy_disk` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_share_account` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_share` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_share_dataset_kusto_cluster` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_data_share_dataset_kusto_database` - support for Terraform Resource Identity [GH-31513]
-* `azurerm_windows_function_app` - support for `~24` to `site_config.application_stack.node_version` [GH-31248]
-* `azurerm_windows_function_app_slot` - support for `~24` to `site_config.application_stack.node_version` [GH-31248]
-* `azurerm_kubernetes_cluster` - `network_data_plane` and `network_policy` support update to `cilium` [GH-30958]
-* `azurerm_kusto_eventhub_data_connection` - support for`retrieval_start_date` [GH-31445]
-* `azurerm_kusto_iothub_data_connection` - support for `retrieval_start_date` [GH-31413]
-* `azurerm_kusto_script` - support for `script_level` and `principal_permissions_action` [GH-31403]
-* `azurerm_mssql_managed_instance` - increase `storage_size_in_gb` maximum to `32768` [GH-31387]
-* `azurerm_cosmosdb_cassandra_cluster` - `version` now supports `4.1` and `5.0` [GH-31424]
-* `azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now allows values from `1` - `1000` [GH-31392]
-* `azurerm_linux_function_app` - support for `24` to `site_config.application_stack.node_version` [GH-31098]
-* `azurerm_linux_function_app_slot` - support for `24` to `site_config.application_stack.node_version` [GH-31098]
-* `azurerm_linux_web_app` - support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
-* `azurerm_linux_web_app_slot` - support for `24-lts` to `site_config.application_stack.node_version` [GH-31098]
-* `azurerm_netapp_volume_group_oracle` - `service_level` now supports `Flexible` [GH-31508]
-* `azurerm_netapp_volume_group_sap_hana` - `service_level` now supports `Flexible` [GH-31508]
+## 4.58.0 (January 22, 2026)
 
 FEATURES:
-* **New List Resource**: `azurerm_resource_group` [GH-31270]
-* **New Resource**: `azurerm_network_security_perimeter` [GH-31356]
-* **New Resource**: `azurerm_network_security_perimeter_profile` [GH-31356]
-* **New Resource**: `azurerm_network_security_perimeter_access_rule` [GH-31356]
-* **New Resource**: `azurerm_network_security_perimeter_association` [GH-31356]
-* **New Data Source**: `azurerm_network_security_perimeter` [GH-31356]
-* **New Data Source**: `azurerm_network_security_perimeter_profile` [GH-31356]
+
+* **New Data Source**: `azurerm_network_security_perimeter` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Data Source**: `azurerm_network_security_perimeter_profile` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter_access_rule` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter_association` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter_profile` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New List Resource**: `azurerm_resource_group` ([#31270](https://github.com/hashicorp/terraform-provider-azurerm/issues/31270))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` ([#31397](https://github.com/hashicorp/terraform-provider-azurerm/issues/31397))
+* `azurerm_application_insights` - support for Terraform Resource Identity ([#31453](https://github.com/hashicorp/terraform-provider-azurerm/issues/31453))
+* `azurerm_application_insights_standard_web_test` - support for Terraform Resource Identity ([#31453](https://github.com/hashicorp/terraform-provider-azurerm/issues/31453))
+* `azurerm_application_insights_web_test` - support for Terraform Resource Identity ([#31453](https://github.com/hashicorp/terraform-provider-azurerm/issues/31453))
+* `azurerm_application_insights_workbook` - support for Terraform Resource Identity ([#31453](https://github.com/hashicorp/terraform-provider-azurerm/issues/31453))
+* `azurerm_application_insights_workbook_template` - support for Terraform Resource Identity ([#31453](https://github.com/hashicorp/terraform-provider-azurerm/issues/31453))
+* `azurerm_arc_kubernetes_provisioned_cluster` - support for Terraform Resource Identity ([#31453](https://github.com/hashicorp/terraform-provider-azurerm/issues/31453))
+* `azurerm_attestation_provider` - support for Terraform Resource Identity ([#31458](https://github.com/hashicorp/terraform-provider-azurerm/issues/31458))
+* `azurerm_automanage_configuration` - support for Terraform Resource Identity ([#31458](https://github.com/hashicorp/terraform-provider-azurerm/issues/31458))
+* `azurerm_backup_policy_file_share` - support for `backup_tier` and `snapshot_retention_in_days` ([#29243](https://github.com/hashicorp/terraform-provider-azurerm/issues/29243))
+* `azurerm_batch_account` - support for Terraform Resource Identity ([#31458](https://github.com/hashicorp/terraform-provider-azurerm/issues/31458))
+* `azurerm_batch_application` - support for Terraform Resource Identity ([#31458](https://github.com/hashicorp/terraform-provider-azurerm/issues/31458))
+* `azurerm_batch_pool` - support for Terraform Resource Identity ([#31458](https://github.com/hashicorp/terraform-provider-azurerm/issues/31458))
+* `azurerm_cosmosdb_cassandra_cluster` - `version` now supports `4.1` and `5.0` ([#31424](https://github.com/hashicorp/terraform-provider-azurerm/issues/31424))
+* `azurerm_custom_provider` - support for resource identity support ([#31487](https://github.com/hashicorp/terraform-provider-azurerm/issues/31487))
+* `azurerm_dashboard_grafana` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_dashboard_grafana_managed_private_endpoint` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_instance_blob_storage` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_instance_disk` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_instance_kubernetes_cluster` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_instance_postgresql_flexible_server` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_policy_blob_storage` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_policy_disk` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_policy_kubernetes_cluster` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_policy_mysql_flexible_server` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_policy_postgresql_flexible_server` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_vault` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_backup_vault_customer_managed_key` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_protection_resource_guard` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_share` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_share_account` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_share_dataset_kusto_cluster` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_data_share_dataset_kusto_database` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_database_migration_project` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_database_migration_service` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_databox_edge_device` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_databricks_access_connector` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_databricks_virtual_network_peering` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_databricks_workspace` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_databricks_workspace_root_dbfs_customer_managed_key` - support for Terraform Resource Identity ([#31513](https://github.com/hashicorp/terraform-provider-azurerm/issues/31513))
+* `azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now allows values from `1` - `1000` ([#31392](https://github.com/hashicorp/terraform-provider-azurerm/issues/31392))
+* `azurerm_kubernetes_cluster` - `network_data_plane` and `network_policy` support update to `cilium` ([#30958](https://github.com/hashicorp/terraform-provider-azurerm/issues/30958))
+* `azurerm_kusto_eventhub_data_connection` - support for`retrieval_start_date` ([#31445](https://github.com/hashicorp/terraform-provider-azurerm/issues/31445))
+* `azurerm_kusto_iothub_data_connection` - support for `retrieval_start_date` ([#31413](https://github.com/hashicorp/terraform-provider-azurerm/issues/31413))
+* `azurerm_kusto_script` - support for `script_level` and `principal_permissions_action` ([#31403](https://github.com/hashicorp/terraform-provider-azurerm/issues/31403))
+* `azurerm_linux_function_app` - support for `24` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_linux_function_app_slot` - support for `24` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_linux_web_app` - support for `24-lts` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_linux_web_app_slot` - support for `24-lts` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_mssql_managed_instance` - increase `storage_size_in_gb` maximum to `32768` ([#31387](https://github.com/hashicorp/terraform-provider-azurerm/issues/31387))
+* `azurerm_netapp_volume_group_oracle` - `service_level` now supports `Flexible` ([#31508](https://github.com/hashicorp/terraform-provider-azurerm/issues/31508))
+* `azurerm_netapp_volume_group_sap_hana` - `service_level` now supports `Flexible` ([#31508](https://github.com/hashicorp/terraform-provider-azurerm/issues/31508))
+* `azurerm_network_manager_routing_configuration` - support for the `route_table_usage_mode` property ([#31463](https://github.com/hashicorp/terraform-provider-azurerm/issues/31463))
+* `azurerm_windows_function_app` - support for `~24` to `site_config.application_stack.node_version` ([#31248](https://github.com/hashicorp/terraform-provider-azurerm/issues/31248))
+* `azurerm_windows_function_app_slot` - support for `~24` to `site_config.application_stack.node_version` ([#31248](https://github.com/hashicorp/terraform-provider-azurerm/issues/31248))
+* `data.azurerm_container_registry` - `admin_password` is now sensitive ([#31428](https://github.com/hashicorp/terraform-provider-azurerm/issues/31428))
 
 BUG FIXES:
-* `azurerm_container_app_custom_domain` - no longer error during read when container app is deleted outside of Terraform [GH-31523]
-* `clients` - fix correlation id across many clients [GH-31368]
-* `azurerm_storage_account` - can now update a Storage Standard ZRS account [GH-31431]
-* `azurerm_databricks_workspace` - removed a legacy workaround that prevented apply operations from succeeding when `managed_disk_cmk_rotation_to_latest_version_enabled` and `tags` were updated simultaneously [GH-31509]
-* `azurerm_api_management` - fix an issue that prevented updates to `hostname_configuration.*.key_vault_certificate_id` [GH-31534]
-* `azurerm_api_management_custom_domain` - fix an issue that prevented updates to `[management|portal|developer_portal|scm|gateway].key_vault_certificate_id` [GH-31534]
+
+* `azurerm_api_management` - fix an issue that prevented updates to `hostname_configuration.*.key_vault_certificate_id` ([#31534](https://github.com/hashicorp/terraform-provider-azurerm/issues/31534))
+* `azurerm_api_management_custom_domain` - fix an issue that prevented updates to `[management|portal|developer_portal|scm|gateway].key_vault_certificate_id` ([#31534](https://github.com/hashicorp/terraform-provider-azurerm/issues/31534))
+* `azurerm_container_app_custom_domain` - no longer error during read when container app is deleted outside of Terraform ([#31523](https://github.com/hashicorp/terraform-provider-azurerm/issues/31523))
+* `azurerm_databricks_workspace` - removed a legacy workaround that prevented apply operations from succeeding when `managed_disk_cmk_rotation_to_latest_version_enabled` and `tags` were updated simultaneously ([#31509](https://github.com/hashicorp/terraform-provider-azurerm/issues/31509))
+* `azurerm_storage_account` - can now update a Storage Standard ZRS account ([#31431](https://github.com/hashicorp/terraform-provider-azurerm/issues/31431))
+* `clients` - fix correlation id across many clients ([#31368](https://github.com/hashicorp/terraform-provider-azurerm/issues/31368))
 
 ## 4.57.0 (December 18, 2025)
 
