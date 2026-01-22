@@ -38,7 +38,7 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 			),
 		},
 		{
-			Config: r.removeRetentionDays(data),
+			Config: r.removeRetention(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("0"), // since it's removed, we will not set a value to it to state.
@@ -67,7 +67,7 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableTotalRetention(t *testing.T) {
 			),
 		},
 		{
-			Config: r.removeRetentionDays(data),
+			Config: r.removeRetention(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("0"),
@@ -153,7 +153,7 @@ resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppEvents"
   workspace_id            = azurerm_log_analytics_workspace.test.id
   retention_in_days       = 7
-  total_retention_in_days = 32
+  total_retention_in_days = 45
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -163,10 +163,12 @@ func (LogAnalyticsWorkspaceTableResource) updateTotalRetention(data acceptance.T
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
 }
+
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctestLAW-%d"
   location            = azurerm_resource_group.test.location
@@ -210,7 +212,7 @@ resource "azurerm_log_analytics_workspace_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (LogAnalyticsWorkspaceTableResource) removeRetentionDays(data acceptance.TestData) string {
+func (LogAnalyticsWorkspaceTableResource) removeRetention(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
