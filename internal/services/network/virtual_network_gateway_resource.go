@@ -1695,7 +1695,7 @@ func flattenVirtualNetworkGatewayPolicyGroupNames(input []virtualnetworkgateways
 
 func virtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	if d.HasChanges("type", "sku") && d.Get("type").(string) == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("sku").(string) == string(virtualnetworkgateways.VirtualNetworkGatewaySkuTierBasic) {
-		return fmt.Errorf("creation or update of `azurerm_virtual_network_gateway` resource with `Basic` `sku` when `type` is `ExpressRoute` is no longer supported. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration")
+		return errors.New("creation or update of `azurerm_virtual_network_gateway` resource with `Basic` `sku` when `type` is `ExpressRoute` is no longer supported. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration")
 	}
 
 	newResourceCreated := d.HasChanges("name", "resource_group_name", "location", "type", "vpn_type", "edge_zone", "private_ip_address_enabled", "generation", "ip_configuration")
