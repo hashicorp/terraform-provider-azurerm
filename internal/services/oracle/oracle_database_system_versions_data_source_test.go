@@ -10,7 +10,7 @@ import (
 
 type DatabaseVersionsDataSource struct{}
 
-func TestDatabaseVersionsDataSource_basic(t *testing.T) {
+func TestAccDatabaseVersionsDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}
 
@@ -25,7 +25,7 @@ func TestDatabaseVersionsDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestDatabaseVersionsDataSource_complete(t *testing.T) {
+func TestAccDatabaseVersionsDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}
 
@@ -40,7 +40,7 @@ func TestDatabaseVersionsDataSource_complete(t *testing.T) {
 	})
 }
 
-func TestDatabaseVersionsDataSource_shapeFamilyFilter(t *testing.T) {
+func TestAccDatabaseVersionsDataSource_shapeFamilyFilter(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_oracle_database_system_versions", "test")
 	r := DatabaseVersionsDataSource{}
 
@@ -78,6 +78,7 @@ data "azurerm_oracle_database_system_versions" "test" {
   database_system_shape             = "%[2]s"
   upgrade_supported                 = true
   database_software_image_supported = true
+  storage_management                = "LVM"
 }
 `, data.Locations.Primary, shape)
 }
