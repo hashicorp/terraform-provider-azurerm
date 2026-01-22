@@ -21,14 +21,17 @@ type ManagerConnectivityConfigurationDataSource struct{}
 var _ sdk.DataSource = ManagerConnectivityConfigurationDataSource{}
 
 type ManagerConnectivityConfigurationDataSourceModel struct {
-	Name                         string                                          `tfschema:"name"`
-	NetworkManagerId             string                                          `tfschema:"network_manager_id"`
-	AppliesToGroups              []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
-	ConnectivityTopology         connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
-	DeleteExistingPeeringEnabled bool                                            `tfschema:"delete_existing_peering_enabled"`
-	Description                  string                                          `tfschema:"description"`
-	Hub                          []HubModel                                      `tfschema:"hub"`
-	GlobalMeshEnabled            bool                                            `tfschema:"global_mesh_enabled"`
+	Name                                string                                          `tfschema:"name"`
+	NetworkManagerId                    string                                          `tfschema:"network_manager_id"`
+	AppliesToGroups                     []ConnectivityGroupItemModel                    `tfschema:"applies_to_group"`
+	ConnectedGroupAddressOverlap        string                                          `tfschema:"connected_group_address_overlap"`
+	ConnectedGroupPrivateEndpointsScale string                                          `tfschema:"connected_group_private_endpoints_scale"`
+	ConnectivityTopology                connectivityconfigurations.ConnectivityTopology `tfschema:"connectivity_topology"`
+	DeleteExistingPeeringEnabled        bool                                            `tfschema:"delete_existing_peering_enabled"`
+	Description                         string                                          `tfschema:"description"`
+	GlobalMeshEnabled                   bool                                            `tfschema:"global_mesh_enabled"`
+	Hub                                 []HubModel                                      `tfschema:"hub"`
+	PeeringEnforcement                  string                                          `tfschema:"peering_enforcement"`
 }
 
 func (r ManagerConnectivityConfigurationDataSource) ResourceType() string {
@@ -85,6 +88,16 @@ func (r ManagerConnectivityConfigurationDataSource) Attributes() map[string]*plu
 			},
 		},
 
+		"connected_group_address_overlap": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"connected_group_private_endpoints_scale": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"connectivity_topology": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -120,6 +133,11 @@ func (r ManagerConnectivityConfigurationDataSource) Attributes() map[string]*plu
 
 		"global_mesh_enabled": {
 			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"peering_enforcement": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 	}
@@ -160,6 +178,12 @@ func (r ManagerConnectivityConfigurationDataSource) Read() sdk.ResourceFunc {
 					state.GlobalMeshEnabled = flattenConnectivityConfIsGlobal(properties.IsGlobal)
 					state.Hub = flattenHubModel(properties.Hubs)
 					state.Description = pointer.From(properties.Description)
+
+					if properties.ConnectivityCapabilities != nil {
+						state.ConnectedGroupAddressOverlap = string(properties.ConnectivityCapabilities.ConnectedGroupAddressOverlap)
+						state.ConnectedGroupPrivateEndpointsScale = string(properties.ConnectivityCapabilities.ConnectedGroupPrivateEndpointsScale)
+						state.PeeringEnforcement = string(properties.ConnectivityCapabilities.PeeringEnforcement)
+					}
 				}
 			}
 

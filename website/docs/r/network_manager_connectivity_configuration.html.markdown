@@ -85,6 +85,12 @@ The following arguments are supported:
 
 * `connectivity_topology` - (Required) Specifies the connectivity topology type. Possible values are `HubAndSpoke` and `Mesh`.
 
+* `connected_group_address_overlap` - (Optional) Specifies the behavior for handling overlapping IP address space among members of the connected group. Possible values are `Allowed` and `Disallowed`. Defaults to `Allowed`.
+
+~> **Note:** Changing `connected_group_address_overlap` from `Allowed` to `Disallowed` forces a new Network Manager Connectivity Configuration to be created because the Azure API does not support this modification.
+
+* `connected_group_private_endpoints_scale` - (Optional) Specifies the scale of private endpoints allowed in the connected group. Possible values are `Standard` and `HighScale`. Defaults to `Standard`.
+
 * `delete_existing_peering_enabled` - (Optional) Indicates whether to remove current existing Virtual Network Peering in the Connectivity Configuration affected scope. Possible values are `true` and `false`.
 
 * `description` - (Optional) A description of the Connectivity Configuration.
@@ -92,6 +98,8 @@ The following arguments are supported:
 * `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported. Possible values are `true` and `false`. 
 
 * `hub` - (Optional) A `hub` block as defined below.
+
+* `peering_enforcement` - (Optional) Specifies the enforcement of peerings created by the connectivity configuration. Possible values are `Unenforced` and `Enforced`. Defaults to `Unenforced`.
  
 ---
 
