@@ -416,7 +416,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
-		d.Set("runtime_environment_name", props.RuntimeEnvironment)
+		d.Set("runtime_environment_name", string(pointer.From(props.RuntimeEnvironment)))
 	}
 
 	// GetContent need to use preview version client RunbookClientHack
