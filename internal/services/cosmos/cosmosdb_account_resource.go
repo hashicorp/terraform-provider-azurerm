@@ -191,7 +191,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(180 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(300 * time.Minute),
 		},
 
 		SchemaVersion: 1,

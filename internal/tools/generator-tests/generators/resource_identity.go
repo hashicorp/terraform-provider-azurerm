@@ -72,6 +72,11 @@ generate-resource-identity -resource-name some_azure_resource -properties "resou
 
 Caveats and TODOs:
 Expects that the test resource type is already declared in the test package for the service. (e.g. type LinuxFunctionAppResource struct{})
+
+CAUTION: Do not implement Resource Identity for resources with numbers in their ID segment names (e.g., 'ServerGroupsv2Name')
+until the strcase.ToSnake() issue is resolved. The current implementation splits on number boundaries,
+converting 'ServerGroupsv2Name' to 'server_groupsv_2_name' (not 'server_groupsv2_name').
+This causes test failures and incorrect identity schema field names.
 `
 }
 
