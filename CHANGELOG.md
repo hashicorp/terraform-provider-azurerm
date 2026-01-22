@@ -1,3 +1,11 @@
+## 4.59.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+
+BUG FIXES:
+
 ## 4.58.0 (January 22, 2026)
 
 FEATURES:
