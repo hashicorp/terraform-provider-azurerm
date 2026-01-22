@@ -103,6 +103,7 @@ func testAccNetworkManagerConnectivityConfiguration_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func testAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}
@@ -123,6 +124,7 @@ func testAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate
 		data.ImportStep(),
 	})
 }
+
 func testAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_connectivity_configuration", "test")
 	r := ManagerConnectivityConfigurationResource{}

@@ -83,8 +83,8 @@ func (r ManagerConnectivityConfigurationResource) CustomizeDiff() sdk.ResourceFu
 			topology := rd.Get("connectivity_topology").(string)
 			peeringEnforcement := rd.Get("peering_enforcement").(string)
 
-			if topology != string(connectivityconfigurations.ConnectivityTopologyHubAndSpoke) &&
-				peeringEnforcement != string(connectivityconfigurations.PeeringEnforcementUnenforced) {
+			if topology == string(connectivityconfigurations.ConnectivityTopologyMesh) &&
+				peeringEnforcement == string(connectivityconfigurations.PeeringEnforcementEnforced) {
 				return errors.New("`peering_enforcement` can only be set to `Enforced` when `connectivity_topology` is `HubAndSpoke`")
 			}
 
