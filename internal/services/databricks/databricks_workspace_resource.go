@@ -666,8 +666,6 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = pointer.To(rotationEnabled)
 	}
 
-	// Including the Tags in the workspace parameters will update the tags on
-	// the workspace only
 	workspace := workspaces.Workspace{
 		Sku: &workspaces.Sku{
 			Name: skuName,
@@ -1260,17 +1258,6 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	if d.HasChange("tags") {
-		workspaceUpdate := workspaces.WorkspaceUpdate{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		}
-
-		err := client.UpdateThenPoll(ctx, *id, workspaceUpdate)
-		if err != nil {
-			return fmt.Errorf("updating %s Tags: %+v", id, err)
-		}
 	}
 
 	return resourceDatabricksWorkspaceRead(d, meta)
