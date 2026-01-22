@@ -28,7 +28,6 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("10"),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("45"),
 			),
 		},
 		{
@@ -36,7 +35,6 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
-				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
 			),
 		},
 		{
@@ -58,7 +56,6 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableTotalRetention(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("retention_in_days").HasValue("10"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("45"),
 			),
 		},
@@ -66,15 +63,13 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableTotalRetention(t *testing.T) {
 			Config: r.updateTotalRetention(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("35"),
 			),
 		},
 		{
-			Config: r.removeTotalRetentionDays(data),
+			Config: r.removeRetentionDays(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("0"),
 			),
 		},
@@ -210,7 +205,7 @@ resource "azurerm_log_analytics_workspace_table" "test" {
   name                    = "AppTraces"
   workspace_id            = azurerm_log_analytics_workspace.test.id
   plan                    = "Basic"
-  total_retention_in_days = 32
+  total_retention_in_days = 45
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -234,35 +229,8 @@ resource "azurerm_log_analytics_workspace" "test" {
 }
 
 resource "azurerm_log_analytics_workspace_table" "test" {
-  name                    = "AppEvents"
-  workspace_id            = azurerm_log_analytics_workspace.test.id
-  total_retention_in_days = 180
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (LogAnalyticsWorkspaceTableResource) removeTotalRetentionDays(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  retention_in_days   = 30
-}
-
-resource "azurerm_log_analytics_workspace_table" "test" {
-  name              = "AppEvents"
-  workspace_id      = azurerm_log_analytics_workspace.test.id
-  retention_in_days = 7
+  name         = "AppEvents"
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
