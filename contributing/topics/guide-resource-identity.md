@@ -220,16 +220,15 @@ Just like the schema, Resource Identity tests are entirely generated. This is do
 
 The schema is generated for us by taking different parts of the ID and converting them to snake_case. By default, if the last segment ends in `Name`, it will not be converted to snake case in the schema but rather set to `name`. 
 
-For the tests to generate properly, you will need to specify a combination of `-properties`, `-known-values`, and `-compare-values` inputs. All fields in the ID struct must be mapped to one of these options.
+For the tests to generate properly, you will need to specify a combination of `-properties` and `-compare-values` inputs. All fields in the ID struct must be mapped to one of these options.
+
+> **Note:** `subscription_id` is included by default and doesn't need to be mapped. If a resource ID doesn't include the `subscription_id` segment, omit it from the tests by using `-no-subscription-id`.
 
 To go through these in order:
 
 - `-properties`: This flag specifies the 1:1 relationship between the Resource Schema and the Resource Identity Schema fields (i.e name, resource_group_name, etc), this would be specified as `name,resource_group_name`. If the schema property name does not match the Resource Identity schema name these should be mapped accordingly. This would be specified as `{id_field_name}:{schema_field_name}`, e.g. `api_management_id:api_management_name`.
 
-- `-known-values`: This flag specifies values that are not exposed in the resource schema, but are present in the Resource Identity schema, e.g. a subscription ID. This would be specified as `{id_field_name}:{known_value}`, e.g. `subscription_id:data.Subscriptions.Primary`.
-
 - `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the Resource Identity Schema uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `virtual_network_name:virtual_network_id`.
-
 
 > **Note:** The identity schema field names are generated using `strcase.ToSnake()` which splits on number boundaries. For example, `ServerGroupsv2Name` becomes `server_groupsv_2_name` (not `server_groupsv2_name`). This affects how you reference identity fields in `-properties` and `-compare-values` arguments.
 
@@ -245,11 +244,14 @@ import (
 )
 
 // A basic example where the Resource Identity fields map directly to the resource schema
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -service-package-name example -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "name,resource_group_name"
 
 // An example where individual Resource Identity field values exist in a parent ID 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -service-package-name example -properties "name" -compare-values "parent_name:parent_resource_id" -known-values "subscription_id:data.Subscriptions.Primary"
-  
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "name" -compare-values "subscription_id:parent_resource_id,resource_group_name:parent_resource_id,parent_name:parent_resource_id"
+
+// An example of a resource ID that doesn't contain the `subscription_id` segment, e.g. management groups
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "group_id:name" -no-subscription-id
+
 type ExampleResource struct{}
   
 var _ sdk.ResourceWithIdentity = ExampleResource{}

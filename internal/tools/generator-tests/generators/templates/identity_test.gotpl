@@ -6,7 +6,6 @@ package {{ToLower .ServicePackageName}}_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	{{- if (gt (.KnownValueMap | len) 0) }}
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	{{- end }}
@@ -14,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
 {{- $resourceName := .ResourceName }}
@@ -27,6 +25,9 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 	r := {{ ToCamel $resourceName }}Resource{}
 
 	checkedFields := map[string]struct{}{
+	{{- if not .NoSubscriptionID }}
+		"subscription_id": {},
+	{{- end }}
 	{{- range $name, $_ := .KnownValueMap }}
 		"{{ $name }}": {},
 	{{- end }}
@@ -47,11 +48,14 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 			{{- end }}
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_{{ToSnake $resourceName }}.test", checkedFields),
+				{{- if not .NoSubscriptionID }}
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				{{- end }}
 				{{- range $name, $val := .KnownValueMap }}
 					{{- if (eq $name "subscription_id") }}
-					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact({{ $val }})),
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("{{ $name }}"), knownvalue.StringExact({{ $val }})),
 					{{- else }}
-					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test",  tfjsonpath.New("{{ $name }}"),  knownvalue.StringExact("{{ $val }}")),
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("{{ $name }}"), knownvalue.StringExact("{{ $val }}")),
 					{{- end }}
 				{{- end }}
 

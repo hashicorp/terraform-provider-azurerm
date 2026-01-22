@@ -27,10 +27,10 @@ func CallTerraform(opts ...string) ([]byte, error) {
 
 // GoImports calls `goimports -w` over the specified file (including path)
 func GoImports(file string) error {
-	cmd := exec.Command("goimports", "-w", fmt.Sprintf("./%s", file))
+	cmd := exec.Command("goimports", "-w", fmt.Sprintf("%s", file))
 
-	if _, err := cmd.CombinedOutput(); err != nil {
-		return err
+	if combined, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("%w: %s", err, combined)
 	}
 
 	return nil
