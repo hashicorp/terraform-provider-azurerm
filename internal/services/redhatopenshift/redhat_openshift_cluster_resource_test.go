@@ -880,7 +880,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   worker_profile {
-    vm_size      = "Standard_D2s_v3"
+    vm_size      = "Standard_D4s_v3"
     disk_size_gb = 128
     node_count   = 3
     subnet_id    = azurerm_subnet.worker_subnet.id
