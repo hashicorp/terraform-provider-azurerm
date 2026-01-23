@@ -897,6 +897,10 @@ provider "azurerm" {
 
 %[1]s
 
+locals {
+  workload_profile_names = ["E4-01", "D4-02", "D4-01"]
+}
+
 resource "azurerm_container_app_environment" "test" {
   name                     = "acctest-CAEnv%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -909,21 +913,21 @@ resource "azurerm_container_app_environment" "test" {
   workload_profile {
     maximum_count         = 2
     minimum_count         = 0
-    name                  = "E4-01"
+    name                  = local.workload_profile_names[0]
     workload_profile_type = "E4"
   }
 
   workload_profile {
     maximum_count         = 2
     minimum_count         = 0
-    name                  = "D4-02"
+    name                  = local.workload_profile_names[1]
     workload_profile_type = "E4"
   }
 
   workload_profile {
     maximum_count         = 2
     minimum_count         = 0
-    name                  = "D4-01"
+    name                  = local.workload_profile_names[2]
     workload_profile_type = "D4"
   }
 
