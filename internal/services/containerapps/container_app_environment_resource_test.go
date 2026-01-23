@@ -574,7 +574,7 @@ resource "azurerm_container_app_environment" "test" {
   mutual_tls_enabled             = true
 
   workload_profile {
-    maximum_count         = 0
+    maximum_count         = 3
     minimum_count         = 0
     name                  = local.workload_profile_name
     workload_profile_type = "D4"
@@ -624,7 +624,7 @@ resource "azurerm_container_app_environment" "test" {
   mutual_tls_enabled             = true
 
   workload_profile {
-    maximum_count         = 0
+    maximum_count         = 3
     minimum_count         = 0
     name                  = "D4-01"
     workload_profile_type = "D4"
