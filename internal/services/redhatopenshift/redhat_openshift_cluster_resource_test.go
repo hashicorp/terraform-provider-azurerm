@@ -867,7 +867,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   main_profile {
-    vm_size   = "Standard_D8s_v3"
+    vm_size   = "Standard_D2s_v3"
     subnet_id = azurerm_subnet.main_subnet.id
   }
 
