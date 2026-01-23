@@ -1,3 +1,46 @@
+## 4.58.0 (January 22, 2026)
+
+FEATURES:
+
+* **New Data Source**: `azurerm_network_security_perimeter` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Data Source**: `azurerm_network_security_perimeter_profile` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter_access_rule` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter_association` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New Resource**: `azurerm_network_security_perimeter_profile` ([#31356](https://github.com/hashicorp/terraform-provider-azurerm/issues/31356))
+* **New List Resource**: `azurerm_resource_group` ([#31270](https://github.com/hashicorp/terraform-provider-azurerm/issues/31270))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20251219.1184026` ([#31397](https://github.com/hashicorp/terraform-provider-azurerm/issues/31397))
+* `azurerm_backup_policy_file_share` - add support for `backup_tier` and `snapshot_retention_in_days` ([#29243](https://github.com/hashicorp/terraform-provider-azurerm/issues/29243))
+* `azurerm_cosmosdb_cassandra_cluster` - `version` now supports `4.1` and `5.0` ([#31424](https://github.com/hashicorp/terraform-provider-azurerm/issues/31424))
+* `azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now allows values from `1` - `1000` ([#31392](https://github.com/hashicorp/terraform-provider-azurerm/issues/31392))
+* `azurerm_kubernetes_cluster` - `network_data_plane` and `network_policy` now support updating to `cilium` ([#30958](https://github.com/hashicorp/terraform-provider-azurerm/issues/30958))
+* `azurerm_kusto_eventhub_data_connection` - add support for `retrieval_start_date` ([#31445](https://github.com/hashicorp/terraform-provider-azurerm/issues/31445))
+* `azurerm_kusto_iothub_data_connection` - add support for `retrieval_start_date` ([#31413](https://github.com/hashicorp/terraform-provider-azurerm/issues/31413))
+* `azurerm_kusto_script` - add support for `script_level` and `principal_permissions_action` ([#31403](https://github.com/hashicorp/terraform-provider-azurerm/issues/31403))
+* `azurerm_linux_function_app` - add support for `24` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_linux_function_app_slot` - add support for `24` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_linux_web_app` - add support for `24-lts` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_linux_web_app_slot` - add support for `24-lts` to `site_config.application_stack.node_version` ([#31098](https://github.com/hashicorp/terraform-provider-azurerm/issues/31098))
+* `azurerm_mssql_managed_instance` - increase `storage_size_in_gb` maximum to `32768` ([#31387](https://github.com/hashicorp/terraform-provider-azurerm/issues/31387))
+* `azurerm_netapp_volume_group_oracle` - `service_level` now supports `Flexible` ([#31508](https://github.com/hashicorp/terraform-provider-azurerm/issues/31508))
+* `azurerm_netapp_volume_group_sap_hana` - `service_level` now supports `Flexible` ([#31508](https://github.com/hashicorp/terraform-provider-azurerm/issues/31508))
+* `azurerm_network_manager_routing_configuration` - add support for the `route_table_usage_mode` property ([#31463](https://github.com/hashicorp/terraform-provider-azurerm/issues/31463))
+* `azurerm_windows_function_app` - add support for `~24` to `site_config.application_stack.node_version` ([#31248](https://github.com/hashicorp/terraform-provider-azurerm/issues/31248))
+* `azurerm_windows_function_app_slot` - add support for `~24` to `site_config.application_stack.node_version` ([#31248](https://github.com/hashicorp/terraform-provider-azurerm/issues/31248))
+* `data.azurerm_container_registry` - `admin_password` is now sensitive ([#31428](https://github.com/hashicorp/terraform-provider-azurerm/issues/31428))
+
+BUG FIXES:
+
+* `azurerm_api_management` - fix an issue that prevented updates to `hostname_configuration.*.key_vault_certificate_id` ([#31534](https://github.com/hashicorp/terraform-provider-azurerm/issues/31534))
+* `azurerm_api_management_custom_domain` - fix an issue that prevented updates to `[management|portal|developer_portal|scm|gateway].key_vault_certificate_id` ([#31534](https://github.com/hashicorp/terraform-provider-azurerm/issues/31534))
+* `azurerm_container_app_custom_domain` - no longer error during read when container app is deleted outside of Terraform ([#31523](https://github.com/hashicorp/terraform-provider-azurerm/issues/31523))
+* `azurerm_databricks_workspace` - removed a legacy workaround that prevented apply operations from succeeding when `managed_disk_cmk_rotation_to_latest_version_enabled` and `tags` were updated simultaneously ([#31509](https://github.com/hashicorp/terraform-provider-azurerm/issues/31509))
+* `azurerm_storage_account` - can now update a Storage Standard ZRS account ([#31431](https://github.com/hashicorp/terraform-provider-azurerm/issues/31431))
+* `clients` - fix correlation id across many clients ([#31368](https://github.com/hashicorp/terraform-provider-azurerm/issues/31368))
+
 ## 4.57.0 (December 18, 2025)
 
 **NOTE:** This release removes the Mobile Network (`azurerm_mobile_network*`) resources and data sources due to Azure having retired the service

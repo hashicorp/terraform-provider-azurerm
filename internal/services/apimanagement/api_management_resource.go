@@ -36,6 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -1532,40 +1533,57 @@ func expandAzureRmApiManagementHostnameConfigurations(d *pluginsdk.ResourceData)
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
-		for _, managementV := range managementVs {
+		for idx, managementV := range managementVs {
 			v := managementV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeManagement)
-			results = append(results, output)
-		}
-
-		portalVs := hostnameV["portal"].([]interface{})
-		for _, portalV := range portalVs {
-			v := portalV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
-			results = append(results, output)
-		}
-
-		developerPortalVs := hostnameV["developer_portal"].([]interface{})
-		for _, developerPortalV := range developerPortalVs {
-			v := developerPortalV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
-			results = append(results, output)
-		}
-
-		proxyVs := hostnameV["proxy"].([]interface{})
-		for _, proxyV := range proxyVs {
-			v := proxyV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
-			if value, ok := v["default_ssl_binding"]; ok {
-				output.DefaultSslBinding = pointer.To(value.(bool))
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeManagement, fmt.Sprintf("hostname_configuration.0.management.%d", idx))
 			}
 			results = append(results, output)
 		}
 
+		portalVs := hostnameV["portal"].([]interface{})
+		for idx, portalV := range portalVs {
+			v := portalV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypePortal, fmt.Sprintf("hostname_configuration.0.portal.%d", idx))
+			}
+			results = append(results, output)
+		}
+
+		developerPortalVs := hostnameV["developer_portal"].([]interface{})
+		for idx, developerPortalV := range developerPortalVs {
+			v := developerPortalV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeDeveloperPortal, fmt.Sprintf("hostname_configuration.0.developer_portal.%d", idx))
+			}
+			results = append(results, output)
+		}
+
+		proxyVs := hostnameV["proxy"].([]interface{})
+		for idx, proxyV := range proxyVs {
+			v := proxyV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeProxy, fmt.Sprintf("hostname_configuration.0.proxy.%d", idx))
+			}
+
+			if value, ok := v["default_ssl_binding"]; ok {
+				output.DefaultSslBinding = pointer.To(value.(bool))
+			}
+
+			results = append(results, output)
+		}
+
 		scmVs := hostnameV["scm"].([]interface{})
-		for _, scmV := range scmVs {
+		for idx, scmV := range scmVs {
 			v := scmV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeScm)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeScm, fmt.Sprintf("hostname_configuration.0.scm.%d", idx))
+			}
 			results = append(results, output)
 		}
 	}
@@ -1589,9 +1607,38 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	if v, ok := input["key_vault_certificate_id"]; ok && v.(string) != "" {
 		output.KeyVaultId = pointer.To(v.(string))
 	}
+
+	if v, ok := input["negotiate_client_certificate"]; ok {
+		output.NegotiateClientCertificate = pointer.To(v.(bool))
+	}
+
+	if v, ok := input["ssl_keyvault_identity_client_id"]; ok && v.(string) != "" {
+		output.IdentityClientId = pointer.To(v.(string))
+	}
+
+	return output
+}
+
+func expandApiManagementCommonHostnameConfigurationFourPointOh(d *pluginsdk.ResourceData, input map[string]interface{}, hostnameType apimanagementservice.HostnameType, addressPrefix string) apimanagementservice.HostnameConfiguration {
+	output := apimanagementservice.HostnameConfiguration{
+		Type: hostnameType,
+	}
+	if v, ok := input["certificate"]; ok && v.(string) != "" {
+		output.EncodedCertificate = pointer.To(v.(string))
+	}
+	if v, ok := input["certificate_password"]; ok && v.(string) != "" {
+		output.CertificatePassword = pointer.To(v.(string))
+	}
+	if v, ok := input["host_name"]; ok && v.(string) != "" {
+		output.HostName = v.(string)
+	}
+	if v, ok := input["key_vault_certificate_id"]; ok && v.(string) != "" {
+		output.KeyVaultId = pointer.To(v.(string))
+	}
 	if !features.FivePointOh() {
-		if v, ok := input["key_vault_id"]; ok && v.(string) != "" {
-			output.KeyVaultId = pointer.To(v.(string))
+		rawKeyVaultID, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("%s.key_vault_id", addressPrefix)))
+		if !diags.HasError() && !rawKeyVaultID.IsNull() {
+			output.KeyVaultId = pointer.To(input["key_vault_id"].(string))
 		}
 	}
 

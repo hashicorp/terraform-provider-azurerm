@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupInstanceKubernetesClusterTestResource struct{}
+type DataProtectionBackupInstanceKubernetesClusterResource struct{}
 
 func TestAccDataProtectionBackupInstanceKubernetesCluster_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
-	r := DataProtectionBackupInstanceKubernetesClusterTestResource{}
+	r := DataProtectionBackupInstanceKubernetesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_basic(t *testing.T) {
 
 func TestAccDataProtectionBackupInstanceKubernetesCluster_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
-	r := DataProtectionBackupInstanceKubernetesClusterTestResource{}
+	r := DataProtectionBackupInstanceKubernetesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_requiresImport(t *test
 
 func TestAccDataProtectionBackupInstanceKubernetesCluster_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_kubernetes_cluster", "test")
-	r := DataProtectionBackupInstanceKubernetesClusterTestResource{}
+	r := DataProtectionBackupInstanceKubernetesClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -61,7 +61,7 @@ func TestAccDataProtectionBackupInstanceKubernetesCluster_complete(t *testing.T)
 	})
 }
 
-func (r DataProtectionBackupInstanceKubernetesClusterTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataProtectionBackupInstanceKubernetesClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (r DataProtectionBackupInstanceKubernetesClusterTestResource) Exists(ctx co
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataProtectionBackupInstanceKubernetesClusterTestResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -249,7 +249,7 @@ resource "azurerm_data_protection_backup_policy_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r DataProtectionBackupInstanceKubernetesClusterTestResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -265,7 +265,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "import" {
 `, config)
 }
 
-func (r DataProtectionBackupInstanceKubernetesClusterTestResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
@@ -281,7 +281,7 @@ resource "azurerm_data_protection_backup_instance_kubernetes_cluster" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstanceKubernetesClusterTestResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupInstanceKubernetesClusterResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %[1]s
