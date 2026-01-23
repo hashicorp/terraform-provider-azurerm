@@ -80,6 +80,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_resource_group_policy_remediation":               resourceArmResourceGroupPolicyRemediation(),
 		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
 		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),
+		"azurerm_policy_arc_machine_configuration_assignment":     resourcePolicyArcMachineConfigurationAssignment(),
 	}
 
 	if !features.FivePointOh() {
