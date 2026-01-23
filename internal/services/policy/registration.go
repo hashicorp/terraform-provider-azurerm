@@ -64,6 +64,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_policy_definition_built_in":                      dataSourceArmPolicyDefinitionBuiltIn(),
 		"azurerm_policy_set_definition":                           dataSourceArmPolicySetDefinition(),
 		"azurerm_policy_virtual_machine_configuration_assignment": dataSourcePolicyVirtualMachineConfigurationAssignment(),
+		"azurerm_policy_arc_machine_configuration_assignment":     dataSourcePolicyArcMachineConfigurationAssignment(),
 	}
 }
 
