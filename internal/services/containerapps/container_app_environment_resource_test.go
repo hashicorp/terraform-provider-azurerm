@@ -576,7 +576,7 @@ resource "azurerm_container_app_environment" "test" {
   workload_profile {
     maximum_count         = 0
     minimum_count         = 0
-    name                  = locals.workload_profile_name
+    name                  = local.workload_profile_name
     workload_profile_type = "D4"
   }
 
