@@ -889,7 +889,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   service_principal {
     // client_id     = azuread_application.test.client_id
     // client_secret = azuread_service_principal_password.test.value
-    client_id     = azuread_service_principal.redhatopenshift.client_id
+    client_id     = data.azuread_service_principal.redhatopenshift.client_id
     client_secret = azuread_service_principal_password.redhatopenshift.value
   }
 
@@ -939,7 +939,7 @@ data "azuread_service_principal" "redhatopenshift" {
 }
 
 resource "azuread_service_principal_password" "redhatopenshift" {
-  service_principal_id = azuread_service_principal.redhatopenshift.id
+  service_principal_id = data.azuread_service_principal.redhatopenshift.id
 }
 /*
 resource "azurerm_role_assignment" "role_network1" {
