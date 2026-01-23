@@ -316,11 +316,11 @@ resource "azuread_application" "test2" {
 }
 
 resource "azuread_service_principal" "test2" {
-  application_id = azuread_application.test2.application_id
+  client_id = azuread_application.test2.client_id
 }
 
 resource "azuread_service_principal_password" "test2" {
-  service_principal_id = azuread_service_principal.test2.object_id
+  service_principal_id = azuread_service_principal.test2.id
 }
 
 resource "azurerm_role_assignment" "role_network3" {
