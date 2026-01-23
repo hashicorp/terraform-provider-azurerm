@@ -885,16 +885,14 @@ resource "azurerm_redhat_openshift_cluster" "test" {
     node_count   = 3
     subnet_id    = azurerm_subnet.worker_subnet.id
   }
-  /*
+  
   service_principal {
-    // client_id     = azuread_application.test.client_id
-    // client_secret = azuread_service_principal_password.test.value
-    client_id     = data.azuread_service_principal.redhatopenshift.client_id
-    client_secret = azuread_service_principal_password.redhatopenshift.value
+    client_id     = azuread_application.test.client_id
+    client_secret = azuread_service_principal_password.test.value
   }
-  */
+  
   depends_on = [
-    // "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network1",
     "azurerm_role_assignment.role_network2",
   ]
 }
@@ -917,7 +915,7 @@ provider "azurerm" {
 provider "azuread" {}
 
 data "azurerm_client_config" "test" {}
-/*
+
 data "azuread_client_config" "test" {}
 
 resource "azuread_application" "test" {
@@ -931,19 +929,19 @@ resource "azuread_service_principal" "test" {
 resource "azuread_service_principal_password" "test" {
   service_principal_id = azuread_service_principal.test.id
 }
-*/
+
 data "azuread_service_principal" "redhatopenshift" {
   // This is the Azure Red Hat OpenShift RP service principal id, do NOT delete it
   // client_id = "f1dd0a37-89c6-4e07-bcd1-ffd3d43d8875"
   client_id = "dcd37158-30f8-42a2-a4c0-e216e5a230bd"
 }
-/*
+
 resource "azurerm_role_assignment" "role_network1" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Network Contributor"
   principal_id         = azuread_service_principal.test.object_id
 }
-*/
+
 resource "azurerm_role_assignment" "role_network2" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Network Contributor"
