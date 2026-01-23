@@ -39,11 +39,10 @@ func TestAccNetworkManager(t *testing.T) {
 			"requiresImport": testAccNetworkSubscriptionNetworkManagerConnection_requiresImport,
 		},
 		"ManagementGroupConnection": {
-			"basic":                        testAccNetworkManagerManagementGroupConnection_basic,
-			"complete":                     testAccNetworkManagerManagementGroupConnection_complete,
-			"update":                       testAccNetworkManagerManagementGroupConnection_update,
-			"peeringEnforcementValidation": testAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation,
-			"requiresImport":               testAccNetworkManagerManagementGroupConnection_requiresImport,
+			"basic":          testAccNetworkManagerManagementGroupConnection_basic,
+			"complete":       testAccNetworkManagerManagementGroupConnection_complete,
+			"update":         testAccNetworkManagerManagementGroupConnection_update,
+			"requiresImport": testAccNetworkManagerManagementGroupConnection_requiresImport,
 		},
 		"ScopeConnection": {
 			"basic":          testAccNetworkManagerScopeConnection_basic,
@@ -57,6 +56,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":                     testAccNetworkManagerConnectivityConfiguration_complete,
 			"connectivityCapabilityUpdate": testAccNetworkManagerConnectivityConfiguration_connectivityCapabilityUpdate,
 			"update":                       testAccNetworkManagerConnectivityConfiguration_update,
+			"peeringEnforcementValidation": testAccNetworkManagerConnectivityConfiguration_peeringEnforcementValidation,
 			"requiresImport":               testAccNetworkManagerConnectivityConfiguration_requiresImport,
 			"dataSource":                   testAccNetworkManagerConnectivityConfigurationDataSource_basic,
 		},
