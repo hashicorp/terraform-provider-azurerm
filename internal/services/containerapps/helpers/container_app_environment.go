@@ -4,6 +4,8 @@
 package helpers
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -148,6 +150,7 @@ func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfi
 		for _, v := range definedProfiles.List() {
 			profile := v.(map[string]interface{})
 			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
+				fmt.Println("debug0")
 				return false
 			}
 		}
@@ -156,9 +159,11 @@ func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfi
 		for _, v := range returnedProfiles.List() {
 			profile := v.(map[string]interface{})
 			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
+				fmt.Println("debug1")
 				return true
 			}
 		}
 	}
+	fmt.Println("debug2")
 	return false
 }
