@@ -889,7 +889,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   service_principal {
     // client_id     = azuread_application.test.client_id
     // client_secret = azuread_service_principal_password.test.value
-    client_id     = azuread_application.redhatopenshift.client_id
+    client_id     = azuread_service_principal.redhatopenshift.client_id
     client_secret = azuread_service_principal_password.redhatopenshift.value
   }
 
