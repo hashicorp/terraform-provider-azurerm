@@ -872,7 +872,8 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 
 			servers = append(servers, map[string]interface{}{
 				"address": v.RadiusServerAddress,
-				"secret":  pointer.To(setSecret),
+				// setting this because the azure api does not return the secret, so need to read it in from the config
+				"secret":  d.Get(fmt.Sprintf("radius.0.server.%d.secret", i)),
 				"score":   pointer.From(v.RadiusServerScore),
 			})
 		}
