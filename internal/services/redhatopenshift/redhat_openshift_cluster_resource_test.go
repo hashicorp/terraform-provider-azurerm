@@ -938,7 +938,7 @@ data "azuread_service_principal" "redhatopenshift" {
   client_id = "dcd37158-30f8-42a2-a4c0-e216e5a230bd"
 }
 
-data "azuread_service_principal_password" "redhatopenshift" {
+resource "azuread_service_principal_password" "redhatopenshift" {
   service_principal_id = azuread_service_principal.redhatopenshift.id
 }
 /*
