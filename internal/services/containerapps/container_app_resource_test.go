@@ -1446,17 +1446,13 @@ func (r ContainerAppResource) withWorkloadProfile(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %s
 
-locals {
-  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
-}
-
 resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.0.name
+  workload_profile_name = local.workload_profile_name
 
   template {
     container {
@@ -1490,17 +1486,13 @@ func (r ContainerAppResource) withMultipleWorkloadProfiles(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 
-locals {
-  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
-}
-
 resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.%[3]d.name
+  workload_profile_name = local.workload_profile_names[%[3]d]
 
   template {
     container {
@@ -1534,17 +1526,13 @@ func (r ContainerAppResource) withSmallerGranularityCPUMemoryCombinations(data a
 	return fmt.Sprintf(`
 %s
 
-locals {
-  workload_profiles = tolist(azurerm_container_app_environment.test.workload_profile)
-}
-
 resource "azurerm_container_app" "test" {
   name                         = "acctest-capp-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   container_app_environment_id = azurerm_container_app_environment.test.id
   revision_mode                = "Single"
 
-  workload_profile_name = local.workload_profiles.0.name
+  workload_profile_name = local.workload_profile_name
 
   template {
     container {
@@ -2703,7 +2691,9 @@ resource "azurerm_container_app" "test" {
       custom_rule_type = "rabbitmq"
 
       metadata = {
-        foo = "bar"
+        mode = "QueueLength"
+        value = 100
+        queueName = "test"
       }
 
       authentication {
