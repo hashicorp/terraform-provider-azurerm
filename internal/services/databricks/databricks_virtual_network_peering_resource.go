@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_virtual_network_peering -service-package-name databricks -properties "name" -compare-values "resource_group_name:workspace_id,workspace_name:workspace_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_virtual_network_peering -service-package-name databricks -properties "name" -compare-values "subscription_id:workspace_id,resource_group_name:workspace_id,workspace_name:workspace_id"
 
 const databricksVnetPeeringsResourceType string = "azurerm_databricks_virtual_network_peering"
 

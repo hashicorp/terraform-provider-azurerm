@@ -6,7 +6,6 @@ package datashare_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -18,10 +17,10 @@ func TestAccDataShare_resourceIdentity(t *testing.T) {
 	r := DataShareResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
 		"name":                {},
 		"account_name":        {},
 		"resource_group_name": {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -29,10 +28,10 @@ func TestAccDataShare_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_share.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_data_share.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_share.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share.test", tfjsonpath.New("account_name"), tfjsonpath.New("account_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("account_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("account_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),

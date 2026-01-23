@@ -6,7 +6,6 @@ package dashboard_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -18,10 +17,10 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_resourceIdentity(t *testing.T
 	r := DashboardGrafanaManagedPrivateEndpointResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
 		"name":                {},
 		"grafana_name":        {},
 		"resource_group_name": {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -29,10 +28,10 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_resourceIdentity(t *testing.T
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_dashboard_grafana_managed_private_endpoint.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("grafana_name"), tfjsonpath.New("grafana_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("grafana_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_dashboard_grafana_managed_private_endpoint.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("grafana_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
