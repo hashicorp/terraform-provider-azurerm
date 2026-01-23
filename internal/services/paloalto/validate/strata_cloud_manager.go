@@ -19,7 +19,7 @@ func ValidateStrataCloudManagerTenantNameExists(ctx context.Context, client *cli
 
 	subscriptionIdParsed := commonids.NewSubscriptionID(subscriptionId)
 
-	resp, err := client.PaloAlto.PaloAltoClient_v2025_05_23.PaloAltoNetworksCloudngfws.PaloAltoNetworksCloudngfwOperationslistCloudManagerTenants(ctx, subscriptionIdParsed)
+	resp, err := client.PaloAlto.PaloAltoNetworksCloudngfws.PaloAltoNetworksCloudngfwOperationslistCloudManagerTenants(ctx, subscriptionIdParsed)
 	if err != nil {
 		return fmt.Errorf("retrieving list of available Strata Cloud Manager tenants: %v", err)
 	}
