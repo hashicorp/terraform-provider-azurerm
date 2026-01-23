@@ -1,6 +1,7 @@
 ## 4.59.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_automation_runbook` - add support for the `runtime_environment_name` property [GH-30992]
 * `azurerm_kusto_eventgrid_data_connection` - update validation for `eventhub_consumer_group_name` to allow `$Default` as input [GH-31551]
 
 FEATURES:
