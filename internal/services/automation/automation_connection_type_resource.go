@@ -21,6 +21,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_connection_type -service-package-name automation -properties "name,resource_group_name,automation_account_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
+var automationConnectionTypeResourceName = "azurerm_automation_connection_type"
+
 type Field struct {
 	Name        string `tfschema:"name"`
 	IsOptional  bool   `tfschema:"is_optional"`
@@ -40,6 +42,7 @@ type AutomationConnectionTypeResource struct{}
 
 var _ sdk.Resource = AutomationConnectionTypeResource{}
 var _ sdk.ResourceWithIdentity = AutomationConnectionTypeResource{}
+var _ sdk.FrameworkWrappedResourceWithList
 
 func (m AutomationConnectionTypeResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -102,7 +105,7 @@ func (m AutomationConnectionTypeResource) ModelObject() interface{} {
 }
 
 func (m AutomationConnectionTypeResource) ResourceType() string {
-	return "azurerm_automation_connection_type"
+	return automationConnectionTypeResourceName
 }
 
 func (r AutomationConnectionTypeResource) Identity() resourceids.ResourceId {
@@ -186,34 +189,38 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			var output AutomationConnectionTypeModel
-			output.Name = id.ConnectionTypeName
-			output.AutomationAccountName = id.AutomationAccountName
-			output.ResourceGroup = id.ResourceGroupName
-
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					output.IsGlobal = pointer.From(props.IsGlobal)
-					if props.FieldDefinitions != nil {
-						for name, field := range *props.FieldDefinitions {
-							output.Field = append(output.Field, Field{
-								Name:        name,
-								Type:        field.Type,
-								IsEncrypted: pointer.From(field.IsEncrypted),
-								IsOptional:  pointer.From(field.IsOptional),
-							})
-						}
-					}
-				}
-			}
-
-			if err = pluginsdk.SetResourceIdentityData(meta.ResourceData, id); err != nil {
-				return err
-			}
-
-			return meta.Encode(&output)
+			return resourceAutomationConnectionTypeFlatten(meta, id, resp.Model)
 		},
 	}
+}
+
+func resourceAutomationConnectionTypeFlatten(meta sdk.ResourceMetaData, id *connectiontype.ConnectionTypeId, connectionType *connectiontype.ConnectionType) error {
+	var output AutomationConnectionTypeModel
+	output.Name = id.ConnectionTypeName
+	output.AutomationAccountName = id.AutomationAccountName
+	output.ResourceGroup = id.ResourceGroupName
+
+	if connectionType != nil {
+		if props := connectionType.Properties; props != nil {
+			output.IsGlobal = pointer.From(props.IsGlobal)
+			if props.FieldDefinitions != nil {
+				for name, field := range *props.FieldDefinitions {
+					output.Field = append(output.Field, Field{
+						Name:        name,
+						Type:        field.Type,
+						IsEncrypted: pointer.From(field.IsEncrypted),
+						IsOptional:  pointer.From(field.IsOptional),
+					})
+				}
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(meta.ResourceData, id); err != nil {
+		return err
+	}
+
+	return meta.Encode(&output)
 }
 
 func (m AutomationConnectionTypeResource) Delete() sdk.ResourceFunc {

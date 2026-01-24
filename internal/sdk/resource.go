@@ -228,3 +228,12 @@ func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormat
 	resourceId := idFormatter.ID()
 	return tf.ImportAsExistsError(resourceName, resourceId)
 }
+
+func NewResourceMetaData(clients *clients.Client, resourceData *schema.ResourceData) ResourceMetaData {
+	return ResourceMetaData{
+		Client:                   clients,
+		ResourceData:             resourceData,
+		Logger:                   ConsoleLogger{},
+		serializationDebugLogger: NullLogger{},
+	}
+}
