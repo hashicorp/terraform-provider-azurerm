@@ -19,13 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// VirtualMachineRestorePointCollectionResource remove this in 4.0, the resource is renamed
 type VirtualMachineRestorePointCollectionResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate                = VirtualMachineRestorePointCollectionResource{}
-	_ sdk.ResourceWithDeprecationReplacedBy = VirtualMachineRestorePointCollectionResource{}
-)
+var _ sdk.ResourceWithUpdate = VirtualMachineRestorePointCollectionResource{}
 
 func (r VirtualMachineRestorePointCollectionResource) ModelObject() interface{} {
 	return &VirtualMachineRestorePointCollectionResourceModel{}
