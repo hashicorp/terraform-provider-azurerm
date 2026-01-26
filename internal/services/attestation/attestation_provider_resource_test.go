@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package attestation_test
@@ -29,6 +29,11 @@ import (
 
 type AttestationProviderResource struct {
 	name string
+}
+
+func (r AttestationProviderResource) basicForResourceIdentity(data acceptance.TestData) string {
+	r.name = fmt.Sprintf("acctestap%s", data.RandomStringOfLength(10))
+	return r.basic(data)
 }
 
 func TestAccAttestationProvider_basic(t *testing.T) {

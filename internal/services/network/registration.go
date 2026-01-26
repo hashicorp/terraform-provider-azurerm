@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -41,6 +41,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ManagerNetworkGroupDataSource{},
 		ManagerConnectivityConfigurationDataSource{},
 		ManagerIpamPoolDataSource{},
+		NetworkSecurityPerimeterProfileDataSource{},
+		NetworkSecurityPerimeterDataSource{},
 		VPNServerConfigurationDataSource{},
 		VirtualNetworkPeeringDataSource{},
 	}
@@ -68,6 +70,10 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerVerifierWorkspaceResource{},
 		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
 		NatGatewayPublicIpV6AssociationResource{},
+		NetworkSecurityPerimeterAccessRuleResource{},
+		NetworkSecurityPerimeterAssociationResource{},
+		NetworkSecurityPerimeterResource{},
+		NetworkSecurityPerimeterProfileResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},
