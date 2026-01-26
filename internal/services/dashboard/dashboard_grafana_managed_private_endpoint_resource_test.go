@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ManagedPrivateEndpointResource struct{}
+type DashboardGrafanaManagedPrivateEndpointResource struct{}
 
 func TestAccDashboardGrafanaManagedPrivateEndpoint_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DashboardGrafanaManagedPrivateEndpointResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -34,7 +34,7 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_basic(t *testing.T) {
 
 func TestAccDashboardGrafanaManagedPrivateEndpoint_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DashboardGrafanaManagedPrivateEndpointResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -48,7 +48,7 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_requiresImport(t *testing.T) 
 
 func TestAccDashboardGrafanaManagedPrivateEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DashboardGrafanaManagedPrivateEndpointResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -61,7 +61,7 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_complete(t *testing.T) {
 
 func TestAccDashboardGrafanaManagedPrivateEndpoint_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dashboard_grafana_managed_private_endpoint", "test")
-	r := ManagedPrivateEndpointResource{}
+	r := DashboardGrafanaManagedPrivateEndpointResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -78,7 +78,7 @@ func TestAccDashboardGrafanaManagedPrivateEndpoint_update(t *testing.T) {
 	})
 }
 
-func (r ManagedPrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DashboardGrafanaManagedPrivateEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedprivateendpointmodels.ParseManagedPrivateEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -92,7 +92,7 @@ func (r ManagedPrivateEndpointResource) Exists(ctx context.Context, clients *cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagedPrivateEndpointResource) template(data acceptance.TestData) string {
+func (r DashboardGrafanaManagedPrivateEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -118,7 +118,7 @@ resource "azurerm_monitor_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r ManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
+func (r DashboardGrafanaManagedPrivateEndpointResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -134,7 +134,7 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ManagedPrivateEndpointResource) requiresImport(data acceptance.TestData) string {
+func (r DashboardGrafanaManagedPrivateEndpointResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 			%s
@@ -148,7 +148,7 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "import" {
 `, config)
 }
 
-func (r ManagedPrivateEndpointResource) complete(data acceptance.TestData) string {
+func (r DashboardGrafanaManagedPrivateEndpointResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -172,7 +172,7 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
 `, template, data.RandomIntOfLength(8))
 }
 
-func (r ManagedPrivateEndpointResource) update(data acceptance.TestData) string {
+func (r DashboardGrafanaManagedPrivateEndpointResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s

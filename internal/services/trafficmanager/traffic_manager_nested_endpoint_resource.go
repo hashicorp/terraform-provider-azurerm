@@ -10,8 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -29,12 +29,12 @@ func resourceNestedEndpoint() *pluginsdk.Resource {
 		Update: resourceNestedEndpointCreateUpdate,
 		Delete: resourceNestedEndpointDelete,
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			endpointType, err := endpoints.ParseEndpointTypeID(id)
+			endpointType, err := trafficmanagers.ParseEndpointTypeID(id)
 			if err != nil {
 				return err
 			}
 
-			if endpointType.EndpointType != endpoints.EndpointTypeNestedEndpoints {
+			if endpointType.EndpointType != trafficmanagers.EndpointTypeNestedEndpoints {
 				return fmt.Errorf("this resource only supports `NestedEndpoints` but got %s", string(endpointType.EndpointType))
 			}
 
@@ -177,10 +177,10 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("parsing `profile_id`: %+v", err)
 	}
 
-	id := endpoints.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, endpoints.EndpointTypeNestedEndpoints, d.Get("name").(string))
+	id := trafficmanagers.NewEndpointTypeID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.TrafficManagerProfileName, trafficmanagers.EndpointTypeNestedEndpoints, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.EndpointsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %v", id, err)
@@ -192,15 +192,15 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		}
 	}
 
-	status := endpoints.EndpointStatusEnabled
+	status := trafficmanagers.EndpointStatusEnabled
 	if !d.Get("enabled").(bool) {
-		status = endpoints.EndpointStatusDisabled
+		status = trafficmanagers.EndpointStatusDisabled
 	}
 
-	params := endpoints.Endpoint{
+	params := trafficmanagers.Endpoint{
 		Name: pointer.To(id.EndpointName),
-		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", endpoints.EndpointTypeNestedEndpoints)),
-		Properties: &endpoints.EndpointProperties{
+		Type: pointer.To(fmt.Sprintf("Microsoft.Network/trafficManagerProfiles/%s", trafficmanagers.EndpointTypeNestedEndpoints)),
+		Properties: &trafficmanagers.EndpointProperties{
 			CustomHeaders:     expandEndpointCustomHeaderConfig(d.Get("custom_header").([]interface{})),
 			EndpointStatus:    &status,
 			MinChildEndpoints: pointer.To(int64(d.Get("minimum_child_endpoints").(int))),
@@ -240,7 +240,7 @@ func resourceNestedEndpointCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		params.Properties.GeoMapping = &geoMappings
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
+	if _, err := client.EndpointsCreateOrUpdate(ctx, id, params); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -253,12 +253,12 @@ func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := endpoints.ParseEndpointTypeID(d.Id())
+	id, err := trafficmanagers.ParseEndpointTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.EndpointsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -273,7 +273,7 @@ func resourceNestedEndpointRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			enabled := true
-			if props.EndpointStatus != nil && *props.EndpointStatus == endpoints.EndpointStatusDisabled {
+			if props.EndpointStatus != nil && *props.EndpointStatus == trafficmanagers.EndpointStatusDisabled {
 				enabled = false
 			}
 			d.Set("enabled", enabled)
@@ -303,12 +303,12 @@ func resourceNestedEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := endpoints.ParseEndpointTypeID(d.Id())
+	id, err := trafficmanagers.ParseEndpointTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if _, err := client.EndpointsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 

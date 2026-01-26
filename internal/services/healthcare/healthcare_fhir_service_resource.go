@@ -370,7 +370,9 @@ func resourceHealthcareApisFhirServiceRead(d *pluginsdk.ResourceData, meta inter
 				d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == fhirservices.PublicNetworkAccessEnabled)
 			}
 
-			return tags.FlattenAndSet(d, m.Tags)
+			if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
