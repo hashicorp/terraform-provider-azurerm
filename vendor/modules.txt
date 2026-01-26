@@ -140,7 +140,7 @@ github.com/google/uuid
 # github.com/hashicorp/errwrap v1.1.0
 ## explicit
 github.com/hashicorp/errwrap
-# github.com/hashicorp/go-azure-helpers v0.75.2-0.20260122123014-aa3ad08cde20
+# github.com/hashicorp/go-azure-helpers v0.76.1
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/framework/commonschema
@@ -166,11 +166,21 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/data-plane v0.0.0-20260122130401-f2743f430eac
+# github.com/hashicorp/go-azure-sdk/data-plane v0.0.0-20260123124602-065a655ff8f7 => ../go-azure-sdk/data-plane
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/data-plane/batch/2022-01-01-15-0/jobs
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260129.1200123
-## explicit; go 1.24.1
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/backuprestores
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/certificates
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/deletedstorage
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/keys
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/rbacs
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/secrets
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/securitydomains
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/settings
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/2025-07-01/storage
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260114.1164647-0.20260122130401-f2743f430eac => ../go-azure-sdk/resource-manager
+## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview/tenants
@@ -1256,8 +1266,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20260129.1200123
-## explicit; go 1.24.1
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260123.1165823-0.20260126121440-e4c0d8af420a => ../go-azure-sdk/sdk
+## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
 github.com/hashicorp/go-azure-sdk/sdk/claims
@@ -1838,3 +1848,6 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
+# github.com/hashicorp/go-azure-sdk/data-plane => ../go-azure-sdk/data-plane
+# github.com/hashicorp/go-azure-sdk/sdk => ../go-azure-sdk/sdk
+# github.com/hashicorp/go-azure-sdk/resource-manager => ../go-azure-sdk/resource-manager

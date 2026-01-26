@@ -96,7 +96,7 @@ func (c JobsClient) JobListPreparationAndReleaseTaskStatus(ctx context.Context, 
 		HttpMethod:    http.MethodGet,
 		OptionsObject: options,
 		Pager:         &JobListPreparationAndReleaseTaskStatusCustomPager{},
-		Path:          fmt.Sprintf("%s/jobpreparationandreleasetaskstatus", id.ID()),
+		Path:          fmt.Sprintf("%s/jobpreparationandreleasetaskstatus", id.Path()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

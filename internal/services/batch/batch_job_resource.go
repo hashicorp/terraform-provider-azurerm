@@ -115,7 +115,7 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			loc := location.NormalizeNilable(account.Model.Location)
+			loc := location.Normalize(account.Model.Location)
 
 			client := metadata.Client.Batch.JobsDataPlaneClient
 
