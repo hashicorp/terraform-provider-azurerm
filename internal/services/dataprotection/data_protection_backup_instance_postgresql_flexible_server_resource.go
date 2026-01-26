@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_postgresql_flexible_server -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type BackupInstancePostgreSQLFlexibleServerModel struct {
 	Name            string `tfschema:"name"`
@@ -32,7 +35,14 @@ type BackupInstancePostgreSQLFlexibleServerModel struct {
 
 type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+)
+
+func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Identity() resourceids.ResourceId {
+	return &backupinstanceresources.BackupInstanceId{}
+}
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_postgresql_flexible_server"
@@ -164,6 +174,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -216,6 +229,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}

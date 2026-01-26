@@ -22,10 +22,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_disk -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 	return &schema.Resource{
@@ -41,10 +42,10 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backupinstanceresources.ParseBackupInstanceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&backupinstanceresources.BackupInstanceId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&backupinstanceresources.BackupInstanceId{}),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -194,6 +195,9 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDataProtectionBackupInstanceDiskRead(d, meta)
 }
 
@@ -241,7 +245,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta interface{}) error {
