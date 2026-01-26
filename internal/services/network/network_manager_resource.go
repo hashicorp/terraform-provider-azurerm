@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -44,7 +45,18 @@ type ManagerCrossTenantScopeModel struct {
 	Subscriptions    []string `tfschema:"subscriptions"`
 }
 
+var (
+	_ sdk.ResourceWithUpdate   = ManagerResource{}
+	_ sdk.ResourceWithIdentity = ManagerResource{}
+)
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager -service-package-name network -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 type ManagerResource struct{}
+
+func (r ManagerResource) Identity() resourceids.ResourceId {
+	return &networkmanagers.NetworkManagerId{}
+}
 
 func (r ManagerResource) ResourceType() string {
 	return "azurerm_network_manager"
@@ -156,6 +168,7 @@ func (r ManagerResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r ManagerResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			metadata.Logger.Info("Decoding state..")
 			var state ManagerModel
@@ -193,14 +206,18 @@ func (r ManagerResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
-		Timeout: 30 * time.Minute,
 	}
 }
 
 func (r ManagerResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.NetworkManagers
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
@@ -234,6 +251,10 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 			scope = flattenNetworkManagerScope(properties.NetworkManagerScopes)
 			scopeAccesses = flattenNetworkManagerScopeAccesses(properties.NetworkManagerScopeAccesses)
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(&ManagerModel{
 				CrossTenantScopes: flattenNetworkManagerCrossTenantScopes(properties.NetworkManagerScopes.CrossTenantScopes),
 				Description:       description,
@@ -245,12 +266,12 @@ func (r ManagerResource) Read() sdk.ResourceFunc {
 				Tags:              utils.FlattenPtrMapStringString(resp.Model.Tags),
 			})
 		},
-		Timeout: 5 * time.Minute,
 	}
 }
 
 func (r ManagerResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
 			if err != nil {
@@ -296,12 +317,12 @@ func (r ManagerResource) Update() sdk.ResourceFunc {
 			}
 			return nil
 		},
-		Timeout: 30 * time.Minute,
 	}
 }
 
 func (r ManagerResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Network.NetworkManagers
 			id, err := networkmanagers.ParseNetworkManagerID(metadata.ResourceData.Id())
@@ -319,18 +340,13 @@ func (r ManagerResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
-		Timeout: 30 * time.Minute,
 	}
-}
-
-func stringSlice(input []string) *[]string {
-	return &input
 }
 
 func expandNetworkManagerScope(input []ManagerScopeModel) networkmanagers.NetworkManagerPropertiesNetworkManagerScopes {
 	return networkmanagers.NetworkManagerPropertiesNetworkManagerScopes{
-		ManagementGroups: stringSlice(input[0].ManagementGroups),
-		Subscriptions:    stringSlice(input[0].Subscriptions),
+		ManagementGroups: pointer.To(input[0].ManagementGroups),
+		Subscriptions:    pointer.To(input[0].Subscriptions),
 	}
 }
 
@@ -342,17 +358,10 @@ func expandNetworkManagerScopeAccesses(input []string) *[]networkmanagers.Config
 	return &result
 }
 
-func flattenStringSlicePtr(input *[]string) []string {
-	if input == nil {
-		return make([]string, 0)
-	}
-	return *input
-}
-
 func flattenNetworkManagerScope(input networkmanagers.NetworkManagerPropertiesNetworkManagerScopes) []ManagerScopeModel {
 	return []ManagerScopeModel{{
-		ManagementGroups: flattenStringSlicePtr(input.ManagementGroups),
-		Subscriptions:    flattenStringSlicePtr(input.Subscriptions),
+		ManagementGroups: pointer.From(input.ManagementGroups),
+		Subscriptions:    pointer.From(input.Subscriptions),
 	}}
 }
 
@@ -377,8 +386,8 @@ func flattenNetworkManagerCrossTenantScopes(input *[]networkmanagers.CrossTenant
 	for _, v := range *input {
 		results = append(results, ManagerCrossTenantScopeModel{
 			TenantId:         pointer.From(v.TenantId),
-			ManagementGroups: flattenStringSlicePtr(v.ManagementGroups),
-			Subscriptions:    flattenStringSlicePtr(v.Subscriptions),
+			ManagementGroups: pointer.From(v.ManagementGroups),
+			Subscriptions:    pointer.From(v.Subscriptions),
 		})
 	}
 	return results
