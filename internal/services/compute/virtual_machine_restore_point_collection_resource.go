@@ -27,10 +27,6 @@ var (
 	_ sdk.ResourceWithDeprecationReplacedBy = VirtualMachineRestorePointCollectionResource{}
 )
 
-func (r VirtualMachineRestorePointCollectionResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_virtual_machine_restore_point_collection"
-}
-
 func (r VirtualMachineRestorePointCollectionResource) ModelObject() interface{} {
 	return &VirtualMachineRestorePointCollectionResourceModel{}
 }
