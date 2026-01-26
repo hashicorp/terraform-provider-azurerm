@@ -372,7 +372,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 * `create` - (Defaults to 3 hours) Used when creating the CosmosDB Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
 * `update` - (Defaults to 3 hours) Used when updating the CosmosDB Account.
-* `delete` - (Defaults to 3 hours) Used when deleting the CosmosDB Account.
+* `delete` - (Defaults to 5 hours) Used when deleting the CosmosDB Account.
 
 ## Import
 
