@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -311,7 +311,6 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 }
 
 func TestAccProvider_cliAuth(t *testing.T) {
-	t.Skip("skipping test for now, as it requires Azure CLI authentication to be set up in the environment which is not compatible with MFA Requirement")
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}

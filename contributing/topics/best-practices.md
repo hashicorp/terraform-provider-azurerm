@@ -247,3 +247,43 @@ Example:
 		Computed: true,
 	},
 ```
+
+## Go File Header Comments
+
+When adding or updating the licensing header at the top of a Go source file, always use the exact format below and place it at the very beginning of the file with no preceding blank lines:
+
+```go
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+```
+
+## Pointer Helpers
+
+- `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
+
+:white_check_mark: **DO**
+
+```go
+output.Name = pointer.From(input.Name)
+```
+
+- Use `pointer.To` to take the address of a value without declaring temporary variables.
+
+:white_check_mark: **DO**
+
+```go
+if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+    return fmt.Errorf("deleting %s: %+v", newId, err)
+}
+```
+
+- Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
+
+:white_check_mark: **DO**
+
+```go
+return &managedclusters.ManagedClusterBootstrapProfile{
+    ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
+}
+```
+
