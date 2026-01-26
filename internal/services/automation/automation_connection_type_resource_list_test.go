@@ -29,7 +29,7 @@ func TestAccNetworkProfile_list_basic(t *testing.T) {
 			{
 				Query:             true,
 				Config:            r.basicQueryByAutomationAccount(data),
-				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{},
 			},
 		},
 	})

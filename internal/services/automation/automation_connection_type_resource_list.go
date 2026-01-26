@@ -24,10 +24,7 @@ type AutomationConnectionTypeListResource struct{}
 var _ sdk.FrameworkListWrappedResource = new(AutomationConnectionTypeListResource)
 
 func (r AutomationConnectionTypeListResource) ResourceFunc() *pluginsdk.Resource {
-	wrapper := sdk.NewResourceWrapper(AutomationConnectionTypeResource{})
-	wrappedResource, _ := wrapper.Resource()
-
-	return wrappedResource
+	return sdk.WrappedResource(AutomationConnectionTypeResource{})
 }
 
 func (r AutomationConnectionTypeListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
@@ -103,18 +100,15 @@ func (r AutomationConnectionTypeListResource) List(ctx context.Context, request 
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(profile.Name)
 
-			// Create a new ResourceData object to hold the state of the resource
-			wrapper := sdk.NewResourceWrapper(AutomationConnectionTypeResource{})
-			wrappedResource, _ := wrapper.Resource()
-			rd := wrappedResource.Data(&terraform.InstanceState{})
-
-			resourceMetaData := sdk.NewResourceMetaData(metadata.Client, rd)
-
 			id, err := connectiontype.ParseConnectionTypeID(pointer.From(profile.Id))
 			if err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Profile ID", err)
 				return
 			}
+
+			rd := sdk.WrappedResource(AutomationConnectionTypeResource{}).Data(&terraform.InstanceState{})
+			resourceMetaData := sdk.NewResourceMetaData(metadata.Client, rd)
+
 			rd.SetId(id.ID())
 
 			if err := resourceAutomationConnectionTypeFlatten(resourceMetaData, id, &profile); err != nil {
@@ -122,31 +116,7 @@ func (r AutomationConnectionTypeListResource) List(ctx context.Context, request 
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
-				return
-			}
-
-			if !push(result) {
-				return
-			}
+			sdk.EncodeListResource(ctx, rd, result, push)
 		}
 	}
 }
