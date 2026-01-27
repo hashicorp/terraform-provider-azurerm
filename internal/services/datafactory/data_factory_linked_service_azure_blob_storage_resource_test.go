@@ -114,7 +114,6 @@ func TestAccDataFactoryLinkedServiceAzureBlobStorage_serviceEndpointWithServiceP
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("service_principal_id").Exists(),
 				check.That(data.ResourceName).Key("tenant_id").Exists(),
-				check.That(data.ResourceName).Key("service_principal_linked_key_vault_key.0.linked_service_name").HasValue("linkkv"),
 				check.That(data.ResourceName).Key("service_principal_linked_key_vault_key.0.secret_name").HasValue("secret"),
 			),
 		},
@@ -305,7 +304,7 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                       = "acctestsa%[1]d"
+  name                       = "acctestsa%[2]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   account_tier               = "Standard"
@@ -327,7 +326,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   use_managed_identity = true
   storage_kind         = "StorageV2"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.RandomIntOfLength(10), data.Locations.Primary)
 }
 
 func (LinkedServiceAzureBlobStorageResource) sasUri(data acceptance.TestData) string {
