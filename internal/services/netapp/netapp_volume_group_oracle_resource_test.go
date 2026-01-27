@@ -1709,7 +1709,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
 
 resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
   name                   = "acctest-NetAppVolumeGroup-Secondary-%[2]d"
-  location               = azurerm_resource_group.test.location
+  location               = azurerm_resource_group.test_secondary.location
   resource_group_name    = azurerm_resource_group.test_secondary.name
   account_name           = azurerm_netapp_account.test_secondary.name
   group_description      = "Test Oracle volume group secondary"
