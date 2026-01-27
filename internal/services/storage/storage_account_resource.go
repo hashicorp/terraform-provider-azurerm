@@ -333,7 +333,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"allow_nested_items_to_be_public": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 
 			"shared_access_key_enabled": {
@@ -1355,6 +1355,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 			Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
 		}
+
+		resource.Schema["allow_nested_items_to_be_public"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		}
 	}
 
 	return resource
@@ -2186,7 +2192,12 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 		// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
 		// resources when a new field gets added - meaning we need to default the values below.
-		allowBlobPublicAccess := true
+		var allowBlobPublicAccess bool
+		if !features.FivePointOh() {
+			allowBlobPublicAccess = true
+		} else {
+			allowBlobPublicAccess = false
+		}
 		if props.AllowBlobPublicAccess != nil {
 			allowBlobPublicAccess = *props.AllowBlobPublicAccess
 		}
