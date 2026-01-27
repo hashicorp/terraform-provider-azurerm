@@ -7,4 +7,5 @@ type ResiliencyPolicy struct {
 	AutomaticZoneRebalancingPolicy *AutomaticZoneRebalancingPolicy `json:"automaticZoneRebalancingPolicy,omitempty"`
 	ResilientVMCreationPolicy      *ResilientVMCreationPolicy      `json:"resilientVMCreationPolicy,omitempty"`
 	ResilientVMDeletionPolicy      *ResilientVMDeletionPolicy      `json:"resilientVMDeletionPolicy,omitempty"`
+	ZoneAllocationPolicy           *ZoneAllocationPolicy           `json:"zoneAllocationPolicy,omitempty"`
 }
