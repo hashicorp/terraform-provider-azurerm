@@ -22,6 +22,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_database -service-package-name mysql -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
+var mysqlFlexibleDatabaseResourceName = "azurerm_mysql_flexible_database"
+
 func resourceMySqlFlexibleDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create:   resourceMySqlFlexibleDatabaseCreate,
@@ -129,12 +131,16 @@ func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMySqlFlexibleDatabaseSetResourceData(d, id, resp.Model)
+}
+
+func resourceMySqlFlexibleDatabaseSetResourceData(d *pluginsdk.ResourceData, id *databases.DatabaseId, database *databases.Database) error {
 	d.Set("name", id.DatabaseName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if database != nil {
+		if props := database.Properties; props != nil {
 			d.Set("charset", props.Charset)
 			d.Set("collation", props.Collation)
 		}

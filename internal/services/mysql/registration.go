@@ -89,5 +89,6 @@ func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		MysqlFlexibleServerListResource{},
+		MysqlFlexibleDatabaseListResource{},
 	}
 }
