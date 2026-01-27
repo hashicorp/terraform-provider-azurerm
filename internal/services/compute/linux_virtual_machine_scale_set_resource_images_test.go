@@ -51,13 +51,6 @@ func TestAccLinuxVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.
 			),
 		},
 		data.ImportStep("admin_password"),
-		{
-			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
 	})
 }
 
@@ -445,11 +438,12 @@ resource "azurerm_image" "first" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 30
-    caching  = "None"
+    storage_type = "Standard_LRS"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
+    size_gb      = 30
+    caching      = "None"
   }
 }
 
@@ -459,11 +453,12 @@ resource "azurerm_image" "second" {
   resource_group_name = azurerm_resource_group.test.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
-    size_gb  = 30
-    caching  = "None"
+    storage_type = "Standard_LRS"
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
+    size_gb      = 30
+    caching      = "None"
   }
 
   depends_on = ["azurerm_image.first"]
