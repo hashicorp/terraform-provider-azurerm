@@ -132,13 +132,17 @@ func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMySqlFlexibleServerFirewallRuleSetResourceData(d, id, resp.Model)
+}
+
+func resourceMySqlFlexibleServerFirewallRuleSetResourceData(d *pluginsdk.ResourceData, id *firewallrules.FirewallRuleId, rule *firewallrules.FirewallRule) error {
 	d.Set("name", id.FirewallRuleName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("start_ip_address", model.Properties.StartIPAddress)
-		d.Set("end_ip_address", model.Properties.EndIPAddress)
+	if rule != nil {
+		d.Set("start_ip_address", rule.Properties.StartIPAddress)
+		d.Set("end_ip_address", rule.Properties.EndIPAddress)
 	}
 
 	return pluginsdk.SetResourceIdentityData(d, id)
