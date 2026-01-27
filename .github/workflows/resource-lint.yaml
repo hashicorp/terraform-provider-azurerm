@@ -39,9 +39,14 @@ jobs:
             echo "Changes detected in internal/services/"
           else
             echo "has_service_changes=false" >> $GITHUB_OUTPUT
-            echo "No changes in internal/services/, skipping lint"
+            echo "::notice::No changes in internal/services/, skipping lint"
           fi
 
       - name: Run resource lint checker
         if: steps.check_changes.outputs.has_service_changes == 'true'
-        run: make resource-lint RESOURCE_LINT_ARGS="-diff=/tmp/changes.diff"
+        run: |
+          if make resource-lint RESOURCE_LINT_ARGS="-diff=/tmp/changes.diff"; then
+            echo "::notice::Resource lint passed."
+          else
+            echo "::warning::Resource lint found issues. Please review the output above."
+          fi
