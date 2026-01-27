@@ -122,7 +122,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
-					"container_network_logs_enabled": {
+					"retina_flow_logs_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -334,8 +334,8 @@ func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interfac
 			config["useAADAuth"] = fmt.Sprintf("%t", useAADAuth)
 		}
 
-		if containerNetworkLogsEnabled, ok := value["container_network_logs_enabled"].(bool); ok {
-			config["enableRetinaNetworkFlags"] = fmt.Sprintf("%t", containerNetworkLogsEnabled)
+		if retinaFlowLogsEnabled, ok := value["retina_flow_logs_enabled"].(bool); ok {
+			config["enableRetinaNetworkFlags"] = fmt.Sprintf("%t", retinaFlowLogsEnabled)
 		}
 
 		addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
@@ -509,7 +509,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
 		useAADAuth := false
-		containerNetworkLogsEnabled := false
+		retinaFlowLogsEnabled := false
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceIDInsensitively(v); err == nil {
@@ -522,7 +522,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		}
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "enableRetinaNetworkFlags"); v != "false" && v != "" {
-			containerNetworkLogsEnabled = true
+			retinaFlowLogsEnabled = true
 		}
 
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
@@ -530,7 +530,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"log_analytics_workspace_id":      workspaceID,
 			"msi_auth_for_monitoring_enabled": useAADAuth,
-			"container_network_logs_enabled":  containerNetworkLogsEnabled,
+			"retina_flow_logs_enabled":        retinaFlowLogsEnabled,
 			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
