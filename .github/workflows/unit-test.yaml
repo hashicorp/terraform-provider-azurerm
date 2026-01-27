@@ -39,7 +39,8 @@ jobs:
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
-      - run: make test
+      - name: Run tests
+        run: go test -v -timeout=30s -parallel=20 -count=1
         env:
           GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
   save-artifacts-on-fail:
