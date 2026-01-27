@@ -50,7 +50,7 @@ var (
 	_ sdk.ResourceWithIdentity = ManagerResource{}
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager -service-package-name network -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager -service-package-name network -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
 
 type ManagerResource struct{}
 

@@ -27,5 +27,5 @@ func testAccNetworkManager_resourceIdentity(t *testing.T) {
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
 		data.ImportBlockWithIDStep(false),
-	}, false)
+	}, true)
 }
