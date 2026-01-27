@@ -11,15 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_connection_type -service-package-name automation -properties "name,resource_group_name,automation_account_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type Field struct {
 	Name        string `tfschema:"name"`
@@ -38,8 +35,7 @@ type AutomationConnectionTypeModel struct {
 
 type AutomationConnectionTypeResource struct{}
 
-var _ sdk.Resource = AutomationConnectionTypeResource{}
-var _ sdk.ResourceWithIdentity = AutomationConnectionTypeResource{}
+var _ sdk.Resource = (*AutomationConnectionTypeResource)(nil)
 
 func (m AutomationConnectionTypeResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -105,10 +101,6 @@ func (m AutomationConnectionTypeResource) ResourceType() string {
 	return "azurerm_automation_connection_type"
 }
 
-func (r AutomationConnectionTypeResource) Identity() resourceids.ResourceId {
-	return &connectiontype.ConnectionTypeId{}
-}
-
 func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -159,11 +151,7 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 			}
 
 			meta.SetID(id)
-			if err := pluginsdk.SetResourceIdentityData(meta.ResourceData, &id); err != nil {
-				return err
-			}
-
-			return meta.Encode(&model)
+			return nil
 		},
 	}
 }
@@ -206,11 +194,6 @@ func (m AutomationConnectionTypeResource) Read() sdk.ResourceFunc {
 					}
 				}
 			}
-
-			if err = pluginsdk.SetResourceIdentityData(meta.ResourceData, id); err != nil {
-				return err
-			}
-
 			return meta.Encode(&output)
 		},
 	}
