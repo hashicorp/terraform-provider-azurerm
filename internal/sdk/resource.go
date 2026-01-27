@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -229,10 +230,11 @@ func (rmd ResourceMetaData) ResourceRequiresImport(resourceName string, idFormat
 	return tf.ImportAsExistsError(resourceName, resourceId)
 }
 
-func NewResourceMetaData(clients *clients.Client, resourceData *schema.ResourceData) ResourceMetaData {
+// NewResourceMetaData instantiates a new ResourceMetaData struct with an empty Terraform state
+func NewResourceMetaData(clients *clients.Client, resource Resource) ResourceMetaData {
 	return ResourceMetaData{
 		Client:                   clients,
-		ResourceData:             resourceData,
+		ResourceData:             WrappedResource(resource).Data(&terraform.InstanceState{}),
 		Logger:                   ConsoleLogger{},
 		serializationDebugLogger: NullLogger{},
 	}

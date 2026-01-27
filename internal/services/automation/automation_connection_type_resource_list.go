@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -106,17 +105,15 @@ func (r AutomationConnectionTypeListResource) List(ctx context.Context, request 
 				return
 			}
 
-			rd := sdk.WrappedResource(AutomationConnectionTypeResource{}).Data(&terraform.InstanceState{})
-			resourceMetaData := sdk.NewResourceMetaData(metadata.Client, rd)
+			rmd := sdk.NewResourceMetaData(metadata.Client, AutomationConnectionTypeResource{})
+			rmd.SetID(id)
 
-			rd.SetId(id.ID())
-
-			if err := resourceAutomationConnectionTypeFlatten(resourceMetaData, id, &profile); err != nil {
+			if err := resourceAutomationConnectionTypeFlatten(rmd, id, &profile); err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", automationConnectionTypeResourceName), err)
 				return
 			}
 
-			sdk.EncodeListResource(ctx, rd, result, push)
+			sdk.EncodeListResource(ctx, rmd.ResourceData, result, push)
 		}
 	}
 }
