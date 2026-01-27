@@ -16,7 +16,7 @@ import (
 )
 
 func TestAccMySqlFlexibleDatabase_list_by_resource_group(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "testlist")
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "testlist")
 	r := MysqlFlexibleDatabaseResource{}
 
 	resource.Test(t, resource.TestCase{
