@@ -1200,6 +1200,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/impor
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/storagetargets
 github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/usagemodels
+github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2025-07-01/autoimportjobs
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpoints
 github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/jobdefinitions
