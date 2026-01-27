@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/ascusages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjob"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoimportjob"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoimportjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/caches"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/importjobs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/skus"
@@ -24,6 +26,8 @@ type Client struct {
 	AscUsages      *ascusages.AscUsagesClient
 	AutoExportJob  *autoexportjob.AutoExportJobClient
 	AutoExportJobs *autoexportjobs.AutoExportJobsClient
+	AutoImportJob  *autoimportjob.AutoImportJobClient
+	AutoImportJobs *autoimportjobs.AutoImportJobsClient
 	Caches         *caches.CachesClient
 	ImportJobs     *importjobs.ImportJobsClient
 	SKUs           *skus.SKUsClient
@@ -55,6 +59,18 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 		return nil, fmt.Errorf("building AutoExportJobs client: %+v", err)
 	}
 	configureFunc(autoExportJobsClient.Client)
+
+	autoImportJobClient, err := autoimportjob.NewAutoImportJobClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building AutoImportJob client: %+v", err)
+	}
+	configureFunc(autoImportJobClient.Client)
+
+	autoImportJobsClient, err := autoimportjobs.NewAutoImportJobsClientWithBaseURI(sdkApi)
+	if err != nil {
+		return nil, fmt.Errorf("building AutoImportJobs client: %+v", err)
+	}
+	configureFunc(autoImportJobsClient.Client)
 
 	cachesClient, err := caches.NewCachesClientWithBaseURI(sdkApi)
 	if err != nil {
@@ -91,6 +107,8 @@ func NewClientWithBaseURI(sdkApi sdkEnv.Api, configureFunc func(c *resourcemanag
 		AscUsages:      ascUsagesClient,
 		AutoExportJob:  autoExportJobClient,
 		AutoExportJobs: autoExportJobsClient,
+		AutoImportJob:  autoImportJobClient,
+		AutoImportJobs: autoImportJobsClient,
 		Caches:         cachesClient,
 		ImportJobs:     importJobsClient,
 		SKUs:           sKUsClient,
