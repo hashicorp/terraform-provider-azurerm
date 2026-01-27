@@ -27,7 +27,9 @@ on:
       - 'go.sum'
 
 concurrency:
-  group: 'unit-${{ github.head_ref }}'
+  # Some events do not have a `head_ref`. Fall back to `run_id`.
+  # Reference: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#example-using-a-fallback-value-1
+  group: '${{ github.workflow }}-${{ github.head_ref || github.run_id }}'
   cancel-in-progress: true
 
 jobs:
