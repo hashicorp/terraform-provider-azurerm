@@ -89,7 +89,7 @@ func TestAccLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -295,6 +295,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   sku                 = "Standard_F2"
   instances           = 1
   admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   admin_ssh_key {
     username   = "adminuser"
