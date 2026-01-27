@@ -354,7 +354,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
-						"container_network_logs_enabled": {
+						"retina_flow_logs_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -1081,7 +1081,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 	if enabled := omsAgent.Enabled; enabled {
 		workspaceID := ""
 		useAADAuth := false
-		containerNetworkLogsEnabled := false
+		retinaFlowLogsEnabled := false
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
 			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
@@ -1094,7 +1094,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 		}
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "enableRetinaNetworkFlags"); v != "false" && v != "" {
-			containerNetworkLogsEnabled = true
+			retinaFlowLogsEnabled = true
 		}
 
 		omsAgentIdentity := flattenKubernetesClusterAddOnIdentityProfile(omsAgent.Identity)
@@ -1102,7 +1102,7 @@ func flattenKubernetesClusterDataSourceAddOns(profile map[string]managedclusters
 		omsAgents = append(omsAgents, map[string]interface{}{
 			"log_analytics_workspace_id":      workspaceID,
 			"msi_auth_for_monitoring_enabled": useAADAuth,
-			"container_network_logs_enabled":  containerNetworkLogsEnabled,
+			"retina_flow_logs_enabled":        retinaFlowLogsEnabled,
 			"oms_agent_identity":              omsAgentIdentity,
 		})
 	}
