@@ -43,20 +43,91 @@ func (s S012) checkIdDescription(d *data.TerraformNodeData, fullPath string, doc
 		return nil
 	}
 
+	if !docProperty.Required && !docProperty.Optional {
+		return nil
+	}
+
 	// Extract description after "(Required)" or "(Optional)"
 	content := docProperty.Content
-	idx := strings.Index(content, ") ")
+	marker, idx := s.findMarker(content)
 	if idx == -1 {
 		return nil
 	}
-	description := strings.TrimSpace(content[idx+2:])
+	description := strings.TrimSpace(content[idx+len(marker):])
 
 	if strings.HasPrefix(strings.ToLower(description), "the id of the") {
 		return nil
 	}
 
+	// Generate fix suggestion
+	fixedLine := s.fixIdDescription(docProperty.Name, content)
+	if fix && fixedLine != "" {
+		s.applyFix(d, docProperty, fixedLine)
+	}
+
 	return NewValidationIssue(s.ID(), s.Name(), fullPath,
 		fmt.Sprintf("`%s` description should start with 'The ID of the ...'", util.Bold(fullPath)),
-		d.Document.Path, content, "")
+		d.Document.Path, content, fixedLine)
 }
 
+// findMarker finds "(Required) " or "(Optional) " in content and returns the marker and its index
+func (s S012) findMarker(content string) (string, int) {
+	if idx := strings.Index(content, "(Required) "); idx != -1 {
+		return "(Required) ", idx
+	}
+	if idx := strings.Index(content, "(Optional) "); idx != -1 {
+		return "(Optional) ", idx
+	}
+	return "", -1
+}
+
+// fixIdDescription generates a fixed description line with "The ID of the <ResourceType>." format
+func (s S012) fixIdDescription(fieldName, content string) string {
+	marker, idx := s.findMarker(content)
+	if idx == -1 {
+		return ""
+	}
+
+	prefix := content[:idx+len(marker)]
+	description := content[idx+len(marker):]
+
+	// Infer resource type from field name (e.g., "virtual_network_id" -> "virtual network")
+	resourceType := strings.TrimSuffix(fieldName, "_id")
+	resourceType = strings.ReplaceAll(resourceType, "_", " ")
+
+	// Find the first sentence ending and preserve everything after it
+	suffix := ""
+	if dotIdx := strings.Index(description, ". "); dotIdx != -1 {
+		suffix = description[dotIdx+1:]
+	}
+
+	if suffix != "" {
+		return prefix + "The ID of the " + resourceType + "." + suffix
+	}
+	return prefix + "The ID of the " + resourceType + "."
+}
+
+// applyFix reads current line from argsSection and applies fix
+func (s S012) applyFix(d *data.TerraformNodeData, docProperty *models.DocumentProperty, _ string) {
+	if d.Document == nil {
+		return
+	}
+
+	argsSection := d.Document.GetArgumentsSection()
+	if argsSection == nil {
+		return
+	}
+
+	content := argsSection.GetContent()
+	lineIdx := docProperty.Line
+
+	if lineIdx >= 0 && lineIdx < len(content) {
+		currentLine := content[lineIdx]
+		fixedLine := s.fixIdDescription(docProperty.Name, currentLine)
+		if fixedLine != "" {
+			content[lineIdx] = fixedLine
+			argsSection.SetContent(content)
+			d.Document.HasChange = true
+		}
+	}
+}

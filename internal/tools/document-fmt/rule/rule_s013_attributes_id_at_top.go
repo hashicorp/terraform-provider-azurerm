@@ -22,7 +22,9 @@ func (s S013) Description() string {
 	return "Validates that the `id` attribute is at the top of Attributes Reference section"
 }
 
-func (s S013) Run(d *data.TerraformNodeData, fix bool) []error {
+// Run validates that id attribute is at top. Fix is not supported because moving lines
+// would invalidate line numbers used by other rules.
+func (s S013) Run(d *data.TerraformNodeData, _ bool) []error {
 	if SkipRule(d.Type, d.Name, s.ID()) || !d.Document.Exists {
 		return nil
 	}
@@ -69,17 +71,12 @@ func (s S013) Run(d *data.TerraformNodeData, fix bool) []error {
 	}
 
 	if idAttrIdx != -1 && idAttrIdx != firstAttrIdx {
-		if fix {
-			// Move id line to first attribute position
-			idLine := content[idAttrIdx]
-			content = append(content[:idAttrIdx], content[idAttrIdx+1:]...)
-			content = append(content[:firstAttrIdx], append([]string{idLine}, content[firstAttrIdx:]...)...)
-			section.SetContent(content)
-			d.Document.HasChange = true
-		}
+		firstLine := content[firstAttrIdx]
+		idLine := content[idAttrIdx]
+
 		return []error{NewValidationIssue(s.ID(), s.Name(), "id",
 			fmt.Sprintf("`id` should be the first attribute (currently at line %d, first at %d)", idAttrIdx+1, firstAttrIdx+1),
-			d.Document.Path, content[firstAttrIdx], content[idAttrIdx])}
+			d.Document.Path, firstLine, idLine)}
 	}
 
 	return nil
