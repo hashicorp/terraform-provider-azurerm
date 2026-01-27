@@ -37,7 +37,7 @@ func TestAccLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -82,7 +82,7 @@ func TestAccLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.authSSHKeyUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -104,21 +104,21 @@ func TestAccLinuxVirtualMachineScaleSet_authEd25519SSHKeys(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.authSSHKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.authEd25519SSHKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -251,6 +251,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   sku                 = "Standard_F2"
   instances           = 1
   admin_username      = "adminuser"
+  admin_password      = "P@ssw0rd1234!"
 
   admin_ssh_key {
     username   = "adminuser"
