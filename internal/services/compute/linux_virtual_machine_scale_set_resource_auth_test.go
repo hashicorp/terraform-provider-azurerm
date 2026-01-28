@@ -206,7 +206,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   sku                             = "Standard_F2"
   instances                       = 1
   admin_username                  = "adminuser"
-  disable_password_authentication = %3t
+  disable_password_authentication = %[3]t
 
   admin_ssh_key {
     username   = "adminuser"
