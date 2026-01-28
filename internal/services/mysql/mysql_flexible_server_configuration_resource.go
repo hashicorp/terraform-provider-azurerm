@@ -12,12 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server_configuration -service-package-name mysql -test-name interactiveTimeout -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+var mysqlFlexibleServerConfigurationResourceName = "azurerm_mysql_flexible_server_configuration"
 
 func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -26,16 +31,17 @@ func resourceMySQLFlexibleServerConfiguration() *pluginsdk.Resource {
 		Update: resourceMySQLFlexibleServerConfigurationUpdate,
 		Delete: resourceMySQLFlexibleServerConfigurationDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := configurations.ParseConfigurationID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&configurations.ConfigurationId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&configurations.ConfigurationId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -89,6 +95,10 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceMySQLFlexibleServerConfigurationRead(d, meta)
 }
 
@@ -153,7 +163,7 @@ func resourceMySQLFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, met
 	}
 	d.Set("value", value)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
