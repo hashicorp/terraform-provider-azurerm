@@ -23,6 +23,9 @@ func TestAccOrchestratedVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 			),
 		},
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
+	})
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskEphemeral(data, "ResourceDisk"),
 			Check: acceptance.ComposeTestCheckFunc(
