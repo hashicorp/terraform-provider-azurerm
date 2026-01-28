@@ -427,7 +427,7 @@ func resourceVPNServerConfigurationRead(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("setting `ipsec_policy`: %+v", err)
 			}
 
-			flattenedRadius := flattenVpnServerConfigurationRadius(props)
+			flattenedRadius := flattenVpnServerConfigurationRadius(props, d.Get("radius").([]interface{}))
 			if err := d.Set("radius", flattenedRadius); err != nil {
 				return fmt.Errorf("setting `radius`: %+v", err)
 			}
@@ -819,9 +819,29 @@ func expandVpnServerConfigurationRadius(input []interface{}) *vpnServerConfigura
 	}
 }
 
-func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties) []interface{} {
+func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurationProperties, state []interface{}) []interface{} {
 	if input == nil || (input.RadiusServerAddress == nil && (input.RadiusServers == nil || len(*input.RadiusServers) == 0)) {
 		return []interface{}{}
+	}
+
+	// Build a map of secrets from state since API doesn't return them
+	stateSecrets := map[string]string{}
+	if len(state) > 0 && state[0] != nil {
+		if current, ok := state[0].(map[string]interface{}); ok {
+			if serversRaw, ok := current["server"].([]interface{}); ok {
+				for _, raw := range serversRaw {
+					server, ok := raw.(map[string]interface{})
+					if !ok {
+						continue
+					}
+					address, _ := server["address"].(string)
+					secret, _ := server["secret"].(string)
+					if address != "" && secret != "" {
+						stateSecrets[address] = secret
+					}
+				}
+			}
+		}
 	}
 
 	clientRootCertificates := make([]interface{}, 0)
@@ -867,9 +887,16 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 	servers := make([]interface{}, 0)
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {
 		for _, v := range *input.RadiusServers {
+			secret := pointer.From(v.RadiusServerSecret)
+			// API doesn't return secrets, so use value from state if available
+			if secret == "" {
+				if stateSecret, ok := stateSecrets[v.RadiusServerAddress]; ok {
+					secret = stateSecret
+				}
+			}
 			servers = append(servers, map[string]interface{}{
 				"address": v.RadiusServerAddress,
-				"secret":  pointer.From(v.RadiusServerSecret),
+				"secret":  secret,
 				"score":   pointer.From(v.RadiusServerScore),
 			})
 		}
