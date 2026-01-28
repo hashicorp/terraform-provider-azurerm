@@ -55,8 +55,8 @@ func runAZBP005(pass *analysis.Pass) (interface{}, error) {
 }
 
 func checkLicenseHeader(pass *analysis.Pass, file *ast.File) {
-	pos := pass.Fset.Position(file.Pos())
-	if !loader.ShouldReport(pos.Filename, 1) {
+	filename := pass.Fset.Position(file.Pos()).Filename
+	if !strings.HasSuffix(filename, ".go") || !loader.ShouldReport(filename, 1) {
 		return
 	}
 

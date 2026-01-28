@@ -76,7 +76,8 @@ func (r *Runner) Run(ctx context.Context) ExitCode {
 
 	log.Printf("Loading packages...")
 	cfg := &packages.Config{
-		Mode: packages.LoadAllSyntax,
+		Mode:  packages.LoadAllSyntax,
+		Tests: true,
 	}
 	pkgs, err := packages.Load(cfg, patterns...)
 	if err != nil {
