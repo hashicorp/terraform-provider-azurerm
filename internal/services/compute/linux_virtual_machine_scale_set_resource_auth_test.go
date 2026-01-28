@@ -32,7 +32,7 @@ func TestAccLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -77,7 +77,7 @@ func TestAccLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -106,7 +106,7 @@ func TestAccLinuxVirtualMachineScaleSet_authEd25519SSHKeys(t *testing.T) {
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -129,28 +129,28 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// disable it
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep(),
 		{
 			// enable it
-			Config: r.authPasswordDisabled(data),
+			Config: r.authSSHKey(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep(),
 		{
 			// disable it
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep(),
 	})
 }
 
@@ -195,48 +195,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) authPasswordDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
-
-  disable_password_authentication = true
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineScaleSetResource) authSSHKey(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) authSSHKey(data acceptance.TestData, disablePasswordAuth bool) string {
 	return fmt.Sprintf(`
 %s
 
@@ -247,7 +206,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   sku                             = "Standard_F2"
   instances                       = 1
   admin_username                  = "adminuser"
-  disable_password_authentication = true
+  disable_password_authentication = %3t
 
   admin_ssh_key {
     username   = "adminuser"
@@ -277,7 +236,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, disablePasswordAuth)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) authEd25519SSHKey(data acceptance.TestData) string {
