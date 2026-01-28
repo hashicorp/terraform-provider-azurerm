@@ -3,7 +3,7 @@
 
 package workloads
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_three_tier_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_three_tier_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
 
 import (
 	"context"
