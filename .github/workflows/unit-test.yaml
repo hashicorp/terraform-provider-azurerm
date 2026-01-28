@@ -40,9 +40,13 @@ jobs:
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: ./.go-version
+      - name: '[Diagnostic] Report Go module cache and build cache disk usage'
+        run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE)'
       - run: bash scripts/gogetcookie.sh
       - name: Run tests
         run: go test -v -timeout=30s -parallel=20 -count=1 ./...
+        env:
+          GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}
