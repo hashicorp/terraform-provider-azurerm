@@ -824,20 +824,18 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 		return []interface{}{}
 	}
 
-	// Build a map of secrets from state since API doesn't return them
-	stateSecrets := map[string]string{}
+	// Build a map of secrets from state since the API doesn't return them
+	stateSecrets := make(map[string]string)
 	if len(state) > 0 && state[0] != nil {
 		if current, ok := state[0].(map[string]interface{}); ok {
 			if serversRaw, ok := current["server"].([]interface{}); ok {
 				for _, raw := range serversRaw {
-					server, ok := raw.(map[string]interface{})
-					if !ok {
-						continue
-					}
-					address, _ := server["address"].(string)
-					secret, _ := server["secret"].(string)
-					if address != "" && secret != "" {
-						stateSecrets[address] = secret
+					if server, ok := raw.(map[string]interface{}); ok {
+						if address, ok := server["address"].(string); ok {
+							if secret, ok := server["secret"].(string); ok && secret != "" {
+								stateSecrets[address] = secret
+							}
+						}
 					}
 				}
 			}
@@ -887,10 +885,10 @@ func flattenVpnServerConfigurationRadius(input *virtualwans.VpnServerConfigurati
 	servers := make([]interface{}, 0)
 	if input.RadiusServers != nil && len(*input.RadiusServers) > 0 {
 		for _, v := range *input.RadiusServers {
+			// API doesn't return secrets, so preserve from state
 			secret := pointer.From(v.RadiusServerSecret)
-			// API doesn't return secrets, so use value from state if available
 			if secret == "" {
-				if stateSecret, ok := stateSecrets[v.RadiusServerAddress]; ok {
+				if stateSecret, exists := stateSecrets[v.RadiusServerAddress]; exists {
 					secret = stateSecret
 				}
 			}
