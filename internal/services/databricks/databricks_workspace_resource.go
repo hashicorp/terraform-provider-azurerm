@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	previousWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2025-10-01-preview/workspaces"
+	// previousWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
@@ -368,8 +368,10 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(previousWorkspaces.ComplianceStandardHIPAA),
-									string(previousWorkspaces.ComplianceStandardPCIDSS),
+									// string(previousWorkspaces.ComplianceStandardHIPAA),
+									// string(previousWorkspaces.ComplianceStandardPCIDSS),
+									string(workspaces.ComplianceStandardHIPAA),
+									string(workspaces.ComplianceStandardPCIDSS),
 								}, false),
 							},
 						},
@@ -452,8 +454,13 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					for _, rawEnhancedSecurityCompliance := range enhancedSecurityCompliance.([]interface{}) {
 						if complianceSecurityProfileStandards, ok := rawEnhancedSecurityCompliance.(map[string]interface{})["compliance_security_profile_standards"]; ok {
 							for _, complianceSecurityProfileStandard := range complianceSecurityProfileStandards.(*pluginsdk.Set).List() {
+								/*
 								if complianceSecurityProfileStandard.(string) == string(previousWorkspaces.ComplianceStandardPCIDSS) {
 									return fmt.Errorf("`%s` `compliance_security_profile_standards` is not supported when `compute_mode` is `%s`", previousWorkspaces.ComplianceStandardPCIDSS, workspaces.ComputeModeServerless)
+								}
+								*/
+								if complianceSecurityProfileStandard.(string) == string(workspaces.ComplianceStandardPCIDSS) {
+									return fmt.Errorf("`%s` `compliance_security_profile_standards` is not supported when `compute_mode` is `%s`", workspaces.ComplianceStandardPCIDSS, workspaces.ComputeModeServerless)
 								}
 							}
 						}
@@ -1611,7 +1618,8 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 
 		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
 		for _, s := range pointer.From(v.ComplianceStandards) {
-			if s == string(previousWorkspaces.ComplianceStandardNONE) {
+			// if s == string(previousWorkspaces.ComplianceStandardNONE) {
+			if s == string(workspaces.ComplianceStandardNONE) {
 				continue
 			}
 			standards.Add(string(s))
@@ -1653,7 +1661,8 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 	}
 
 	if complianceSecurityProfileEnabled == workspaces.ComplianceSecurityProfileValueEnabled && len(complianceStandards) == 0 {
-		complianceStandards = append(complianceStandards, string(previousWorkspaces.ComplianceStandardNONE))
+		// complianceStandards = append(complianceStandards, string(previousWorkspaces.ComplianceStandardNONE))
+		complianceStandards = append(complianceStandards, string(workspaces.ComplianceStandardNONE))
 	}
 
 	return &workspaces.EnhancedSecurityComplianceDefinition{
