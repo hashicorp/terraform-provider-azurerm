@@ -235,6 +235,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
+
 func (r LinuxVirtualMachineScaleSetResource) authSSHKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
