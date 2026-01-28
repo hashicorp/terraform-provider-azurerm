@@ -58,7 +58,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 -> **Note:** When the `ECPU` is selected, the value for `cpu_core_count` is 0.
 
--> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
+-> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
 
 * `customer_contacts` - A list of Customer's contact email addresses.
 
@@ -110,9 +110,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_endpoint_ip` - The private endpoint IP address for the resource.
 
-* `private_endpoint_url` - The private endpoint for the resource.
-
 * `private_endpoint_label` - The private endpoint label for the resource.
+
+* `private_endpoint_url` - The private endpoint for the resource.
 
 * `provisionable_cpus` - An array of CPU values that an Autonomous Database can be scaled to.
 

@@ -59,21 +59,21 @@ resource "azurerm_oracle_autonomous_database" "primary" {
 }
 
 resource "azurerm_virtual_network" "dr_vnet" {
-  name                = "drVnet"
+  name                = "exampleDrVnet"
   location            = "westus"
   resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "dr_subnet" {
-  name                 = "drSubnet"
+  name                 = "exampleDrSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.dr_vnet.name
   address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "dr_example" {
-  name                                = "exampledr"
+  name                                = "exampleDr"
   display_name                        = "ExampleDR"
   location                            = "westus"
   resource_group_name                 = azurerm_resource_group.example.name
@@ -92,9 +92,9 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "dr
 
 The following arguments are supported:
 
-* `resource_group_name` - (Required) The name of the Resource Group where the resource should exist. Changing this forces a new resource to be created.
-
 * `name` - (Required) The name for this Cross Region Disaster Recovery Autonomous Database. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the resource should exist. Changing this forces a new resource to be created.
 
 * `location` - (Required) The Azure Region where the Cross Region Disaster Recovery Autonomous Database should exist. Must differ from the primary region. Changing this forces a new resource to be created.
 
@@ -106,7 +106,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet in the target region. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) Map of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -126,7 +126,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_model` - The compute model of the Autonomous Database.
 
-* `customer_contacts` - A list of Customer's contact email addresses.
+* `customer_contacts` - A list of customer contact email addresses.
 
 * `data_storage_size_in_tb` - The maximum storage that can be allocated for the database in terabytes.
 
@@ -134,7 +134,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `database_workload` - The Autonomous Database workload type.
 
-* `license_model` - The Oracle license model that applied to the Oracle Autonomous Database.
+* `license_model` - The Oracle license model that applies to the Oracle Autonomous Database.
 
 * `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
 

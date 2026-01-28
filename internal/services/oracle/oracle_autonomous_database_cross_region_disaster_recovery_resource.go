@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package oracle
@@ -179,7 +179,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 			if sourceDb.Model == nil {
 				return fmt.Errorf("retrieving %s: `Model` was nil", sourceId)
 			}
-			sourceLocation := sourceDb.Model.Location
+			sourceLocation := location.Normalize(sourceDb.Model.Location)
 			if location.Normalize(model.Location) == location.Normalize(sourceLocation) {
 				return fmt.Errorf("disaster Recovery database must reside in a different region from the source database (source is '%s', target is '%s')", sourceLocation, model.Location)
 			}
