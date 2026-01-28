@@ -160,7 +160,6 @@ func TestAccApplicationGateway_overridePath(t *testing.T) {
 }
 
 func TestAccApplicationGateway_http2Deprecated(t *testing.T) {
-
 	if features.FivePointOh() {
 		t.Skip("Skipping as `enable_http2` is deprecated in favour of `http2_enabled` in v5.0 of the provider")
 	}
