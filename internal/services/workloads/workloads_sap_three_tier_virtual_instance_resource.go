@@ -3,6 +3,8 @@
 
 package workloads
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_three_tier_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 import (
 	"context"
 	"errors"
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -154,7 +157,14 @@ type SharedStorage struct {
 
 type WorkloadsSAPThreeTierVirtualInstanceResource struct{}
 
-var _ sdk.ResourceWithUpdate = WorkloadsSAPThreeTierVirtualInstanceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = WorkloadsSAPThreeTierVirtualInstanceResource{}
+	_ sdk.ResourceWithIdentity = WorkloadsSAPThreeTierVirtualInstanceResource{}
+)
+
+func (WorkloadsSAPThreeTierVirtualInstanceResource) Identity() resourceids.ResourceId {
+	return &sapvirtualinstances.SapVirtualInstanceId{}
+}
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_three_tier_virtual_instance"
@@ -1154,6 +1164,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Create() sdk.ResourceFunc 
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
