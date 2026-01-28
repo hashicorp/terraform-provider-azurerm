@@ -78,7 +78,7 @@ jobs:
       - name: Beam up
         run: |
             export DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
-            if [[ -z "$DATADOG_API_KEY ]]; then
+            if [[ -z "$DATADOG_API_KEY" ]]; then
               echo "where is the key"
               exit 2
             fi
