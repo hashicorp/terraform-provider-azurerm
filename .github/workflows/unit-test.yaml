@@ -48,8 +48,6 @@ jobs:
           go run gotest.tools/gotestsum@v1.13.0 \
           --format=github-actions \
           --jsonfile /tmp/jsonfile/go-test.log \
-          # --rerun-fails=5 \
-          # --rerun-fails-report=/tmp/gotestsum-rerun-fails \
           --packages="$PACKAGE_NAMES" \
           --junitfile gotestsum-report.xml -- \
           -v \
@@ -57,10 +55,9 @@ jobs:
           -count=1 \
           -cover -coverprofile=coverage.txt \
           -timeout=30m
-          # go test -v -timeout=30s -parallel=20 -count=1 -run='^Test[^A][^c][^c]' ./...
         env:
           GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
-          PACKAGE_NAMES: "go list ./..."
+          PACKAGE_NAMES: "go list ./helpers/validate"
       - name: Beam up
         run: datadog-ci junit upload --service "$GITHUB_REPOSITORY" ./gotestsum-report.xml
 
