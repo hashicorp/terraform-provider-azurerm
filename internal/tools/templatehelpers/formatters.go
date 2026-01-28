@@ -20,6 +20,7 @@ var TplFuncMap = template.FuncMap{
 	"ToLower":                        strings.ToLower,
 	"ToTitle":                        ToTitle,
 	"ToCamel":                        strcase.ToCamel,
+	"ToCamelPreserveAcronyms":        ToCamelPreserveAcronyms,
 	"ToSnake":                        strcase.ToSnake,
 	"TfName":                         TerraformResourceName,
 	"ToString":                       ToString,
@@ -31,6 +32,7 @@ var TplFuncMap = template.FuncMap{
 	"NewIDResourceIdentityFormatter": NewIDResourceIdentityFormatter,
 	"NewIDCreateFormatter":           NewIDCreateFormatter,
 	"ClientToPackageName":            ClientToPackageName,
+	"QuoteIfNeeded":                  QuoteIfNeeded,
 }
 
 // TerraformResourceName generates a Terraform-compliant resource name by combining the provider and resource name.
@@ -135,4 +137,31 @@ func NewIDCreateFormatter(idType []string, idSegments []string, prefix string) s
 
 func ClientToPackageName(input string) string {
 	return strings.ToLower(strings.TrimSuffix(input, "Client"))
+}
+
+// ToCamelPreserveAcronyms converts snake_case to CamelCase while preserving certain acronyms
+func ToCamelPreserveAcronyms(input string) string {
+	acronyms := map[string]string{
+		"Sap": "SAP",
+	}
+
+	result := strcase.ToCamel(input)
+
+	for old, new := range acronyms {
+		result = strings.ReplaceAll(result, old, new)
+	}
+
+	return result
+}
+
+// QuoteIfNeeded adds quotes around a string if it doesn't contain Go operators or expressions
+// This is used for test parameters that might be string literals or Go expressions
+func QuoteIfNeeded(input string) string {
+	simpleIdentifier := regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_]*$`)
+
+	if simpleIdentifier.MatchString(input) {
+		return fmt.Sprintf("\"%s\"", input)
+	}
+
+	return input
 }

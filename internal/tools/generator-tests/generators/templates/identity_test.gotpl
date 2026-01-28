@@ -17,12 +17,12 @@ import (
 
 {{- $resourceName := .ResourceName }}
 {{- if .TestSequential }}
-func testAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
+func testAcc{{ToCamelPreserveAcronyms .ResourceName}}_resourceIdentity(t *testing.T) {
 {{- else }}
-func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
+func TestAcc{{ToCamelPreserveAcronyms .ResourceName}}_resourceIdentity(t *testing.T) {
 {{- end }}
 	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
-	r := {{ ToCamel $resourceName }}Resource{}
+	r := {{ ToCamelPreserveAcronyms $resourceName }}Resource{}
 
 	checkedFields := map[string]struct{}{
 	{{- if not .NoSubscriptionID }}
@@ -42,7 +42,7 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			{{- if (gt (.TestParams | len) 0) }}
-			Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
+			Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , {{ QuoteIfNeeded $v }} {{ end }}),
 				{{- else }}
 			Config: r.{{ .TestName }}(data),
 			{{- end }}
