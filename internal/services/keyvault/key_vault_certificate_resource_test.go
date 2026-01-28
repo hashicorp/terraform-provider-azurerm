@@ -125,12 +125,12 @@ func TestAccKeyVaultCertificate_certificateTypeRequiresValidDigiCertValue(t *tes
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate", "test")
 	r := KeyVaultCertificateResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.certificateTypeInvalidForDigiCert(data),
-			ExpectError: regexp.MustCompile("`certificate_type` must be one of"),
-		},
-	})
+  data.ResourceTest(t, r, []acceptance.TestStep{
+    {
+      Config:      r.certificateTypeInvalidForDigiCert(data),
+      ExpectError: regexp.MustCompile("expected certificate_policy\\.0\\.issuer_parameters\\.0\\.certificate_type to be one of"),
+    },
+  })
 }
 
 func TestAccKeyVaultCertificate_updateLifeTime(t *testing.T) {
