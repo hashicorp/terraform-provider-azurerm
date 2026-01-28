@@ -111,6 +111,14 @@ func (r ContainerAppResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			// suppress difference due to computation of "Consumption" by Azure when `workload_profile_name` is not set
+			DiffSuppressOnRefresh: true,
+			DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
+				if old == "Consumption" && new == "" {
+					return true
+				}
+				return false
+			},
 		},
 
 		"max_inactive_revisions": {
