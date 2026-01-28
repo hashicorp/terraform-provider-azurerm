@@ -537,6 +537,11 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 			props := existing.Model.Properties
 
+			// `Administrators` is only valid when specified during creation
+			// This not ideal, but matches previous behaviour (when the request body was built from scratch rather than modifying a returned one)
+			// Without this, we receive this error: `Invalid value given for parameter AzureADOnlyAuthentication`
+			props.Administrators = nil
+
 			if metadata.ResourceData.HasChange("sku_name") {
 				sku, err := r.expandSkuName(state.SkuName)
 				if err != nil {
@@ -746,6 +751,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					// read from state since when `azuread_authentication_only` is enabled via resource `azurerm_mssql_managed_instance_active_directory_administrator`,
 					// the API returns the value of `AzureActiveDirectoryAdministrator` which causes diff.
+					// TODO: revisit this (on migration to Framework?), currently this resource cannot determine drift on `azure_active_directory_administrator`
 					model.AzureActiveDirectoryAdministrator = state.AzureActiveDirectoryAdministrator
 
 					model.Collation = pointer.From(props.Collation)
