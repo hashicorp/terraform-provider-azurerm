@@ -304,7 +304,7 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                       = "acctestsa%[2]d"
+  name                       = "acctestsa%[1]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   account_tier               = "Standard"
@@ -326,7 +326,7 @@ resource "azurerm_data_factory_linked_service_azure_blob_storage" "test" {
   use_managed_identity = true
   storage_kind         = "StorageV2"
 }
-`, data.RandomInteger, data.RandomIntOfLength(10), data.Locations.Primary)
+`, data.RandomIntOfLength(10), data.Locations.Primary)
 }
 
 func (LinkedServiceAzureBlobStorageResource) sasUri(data acceptance.TestData) string {
