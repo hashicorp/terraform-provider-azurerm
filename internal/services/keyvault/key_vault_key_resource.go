@@ -421,6 +421,8 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
+	client.KeysClientSetEndpoint(id.BaseURI)
+
 	keyOptions := expandKeyVaultKeyOptions(d)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -468,6 +470,8 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	if err != nil {
 		return err
 	}
+
+	client.KeysClientSetEndpoint(id.BaseURI)
 
 	resp, err := client.GetKey(ctx, *id)
 	if err != nil {
