@@ -75,7 +75,7 @@ func (s S013) Run(d *data.TerraformNodeData, _ bool) []error {
 		idLine := content[idAttrIdx]
 
 		return []error{NewValidationIssue(s.ID(), s.Name(), "id",
-			fmt.Sprintf("`id` should be the first attribute (currently at line %d, first at %d)", idAttrIdx+1, firstAttrIdx+1),
+			fmt.Sprintf("`id` should be the first attribute"),
 			d.Document.Path, firstLine, idLine)}
 	}
 
