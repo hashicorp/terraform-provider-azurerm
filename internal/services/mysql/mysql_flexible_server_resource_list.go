@@ -79,7 +79,7 @@ func (r MysqlFlexibleServerListResource) List(ctx context.Context, request list.
 			rd := resourceMysqlFlexibleServer().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceMysqlFlexibleServerSetResourceData(rd, id, &server, metadata); err != nil {
+			if err := resourceMysqlFlexibleServerFlatten(rd, id, &server, metadata); err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerResourceName), err)
 				return
 			}
