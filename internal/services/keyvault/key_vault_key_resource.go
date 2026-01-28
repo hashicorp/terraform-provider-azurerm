@@ -344,12 +344,12 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		parameters.Attributes.Nbf = pointer.To(notBeforeDate.Unix())
+		parameters.Attributes.Nbf = pointer.To(notBeforeDate.UnixMilli())
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		parameters.Attributes.Exp = pointer.To(expirationDate.Unix())
+		parameters.Attributes.Exp = pointer.To(expirationDate.UnixMilli())
 	}
 
 	if resp, err := client.CreateKey(ctx, id, parameters); err != nil {
@@ -434,12 +434,12 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if v, ok := d.GetOk("not_before_date"); ok {
 		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		parameters.Attributes.Nbf = pointer.To(notBeforeDate.Unix())
+		parameters.Attributes.Nbf = pointer.To(notBeforeDate.UnixMilli())
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
 		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) // validated by schema
-		parameters.Attributes.Exp = pointer.To(expirationDate.Unix())
+		parameters.Attributes.Exp = pointer.To(expirationDate.UnixMilli())
 	}
 
 	if _, err = client.UpdateKey(ctx, *id, parameters); err != nil {
