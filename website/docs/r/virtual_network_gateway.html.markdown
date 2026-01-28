@@ -51,7 +51,7 @@ resource "azurerm_virtual_network_gateway" "example" {
   vpn_type = "RouteBased"
 
   active_active = false
-  bgp_enabled    = false
+  bgp_enabled   = false
   sku           = "Basic"
 
   ip_configuration {
