@@ -132,10 +132,10 @@ func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return resourceMySqlFlexibleServerFirewallRuleSetResourceData(d, id, resp.Model)
+	return resourceMySqlFlexibleServerFirewallRuleFlatten(d, id, resp.Model)
 }
 
-func resourceMySqlFlexibleServerFirewallRuleSetResourceData(d *pluginsdk.ResourceData, id *firewallrules.FirewallRuleId, rule *firewallrules.FirewallRule) error {
+func resourceMySqlFlexibleServerFirewallRuleFlatten(d *pluginsdk.ResourceData, id *firewallrules.FirewallRuleId, rule *firewallrules.FirewallRule) error {
 	d.Set("name", id.FirewallRuleName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)

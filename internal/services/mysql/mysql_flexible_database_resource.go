@@ -131,10 +131,10 @@ func resourceMySqlFlexibleDatabaseRead(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return resourceMySqlFlexibleDatabaseSetResourceData(d, id, resp.Model)
+	return resourceMySqlFlexibleDatabaseFlatten(d, id, resp.Model)
 }
 
-func resourceMySqlFlexibleDatabaseSetResourceData(d *pluginsdk.ResourceData, id *databases.DatabaseId, database *databases.Database) error {
+func resourceMySqlFlexibleDatabaseFlatten(d *pluginsdk.ResourceData, id *databases.DatabaseId, database *databases.Database) error {
 	d.Set("name", id.DatabaseName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)

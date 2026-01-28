@@ -48,7 +48,6 @@ func (r MysqlFlexibleDatabaseListResource) ListResourceConfigSchema(_ context.Co
 	}
 }
 
-//goland:noinspection ALL
 func (r MysqlFlexibleDatabaseListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.MySQL.FlexibleServers.Databases
 
@@ -88,7 +87,7 @@ func (r MysqlFlexibleDatabaseListResource) List(ctx context.Context, request lis
 			rd := resourceMySqlFlexibleDatabase().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceMySqlFlexibleDatabaseSetResourceData(rd, id, &db); err != nil {
+			if err := resourceMySqlFlexibleDatabaseFlatten(rd, id, &db); err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleDatabaseResourceName), err)
 				return
 			}

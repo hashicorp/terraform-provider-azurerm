@@ -87,7 +87,7 @@ func (r MysqlFlexibleServerFirewallRuleListResource) List(ctx context.Context, r
 			rd := resourceMySqlFlexibleServerFirewallRule().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceMySqlFlexibleServerFirewallRuleSetResourceData(rd, id, &rule); err != nil {
+			if err := resourceMySqlFlexibleServerFirewallRuleFlatten(rd, id, &rule); err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerFirewallResourceName), err)
 				return
 			}
