@@ -140,7 +140,6 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
