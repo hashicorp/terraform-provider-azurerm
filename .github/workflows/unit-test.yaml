@@ -57,7 +57,7 @@ jobs:
           -timeout=30m
         env:
           GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
-          PACKAGE_NAMES: "go list ./helpers/validate"
+          PACKAGE_NAMES: "./helpers/validate"
       - name: Beam up
         run: datadog-ci junit upload --service "$GITHUB_REPOSITORY" ./gotestsum-report.xml
 
