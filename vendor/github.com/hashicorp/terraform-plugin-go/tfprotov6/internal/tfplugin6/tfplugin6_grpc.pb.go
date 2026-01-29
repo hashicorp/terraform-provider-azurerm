@@ -1,9 +1,9 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-// Terraform Plugin RPC protocol version 6.10
+// Terraform Plugin RPC protocol version 6.11
 //
-// This file defines version 6.10 of the RPC protocol. To implement a plugin
+// This file defines version 6.11 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
@@ -67,6 +67,14 @@ const (
 	Provider_ValidateActionConfig_FullMethodName            = "/tfplugin6.Provider/ValidateActionConfig"
 	Provider_PlanAction_FullMethodName                      = "/tfplugin6.Provider/PlanAction"
 	Provider_InvokeAction_FullMethodName                    = "/tfplugin6.Provider/InvokeAction"
+	Provider_ValidateStateStoreConfig_FullMethodName        = "/tfplugin6.Provider/ValidateStateStoreConfig"
+	Provider_ConfigureStateStore_FullMethodName             = "/tfplugin6.Provider/ConfigureStateStore"
+	Provider_ReadStateBytes_FullMethodName                  = "/tfplugin6.Provider/ReadStateBytes"
+	Provider_WriteStateBytes_FullMethodName                 = "/tfplugin6.Provider/WriteStateBytes"
+	Provider_LockState_FullMethodName                       = "/tfplugin6.Provider/LockState"
+	Provider_UnlockState_FullMethodName                     = "/tfplugin6.Provider/UnlockState"
+	Provider_GetStates_FullMethodName                       = "/tfplugin6.Provider/GetStates"
+	Provider_DeleteState_FullMethodName                     = "/tfplugin6.Provider/DeleteState"
 	Provider_StopProvider_FullMethodName                    = "/tfplugin6.Provider/StopProvider"
 )
 
@@ -119,6 +127,22 @@ type ProviderClient interface {
 	ValidateActionConfig(ctx context.Context, in *ValidateActionConfig_Request, opts ...grpc.CallOption) (*ValidateActionConfig_Response, error)
 	PlanAction(ctx context.Context, in *PlanAction_Request, opts ...grpc.CallOption) (*PlanAction_Response, error)
 	InvokeAction(ctx context.Context, in *InvokeAction_Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[InvokeAction_Event], error)
+	// ValidateStateStoreConfig performs configuration validation
+	ValidateStateStoreConfig(ctx context.Context, in *ValidateStateStoreConfig_Request, opts ...grpc.CallOption) (*ValidateStateStoreConfig_Response, error)
+	// ConfigureStateStore configures the state store, such as S3 connection in the context of already configured provider
+	ConfigureStateStore(ctx context.Context, in *ConfigureStateStore_Request, opts ...grpc.CallOption) (*ConfigureStateStore_Response, error)
+	// ReadStateBytes streams byte chunks of a given state file from a state store
+	ReadStateBytes(ctx context.Context, in *ReadStateBytes_Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ReadStateBytes_ResponseChunk], error)
+	// WriteStateBytes streams byte chunks of a given state file into a state store
+	WriteStateBytes(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[WriteStateBytes_RequestChunk, WriteStateBytes_Response], error)
+	// LockState locks a given state (i.e. CE workspace)
+	LockState(ctx context.Context, in *LockState_Request, opts ...grpc.CallOption) (*LockState_Response, error)
+	// UnlockState unlocks a given state (i.e. CE workspace)
+	UnlockState(ctx context.Context, in *UnlockState_Request, opts ...grpc.CallOption) (*UnlockState_Response, error)
+	// GetStates returns a list of all states (i.e. CE workspaces) managed by a given state store
+	GetStates(ctx context.Context, in *GetStates_Request, opts ...grpc.CallOption) (*GetStates_Response, error)
+	// DeleteState instructs a given state store to delete a specific state (i.e. a CE workspace)
+	DeleteState(ctx context.Context, in *DeleteState_Request, opts ...grpc.CallOption) (*DeleteState_Response, error)
 	// ////// Graceful Shutdown
 	StopProvider(ctx context.Context, in *StopProvider_Request, opts ...grpc.CallOption) (*StopProvider_Response, error)
 }
@@ -409,6 +433,98 @@ func (c *providerClient) InvokeAction(ctx context.Context, in *InvokeAction_Requ
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Provider_InvokeActionClient = grpc.ServerStreamingClient[InvokeAction_Event]
 
+func (c *providerClient) ValidateStateStoreConfig(ctx context.Context, in *ValidateStateStoreConfig_Request, opts ...grpc.CallOption) (*ValidateStateStoreConfig_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateStateStoreConfig_Response)
+	err := c.cc.Invoke(ctx, Provider_ValidateStateStoreConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) ConfigureStateStore(ctx context.Context, in *ConfigureStateStore_Request, opts ...grpc.CallOption) (*ConfigureStateStore_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfigureStateStore_Response)
+	err := c.cc.Invoke(ctx, Provider_ConfigureStateStore_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) ReadStateBytes(ctx context.Context, in *ReadStateBytes_Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ReadStateBytes_ResponseChunk], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Provider_ServiceDesc.Streams[2], Provider_ReadStateBytes_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[ReadStateBytes_Request, ReadStateBytes_ResponseChunk]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Provider_ReadStateBytesClient = grpc.ServerStreamingClient[ReadStateBytes_ResponseChunk]
+
+func (c *providerClient) WriteStateBytes(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[WriteStateBytes_RequestChunk, WriteStateBytes_Response], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Provider_ServiceDesc.Streams[3], Provider_WriteStateBytes_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WriteStateBytes_RequestChunk, WriteStateBytes_Response]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Provider_WriteStateBytesClient = grpc.ClientStreamingClient[WriteStateBytes_RequestChunk, WriteStateBytes_Response]
+
+func (c *providerClient) LockState(ctx context.Context, in *LockState_Request, opts ...grpc.CallOption) (*LockState_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LockState_Response)
+	err := c.cc.Invoke(ctx, Provider_LockState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) UnlockState(ctx context.Context, in *UnlockState_Request, opts ...grpc.CallOption) (*UnlockState_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnlockState_Response)
+	err := c.cc.Invoke(ctx, Provider_UnlockState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) GetStates(ctx context.Context, in *GetStates_Request, opts ...grpc.CallOption) (*GetStates_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStates_Response)
+	err := c.cc.Invoke(ctx, Provider_GetStates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) DeleteState(ctx context.Context, in *DeleteState_Request, opts ...grpc.CallOption) (*DeleteState_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteState_Response)
+	err := c.cc.Invoke(ctx, Provider_DeleteState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *providerClient) StopProvider(ctx context.Context, in *StopProvider_Request, opts ...grpc.CallOption) (*StopProvider_Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(StopProvider_Response)
@@ -468,6 +584,22 @@ type ProviderServer interface {
 	ValidateActionConfig(context.Context, *ValidateActionConfig_Request) (*ValidateActionConfig_Response, error)
 	PlanAction(context.Context, *PlanAction_Request) (*PlanAction_Response, error)
 	InvokeAction(*InvokeAction_Request, grpc.ServerStreamingServer[InvokeAction_Event]) error
+	// ValidateStateStoreConfig performs configuration validation
+	ValidateStateStoreConfig(context.Context, *ValidateStateStoreConfig_Request) (*ValidateStateStoreConfig_Response, error)
+	// ConfigureStateStore configures the state store, such as S3 connection in the context of already configured provider
+	ConfigureStateStore(context.Context, *ConfigureStateStore_Request) (*ConfigureStateStore_Response, error)
+	// ReadStateBytes streams byte chunks of a given state file from a state store
+	ReadStateBytes(*ReadStateBytes_Request, grpc.ServerStreamingServer[ReadStateBytes_ResponseChunk]) error
+	// WriteStateBytes streams byte chunks of a given state file into a state store
+	WriteStateBytes(grpc.ClientStreamingServer[WriteStateBytes_RequestChunk, WriteStateBytes_Response]) error
+	// LockState locks a given state (i.e. CE workspace)
+	LockState(context.Context, *LockState_Request) (*LockState_Response, error)
+	// UnlockState unlocks a given state (i.e. CE workspace)
+	UnlockState(context.Context, *UnlockState_Request) (*UnlockState_Response, error)
+	// GetStates returns a list of all states (i.e. CE workspaces) managed by a given state store
+	GetStates(context.Context, *GetStates_Request) (*GetStates_Response, error)
+	// DeleteState instructs a given state store to delete a specific state (i.e. a CE workspace)
+	DeleteState(context.Context, *DeleteState_Request) (*DeleteState_Response, error)
 	// ////// Graceful Shutdown
 	StopProvider(context.Context, *StopProvider_Request) (*StopProvider_Response, error)
 	mustEmbedUnimplementedProviderServer()
@@ -557,6 +689,30 @@ func (UnimplementedProviderServer) PlanAction(context.Context, *PlanAction_Reque
 }
 func (UnimplementedProviderServer) InvokeAction(*InvokeAction_Request, grpc.ServerStreamingServer[InvokeAction_Event]) error {
 	return status.Errorf(codes.Unimplemented, "method InvokeAction not implemented")
+}
+func (UnimplementedProviderServer) ValidateStateStoreConfig(context.Context, *ValidateStateStoreConfig_Request) (*ValidateStateStoreConfig_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateStateStoreConfig not implemented")
+}
+func (UnimplementedProviderServer) ConfigureStateStore(context.Context, *ConfigureStateStore_Request) (*ConfigureStateStore_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ConfigureStateStore not implemented")
+}
+func (UnimplementedProviderServer) ReadStateBytes(*ReadStateBytes_Request, grpc.ServerStreamingServer[ReadStateBytes_ResponseChunk]) error {
+	return status.Errorf(codes.Unimplemented, "method ReadStateBytes not implemented")
+}
+func (UnimplementedProviderServer) WriteStateBytes(grpc.ClientStreamingServer[WriteStateBytes_RequestChunk, WriteStateBytes_Response]) error {
+	return status.Errorf(codes.Unimplemented, "method WriteStateBytes not implemented")
+}
+func (UnimplementedProviderServer) LockState(context.Context, *LockState_Request) (*LockState_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LockState not implemented")
+}
+func (UnimplementedProviderServer) UnlockState(context.Context, *UnlockState_Request) (*UnlockState_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnlockState not implemented")
+}
+func (UnimplementedProviderServer) GetStates(context.Context, *GetStates_Request) (*GetStates_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStates not implemented")
+}
+func (UnimplementedProviderServer) DeleteState(context.Context, *DeleteState_Request) (*DeleteState_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteState not implemented")
 }
 func (UnimplementedProviderServer) StopProvider(context.Context, *StopProvider_Request) (*StopProvider_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StopProvider not implemented")
@@ -1036,6 +1192,132 @@ func _Provider_InvokeAction_Handler(srv interface{}, stream grpc.ServerStream) e
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Provider_InvokeActionServer = grpc.ServerStreamingServer[InvokeAction_Event]
 
+func _Provider_ValidateStateStoreConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateStateStoreConfig_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).ValidateStateStoreConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_ValidateStateStoreConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).ValidateStateStoreConfig(ctx, req.(*ValidateStateStoreConfig_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_ConfigureStateStore_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ConfigureStateStore_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).ConfigureStateStore(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_ConfigureStateStore_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).ConfigureStateStore(ctx, req.(*ConfigureStateStore_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_ReadStateBytes_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ReadStateBytes_Request)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(ProviderServer).ReadStateBytes(m, &grpc.GenericServerStream[ReadStateBytes_Request, ReadStateBytes_ResponseChunk]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Provider_ReadStateBytesServer = grpc.ServerStreamingServer[ReadStateBytes_ResponseChunk]
+
+func _Provider_WriteStateBytes_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ProviderServer).WriteStateBytes(&grpc.GenericServerStream[WriteStateBytes_RequestChunk, WriteStateBytes_Response]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Provider_WriteStateBytesServer = grpc.ClientStreamingServer[WriteStateBytes_RequestChunk, WriteStateBytes_Response]
+
+func _Provider_LockState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LockState_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).LockState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_LockState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).LockState(ctx, req.(*LockState_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_UnlockState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnlockState_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).UnlockState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_UnlockState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).UnlockState(ctx, req.(*UnlockState_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_GetStates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStates_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).GetStates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_GetStates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).GetStates(ctx, req.(*GetStates_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_DeleteState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteState_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).DeleteState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_DeleteState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).DeleteState(ctx, req.(*DeleteState_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Provider_StopProvider_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(StopProvider_Request)
 	if err := dec(in); err != nil {
@@ -1158,6 +1440,30 @@ var Provider_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Provider_PlanAction_Handler,
 		},
 		{
+			MethodName: "ValidateStateStoreConfig",
+			Handler:    _Provider_ValidateStateStoreConfig_Handler,
+		},
+		{
+			MethodName: "ConfigureStateStore",
+			Handler:    _Provider_ConfigureStateStore_Handler,
+		},
+		{
+			MethodName: "LockState",
+			Handler:    _Provider_LockState_Handler,
+		},
+		{
+			MethodName: "UnlockState",
+			Handler:    _Provider_UnlockState_Handler,
+		},
+		{
+			MethodName: "GetStates",
+			Handler:    _Provider_GetStates_Handler,
+		},
+		{
+			MethodName: "DeleteState",
+			Handler:    _Provider_DeleteState_Handler,
+		},
+		{
 			MethodName: "StopProvider",
 			Handler:    _Provider_StopProvider_Handler,
 		},
@@ -1172,6 +1478,16 @@ var Provider_ServiceDesc = grpc.ServiceDesc{
 			StreamName:    "InvokeAction",
 			Handler:       _Provider_InvokeAction_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "ReadStateBytes",
+			Handler:       _Provider_ReadStateBytes_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "WriteStateBytes",
+			Handler:       _Provider_WriteStateBytes_Handler,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "tfplugin6.proto",

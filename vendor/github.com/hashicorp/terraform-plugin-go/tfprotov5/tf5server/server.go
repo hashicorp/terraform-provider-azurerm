@@ -52,7 +52,7 @@ const (
 	//
 	// In the future, it may be possible to include this information directly
 	// in the protocol buffers rather than recreating a constant here.
-	protocolVersionMinor uint = 10
+	protocolVersionMinor uint = 11
 )
 
 // protocolVersion represents the combined major and minor version numbers of
@@ -456,7 +456,7 @@ func (s *server) stoppableContext(ctx context.Context) context.Context {
 // terraform-plugin-log loggers injected.
 func (s *server) loggingContext(ctx context.Context) context.Context {
 	if s.useTFLogSink {
-		ctx = tfsdklog.RegisterTestSink(ctx, s.testHandle)
+		ctx = tfsdklog.ContextWithTestLogging(ctx, s.testHandle.Name())
 	}
 
 	ctx = logging.InitContext(ctx, s.tflogSDKOpts, s.tflogOpts)

@@ -113,3 +113,15 @@ func InvokeActionClientCapabilities(in *tfplugin6.ClientCapabilities) *tfprotov6
 
 	return resp
 }
+
+func ConfigureStateStoreClientCapabilities(in *tfplugin6.StateStoreClientCapabilities) *tfprotov6.ConfigureStateStoreClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.ConfigureStateStoreClientCapabilities{
+		ChunkSize: in.ChunkSize,
+	}
+
+	return resp
+}

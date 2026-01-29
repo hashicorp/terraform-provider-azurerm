@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -848,6 +848,18 @@ type TestStep struct {
 
 	// If true, the test step will run the query command
 	Query bool
+
+	// The StateStore mode is used for testing state store implementations in a provider. The StateStore mode runs
+	// various Terraform CLI commands to ensure the configured state store operates in a manner expected by Terraform core.
+	//
+	// The StateStore mode expects state_store configuration to be provided using one of the Config, ConfigFile,
+	// or ConfigDirectory fields.
+	//
+	// StateStore mode tests that the provided state store:
+	//   - Can be successfully initialized (validation and configuring)
+	//   - Can read and write state
+	//   - Supports workspaces (creating and deleting)
+	StateStore bool
 }
 
 // ConfigPlanChecks defines the different points in a Config TestStep when plan checks can be run.

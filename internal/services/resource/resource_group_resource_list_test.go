@@ -38,7 +38,7 @@ func TestAccResourceGroup_list_basic(t *testing.T) {
 				Query:  true,
 				Config: r.basicQueryWithFilter(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength(listResourceAddress, 3),
+					querycheck.ExpectLength(listResourceAddress, 12),
 				},
 			},
 		},

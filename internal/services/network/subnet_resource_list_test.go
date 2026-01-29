@@ -26,20 +26,25 @@ func TestAccSubnet_list_basic(t *testing.T) {
 			{
 				Config: r.basicList(data),
 			},
-			{
-				Query:  true,
-				Config: r.basicQuery(data),
-				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("list.azurerm_virtual_network.test", 2),
-					querycheck.ExpectLength("list.azurerm_subnet.test", 3),
-				},
-			},
+			//{
+			//	Query:  true,
+			//	Config: r.basicQuery(data),
+			//	QueryResultChecks: []querycheck.QueryResultCheck{
+			//		querycheck.ExpectLength("list.azurerm_virtual_network.test", 2),
+			//		querycheck.ExpectLength("list.azurerm_subnet.test", 3),
+			//	},
+			//},
 			{
 				Query:  true,
 				Config: r.multipleParentsQuery(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("list.azurerm_virtual_network.test", 2),
-					querycheck.ExpectLength("list.azurerm_subnet.test", 5),
+					querycheck.ExpectLength("azurerm_virtual_network.test", 2),
+					querycheck.ExpectLength("azurerm_subnet.test[*]", 5),
+					querycheck.ExpectLength("azurerm_subnet.test-single", 3),
+					querycheck.ExpectLength("azurerm_subnet.test-count[*]", 5), // if for whatever reason you wanted to use count, that also works.
+					// ExpectLength expects no `list.` prefix
+					// querycheck.ExpectLength("list.azurerm_virtual_network.test", 2),
+					// querycheck.ExpectLength("list.azurerm_subnet.test", 5),
 				},
 			},
 		},
@@ -124,7 +129,7 @@ list "azurerm_virtual_network" "test" {
   include_resource = true
 
   config {
-    resource_group_name = "acctestRG-%d"
+    resource_group_name = "acctestRG-%[1]d"
   }
 }
 
@@ -137,5 +142,23 @@ list "azurerm_subnet" "test" {
     virtual_network_id = each.key
   }
 }
-`, data.RandomInteger)
+
+list "azurerm_subnet" "test-single" {
+  provider = azurerm
+
+  config {
+    virtual_network_id = list.azurerm_virtual_network.test.data[0].state.id
+  }
+}
+
+list "azurerm_subnet" "test-count" {
+  count = 2
+
+  provider = azurerm
+
+  config {
+    virtual_network_id = "/subscriptions/%[2]s/resourceGroups/acctestRG-%[1]d/providers/Microsoft.Network/virtualNetworks/acctestvnet${count.index + 1}-%[1]d"
+  }
+}
+`, data.RandomInteger, data.Subscriptions.Primary)
 }

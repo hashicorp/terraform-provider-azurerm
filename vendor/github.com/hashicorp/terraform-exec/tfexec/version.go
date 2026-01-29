@@ -166,7 +166,14 @@ func errorVersionString(v *version.Version) string {
 	return v.String()
 }
 
-// compatible asserts compatibility of the cached terraform version with the executable, and returns a well known error if not.
+// compatible asserts compatibility of the cached Terraform version with a set of constraints, and returns a well known error if not.
+//
+// Each command implementation with compatibility constraints will use this method to check that the available version of Terraform
+// is compatible with a given command, e.g. detect if a project consuming this library is attempting to use a flag that isn't present
+// in the Terraform binary it supplied. A common example is checking whether the version is sufficient to use the `-json` flag.
+//
+// Remember, terraform-exec is invoked with a path to an executable and has no way to know which version of Terraform it represents
+// until the executable is used.
 func (tf *Terraform) compatible(ctx context.Context, minInclusive *version.Version, maxExclusive *version.Version) error {
 	tfv, _, err := tf.Version(ctx, false)
 	if err != nil {

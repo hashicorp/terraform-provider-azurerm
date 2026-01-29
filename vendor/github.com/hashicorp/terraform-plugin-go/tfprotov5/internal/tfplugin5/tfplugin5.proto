@@ -1,14 +1,14 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-// Terraform Plugin RPC protocol version 5.10
+// Terraform Plugin RPC protocol version 5.11
 //
-// This file defines version 5.10 of the RPC protocol. To implement a plugin
+// This file defines version 5.11 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
 // This file will not be updated. Any minor versions of protocol 5 to follow
-// should copy this file and modify the copy while maintaing backwards
+// should copy this file and modify the copy while maintaining backwards
 // compatibility. Breaking changes, if any are required, will come
 // in a subsequent major version with its own separate proto definition.
 //
@@ -71,7 +71,7 @@ message Stop {
     message Request {
     }
     message Response {
-                string Error = 1;
+        string Error = 1;
     }
 }
 

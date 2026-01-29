@@ -11,9 +11,10 @@ import (
 )
 
 type workspaceNewConfig struct {
-	lock        bool
-	lockTimeout string
-	copyState   string
+	lock         bool
+	lockTimeout  string
+	copyState    string
+	reattachInfo ReattachInfo
 }
 
 var defaultWorkspaceNewOptions = workspaceNewConfig{
@@ -38,6 +39,10 @@ func (opt *CopyStateOption) configureWorkspaceNew(conf *workspaceNewConfig) {
 	conf.copyState = opt.path
 }
 
+func (opt *ReattachOption) configureWorkspaceNew(conf *workspaceNewConfig) {
+	conf.reattachInfo = opt.info
+}
+
 // WorkspaceNew represents the workspace new subcommand to the Terraform CLI.
 func (tf *Terraform) WorkspaceNew(ctx context.Context, workspace string, opts ...WorkspaceNewCmdOption) error {
 	cmd, err := tf.workspaceNewCmd(ctx, workspace, opts...)
@@ -48,8 +53,6 @@ func (tf *Terraform) WorkspaceNew(ctx context.Context, workspace string, opts ..
 }
 
 func (tf *Terraform) workspaceNewCmd(ctx context.Context, workspace string, opts ...WorkspaceNewCmdOption) (*exec.Cmd, error) {
-	// TODO: [DIR] param option
-
 	c := defaultWorkspaceNewOptions
 
 	for _, o := range opts {
@@ -80,7 +83,16 @@ func (tf *Terraform) workspaceNewCmd(ctx context.Context, workspace string, opts
 
 	args = append(args, workspace)
 
-	cmd := tf.buildTerraformCmd(ctx, nil, args...)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	cmd := tf.buildTerraformCmd(ctx, mergeEnv, args...)
 
 	return cmd, nil
 }

@@ -66,6 +66,9 @@ const (
 	// The action being operated on
 	KeyActionType = "tf_action_type"
 
+	// The type of state store being operated on, such as "examplecloud_fs"
+	KeyStateStoreType = "tf_state_store_type"
+
 	// Path to protocol data file, such as "/tmp/example.json"
 	KeyProtocolDataFile = "tf_proto_data_file"
 
@@ -84,9 +87,15 @@ const (
 	// Whether the PlanDestroy server capability is enabled
 	KeyServerCapabilityPlanDestroy = "tf_server_capability_plan_destroy"
 
+	// The final determined ChunkSize returned from the provider for transmitting state bytes.
+	KeyServerCapabilityChunkSize = "tf_server_capability_chunk_size"
+
 	// Whether the DeferralAllowed client capability is enabled
 	KeyClientCapabilityDeferralAllowed = "tf_client_capability_deferral_allowed"
 
 	// Whether the WriteOnlyAttributesAllowed client capability is enabled
 	KeyClientCapabilityWriteOnlyAttributesAllowed = "tf_client_capability_write_only_attributes_allowed"
+
+	// The ChunkSize requested from Terraform core for transmitting state bytes.
+	KeyClientCapabilityChunkSize = "tf_client_capability_chunk_size"
 )

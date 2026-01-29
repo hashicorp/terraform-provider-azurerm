@@ -26,3 +26,17 @@ func ServerCapabilities(ctx context.Context, capabilities *tfprotov6.ServerCapab
 
 	logging.ProtocolTrace(ctx, "Announced server capabilities", responseFields)
 }
+
+// StateStoreServerCapabilities generates a TRACE "Announced server capabilities" log.
+func StateStoreServerCapabilities(ctx context.Context, capabilities *tfprotov6.StateStoreServerCapabilities) {
+	if capabilities == nil {
+		logging.ProtocolTrace(ctx, "No announced server capabilities", map[string]interface{}{})
+		return
+	}
+
+	responseFields := map[string]interface{}{
+		logging.KeyServerCapabilityChunkSize: formatByteSizeToMB(capabilities.ChunkSize), // convert to megabytes for a nicer log message
+	}
+
+	logging.ProtocolTrace(ctx, "Announced server capabilities", responseFields)
+}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -62,8 +62,17 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 		protov6: c.ProtoV6ProviderFactories,
 	}
 
+	// If any of the test steps used the StateStore mode and tested an error, make sure we don't execute any more commands with an invalid state store
+	var initializationErrorOccurred bool
+
 	defer func() {
 		t.Helper()
+
+		// We can't retrieve the state because the backend/state store isn't fully initialized.
+		if initializationErrorOccurred {
+			wd.Close()
+			return
+		}
 
 		var statePreDestroy *terraform.State
 		var err error
@@ -386,6 +395,47 @@ func runNewTest(ctx context.Context, t testing.T, c TestCase, helper *plugintest
 						map[string]interface{}{logging.KeyError: err},
 					)
 					t.Fatalf("Step %d/%d error running query checks: %s", stepNumber, len(c.Steps), err)
+				}
+			}
+
+			logging.HelperResourceDebug(ctx, "Finished TestStep")
+
+			continue
+		}
+
+		if step.StateStore {
+			logging.HelperResourceTrace(ctx, "TestStep is StateStore mode")
+
+			err := testStepNewStateStore(ctx, t, wd, step, providers, cfg)
+			if err != nil {
+				// Ensure the TestStep doesn't run any Terraform commands that expect the backend/state store to be initialized
+				initializationErrorOccurred = true
+			}
+
+			if step.ExpectError != nil {
+				logging.HelperResourceDebug(ctx, "Checking TestStep ExpectError")
+				if err == nil {
+					logging.HelperResourceError(ctx, "Error running state store tests: expected an error but got none")
+					t.Fatalf("Step %d/%d error running state store tests: expected an error but got none", stepNumber, len(c.Steps))
+				}
+
+				if !step.ExpectError.MatchString(err.Error()) {
+					logging.HelperResourceError(ctx, fmt.Sprintf("Error running state store tests: expected an error with pattern (%s)", step.ExpectError.String()),
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running state store tests, expected an error with pattern (%s), no match on: %s", stepNumber, len(c.Steps), step.ExpectError.String(), err)
+				}
+			} else {
+				if err != nil && c.ErrorCheck != nil {
+					logging.HelperResourceDebug(ctx, "Calling TestCase ErrorCheck")
+					err = c.ErrorCheck(err)
+					logging.HelperResourceDebug(ctx, "Called TestCase ErrorCheck")
+				}
+				if err != nil {
+					logging.HelperResourceError(ctx, "Error running state store tests",
+						map[string]interface{}{logging.KeyError: err},
+					)
+					t.Fatalf("Step %d/%d error running state store tests: %s", stepNumber, len(c.Steps), err)
 				}
 			}
 

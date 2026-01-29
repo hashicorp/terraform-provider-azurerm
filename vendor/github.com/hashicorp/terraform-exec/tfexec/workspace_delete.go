@@ -11,9 +11,10 @@ import (
 )
 
 type workspaceDeleteConfig struct {
-	lock        bool
-	lockTimeout string
-	force       bool
+	lock         bool
+	lockTimeout  string
+	force        bool
+	reattachInfo ReattachInfo
 }
 
 var defaultWorkspaceDeleteOptions = workspaceDeleteConfig{
@@ -36,6 +37,10 @@ func (opt *LockTimeoutOption) configureWorkspaceDelete(conf *workspaceDeleteConf
 
 func (opt *ForceOption) configureWorkspaceDelete(conf *workspaceDeleteConfig) {
 	conf.force = opt.force
+}
+
+func (opt *ReattachOption) configureWorkspaceDelete(conf *workspaceDeleteConfig) {
+	conf.reattachInfo = opt.info
 }
 
 // WorkspaceDelete represents the workspace delete subcommand to the Terraform CLI.
@@ -78,7 +83,16 @@ func (tf *Terraform) workspaceDeleteCmd(ctx context.Context, workspace string, o
 
 	args = append(args, workspace)
 
-	cmd := tf.buildTerraformCmd(ctx, nil, args...)
+	mergeEnv := map[string]string{}
+	if c.reattachInfo != nil {
+		reattachStr, err := c.reattachInfo.marshalString()
+		if err != nil {
+			return nil, err
+		}
+		mergeEnv[reattachEnvVar] = reattachStr
+	}
+
+	cmd := tf.buildTerraformCmd(ctx, mergeEnv, args...)
 
 	return cmd, nil
 }

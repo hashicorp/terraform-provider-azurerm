@@ -21,3 +21,15 @@ func ServerCapabilities(in *tfprotov6.ServerCapabilities) *tfplugin6.ServerCapab
 
 	return resp
 }
+
+func StateStoreServerCapabilities(in *tfprotov6.StateStoreServerCapabilities) *tfplugin6.StateStoreServerCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfplugin6.StateStoreServerCapabilities{
+		ChunkSize: in.ChunkSize,
+	}
+
+	return resp
+}

@@ -109,6 +109,15 @@ func ActionContext(ctx context.Context, action string) context.Context {
 	return ctx
 }
 
+// StateStoreContext injects the state store type into logger contexts.
+func StateStoreContext(ctx context.Context, stateStore string) context.Context {
+	ctx = tfsdklog.SetField(ctx, KeyStateStoreType, stateStore)
+	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyStateStoreType, stateStore)
+	ctx = tflog.SetField(ctx, KeyStateStoreType, stateStore)
+
+	return ctx
+}
+
 // RpcContext injects the RPC name into logger contexts.
 func RpcContext(ctx context.Context, rpc string) context.Context {
 	ctx = tfsdklog.SetField(ctx, KeyRPC, rpc)

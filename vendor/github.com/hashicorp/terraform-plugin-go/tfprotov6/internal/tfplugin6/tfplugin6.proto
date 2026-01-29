@@ -1,9 +1,9 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-// Terraform Plugin RPC protocol version 6.10
+// Terraform Plugin RPC protocol version 6.11
 //
-// This file defines version 6.10 of the RPC protocol. To implement a plugin
+// This file defines version 6.11 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
@@ -391,6 +391,24 @@ service Provider {
     rpc PlanAction(PlanAction.Request) returns (PlanAction.Response);
     rpc InvokeAction(InvokeAction.Request) returns (stream InvokeAction.Event);
 
+    // ValidateStateStoreConfig performs configuration validation
+    rpc ValidateStateStoreConfig(ValidateStateStoreConfig.Request) returns (ValidateStateStoreConfig.Response);
+    // ConfigureStateStore configures the state store, such as S3 connection in the context of already configured provider
+    rpc ConfigureStateStore(ConfigureStateStore.Request) returns (ConfigureStateStore.Response);
+    // ReadStateBytes streams byte chunks of a given state file from a state store
+    rpc ReadStateBytes(ReadStateBytes.Request) returns (stream ReadStateBytes.ResponseChunk);
+    // WriteStateBytes streams byte chunks of a given state file into a state store
+    rpc WriteStateBytes(stream WriteStateBytes.RequestChunk) returns (WriteStateBytes.Response);
+    // LockState locks a given state (i.e. CE workspace)
+    rpc LockState(LockState.Request) returns (LockState.Response);
+    // UnlockState unlocks a given state (i.e. CE workspace)
+    rpc UnlockState(UnlockState.Request) returns (UnlockState.Response);
+
+    // GetStates returns a list of all states (i.e. CE workspaces) managed by a given state store
+    rpc GetStates(GetStates.Request) returns (GetStates.Response);
+    // DeleteState instructs a given state store to delete a specific state (i.e. a CE workspace)
+    rpc DeleteState(DeleteState.Request) returns (DeleteState.Response);
+
     //////// Graceful Shutdown
     rpc StopProvider(StopProvider.Request) returns (StopProvider.Response);
 }
@@ -409,7 +427,7 @@ message GetMetadata {
         repeated FunctionMetadata functions = 5;
         repeated EphemeralResourceMetadata ephemeral_resources = 6;
         repeated ListResourceMetadata list_resources = 7;
-        reserved 8; // TODO: Field number 8 will be used by state stores
+        repeated StateStoreMetadata state_stores = 8;
         repeated ActionMetadata actions = 9;
     }
 
@@ -434,6 +452,10 @@ message GetMetadata {
         string type_name = 1;
     }
 
+    message StateStoreMetadata {
+        string type_name = 1;
+    }
+
     message ActionMetadata {
         string type_name = 1;
     }
@@ -454,7 +476,7 @@ message GetProviderSchema {
         map<string, Function> functions = 7;
         map<string, Schema> ephemeral_resource_schemas = 8;
         map<string, Schema> list_resource_schemas = 9;
-        reserved 10; // TODO: Field number 10 will be used by state stores
+        map<string, Schema> state_store_schemas = 10;
         map<string, ActionSchema> action_schemas = 11;
     }
 }
@@ -923,4 +945,116 @@ message InvokeAction {
       Completed completed = 2;
     }
   }
+
+}
+
+message ValidateStateStoreConfig {
+    message Request {
+        string type_name = 1;
+        DynamicValue config = 2;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
+}
+
+message ConfigureStateStore {
+    message Request {
+        string type_name = 1;
+        DynamicValue config = 2;
+        StateStoreClientCapabilities capabilities = 3;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+        StateStoreServerCapabilities capabilities = 2;
+    }
+}
+
+message StateStoreClientCapabilities {
+    int64 chunk_size = 1; // suggested chunk size by Core
+}
+
+message StateStoreServerCapabilities {
+    int64 chunk_size = 1; // chosen chunk size by plugin
+}
+
+message ReadStateBytes {
+    message Request {
+        string type_name = 1;
+        string state_id = 2;
+    }
+    message ResponseChunk {
+        bytes bytes = 1;
+        int64 total_length = 2;
+        StateByteRange range = 3;
+        repeated Diagnostic diagnostics = 4;
+    }
+}
+
+message WriteStateBytes {
+    message RequestChunk {
+        // meta is sent with the first chunk only
+        optional RequestChunkMeta meta = 1;
+
+        bytes bytes = 2;
+        int64 total_length = 3;
+        StateByteRange range = 4;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
+}
+
+message RequestChunkMeta {
+    string type_name = 1;
+    string state_id = 2;
+}
+
+message StateByteRange {
+    int64 start = 1;
+    int64 end = 2;
+}
+
+message LockState {
+    message Request {
+        string type_name = 1;
+        string state_id = 2;
+        // operation represents an ongoing operation due to which lock is held (e.g. refresh, plan, apply)
+        string operation = 3;
+    }
+    message Response {
+        string lock_id = 1;
+        repeated Diagnostic diagnostics = 2;
+    }
+}
+
+message UnlockState {
+    message Request {
+        string type_name = 1;
+        string state_id = 2;
+        string lock_id = 3;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
+}
+
+message GetStates {
+	message Request {
+		string type_name = 1;
+    }
+    message Response {
+        repeated string state_ids = 1;
+        repeated Diagnostic diagnostics = 2;
+    }
+}
+
+message DeleteState {
+	message Request {
+		string type_name = 1;
+		string state_id = 2;
+    }
+	message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
 }
