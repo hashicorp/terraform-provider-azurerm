@@ -42,6 +42,7 @@ func testAccExpressRouteConnection_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -63,6 +64,7 @@ func testAccExpressRouteConnection_deprecated(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.associated_route_table_id").Exists(),
 				check.That("azurerm_express_route_connection.test").Key("routing.0.propagated_route_table.#").HasValue("1"),
+				check.That("azurerm_express_route_connection.test").Key("enable_internet_security").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -108,6 +110,7 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -115,6 +118,15 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),

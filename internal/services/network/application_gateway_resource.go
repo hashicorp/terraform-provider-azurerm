@@ -4201,13 +4201,20 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
-		verifyClientCertIssuerDn := v["verify_client_certificate_issuer_dn"].(bool)
 
+		verifyClientCertIssuerDn := false
 		if !features.FivePointOh() {
 			rawVerifyClientCertIssuerDn, _ := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("ssl_profile.%d.verify_client_cert_issuer_dn", i)))
 			if !rawVerifyClientCertIssuerDn.IsNull() {
 				verifyClientCertIssuerDn = v["verify_client_cert_issuer_dn"].(bool)
+			} else {
+				rawVerifyClientCertIssuerDn, _ := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("ssl_profile.%d.verify_client_certificate_issuer_dn", i)))
+				if !rawVerifyClientCertIssuerDn.IsNull() {
+					verifyClientCertIssuerDn = v["verify_client_certificate_issuer_dn"].(bool)
+				}
 			}
+		} else {
+			verifyClientCertIssuerDn = v["verify_client_certificate_issuer_dn"].(bool)
 		}
 		verifyClientCertificateRevocation := applicationgateways.ApplicationGatewayClientRevocationOptionsNone
 		if v["verify_client_certificate_revocation"].(string) != "" {

@@ -28,6 +28,7 @@ func TestAccVirtualNetworkGateway_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+				check.That(data.ResourceName).Key("bgp_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -240,10 +241,20 @@ func TestAccVirtualNetworkGateway_enableBgp(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bgp_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.default_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.tunnel_ip_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.ip_configuration_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+				check.That(data.ResourceName).Key("bgp_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -260,10 +271,20 @@ func TestAccVirtualNetworkGateway_enableBgpDeprecated(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("enable_bgp").HasValue("true"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.default_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.tunnel_ip_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("bgp_settings.0.peering_addresses.0.ip_configuration_name").Exists(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
+				check.That(data.ResourceName).Key("enable_bgp").HasValue("false"),
 			),
 		},
 		data.ImportStep(),

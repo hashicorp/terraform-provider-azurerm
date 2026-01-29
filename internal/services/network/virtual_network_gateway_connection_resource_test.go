@@ -28,6 +28,7 @@ func TestAccVirtualNetworkGatewayConnection_siteToSite(t *testing.T) {
 			Config: r.siteToSite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bgp_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -238,6 +239,7 @@ func TestAccVirtualNetworkGatewayConnection_useCustomBgpAddresses(t *testing.T) 
 			Config: r.useCustomBgpAddresses(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bgp_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("custom_bgp_addresses.0.primary").HasValue("169.254.21.2"),
 				check.That(data.ResourceName).Key("custom_bgp_addresses.0.secondary").HasValue("169.254.21.6"),
 			),
@@ -259,6 +261,7 @@ func TestAccVirtualNetworkGatewayConnection_useCustomBgpAddressesDeprecated(t *t
 			Config: r.useCustomBgpAddressesDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_bgp").HasValue("true"),
 				check.That(data.ResourceName).Key("custom_bgp_addresses.0.primary").HasValue("169.254.21.2"),
 				check.That(data.ResourceName).Key("custom_bgp_addresses.0.secondary").HasValue("169.254.21.6"),
 			),

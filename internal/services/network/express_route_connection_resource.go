@@ -303,9 +303,16 @@ func resourceExpressRouteConnectionUpdate(d *pluginsdk.ResourceData, meta interf
 		return err
 	}
 
-	enableInternetSecurity := d.Get("internet_security_enabled").(bool)
-	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
-		enableInternetSecurity = d.Get("enable_internet_security").(bool)
+	enableInternetSecurity := false
+	if !features.FivePointOh() && d.HasChanges("enable_internet_security", "internet_security_enabled") {
+		if d.HasChange("enable_internet_security") && !d.GetRawConfig().AsValueMap()["enable_internet_security"].IsNull() {
+			enableInternetSecurity = d.Get("enable_internet_security").(bool)
+		}
+		if d.HasChange("internet_security_enabled") && !d.GetRawConfig().AsValueMap()["internet_security_enabled"].IsNull() {
+			enableInternetSecurity = d.Get("internet_security_enabled").(bool)
+		}
+	} else if d.HasChange("internet_security_enabled") {
+		enableInternetSecurity = d.Get("internet_security_enabled").(bool)
 	}
 
 	parameters := expressrouteconnections.ExpressRouteConnection{

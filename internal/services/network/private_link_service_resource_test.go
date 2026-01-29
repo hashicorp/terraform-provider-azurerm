@@ -31,6 +31,7 @@ func TestAccPrivateLinkService_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPLS-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -168,6 +169,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -176,6 +178,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -184,6 +187,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -204,6 +208,7 @@ func TestAccPrivateLinkService_enableProxyProtocolDeprecated(t *testing.T) {
 			Config: r.enableProxyProtocolDeprecated(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_proxy_protocol").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -212,6 +217,7 @@ func TestAccPrivateLinkService_enableProxyProtocolDeprecated(t *testing.T) {
 			Config: r.enableProxyProtocolDeprecated(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_proxy_protocol").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -220,6 +226,7 @@ func TestAccPrivateLinkService_enableProxyProtocolDeprecated(t *testing.T) {
 			Config: r.enableProxyProtocolDeprecated(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_proxy_protocol").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
