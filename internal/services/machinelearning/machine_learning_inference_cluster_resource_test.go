@@ -296,11 +296,11 @@ func (r InferenceClusterResource) templateFastProd(data acceptance.TestData) str
 }
 
 func (r InferenceClusterResource) templateDevTest(data acceptance.TestData) string {
-	return r.template(data, "Standard_DS2_v2", 1)
+	return r.template(data, "Standard_DS2_v5", 1)
 }
 
 func (r InferenceClusterResource) templatePrivateDevTest(data acceptance.TestData) string {
-	return r.privateTemplate(data, "Standard_DS2_v2", 1)
+	return r.privateTemplate(data, "Standard_DS2_v5", 1)
 }
 
 func (r InferenceClusterResource) identitySystemAssigned(data acceptance.TestData) string {

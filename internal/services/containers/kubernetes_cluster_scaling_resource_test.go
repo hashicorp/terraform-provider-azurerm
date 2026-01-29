@@ -475,7 +475,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -513,7 +513,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                    = "default"
     node_count              = 1
-    vm_size                 = "Standard_DS2_v2"
+    vm_size                 = "Standard_DS2_v5"
     host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
@@ -591,7 +591,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                        = "default"
     temporary_name_for_rotation = "temp"
     node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
+    vm_size                     = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -777,7 +777,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                        = "default"
     node_count                  = 1
     temporary_name_for_rotation = "temp"
-    vm_size                     = "Standard_DS2_v2"
+    vm_size                     = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -856,7 +856,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = %d
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -894,7 +894,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -933,7 +933,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
 
     tags = {
       Hello = "World"
@@ -978,7 +978,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     auto_scaling_enabled = true
     min_count            = 2
     max_count            = 4
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1013,7 +1013,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count            = 1
     max_count            = 2
     auto_scaling_enabled = true
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1049,7 +1049,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     min_count            = 1
     max_count            = 2
     auto_scaling_enabled = true
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     zones                = ["1", "2"]
     upgrade_settings {
       max_surge = "10%%"
@@ -1091,7 +1091,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     auto_scaling_enabled = true
     min_count            = 2
     max_count            = 4
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1131,7 +1131,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     auto_scaling_enabled = true
     min_count            = 2
     max_count            = 4
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
