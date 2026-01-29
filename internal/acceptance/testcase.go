@@ -63,48 +63,17 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
-	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
-	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
-	refreshStep := TestStep{
-		RefreshState: true,
-	}
-
-	newSteps := make([]TestStep, 0)
-	for _, step := range steps {
-		// This block adds a check to make sure tests aren't recreating a resource
-		if (step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil) && !step.PlanOnly {
-			step.ConfigPlanChecks = resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
-				},
-			}
-		}
-
-		if !step.ImportState {
-			newSteps = append(newSteps, step)
-		} else {
-			newSteps = append(newSteps, refreshStep)
-			newSteps = append(newSteps, step)
-		}
-	}
-	steps = newSteps
-
-	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
-		CheckDestroy: func(s *terraform.State) error {
-			client, err := testclient.Build()
-			if err != nil {
-				return fmt.Errorf("building client: %+v", err)
-			}
-			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
-		},
-		Steps: steps,
-	}
+	testCase := addStepsHelper(t, steps, td, testResource)
 	td.runAcceptanceTest(t, testCase)
 }
 
 // ResourceTestWithVCR is an opt-in test method that uses VCR for HTTP recording/playback.
-func (td TestData) ResourceTestWithVCR(t *testing.T, testResource types.TestResource, steps []TestStep) {
+func (td TestData) ResourceTestWithVCR(t *testing.T, testResource types.TestResource, steps []TestStep) {	
+	testCase := addStepsHelper(t, steps, td, testResource)
+	td.runAcceptanceTestWithVCR(t, testCase)
+}
+
+func addStepsHelper(t *testing.T, steps []TestStep, td TestData, testResource types.TestResource) resource.TestCase {
 	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
 	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
 	refreshStep := TestStep{
@@ -142,7 +111,7 @@ func (td TestData) ResourceTestWithVCR(t *testing.T, testResource types.TestReso
 		},
 		Steps: steps,
 	}
-	td.runAcceptanceTestWithVCR(t, testCase)
+	return testCase
 }
 
 // ResourceTestIgnoreRecreate should be used when checking that a resource should be recreated during a test.

@@ -80,9 +80,7 @@ func (o ClientOptions) Configure(c client.BaseClient, authorizer auth.Authorizer
 	c.AppendRequestMiddleware(requestLoggerMiddleware("AzureRM"))
 	c.AppendResponseMiddleware(responseLoggerMiddleware("AzureRM"))
 
-	// TODO: Enable once go-azure-sdk supports SetHTTPClient method
-	// This is needed for VCR testing support
-	// c.SetHTTPClient(o.HTTPClient)
+	c.SetHTTPClient(o.HTTPClient)
 
 }
 

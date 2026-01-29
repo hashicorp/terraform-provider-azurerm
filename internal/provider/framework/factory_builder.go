@@ -52,7 +52,7 @@ func ProtoV5ProviderFactoriesInitWithHTTPClient(ctx context.Context, httpClient 
 
 	for _, name := range providerNames {
 		factories[name] = func() (tfprotov5.ProviderServer, error) {
-			providerServerFactory, _, err := ProtoV5ProviderServerFactoryWithHTTPClient(ctx, httpClient)
+			providerServerFactory, _, err := protoV5ProviderServerFactoryWithHTTPClient(ctx, httpClient)
 			if err != nil {
 				return nil, err
 			}
@@ -80,8 +80,8 @@ func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.Provide
 	return muxServer.ProviderServer, v2Provider, nil
 }
 
-// ProtoV5ProviderServerFactoryWithHTTPClient creates a provider server factory with a custom HTTP client.
-func ProtoV5ProviderServerFactoryWithHTTPClient(ctx context.Context, httpClient *http.Client) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
+// protoV5ProviderServerFactoryWithHTTPClient creates a provider server factory with a custom HTTP client.
+func protoV5ProviderServerFactoryWithHTTPClient(ctx context.Context, httpClient *http.Client) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
 	v2Provider := provider.AzureProviderWithHTTPClient(httpClient)
 
 	providers := []func() tfprotov5.ProviderServer{
