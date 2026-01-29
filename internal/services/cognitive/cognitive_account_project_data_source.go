@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -51,13 +52,15 @@ func (r CognitiveAccountProjectDataSource) IDValidationFunc() pluginsdk.SchemaVa
 func (r CognitiveAccountProjectDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.AccountProjectName(),
 		},
 
 		"cognitive_account_name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.AccountName(),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
