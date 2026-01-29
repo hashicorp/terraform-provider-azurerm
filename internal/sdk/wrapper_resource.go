@@ -231,3 +231,13 @@ func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, met
 		return out
 	}
 }
+
+func WrappedResource(resource Resource) *pluginsdk.Resource {
+	wrapper := NewResourceWrapper(resource)
+	wrappedResource, err := wrapper.Resource()
+	if err != nil {
+		panic(err)
+	}
+
+	return wrappedResource
+}
