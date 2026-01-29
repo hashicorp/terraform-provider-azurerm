@@ -32,7 +32,7 @@ func TestAccLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authSSHKey(data, false),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -77,7 +77,7 @@ func TestAccLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authSSHKey(data, false),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
