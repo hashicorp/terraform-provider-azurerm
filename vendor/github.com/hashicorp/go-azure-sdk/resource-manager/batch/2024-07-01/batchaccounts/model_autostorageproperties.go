@@ -13,7 +13,7 @@ type AutoStorageProperties struct {
 	AuthenticationMode    *AutoStorageAuthenticationMode `json:"authenticationMode,omitempty"`
 	LastKeySync           string                         `json:"lastKeySync"`
 	NodeIdentityReference *ComputeNodeIdentityReference  `json:"nodeIdentityReference,omitempty"`
-	StorageAccountId      *string                        `json:"storageAccountId"`
+	StorageAccountId      string                         `json:"storageAccountId"`
 }
 
 func (o *AutoStorageProperties) GetLastKeySyncAsTime() (*time.Time, error) {
