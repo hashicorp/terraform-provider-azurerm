@@ -91,5 +91,6 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		MysqlFlexibleServerListResource{},
 		MysqlFlexibleDatabaseListResource{},
 		MysqlFlexibleServerFirewallRuleListResource{},
+		MysqlFlexibleServerConfigurationListResource{},
 	}
 }

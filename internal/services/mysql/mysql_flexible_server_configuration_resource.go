@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server_configuration -service-package-name mysql -test-name interactiveTimeout -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server_configuration -service-package-name mysql -test-name characterSetServer -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var mysqlFlexibleServerConfigurationResourceName = "azurerm_mysql_flexible_server_configuration"
 
@@ -151,13 +151,17 @@ func resourceMySQLFlexibleServerConfigurationRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceMySQLFlexibleServerConfigurationFlatten(d, id, resp.Model)
+}
+
+func resourceMySQLFlexibleServerConfigurationFlatten(d *pluginsdk.ResourceData, id *configurations.ConfigurationId, dbConfig *configurations.Configuration) error {
 	d.Set("name", id.ConfigurationName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	value := ""
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if dbConfig != nil {
+		if props := dbConfig.Properties; props != nil {
 			value = *props.Value
 		}
 	}

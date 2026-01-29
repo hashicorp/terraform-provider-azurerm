@@ -18,7 +18,7 @@ func TestAccMysqlFlexibleServerConfiguration_resourceIdentity(t *testing.T) {
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.interactiveTimeout(data),
+			Config: r.characterSetServer(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				statecheck.ExpectIdentityValue("azurerm_mysql_flexible_server_configuration.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_mysql_flexible_server_configuration.test", tfjsonpath.New("flexible_server_name"), tfjsonpath.New("server_name")),
