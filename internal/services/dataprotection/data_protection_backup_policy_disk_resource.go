@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_disk -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_disk -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
 
 func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 	return &schema.Resource{

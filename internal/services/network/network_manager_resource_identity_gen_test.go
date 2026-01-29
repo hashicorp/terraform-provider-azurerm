@@ -1,7 +1,7 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
-package privatedns_test
+package network_test
 
 import (
 	"testing"
@@ -13,9 +13,9 @@ import (
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
-func TestAccPrivateDnsZone_resourceIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_private_dns_zone", "test")
-	r := PrivateDnsZoneResource{}
+func testAccNetworkManager_resourceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
+	r := NetworkManagerResource{}
 
 	checkedFields := map[string]struct{}{
 		"subscription_id":     {},
@@ -27,13 +27,13 @@ func TestAccPrivateDnsZone_resourceIdentity(t *testing.T) {
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
-				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_private_dns_zone.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_private_dns_zone.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_zone.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_zone.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_network_manager.test", checkedFields),
+				statecheck.ExpectIdentityValue("azurerm_network_manager.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_network_manager.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_network_manager.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
 		data.ImportBlockWithIDStep(false),
-	}, false)
+	}, true)
 }

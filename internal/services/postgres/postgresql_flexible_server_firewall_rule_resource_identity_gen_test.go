@@ -16,10 +16,18 @@ func TestAccPostgresqlFlexibleServerFirewallRule_resourceIdentity(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_firewall_rule", "test")
 	r := PostgresqlFlexibleServerFirewallRuleResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                 {},
+		"flexible_server_name": {},
+		"resource_group_name":  {},
+		"subscription_id":      {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_postgresql_flexible_server_firewall_rule.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_postgresql_flexible_server_firewall_rule.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_postgresql_flexible_server_firewall_rule.test", tfjsonpath.New("flexible_server_name"), tfjsonpath.New("server_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_postgresql_flexible_server_firewall_rule.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("server_id")),
