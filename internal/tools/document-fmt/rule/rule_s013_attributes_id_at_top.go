@@ -4,7 +4,6 @@
 package rule
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
@@ -75,7 +74,7 @@ func (s S013) Run(d *data.TerraformNodeData, _ bool) []error {
 		idLine := content[idAttrIdx]
 
 		return []error{NewValidationIssue(s.ID(), s.Name(), "id",
-			fmt.Sprintf("`id` should be the first attribute"),
+			"`id` should be the first attribute",
 			d.Document.Path, firstLine, idLine)}
 	}
 
