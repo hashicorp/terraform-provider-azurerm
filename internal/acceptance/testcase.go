@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
->>>>>>> 5dbe4f4bb6 (go-vcr dummy chnages with Meta)
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -68,6 +67,21 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+
+	testCase := addStepsHelper(t, steps, td, testResource)
+	td.runAcceptanceTest(t, testCase)
+}
+
+// ResourceTestWithVCR is an opt-in test method that uses VCR for HTTP recording/playback.
+// Tests using this method will use a VCR-wrapped HTTP client for all Azure API calls.
+// This enables faster test execution by replaying recorded HTTP interactions.
+func (td TestData) ResourceTestWithVCR(t *testing.T, testResource types.TestResource, steps []TestStep) {
+
+	testCase := addStepsHelper(t, steps, td, testResource)
+	td.runAcceptanceTestWithVCR(t, testCase)
+}
+
+func addStepsHelper(t *testing.T, steps []TestStep, td TestData, testResource types.TestResource) resource.TestCase {
 	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
 	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
 	refreshStep := TestStep{
@@ -105,49 +119,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 		},
 		Steps: steps,
 	}
-	td.runAcceptanceTest(t, testCase)
-}
-
-// ResourceTestWithVCR is an opt-in test method that uses VCR for HTTP recording/playback.
-// Tests using this method will use a VCR-wrapped HTTP client for all Azure API calls.
-// This enables faster test execution by replaying recorded HTTP interactions.
-func (td TestData) ResourceTestWithVCR(t *testing.T, testResource types.TestResource, steps []TestStep) {
-	refreshStep := TestStep{
-		RefreshState: true,
-	}
-
-	newSteps := make([]TestStep, 0)
-	for _, step := range steps {
-		if (step.Config != "" || step.ConfigDirectory != nil || step.ConfigFile != nil) && !step.PlanOnly {
-			step.ConfigPlanChecks = resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					helpers.IsNotResourceAction(td.ResourceName, plancheck.ResourceActionReplace),
-				},
-			}
-		}
-
-		if !step.ImportState {
-			newSteps = append(newSteps, step)
-		} else {
-			newSteps = append(newSteps, refreshStep)
-			newSteps = append(newSteps, step)
-		}
-	}
-	steps = newSteps
-
-	testCase := resource.TestCase{
-		PreCheck: func() { PreCheck(t) },
-		CheckDestroy: func(s *terraform.State) error {
-			client, err := testclient.Build()
-			if err != nil {
-				return fmt.Errorf("building client: %+v", err)
-			}
-			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
-		},
-		Steps: steps,
-	}
-
-	td.runAcceptanceTestWithVCR(t, testCase)
+	return testCase
 }
 
 // ResourceTestIgnoreRecreate should be used when checking that a resource should be recreated during a test.
