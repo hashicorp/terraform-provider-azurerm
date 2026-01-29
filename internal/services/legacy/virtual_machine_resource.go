@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy
@@ -892,7 +892,9 @@ func resourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) err
 				}
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1635,7 +1637,7 @@ func expandAzureRmVirtualMachineDataDisk(d *pluginsdk.ResourceData) ([]virtualma
 		}
 
 		if v, ok := config["write_accelerator_enabled"].(bool); ok {
-			data_disk.WriteAcceleratorEnabled = utils.Bool(v)
+			data_disk.WriteAcceleratorEnabled = pointer.To(v)
 		}
 
 		data_disks = append(data_disks, data_disk)
@@ -1652,7 +1654,7 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *pluginsdk.ResourceData) *v
 		bootDiagnostic := bootDiagnostics[0].(map[string]interface{})
 
 		diagnostic := &virtualmachines.BootDiagnostics{
-			Enabled:    utils.Bool(bootDiagnostic["enabled"].(bool)),
+			Enabled:    pointer.To(bootDiagnostic["enabled"].(bool)),
 			StorageUri: pointer.To(bootDiagnostic["storage_uri"].(string)),
 		}
 
@@ -1672,7 +1674,7 @@ func expandAzureRmVirtualMachineAdditionalCapabilities(d *pluginsdk.ResourceData
 
 	additionalCapability := additionalCapabilities[0].(map[string]interface{})
 	capability := &virtualmachines.AdditionalCapabilities{
-		UltraSSDEnabled: utils.Bool(additionalCapability["ultra_ssd_enabled"].(bool)),
+		UltraSSDEnabled: pointer.To(additionalCapability["ultra_ssd_enabled"].(bool)),
 	}
 
 	return capability
@@ -1802,7 +1804,7 @@ func expandAzureRmVirtualMachineOsDisk(d *pluginsdk.ResourceData) (*virtualmachi
 	}
 
 	if v, ok := config["write_accelerator_enabled"].(bool); ok {
-		osDisk.WriteAcceleratorEnabled = utils.Bool(v)
+		osDisk.WriteAcceleratorEnabled = pointer.To(v)
 	}
 
 	return osDisk, nil

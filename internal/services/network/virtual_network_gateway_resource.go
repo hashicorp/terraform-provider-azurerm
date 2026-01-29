@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -779,7 +779,9 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("setting `custom_route`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1549,6 +1551,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwOneAZ),
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwTwoAZ),
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwThreeAZ),
+		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale),
 	}, false)
 }
 

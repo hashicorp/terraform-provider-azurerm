@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,8 +92,8 @@ func resourceSecurityCenterWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	contact := security.WorkspaceSetting{
 		WorkspaceSettingProperties: &security.WorkspaceSettingProperties{
-			Scope:       utils.String(d.Get("scope").(string)),
-			WorkspaceID: utils.String(logAnalyticsWorkspaceId.ID()),
+			Scope:       pointer.To(d.Get("scope").(string)),
+			WorkspaceID: pointer.To(logAnalyticsWorkspaceId.ID()),
 		},
 	}
 
@@ -167,7 +168,7 @@ func resourceSecurityCenterWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			}
 			workspaceId = id.ID()
 		}
-		d.Set("workspace_id", utils.String(workspaceId))
+		d.Set("workspace_id", pointer.To(workspaceId))
 	}
 
 	return nil
