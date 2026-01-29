@@ -335,7 +335,7 @@ func TestAccProvider_cliAuth(t *testing.T) {
 			AzureCliSubscriptionIDHint:        d.Get("subscription_id").(string),
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -407,7 +407,7 @@ func TestAccProvider_clientCertificateAuth(t *testing.T) {
 			EnableAuthenticatingUsingClientCertificate: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -480,7 +480,7 @@ func testAccProvider_clientSecretAuthFromEnvironment(t *testing.T) {
 			EnableAuthenticatingUsingClientSecret: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -548,7 +548,7 @@ func testAccProvider_clientSecretAuthFromFiles(t *testing.T) {
 			EnableAuthenticatingUsingClientSecret: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -608,7 +608,7 @@ func TestAccProvider_genericOidcAuth(t *testing.T) {
 			OIDCAssertionToken:            *oidcToken,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -667,7 +667,7 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 			EnableAuthenticationUsingGitHubOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -730,7 +730,7 @@ func TestAccProvider_adoOidcAuth(t *testing.T) {
 			EnableAuthenticationUsingADOPipelineOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
@@ -796,7 +796,7 @@ func TestAccProvider_aksWorkloadIdentityAuth(t *testing.T) {
 			EnableAuthenticationUsingOIDC: true,
 		}
 
-		return buildClient(ctx, provider, d, authConfig)
+		return buildClient(ctx, provider, d, authConfig, nil)
 	}
 
 	// Ensure we enable AKS Workload Identity else the configuration will not be detected

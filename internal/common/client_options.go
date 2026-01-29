@@ -5,6 +5,7 @@ package common
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -59,6 +60,8 @@ type ClientOptions struct {
 
 	// TODO: Remove when all go-autorest clients are gone
 	SkipProviderReg bool
+
+	HTTPClient *http.Client
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
@@ -76,6 +79,11 @@ func (o ClientOptions) Configure(c client.BaseClient, authorizer auth.Authorizer
 
 	c.AppendRequestMiddleware(requestLoggerMiddleware("AzureRM"))
 	c.AppendResponseMiddleware(responseLoggerMiddleware("AzureRM"))
+
+	// TODO: Enable once go-azure-sdk supports SetHTTPClient method
+	// This is needed for VCR testing support
+	// c.SetHTTPClient(o.HTTPClient)
+
 }
 
 // ConfigureClient sets up an autorest.Client using an autorest.Authorizer
