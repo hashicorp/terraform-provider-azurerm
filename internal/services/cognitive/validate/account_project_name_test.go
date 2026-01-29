@@ -49,7 +49,7 @@ func TestValidateCognitiveServicesAccountProjectName(t *testing.T) {
 			valid: true,
 		},
 		{
-			name:  "Invalid name with a digit at the start",
+			name:  "Valid name with a digit at the start",
 			input: "1hello",
 			valid: true,
 		},
