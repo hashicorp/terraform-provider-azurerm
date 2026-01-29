@@ -9,9 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
@@ -20,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/vcr"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -215,37 +211,9 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 // runAcceptanceTestWithVCR runs acceptance test with a VCR-wrapped HTTP client for recording/playback.
 func (td TestData) runAcceptanceTestWithVCR(t *testing.T, testCase resource.TestCase) {
 	testCase.ExternalProviders = td.externalProviders()
-
-	// Create provider factories with VCR HTTP client injection
-	testCase.ProtoV5ProviderFactories = make(map[string]func() (tfprotov5.ProviderServer, error))
-	for _, name := range []string{"azurerm", "azurerm-alt"} {
-		testCase.ProtoV5ProviderFactories[name] = func() (tfprotov5.ProviderServer, error) {
-			providerServerFactory, v2Provider, err := framework.ProtoV5ProviderServerFactory(context.Background())
-			if err != nil {
-				return nil, err
-			}
-
-			// Wrap the original ConfigureContextFunc to inject HTTPClient into Meta
-			configureContextFunc := v2Provider.ConfigureContextFunc
-			v2Provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-				// Get VCR HTTP client
-				httpClient := vcr.GetHTTPClient(t)
-				var meta *clients.Client
-				if v, ok := v2Provider.Meta().(*clients.Client); ok && v != nil {
-					meta = v
-				} else {
-					meta = new(clients.Client)
-				}
-				meta.HTTPClient = httpClient
-				v2Provider.SetMeta(meta)
-
-				// Call the underline ConfigureContextFunc
-				return configureContextFunc(ctx, d)
-			}
-
-			return providerServerFactory(), nil
-		}
-	}
+	// Get VCR HTTP client and create provider factories with it
+	httpClient := vcr.GetHTTPClient(t)
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithHTTPClient(context.Background(), httpClient, "azurerm", "azurerm-alt")
 
 	resource.ParallelTest(t, testCase)
 }
