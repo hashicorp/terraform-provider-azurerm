@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain -service-package-name communication -properties "name" -compare-values "resource_group_name:email_service_id,email_service_name:email_service_id" -known-values "subscription_id:data.Subscriptions.Primary"
 
 import (
 	"context"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -20,9 +23,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = EmailCommunicationServiceDomainResource{}
+var (
+	_ sdk.ResourceWithUpdate   = EmailCommunicationServiceDomainResource{}
+	_ sdk.ResourceWithIdentity = EmailCommunicationServiceDomainResource{}
+)
 
 type EmailCommunicationServiceDomainResource struct{}
+
+func (EmailCommunicationServiceDomainResource) Identity() resourceids.ResourceId {
+	return &domains.DomainId{}
+}
 
 type EmailCommunicationServiceDomainResourceModel struct {
 	Name                          string            `tfschema:"name"`
@@ -159,6 +169,9 @@ func (r EmailCommunicationServiceDomainResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -280,6 +293,10 @@ func (EmailCommunicationServiceDomainResource) Read() sdk.ResourceFunc {
 				}
 
 				state.Tags = pointer.From(model.Tags)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
