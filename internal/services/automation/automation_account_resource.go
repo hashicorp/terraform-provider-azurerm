@@ -357,16 +357,10 @@ func resourceAutomationAccountFlatten(d *pluginsdk.ResourceData, id *automationa
 	}
 
 	if registration != nil {
-		if err := d.Set("dsc_server_endpoint", registration.Endpoint); err != nil {
-			return err
-		}
+		d.Set("dsc_server_endpoint", registration.Endpoint)
 		if keys := registration.Keys; keys != nil {
-			if err := d.Set("dsc_primary_access_key", keys.Primary); err != nil {
-				return err
-			}
-			if err := d.Set("dsc_secondary_access_key", keys.Secondary); err != nil {
-				return err
-			}
+			d.Set("dsc_primary_access_key", keys.Primary)
+			d.Set("dsc_secondary_access_key", keys.Secondary)
 		}
 	}
 
