@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/endpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -139,12 +139,12 @@ func TestAccExternalEndpoint_performancePolicy(t *testing.T) {
 }
 
 func (r ExternalEndpointResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := endpoints.ParseEndpointTypeID(state.ID)
+	id, err := trafficmanagers.ParseEndpointTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.TrafficManager.EndpointsClient.Get(ctx, *id)
+	resp, err := client.TrafficManager.EndpointsClient.EndpointsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
