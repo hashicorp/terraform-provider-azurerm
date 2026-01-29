@@ -6,6 +6,7 @@ package clients
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/validation"
@@ -156,6 +157,9 @@ type Client struct {
 
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
+
+	// HTTPClient is used for VCR testing to inject a custom HTTP client
+	HTTPClient *http.Client
 
 	Account  *ResourceManagerAccount
 	Features features.UserFeatures

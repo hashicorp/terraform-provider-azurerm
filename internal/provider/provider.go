@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -522,6 +523,12 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
+	// Check if HTTPClient was pre-set via Meta (for VCR testing)
+	var httpClient *http.Client
+	if meta, ok := p.Meta().(*clients.Client); ok && meta != nil {
+		httpClient = meta.HTTPClient
+	}
+
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,
 		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
@@ -533,6 +540,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		SubscriptionID:              d.Get("subscription_id").(string),
 		TerraformVersion:            p.TerraformVersion,
+		HttpClient:                  httpClient,
 
 		// this field is intentionally not exposed in the provider block, since it's only used for
 		// platform level tracing
