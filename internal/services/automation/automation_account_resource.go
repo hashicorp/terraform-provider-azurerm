@@ -310,49 +310,35 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceAutomationAccountFlatten(d *pluginsdk.ResourceData, id *automationaccount.AutomationAccountId, model *automationaccount.AutomationAccount, registration *agentregistrationinformation.AgentRegistration) error {
-	if err := d.Set("name", id.AutomationAccountName); err != nil {
-		return err
-	}
-	if err := d.Set("resource_group_name", id.ResourceGroupName); err != nil {
-		return err
-	}
+	d.Set("name", id.AutomationAccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model != nil {
-		if err := d.Set("location", location.Normalize(model.Location)); err != nil {
-			return err
-		}
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil {
 				publicNetworkAccessEnabled = *props.PublicNetworkAccess
 			}
-			if err := d.Set("public_network_access_enabled", publicNetworkAccessEnabled); err != nil {
-				return err
-			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 			skuName := ""
 			if sku := props.Sku; sku != nil {
 				skuName = string(sku.Name)
 			}
-			if err := d.Set("sku_name", skuName); err != nil {
-				return err
-			}
+			d.Set("sku_name", skuName)
 
 			localAuthEnabled := true
 			if val := props.DisableLocalAuth; val != nil && *val {
 				localAuthEnabled = false
 			}
-			if err := d.Set("local_authentication_enabled", localAuthEnabled); err != nil {
-				return err
-			}
+			d.Set("local_authentication_enabled", localAuthEnabled)
 
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
-			if err := d.Set("hybrid_service_url", props.AutomationHybridServiceURL); err != nil {
-				return err
-			}
+			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
 
 			identityVal, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 			if err != nil {
@@ -362,9 +348,7 @@ func resourceAutomationAccountFlatten(d *pluginsdk.ResourceData, id *automationa
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
-			if err := d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
-				return err
-			}
+			d.Set("private_endpoint_connection", flattenPrivateEndpointConnections(props.PrivateEndpointConnections))
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
