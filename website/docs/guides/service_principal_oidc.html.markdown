@@ -152,6 +152,18 @@ The ADO service connection ID is required in combination with these and can be s
 
 For Azure DevOps Pipelines, at least one task in the pipeline has Service Connection support and has your service connection specified. Without this, the agent will fail to load the Service Connection and results in a `No service connection found with identifier "..."`  error.
 
+~> **Note:** Azure DevOps also provides a `TerraformTaskV4@4` pipeline task, however this task is **not available by default**.
+It is provided by the **Terraform** extension published by Microsoft DevLabs and must be installed in the Azure DevOps
+**organization** before it appears in the pipeline editor.
+
+For installation and usage details, refer to:
+- [Terraform extension for Azure DevOps (Marketplace)](https://marketplace.visualstudio.com/items?itemName=ms-devlabs.custom-terraform-tasks)
+- [TerraformTaskV4 documentation](https://github.com/microsoft/azure-pipelines-terraform/tree/main/Tasks/TerraformTask/TerraformTaskV4)
+
+Issues related to the `TerraformTaskV4` task itself should be reported in the
+[azure-pipelines-terraform](https://github.com/microsoft/azure-pipelines-terraform) repository.
+
+
 It is recommend to use the `AzureCLI@2` task as below (note the `azureSubscription` input parameter):
 
 ```yaml
