@@ -385,7 +385,7 @@ func TestAccContainerAppEnvironment_publicNetworkAccessDisabledWithPrivateEndpoi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("workload_profile"),
 	})
 }
 
