@@ -1283,6 +1283,10 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(&state)
 		},
 	}
