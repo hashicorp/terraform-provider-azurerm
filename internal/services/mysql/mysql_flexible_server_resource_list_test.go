@@ -96,8 +96,8 @@ func (r MysqlFlexibleServerResource) basicListQueryByResourceGroupName(data acce
 list "azurerm_mysql_flexible_server" "list" {
   provider = azurerm
   config {
-	subscription_id     = "%s"
-	resource_group_name = "acctestRG-mysql-%d"
+    subscription_id     = "%s"
+    resource_group_name = "acctestRG-mysql-%d"
   }
 }
 `, data.Subscriptions.Primary, data.RandomInteger)
