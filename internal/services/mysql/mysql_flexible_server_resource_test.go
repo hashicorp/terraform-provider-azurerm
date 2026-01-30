@@ -421,6 +421,10 @@ func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 }
 
 func TestAccMySqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
+	if os.Getenv("ARM_TEST_RECOVERABLE_CMK") == "" {
+		t.Skip("Skipping as ARM_TEST_RECOVERABLE_CMK is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MysqlFlexibleServerResource{}
 
@@ -436,6 +440,10 @@ func TestAccMySqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) {
 }
 
 func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
+	if os.Getenv("ARM_TEST_RECOVERABLE_CMK") == "" {
+		t.Skip("Skipping as ARM_TEST_RECOVERABLE_CMK is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MysqlFlexibleServerResource{}
 
@@ -478,6 +486,10 @@ func TestAccMySqlFlexibleServer_createWithHsmCustomerManagedKey(t *testing.T) {
 
 // this test can fail with an uninformative error, tracked here https://github.com/Azure/azure-rest-api-specs/issues/22980
 func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
+	if os.Getenv("ARM_TEST_RECOVERABLE_CMK") == "" {
+		t.Skip("Skipping as ARM_TEST_RECOVERABLE_CMK is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MysqlFlexibleServerResource{}
 
@@ -1203,7 +1215,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_retention_days = 7
+  soft_delete_retention_days = 90
   purge_protection_enabled   = true
 }
 
@@ -1260,7 +1272,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
-  soft_delete_retention_days = 7
+  soft_delete_retention_days = 90
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
     object_id = data.azurerm_client_config.current.object_id
@@ -1500,7 +1512,7 @@ resource "azurerm_key_vault" "test2" {
   tenant_id                  = data.azurerm_client_config.current.tenant_id
   sku_name                   = "standard"
   purge_protection_enabled   = true
-  soft_delete_retention_days = 7
+  soft_delete_retention_days = 90
 }
 
 resource "azurerm_key_vault_access_policy" "server2" {
