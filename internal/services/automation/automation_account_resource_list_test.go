@@ -44,6 +44,13 @@ func TestAccAutomationAccount_list_basic(t *testing.T) {
 					querycheck.ExpectLength(listResourceAddress, 3),
 				},
 			},
+			{
+				Query:  true,
+				Config: r.basicQueryIncludeRegistration(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength(listResourceAddress, 3),
+				},
+			},
 		},
 	})
 }
@@ -95,6 +102,18 @@ func (r AutomationAccountResource) basicQueryByResourceGroupName(data acceptance
 	return fmt.Sprintf(`
 list "azurerm_automation_account" "list" {
   provider = azurerm
+  config {
+    resource_group_name = "acctestRG-%[1]d"
+  }
+}
+`, data.RandomInteger)
+}
+
+func (r AutomationAccountResource) basicQueryIncludeRegistration(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+list "azurerm_automation_account" "list" {
+  provider         = azurerm
+  include_resource = true
   config {
     resource_group_name = "acctestRG-%[1]d"
   }
