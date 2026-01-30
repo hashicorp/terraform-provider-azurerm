@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -239,6 +239,7 @@ resource "azurerm_key_vault" "test" {
   sku_name            = "premium"
 
   soft_delete_retention_days = 7
+  purge_protection_enabled   = true
 }
 
 resource "azurerm_key_vault_key" "test" {

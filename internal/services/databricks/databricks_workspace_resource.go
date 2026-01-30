@@ -17,7 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	previousWorkspaces "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
@@ -77,6 +78,14 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 					"premium",
 					"trial",
 				}, false),
+			},
+
+			"compute_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(workspaces.ComputeModeHybrid),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForComputeMode(), false),
 			},
 
 			"managed_resource_group_name": {
@@ -359,8 +368,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice([]string{
-									string(workspaces.ComplianceStandardHIPAA),
-									string(workspaces.ComplianceStandardPCIDSS),
+									// previous Databrick workspaces API with version 2024-05-01 is used as the following constant are not present in API with version 2026-01-01
+									string(previousWorkspaces.ComplianceStandardHIPAA),
+									string(previousWorkspaces.ComplianceStandardPCIDSS),
 								}, false),
 							},
 						},
@@ -387,6 +397,9 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 				_, managedServicesCMK := d.GetChange("managed_services_cmk_key_vault_key_id")
 				_, managedDiskCMK := d.GetChange("managed_disk_cmk_key_vault_key_id")
 				_, enhancedSecurityCompliance := d.GetChange("enhanced_security_compliance")
+				_, computeMode := d.GetChange("compute_mode")
+				_, managedResourceGroupName := d.GetChange("managed_resource_group_name")
+				_, customParams := d.GetChange("custom_parameters")
 
 				oldSku, newSku := d.GetChange("sku")
 
@@ -414,6 +427,38 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 
 				if (customerEncryptionEnabled.(bool) || defaultStorageFirewallEnabled.(bool) || len(enhancedSecurityCompliance.([]interface{})) > 0 || infrastructureEncryptionEnabled.(bool) || managedServicesCMK.(string) != "" || managedDiskCMK.(string) != "") && !strings.EqualFold("premium", newSku.(string)) {
 					return fmt.Errorf("`customer_managed_key_enabled`, `default_storage_firewall_enabled`, `enhanced_security_compliance`, `infrastructure_encryption_enabled`, `managed_disk_cmk_key_vault_key_id` and `managed_services_cmk_key_vault_key_id` are only available with a `premium` workspace `sku`, got %q", newSku)
+				}
+
+				if computeMode.(string) == string(workspaces.ComputeModeServerless) {
+					if managedResourceGroupName.(string) != "" {
+						return fmt.Errorf("`managed_resource_group_name` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+					}
+
+					if defaultStorageFirewallEnabled.(bool) {
+						return fmt.Errorf("`default_storage_firewall_enabled` argument should be removed or set to `false` when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+					}
+
+					if requireNsgRules.(string) != "" {
+						return fmt.Errorf("`network_security_group_rules_required` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+					}
+
+					if backendPool.(string) != "" {
+						return fmt.Errorf("`load_balancer_backend_address_pool_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+					}
+
+					if len(customParams.([]interface{})) > 0 {
+						return fmt.Errorf("`custom_parameters` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+					}
+
+					for _, rawEnhancedSecurityCompliance := range enhancedSecurityCompliance.([]interface{}) {
+						if complianceSecurityProfileStandards, ok := rawEnhancedSecurityCompliance.(map[string]interface{})["compliance_security_profile_standards"]; ok {
+							for _, complianceSecurityProfileStandard := range complianceSecurityProfileStandards.(*pluginsdk.Set).List() {
+								if complianceSecurityProfileStandard.(string) == string(previousWorkspaces.ComplianceStandardPCIDSS) {
+									return fmt.Errorf("`%s` `compliance_security_profile_standards` is not supported when `compute_mode` is `%s`", previousWorkspaces.ComplianceStandardPCIDSS, workspaces.ComputeModeServerless)
+								}
+							}
+						}
+					}
 				}
 
 				return nil
@@ -484,6 +529,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	var backendPoolName, loadBalancerId string
 	skuName := d.Get("sku").(string)
+	computeMode := workspaces.ComputeMode(d.Get("compute_mode").(string))
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := location.Normalize(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
@@ -517,7 +563,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if managedResourceGroupName == "" {
+	if managedResourceGroupName == "" && computeMode != workspaces.ComputeModeServerless {
 		// no managed resource group name was provided, we use the default pattern
 		log.Printf("[DEBUG][azurerm_databricks_workspace] no managed resource group id was provided, we use the default pattern.")
 		managedResourceGroupName = fmt.Sprintf("databricks-rg-%s", id.ResourceGroupName)
@@ -583,10 +629,18 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_key_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		diskKeyId = v.(string)
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		diskKeyVaultId = v.(string)
 	}
 
@@ -672,16 +726,24 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		},
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
-			PublicNetworkAccess:    &publicNetworkAccess,
-			ManagedResourceGroupId: managedResourceGroupID,
-			Parameters:             customParams,
+			ComputeMode:         computeMode,
+			PublicNetworkAccess: &publicNetworkAccess,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if computeMode != workspaces.ComputeModeServerless {
+		workspace.Properties.ManagedResourceGroupId = pointer.To(managedResourceGroupID)
+		workspace.Properties.Parameters = customParams
 	}
 
 	if defaultStorageFirewallEnabledRaw {
 		accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 		accessConnectorIdRaw := d.Get("access_connector_id").(string)
+		if accessConnectorIdRaw != "" && computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
 		if err != nil {
 			return fmt.Errorf("parsing Access Connector ID %s: %+v", accessConnectorIdRaw, err)
@@ -740,11 +802,13 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 	// I have to set the custom_parameters so I can pass the public and private
 	// subnet NSG association along with the backend Pool Id since they are not
 	// returned in the read from Azure...
-	custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
-	d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
+	if computeMode != workspaces.ComputeModeServerless {
+		custom, backendPoolReadId := flattenWorkspaceCustomParameters(customParams, pubSubAssoc, priSubAssoc)
+		d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
 
-	if err := d.Set("custom_parameters", custom); err != nil {
-		return fmt.Errorf("setting `custom_parameters`: %+v", err)
+		if err := d.Set("custom_parameters", custom); err != nil {
+			return fmt.Errorf("setting `custom_parameters`: %+v", err)
+		}
 	}
 
 	// Always set these even if they are empty to keep the state file
@@ -799,12 +863,17 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku", sku.Name)
 		}
 
-		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(model.Properties.ManagedResourceGroupId)
-		if err != nil {
-			return err
+		d.Set("compute_mode", string(model.Properties.ComputeMode))
+
+		if model.Properties.ManagedResourceGroupId != nil {
+			managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
+			if err != nil {
+				return err
+			}
+
+			d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
+			d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 		}
-		d.Set("managed_resource_group_id", model.Properties.ManagedResourceGroupId)
-		d.Set("managed_resource_group_name", managedResourceGroupID.ResourceGroup)
 
 		if defaultStorageFirewall := model.Properties.DefaultStorageFirewall; defaultStorageFirewall != nil {
 			d.Set("default_storage_firewall_enabled", *defaultStorageFirewall != workspaces.DefaultStorageFirewallDisabled)
@@ -823,7 +892,9 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 
-		var cmkEnabled, infraEnabled bool
+		cmkEnabled := false
+		infraEnabled := false
+
 		if parameters := model.Properties.Parameters; parameters != nil {
 			if parameters.PrepareEncryption != nil {
 				cmkEnabled = parameters.PrepareEncryption.Value
@@ -846,6 +917,9 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			d.Set("load_balancer_backend_address_pool_id", backendPoolReadId)
+		} else {
+			d.Set("customer_managed_key_enabled", cmkEnabled)
+			d.Set("infrastructure_encryption_enabled", infraEnabled)
 		}
 
 		if err := d.Set("storage_account_identity", flattenWorkspaceManagedIdentity(model.Properties.StorageAccountIdentity)); err != nil {
@@ -966,12 +1040,17 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	model := *existing.Model
 
 	props := model.Properties
+	computeMode := workspaces.ComputeMode(d.Get("compute_mode").(string))
 
 	if d.HasChange("sku") {
 		if model.Sku == nil {
 			model.Sku = &workspaces.Sku{}
 		}
 		model.Sku.Name = d.Get("sku").(string)
+	}
+
+	if d.HasChange("compute_mode") {
+		model.Properties.ComputeMode = computeMode
 	}
 
 	if d.HasChange("tags") {
@@ -1005,6 +1084,10 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 			accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
 			accessConnectorIdRaw := d.Get("access_connector_id").(string)
+			if accessConnectorIdRaw != "" && computeMode == workspaces.ComputeModeServerless {
+				return fmt.Errorf("`access_connector_id` argument is not allowed when `computeMode` argument is `%s`", workspaces.ComputeModeServerless)
+			}
+
 			accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
 			if err != nil {
 				return err
@@ -1164,10 +1247,18 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_key_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_key_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		diskKeyId = v.(string)
 	}
 
 	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
+		if computeMode == workspaces.ComputeModeServerless {
+			return fmt.Errorf("`managed_disk_cmk_key_vault_id` argument is not allowed when `compute_mode` argument is `%s`", workspaces.ComputeModeServerless)
+		}
+
 		diskKeyVaultId = v.(string)
 	}
 
@@ -1506,7 +1597,7 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 
 		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
 		for _, s := range pointer.From(v.ComplianceStandards) {
-			if s == workspaces.ComplianceStandardNONE {
+			if s == string(previousWorkspaces.ComplianceStandardNONE) {
 				continue
 			}
 			standards.Add(string(s))
@@ -1540,15 +1631,15 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 		complianceSecurityProfileEnabled = workspaces.ComplianceSecurityProfileValueEnabled
 	}
 
-	complianceStandards := []workspaces.ComplianceStandard{}
+	complianceStandards := []string{}
 	if standardSet, ok := config["compliance_security_profile_standards"].(*pluginsdk.Set); ok {
 		for _, s := range standardSet.List() {
-			complianceStandards = append(complianceStandards, workspaces.ComplianceStandard(s.(string)))
+			complianceStandards = append(complianceStandards, s.(string))
 		}
 	}
 
 	if complianceSecurityProfileEnabled == workspaces.ComplianceSecurityProfileValueEnabled && len(complianceStandards) == 0 {
-		complianceStandards = append(complianceStandards, workspaces.ComplianceStandardNONE)
+		complianceStandards = append(complianceStandards, string(previousWorkspaces.ComplianceStandardNONE))
 	}
 
 	return &workspaces.EnhancedSecurityComplianceDefinition{
