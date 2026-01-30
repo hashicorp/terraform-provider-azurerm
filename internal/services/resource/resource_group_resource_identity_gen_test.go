@@ -10,16 +10,23 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
 func TestAccResourceGroup_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	r := ResourceGroupResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id": {},
+		"name":            {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_resource_group.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_resource_group.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_resource_group.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 			},
