@@ -55,7 +55,7 @@ jobs:
 
       - name: Run tests
         run: |
-          go test 
+          go test \
           -v \
           -parallel=20 \
           -count=1 \
