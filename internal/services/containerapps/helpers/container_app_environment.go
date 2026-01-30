@@ -58,8 +58,8 @@ type WorkloadProfileModel struct {
 
 func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
+		Type:                  pluginsdk.TypeSet,
+		Optional:              true,
 		DiffSuppressOnRefresh: true,
 		DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
 			o, n := d.GetChange("workload_profile")
