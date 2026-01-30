@@ -57,7 +57,7 @@ jobs:
           -timeout=30m
         env:
           GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
-          PACKAGE_NAMES: "./helpers/validate"
+          PACKAGE_NAMES: "./..."
       - if: (success() || failure())
         name: Prepare datadog-ci
         continue-on-error: true
