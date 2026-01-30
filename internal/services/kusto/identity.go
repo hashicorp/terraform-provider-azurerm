@@ -1,11 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package kusto
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusters"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func expandTrustedExternalTenants(input []interface{}) *[]clusters.TrustedExternalTenant {
@@ -13,7 +13,7 @@ func expandTrustedExternalTenants(input []interface{}) *[]clusters.TrustedExtern
 
 	for _, v := range input {
 		output = append(output, clusters.TrustedExternalTenant{
-			Value: utils.String(v.(string)),
+			Value: pointer.To(v.(string)),
 		})
 	}
 

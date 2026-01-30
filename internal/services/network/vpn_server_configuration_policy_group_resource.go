@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVPNServerConfigurationPolicyGroup() *pluginsdk.Resource {
@@ -129,7 +128,7 @@ func resourceVPNServerConfigurationPolicyGroupCreate(d *pluginsdk.ResourceData, 
 
 	payload := virtualwans.VpnServerConfigurationPolicyGroup{
 		Properties: &virtualwans.VpnServerConfigurationPolicyGroupProperties{
-			IsDefault:     utils.Bool(d.Get("is_default").(bool)),
+			IsDefault:     pointer.To(d.Get("is_default").(bool)),
 			PolicyMembers: expandVPNServerConfigurationPolicyGroupPolicyMembers(d.Get("policy").(*pluginsdk.Set).List()),
 			Priority:      pointer.To(int64(d.Get("priority").(int))),
 		},
@@ -257,9 +256,9 @@ func expandVPNServerConfigurationPolicyGroupPolicyMembers(input []interface{}) *
 		v := item.(map[string]interface{})
 
 		results = append(results, virtualwans.VpnServerConfigurationPolicyGroupMember{
-			Name:           utils.String(v["name"].(string)),
+			Name:           pointer.To(v["name"].(string)),
 			AttributeType:  pointer.To(virtualwans.VpnPolicyMemberAttributeType(v["type"].(string))),
-			AttributeValue: utils.String(v["value"].(string)),
+			AttributeValue: pointer.To(v["value"].(string)),
 		})
 	}
 

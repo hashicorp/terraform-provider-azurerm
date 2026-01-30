@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -399,7 +399,7 @@ func TestAccNetworkInterface_tagsOfNicAttachedToPrivateEndpointCanBeUpdated(t *t
 	})
 }
 
-func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseNetworkInterfaceID(state.ID)
 	if err != nil {
 		return nil, err

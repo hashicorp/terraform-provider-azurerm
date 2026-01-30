@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -689,7 +689,7 @@ func resourcePostgreSQLServerUpdate(d *pluginsdk.ResourceData, meta interface{})
 	oldCreateMode, newCreateMode := d.GetChange("create_mode")
 	replicaUpdatedToDefault := servers.CreateMode(oldCreateMode.(string)) == servers.CreateModeReplica && servers.CreateMode(newCreateMode.(string)) == servers.CreateModeDefault
 	if replicaUpdatedToDefault {
-		properties.Properties.ReplicationRole = utils.String("None")
+		properties.Properties.ReplicationRole = pointer.To("None")
 	}
 
 	// Update Admin Password in the separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
@@ -910,8 +910,8 @@ func expandServerSkuName(skuName string) (*servers.Sku, error) {
 	return &servers.Sku{
 		Name:     skuName,
 		Tier:     &tier,
-		Capacity: utils.Int64(int64(capacity)),
-		Family:   utils.String(parts[1]),
+		Capacity: pointer.To(int64(capacity)),
+		Family:   pointer.To(parts[1]),
 	}, nil
 }
 
@@ -928,7 +928,7 @@ func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *servers.StorageP
 	}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
-		storage.BackupRetentionDays = utils.Int64(int64(v.(int)))
+		storage.BackupRetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("geo_redundant_backup_enabled"); ok {
@@ -941,7 +941,7 @@ func expandPostgreSQLStorageProfile(d *pluginsdk.ResourceData) *servers.StorageP
 	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
-		storage.StorageMB = utils.Int64(int64(v.(int)))
+		storage.StorageMB = pointer.To(int64(v.(int)))
 	}
 
 	return &storage
@@ -973,19 +973,19 @@ func expandSecurityAlertPolicy(i interface{}) *serversecurityalertpolicies.Serve
 	}
 
 	if v, ok := block["email_account_admins"]; ok {
-		props.EmailAccountAdmins = utils.Bool(v.(bool))
+		props.EmailAccountAdmins = pointer.To(v.(bool))
 	}
 
 	if v, ok := block["retention_days"]; ok {
-		props.RetentionDays = utils.Int64(int64(v.(int)))
+		props.RetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := block["storage_account_access_key"]; ok && v.(string) != "" {
-		props.StorageAccountAccessKey = utils.String(v.(string))
+		props.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
 	if v, ok := block["storage_endpoint"]; ok && v.(string) != "" {
-		props.StorageEndpoint = utils.String(v.(string))
+		props.StorageEndpoint = pointer.To(v.(string))
 	}
 
 	return &serversecurityalertpolicies.ServerSecurityAlertPolicy{

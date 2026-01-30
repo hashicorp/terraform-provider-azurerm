@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -261,7 +261,7 @@ func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []backup
 		v := item.(map[string]interface{})
 		results = append(results, backuppolicies.AzureRetentionRule{
 			Name:      v["name"].(string),
-			IsDefault: utils.Bool(false),
+			IsDefault: pointer.To(false),
 			Lifecycles: []backuppolicies.SourceLifeCycle{
 				{
 					DeleteAfter: backuppolicies.AbsoluteDeleteOption{
@@ -282,7 +282,7 @@ func expandBackupPolicyDiskAzureRetentionRuleArray(input []interface{}) []backup
 func expandBackupPolicyDiskDefaultAzureRetentionRule(input interface{}) backuppolicies.BasePolicyRule {
 	return backuppolicies.AzureRetentionRule{
 		Name:      "Default",
-		IsDefault: utils.Bool(true),
+		IsDefault: pointer.To(true),
 		Lifecycles: []backuppolicies.SourceLifeCycle{
 			{
 				DeleteAfter: backuppolicies.AbsoluteDeleteOption{
@@ -305,7 +305,7 @@ func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]backuppo
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},
@@ -317,7 +317,7 @@ func expandBackupPolicyDiskTaggingCriteriaArray(input []interface{}) *[]backuppo
 			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String(v["name"].(string) + "_"),
+				Id:      pointer.To(v["name"].(string) + "_"),
 				TagName: v["name"].(string),
 			},
 		})

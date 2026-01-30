@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/desktop"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var applicationGroupType = "azurerm_virtual_desktop_application_group"
@@ -134,7 +133,7 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	payload := applicationgroup.ApplicationGroup{
@@ -142,8 +141,8 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 		Tags:     tags.Expand(t),
 		Properties: applicationgroup.ApplicationGroupProperties{
 			ApplicationGroupType: applicationgroup.ApplicationGroupType(d.Get("type").(string)),
-			FriendlyName:         utils.String(d.Get("friendly_name").(string)),
-			Description:          utils.String(d.Get("description").(string)),
+			FriendlyName:         pointer.To(d.Get("friendly_name").(string)),
+			Description:          pointer.To(d.Get("description").(string)),
 			HostPoolArmPath:      d.Get("host_pool_id").(string),
 		},
 	}
@@ -153,7 +152,7 @@ func resourceVirtualDesktopApplicationGroupCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	if applicationgroup.ApplicationGroupType(d.Get("type").(string)) == applicationgroup.ApplicationGroupTypeDesktop {
-		if desktopFriendlyName := utils.String(d.Get("default_desktop_display_name").(string)); desktopFriendlyName != nil {
+		if desktopFriendlyName := pointer.To(d.Get("default_desktop_display_name").(string)); desktopFriendlyName != nil {
 			desktopClient := meta.(*clients.Client).DesktopVirtualization.DesktopsClient
 			// default desktop name created for Application Group is 'sessionDesktop'
 			desktopId := desktop.NewDesktopID(id.SubscriptionId, id.ResourceGroupName, id.ApplicationGroupName, "sessionDesktop")

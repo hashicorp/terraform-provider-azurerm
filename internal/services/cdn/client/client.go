@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	waf "github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2025-03-01/webapplicationfirewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
+
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-06-01/afdendpoints"
 )
 
 type Client struct {
@@ -33,6 +35,8 @@ type Client struct {
 	CustomDomainsClient             *cdnSdk.CustomDomainsClient
 	EndpointsClient                 *cdnSdk.EndpointsClient
 	ProfilesClient                  *cdnSdk.ProfilesClient
+
+	AFDEndpointsClient *afdendpoints.AFDEndpointsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -96,6 +100,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	profilesClient := cdnSdk.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&profilesClient.Client, o.ResourceManagerAuthorizer)
 
+	afdEndpointsClient, err := afdendpoints.NewAFDEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Azure Front Door Endpoints CLient: %+v", err)
+	}
+	o.Configure(afdEndpointsClient.Client, o.Authorizers.ResourceManager)
+
 	client := Client{
 		FrontDoorEndpointsClient:        &frontDoorEndpointsClient,
 		FrontDoorOriginGroupsClient:     &frontDoorOriginGroupsClient,
@@ -112,6 +122,8 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		CustomDomainsClient:             &customDomainsClient,
 		EndpointsClient:                 &endpointsClient,
 		ProfilesClient:                  &profilesClient,
+
+		AFDEndpointsClient: afdEndpointsClient,
 	}
 
 	return &client, nil

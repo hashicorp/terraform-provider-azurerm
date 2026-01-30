@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -29,6 +29,7 @@ type BackupInstanceKubernatesClusterModel struct {
 	KubernetesClusterId        string                       `tfschema:"kubernetes_cluster_id"`
 	SnapshotResourceGroupName  string                       `tfschema:"snapshot_resource_group_name"`
 	BackupDatasourceParameters []BackupDatasourceParameters `tfschema:"backup_datasource_parameters"`
+	ProtectionState            string                       `tfschema:"protection_state"`
 }
 
 type BackupDatasourceParameters struct {
@@ -156,7 +157,12 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 }
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"protection_state": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.ResourceFunc {
@@ -277,6 +283,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 					state.Location = location.NormalizeNilable(properties.DataSourceInfo.ResourceLocation)
 					state.BackupPolicyId = properties.PolicyInfo.PolicyId
 					state.KubernetesClusterId = properties.DataSourceInfo.ResourceID
+					state.ProtectionState = pointer.FromEnum(properties.CurrentProtectionState)
 
 					if policyParameters := properties.PolicyInfo.PolicyParameters; policyParameters != nil {
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {

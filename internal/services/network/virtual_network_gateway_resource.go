@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -1549,6 +1549,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwOneAZ),
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwTwoAZ),
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwThreeAZ),
+		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale),
 	}, false)
 }
 

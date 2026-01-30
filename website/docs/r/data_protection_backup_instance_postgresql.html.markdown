@@ -10,6 +10,8 @@ description: |-
 
 Manages a Backup Instance to back up PostgreSQL.
 
+~> **Note:** The `azurerm_data_protection_backup_instance_postgresql` resource has been deprecated because Azure Database for PostgreSQL Single Server has been retired as of 2025-03-28 and will be removed in v5.0 of the AzureRM Provider.
+
 -> **Note:** Before using this resource, there are some prerequisite permissions for configure backup and restore. See more details from <https://docs.microsoft.com/azure/backup/backup-azure-database-postgresql#prerequisite-permissions-for-configure-backup-and-restore>.
 
 ## Example Usage
@@ -158,6 +160,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Backup Instance PostgreSQL.
+
+* `protection_state` - The protection state of the Backup Instance PostgreSQL.
 
 ## Timeouts
 

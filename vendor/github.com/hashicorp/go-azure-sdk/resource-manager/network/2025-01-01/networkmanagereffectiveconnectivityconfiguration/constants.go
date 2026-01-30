@@ -340,8 +340,6 @@ func parsePeeringEnforcement(input string) (*PeeringEnforcement, error) {
 type ProvisioningState string
 
 const (
-	ProvisioningStateCanceled  ProvisioningState = "Canceled"
-	ProvisioningStateCreating  ProvisioningState = "Creating"
 	ProvisioningStateDeleting  ProvisioningState = "Deleting"
 	ProvisioningStateFailed    ProvisioningState = "Failed"
 	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
@@ -350,8 +348,6 @@ const (
 
 func PossibleValuesForProvisioningState() []string {
 	return []string{
-		string(ProvisioningStateCanceled),
-		string(ProvisioningStateCreating),
 		string(ProvisioningStateDeleting),
 		string(ProvisioningStateFailed),
 		string(ProvisioningStateSucceeded),
@@ -374,8 +370,6 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
-		"canceled":  ProvisioningStateCanceled,
-		"creating":  ProvisioningStateCreating,
 		"deleting":  ProvisioningStateDeleting,
 		"failed":    ProvisioningStateFailed,
 		"succeeded": ProvisioningStateSucceeded,
