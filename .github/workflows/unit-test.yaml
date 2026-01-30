@@ -58,7 +58,6 @@ jobs:
           go test \
           -v \
           -parallel=20 \
-          -count=1 \
           -timeout=30m \
           ./...
 
