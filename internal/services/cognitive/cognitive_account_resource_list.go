@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/subscription"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -81,7 +80,7 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceCognitiveAccountFlatten(rd, id, &account); err != nil {
+			if err := resourceCognitiveAccountFlatten(ctx, client, rd, id, &account); err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureCognitiveAccountResourceName), err)
 				return
 			}

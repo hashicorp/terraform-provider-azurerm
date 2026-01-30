@@ -621,10 +621,10 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return resourceCognitiveAccountFlatten(d, id, resp.Model)
+	return resourceCognitiveAccountFlatten(ctx, client, d, id, resp.Model)
 }
 
-func resourceCognitiveAccountFlatten(d *pluginsdk.ResourceData, id *cognitiveservicesaccounts.AccountId, account *cognitiveservicesaccounts.Account) error {
+func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, d *pluginsdk.ResourceData, id *cognitiveservicesaccounts.AccountId, account *cognitiveservicesaccounts.Account) error {
 	d.Set("name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
