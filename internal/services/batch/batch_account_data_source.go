@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	batchaccount "github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -99,7 +99,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	id := batchaccount.NewBatchAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.BatchAccountGet(ctx, id)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -129,7 +129,7 @@ func dataSourceBatchAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 
 			if poolAllocationMode == string(batchaccount.PoolAllocationModeBatchService) {
-				keys, err := client.BatchAccountGetKeys(ctx, id)
+				keys, err := client.GetKeys(ctx, id)
 				if err != nil {
 					return fmt.Errorf("cannot read keys for %s: %v", id, err)
 				}
