@@ -60,6 +60,15 @@ func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
+		DiffSuppressOnRefresh: true,
+		DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+			o, n := d.GetChange("workload_profile")
+
+			oldProfiles := o.(*pluginsdk.Set)
+			newProfiles := n.(*pluginsdk.Set)
+
+			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
