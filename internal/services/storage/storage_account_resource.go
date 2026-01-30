@@ -1521,7 +1521,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 	encryptionRaw := d.Get("customer_managed_key").([]interface{})
-	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+	encryption, err := expandAccountCustomerManagedKey(d, ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
 	if err != nil {
 		return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 	}
@@ -1804,7 +1804,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 		tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 		encryptionRaw := d.Get("customer_managed_key").([]interface{})
-		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+		encryption, err := expandAccountCustomerManagedKey(d, ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
@@ -2474,7 +2474,7 @@ func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []interface
 	return output
 }
 
-func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []interface{}, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
+func expandAccountCustomerManagedKey(d *pluginsdk.ResourceData, ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []interface{}, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
 	if accountKind == storageaccounts.KindStorage {
 		if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
 			return nil, fmt.Errorf("`queue_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
@@ -2507,10 +2507,20 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 
 	v := input[0].(map[string]interface{})
 
+	setInConfig := func(d *pluginsdk.ResourceData) bool {
+		if features.FivePointOh() {
+			// If we're in 5.0 only `key_vault_key_id` exists, so no need to check
+			return true
+		}
+
+		raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key.0.key_vault_key_id"))
+		return !diags.HasError() && !raw.IsNull()
+	}
+
 	var keyID *keyvault.NestedItemID
 	// When cleaning up `features.FivePointOh()` flags, this condition can be removed as `key_vault_key_id` will be required in 5.0.
 	// The variable instantiation above can be removed as well, and `keyId` below can be renamed to `KeyID`.
-	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && keyVaultKeyId != "" {
+	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && setInConfig(d) {
 		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err

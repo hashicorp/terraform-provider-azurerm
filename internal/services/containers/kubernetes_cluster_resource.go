@@ -119,8 +119,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-				// Azure supports in-place upgrade from Azure Network Policy Manager to Cilium
-				// Other transitions (Calico to any, removing policy, etc.) require cluster recreation
+				// Azure supports in-place upgrade from Azure Network Policy Manager to Cilium and Calico to Cilium
+				// Other transitions (removing policy, etc.) require cluster recreation
 				oldStr := old.(string)
 				newStr := new.(string)
 
@@ -129,6 +129,9 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}
 
 				if oldStr == "azure" && newStr == "cilium" {
+					return false
+				}
+				if oldStr == "calico" && newStr == "cilium" {
 					return false
 				}
 
