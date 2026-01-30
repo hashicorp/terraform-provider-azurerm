@@ -1,5 +1,5 @@
 ---
-name: Shell Script Linting
+name: ShellCheck Scripts
 
 permissions:
   contents: read
