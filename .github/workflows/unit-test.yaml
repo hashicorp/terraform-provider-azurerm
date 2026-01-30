@@ -60,6 +60,8 @@ jobs:
           -parallel=20 \
           -timeout=30m \
           ./...
+        env:
+          DD_TEST_SESSION_NAME: "unit-test"
 
   save-artifacts-on-fail:
     needs: test
