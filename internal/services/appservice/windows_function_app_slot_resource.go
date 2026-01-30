@@ -639,9 +639,7 @@ func (r WindowsFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(functionAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
