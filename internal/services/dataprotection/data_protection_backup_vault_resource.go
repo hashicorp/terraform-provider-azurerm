@@ -88,6 +88,11 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"cross_subscription_restore_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"retention_duration_in_days": {
 				Type:         pluginsdk.TypeFloat,
 				Optional:     true,
@@ -118,6 +123,11 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			// Once `cross_region_restore_enabled` is enabled it cannot be disabled.
 			pluginsdk.ForceNewIfChange("cross_region_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				return old.(bool) && new.(bool) != old.(bool)
+			}),
+
+			// Once `cross_subscription_restore_enabled` is enabled it cannot be disabled.
+			pluginsdk.ForceNewIfChange("cross_subscription_restore_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && new.(bool) != old.(bool)
 			}),
 
@@ -193,14 +203,29 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
-		parameters.Properties.FeatureSettings = &backupvaults.FeatureSettings{
-			CrossRegionRestoreSettings: &backupvaults.CrossRegionRestoreSettings{},
+	// Handle cross-region and cross-subscription restore settings
+	crossRegionEnabled := !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled")
+	crossSubscriptionEnabled := !pluginsdk.IsExplicitlyNullInConfig(d, "cross_subscription_restore_enabled")
+
+	if crossRegionEnabled || crossSubscriptionEnabled {
+		parameters.Properties.FeatureSettings = &backupvaults.FeatureSettings{}
+
+		if crossRegionEnabled {
+			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings = &backupvaults.CrossRegionRestoreSettings{}
+			if d.Get("cross_region_restore_enabled").(bool) {
+				parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateEnabled)
+			} else {
+				parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateDisabled)
+			}
 		}
-		if d.Get("cross_region_restore_enabled").(bool) {
-			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateEnabled)
-		} else {
-			parameters.Properties.FeatureSettings.CrossRegionRestoreSettings.State = pointer.To(backupvaults.CrossRegionRestoreStateDisabled)
+
+		if crossSubscriptionEnabled {
+			parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings = &backupvaults.CrossSubscriptionRestoreSettings{}
+			if d.Get("cross_subscription_restore_enabled").(bool) {
+				parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings.State = pointer.To(backupvaults.CrossSubscriptionRestoreStateEnabled)
+			} else {
+				parameters.Properties.FeatureSettings.CrossSubscriptionRestoreSettings.State = pointer.To(backupvaults.CrossSubscriptionRestoreStateDisabled)
+			}
 		}
 	}
 
@@ -266,14 +291,21 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("immutability", string(immutability))
 
 		crossRegionStoreEnabled := false
+		crossSubscriptionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
 			if crossRegionRestore := featureSetting.CrossRegionRestoreSettings; crossRegionRestore != nil {
 				if pointer.From(crossRegionRestore.State) == backupvaults.CrossRegionRestoreStateEnabled {
 					crossRegionStoreEnabled = true
 				}
 			}
+			if crossSubscriptionRestore := featureSetting.CrossSubscriptionRestoreSettings; crossSubscriptionRestore != nil {
+				if pointer.From(crossSubscriptionRestore.State) == backupvaults.CrossSubscriptionRestoreStateEnabled {
+					crossSubscriptionStoreEnabled = true
+				}
+			}
 		}
 		d.Set("cross_region_restore_enabled", crossRegionStoreEnabled)
+		d.Set("cross_subscription_restore_enabled", crossSubscriptionStoreEnabled)
 
 		identity, err := flattenBackupVaultDppIdentityDetails(model.Identity)
 		if err != nil {
