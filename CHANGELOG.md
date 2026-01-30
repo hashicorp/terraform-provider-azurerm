@@ -4,11 +4,13 @@ ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20260129.1200123` [GH-31621]
 * `azurerm_automation_runbook` - add support for the `runtime_environment_name` property [GH-30992]
 * `azurerm_kusto_eventgrid_data_connection` - update validation for `eventhub_consumer_group_name` to allow `$Default` as input [GH-31551]
+* `azurerm_linux_function_app` - add support for `3.14` to `site_config.application_stack.python_version` [GH-31195]
+* `azurerm_linux_function_app_slot` - add support for `3.14` to `site_config.application_stack.python_version` [GH-31195]
 
 FEATURES:
 
 BUG FIXES:
-`azurerm_kubernetes_cluster` -  the`network_policy` property now allows updating from `calico` to `cilium` [GH-31627]
+* `azurerm_kubernetes_cluster` -  the`network_policy` property now allows updating from `calico` to `cilium` [GH-31627]
 
 ## 4.58.0 (January 22, 2026)
 
