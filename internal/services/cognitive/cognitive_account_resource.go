@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,6 +35,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account -properties "name,resource_group_name"
+
+const azureCognitiveAccountResourceName = "azurerm_cognitive_account"
 
 func resourceCognitiveAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -49,10 +54,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cognitiveservicesaccounts.ParseAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&cognitiveservicesaccounts.AccountId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&cognitiveservicesaccounts.AccountId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -435,7 +441,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cognitive_account", id.ID())
+			return tf.ImportAsExistsError(azureCognitiveAccountResourceName, id.ID())
 		}
 	}
 
@@ -502,6 +508,10 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCognitiveAccountRead(d, meta)
 }
 
@@ -611,25 +621,28 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceCognitiveAccountFlatten(d, id, resp.Model)
+}
 
+func resourceCognitiveAccountFlatten(d *pluginsdk.ResourceData, id *cognitiveservicesaccounts.AccountId, account *cognitiveservicesaccounts.Account) error {
 	d.Set("name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("kind", model.Kind)
+	if account != nil {
+		d.Set("kind", account.Kind)
 
-		d.Set("location", location.NormalizeNilable(model.Location))
-		if sku := model.Sku; sku != nil {
+		d.Set("location", location.NormalizeNilable(account.Location))
+		if sku := account.Sku; sku != nil {
 			d.Set("sku_name", sku.Name)
 		}
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		identity, err := identity.FlattenSystemAndUserAssignedMap(account.Identity)
 		if err != nil {
 			return err
 		}
 		d.Set("identity", identity)
 
-		if props := model.Properties; props != nil {
+		if props := account.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {
 				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
 				d.Set("custom_question_answering_search_service_id", apiProps.QnaAzureSearchEndpointId)
@@ -663,7 +676,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			// Azure API issue: `AllowProjectManagement` not reset during the rollback, see: https://github.com/Azure/azure-rest-api-specs/issues/38678
 			allowProjectManagement := pointer.From(props.AllowProjectManagement)
-			if pointer.From(model.Kind) == "OpenAI" {
+			if pointer.From(account.Kind) == "OpenAI" {
 				allowProjectManagement = false
 			}
 			d.Set("project_management_enabled", allowProjectManagement)
@@ -713,11 +726,11 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, account.Tags); err != nil {
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
