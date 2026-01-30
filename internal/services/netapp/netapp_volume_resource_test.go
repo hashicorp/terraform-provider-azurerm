@@ -354,7 +354,7 @@ func TestAccNetAppVolume_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("export_policy_rule.#").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("3"),
 				check.That(data.ResourceName).Key("tags.FoO").HasValue("BaR"),
-				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
+				check.That(data.ResourceName).Key("mount_target.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -370,7 +370,7 @@ func TestAccNetAppVolume_largeVolume(t *testing.T) {
 			Config: r.largeVolume(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("105472"),
+				check.That(data.ResourceName).Key("storage_quota_in_gb").HasValue("51200"),
 				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("true"),
 			),
 		},
@@ -1531,7 +1531,7 @@ resource "azurerm_netapp_volume" "test" {
   volume_path          = "my-unique-file-path-%d"
   service_level        = "Standard"
   subnet_id            = azurerm_subnet.test.id
-  storage_quota_in_gb  = 105472
+  storage_quota_in_gb  = 51200
   large_volume_enabled = true
   throughput_in_mibps  = 1640
 }
@@ -1588,7 +1588,7 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = "%d"
   qos_type            = "Manual"
 }
-`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, 120)
+`, r.templateProviderFeatureFlags(), data.RandomInteger, overriddenlocations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, 25)
 }
 
 func (r NetAppVolumeResource) templateForCrossRegionReplication(data acceptance.TestData) string {
