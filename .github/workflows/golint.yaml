@@ -7,10 +7,6 @@ permissions:
 on:
   pull_request:
     types: ['opened', 'synchronize']
-    paths:
-      - '.github/workflows/golint.yaml'
-      - 'vendor/**'
-      - '**.go'
 
 concurrency:
   group: 'golint-${{ github.head_ref }}'
