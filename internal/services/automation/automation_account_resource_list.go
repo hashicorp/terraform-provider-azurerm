@@ -2,8 +2,8 @@ package automation
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -64,14 +64,8 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 		results = resp.Items
 	}
 
-	streamDeadline, ok := ctx.Deadline()
-	if !ok {
-		sdk.SetResponseErrorDiagnostic(stream, "internal-error", errors.New("missing context deadline"))
-		return
-	}
-
 	stream.Results = func(push func(list.ListResult) bool) {
-		ctx2, cancel := context.WithDeadline(context.Background(), streamDeadline)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
 		defer cancel()
 		for _, account := range results {
 			result := request.NewListResult(ctx)
@@ -90,7 +84,7 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 
 			if request.IncludeResource {
 				infoId := agentregistrationinformation.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
-				if keysResp, err := metadata.Client.Automation.AgentRegistrationInfoClient.Get(ctx2, infoId); err != nil {
+				if keysResp, err := metadata.Client.Automation.AgentRegistrationInfoClient.Get(ctx, infoId); err != nil {
 					sdk.SetListIteratorErrorDiagnostic(result, push, "retrieving Automation Account Agent Registration Information", err)
 					return
 				} else {
