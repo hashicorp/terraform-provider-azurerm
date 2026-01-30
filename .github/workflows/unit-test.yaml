@@ -44,9 +44,7 @@ jobs:
         run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE)'
       - run: bash scripts/gogetcookie.sh
       - name: Run tests
-        run: go test -v -timeout=30s -parallel=20 -count=1 -run='^Test[^A][^c][^c]' ./...
-        env:
-          GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
+        run: go test -v -timeout=30s -parallel=20 -run='^Test[^A][^c][^c]' ./...
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}
