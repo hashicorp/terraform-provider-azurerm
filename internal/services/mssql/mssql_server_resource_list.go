@@ -93,16 +93,8 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 				return
 			}
 
-			// Convert and set the identity and resource state into the result
-			if err != nil {
-				sdk.EncodeListResult(result, push, "converting Identity State", err)
-				return
-			}
-
-			// Send the result to the stream
-			if !push(result) {
-				return
-			}
+			sdk.EncodeListResult(ctx, rd, result, push)
+			return
 		}
 	}
 }

@@ -64,7 +64,7 @@ func TestAccMssqlServer_list_by_resource_group(t *testing.T) {
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("azurerm_mssql_server.list", 1), // only 1 should be returned
+					querycheck.ExpectLength("azurerm_mssql_server.list", 2), // only 1 should be returned
 					querycheck.ExpectIdentity(
 						"azurerm_mssql_server.list",
 						map[string]knownvalue.Check{
@@ -87,6 +87,11 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-mssql2-%[1]d"
   location = "%[2]s"
 }
 
@@ -118,8 +123,8 @@ resource "azurerm_mssql_server" "test1" {
 
 resource "azurerm_mssql_server" "test2" {
   name                         = "acctestsqlserver2%[1]d"
-  resource_group_name          = azurerm_resource_group.test.name
-  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test2.name
+  location                     = azurerm_resource_group.test2.location
   version                      = "12.0"
   administrator_login          = "missadministrator"
   administrator_login_password = "thisIsKat11"
