@@ -639,6 +639,18 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"max_scale_unit": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 40),
+			},
+
+			"min_scale_unit": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 40),
+			},
+
 			"remote_vnet_traffic_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -794,6 +806,14 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
+		minScaleUnit, maxScaleUnit := flattenVirtualNetworkGatewayAutoScaleConfiguration(props.AutoScaleConfiguration)
+		if err := d.Set("min_scale_unit", minScaleUnit); err != nil {
+			return fmt.Errorf("setting `min_scale_unit`: %+v", err)
+		}
+		if err := d.Set("max_scale_unit", maxScaleUnit); err != nil {
+			return fmt.Errorf("setting: `max_scale_unit`: %+v", err)
+		}
+
 		if err := d.Set("policy_group", flattenVirtualNetworkGatewayPolicyGroups(props.VirtualNetworkGatewayPolicyGroups)); err != nil {
 			return fmt.Errorf("setting `policy_group`: %+v", err)
 		}
@@ -923,6 +943,10 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Properties.AllowVirtualWanTraffic = pointer.To(d.Get("virtual_wan_traffic_enabled").(bool))
 	}
 
+	if d.HasChanges("min_scale_unit", "max_scale_unit") {
+		payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
+	}
+
 	if d.HasChange("tags") {
 		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
@@ -987,6 +1011,8 @@ func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetwork
 			Id: &gatewayDefaultSiteID,
 		}
 	}
+
+	props.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
 
 	if v, ok := d.GetOk("policy_group"); ok {
 		props.VirtualNetworkGatewayPolicyGroups = expandVirtualNetworkGatewayPolicyGroups(v.([]interface{}))
@@ -1747,4 +1773,35 @@ func flattenVirtualNetworkGatewayPolicyGroupNames(input []virtualnetworkgateways
 	}
 
 	return results, nil
+}
+
+func expandVirtualNetworkGatewayAutoScaleConfiguration(d *pluginsdk.ResourceData) *virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration {
+	minScaleUnit, minOk := d.GetOk("min_scale_unit")
+	maxScaleUnit, maxOk := d.GetOk("max_scale_unit")
+
+	if !minOk && !maxOk {
+		return nil
+	}
+
+	result := &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration{
+		Bounds: &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleBounds{},
+	}
+
+	if minOk {
+		result.Bounds.Min = pointer.To(int64(minScaleUnit.(int)))
+	}
+
+	if maxOk {
+		result.Bounds.Max = pointer.To(int64(maxScaleUnit.(int)))
+	}
+
+	return result
+}
+
+func flattenVirtualNetworkGatewayAutoScaleConfiguration(input *virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration) (int64, int64) {
+	if input == nil || input.Bounds == nil {
+		return 0, 0
+	}
+
+	return pointer.From(input.Bounds.Min), pointer.From(input.Bounds.Max)
 }
