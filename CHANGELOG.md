@@ -10,6 +10,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_logic_app_trigger_http_request` - fix an issue that prevented importing existing resources due to empty trigger inputs [GH-31433]
 * `azurerm_kubernetes_cluster` -  the`network_policy` property now allows updating from `calico` to `cilium` [GH-31627]
 
 ## 4.58.0 (January 22, 2026)
