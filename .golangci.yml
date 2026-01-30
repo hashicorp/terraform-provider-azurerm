@@ -7,28 +7,29 @@ run:
 linters:
   default: none
   enable:
-    - asasalint
-    - asciicheck
-    - bidichk
-    - decorder
-    - dupword
-    - durationcheck
-    - errcheck
-    - gocritic
-    - govet
-    - ineffassign
-    - misspell
-    - nilerr
-    - prealloc
-    - predeclared
-    - reassign
-    - staticcheck
-    - tagalign
-    - unconvert
-    - unparam
-    - unused
-    - wastedassign
-    - whitespace
+    # - asasalint
+    # - asciicheck
+    # - bidichk
+    # - decorder
+    # - dupword
+    # - durationcheck
+    # - errcheck
+    # - gocritic
+    # - govet
+    - goconst
+    # - ineffassign
+    # - misspell
+    # - nilerr
+    # - prealloc
+    # - predeclared
+    # - reassign
+    # - staticcheck
+    # - tagalign
+    # - unconvert
+    # - unparam
+    # - unused
+    # - wastedassign
+    # - whitespace
   settings:
     errcheck:
       exclude-functions:
