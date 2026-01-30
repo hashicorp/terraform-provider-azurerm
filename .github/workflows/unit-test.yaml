@@ -37,52 +37,30 @@ jobs:
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: ./.go-version
+
       - name: '[Diagnostic] Report Go module cache and build cache disk usage'
         run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE)'
+
       - run: bash scripts/gogetcookie.sh
+
+      - name: Configure Datadog Test Optimization
+        uses: datadog/test-visibility-github-action@v2
+        with:
+          languages: go
+          api_key: ${{ secrets.DATADOG_API_KEY }}
+
       - name: Run tests
         run: |
-          go run gotest.tools/gotestsum@v1.13.0 \
-          --format=github-actions \
-          --jsonfile /tmp/jsonfile/go-test.log \
-          --packages="$PACKAGE_NAMES" \
-          --junitfile gotestsum-report.xml -- \
+          go test 
           -v \
           -parallel=20 \
           -count=1 \
-          -cover -coverprofile=coverage.txt \
-          -timeout=30m
-        env:
-          GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
-          PACKAGE_NAMES: "./..."
-      - if: (success() || failure())
-        name: Prepare datadog-ci
-        continue-on-error: true
-        run: |
-          if type datadog-ci > /dev/null 2>&1; then
-            exit 0
-          fi
-          # Curl does not always exit 1 if things go wrong. To determine if this is successful we'll
-          # we'll silence all non-error output and check the results to determine success.
-          if ! out="$(curl -sSL --fail https://github.com/DataDog/datadog-ci/releases/download/v5.4.0/datadog-ci_linux-x64 --output /usr/local/bin/datadog-ci 2>&1)"; then
-            printf "failed to download datadog-ci: %s" "$out"
-          fi
-          if [[ -n "$out" ]]; then
-            printf "failed to download datadog-ci: %s" "$out"
-          fi
-          chmod +x /usr/local/bin/datadog-ci
-
-      - name: Beam up
-        run: |
-            export DATADOG_API_KEY=${{ secrets.DATADOG_API_KEY }}
-            if [[ -z "$DATADOG_API_KEY" ]]; then
-              echo "where is the key"
-              exit 2
-            fi
-            datadog-ci junit upload --service "$GITHUB_REPOSITORY" ./gotestsum-report.xml
+          -timeout=30m \
+          ./...
 
   save-artifacts-on-fail:
     needs: test
