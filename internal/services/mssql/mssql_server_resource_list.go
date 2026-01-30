@@ -9,8 +9,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -20,7 +22,7 @@ type MssqlServerListResource struct{}
 var _ sdk.FrameworkListWrappedResource = new(MssqlServerListResource)
 
 func (r MssqlServerListResource) ResourceFunc() *pluginsdk.Resource {
-	return resourceMssqlServer()
+	return resourceMsSqlServer()
 }
 
 func (r MssqlServerListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
@@ -28,7 +30,7 @@ func (r MssqlServerListResource) Metadata(_ context.Context, _ resource.Metadata
 }
 
 func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-	client := metadata.Client.MSSQL
+	client := metadata.Client.MSSQL.ServersClient
 
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
@@ -44,66 +46,60 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
+	// Make the request based on which list parameters have been set in the config
 	switch {
 	case !data.ResourceGroupName.IsNull():
-		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
+		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()), servers.DefaultListByResourceGroupOperationOptions())
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", MssqlServerResourceName), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_mssql_server`), err)
 			return
 		}
 
 		results = resp.Items
 	default:
-		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
+		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID), servers.DefaultListOperationOptions())
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", MssqlServerResourceName), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_mssql_server`), err)
 			return
 		}
 
 		results = resp.Items
 	}
 
+	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, server := range results {
+
+			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
+
+			// Set the display name of the item as the resource name
 			result.DisplayName = pointer.From(server.Name)
 
-			id, err := servers.ParseFlexibleServerID(pointer.From(server.Id))
+			// Create a new ResourceData object to hold the state of the resource
+			rd := resourceMsSqlServer().Data(&terraform.InstanceState{})
+
+			// Set the ID of the resource for the ResourceData object
+			id, err := commonids.ParseSqlServerID(pointer.From(server.Id))
 			if err != nil {
 				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mssql Server ID", err)
 				return
 			}
-
-			rd := resourceMssqlServer().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceMssqlServerSetResourceData(rd, id, &server, metadata); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", MssqlServerResourceName), err)
+			// Use the resource flatten function to set the attributes into the resource state
+			if err := resourceMssqlServerSetFlatten(rd, id, &server, metadata.Client); err != nil {
+				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_server`), err)
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
+			// Convert and set the identity and resource state into the result
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
+				sdk.EncodeListResult(result, push, "converting Identity State", err)
 				return
 			}
 
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
-				return
-			}
-
+			// Send the result to the stream
 			if !push(result) {
 				return
 			}

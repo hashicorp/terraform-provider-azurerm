@@ -572,18 +572,19 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
-	return resourceMssqlServerSetResourceData(d, id, resp.Model, meta)
+	return resourceMssqlServerSetFlatten(d, id, resp.Model, meta.(*clients.Client))
 }
 
-func resourceMssqlServerSetResourceData(d *pluginsdk.ResourceData, id *servers.SqlServerId, server *servers.Server, meta interface{}) error {
-	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
-	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
+func resourceMssqlServerSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
+	connectionClient := metaClient.MSSQL.ServerConnectionPoliciesClient
+	restorableDroppedDatabasesClient := metaClient.MSSQL.RestorableDroppedDatabasesClient
+	vaClient := metaClient.MSSQL.SqlVulnerabilityAssessmentSettingsClient
+	ctx, _ := timeouts.ForRead(metaClient.StopContext, d)
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)

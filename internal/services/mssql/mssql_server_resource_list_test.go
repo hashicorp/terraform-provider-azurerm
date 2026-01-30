@@ -1,4 +1,4 @@
-package mssql
+package mssql_test
 
 import (
 	"context"
@@ -26,13 +26,13 @@ func TestAccMssqlServer_list_no_config(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
-				Config: r.basicListQuery(),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_mssql_server.list", 1), // expect at least the 1 we created
+					querycheck.ExpectLengthAtLeast("azurerm_mssql_server.list", 3), // expect at least the 1 we created
 					querycheck.ExpectIdentity(
 						"azurerm_mssql_server.list",
 						map[string]knownvalue.Check{
@@ -58,11 +58,11 @@ func TestAccMssqlServer_list_by_resource_group(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
-				Config: r.basicListQueryByResourceGroupName(data),
+				Config: r.basicQueryByResourceGroupName(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_mssql_server.list", 1), // only 1 should be returned
 					querycheck.ExpectIdentity(
@@ -79,7 +79,59 @@ func TestAccMssqlServer_list_by_resource_group(t *testing.T) {
 	})
 }
 
-func (r MssqlServerResource) basicListQuery() string {
+func (r MssqlServerResource) basicList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_mssql_server" "test1" {
+  name                         = "acctestsqlserver1%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_mssql_server" "test2" {
+  name                         = "acctestsqlserver2%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator"
+  administrator_login_password = "thisIsKat11"
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r MssqlServerResource) basicQuery() string {
 	return `
 list "azurerm_mssql_server" "list" {
   provider = azurerm
@@ -88,7 +140,7 @@ list "azurerm_mssql_server" "list" {
 `
 }
 
-func (r MssqlServerResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
+func (r MssqlServerResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_mssql_server" "list" {
   provider = azurerm
