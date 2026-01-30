@@ -6,6 +6,7 @@ package cognitive
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -80,8 +81,15 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceCognitiveAccountFlatten(ctx, client, rd, id, &account); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureCognitiveAccountResourceName), err)
+			if err := func() error {
+				ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
+				defer cancel()
+				if err := resourceCognitiveAccountFlatten(ctx, client, rd, id, &account, request.IncludeResource); err != nil {
+					sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureCognitiveAccountResourceName), err)
+					return err
+				}
+				return nil
+			}(); err != nil {
 				return
 			}
 

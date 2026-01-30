@@ -621,10 +621,10 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return resourceCognitiveAccountFlatten(ctx, client, d, id, resp.Model)
+	return resourceCognitiveAccountFlatten(ctx, client, d, id, resp.Model, true)
 }
 
-func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, d *pluginsdk.ResourceData, id *cognitiveservicesaccounts.AccountId, account *cognitiveservicesaccounts.Account) error {
+func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, d *pluginsdk.ResourceData, id *cognitiveservicesaccounts.AccountId, account *cognitiveservicesaccounts.Account, fetchAccessKeys bool) error {
 	d.Set("name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -666,11 +666,7 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 				return fmt.Errorf("setting `network_injection`: %+v", err)
 			}
 
-			dynamicThrottlingEnabled := false
-			if props.DynamicThrottlingEnabled != nil {
-				dynamicThrottlingEnabled = *props.DynamicThrottlingEnabled
-			}
-			d.Set("dynamic_throttling_enabled", dynamicThrottlingEnabled)
+			d.Set("dynamic_throttling_enabled", pointer.From(props.DynamicThrottlingEnabled))
 
 			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
 
@@ -681,11 +677,7 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			}
 			d.Set("project_management_enabled", allowProjectManagement)
 
-			publicNetworkAccess := true
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess == cognitiveservicesaccounts.PublicNetworkAccessEnabled
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccess)
+			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
 
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
@@ -697,16 +689,12 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			// lintignore:R001
 			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
-			localAuthEnabled := true
-			if props.DisableLocalAuth != nil {
-				localAuthEnabled = !*props.DisableLocalAuth
-			}
+			localAuthEnabled := pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)
 
-			if localAuthEnabled {
+			if localAuthEnabled && fetchAccessKeys {
 				keys, err := client.AccountsListKeys(ctx, *id)
 				if err != nil {
-					// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
 					return fmt.Errorf("listing the Keys for %s: %+v", *id, err)
 				}
 
