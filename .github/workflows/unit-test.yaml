@@ -62,7 +62,8 @@ jobs:
           ./helpers/... # for fast feedback
         env:
           DD_TEST_SESSION_NAME: "unit-test"
-          ORCHESTRION_LOG_LEVEL: debug
+          DD_LOG_LEVEL: debug
+          # ORCHESTRION_LOG_LEVEL: debug
 
   save-artifacts-on-fail:
     needs: test
