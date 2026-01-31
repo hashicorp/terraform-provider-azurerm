@@ -24,12 +24,13 @@ import (
 type StorageDefenderResource struct{}
 
 type StorageDefenderModel struct {
-	StorageAccountId                 string `tfschema:"storage_account_id"`
-	OverrideSubscriptionSettings     bool   `tfschema:"override_subscription_settings_enabled"`
-	MalwareScanningOnUploadEnabled   bool   `tfschema:"malware_scanning_on_upload_enabled"`
-	MalwareScanningOnUploadCapPerMon int64  `tfschema:"malware_scanning_on_upload_cap_gb_per_month"`
-	SensitiveDataDiscoveryEnabled    bool   `tfschema:"sensitive_data_discovery_enabled"`
-	ScanResultsEventGridTopicId      string `tfschema:"scan_results_event_grid_topic_id"`
+	StorageAccountId                      string `tfschema:"storage_account_id"`
+	OverrideSubscriptionSettings          bool   `tfschema:"override_subscription_settings_enabled"`
+	MalwareScanningOnUploadEnabled        bool   `tfschema:"malware_scanning_on_upload_enabled"`
+	MalwareScanningOnUploadCapPerMon      int64  `tfschema:"malware_scanning_on_upload_cap_gb_per_month"`
+	MalwareScanningBlobScanResultsOptions string `tfschema:"malware_scanning_blob_scan_results_options"`
+	SensitiveDataDiscoveryEnabled         bool   `tfschema:"sensitive_data_discovery_enabled"`
+	ScanResultsEventGridTopicId           string `tfschema:"scan_results_event_grid_topic_id"`
 }
 
 var _ sdk.ResourceWithUpdate = StorageDefenderResource{}
@@ -77,6 +78,16 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			),
 		},
 
+		"malware_scanning_blob_scan_results_options": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(defenderforstorage.BlobScanResultsOptionsBlobIndexTags),
+			ValidateFunc: validation.StringInSlice(
+				defenderforstorage.PossibleValuesForBlobScanResultsOptions(),
+				false,
+			),
+		},
+
 		"sensitive_data_discovery_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -116,6 +127,8 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(s.ResourceType(), id.ID())
 			}
 
+			blobScanResultsOptions := defenderforstorage.BlobScanResultsOptions(plan.MalwareScanningBlobScanResultsOptions)
+
 			input := defenderforstorage.DefenderForStorageSetting{
 				Properties: &defenderforstorage.DefenderForStorageSettingProperties{
 					IsEnabled:                         pointer.To(true),
@@ -125,6 +138,7 @@ func (s StorageDefenderResource) Create() sdk.ResourceFunc {
 							IsEnabled:     pointer.To(plan.MalwareScanningOnUploadEnabled),
 							CapGBPerMonth: pointer.To(plan.MalwareScanningOnUploadCapPerMon),
 						},
+						BlobScanResultsOptions: pointer.To(blobScanResultsOptions),
 					},
 					SensitiveDataDiscovery: &defenderforstorage.SensitiveDataDiscoveryProperties{
 						IsEnabled: pointer.To(plan.SensitiveDataDiscoveryEnabled),
@@ -202,6 +216,11 @@ func (s StorageDefenderResource) Update() sdk.ResourceFunc {
 				prop.MalwareScanning.OnUpload.CapGBPerMonth = pointer.To(plan.MalwareScanningOnUploadCapPerMon)
 			}
 
+			if metadata.ResourceData.HasChange("malware_scanning_blob_scan_results_options") {
+				blobScanResultsOptions := defenderforstorage.BlobScanResultsOptions(plan.MalwareScanningBlobScanResultsOptions)
+				prop.MalwareScanning.BlobScanResultsOptions = pointer.To(blobScanResultsOptions)
+			}
+
 			if metadata.ResourceData.HasChange("scan_results_event_grid_topic_id") {
 				prop.MalwareScanning.ScanResultsEventGridTopicResourceId = pointer.To(plan.ScanResultsEventGridTopicId)
 			}
@@ -274,6 +293,11 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 								return err
 							}
 							state.ScanResultsEventGridTopicId = topicId.ID()
+						}
+						// Default to BlobIndexTags if not set
+						state.MalwareScanningBlobScanResultsOptions = string(defenderforstorage.BlobScanResultsOptionsBlobIndexTags)
+						if ms.BlobScanResultsOptions != nil {
+							state.MalwareScanningBlobScanResultsOptions = string(*ms.BlobScanResultsOptions)
 						}
 					}
 
