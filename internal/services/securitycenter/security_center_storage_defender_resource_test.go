@@ -45,6 +45,7 @@ func TestAccSecurityCenterStorageDefender_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("malware_scanning_blob_scan_results_options").HasValue("blobIndexTags"),
 			),
 		},
 		data.ImportStep(),
@@ -210,6 +211,7 @@ resource "azurerm_security_center_storage_defender" "test" {
   override_subscription_settings_enabled      = true
   malware_scanning_on_upload_enabled          = true
   malware_scanning_on_upload_cap_gb_per_month = 4
+  malware_scanning_blob_scan_results_options  = "blobIndexTags"
   sensitive_data_discovery_enabled            = true
 }
 `, r.template(data))
