@@ -59,9 +59,10 @@ jobs:
           -v \
           -parallel=20 \
           -timeout=30m \
-          ./...
+          ./helpers/... # for fast feedback
         env:
           DD_TEST_SESSION_NAME: "unit-test"
+          ORCHESTRION_LOG_LEVEL: debug
 
   save-artifacts-on-fail:
     needs: test
