@@ -1,6 +1,7 @@
 ## 4.59.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_netapp_volume_group_sap_hana_resource` - add support for `zone`, `encryption_key_source`, `key_vault_private_endpoint_id`, and `network_features` [GH-31603]
 * dependencies: `go-azure-sdk` - update to `v0.20260129.1200123` [GH-31621]
 * `azurerm_automation_runbook` - add support for the `runtime_environment_name` property [GH-30992]
 * `azurerm_kusto_eventgrid_data_connection` - update validation for `eventhub_consumer_group_name` to allow `$Default` as input [GH-31551]
