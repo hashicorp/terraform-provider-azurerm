@@ -59,7 +59,7 @@ jobs:
           -v \
           -parallel=20 \
           -timeout=30m \
-          ./helpers/... # for fast feedback
+          $(go list ./helpers/...) # for fast feedback
         env:
           DD_TEST_SESSION_NAME: "unit-test"
           DD_LOG_LEVEL: debug
