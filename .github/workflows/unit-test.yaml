@@ -45,8 +45,6 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - name: Run tests
         run: go test -v -timeout=30s -parallel=20 -run='^Test[^A][^c][^c]' ./...
-        env:
-          DD_TEST_SESSION_NAME: "unit-test"
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}
