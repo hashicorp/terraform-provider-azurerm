@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package orbital
@@ -15,10 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContactProfileResource struct{}
@@ -93,7 +91,7 @@ func (r ContactProfileResource) Arguments() map[string]*schema.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -158,9 +156,9 @@ func (r ContactProfileResource) Create() sdk.ResourceFunc {
 			}
 
 			contactProfile := contactprofile.ContactProfile{
-				Id:         utils.String(id.ID()),
+				Id:         pointer.To(id.ID()),
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: contactProfilesProperties,
 				Tags:       pointer.To(model.Tags),
 			}

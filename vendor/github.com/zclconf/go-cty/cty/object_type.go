@@ -134,7 +134,7 @@ func init() {
 	EmptyObject = Object(map[string]Type{})
 	EmptyObjectVal = Value{
 		ty: EmptyObject,
-		v:  map[string]interface{}{},
+		v:  map[string]any{},
 	}
 }
 

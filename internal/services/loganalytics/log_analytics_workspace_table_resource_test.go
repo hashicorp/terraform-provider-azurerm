@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsWorkspaceTableResource struct{}
@@ -32,6 +32,11 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("7"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("32"),
 			),
+		},
+		{
+			Config: r.removeRetentionDays(data),
+			// The `retention_in_days` is an optional property, when it's not specified, the service will set a default value for it.
+			ExpectNonEmptyPlan: true,
 		},
 	})
 }
@@ -61,7 +66,7 @@ func (t LogAnalyticsWorkspaceTableResource) Exists(ctx context.Context, clients 
 		return nil, fmt.Errorf("reading Log Analytics Workspace Table (%s): %+v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Model.Id != nil), nil
+	return pointer.To(resp.Model.Id != nil), nil
 }
 
 func (LogAnalyticsWorkspaceTableResource) updateRetention(data acceptance.TestData) string {
@@ -108,6 +113,29 @@ resource "azurerm_log_analytics_workspace_table" "test" {
   workspace_id            = azurerm_log_analytics_workspace.test.id
   plan                    = "Basic"
   total_retention_in_days = 32
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceTableResource) removeRetentionDays(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  retention_in_days   = 30
+}
+resource "azurerm_log_analytics_workspace_table" "test" {
+  name                    = "AppEvents"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  total_retention_in_days = 180
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

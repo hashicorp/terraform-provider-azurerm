@@ -7,11 +7,12 @@ import (
 	"context"
 	"errors"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromtftypes"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // NullifyCollectionBlocks converts list and set block empty values to null

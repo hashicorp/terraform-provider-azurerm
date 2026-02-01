@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -18,9 +18,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -31,24 +30,27 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall -service-package-name firewall -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var AzureFirewallResourceName = "azurerm_firewall"
 
 func resourceFirewall() *pluginsdk.Resource {
 	resource := pluginsdk.Resource{
-		Create: resourceFirewallCreateUpdate,
-		Read:   resourceFirewallRead,
-		Update: resourceFirewallCreateUpdate,
-		Delete: resourceFirewallDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := azurefirewalls.ParseAzureFirewallID(id)
-			return err
-		}),
+		Create:   resourceFirewallCreateUpdate,
+		Read:     resourceFirewallRead,
+		Update:   resourceFirewallCreateUpdate,
+		Delete:   resourceFirewallDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&azurefirewalls.AzureFirewallId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(90 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&azurefirewalls.AzureFirewallId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -255,7 +257,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	i := d.Get("ip_configuration").([]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandFirewallIPConfigurations(i)
@@ -388,6 +390,10 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceFirewallRead(d, meta)
 }
 
@@ -466,10 +472,12 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -585,13 +593,13 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 		pubID := data["public_ip_address_id"].(string)
 
 		ipConfig := azurefirewalls.AzureFirewallIPConfiguration{
-			Name:       utils.String(name),
+			Name:       pointer.To(name),
 			Properties: &azurefirewalls.AzureFirewallIPConfigurationPropertiesFormat{},
 		}
 
 		if pubID != "" {
 			ipConfig.Properties.PublicIPAddress = &azurefirewalls.SubResource{
-				Id: utils.String(pubID),
+				Id: pointer.To(pubID),
 			}
 		}
 
@@ -610,7 +618,7 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 			}
 
 			ipConfig.Properties.Subnet = &azurefirewalls.SubResource{
-				Id: utils.String(subnetId),
+				Id: pointer.To(subnetId),
 			}
 		}
 		ipConfigs = append(ipConfigs, ipConfig)
@@ -757,10 +765,10 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 		}
 	}
 
-	vhub = &azurefirewalls.SubResource{Id: utils.String(b["virtual_hub_id"].(string))}
+	vhub = &azurefirewalls.SubResource{Id: pointer.To(b["virtual_hub_id"].(string))}
 	ipAddresses = &azurefirewalls.HubIPAddresses{
 		PublicIPs: &azurefirewalls.HubPublicIPAddresses{
-			Count:     utils.Int64(int64(b["public_ip_count"].(int))),
+			Count:     pointer.To(int64(b["public_ip_count"].(int))),
 			Addresses: addresses,
 		},
 	}
@@ -826,7 +834,7 @@ func validateFirewallIPConfigurationSettings(configs []interface{}) error {
 	}
 
 	if subnetNumber != 1 {
-		return fmt.Errorf(`The "ip_configuration" is invalid, %d "subnet_id" have been set, one "subnet_id" should be set among all "ip_configuration" blocks`, subnetNumber)
+		return fmt.Errorf(`the "ip_configuration" is invalid, %d "subnet_id" have been set, one "subnet_id" should be set among all "ip_configuration" blocks`, subnetNumber)
 	}
 
 	return nil

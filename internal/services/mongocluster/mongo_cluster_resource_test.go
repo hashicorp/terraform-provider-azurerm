@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mongocluster_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2024-07-01/mongoclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -37,11 +37,15 @@ func testAccMongoCluster_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("connection_strings.0.value").HasValue(
-					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
+					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.global.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
 						data.RandomInteger)),
+				check.That(data.ResourceName).Key("connection_strings.1.value").HasValue(
+					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
+						data.RandomInteger),
+				),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -56,14 +60,14 @@ func testAccMongoCluster_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value"),
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -95,7 +99,7 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 		{
-			Config: r.geoReplica(data),
+			Config: r.geoReplica(data, r.previewFeature(data)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -110,12 +114,56 @@ func TestAccMongoCluster_geoReplica(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoReplica(data),
+			Config: r.geoReplica(data, r.source(data)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "source_location", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+func TestAccMongoCluster_pointInTimeRestore(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.pointInTimeRestore(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+func TestAccMongoCluster_customerManagedKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customerManagedKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
+	})
+}
+
+func TestAccMongoCluster_dataApiModeEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mongo_cluster", "test")
+	r := MongoClusterResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataApiModeEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
 	})
 }
 
@@ -147,7 +195,7 @@ resource "azurerm_mongo_cluster" "test" {
   compute_tier           = "Free"
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
-  version                = "6.0"
+  version                = "7.0"
 }
 `, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
@@ -167,7 +215,10 @@ resource "azurerm_mongo_cluster" "test" {
   high_availability_mode = "ZoneRedundantPreferred"
   public_network_access  = "Disabled"
   storage_size_in_gb     = "64"
-  version                = "7.0"
+  storage_type           = "PremiumSSD"
+  version                = "8.0"
+  data_api_mode_enabled  = true
+  authentication_methods = ["NativeAuth", "MicrosoftEntraID"]
 
   tags = {
     environment = "test"
@@ -190,9 +241,9 @@ resource "azurerm_mongo_cluster" "test" {
   shard_count            = "1"
   compute_tier           = "M30"
   storage_size_in_gb     = "64"
-  version                = "7.0"
+  version                = "8.0"
 }
-`, r.template(data, data.Locations.Ternary), data.RandomInteger)
+`, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) requiresImport(data acceptance.TestData) string {
@@ -229,12 +280,12 @@ resource "azurerm_mongo_cluster" "test" {
   high_availability_mode = "ZoneRedundantPreferred"
   storage_size_in_gb     = "64"
   preview_features       = ["GeoReplicas"]
-  version                = "7.0"
+  version                = "8.0"
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
 
-func (r MongoClusterResource) geoReplica(data acceptance.TestData) string {
+func (r MongoClusterResource) geoReplica(data acceptance.TestData, source string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -250,7 +301,147 @@ resource "azurerm_mongo_cluster" "geo_replica" {
     ignore_changes = ["administrator_username", "high_availability_mode", "preview_features", "shard_count", "storage_size_in_gb", "compute_tier", "version"]
   }
 }
-`, r.source(data), data.RandomInteger, data.Locations.Secondary)
+`, source, data.RandomInteger, data.Locations.Secondary)
+}
+
+func (r MongoClusterResource) pointInTimeRestore(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "time_offset" "test" {
+  offset_minutes = 15
+}
+
+resource "azurerm_mongo_cluster" "point_in_time_restore" {
+  name                   = "acctest-mc-restore%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  create_mode            = "PointInTimeRestore"
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123update"
+
+  restore {
+    source_id         = azurerm_mongo_cluster.test.id
+    point_in_time_utc = time_offset.test.rfc3339
+  }
+
+  lifecycle {
+    ignore_changes = [source_server_id, high_availability_mode, preview_features, shard_count, storage_size_in_gb, compute_tier, version]
+  }
+}
+`, r.source(data), data.RandomInteger)
+}
+
+func (r MongoClusterResource) customerManagedKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-uai-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestAmr%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+      "SetRotationPolicy"
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-key-%d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123basic"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
+  version                = "7.0"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  customer_managed_key {
+    key_vault_key_id          = azurerm_key_vault_key.test.versionless_id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, r.template(data, data.Locations.Ternary), data.RandomInteger, data.RandomString, data.RandomInteger, data.RandomInteger)
+}
+
+func (r MongoClusterResource) dataApiModeEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mongo_cluster" "test" {
+  name                   = "acctest-mc%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_username = "adminTerraform"
+  administrator_password = "QAZwsx123basic"
+  shard_count            = "1"
+  compute_tier           = "M30"
+  high_availability_mode = "Disabled"
+  storage_size_in_gb     = "32"
+  version                = "7.0"
+  data_api_mode_enabled  = true
+}
+`, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
 
 func (r MongoClusterResource) template(data acceptance.TestData, location string) string {

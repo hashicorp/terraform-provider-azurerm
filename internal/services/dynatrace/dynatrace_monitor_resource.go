@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dynatrace/2023-04-27/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -32,6 +31,7 @@ type MonitorsResourceModel struct {
 	MonitoringStatus              bool                           `tfschema:"monitoring_enabled"`
 	MarketplaceSubscriptionStatus string                         `tfschema:"marketplace_subscription"`
 	Identity                      []identity.ModelSystemAssigned `tfschema:"identity"`
+	EnvironmentProperties         []EnvironmentProperties        `tfschema:"environment_properties"`
 	PlanData                      []PlanData                     `tfschema:"plan"`
 	UserInfo                      []UserInfo                     `tfschema:"user"`
 	Tags                          map[string]string              `tfschema:"tags"`
@@ -99,6 +99,7 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"MONTHLY",
 							"WEEKLY",
+							"YEARLY",
 						}, false),
 					},
 
@@ -134,12 +135,6 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"country": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"email": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -160,14 +155,41 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"phone_number": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"country": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
 		},
 
-		"tags": tags.Schema(),
+		"environment_properties": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"environment_info": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"environment_id": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -210,10 +232,11 @@ func (r MonitorsResource) Create() sdk.ResourceFunc {
 				monitoringStatus = monitors.MonitoringStatusDisabled
 			}
 			monitorsProps := monitors.MonitorProperties{
-				MarketplaceSubscriptionStatus: pointer.To(monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)),
-				MonitoringStatus:              pointer.To(monitoringStatus),
-				PlanData:                      ExpandDynatracePlanData(model.PlanData),
-				UserInfo:                      ExpandDynatraceUserInfo(model.UserInfo),
+				MarketplaceSubscriptionStatus:  pointer.To(monitors.MarketplaceSubscriptionStatus(model.MarketplaceSubscriptionStatus)),
+				MonitoringStatus:               pointer.To(monitoringStatus),
+				PlanData:                       ExpandDynatracePlanData(model.PlanData),
+				UserInfo:                       ExpandDynatraceUserInfo(model.UserInfo),
+				DynatraceEnvironmentProperties: ExpandDynatraceEnvironmentProperties(model.EnvironmentProperties),
 			}
 
 			dynatraceIdentity, err := expandDynatraceIdentity(model.Identity)
@@ -278,6 +301,10 @@ func (r MonitorsResource) Read() sdk.ResourceFunc {
 					Identity:                      identityProps,
 					PlanData:                      FlattenDynatracePlanData(props.PlanData),
 					UserInfo:                      FlattenDynatraceUserInfo(props.UserInfo),
+				}
+
+				if environmentProps := metadata.ResourceData.Get("environment_properties"); environmentProps != nil && len(environmentProps.([]interface{})) > 0 {
+					state.EnvironmentProperties = FlattenDynatraceEnvironmentProperties(props.DynatraceEnvironmentProperties)
 				}
 
 				if model.Tags != nil {

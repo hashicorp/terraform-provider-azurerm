@@ -13,11 +13,9 @@ class ClientConfiguration(var clientId: String,
                           val principalIdAltTenant : String,
                           val vcsRootId : String,
                           val enableTestTriggersGlobally : Boolean,
-                          val emailAddressAccTests : String,) {
-}
+                          val emailAddressAccTests : String,)
 
-class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean) {
-}
+class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean)
 
 fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: String, config: ClientConfiguration, locationsForEnv: LocationConfiguration, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false) {
     hiddenPasswordVariable("env.ARM_CLIENT_ID", config.clientId, "The Client ID of the Application used for Testing")

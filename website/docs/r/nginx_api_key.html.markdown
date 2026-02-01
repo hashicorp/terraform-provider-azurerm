@@ -57,7 +57,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_nginx_deployment" "example" {
   name                      = "example-nginx"
   resource_group_name       = azurerm_resource_group.example.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.example.location
   automatic_upgrade_channel = "stable"
 
@@ -86,13 +86,13 @@ resource "azurerm_nginx_api_key" "example" {
 
 The following arguments are supported:
 
-- `name` - (Required) The name of the NGINX Dataplane API Key. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the NGINX Dataplane API Key. Changing this forces a new resource to be created.
 
-- `nginx_deployment_id` - (Required) The ID of the NGINX Deployment that the API key is associated with. Changing this forces a new resource to be created.
+* `nginx_deployment_id` - (Required) The ID of the NGINX Deployment that the API key is associated with. Changing this forces a new resource to be created.
 
-- `end_date_time` - (Required) The RFC3339 formatted date-time after which this Dataplane API Key is no longer valid. The maximum value is now+2y.
+* `end_date_time` - (Required) The RFC3339 formatted date-time after which this Dataplane API Key is no longer valid. The maximum value is now+2y.
 
-- `secret_text` - (Required) The value used as the Dataplane API Key. The API key requirements can be found in the [NGINXaaS Documentation](https://docs.nginx.com/nginxaas/azure/quickstart/loadbalancer-kubernetes/#create-an-nginxaas-data-plane-api-key).
+* `secret_text` - (Required) The value used as the Dataplane API Key. The API key requirements can be found in the [NGINXaaS Documentation](https://docs.nginx.com/nginxaas/azure/quickstart/loadbalancer-kubernetes/#create-an-nginxaas-data-plane-api-key).
 
 -> **Note:** The `secret_text` contains a Dataplane API Key that can be used to modify NGINX upstream servers. The following sources are useful in learning to manage sensitive data.
 
@@ -103,11 +103,11 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `hint` - The first three characters of the secret text to help identify it in use.
+* `hint` - The first three characters of the secret text to help identify it in use.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the NGINX Dataplane API Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Dataplane API Key.
@@ -126,4 +126,4 @@ terraform import azurerm_nginx_api_key.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Nginx.NginxPlus`: 2024-11-01-preview
+* `Nginx.NginxPlus` - 2024-11-01-preview

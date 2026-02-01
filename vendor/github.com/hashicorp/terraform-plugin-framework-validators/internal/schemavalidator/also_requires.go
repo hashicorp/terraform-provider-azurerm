@@ -29,6 +29,7 @@ var (
 	_ validator.Object  = AlsoRequiresValidator{}
 	_ validator.Set     = AlsoRequiresValidator{}
 	_ validator.String  = AlsoRequiresValidator{}
+	_ validator.Dynamic = AlsoRequiresValidator{}
 )
 
 // AlsoRequiresValidator is the underlying struct implementing AlsoRequires.
@@ -57,7 +58,8 @@ func (av AlsoRequiresValidator) MarkdownDescription(_ context.Context) string {
 
 func (av AlsoRequiresValidator) Validate(ctx context.Context, req AlsoRequiresValidatorRequest, res *AlsoRequiresValidatorResponse) {
 	// If attribute configuration is null, there is nothing else to validate
-	if req.ConfigValue.IsNull() {
+	// If attribute configuration is unknown, delay the validation until it is known.
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
 		return
 	}
 
@@ -245,6 +247,20 @@ func (av AlsoRequiresValidator) ValidateSet(ctx context.Context, req validator.S
 }
 
 func (av AlsoRequiresValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	validateReq := AlsoRequiresValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &AlsoRequiresValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av AlsoRequiresValidator) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	validateReq := AlsoRequiresValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,

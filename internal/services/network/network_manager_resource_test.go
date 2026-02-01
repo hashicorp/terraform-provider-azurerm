@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type ManagerResource struct{}
+type NetworkManagerResource struct{}
 
 func TestAccNetworkManager(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being happy about provisioning one (connectivity or securityAdmin) network manager per subscription at once
+	// Azure only being happy about provisioning one securityAdmin network manager per subscription at once
 	// (which our test suite can't easily work around)
 
 	testCases := map[string]map[string]func(t *testing.T){
@@ -31,13 +31,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManager_update,
 			"requiresImport": testAccNetworkManager_requiresImport,
 			"dataSource":     testAccNetworkManagerDataSource_complete,
-		},
-		"NetworkGroup": {
-			"basic":          testAccNetworkManagerNetworkGroup_basic,
-			"complete":       testAccNetworkManagerNetworkGroup_complete,
-			"update":         testAccNetworkManagerNetworkGroup_update,
-			"requiresImport": testAccNetworkManagerNetworkGroup_requiresImport,
-			"dataSource":     testAccNetworkManagerNetworkGroupDataSource_complete,
+			"identity":       testAccNetworkManager_resourceIdentity,
 		},
 		"SubscriptionConnection": {
 			"basic":          testAccNetworkSubscriptionNetworkManagerConnection_basic,
@@ -56,10 +50,6 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerScopeConnection_complete,
 			"update":         testAccNetworkManagerScopeConnection_update,
 			"requiresImport": testAccNetworkManagerScopeConnection_requiresImport,
-		},
-		"StaticMember": {
-			"basic":          testAccNetworkManagerStaticMember_basic,
-			"requiresImport": testAccNetworkManagerStaticMember_requiresImport,
 		},
 		"ConnectivityConfiguration": {
 			"basic":             testAccNetworkManagerConnectivityConfiguration_basic,
@@ -101,18 +91,52 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerIpamPool_complete,
 			"update":         testAccNetworkManagerIpamPool_update,
 			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
+		},
+		"IPAMPoolStaticCIDR": {
+			"basic":                 testAccNetworkManagerIpamPoolStaticCidr_basic,
+			"complete":              testAccNetworkManagerIpamPoolStaticCidr_complete,
+			"update":                testAccNetworkManagerIpamPoolStaticCidr_update,
+			"requiresImport":        testAccNetworkManagerIpamPoolStaticCidr_requiresImport,
+			"ipAddressNumber":       testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber,
+			"updateIpAddressNumber": testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated,
 		},
 		"VerifierWorkspace": {
-			"basic":          testAccNetorkManagerVerifierWorkspace_basic,
-			"complete":       testAccNetorkManagerVerifierWorkspace_complete,
-			"update":         testAccNetorkManagerVerifierWorkspace_update,
-			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
+			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspace_complete,
+			"update":         testAccNetworkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetworkManagerVerifierWorkspace_requiresImport,
+		},
+		"VerifierWorkspaceReachabilityAnalysisIntent": {
+			"basic":          testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete,
+			"requiresImport": testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport,
 		},
 		"RoutingConfiguration": {
 			"basic":          testAccNetworkManagerRoutingConfiguration_basic,
 			"complete":       testAccNetworkManagerRoutingConfiguration_complete,
 			"update":         testAccNetworkManagerRoutingConfiguration_update,
 			"requiresImport": testAccNetworkManagerRoutingConfiguration_requiresImport,
+		},
+		"RoutingRuleCollection": {
+			"basic":          testAccNetworkManagerRoutingRuleCollection_basic,
+			"complete":       testAccNetworkManagerRoutingRuleCollection_complete,
+			"update":         testAccNetworkManagerRoutingRuleCollection_update,
+			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
+		},
+		"SubnetIPAMPool": {
+			"ipAddressPool":              testAccSubnet_ipAddressPool,
+			"ipAddressPoolVNet":          testAccSubnet_ipAddressPoolVNet,
+			"ipAddressPoolIPv6":          testAccSubnet_ipAddressPoolIPv6,
+			"ipAddressPoolBlockUpdated":  testAccSubnet_ipAddressPoolBlockUpdated,
+			"ipAddressPoolNumberUpdated": testAccSubnet_ipAddressPoolNumberUpdated,
+		},
+		"VNETIPANPool": {
+			"ipAddressPool":             testAccVirtualNetwork_ipAddressPool,
+			"ipAddressPoolIPv6":         testAccVirtualNetwork_ipAddressPoolIPv6,
+			"ipAddressPoolMultiple":     testAccVirtualNetwork_ipAddressPoolMultiple,
+			"ipAddressPoolUpdateBasic":  testAccVirtualNetwork_ipAddressPoolUpdateBasic,
+			"ipAddressPoolUpdateNumber": testAccVirtualNetwork_ipAddressPoolUpdateNumber,
 		},
 	}
 
@@ -131,7 +155,7 @@ func TestAccNetworkManager(t *testing.T) {
 
 func testAccNetworkManager_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
-	r := ManagerResource{}
+	r := NetworkManagerResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -146,7 +170,7 @@ func testAccNetworkManager_basic(t *testing.T) {
 
 func testAccNetworkManager_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
-	r := ManagerResource{}
+	r := NetworkManagerResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -161,7 +185,7 @@ func testAccNetworkManager_complete(t *testing.T) {
 
 func testAccNetworkManager_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
-	r := ManagerResource{}
+	r := NetworkManagerResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -190,7 +214,7 @@ func testAccNetworkManager_update(t *testing.T) {
 
 func testAccNetworkManager_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager", "test")
-	r := ManagerResource{}
+	r := NetworkManagerResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -203,7 +227,7 @@ func testAccNetworkManager_requiresImport(t *testing.T) {
 	})
 }
 
-func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r NetworkManagerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := networkmanagers.ParseNetworkManagerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -211,15 +235,15 @@ func (r ManagerResource) Exists(ctx context.Context, clients *clients.Client, st
 	resp, err := clients.Network.NetworkManagers.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ManagerResource) basic(data acceptance.TestData) string {
+func (r NetworkManagerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_network_manager" "test" {
@@ -233,7 +257,7 @@ resource "azurerm_network_manager" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ManagerResource) requiresImport(data acceptance.TestData) string {
+func (r NetworkManagerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_network_manager" "import" {
@@ -247,7 +271,7 @@ resource "azurerm_network_manager" "import" {
 `, r.basic(data))
 }
 
-func (r ManagerResource) complete(data acceptance.TestData) string {
+func (r NetworkManagerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_network_manager" "test" {
@@ -266,7 +290,7 @@ resource "azurerm_network_manager" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (ManagerResource) template(data acceptance.TestData) string {
+func (NetworkManagerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

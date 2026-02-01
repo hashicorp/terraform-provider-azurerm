@@ -73,7 +73,7 @@ func (e PollingCancelledError) Error() string {
 		return fmt.Sprintf("polling was cancelled: %+v", e.Message)
 	}
 
-	return fmt.Sprintf("polling was cancelled")
+	return "polling was cancelled"
 }
 
 var _ error = PollingDroppedConnectionError{}
@@ -89,7 +89,7 @@ func (e PollingDroppedConnectionError) Error() string {
 		return fmt.Sprintf("experienced a dropped connection when polling: %+v", e.Message)
 	}
 
-	return fmt.Sprintf("experienced a dropped connection when polling")
+	return "experienced a dropped connection when polling"
 }
 
 var _ error = PollingFailedError{}
@@ -108,5 +108,5 @@ func (e PollingFailedError) Error() string {
 		return fmt.Sprintf("polling failed: %+v", e.Message)
 	}
 
-	return fmt.Sprintf("polling failed")
+	return "polling failed"
 }

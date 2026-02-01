@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,16 +6,18 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/deployments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raiblocklists"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AccountsClient      *cognitiveservicesaccounts.CognitiveServicesAccountsClient
 	DeploymentsClient   *deployments.DeploymentsClient
+	ProjectsClient      *cognitiveservicesprojects.CognitiveServicesProjectsClient
 	RaiBlocklistsClient *raiblocklists.RaiBlocklistsClient
 	RaiPoliciesClient   *raipolicies.RaiPoliciesClient
 }
@@ -33,6 +35,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(deploymentsClient.Client, o.Authorizers.ResourceManager)
 
+	projectsClient, err := cognitiveservicesprojects.NewCognitiveServicesProjectsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Projects client: %+v", err)
+	}
+	o.Configure(projectsClient.Client, o.Authorizers.ResourceManager)
+
 	raiPoliciesClient, err := raipolicies.NewRaiPoliciesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Rai Policies client: %+v", err)
@@ -48,6 +56,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AccountsClient:      accountsClient,
 		DeploymentsClient:   deploymentsClient,
+		ProjectsClient:      projectsClient,
 		RaiBlocklistsClient: raiBlobklistsClient,
 		RaiPoliciesClient:   raiPoliciesClient,
 	}, nil

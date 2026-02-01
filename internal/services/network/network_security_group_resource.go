@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,8 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecuritygroups"
 	"github.com/hashicorp/go-multierror"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -23,6 +24,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_security_group -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var networkSecurityGroupResourceName = "azurerm_network_security_group"
 
@@ -33,10 +36,11 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 		Update: resourceNetworkSecurityGroupUpdate,
 		Delete: resourceNetworkSecurityGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := networksecuritygroups.ParseNetworkSecurityGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&networksecuritygroups.NetworkSecurityGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&networksecuritygroups.NetworkSecurityGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -184,7 +188,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 }
 
 func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -224,12 +228,15 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNetworkSecurityGroupRead(d, meta)
 }
 
 func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -278,7 +285,7 @@ func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -296,25 +303,35 @@ func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.NetworkSecurityGroupName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		if props := model.Properties; props != nil {
-			flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
-			if err := d.Set("security_rule", flattenedRules); err != nil {
-				return fmt.Errorf("setting `security_rule`: %+v", err)
-			}
-		}
-		return tags.FlattenAndSet(d, model.Tags)
+	if err := resourceNetworkSecurityGroupFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("flattening %s: %+v", id, err)
 	}
 
 	return nil
 }
 
+func resourceNetworkSecurityGroupFlatten(d *pluginsdk.ResourceData, id *networksecuritygroups.NetworkSecurityGroupId, nsg *networksecuritygroups.NetworkSecurityGroup) error {
+	d.Set("name", id.NetworkSecurityGroupName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if nsg != nil {
+		d.Set("location", location.NormalizeNilable(nsg.Location))
+		if props := nsg.Properties; props != nil {
+			flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
+			if err := d.Set("security_rule", flattenedRules); err != nil {
+				return fmt.Errorf("setting `security_rule`: %+v", err)
+			}
+		}
+		if err := tags.FlattenAndSet(d, nsg.Tags); err != nil {
+			return err
+		}
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, id)
+}
+
 func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

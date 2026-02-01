@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -15,7 +15,7 @@ func AttestationProviderName(i interface{}, k string) (warning []string, errors 
 	}
 
 	if !regexp.MustCompile(`^[a-z\d]{3,24}\z`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s must be between 3 and 24 characters in length and use numbers and lower-case letters only.", k))
+		errors = append(errors, fmt.Errorf("%s must be between 3 and 24 characters in length and use numbers and lower-case letters only", k))
 	}
 
 	return

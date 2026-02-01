@@ -36,6 +36,11 @@ type ResourceBehavior struct {
 	// NOTE: This functionality is related to deferred action support, which is currently experimental and is subject
 	// to change or break without warning. It is not protected by version compatibility guarantees.
 	ProviderDeferred ProviderDeferredBehavior
+
+	// MutableIdentity indicates that the managed resource supports an identity that can change during the
+	// resource's lifecycle. Setting this flag to true will disable the SDK validation that ensures identity
+	// data doesn't change during RPC calls.
+	MutableIdentity bool
 }
 
 // ProviderDeferredBehavior enables provider-defined logic to be executed

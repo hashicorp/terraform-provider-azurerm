@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package legacy_test
@@ -2222,7 +2222,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 
@@ -2364,7 +2364,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 
@@ -2446,7 +2446,7 @@ resource "azurerm_virtual_machine" "test" {
   storage_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2012-Datacenter"
+    sku       = "2016-Datacenter"
     version   = "latest"
   }
 

@@ -147,7 +147,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Synapse Spark.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Synapse Spark.
@@ -165,4 +165,4 @@ terraform import azurerm_machine_learning_synapse_spark.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices`: 2024-04-01
+* `Microsoft.MachineLearningServices` - 2025-06-01

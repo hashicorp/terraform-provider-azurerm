@@ -12,6 +12,10 @@ const (
 	// a plan-based value.
 	DataDescriptionPlan DataDescription = "plan"
 
+	// DataDescriptionResource is used for Data that represents
+	// a resource value.
+	DataDescriptionResource DataDescription = "resource"
+
 	// DataDescriptionState is used for Data that represents
 	// a state-based value.
 	DataDescriptionState DataDescription = "state"
@@ -19,6 +23,10 @@ const (
 	// DataDescriptionEphemeralResultData is used for Data that represents
 	// the result of an ephemeral operation.
 	DataDescriptionEphemeralResultData DataDescription = "ephemeral result data"
+
+	// DataDescriptionResourceIdentity is used for Data that represents
+	// a managed resource identity.
+	DataDescriptionResourceIdentity DataDescription = "resource identity"
 )
 
 // DataDescription is a human friendly type for Data. Used in error
@@ -46,6 +54,8 @@ func (d DataDescription) Title() string {
 		return "State"
 	case DataDescriptionEphemeralResultData:
 		return "Ephemeral Result Data"
+	case DataDescriptionResourceIdentity:
+		return "Resource Identity"
 	default:
 		return "Data"
 	}

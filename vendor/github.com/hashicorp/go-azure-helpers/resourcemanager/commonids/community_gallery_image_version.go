@@ -62,7 +62,6 @@ func ParseCommunityGalleryImageVersionIDInsensitively(input string) (*CommunityG
 }
 
 func (id *CommunityGalleryImageVersionId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 
 	if id.CommunityGalleryName, ok = input.Parsed["communityGalleryName"]; !ok {

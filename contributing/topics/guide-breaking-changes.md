@@ -100,8 +100,12 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     }
     ```
 
-3. Skip all tests related to the deprecated resource.
+3. Handle tests for the deprecated resource.
 
+    **Option A: Skip tests (when API still works)**
+    
+    If the Azure API can still provision the resource, conditionally skip the tests using the major release feature flag, this allows the tests to run until the next major release is published:
+    
     ```go
     func TestAccExample_basic(t *testing.T) {
         if features.FivePointOh() {
@@ -121,6 +125,12 @@ The steps outlined below uses an example resource that is deprecated, but the sa
         })
     }
     ```
+
+    **Option B: Remove tests (when API no longer works)**
+    
+    If the Azure API can no longer provision new instances of the resource (e.g., the service is retired, the API returns errors, or provisioning is blocked), **remove the test file entirely** rather than skipping the tests.
+    
+    > **Why remove instead of skip?** Skipped tests still need to compile and maintain valid references. When the API no longer works, keeping tests around adds maintenance burden with no benefit. Removing them keeps the codebase clean and avoids confusion about why tests exist but never execute.
 
 4. Update the upgrade guide under `website/docs/5.0-upgrade-guide.markdown`.
 
@@ -178,7 +188,6 @@ The following example follows a fictional resource that will have the following 
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            Default:       false,
             ConflictsWith: []string{"scaling_enabled"},
             Deprecated:    "`enable_scaling` has been deprecated in favour of `scaling_enabled` and will be removed in v5.0 of the AzureRM Provider",
          }
@@ -188,7 +197,6 @@ The following example follows a fictional resource that will have the following 
             Type:          pluginsdk.TypeBool,
             Optional:      true,
             Computed:      true,
-            Default:       false,
             ConflictsWith: []string{"enable_scaling"},
          }
          
@@ -200,7 +208,23 @@ The following example follows a fictional resource that will have the following 
    ```
    > **Note:** In the past we've accepted in-lined anonymous functions in a property's schema definition to conditionally change the default value, validation function etc. these will no longer be accepted in the provider. This is a deliberate decision to reduce the variation in how deprecations are done in the provider and also simplifies the clean-up effort of feature flagged code after the major release.
 
-2. Update the Create/Read/Update methods if necessary.
+2. Update the Create/Read/Update methods.
+
+For Create function, you can do: 
+```go
+
+payload := example.Payload{
+  // ...
+  EnableScaling: pointer.To(model.ScalingEnabled),
+  // ...
+}
+
+if !features.FivePointOh() {
+  if !pluginsdk.IsExplicitlyNullInConfig(metadata.ResourceData, "enable_scaling") {
+    payload.EnableScaling = pointer.To(model.EnableScaling);
+  }
+}
+```
 
 3. Update the test configurations.
 

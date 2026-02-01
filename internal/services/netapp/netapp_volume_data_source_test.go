@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -29,6 +29,7 @@ func TestAccDataSourceNetAppVolume_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("protocols.0").Exists(),
 				check.That(data.ResourceName).Key("mount_ip_addresses.#").HasValue("1"),
 				check.That(data.ResourceName).Key("encryption_key_source").HasValue("Microsoft.NetApp"),
+				check.That(data.ResourceName).Key("large_volume_enabled").HasValue("false"),
 			),
 		},
 	})

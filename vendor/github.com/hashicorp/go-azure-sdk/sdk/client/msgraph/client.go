@@ -32,7 +32,7 @@ type Client struct {
 	apiVersion ApiVersion
 
 	// tenantId is the tenant ID to use in requests
-	tenantId string
+	tenantId string // nolint: unused
 }
 
 func NewClient(api environments.Api, serviceName string, apiVersion ApiVersion) (*Client, error) {
@@ -96,7 +96,7 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 	}
 
 	req.URL.RawQuery = query.Encode()
-	//req.RetryFunc = client.RequestRetryAny(defaultRetryFunctions...)
+	// req.RetryFunc = client.RequestRetryAny(defaultRetryFunctions...)
 	req.ValidStatusCodes = input.ExpectedStatusCodes
 
 	return req, nil

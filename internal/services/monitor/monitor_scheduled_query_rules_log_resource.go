@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -11,12 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -128,7 +128,7 @@ func resourceMonitorScheduledQueryRulesLog() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -163,7 +163,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 		enabled = scheduledqueryrules.EnabledFalse
 	}
 
-	location := azure.NormalizeLocation(d.Get("location"))
+	location := location.Normalize(d.Get("location").(string))
 
 	source := expandMonitorScheduledQueryRulesCommonSource(d)
 
@@ -172,7 +172,7 @@ func resourceMonitorScheduledQueryRulesLogCreateUpdate(d *pluginsdk.ResourceData
 	parameters := scheduledqueryrules.LogSearchRuleResource{
 		Location: location,
 		Properties: scheduledqueryrules.LogSearchRule{
-			Description: utils.String(description),
+			Description: pointer.To(description),
 			Enabled:     pointer.To(enabled),
 			Source:      source,
 			Action:      action,
@@ -213,7 +213,7 @@ func resourceMonitorScheduledQueryRulesLogRead(d *pluginsdk.ResourceData, meta i
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -13,13 +13,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_kubernetes_cluster -service-package-name dataprotection -properties "name,resource_group_name,backup_vault_name:vault_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 type BackupPolicyKubernatesClusterModel struct {
 	Name                         string                 `tfschema:"name"`
@@ -57,7 +59,14 @@ type Criteria struct {
 
 type DataProtectionBackupPolicyKubernatesClusterResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupPolicyKubernatesClusterResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupPolicyKubernatesClusterResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyKubernatesClusterResource{}
+)
+
+func (r DataProtectionBackupPolicyKubernatesClusterResource) Identity() resourceids.ResourceId {
+	return &backuppolicies.BackupPolicyId{}
+}
 
 func (r DataProtectionBackupPolicyKubernatesClusterResource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_kubernetes_cluster"
@@ -310,6 +319,9 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Create() sdk.Resour
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -351,6 +363,9 @@ func (r DataProtectionBackupPolicyKubernatesClusterResource) Read() sdk.Resource
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -450,7 +465,7 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String("Default_"),
+				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
 		},
@@ -460,7 +475,7 @@ func expandBackupPolicyKubernetesClusterTaggingCriteriaArray(input []RetentionRu
 			IsDefault:       false,
 			TaggingPriority: item.Priority,
 			TagInfo: backuppolicies.RetentionTag{
-				Id:      utils.String(item.Name + "_"),
+				Id:      pointer.To(item.Name + "_"),
 				TagName: item.Name,
 			},
 		}

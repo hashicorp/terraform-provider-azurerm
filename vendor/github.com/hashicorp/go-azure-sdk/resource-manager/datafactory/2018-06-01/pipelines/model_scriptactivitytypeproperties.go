@@ -8,4 +8,5 @@ type ScriptActivityTypeProperties struct {
 	ReturnMultistatementResult  *bool                                    `json:"returnMultistatementResult,omitempty"`
 	ScriptBlockExecutionTimeout *interface{}                             `json:"scriptBlockExecutionTimeout,omitempty"`
 	Scripts                     *[]ScriptActivityScriptBlock             `json:"scripts,omitempty"`
+	TreatDecimalAsString        *bool                                    `json:"treatDecimalAsString,omitempty"`
 }

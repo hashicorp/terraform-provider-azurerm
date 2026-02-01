@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 if [[ "$(uname)" == "Darwin" ]]; then
@@ -19,6 +19,12 @@ if [[ ! -f CHANGELOG.md ]]; then
   echo "Error: CHANGELOG.md not found."
   exit 2
 fi
+
+echo "Formatting changelog..."
+(
+  set -x
+  go run internal/tools/changelog-formatter/main.go CHANGELOG.md
+)
 
 # Get the next release
 RELEASE="$($SED -n 's/^## v?([0-9.]+) \(Unreleased\)/\1/p' CHANGELOG.md)"

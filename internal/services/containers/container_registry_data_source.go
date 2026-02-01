@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -61,6 +61,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("admin_enabled", props.AdminUserEnabled)
 			d.Set("login_server", props.LoginServer)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
+			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 
 			if *props.AdminUserEnabled {
 				credsResp, err := client.ListCredentials(ctx, id)
@@ -103,8 +104,9 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"admin_password": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"admin_username": {
@@ -115,6 +117,14 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"data_endpoint_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
+		},
+
+		"data_endpoint_host_names": {
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"login_server": {

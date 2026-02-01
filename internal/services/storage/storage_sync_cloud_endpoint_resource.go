@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -8,18 +8,21 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/syncgroupresource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync_cloud_endpoint -service-package-name storage -properties "name" -compare-values "subscription_id:storage_sync_group_id,resource_group_name:storage_sync_group_id,storage_sync_service_name:storage_sync_group_id,sync_group_name:storage_sync_group_id"
 
 func resourceStorageSyncCloudEndpoint() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -27,10 +30,11 @@ func resourceStorageSyncCloudEndpoint() *pluginsdk.Resource {
 		Read:   resourceStorageSyncCloudEndpointRead,
 		Delete: resourceStorageSyncCloudEndpointDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cloudendpointresource.ParseCloudEndpointID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&cloudendpointresource.CloudEndpointId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&cloudendpointresource.CloudEndpointId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(45 * time.Minute),
@@ -101,8 +105,8 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta inte
 
 	parameters := cloudendpointresource.CloudEndpointCreateParameters{
 		Properties: &cloudendpointresource.CloudEndpointCreateParametersProperties{
-			StorageAccountResourceId: utils.String(d.Get("storage_account_id").(string)),
-			AzureFileShareName:       utils.String(d.Get("file_share_name").(string)),
+			StorageAccountResourceId: pointer.To(d.Get("storage_account_id").(string)),
+			AzureFileShareName:       pointer.To(d.Get("file_share_name").(string)),
 		},
 	}
 
@@ -117,6 +121,10 @@ func resourceStorageSyncCloudEndpointCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceStorageSyncCloudEndpointRead(d, meta)
 }
 
@@ -152,7 +160,7 @@ func resourceStorageSyncCloudEndpointRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("storage_account_tenant_id", props.StorageAccountTenantId)
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceStorageSyncCloudEndpointDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -1,0 +1,74 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package {{ToLower .ServicePackageName}}_test
+
+import (
+	"testing"
+
+	{{- if (gt (.KnownValueMap | len) 0) }}
+	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+	{{- end }}
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
+	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
+)
+
+{{- $resourceName := .ResourceName }}
+{{- if .TestSequential }}
+func testAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
+{{- else }}
+func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
+{{- end }}
+	data := acceptance.BuildTestData(t, "azurerm_{{ ToSnake $resourceName }}", "test")
+	r := {{ ToCamel $resourceName }}Resource{}
+
+	checkedFields := map[string]struct{}{
+	{{- if not .NoSubscriptionID }}
+		"subscription_id": {},
+	{{- end }}
+	{{- range $name, $_ := .KnownValueMap }}
+		"{{ $name }}": {},
+	{{- end }}
+	{{- range $name, $_ := .PropertyNameMap }}
+		"{{ $name }}": {},
+	{{- end }}
+	{{- range $name, $_ := .CompareValueMap }}
+		"{{ $name }}": {},
+	{{- end }}
+	}
+
+	data.ResourceIdentityTest(t, []acceptance.TestStep{
+		{
+			{{- if (gt (.TestParams | len) 0) }}
+			Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
+				{{- else }}
+			Config: r.{{ .TestName }}(data),
+			{{- end }}
+			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_{{ToSnake $resourceName }}.test", checkedFields),
+				{{- if not .NoSubscriptionID }}
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				{{- end }}
+				{{- range $name, $val := .KnownValueMap }}
+					{{- if (eq $name "subscription_id") }}
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("{{ $name }}"), knownvalue.StringExact({{ $val }})),
+					{{- else }}
+					statecheck.ExpectIdentityValue("azurerm_{{ToSnake $resourceName }}.test", tfjsonpath.New("{{ $name }}"), knownvalue.StringExact("{{ $val }}")),
+					{{- end }}
+				{{- end }}
+
+				{{- range $idName, $schemaName := .PropertyNameMap }}
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_{{ ToSnake $resourceName }}.test", tfjsonpath.New("{{ $idName }}"), tfjsonpath.New("{{ $schemaName }}")),
+				{{- end }}
+
+				{{- range $idName, $schemaName := .CompareValueMap }}
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_{{ ToSnake $resourceName}}.test", tfjsonpath.New("{{ $idName }}"), tfjsonpath.New("{{ $schemaName }}")),
+				{{- end }}
+			},
+		},
+		data.ImportBlockWithResourceIdentityStep({{ .TestExpectNonEmptyPlan }}),
+		data.ImportBlockWithIDStep({{ .TestExpectNonEmptyPlan }}),
+	}, {{ .TestSequential }})
+}

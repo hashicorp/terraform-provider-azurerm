@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -10,31 +10,35 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabilitysets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name availability_set -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceAvailabilitySet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAvailabilitySetCreateUpdate,
-		Read:   resourceAvailabilitySetRead,
-		Update: resourceAvailabilitySetCreateUpdate,
-		Delete: resourceAvailabilitySetDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseAvailabilitySetID(id)
-			return err
-		}),
+		Create:   resourceAvailabilitySetCreateUpdate,
+		Read:     resourceAvailabilitySetRead,
+		Update:   resourceAvailabilitySetCreateUpdate,
+		Delete:   resourceAvailabilitySetDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.AvailabilitySetId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.AvailabilitySetId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -126,15 +130,15 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	payload := availabilitysets.AvailabilitySet{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &availabilitysets.AvailabilitySetProperties{
-			PlatformFaultDomainCount:  utils.Int64(int64(faultDomainCount)),
-			PlatformUpdateDomainCount: utils.Int64(int64(updateDomainCount)),
+			PlatformFaultDomainCount:  pointer.To(int64(faultDomainCount)),
+			PlatformUpdateDomainCount: pointer.To(int64(updateDomainCount)),
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
 		payload.Properties.ProximityPlacementGroup = &availabilitysets.SubResource{
-			Id: utils.String(v.(string)),
+			Id: pointer.To(v.(string)),
 		}
 	}
 
@@ -151,6 +155,10 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceAvailabilitySetRead(d, meta)
 }
 
@@ -199,7 +207,7 @@ func resourceAvailabilitySetRead(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAvailabilitySetDelete(d *pluginsdk.ResourceData, meta interface{}) error {

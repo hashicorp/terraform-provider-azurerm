@@ -1,9 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -11,6 +14,7 @@ import (
 type Registration struct{}
 
 var (
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
 )
@@ -23,16 +27,22 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
+	resources := []sdk.Resource{
 		AutomationConnectionTypeResource{},
+		AutomationRuntimeEnvironmentResource{},
 		HybridRunbookWorkerGroupResource{},
 		HybridRunbookWorkerResource{},
-		SoftwareUpdateConfigurationResource{},
+		PowerShell72ModuleResource{},
+		Python3PackageResource{},
 		SourceControlResource{},
 		WatcherResource{},
-		Python3PackageResource{},
-		PowerShell72ModuleResource{},
 	}
+
+	if !features.FivePointOh() {
+		resources = append(resources, SoftwareUpdateConfigurationResource{})
+	}
+
+	return resources
 }
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -86,4 +96,24 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_automation_variable_string":                resourceAutomationVariableString(),
 		"azurerm_automation_webhook":                        resourceAutomationWebhook(),
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
+	return []func() ephemeral.EphemeralResource{}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

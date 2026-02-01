@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -27,7 +27,7 @@ func VirtualNetworkBgpCommunity(i interface{}, k string) (warnings []string, err
 		errors = append(errors, fmt.Errorf(`converting asn %q: %v`, segments[0], err))
 		return
 	}
-	if !(asn > 0 && asn < 65535) {
+	if asn <= 0 || asn >= 65535 {
 		errors = append(errors, fmt.Errorf(`asn %d exceeds range: [0, 65535]`, asn))
 		return
 	}
@@ -37,7 +37,7 @@ func VirtualNetworkBgpCommunity(i interface{}, k string) (warnings []string, err
 		errors = append(errors, fmt.Errorf(`converting community value %q: %v`, segments[1], err))
 		return
 	}
-	if !(comm > 0 && comm < 65535) {
+	if comm <= 0 || comm >= 65535 {
 		errors = append(errors, fmt.Errorf(`community value %d exceeds range: [0, 65535]`, comm))
 		return
 	}

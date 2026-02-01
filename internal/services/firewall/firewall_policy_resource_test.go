@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall_test
@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/firewallpolicies"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FirewallPolicyResource struct{}
@@ -205,7 +205,7 @@ func (FirewallPolicyResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("retrieving %s: %v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (FirewallPolicyResource) basic(data acceptance.TestData) string {

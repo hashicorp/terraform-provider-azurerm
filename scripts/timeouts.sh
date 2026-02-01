@@ -1,21 +1,11 @@
 #!/usr/bin/env bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 
-files=$(find ./internal -type f -name "*.go")
-error=false
-
 echo "==> Checking that Custom Timeouts are used..."
 
-for f in $files; do
-  if grep "ctx := meta." "$f" > /dev/null; then
-    echo $f
-    error=true
-  fi
-done
-
-if $error; then
+if grep -r -l --include='*.go' 'ctx := meta.' ./internal; then
   echo ""
   echo "------------------------------------------------"
   echo ""

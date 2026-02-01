@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -89,8 +89,8 @@ func (r LocalRulestackFQDNList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
 
 			model := LocalRulestackFQDNListModel{}
 
@@ -152,7 +152,7 @@ func (r LocalRulestackFQDNList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
 
 			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -189,8 +189,8 @@ func (r LocalRulestackFQDNList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
 
 			id, err := fqdnlistlocalrulestack.ParseLocalRulestackFqdnListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -218,8 +218,8 @@ func (r LocalRulestackFQDNList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.FqdnListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.FqdnListLocalRulestack
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
 
 			model := LocalRulestackFQDNListModel{}
 

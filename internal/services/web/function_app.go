@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -11,11 +11,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
@@ -309,7 +309,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	}
 
 	if storageAccountName == "" && storageAccountKey == "" {
-		return nil, fmt.Errorf("Both `storage_account_name` and `storage_account_access_key` must be specified")
+		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
 	if (storageAccountName == "" && storageAccountKey != "") || (storageAccountName != "" && storageAccountKey == "") {
@@ -355,7 +355,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
 	// Note: The docs on this are misleading. Premium here refers explicitly to `ElasticPremium`, and not `PremiumV2` / `PremiumV3` etc.
-	if !(strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) &&
+	if (!strings.EqualFold(appServiceTier, "dynamic") || !strings.EqualFold(d.Get("os_type").(string), "linux")) &&
 		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
 		return append(basicSettings, consumptionSettings...), nil
 	}
@@ -382,7 +382,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 			return *tier, nil
 		}
 	}
-	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
+	return "", fmt.Errorf("no `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
 func expandFunctionAppAppSettings(d *pluginsdk.ResourceData, basicAppSettings []web.NameValuePair) map[string]*string {
@@ -406,19 +406,19 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 	config := configs[0].(map[string]interface{})
 
 	if v, ok := config["always_on"]; ok {
-		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+		siteConfig.AlwaysOn = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["use_32_bit_worker_process"]; ok {
-		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
+		siteConfig.Use32BitWorkerProcess = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["websockets_enabled"]; ok {
-		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+		siteConfig.WebSocketsEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["linux_fx_version"]; ok {
-		siteConfig.LinuxFxVersion = utils.String(v.(string))
+		siteConfig.LinuxFxVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["cors"]; ok {
@@ -427,7 +427,7 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 	}
 
 	if v, ok := config["http2_enabled"]; ok {
-		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+		siteConfig.HTTP20Enabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
@@ -439,7 +439,7 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 	}
 
 	if v, ok := config["scm_use_main_ip_restriction"]; ok {
-		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+		siteConfig.ScmIPSecurityRestrictionsUseMain = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["scm_ip_restriction"]; ok {
@@ -460,7 +460,7 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 	}
 
 	if v, ok := config["pre_warmed_instance_count"]; ok {
-		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
+		siteConfig.PreWarmedInstanceCount = pointer.To(int32(v.(int)))
 	}
 
 	if v, ok := config["scm_type"]; ok {
@@ -469,35 +469,35 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 
 	// This optional parameter can only present in "slot" resources
 	if v, ok := config["auto_swap_slot_name"]; ok {
-		siteConfig.AutoSwapSlotName = utils.String(v.(string))
+		siteConfig.AutoSwapSlotName = pointer.To(v.(string))
 	}
 
 	if v, ok := config["health_check_path"]; ok {
-		siteConfig.HealthCheckPath = utils.String(v.(string))
+		siteConfig.HealthCheckPath = pointer.To(v.(string))
 	}
 
 	if v, ok := config["java_version"]; ok {
-		siteConfig.JavaVersion = utils.String(v.(string))
+		siteConfig.JavaVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["elastic_instance_minimum"]; ok && v.(int) > 0 {
-		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
+		siteConfig.MinimumElasticInstanceCount = pointer.To(int32(v.(int)))
 	}
 
 	if v, ok := config["app_scale_limit"]; ok {
-		siteConfig.FunctionAppScaleLimit = utils.Int32(int32(v.(int)))
+		siteConfig.FunctionAppScaleLimit = pointer.To(int32(v.(int)))
 	}
 
 	if v, ok := config["runtime_scale_monitoring_enabled"]; ok {
-		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(v.(bool))
+		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["dotnet_framework_version"]; ok {
-		siteConfig.NetFrameworkVersion = utils.String(v.(string))
+		siteConfig.NetFrameworkVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["vnet_route_all_enabled"]; ok {
-		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+		siteConfig.VnetRouteAllEnabled = pointer.To(v.(bool))
 	}
 
 	return siteConfig, nil
@@ -600,7 +600,7 @@ func expandFunctionAppConnectionStrings(d *pluginsdk.ResourceData) map[string]*w
 		csValue := vals["value"].(string)
 
 		output[csName] = &web.ConnStringValueTypePair{
-			Value: utils.String(csValue),
+			Value: pointer.To(csValue),
 			Type:  web.ConnectionStringType(csType),
 		}
 	}
@@ -649,7 +649,7 @@ func appSettingsMapToNameValuePair(input map[string]*string) *[]web.NameValuePai
 	result := make([]web.NameValuePair, 0)
 	for k, v := range input {
 		result = append(result, web.NameValuePair{
-			Name:  utils.String(k),
+			Name:  pointer.To(k),
 			Value: v,
 		})
 	}

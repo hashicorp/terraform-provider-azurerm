@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub_test
@@ -742,6 +742,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -810,6 +812,7 @@ resource "azurerm_iothub" "test" {
     connection_string   = azurerm_eventhub_authorization_rule.test.primary_connection_string
     name                = "export2"
     resource_group_name = azurerm_resource_group.test.name
+    subscription_id     = data.azurerm_client_config.current.subscription_id
   }
 
   route {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
@@ -20,7 +21,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgreSQLServerKey() *pluginsdk.Resource {
@@ -41,6 +41,8 @@ func resourcePostgreSQLServerKey() *pluginsdk.Resource {
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
+
+		DeprecationMessage: "The `azurerm_postgresql_server_key` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.",
 
 		Schema: map[string]*pluginsdk.Schema{
 			"server_id": {
@@ -77,7 +79,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Cli
 	if err != nil {
 		return nil, err
 	}
-	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
+	return pointer.To(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
 func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -129,7 +131,7 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	param := serverkeys.ServerKey{
 		Properties: &serverkeys.ServerKeyProperties{
 			ServerKeyType: serverkeys.ServerKeyTypeAzureKeyVault,
-			Uri:           utils.String(d.Get("key_vault_key_id").(string)),
+			Uri:           pointer.To(d.Get("key_vault_key_id").(string)),
 		},
 	}
 

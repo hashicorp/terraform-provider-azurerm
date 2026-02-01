@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -8,11 +8,13 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
@@ -21,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_resource_guard -service-package-name dataprotection -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,10 +40,10 @@ func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := resourceguards.ParseResourceGuardID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&resourceguards.ResourceGuardId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&resourceguards.ResourceGuardId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -88,7 +92,7 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	parameters := resourceguards.ResourceGuardResource{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &resourceguards.ResourceGuard{
 			VaultCriticalOperationExclusionList: utils.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]interface{})),
 		},
@@ -101,6 +105,9 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	}
 
 	return resourceDataProtectionResourceGuardRead(d, meta)
@@ -140,7 +147,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataProtectionResourceGuardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
