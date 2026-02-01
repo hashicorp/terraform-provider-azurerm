@@ -68,7 +68,7 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeString,
 		},
 		"parent_id": {
-			// TODO: this wants renaming to `user_assigned_identity_id`
+			// TODO 5.0: this wants renaming to `user_assigned_identity_id`
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
