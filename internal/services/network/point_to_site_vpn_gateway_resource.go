@@ -69,8 +69,15 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 			},
 
 			"connection_configuration": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Required: true,
+				Set: func(v interface{}) int {
+					m := v.(map[string]interface{})
+					if name, ok := m["name"].(string); ok {
+						return pluginsdk.HashString(name)
+					}
+					return 0
+				},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -154,7 +161,6 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 						"internet_security_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							ForceNew: true,
 							Default:  false,
 						},
 					},
@@ -162,16 +168,9 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 			},
 
 			"scale_unit": {
-				Type:         pluginsdk.TypeInt,
-				Required:     true,
-				ValidateFunc: validation.IntAtLeast(0),
-			},
-
-			"routing_preference_internet_enabled": {
-				Type:     pluginsdk.TypeBool,
+				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				ForceNew: true,
-				Default:  false,
+				Default:  0,
 			},
 
 			"dns_servers": {
@@ -181,6 +180,12 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.IsIPv4Address,
 				},
+			},
+
+			"routing_preference_internet_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"tags": commonschema.Tags(),
@@ -211,7 +216,7 @@ func resourcePointToSiteVPNGatewayCreate(d *pluginsdk.ResourceData, meta interfa
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.P2SVpnGatewayProperties{
 			IsRoutingPreferenceInternet: pointer.To(d.Get("routing_preference_internet_enabled").(bool)),
-			P2SConnectionConfigurations: expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{})),
+			P2SConnectionConfigurations: expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").(*pluginsdk.Set).List()),
 			VpnServerConfiguration: &virtualwans.SubResource{
 				Id: pointer.To(d.Get("vpn_server_configuration_id").(string)),
 			},
@@ -260,7 +265,11 @@ func resourcePointToSiteVPNGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if d.HasChange("connection_configuration") {
-		props.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").([]interface{}))
+		props.P2SConnectionConfigurations = expandPointToSiteVPNGatewayConnectionConfiguration(d.Get("connection_configuration").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("routing_preference_internet_enabled") {
+		props.IsRoutingPreferenceInternet = pointer.To(d.Get("routing_preference_internet_enabled").(bool))
 	}
 
 	if d.HasChange("scale_unit") {
@@ -370,10 +379,20 @@ func resourcePointToSiteVPNGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 	return nil
 }
 
-func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]virtualwans.P2SConnectionConfiguration {
+func expandPointToSiteVPNGatewayConnectionConfiguration(input interface{}) *[]virtualwans.P2SConnectionConfiguration {
 	configurations := make([]virtualwans.P2SConnectionConfiguration, 0)
 
-	for _, v := range input {
+	var list []interface{}
+	switch v := input.(type) {
+	case []interface{}:
+		list = v
+	case *pluginsdk.Set:
+		list = v.List()
+	default:
+		return &configurations
+	}
+
+	for _, v := range list {
 		raw := v.(map[string]interface{})
 
 		addressPrefixes := make([]string, 0)
@@ -389,14 +408,24 @@ func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]
 			}
 		}
 
+		enableInternetSecurity := false
+		if v, ok := raw["internet_security_enabled"].(bool); ok {
+			enableInternetSecurity = v
+		}
+
+		var routeConfig *virtualwans.RoutingConfiguration
+		if routeRaw, ok := raw["route"].([]interface{}); ok && len(routeRaw) > 0 {
+			routeConfig = expandPointToSiteVPNGatewayConnectionRouteConfiguration(routeRaw)
+		}
+
 		configurations = append(configurations, virtualwans.P2SConnectionConfiguration{
 			Name: pointer.To(name),
 			Properties: &virtualwans.P2SConnectionConfigurationProperties{
 				VpnClientAddressPool: &virtualwans.AddressSpace{
 					AddressPrefixes: &addressPrefixes,
 				},
-				RoutingConfiguration:   expandPointToSiteVPNGatewayConnectionRouteConfiguration(raw["route"].([]interface{})),
-				EnableInternetSecurity: pointer.To(raw["internet_security_enabled"].(bool)),
+				RoutingConfiguration:   routeConfig,
+				EnableInternetSecurity: pointer.To(enableInternetSecurity),
 			},
 		})
 	}
