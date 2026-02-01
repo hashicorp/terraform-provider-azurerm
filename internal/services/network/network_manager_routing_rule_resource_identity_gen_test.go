@@ -6,7 +6,6 @@ package network_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -21,12 +20,12 @@ func TestAccNetworkManagerRoutingRule_resourceIdentity(t *testing.T) {
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
-				statecheck.ExpectIdentityValue("azurerm_network_manager_routing_rule.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("network_manager_name"), tfjsonpath.New("rule_collection_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("rule_collection_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("routing_configuration_name"), tfjsonpath.New("rule_collection_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("rule_collection_name"), tfjsonpath.New("rule_collection_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("rule_collection_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),

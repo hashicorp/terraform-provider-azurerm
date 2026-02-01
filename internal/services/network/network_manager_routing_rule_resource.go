@@ -24,7 +24,7 @@ var (
 	_ sdk.ResourceWithIdentity      = ManagerRoutingRuleResource{}
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager_routing_rule -service-package-name network -properties "name" -known-values "subscription_id:data.Subscriptions.Primary" -compare-values "resource_group_name:rule_collection_id,network_manager_name:rule_collection_id,routing_configuration_name:rule_collection_id,rule_collection_name:rule_collection_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_manager_routing_rule -service-package-name network -properties "name" -compare-values "subscription_id:rule_collection_id,resource_group_name:rule_collection_id,network_manager_name:rule_collection_id,routing_configuration_name:rule_collection_id,rule_collection_name:rule_collection_id"
 
 type ManagerRoutingRuleResource struct{}
 
