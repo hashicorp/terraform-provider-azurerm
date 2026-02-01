@@ -24,7 +24,7 @@ output "subnet_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Subnet.
 * `virtual_network_name` - Specifies the name of the Virtual Network this Subnet is located within.
@@ -51,4 +51,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

@@ -68,7 +68,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

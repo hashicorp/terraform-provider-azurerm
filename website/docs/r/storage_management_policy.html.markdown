@@ -82,7 +82,7 @@ resource "azurerm_storage_management_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

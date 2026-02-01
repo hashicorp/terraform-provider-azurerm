@@ -112,7 +112,7 @@ resource "azurerm_web_application_firewall_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -152,7 +152,7 @@ The `custom_rules` block supports the following:
 
 * `rate_limit_threshold` - (Optional) Specifies the threshold value for the rate limit policy. Must be greater than or equal to 1 if provided.
 
-* `group_rate_limit_by` - (Optional) Specifies what grouping the rate limit will count requests by. Possible values are `GeoLocation`, `ClientAddr` and `None`.
+* `group_rate_limit_by` - (Optional) Specifies what grouping the rate limit will count requests by. Possible values are `ClientAddr`, `ClientAddrXFFHeader`, `GeoLocation`, `GeoLocationXFFHeader` and `None`.
 
 ---
 
@@ -198,7 +198,7 @@ The `policy_settings` block supports the following:
 
 * `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie validity lifetime in minutes. The user is challenged after the lifetime expires. Accepted values are in the range `5` to `1440`. Defaults to `30`.
 
-* `file_upload_enforcement` - (Optional)  - Whether the firewall should block a request with upload size greater then `file_upload_limit_in_mb`.
+* `file_upload_enforcement` - (Optional) - Whether the firewall should block a request with upload size greater then `file_upload_limit_in_mb`.
 
 ---
 
@@ -318,4 +318,4 @@ terraform import azurerm_web_application_firewall_policy.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

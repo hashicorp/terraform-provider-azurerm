@@ -43,7 +43,7 @@ resource "azurerm_data_factory_linked_service_odata" "basic_auth" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

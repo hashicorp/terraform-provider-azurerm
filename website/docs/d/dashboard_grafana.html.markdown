@@ -27,7 +27,7 @@ output "name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -79,4 +79,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Dashboard` - 2023-09-01
+* `Microsoft.Dashboard` - 2025-08-01

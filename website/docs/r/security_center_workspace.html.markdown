@@ -33,7 +33,7 @@ resource "azurerm_security_center_workspace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

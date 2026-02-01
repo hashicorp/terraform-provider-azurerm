@@ -98,7 +98,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

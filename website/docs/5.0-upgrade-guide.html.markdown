@@ -38,6 +38,18 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_batch_certificate`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_data_protection_backup_instance_postgresql`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_data_protection_backup_policy_postgresql`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_hpc_cache`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
@@ -110,6 +122,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_redis_enterprise_cluster`
+
+* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-remove-tls-10-11).
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -129,10 +145,9 @@ Please follow the format in the example below for adding removed data sources:
 This deprecated data source has been superseded/retired and has been removed from the Azure Provider.
 ```
 
-### `azurerm_logic_app_standard`
+### `azurerm_batch_certificate`
 
-* The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
-* The `client_certificate_mode` property now defaults to `Required` to match API default value.
+* This deprecated data source has been retired and has been removed from the Azure Provider.
 
 ### `azurerm_postgresql_server`
 
@@ -188,6 +203,14 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_automation_account`
 
 * The `encryption.key_source` property has been removed.
+
+### `azurerm_batch_pool`
+
+* The deprecated `certificate` property has been removed.
+
+### `azurerm_bot_channel_ms_teams`
+
+* The deprecated `enable_calling` property has been removed in favour of the `calling_enabled` property.
 
 ### `azurerm_cdn_endpoint_custom_domain`
 
@@ -263,6 +286,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
+* The `node_provisioning_profile` block is now required.
 
 ### `azurerm_kubernetes_cluster_node_pool`
 
@@ -315,6 +339,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
 
+### `azurerm_log_analytics_storage_insights`
+
+* The `storage_account_id` property is marked as `ForceNew`.
+
 ### `azurerm_log_analytics_workspace`
 
 * The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
@@ -322,12 +350,9 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `client_certificate_mode` property now defaults to `Required` to match API default value.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
-
-### `azurerm_mobile_network_slice`
-
-* The `single_network_slice_selection_assistance_information` has been removed and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level.
 
 ### `azurerm_monitor_aad_diagnostic_setting`
 
@@ -349,6 +374,8 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_mssql_managed_instance`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
+* The property `proxy_override` now defaults to `Redirect`.
+* The property `proxy_override` no longer accepts `Default` as a value.
 
 ### `azurerm_mssql_server`
 
@@ -391,6 +418,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `management_group_id` property has been removed in favour of the `azurerm_management_group_policy_set_definition` resource.
 
+### `azurerm_powerbi_embedded`
+
+* The `mode` property now defaults to `Gen2`.
+
 ### `azurerm_redis_cache`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
@@ -413,9 +444,18 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_storage_account`
 
+* The deprecated `customer_managed_key.managed_hsm_key_id` has been removed in favour of the `customer_managed_key.key_vault_key_id` property.
+* The property `min_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
 * The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
-* The property `minimum_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
+
+### `azurerm_storage_account_customer_managed_key`
+
+* The deprecated `key_vault_uri` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `key_name` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `key_version` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
+* The deprecated `key_vault_id` property has been removed in favour of the `key_vault_key_id` property.
 
 ### `azurerm_synapse_spark_pool`
 
@@ -436,6 +476,14 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
 
+### `azurerm_storage_share_directory`
+
+* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+
+### `azurerm_storage_share_file`
+
+* The deprecated `storage_share_id` property has been removed in favor of the `storage_share_url` property.
+
 ### `azurerm_mssql_virtual_machine`
 
 * The deprecated `auto_backup.encryption_enabled` property has been removed.
@@ -448,13 +496,19 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_windows_virtual_machine`
+
+* The `enable_automatic_updates` property has been removed in favour of the `automatic_updates_enabled` property.
+
 ### `azurerm_windows_web_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ### `azurerm_windows_web_app_slot`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
+* The `virtual_network_image_pull_enabled` property now defaults to `false`.
 
 ## Breaking Changes in Data Sources
 
@@ -475,6 +529,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the `hostname_configuration.proxy.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.scm.key_vault_id` property has been removed in favour of the `hostname_configuration.scm.key_vault_certificate_id` property.
 
+### `azurerm_batch_pool`
+
+* The deprecated `certificate` property has been removed.
+
 ### `azurerm_container_app`
 
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
@@ -485,6 +543,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
 
+### `azurerm_key_vault`
+
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
+
 ### `azurerm_lb_outbound_rule`
 
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
@@ -493,10 +555,6 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
-
-### `azurerm_key_vault`
-
-* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
 
 ### `azurerm_logic_app_standard`
 

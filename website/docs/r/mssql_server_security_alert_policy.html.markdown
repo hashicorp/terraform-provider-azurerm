@@ -53,7 +53,7 @@ resource "azurerm_mssql_server_security_alert_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

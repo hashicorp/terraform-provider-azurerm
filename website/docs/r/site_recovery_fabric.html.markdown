@@ -38,7 +38,7 @@ resource "azurerm_site_recovery_fabric" "fabric" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -57,7 +57,7 @@ resource "azurerm_network_interface_security_group_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -93,4 +93,4 @@ terraform import azurerm_network_interface_security_group_association.associatio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

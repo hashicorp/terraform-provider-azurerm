@@ -21,7 +21,7 @@ data "azurerm_shared_image" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

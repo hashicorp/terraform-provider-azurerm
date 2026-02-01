@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -591,7 +591,13 @@ func (p *azureRmFrameworkProvider) ListResources(_ context.Context) []func() lis
 	var output []func() list.ListResource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.ListResources()...)
+		for _, l := range service.ListResources() {
+			fwl := sdk.FrameworkListResourceWrapper{
+				ResourceMetadata:             sdk.ResourceMetadata{},
+				FrameworkListWrappedResource: l,
+			}
+			output = append(output, fwl.Resource())
+		}
 	}
 
 	return output

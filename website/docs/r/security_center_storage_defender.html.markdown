@@ -32,7 +32,7 @@ resource "azurerm_security_center_storage_defender" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

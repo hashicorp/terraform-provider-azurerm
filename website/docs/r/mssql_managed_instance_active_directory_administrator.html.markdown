@@ -78,7 +78,7 @@ resource "azurerm_mssql_managed_instance_active_directory_administrator" "exampl
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

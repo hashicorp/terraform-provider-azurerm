@@ -19,7 +19,7 @@ data "azurerm_container_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -76,6 +76,10 @@ A `template` block exports the following:
 * `max_replicas` - The maximum number of replicas for this container.
 
 * `min_replicas` - The minimum number of replicas for this container.
+
+* `cooldown_period_in_seconds` - The number of seconds to wait before scaling down the number of instances again.
+
+* `polling_interval_in_seconds` - The interval in seconds used for polling KEDA.
 
 * `revision_suffix` - The suffix for the revision.
 

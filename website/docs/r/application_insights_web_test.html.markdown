@@ -57,7 +57,7 @@ output "webtests_synthetic_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -88,6 +88,12 @@ The following arguments are supported:
 * `description` - (Optional) Purpose/user defined descriptive test for this WebTest.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Application Insights Web Test.
 
 ## Timeouts
 

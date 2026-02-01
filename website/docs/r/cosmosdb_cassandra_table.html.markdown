@@ -67,7 +67,7 @@ resource "azurerm_cosmosdb_cassandra_table" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

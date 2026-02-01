@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -1407,7 +1407,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 		vm := containerinstance.VolumeMount{
 			Name:      name,
 			MountPath: mountPath,
-			ReadOnly:  pointer.FromBool(readOnly),
+			ReadOnly:  pointer.To(readOnly),
 		}
 
 		volumeMounts = append(volumeMounts, vm)
@@ -1445,7 +1445,7 @@ func expandSingleContainerVolume(input interface{}) (*[]containerinstance.Volume
 			}
 			cv.AzureFile = &containerinstance.AzureFileVolume{
 				ShareName:          shareName,
-				ReadOnly:           pointer.FromBool(readOnly),
+				ReadOnly:           pointer.To(readOnly),
 				StorageAccountName: storageAccountName,
 				StorageAccountKey:  pointer.To(storageAccountKey),
 			}
@@ -1502,23 +1502,23 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 		probeConfig := p.(map[string]interface{})
 
 		if v := probeConfig["initial_delay_seconds"].(int); v > 0 {
-			probe.InitialDelaySeconds = pointer.FromInt64(int64(v))
+			probe.InitialDelaySeconds = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["period_seconds"].(int); v > 0 {
-			probe.PeriodSeconds = pointer.FromInt64(int64(v))
+			probe.PeriodSeconds = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["failure_threshold"].(int); v > 0 {
-			probe.FailureThreshold = pointer.FromInt64(int64(v))
+			probe.FailureThreshold = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["success_threshold"].(int); v > 0 {
-			probe.SuccessThreshold = pointer.FromInt64(int64(v))
+			probe.SuccessThreshold = pointer.To(int64(v))
 		}
 
 		if v := probeConfig["timeout_seconds"].(int); v > 0 {
-			probe.TimeoutSeconds = pointer.FromInt64(int64(v))
+			probe.TimeoutSeconds = pointer.To(int64(v))
 		}
 
 		commands := probeConfig["exec"].([]interface{})

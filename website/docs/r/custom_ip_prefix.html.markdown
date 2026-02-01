@@ -66,7 +66,7 @@ resource "azurerm_custom_ip_prefix" "regional" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

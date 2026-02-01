@@ -19,7 +19,7 @@ data "azurerm_kubernetes_node_pool_snapshot" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

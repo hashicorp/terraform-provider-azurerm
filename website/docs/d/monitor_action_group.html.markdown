@@ -23,7 +23,7 @@ output "action_group_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Action Group.
 * `resource_group_name` - Specifies the name of the resource group the Action Group is located in.

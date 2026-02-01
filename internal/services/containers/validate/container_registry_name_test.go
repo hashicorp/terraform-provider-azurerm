@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate_test
@@ -53,6 +53,10 @@ func TestAccContainerRegistryName_validation(t *testing.T) {
 		},
 		{
 			Value:    "qfvbdsbvipqdbwsbddbdcwqfjjfewsqwcdw21ddwqwd3324120",
+			ErrCount: 0,
+		},
+		{
+			Value:    "qfvbdsbvipqdbwsbddbdcwqfjjfewsqwcdw21ddwqwd33241201",
 			ErrCount: 1,
 		},
 	}

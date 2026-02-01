@@ -25,7 +25,7 @@ output "first_available_subscription_display_name" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `display_name_prefix` - (Optional) A case-insensitive prefix which can be used to filter on the `display_name` field
 * `display_name_contains` - (Optional) A case-insensitive value which must be contained within the `display_name` field, used to filter the results

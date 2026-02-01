@@ -23,7 +23,7 @@ output "virtual_network_gateway_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Virtual Network Gateway.
 * `resource_group_name` - Specifies the name of the resource group the Virtual Network Gateway is located in.
@@ -153,4 +153,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

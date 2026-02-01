@@ -52,7 +52,7 @@ resource "azurerm_backup_protected_vm" "vm1" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

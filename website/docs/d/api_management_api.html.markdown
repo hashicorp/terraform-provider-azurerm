@@ -25,7 +25,7 @@ output "api_management_api_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the API Management API.
 

@@ -24,7 +24,7 @@ data "azurerm_site_recovery_replication_recovery_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

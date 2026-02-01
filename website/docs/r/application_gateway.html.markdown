@@ -112,7 +112,7 @@ resource "azurerm_application_gateway" "network" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -226,29 +226,31 @@ A `backend_http_settings` block supports the following:
 
 * `cookie_based_affinity` - (Required) Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
 
-* `affinity_cookie_name` - (Optional) The name of the affinity cookie.
-
 * `name` - (Required) The name of the Backend HTTP Settings Collection.
-
-* `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
 
 * `port` - (Required) The port which should be used for this Backend HTTP Settings Collection.
 
-* `probe_name` - (Optional) The name of an associated HTTP Probe.
-
 * `protocol` - (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
-
-* `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
-
-* `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
-
-* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
+ 
+* `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
 
-* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
-
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
+
+* `dedicated_backend_connection_enabled` - (Optional) Whether to use a dedicated backend connection. Defaults to `false`.
+
+* `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
+
+* `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
+
+* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
+
+* `probe_name` - (Optional) The name of an associated HTTP Probe.
+
+* `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
+
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
 ---
 
@@ -450,9 +452,13 @@ A `global` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
+* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_Small`, `Standard_Medium`, `Standard_Large`, `Standard_v2`, `WAF_Large`, `WAF_Medium` and `WAF_v2`.
 
-* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
+~> **Note:** `Standard_Small`, `Standard_Medium`, `Standard_Large`, `WAF_Medium`, and `WAF_Large` values are deprecated. `name` can no longer be created with or updated to these values. Refer to <https://aka.ms/V1retirement>.
+
+* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard`, `Standard_v2`, `WAF`, and `WAF_v2`.
+
+~> **Note:** `Standard` and `WAF` values are deprecated. `tier` can no longer be created with or updated to these values. Refer to <https://aka.ms/V1retirement>.
 
 * `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between `1` and `32`, and `1` to `125` for a V2 SKU. When using a `Basic` SKU this property must be between `1` and `2`. This property is optional if `autoscale_configuration` is set.
 
@@ -884,4 +890,4 @@ terraform import azurerm_application_gateway.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

@@ -51,7 +51,7 @@ resource "azurerm_security_center_subscription_pricing" "example1" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

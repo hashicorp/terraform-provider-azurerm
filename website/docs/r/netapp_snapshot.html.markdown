@@ -78,7 +78,7 @@ resource "azurerm_netapp_snapshot" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

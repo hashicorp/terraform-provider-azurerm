@@ -28,7 +28,7 @@ resource "azurerm_app_service_certificate_order" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

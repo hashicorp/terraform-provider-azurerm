@@ -32,7 +32,7 @@ resource "azurerm_logic_app_action_http" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

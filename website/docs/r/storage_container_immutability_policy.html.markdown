@@ -44,7 +44,7 @@ resource "azurerm_storage_container_immutability_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
