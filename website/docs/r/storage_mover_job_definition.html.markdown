@@ -91,8 +91,6 @@ The following arguments are supported:
 
 * `copy_mode` - (Required) Specifies the strategy to use for copy. Possible values are `Additive` and `Mirror`.
 
-* `job_type` - (Optional) Specifies the type of job to run. Possible values are `OnPremToCloud` and `CloudToCloud`. Defaults to `OnPremToCloud`. Changing this forces a new resource to be created.
-
 * `source_sub_path` - (Optional) Specifies the sub path to use when reading from the Storage Mover Source Endpoint. Changing this forces a new resource to be created.
 
 * `target_sub_path` - (Optional) Specifies the sub path to use when writing to the Storage Mover Target Endpoint. Changing this forces a new resource to be created.
