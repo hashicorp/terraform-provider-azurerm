@@ -162,6 +162,12 @@ resource "azurerm_vpn_server_configuration" "test" {
   location                 = azurerm_resource_group.test.location
   vpn_authentication_types = ["Radius"]
 
+  lifecycle {
+		ignore_changes = [
+			"radius[0].server[0].secret",
+		]
+	}
+
   radius {
 
     server {
