@@ -516,13 +516,13 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if attributes := model.Attributes; attributes != nil {
 			notBeforeDate := ""
 			if v := attributes.Nbf; v != nil {
-				notBeforeDate = time.UnixMilli(*v).Format(time.RFC3339)
+				notBeforeDate = time.UnixMilli(*v).UTC().Format(time.RFC3339)
 			}
 			d.Set("not_before_date", notBeforeDate)
 
 			expirationDate := ""
 			if v := attributes.Exp; v != nil {
-				expirationDate = time.UnixMilli(*v).Format(time.RFC3339)
+				expirationDate = time.UnixMilli(*v).UTC().Format(time.RFC3339)
 			}
 			d.Set("expiration_date", expirationDate)
 		}
