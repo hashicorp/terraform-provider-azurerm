@@ -10,8 +10,21 @@ on:
     types: ['opened', 'synchronize']
     paths:
       - '.github/workflows/unit-test.yaml'
+      - 'go.sum'
       - 'vendor/**'
       - '**.go'
+
+  # Run this workflow on merges that change go.sum on the default branch. The
+  # intention is to save a new Go module dependency cache for the default
+  # branch. This cache is then available to all workflow runs.
+  #
+  # Reference: https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching?search-overlay-input=github+action+cache+limit+increase&search-overlay-ask-ai=true#restrictions-for-accessing-a-cache
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/unit-test.yaml'
+      - 'go.sum'
 
 concurrency:
   group: 'unit-${{ github.head_ref }}'
@@ -22,7 +35,7 @@ jobs:
     runs-on: custom-linux-large
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh

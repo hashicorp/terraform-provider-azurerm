@@ -6,6 +6,7 @@ package tfexec
 import (
 	"context"
 	"fmt"
+	"iter"
 	"os/exec"
 )
 
@@ -56,7 +57,7 @@ func (opt *VarOption) configureQuery(conf *queryConfig) {
 //
 // QueryJSON is likely to be removed in a future major version in favour of
 // query returning JSON by default.
-func (tf *Terraform) QueryJSON(ctx context.Context, opts ...QueryOption) (*LogMsgEmitter, error) {
+func (tf *Terraform) QueryJSON(ctx context.Context, opts ...QueryOption) (iter.Seq[NextMessage], error) {
 	err := tf.compatible(ctx, tf1_14_0, nil)
 	if err != nil {
 		return nil, fmt.Errorf("terraform query -json was added in 1.14.0: %w", err)

@@ -5,7 +5,7 @@ package capacitypools
 
 type PoolProperties struct {
 	CoolAccess              *bool           `json:"coolAccess,omitempty"`
-	CustomThroughputMibps   *float64        `json:"customThroughputMibps,omitempty"`
+	CustomThroughputMibps   *int64          `json:"customThroughputMibps,omitempty"`
 	EncryptionType          *EncryptionType `json:"encryptionType,omitempty"`
 	PoolId                  *string         `json:"poolId,omitempty"`
 	ProvisioningState       *string         `json:"provisioningState,omitempty"`
