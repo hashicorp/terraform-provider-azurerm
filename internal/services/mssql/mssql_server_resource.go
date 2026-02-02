@@ -579,7 +579,8 @@ func resourceMssqlServerSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlS
 	connectionClient := metaClient.MSSQL.ServerConnectionPoliciesClient
 	restorableDroppedDatabasesClient := metaClient.MSSQL.RestorableDroppedDatabasesClient
 	vaClient := metaClient.MSSQL.SqlVulnerabilityAssessmentSettingsClient
-	ctx, _ := timeouts.ForRead(metaClient.StopContext, d)
+	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
+	defer cancel()
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
