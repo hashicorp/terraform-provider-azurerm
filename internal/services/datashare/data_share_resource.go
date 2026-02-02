@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share -service-package-name datashare -properties "name" -compare-values "resource_group_name:account_id,account_name:account_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_share -service-package-name datashare -properties "name" -compare-values "subscription_id:account_id,resource_group_name:account_id,account_name:account_id"
 
 func resourceDataShare() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
