@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
@@ -40,6 +42,23 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	}
 
 	td.runAcceptanceSequentialTest(t, testCase)
+}
+
+func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequential bool) {
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.12.0"))),
+		},
+		Steps: steps,
+	}
+
+	if sequential {
+		td.runAcceptanceSequentialTest(t, testCase)
+		return
+	}
+
+	td.runAcceptanceTest(t, testCase)
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
