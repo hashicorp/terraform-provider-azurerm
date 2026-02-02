@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -101,8 +102,9 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"threats": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:             pluginsdk.TypeSet,
+				Optional:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
