@@ -38,7 +38,7 @@ func NewRunner(cfg *Config) *Runner {
 // Run executes the linter and returns an exit code
 func (r *Runner) Run(ctx context.Context) ExitCode {
 	loaderOpts := loader.LoaderOptions{
-		NoFilter:   r.Config.NoFilter,
+		All:        r.Config.All,
 		RemoteName: r.Config.RemoteName,
 		BaseBranch: r.Config.BaseBranch,
 		DiffFile:   r.Config.DiffFile,

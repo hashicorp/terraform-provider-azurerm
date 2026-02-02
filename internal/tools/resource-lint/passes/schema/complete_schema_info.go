@@ -176,9 +176,9 @@ func findSchemaInCurrentPackage(pass *analysis.Pass, call *ast.CallExpr) *schema
 	var funcObj types.Object
 
 	switch fun := call.Fun.(type) {
-	case *ast.SelectorExpr:
+	case *ast.SelectorExpr: // network.SubnetIdSchema()
 		funcObj = pass.TypesInfo.Uses[fun.Sel]
-	case *ast.Ident:
+	case *ast.Ident: // metadataSchema()
 		funcObj = pass.TypesInfo.Uses[fun]
 	default:
 		return nil
@@ -213,7 +213,8 @@ func findSchemaInExternalPackage(funcObj types.Object, typesInfo *types.Info) *s
 	return findSchemaInPackage(pkg, funcName, typesInfo)
 }
 
-// findSchemaInPackage searches for a function by name and extracts its schema.
+// findSchemaInPackage searches for a function by name in a package and extracts its schema
+// from the return statement.
 func findSchemaInPackage(pkg *packages.Package, funcName string, typesInfo *types.Info) *schema.SchemaInfo {
 	if pkg == nil || pkg.Syntax == nil {
 		return nil

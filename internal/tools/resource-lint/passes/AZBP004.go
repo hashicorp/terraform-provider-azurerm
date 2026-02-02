@@ -8,7 +8,6 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
-	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/resource-lint/loader"
@@ -44,15 +43,9 @@ var AZBP004Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{inspect.Analyzer},
 }
 
-var azbp004SkipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
-
 func runAZBP004(pass *analysis.Pass) (interface{}, error) {
-	// Skip specified packages
-	pkgPath := pass.Pkg.Path()
-	for _, skip := range azbp004SkipPackages {
-		if strings.Contains(pkgPath, skip) {
-			return nil, nil
-		}
+	if helper.ShouldSkipPackageForResourceAnalysis(pass.Pkg.Path()) {
+		return nil, nil
 	}
 
 	inspector, ok := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)

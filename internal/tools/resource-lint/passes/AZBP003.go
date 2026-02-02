@@ -41,15 +41,9 @@ var AZBP003Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{inspect.Analyzer},
 }
 
-var azbp003SkipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
-
 func runAZBP003(pass *analysis.Pass) (interface{}, error) {
-	// Skip specified packages
-	pkgPath := pass.Pkg.Path()
-	for _, skip := range azbp003SkipPackages {
-		if strings.Contains(pkgPath, skip) {
-			return nil, nil
-		}
+	if helper.ShouldSkipPackageForResourceAnalysis(pass.Pkg.Path()) {
+		return nil, nil
 	}
 
 	relevantFiles := make(map[string]bool)

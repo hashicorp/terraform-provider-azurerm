@@ -48,7 +48,7 @@ type ChangeLoader interface {
 
 // LoaderOptions holds configuration for change loading
 type LoaderOptions struct {
-	NoFilter   bool
+	All        bool
 	RemoteName string
 	BaseBranch string
 	DiffFile   string
@@ -58,8 +58,8 @@ type LoaderOptions struct {
 // Returns nil if filtering is disabled or not applicable
 func LoadChanges(opts LoaderOptions) (*ChangeSet, error) {
 	// Check if user explicitly disabled filtering
-	if opts.NoFilter {
-		log.Println("Change filtering disabled (--no-filter) - analyzing all files")
+	if opts.All {
+		log.Println("Checking all issues in package (--all)")
 		return nil, nil
 	}
 
@@ -77,7 +77,7 @@ func LoadChanges(opts LoaderOptions) (*ChangeSet, error) {
 				baseBranch: opts.BaseBranch,
 			}
 		} else {
-			return nil, fmt.Errorf("not in a git repository. Please run from a git repository, use --diff to provide a diff file, or use --no-filter to analyze all files")
+			return nil, fmt.Errorf("not in a git repository. Please run from a git repository, use --diff to provide a diff file, or use --all to report issues on all lines")
 		}
 	}
 

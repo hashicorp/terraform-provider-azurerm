@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strings"
 	"sync"
 
 	"github.com/bflad/tfproviderlint/helper/terraformtype/helper/schema"
@@ -106,7 +105,7 @@ func loadSchemaInfo(pass *analysis.Pass) *CommonSchemaInfo {
 	// Get the file path from the first file in the package
 	filePath := pass.Fset.Position(pass.Files[0].Pos()).Filename
 	// These are go local cache files
-	if strings.Contains(filePath, "go-build") || strings.Contains(filePath, "AppData") || strings.Contains(filePath, ".test") {
+	if helper.IsCachePath(filePath) {
 		return info
 	}
 

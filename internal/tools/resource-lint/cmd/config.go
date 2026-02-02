@@ -20,7 +20,7 @@ type Config struct {
 	ListChecks bool
 
 	// Loader options
-	NoFilter   bool
+	All        bool
 	RemoteName string
 	BaseBranch string
 	DiffFile   string
@@ -41,7 +41,7 @@ func ParseFlags() (*Config, error) {
 	fs.BoolVar(&cfg.ListChecks, "list", false, "list all available checks")
 
 	// Loader flags
-	fs.BoolVar(&cfg.NoFilter, "no-filter", false, "disable change filtering, analyze all files")
+	fs.BoolVar(&cfg.All, "all", false, "check all issues in the package, disable change filtering")
 	fs.StringVar(&cfg.RemoteName, "remote", "", "git remote name (auto-detect: origin > upstream)")
 	fs.StringVar(&cfg.BaseBranch, "base", "", "base branch (auto-detect from git config or 'main')")
 	fs.StringVar(&cfg.DiffFile, "diff", "", "read diff from file instead of git")
@@ -69,7 +69,7 @@ Usage:
 Examples:
   go run ./internal/tools/resource-lint ./internal/services/compute/...
   go run ./internal/tools/resource-lint --diff=changes.txt
-  go run ./internal/tools/resource-lint --no-filter ./internal/services/...
+  go run ./internal/tools/resource-lint --all ./internal/services/...
 
 Flags:`)
 	c.flagSet.PrintDefaults()

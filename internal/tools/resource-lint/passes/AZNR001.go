@@ -47,11 +47,6 @@ const (
 	fieldTags              = "tags"
 )
 
-var (
-	aznr001SkipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
-	aznr001FileSuffix   = []string{"_resource.go", "_data_source.go"}
-)
-
 var AZNR001Analyzer = &analysis.Analyzer{
 	Name: aznr001Name,
 	Doc:  AZNR001Doc,
@@ -64,13 +59,6 @@ var AZNR001Analyzer = &analysis.Analyzer{
 }
 
 func runAZNR001(pass *analysis.Pass) (interface{}, error) {
-	// Skip specified packages
-	pkgPath := pass.Pkg.Path()
-	for _, skip := range aznr001SkipPackages {
-		if strings.Contains(pkgPath, skip) {
-			return nil, nil
-		}
-	}
 
 	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
 	if !ok {
@@ -98,19 +86,7 @@ func runAZNR001(pass *analysis.Pass) (interface{}, error) {
 
 		// Apply filename filtering
 		filename := pass.Fset.Position(comp.Pos()).Filename
-		if !loader.IsNewFile(filename) {
-			return
-		}
-
-		// Only process files with specific suffixes
-		validFile := false
-		for _, suffix := range aznr001FileSuffix {
-			if strings.HasSuffix(filename, suffix) {
-				validFile = true
-				break
-			}
-		}
-		if !validFile {
+		if !loader.IsNewFile(filename) || !helper.IsResourceOrDataSourceFile(filename) {
 			return
 		}
 

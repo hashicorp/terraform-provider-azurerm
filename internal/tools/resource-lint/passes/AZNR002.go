@@ -8,7 +8,6 @@ import (
 	"go/token"
 	"go/types"
 	"sort"
-	"strings"
 
 	"github.com/bflad/tfproviderlint/helper/astutils"
 	"github.com/bflad/tfproviderlint/passes/commentignore"
@@ -64,8 +63,6 @@ Valid usage:
 
 const aznr002Name = "AZNR002"
 
-var aznr002SkipPackages = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
-
 var AZNR002Analyzer = &analysis.Analyzer{
 	Name: aznr002Name,
 	Doc:  AZNR002Doc,
@@ -77,13 +74,6 @@ var AZNR002Analyzer = &analysis.Analyzer{
 }
 
 func runAZNR002(pass *analysis.Pass) (interface{}, error) {
-	pkgPath := pass.Pkg.Path()
-	for _, skip := range aznr002SkipPackages {
-		if strings.Contains(pkgPath, skip) {
-			return nil, nil
-		}
-	}
-
 	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
 	if !ok {
 		return nil, nil
@@ -92,6 +82,7 @@ func runAZNR002(pass *analysis.Pass) (interface{}, error) {
 	if !ok {
 		return nil, nil
 	}
+
 	for _, resource := range allTypedResources {
 		// Filter: must have Update method
 		if resource.UpdateFunc == nil {

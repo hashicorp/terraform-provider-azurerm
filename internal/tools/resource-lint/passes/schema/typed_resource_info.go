@@ -85,6 +85,11 @@ func runTypedResourceInfo(pass *analysis.Pass) (interface{}, error) {
 			return
 		}
 
+		filename := pass.Fset.Position(genDecl.Pos()).Filename
+		if !helper.IsResourceOrDataSourceFile(filename) {
+			return
+		}
+
 		for _, spec := range genDecl.Specs {
 			valueSpec, ok := spec.(*ast.ValueSpec)
 			if !ok {

@@ -59,22 +59,22 @@ go run ./internal/tools/resource-lint --diff=changes.txt
 # Check specific packages
 go run ./internal/tools/resource-lint ./internal/services/compute/...
 
-# Check all lines in all packages (no filtering)
-go run ./internal/tools/resource-lint --no-filter ./internal/services/...
+# Check all issues in packages (no filtering)
+go run ./internal/tools/resource-lint --all ./internal/services/...
 ```
 
 ### Options
 
 ```bash
 --diff=<file>      # Read diff from file instead of git
---no-filter        # Analyze all lines (not just changes)
+--all              # Check all issues in packages (not just changes)
 --remote=<name>    # Specify git remote (default: auto-detect origin/upstream)
 --base=<branch>    # Specify base branch (default: auto-detect from git config or 'main')
 --list             # List all available checks
 --help             # Show help
 ```
 
-**Note**: By default, only changed lines are analyzed. Use `--no-filter` to check everything.
+**Note**: By default, all code is analyzed but only issues on changed lines are reported. Use `--all` to report issues on all lines.
 
 ### Output
 

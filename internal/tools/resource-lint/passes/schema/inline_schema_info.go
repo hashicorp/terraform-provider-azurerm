@@ -64,19 +64,11 @@ var LocalAnalyzer = &analysis.Analyzer{
 	ResultType: reflect.TypeOf(LocalSchemaInfoList{}),
 }
 
-var (
-	skipPackages   = []string{"_test", "/migration", "/client", "/validate", "/test-data", "/parse", "/models"}
-	skipFileSuffix = []string{"_test.go", "registration.go"}
-)
-
 func runLocal(pass *analysis.Pass) (interface{}, error) {
 	var schemaInfoList LocalSchemaInfoList
 
-	pkgPath := pass.Pkg.Path()
-	for _, skip := range skipPackages {
-		if strings.Contains(pkgPath, skip) {
-			return schemaInfoList, nil
-		}
+	if helper.ShouldSkipPackageForResourceAnalysis(pass.Pkg.Path()) {
+		return schemaInfoList, nil
 	}
 
 	inspector, ok := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
@@ -128,11 +120,6 @@ func runLocal(pass *analysis.Pass) (interface{}, error) {
 			return
 		}
 
-		filename := pass.Fset.Position(comp.Pos()).Filename
-		if !shouldProcessFile(filename) {
-			return
-		}
-
 		// Phase 1: Process map[string]*Schema composite literals
 		if helper.IsSchemaMap(comp, pass.TypesInfo) {
 			for _, elt := range comp.Elts {
@@ -181,15 +168,4 @@ func runLocal(pass *analysis.Pass) (interface{}, error) {
 	})
 
 	return schemaInfoList, nil
-}
-
-// shouldProcessFile checks if a file should be processed based on filters
-func shouldProcessFile(filename string) bool {
-	for _, skip := range skipFileSuffix {
-		if strings.HasSuffix(filename, skip) {
-			return false
-		}
-	}
-
-	return true
 }

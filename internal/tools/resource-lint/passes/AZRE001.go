@@ -37,11 +37,6 @@ var AZRE001Analyzer = &analysis.Analyzer{
 }
 
 func runAZRE001(pass *analysis.Pass) (interface{}, error) {
-	// Skip migration packages
-	if strings.Contains(pass.Pkg.Path(), "/migration") {
-		return nil, nil
-	}
-
 	// Pre-filter: Build set of changed files that import "fmt"
 	relevantFiles := make(map[string]bool)
 	for _, f := range pass.Files {
@@ -49,11 +44,6 @@ func runAZRE001(pass *analysis.Pass) (interface{}, error) {
 
 		// Skip if not changed
 		if !loader.IsFileChanged(filename) {
-			continue
-		}
-
-		// Skip test files
-		if strings.HasSuffix(filename, "_test.go") {
 			continue
 		}
 
