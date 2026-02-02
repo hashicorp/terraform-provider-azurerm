@@ -258,53 +258,20 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	// NOTE: Azure Front Door custom domains that use Managed Certificates require a DNS TXT record
 	// ("_dnsauth.<subdomain>") for domain ownership validation.
 	//
-	// In addition, the service is eventually-consistent for a short period after Create (for example,
-	// due to backend sync/replication), during which the resource might be temporarily unreadable or
-	// might not yet return the `validation_token`.
-	//
-	// The service may also keep the long-running Create operation pending until validation succeeds,
-	// which prevents Terraform from returning the `validation_token` needed to create that TXT record.
-	//
-	// To avoid deadlock, we issue the Create request but do not wait for the long-running operation
-	// to reach a terminal state. Instead, we wait only until the resource becomes readable and a
-	// validation token is available.
+	// The service team confirmed the `validation_token` is available once the Create LRO completes,
+	// so we can use the normal poller here.
 	// For more information, see: https://learn.microsoft.com/azure/frontdoor/domain#domain-validation.
-	if _, err := client.Create(ctx, id, props); err != nil {
+	createResp, err := client.Create(ctx, id, props)
+	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+	if createResp.Poller != (pollers.Poller{}) {
+		if err := createResp.Poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
-
-	readinessTimeout := 10 * time.Minute
-	if deadline, ok := ctx.Deadline(); ok {
-		if until := time.Until(deadline); until > 0 && until < readinessTimeout {
-			readinessTimeout = until
-		}
-	}
-
-	if err := pluginsdk.Retry(readinessTimeout, func() *pluginsdk.RetryError {
-		getResp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(getResp.HttpResponse) {
-				return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to become available", id))
-			}
-			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s while waiting for validation token: %+v", id, err))
-		}
-
-		if model := getResp.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if v := props.ValidationProperties; v != nil {
-					if v.ValidationToken != nil && *v.ValidationToken != "" {
-						return nil
-					}
-				}
-			}
-		}
-
-		return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to return a validation token", id))
-	}); err != nil {
-		return fmt.Errorf("waiting for %s validation token: %+v", id, err)
-	}
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
 }
@@ -388,6 +355,133 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		props.Properties.TlsSettings = tls
 	}
 
+	/*
+		The block below intentionally remains commented out.
+
+		Reason: The service team requested we do exactly:
+		  1) GET until domainValidationState == Approved
+		  2) PATCH once + LRO poll
+
+		We expect this to fail with 409 Conflict in some cases; leaving the previous
+		more defensive implementation here makes it easy to re-enable if needed.
+
+		--- BEGIN previous (more defensive) implementation ---
+
+		updateStartedAt := time.Now()
+
+		timeout := d.Timeout(pluginsdk.TimeoutUpdate)
+		if deadline, ok := ctx.Deadline(); ok {
+			if until := time.Until(deadline); until > 0 {
+				timeout = until
+			}
+		}
+
+		type updatePhase int
+		const (
+			phaseWaitBeforePatch updatePhase = iota
+			phasePatchAndPoll
+			phaseWaitAfterPatch
+		)
+
+		phase := phaseWaitBeforePatch
+		conflictBackoff := time.Duration(0)
+
+		waitForReadyOnce := func() *pluginsdk.RetryError {
+			// If we've previously observed a 409 Conflict, throttle attempts even if
+			// the service reports provisioningState=Succeeded.
+			if conflictBackoff > 0 {
+				log.Printf("[DEBUG] AFD Custom Domain %s busy (409 previously observed), backing off for %s (elapsed %s)", *id, conflictBackoff, time.Since(updateStartedAt))
+				time.Sleep(conflictBackoff)
+			}
+
+			if err := ctx.Err(); err != nil {
+				return pluginsdk.NonRetryableError(err)
+			}
+
+			getResp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(getResp.HttpResponse) {
+					return pluginsdk.NonRetryableError(fmt.Errorf("retrieving %s while waiting for pending operation to complete: %+v", *id, err))
+				}
+				time.Sleep(30 * time.Second)
+				return pluginsdk.RetryableError(fmt.Errorf("retrieving %s while waiting for pending operation to complete: %+v", *id, err))
+			}
+
+			if model := getResp.Model; model != nil {
+				if model.Properties != nil && model.Properties.ProvisioningState != nil {
+					state := *model.Properties.ProvisioningState
+					switch state {
+					case afdcustomdomains.AfdProvisioningStateSucceeded:
+						return nil
+					case afdcustomdomains.AfdProvisioningStateFailed:
+						return pluginsdk.NonRetryableError(fmt.Errorf("%s is in a failed provisioning state", *id))
+					default:
+						log.Printf("[DEBUG] AFD Custom Domain %s provisioningState=%q; waiting before update (elapsed %s)", *id, state, time.Since(updateStartedAt))
+						time.Sleep(30 * time.Second)
+						return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to finish pending operation (current state: %q)", *id, state))
+					}
+				}
+			}
+
+			time.Sleep(30 * time.Second)
+			return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to finish pending operation", *id))
+		}
+
+		if err := pluginsdk.Retry(timeout, func() *pluginsdk.RetryError {
+			switch phase {
+			case phaseWaitBeforePatch:
+				if err := waitForReadyOnce(); err != nil {
+					return err
+				}
+				phase = phasePatchAndPoll
+				fallthrough
+			case phasePatchAndPoll:
+				resp, err := client.Update(ctx, *id, props)
+				if err != nil {
+					if isFrontDoorCustomDomainOperationInProgressConflict(resp.HttpResponse, err) {
+						// Backoff on 409 conflicts. GET can report provisioningState=Succeeded
+						// even when writes are blocked, so don't hammer PATCH.
+						if conflictBackoff == 0 {
+							conflictBackoff = 30 * time.Second
+						} else {
+							conflictBackoff *= 2
+							if conflictBackoff > 10*time.Minute {
+								conflictBackoff = 10 * time.Minute
+							}
+						}
+						log.Printf("[DEBUG] AFD Custom Domain %s returned 409 Conflict; next retry in %s (elapsed %s)", *id, conflictBackoff, time.Since(updateStartedAt))
+						phase = phaseWaitBeforePatch
+						return pluginsdk.RetryableError(err)
+					}
+					return pluginsdk.NonRetryableError(err)
+				}
+
+				if err := resp.Poller.PollUntilDone(ctx); err != nil {
+					return pluginsdk.NonRetryableError(err)
+				}
+
+				// Reset conflict backoff once the service accepts the update.
+				conflictBackoff = 0
+
+				phase = phaseWaitAfterPatch
+				fallthrough
+			case phaseWaitAfterPatch:
+				if err := waitForReadyOnce(); err != nil {
+					return err
+				}
+				return nil
+			default:
+				return pluginsdk.NonRetryableError(fmt.Errorf("unexpected update phase"))
+			}
+		}); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
+
+		return resourceCdnFrontDoorCustomDomainRead(d, meta)
+
+		--- END previous (more defensive) implementation ---
+	*/
+
 	timeout := d.Timeout(pluginsdk.TimeoutUpdate)
 	if deadline, ok := ctx.Deadline(); ok {
 		if until := time.Until(deadline); until > 0 {
@@ -395,24 +489,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	type updatePhase int
-	const (
-		phaseWaitBeforePatch updatePhase = iota
-		phasePatchAndPoll
-		phaseWaitAfterPatch
-	)
-
-	phase := phaseWaitBeforePatch
-	conflictBackoff := time.Duration(0)
-
-	waitForReadyOnce := func() *pluginsdk.RetryError {
-		// If we've previously observed a 409 Conflict, throttle attempts even if
-		// the service reports provisioningState=Succeeded.
-		if conflictBackoff > 0 {
-			log.Printf("[DEBUG] AFD Custom Domain %s busy (409 previously observed), backing off for %s (elapsed %s)", *id, conflictBackoff, time.Since(updateStartedAt))
-			time.Sleep(conflictBackoff)
-		}
-
+	if err := pluginsdk.Retry(timeout, func() *pluginsdk.RetryError {
 		if err := ctx.Err(); err != nil {
 			return pluginsdk.NonRetryableError(err)
 		}
@@ -420,80 +497,46 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		getResp, err := client.Get(ctx, *id)
 		if err != nil {
 			if response.WasNotFound(getResp.HttpResponse) {
-				return pluginsdk.NonRetryableError(fmt.Errorf("retrieving %s while waiting for pending operation to complete: %+v", *id, err))
+				log.Printf("[DEBUG] AFD Custom Domain %s not found while waiting for approval (elapsed %s)", *id, time.Since(updateStartedAt))
+				return pluginsdk.NonRetryableError(fmt.Errorf("retrieving %s while waiting for domainValidationState to be Approved: %+v", *id, err))
 			}
+			log.Printf("[DEBUG] AFD Custom Domain %s GET error while waiting for approval (elapsed %s): %+v", *id, time.Since(updateStartedAt), err)
 			time.Sleep(30 * time.Second)
-			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s while waiting for pending operation to complete: %+v", *id, err))
+			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s while waiting for domainValidationState to be Approved: %+v", *id, err))
 		}
 
+		state := ""
 		if model := getResp.Model; model != nil {
-			if model.Properties != nil && model.Properties.ProvisioningState != nil {
-				state := *model.Properties.ProvisioningState
-				switch state {
-				case afdcustomdomains.AfdProvisioningStateSucceeded:
+			if props := model.Properties; props != nil {
+				if props.DomainValidationState != nil {
+					state = string(*props.DomainValidationState)
+				}
+				if props.DomainValidationState != nil && *props.DomainValidationState == afdcustomdomains.DomainValidationStateApproved {
+					log.Printf("[DEBUG] AFD Custom Domain %s approved (elapsed %s)", *id, time.Since(updateStartedAt))
 					return nil
-				case afdcustomdomains.AfdProvisioningStateFailed:
-					return pluginsdk.NonRetryableError(fmt.Errorf("%s is in a failed provisioning state", *id))
-				default:
-					log.Printf("[DEBUG] AFD Custom Domain %s provisioningState=%q; waiting before update (elapsed %s)", *id, state, time.Since(updateStartedAt))
-					time.Sleep(30 * time.Second)
-					return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to finish pending operation (current state: %q)", *id, state))
 				}
 			}
+		}
+
+		if state == "" {
+			log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState is empty (elapsed %s)", *id, time.Since(updateStartedAt))
+		} else {
+			log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState=%q (elapsed %s)", *id, state, time.Since(updateStartedAt))
 		}
 
 		time.Sleep(30 * time.Second)
-		return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to finish pending operation", *id))
+		return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to be approved", *id))
+	}); err != nil {
+		return fmt.Errorf("waiting for %s to be approved: %+v", *id, err)
 	}
 
-	if err := pluginsdk.Retry(timeout, func() *pluginsdk.RetryError {
-		switch phase {
-		case phaseWaitBeforePatch:
-			if err := waitForReadyOnce(); err != nil {
-				return err
-			}
-			phase = phasePatchAndPoll
-			fallthrough
-		case phasePatchAndPoll:
-			resp, err := client.Update(ctx, *id, props)
-			if err != nil {
-				if isFrontDoorCustomDomainOperationInProgressConflict(resp.HttpResponse, err) {
-					// Backoff on 409 conflicts. GET can report provisioningState=Succeeded
-					// even when writes are blocked, so don't hammer PATCH.
-					if conflictBackoff == 0 {
-						conflictBackoff = 30 * time.Second
-					} else {
-						conflictBackoff *= 2
-						if conflictBackoff > 10*time.Minute {
-							conflictBackoff = 10 * time.Minute
-						}
-					}
-					log.Printf("[DEBUG] AFD Custom Domain %s returned 409 Conflict; next retry in %s (elapsed %s)", *id, conflictBackoff, time.Since(updateStartedAt))
-					phase = phaseWaitBeforePatch
-					return pluginsdk.RetryableError(err)
-				}
-				return pluginsdk.NonRetryableError(err)
-			}
-
-			if err := resp.Poller.PollUntilDone(ctx); err != nil {
-				return pluginsdk.NonRetryableError(err)
-			}
-
-			// Reset conflict backoff once the service accepts the update.
-			conflictBackoff = 0
-
-			phase = phaseWaitAfterPatch
-			fallthrough
-		case phaseWaitAfterPatch:
-			if err := waitForReadyOnce(); err != nil {
-				return err
-			}
-			return nil
-		default:
-			return pluginsdk.NonRetryableError(fmt.Errorf("unexpected update phase"))
-		}
-	}); err != nil {
+	resp, err := client.Update(ctx, *id, props)
+	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	if err := resp.Poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorCustomDomainRead(d, meta)
