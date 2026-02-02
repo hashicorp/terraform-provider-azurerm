@@ -238,7 +238,7 @@ func TestAccContainerRegistry_networkAccessProfileUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.networkAccessProfileNone(data, "Premium"),
+			Config: r.basicManaged(data, "Premium"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -714,12 +714,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -749,12 +749,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
@@ -774,12 +774,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-acr-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
+  name                = "testacccr%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "%[3]s"
