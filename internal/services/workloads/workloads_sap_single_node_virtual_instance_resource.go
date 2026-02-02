@@ -3,6 +3,8 @@
 
 package workloads
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name workloads_sap_single_node_virtual_instance -service-package-name workloads -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-params "10+(data.RandomInteger%90)" -test-expect-non-empty true
+
 import (
 	"context"
 	"errors"
@@ -15,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -90,7 +93,14 @@ type SingleServerDataDisk struct {
 
 type WorkloadsSAPSingleNodeVirtualInstanceResource struct{}
 
-var _ sdk.ResourceWithUpdate = WorkloadsSAPSingleNodeVirtualInstanceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = WorkloadsSAPSingleNodeVirtualInstanceResource{}
+	_ sdk.ResourceWithIdentity = WorkloadsSAPSingleNodeVirtualInstanceResource{}
+)
+
+func (WorkloadsSAPSingleNodeVirtualInstanceResource) Identity() resourceids.ResourceId {
+	return &sapvirtualinstances.SapVirtualInstanceId{}
+}
 
 func (r WorkloadsSAPSingleNodeVirtualInstanceResource) ResourceType() string {
 	return "azurerm_workloads_sap_single_node_virtual_instance"
@@ -494,6 +504,10 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -608,6 +622,10 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Read() sdk.ResourceFunc {
 						state.ManagedResourceGroupName = pointer.From(v.Name)
 					}
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
