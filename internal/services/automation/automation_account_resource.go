@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -29,16 +29,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_account -service-package-name automation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceAutomationAccount() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: resourceAutomationAccountCreate,
-		Read:   resourceAutomationAccountRead,
-		Update: resourceAutomationAccountUpdate,
-		Delete: resourceAutomationAccountDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := automationaccount.ParseAutomationAccountID(id)
-			return err
-		}),
+		Create:   resourceAutomationAccountCreate,
+		Read:     resourceAutomationAccountRead,
+		Update:   resourceAutomationAccountUpdate,
+		Delete:   resourceAutomationAccountDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&automationaccount.AutomationAccountId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -141,6 +140,10 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&automationaccount.AutomationAccountId{}),
+		},
 	}
 
 	if !features.FivePointOh() {
@@ -215,6 +218,10 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceAutomationAccountRead(d, meta)
 }
 
@@ -352,7 +359,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {

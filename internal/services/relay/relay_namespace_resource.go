@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package relay
@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -118,7 +117,7 @@ func resourceRelayNamespaceCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	skuTier := namespaces.SkuTier(d.Get("sku_name").(string))
 	parameters := namespaces.RelayNamespace{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Location: location.Normalize(d.Get("location").(string)),
 		Sku: &namespaces.Sku{
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 			Tier: &skuTier,

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -10,14 +10,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageAccountCustomerManagedKeyResource struct{}
@@ -97,6 +99,32 @@ func TestAccStorageAccountCustomerManagedKey_testKeyVersion(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.autoKeyRotation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccountCustomerManagedKey_managedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_customer_managed_key", "test")
+	r := StorageAccountCustomerManagedKeyResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedHSM(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.managedHSMUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -210,7 +238,7 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 	resp, err := client.Storage.ResourceManager.StorageAccounts.GetProperties(ctx, *accountId, storageaccounts.DefaultGetPropertiesOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
@@ -220,7 +248,7 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 		if props := model.Properties; props != nil {
 			if encryption := props.Encryption; encryption != nil {
 				if encryption.KeySource != nil && *encryption.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
-					return utils.Bool(true), nil
+					return pointer.To(true), nil
 				}
 
 				return nil, fmt.Errorf("%q should be %q", *encryption.KeySource, string(storageaccounts.KeySourceMicrosoftPointKeyvault))
@@ -228,12 +256,12 @@ func (r StorageAccountCustomerManagedKeyResource) Exists(ctx context.Context, cl
 		}
 	}
 
-	return utils.Bool(false), nil
+	return pointer.To(false), nil
 }
 
 func (r StorageAccountCustomerManagedKeyResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account_customer_managed_key" "test" {
@@ -242,12 +270,22 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   key_name           = azurerm_key_vault_key.first.name
   key_version        = azurerm_key_vault_key.first.version
 }
-`, template)
+`, r.template(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_key_id   = azurerm_key_vault_key.first.id
+}
+`, r.template(data))
 }
 
 func (r StorageAccountCustomerManagedKeyResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account_customer_managed_key" "import" {
@@ -256,12 +294,22 @@ resource "azurerm_storage_account_customer_managed_key" "import" {
   key_name           = azurerm_storage_account_customer_managed_key.test.key_name
   key_version        = azurerm_storage_account_customer_managed_key.test.key_version
 }
-`, template)
+`, r.basic(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "import" {
+  storage_account_id = azurerm_storage_account_customer_managed_key.test.storage_account_id
+  key_vault_key_id   = azurerm_storage_account_customer_managed_key.test.key_vault_key_id
+}
+`, r.basic(data))
 }
 
 func (r StorageAccountCustomerManagedKeyResource) updated(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_key_vault_key" "second" {
@@ -283,12 +331,35 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   key_name           = azurerm_key_vault_key.second.name
   key_version        = azurerm_key_vault_key.second.version
 }
-`, template)
+`, r.template(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_key" "second" {
+  name         = "second"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client,
+    azurerm_key_vault_access_policy.storage,
+  ]
+}
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_key_id   = azurerm_key_vault_key.second.id
+}
+`, r.template(data))
 }
 
 func (r StorageAccountCustomerManagedKeyResource) autoKeyRotation(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account_customer_managed_key" "test" {
@@ -296,22 +367,73 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   key_vault_id       = azurerm_key_vault.test.id
   key_name           = azurerm_key_vault_key.first.name
 }
-`, template)
+`, r.template(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_key_id   = azurerm_key_vault_key.first.versionless_id
+}
+`, r.template(data))
+}
+
+func (r StorageAccountCustomerManagedKeyResource) managedHSM(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
+}
+`, r.templateHSM(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_key_id   = azurerm_key_vault_managed_hardware_security_module_key.test.versioned_id
+}
+`, r.templateHSM(data))
+}
+
+func (r StorageAccountCustomerManagedKeyResource) managedHSMUpdate(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  managed_hsm_key_id = azurerm_key_vault_managed_hardware_security_module_key.test.id
+}
+`, r.templateHSM(data))
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_customer_managed_key" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  key_vault_key_id   = azurerm_key_vault_managed_hardware_security_module_key.test.id
+}
+`, r.templateHSM(data))
 }
 
 func (r StorageAccountCustomerManagedKeyResource) userAssignedIdentity(data acceptance.TestData) string {
-	template := r.userAssignedIdentityTemplate(data)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_storage_account_customer_managed_key" "test" {
   storage_account_id        = azurerm_storage_account.test.id
-  key_vault_id              = azurerm_key_vault.test.id
-  key_name                  = azurerm_key_vault_key.first.name
-  key_version               = azurerm_key_vault_key.first.version
+  key_vault_key_id          = azurerm_key_vault_key.first.id
   user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 }
-`, template)
+`, r.userAssignedIdentityTemplate(data))
 }
 
 func (r StorageAccountCustomerManagedKeyResource) remoteKeyVault(data acceptance.TestData) string {
@@ -419,9 +541,7 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   provider = azurerm
 
   storage_account_id = azurerm_storage_account.test.id
-  key_vault_id       = azurerm_key_vault.remotetest.id
-  key_name           = azurerm_key_vault_key.remote.name
-  key_version        = azurerm_key_vault_key.remote.version
+  key_vault_key_id   = azurerm_key_vault_key.remote.id
 }
 `, clientData.SubscriptionIDAlt, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString, clientData.TenantID, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -721,11 +841,205 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_account_customer_managed_key" "test" {
   storage_account_id = azurerm_storage_account.test.id
-  key_vault_uri      = azurerm_key_vault.remotetest.vault_uri
-  key_name           = azurerm_key_vault_key.remotetest.name
+  key_vault_key_id   = azurerm_key_vault_key.remotetest.id
 
   user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
   federated_identity_client_id = azuread_application.test.client_id
 }
 `, altTenantId, subscriptionIdAltTenant, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountCustomerManagedKeyResource) templateHSM(data acceptance.TestData) string {
+	uuid1, _ := uuid.GenerateUUID()
+	uuid2, _ := uuid.GenerateUUID()
+	uuid3, _ := uuid.GenerateUUID()
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-KV-%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acc%[3]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "DeleteIssuers",
+      "Get",
+      "Purge",
+      "Update"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "cert" {
+  count        = 3
+  name         = "acchsmcert${count.index}"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      extended_key_usage = []
+
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=hello-world"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module" "test" {
+  name                       = "kvHsm%[3]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  sku_name                   = "Standard_B1"
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  admin_object_ids           = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled   = false
+  soft_delete_retention_days = 7
+
+  security_domain_key_vault_certificate_ids = [for cert in azurerm_key_vault_certificate.cert : cert.id]
+  security_domain_quorum                    = 3
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "%[4]s"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "test1" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "%[5]s"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/515eb02d-2335-4d2d-92f2-b1cbdf9c3778"
+  principal_id       = data.azurerm_client_config.current.object_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "user" {
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.test.id
+  name               = "%[6]s"
+  scope              = "/keys"
+  role_definition_id = "/Microsoft.KeyVault/providers/Microsoft.Authorization/roleDefinitions/21dbd100-6940-42c2-9190-5d6cb909625b"
+  principal_id       = azurerm_storage_account.test.identity.0.principal_id
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "test" {
+  name           = "acctestHSMK-%[1]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["unwrapKey", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.user
+  ]
+}
+
+resource "azurerm_key_vault_managed_hardware_security_module_key" "update" {
+  name           = "acctestHSMK2-%[1]s"
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.test.id
+  key_type       = "RSA-HSM"
+  key_size       = 2048
+  key_opts       = ["unwrapKey", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.test1,
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.user
+  ]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[1]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = ["customer_managed_key"]
+  }
+}
+`, data.RandomString, data.Locations.Primary, data.RandomInteger, uuid1, uuid2, uuid3)
 }

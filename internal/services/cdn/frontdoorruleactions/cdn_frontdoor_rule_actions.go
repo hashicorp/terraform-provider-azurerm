@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdooractions
@@ -286,7 +286,7 @@ func ExpandCdnFrontDoorRouteConfigurationOverrideAction(input []interface{}) (*[
 			}
 
 			if cacheDuration != "" {
-				cacheConfiguration.CacheDuration = utils.String(cacheDuration)
+				cacheConfiguration.CacheDuration = pointer.To(cacheDuration)
 			}
 
 			if queryParameters := cacheConfiguration.QueryParameters; queryParameters == nil {
