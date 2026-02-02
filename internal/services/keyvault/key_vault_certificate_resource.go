@@ -951,7 +951,7 @@ func validateDigiCertCertificateType(policiesRaw []interface{}) error {
 		return nil
 	}
 
-	issuerName, _ := issuer["name"].(string)
+	issuerName := issuer["name"].(string)
 
 	certificateType := ""
 	if v, exists := issuer["certificate_type"]; exists && v != nil {
