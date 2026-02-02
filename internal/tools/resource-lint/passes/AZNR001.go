@@ -59,7 +59,6 @@ var AZNR001Analyzer = &analysis.Analyzer{
 }
 
 func runAZNR001(pass *analysis.Pass) (interface{}, error) {
-
 	ignorer, ok := pass.ResultOf[commentignore.Analyzer].(*commentignore.Ignorer)
 	if !ok {
 		return nil, nil
