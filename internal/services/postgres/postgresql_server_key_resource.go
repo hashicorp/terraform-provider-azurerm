@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys"
@@ -20,7 +21,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePostgreSQLServerKey() *pluginsdk.Resource {
@@ -79,7 +79,7 @@ func getPostgreSQLServerKeyName(ctx context.Context, keyVaultsClient *client.Cli
 	if err != nil {
 		return nil, err
 	}
-	return utils.String(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
+	return pointer.To(fmt.Sprintf("%s_%s_%s", keyVaultID.VaultName, keyVaultKeyID.Name, keyVaultKeyID.Version)), nil
 }
 
 func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -131,7 +131,7 @@ func resourcePostgreSQLServerKeyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	param := serverkeys.ServerKey{
 		Properties: &serverkeys.ServerKeyProperties{
 			ServerKeyType: serverkeys.ServerKeyTypeAzureKeyVault,
-			Uri:           utils.String(d.Get("key_vault_key_id").(string)),
+			Uri:           pointer.To(d.Get("key_vault_key_id").(string)),
 		},
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -17,7 +17,6 @@ import (
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomCertSignalrServiceResourceModel struct {
@@ -124,7 +123,7 @@ func (r CustomCertSignalrServiceResource) Create() sdk.ResourceFunc {
 				if customCertSignalrService.CertificateVersion != "" && certVersion != customCertSignalrService.CertificateVersion {
 					return fmt.Errorf("certificate version in cert id is different from `certificate_version`")
 				}
-				customCert.Properties.KeyVaultSecretVersion = utils.String(certVersion)
+				customCert.Properties.KeyVaultSecretVersion = pointer.To(certVersion)
 			}
 
 			if err := client.CustomCertificatesCreateOrUpdateThenPoll(ctx, id, customCert); err != nil {

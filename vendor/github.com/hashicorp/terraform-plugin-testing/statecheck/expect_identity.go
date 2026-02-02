@@ -67,9 +67,9 @@ func (e expectIdentity) CheckState(ctx context.Context, req CheckStateRequest, r
 	if len(resource.IdentityValues) != len(e.identity) {
 		deltaMsg := ""
 		if len(resource.IdentityValues) > len(e.identity) {
-			deltaMsg = createDeltaString(resource.IdentityValues, e.identity, "actual identity has extra attribute(s): ")
+			deltaMsg = CreateDeltaString(resource.IdentityValues, e.identity, "actual identity has extra attribute(s): ")
 		} else {
-			deltaMsg = createDeltaString(e.identity, resource.IdentityValues, "actual identity is missing attribute(s): ")
+			deltaMsg = CreateDeltaString(e.identity, resource.IdentityValues, "actual identity is missing attribute(s): ")
 		}
 
 		resp.Error = fmt.Errorf("%s - Expected %d attribute(s) in the actual identity object, got %d attribute(s): %s", e.resourceAddress, len(e.identity), len(resource.IdentityValues), deltaMsg)
@@ -113,8 +113,8 @@ func ExpectIdentity(resourceAddress string, identity map[string]knownvalue.Check
 	}
 }
 
-// createDeltaString prints the map keys that are present in mapA and not present in mapB
-func createDeltaString[T any, V any](mapA map[string]T, mapB map[string]V, msgPrefix string) string {
+// CreateDeltaString prints the map keys that are present in mapA and not present in mapB
+func CreateDeltaString[T any, V any](mapA map[string]T, mapB map[string]V, msgPrefix string) string {
 	deltaMsg := ""
 
 	deltaMap := make(map[string]T, len(mapA))

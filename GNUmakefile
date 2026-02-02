@@ -54,6 +54,11 @@ goimports:
 lint:
 	@golangci-lint run -v ./...
 
+shellcheck:
+	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
+	@echo "==> Checking shell scripts with shellcheck..."
+	@shellcheck scripts/*.sh
+
 depscheck:
 	@echo "==> Checking dependencies.."
 	@./scripts/track2-check.sh

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/azurefirewalls"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -258,7 +257,7 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("validating %s: %+v", id, err)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	i := d.Get("ip_configuration").([]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandFirewallIPConfigurations(i)
@@ -391,6 +390,10 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceFirewallRead(d, meta)
 }
 
@@ -590,13 +593,13 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 		pubID := data["public_ip_address_id"].(string)
 
 		ipConfig := azurefirewalls.AzureFirewallIPConfiguration{
-			Name:       utils.String(name),
+			Name:       pointer.To(name),
 			Properties: &azurefirewalls.AzureFirewallIPConfigurationPropertiesFormat{},
 		}
 
 		if pubID != "" {
 			ipConfig.Properties.PublicIPAddress = &azurefirewalls.SubResource{
-				Id: utils.String(pubID),
+				Id: pointer.To(pubID),
 			}
 		}
 
@@ -615,7 +618,7 @@ func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.Az
 			}
 
 			ipConfig.Properties.Subnet = &azurefirewalls.SubResource{
-				Id: utils.String(subnetId),
+				Id: pointer.To(subnetId),
 			}
 		}
 		ipConfigs = append(ipConfigs, ipConfig)
@@ -762,10 +765,10 @@ func expandFirewallVirtualHubSetting(existing *azurefirewalls.AzureFirewall, inp
 		}
 	}
 
-	vhub = &azurefirewalls.SubResource{Id: utils.String(b["virtual_hub_id"].(string))}
+	vhub = &azurefirewalls.SubResource{Id: pointer.To(b["virtual_hub_id"].(string))}
 	ipAddresses = &azurefirewalls.HubIPAddresses{
 		PublicIPs: &azurefirewalls.HubPublicIPAddresses{
-			Count:     utils.Int64(int64(b["public_ip_count"].(int))),
+			Count:     pointer.To(int64(b["public_ip_count"].(int))),
 			Addresses: addresses,
 		},
 	}

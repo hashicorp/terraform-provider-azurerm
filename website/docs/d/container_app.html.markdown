@@ -77,6 +77,10 @@ A `template` block exports the following:
 
 * `min_replicas` - The minimum number of replicas for this container.
 
+* `cooldown_period_in_seconds` - The number of seconds to wait before scaling down the number of instances again.
+
+* `polling_interval_in_seconds` - The interval in seconds used for polling KEDA.
+
 * `revision_suffix` - The suffix for the revision.
 
 * `termination_grace_period_seconds` - The time in seconds after the container is sent the termination signal before the process if forcibly killed.

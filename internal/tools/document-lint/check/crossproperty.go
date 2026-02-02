@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -89,6 +89,10 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 
 	switch ele := s.Elem.(type) {
 	case *schema2.Schema:
+		// For schema elements (e.g., lists of primitives), check if they have nested elements
+		if ele.Elem != nil {
+			return diffDocMiss(rt, path, ele, f)
+		}
 		return nil
 	case *schema2.Resource:
 		if f.Subs == nil {

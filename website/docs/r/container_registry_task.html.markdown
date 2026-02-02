@@ -290,4 +290,4 @@ terraform import azurerm_container_registry_task.example /subscriptions/12345678
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry` - 2023-11-01-preview, 2019-06-01-preview
+* `Microsoft.ContainerRegistry` - 2025-04-01, 2019-06-01-preview

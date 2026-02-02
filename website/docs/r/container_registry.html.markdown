@@ -160,7 +160,7 @@ The following arguments are supported:
 
 * `quarantine_policy_enabled` - (Optional) Boolean value that indicates whether quarantine policy is enabled.
 
-* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged. Defaults to `7`.
+* `retention_policy_in_days` - (Optional) The number of days to retain and untagged manifest after which it gets purged.
 
 * `trust_policy_enabled` - (Optional) Boolean value that indicated whether trust policy is enabled. Defaults to `false`.
 
@@ -285,4 +285,4 @@ terraform import azurerm_container_registry.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry` - 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2025-04-01

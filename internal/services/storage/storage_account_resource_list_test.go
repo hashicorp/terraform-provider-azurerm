@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -32,12 +32,12 @@ func TestAccStorageAccount_list_basic(t *testing.T) {
 			{
 				Query:             true,
 				Config:            r.basicQuery(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 			{
 				Query:             true,
 				Config:            r.basicQueryByResourceGroup(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				QueryResultChecks: []querycheck.QueryResultCheck{}, // TODO
 			},
 		},
 	})
@@ -82,7 +82,7 @@ func (r StorageAccountResource) basicQueryByResourceGroup(data acceptance.TestDa
 list "azurerm_storage_account" "test" {
   provider = azurerm
   config {
-	resource_group_name = "acctestRG-storage-%d"
+    resource_group_name = "acctestRG-storage-%d"
   }
 }
 `, data.RandomInteger)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -245,7 +245,7 @@ func expandKubernetesFleetUpdateStrategyStage(input []KubernetesFleetUpdateStrat
 	for _, stage := range input {
 		output = append(output, fleetupdatestrategies.UpdateStage{
 			Name:                    stage.Name,
-			AfterStageWaitInSeconds: pointer.FromInt64(stage.AfterStageWaitInSeconds),
+			AfterStageWaitInSeconds: pointer.To(stage.AfterStageWaitInSeconds),
 			Groups:                  expandKubernetesFleetUpdateStrategyGroup(stage.Group),
 		})
 	}
@@ -267,7 +267,7 @@ func flattenKubernetesFleetUpdateStrategyStage(input []fleetupdatestrategies.Upd
 	for _, stage := range input {
 		output = append(output, KubernetesFleetUpdateStrategyResourceUpdateStageSchema{
 			Name:                    stage.Name,
-			AfterStageWaitInSeconds: pointer.ToInt64(stage.AfterStageWaitInSeconds),
+			AfterStageWaitInSeconds: pointer.From(stage.AfterStageWaitInSeconds),
 			Group:                   flattenKubernetesFleetUpdateStrategyGroup(stage.Groups),
 		})
 	}

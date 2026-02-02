@@ -64,7 +64,7 @@ The following arguments are supported:
 
 * `administrator_login_password_wo` - (Optional, Write-Only) The Password associated with the `administrator_login` for the PostgreSQL Server.
 
-* ~> **Note:** Either `administrator_login_password` or `administrator_login_password_wo` is required when `create_mode` is `Default`.
+~> **Note:** Either `administrator_login_password` or `administrator_login_password_wo` is required when `create_mode` is `Default`.
 
 * `administrator_login_password_wo_version` - (Optional) An integer value used to trigger an update for `administrator_login_password_wo`. This property should be incremented when updating `administrator_login_password_wo`.
 

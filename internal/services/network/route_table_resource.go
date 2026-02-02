@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_table -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
@@ -153,6 +152,9 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceRouteTableRead(d, meta)
 }
@@ -219,13 +221,21 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if err := resourceRouteTableFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("flattening %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceRouteTableFlatten(d *pluginsdk.ResourceData, id *routetables.RouteTableId, table *routetables.RouteTable) error {
 	d.Set("name", id.RouteTableName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+	if table != nil {
+		d.Set("location", location.NormalizeNilable(table.Location))
 
-		if props := model.Properties; props != nil {
+		if props := table.Properties; props != nil {
 			d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation))
 			if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
 				return err
@@ -236,7 +246,7 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, table.Tags); err != nil {
 			return err
 		}
 	}
@@ -269,9 +279,9 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 		data := configRaw.(map[string]interface{})
 
 		route := routetables.Route{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 			Properties: &routetables.RoutePropertiesFormat{
-				AddressPrefix: utils.String(data["address_prefix"].(string)),
+				AddressPrefix: pointer.To(data["address_prefix"].(string)),
 				NextHopType:   routetables.RouteNextHopType(data["next_hop_type"].(string)),
 			},
 		}

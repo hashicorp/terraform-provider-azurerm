@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -8,10 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
@@ -111,22 +111,22 @@ func resourceBotChannelSlackCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	channel := botservice.BotChannel{
 		Properties: botservice.SlackChannel{
 			Properties: &botservice.SlackChannelProperties{
-				ClientID:                utils.String(d.Get("client_id").(string)),
-				ClientSecret:            utils.String(d.Get("client_secret").(string)),
-				VerificationToken:       utils.String(d.Get("verification_token").(string)),
-				LandingPageURL:          utils.String(d.Get("landing_page_url").(string)),
-				IsEnabled:               utils.Bool(true),
-				RegisterBeforeOAuthFlow: utils.Bool(true),
+				ClientID:                pointer.To(d.Get("client_id").(string)),
+				ClientSecret:            pointer.To(d.Get("client_secret").(string)),
+				VerificationToken:       pointer.To(d.Get("verification_token").(string)),
+				LandingPageURL:          pointer.To(d.Get("landing_page_url").(string)),
+				IsEnabled:               pointer.To(true),
+				RegisterBeforeOAuthFlow: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSlackChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if v, ok := d.GetOk("signing_secret"); ok {
 		channel, _ := channel.Properties.AsSlackChannel()
-		channel.Properties.SigningSecret = utils.String(v.(string))
+		channel.Properties.SigningSecret = pointer.To(v.(string))
 	}
 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {
@@ -187,22 +187,22 @@ func resourceBotChannelSlackUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	channel := botservice.BotChannel{
 		Properties: botservice.SlackChannel{
 			Properties: &botservice.SlackChannelProperties{
-				ClientID:                utils.String(d.Get("client_id").(string)),
-				ClientSecret:            utils.String(d.Get("client_secret").(string)),
-				VerificationToken:       utils.String(d.Get("verification_token").(string)),
-				LandingPageURL:          utils.String(d.Get("landing_page_url").(string)),
-				IsEnabled:               utils.Bool(true),
-				RegisterBeforeOAuthFlow: utils.Bool(true),
+				ClientID:                pointer.To(d.Get("client_id").(string)),
+				ClientSecret:            pointer.To(d.Get("client_secret").(string)),
+				VerificationToken:       pointer.To(d.Get("verification_token").(string)),
+				LandingPageURL:          pointer.To(d.Get("landing_page_url").(string)),
+				IsEnabled:               pointer.To(true),
+				RegisterBeforeOAuthFlow: pointer.To(true),
 			},
 			ChannelName: botservice.ChannelNameBasicChannelChannelNameSlackChannel,
 		},
-		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if v, ok := d.GetOk("signing_secret"); ok {
 		channel, _ := channel.Properties.AsSlackChannel()
-		channel.Properties.SigningSecret = utils.String(v.(string))
+		channel.Properties.SigningSecret = pointer.To(v.(string))
 	}
 
 	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameSlackChannel, channel); err != nil {

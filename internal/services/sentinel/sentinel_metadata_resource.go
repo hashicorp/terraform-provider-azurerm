@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	sentinelmetadata "github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/metadata"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MetadataModel struct {
@@ -670,10 +670,10 @@ func expandMetadataSourceModel(input []MetadataSourceModel) *sentinelmetadata.Me
 		Kind: sentinelmetadata.SourceKind(v.Kind),
 	}
 	if v.Name != "" {
-		output.Name = utils.String(v.Name)
+		output.Name = pointer.To(v.Name)
 	}
 	if v.Id != "" {
-		output.SourceId = utils.String(v.Id)
+		output.SourceId = pointer.To(v.Id)
 	}
 	return &output
 }
@@ -701,13 +701,13 @@ func expandMetadataAuthorModel(input []MetadataAuthorModel) *sentinelmetadata.Me
 	v := input[0]
 	output := sentinelmetadata.MetadataAuthor{}
 	if v.Name != "" {
-		output.Name = utils.String(v.Name)
+		output.Name = pointer.To(v.Name)
 	}
 	if v.Email != "" {
-		output.Email = utils.String(v.Email)
+		output.Email = pointer.To(v.Email)
 	}
 	if v.Link != "" {
-		output.Link = utils.String(v.Link)
+		output.Link = pointer.To(v.Link)
 	}
 	return &output
 }
@@ -738,13 +738,13 @@ func expandMetadataSupportModel(input []MetadataSupportModel) *sentinelmetadata.
 		Tier: sentinelmetadata.SupportTier(v.Tier),
 	}
 	if v.Name != "" {
-		output.Name = utils.String(v.Name)
+		output.Name = pointer.To(v.Name)
 	}
 	if v.Email != "" {
-		output.Email = utils.String(v.Email)
+		output.Email = pointer.To(v.Email)
 	}
 	if v.Link != "" {
-		output.Link = utils.String(v.Link)
+		output.Link = pointer.To(v.Link)
 	}
 	return &output
 }
@@ -802,14 +802,14 @@ func expandMetadataDependencies(input interface{}) (dependencies *sentinelmetada
 		dependencies = &sentinelmetadata.MetadataDependencies{}
 		// "name" is not returned in response, so it's not supported for now.
 		if v, ok := j["contentId"]; ok {
-			dependencies.ContentId = utils.String(v.(string))
+			dependencies.ContentId = pointer.To(v.(string))
 		}
 		if v, ok := j["kind"]; ok {
 			kind := sentinelmetadata.Kind(v.(string))
 			dependencies.Kind = &kind
 		}
 		if v, ok := j["version"]; ok {
-			dependencies.Version = utils.String(v.(string))
+			dependencies.Version = pointer.To(v.(string))
 		}
 		if v, ok := j["operator"]; ok {
 			op := sentinelmetadata.Operator(v.(string))

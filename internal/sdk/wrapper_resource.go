@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -230,4 +230,14 @@ func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, met
 
 		return out
 	}
+}
+
+func WrappedResource(resource Resource) *pluginsdk.Resource {
+	wrapper := NewResourceWrapper(resource)
+	wrappedResource, err := wrapper.Resource()
+	if err != nil {
+		panic(err)
+	}
+
+	return wrappedResource
 }

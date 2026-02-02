@@ -93,7 +93,13 @@ A `default_database` block exports the following:
 
 * `geo_replication_linked_database_ids` - A list of linked database IDs for geo-replication.
 
+* `id` - The ID of the Managed Redis Database Instance.
+
 * `module` - A list of `module` blocks as defined below.
+
+* `persistence_append_only_file_backup_frequency` - The frequency of Append Only File (AOF) backups.
+
+* `persistence_redis_database_backup_frequency` - The frequency of Redis Database (RDB) backups.
 
 * `port` - The TCP port of the database endpoint.
 

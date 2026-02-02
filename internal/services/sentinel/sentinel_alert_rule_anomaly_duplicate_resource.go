@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
@@ -372,16 +372,16 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 				Kind: securityinsight.KindBasicSecurityMLAnalyticsSettingKindAnomaly,
 				AnomalySecurityMLAnalyticsSettingsProperties: &securityinsight.AnomalySecurityMLAnalyticsSettingsProperties{
 					Description:            builtInAnomalyRule.Description,
-					DisplayName:            utils.String(metaModel.DisplayName),
+					DisplayName:            pointer.To(metaModel.DisplayName),
 					RequiredDataConnectors: builtInAnomalyRule.RequiredDataConnectors,
 					Tactics:                builtInAnomalyRule.Tactics,
 					Techniques:             builtInAnomalyRule.Techniques,
 					AnomalyVersion:         builtInAnomalyRule.AnomalyVersion,
 					Frequency:              builtInAnomalyRule.Frequency,
-					IsDefaultSettings:      utils.Bool(false), // for duplicate one, it's not default settings.
+					IsDefaultSettings:      pointer.To(false), // for duplicate one, it's not default settings.
 					AnomalySettingsVersion: builtInAnomalyRule.AnomalySettingsVersion,
 					SettingsDefinitionID:   builtInAnomalyRule.SettingsDefinitionID,
-					Enabled:                utils.Bool(metaModel.Enabled),
+					Enabled:                pointer.To(metaModel.Enabled),
 					SettingsStatus:         securityinsight.SettingsStatusFlighting,
 				},
 			}
@@ -540,7 +540,7 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 					IsDefaultSettings:      existing.IsDefaultSettings,
 					AnomalySettingsVersion: existing.AnomalySettingsVersion,
 					SettingsDefinitionID:   existing.SettingsDefinitionID,
-					Enabled:                utils.Bool(metaModel.Enabled),
+					Enabled:                pointer.To(metaModel.Enabled),
 					SettingsStatus:         securityinsight.SettingsStatus(metaModel.Mode),
 				},
 			}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package clients
@@ -94,10 +94,10 @@ import (
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
+	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
-	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	mongocluster "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
@@ -232,10 +232,10 @@ type Client struct {
 	ManagedApplication                *managedapplication.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
+	ManagedIdentity                   *managedidentity.Client
 	ManagedRedis                      *managedredis.Client
 	Maps                              *maps.Client
 	Monitor                           *monitor.Client
-	MobileNetwork                     *mobilenetwork.Client
 	MongoCluster                      *mongocluster.Client
 	MSSQL                             *mssql.Client
 	MSSQLManagedInstance              *mssqlmanagedinstance.Client
@@ -518,6 +518,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedHSMs, err = managedhsm.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for ManagedHSM: %+v", err)
 	}
+	if client.ManagedIdentity, err = managedidentity.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for ManagedIdentity: %+v", err)
+	}
 	if client.ManagedRedis, err = managedredis.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Redis: %+v", err)
 	}
@@ -526,9 +529,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Monitor, err = monitor.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Monitor: %+v", err)
-	}
-	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Mobile Network: %+v", err)
 	}
 	if client.MongoCluster, err = mongocluster.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mongo Cluster: %+v", err)

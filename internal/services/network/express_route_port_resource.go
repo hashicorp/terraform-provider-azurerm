@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -363,7 +363,9 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("guid", props.ResourceGuid)
 			d.Set("mtu", props.Mtu)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -129,6 +129,8 @@ A `criteria` block supports the following:
 
 -> **Note:** When not using `absolute_criteria`, you must use exactly one of `days_of_month` or `days_of_week`. Regarding the remaining two properties, `weeks_of_month` and `months_of_year`, you may use either, both, or neither. If you would like to set multiple intervals, you may do so by using multiple `retention_rule` blocks.
 
+---
+
 A `life_cycle` block supports the following:
 
 * `data_store_type` - (Required) The type of data store. The only possible value is `VaultStore`. Changing this forces a new Backup Policy Blob Storage to be created.

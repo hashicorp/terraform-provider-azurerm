@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover
@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/endpoints"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StorageMoverTargetEndpointModel struct {
@@ -123,7 +123,7 @@ func (r StorageMoverTargetEndpointResource) Create() sdk.ResourceFunc {
 
 			if model.Description != "" {
 				if v, ok := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
 			}
@@ -166,7 +166,7 @@ func (r StorageMoverTargetEndpointResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				if v, ok := properties.Properties.(endpoints.AzureStorageBlobContainerEndpointProperties); ok {
-					v.Description = utils.String(model.Description)
+					v.Description = pointer.To(model.Description)
 					properties.Properties = v
 				}
 			}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -107,7 +107,7 @@ func (r ManagerDeploymentResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			normalizedLocation := azure.NormalizeLocation(state.Location)
+			normalizedLocation := location.Normalize(state.Location)
 			id := parse.NewNetworkManagerDeploymentID(networkManagerId.SubscriptionId, networkManagerId.ResourceGroupName, networkManagerId.NetworkManagerName, normalizedLocation, state.ScopeAccess)
 
 			locks.ByID(id.ID())
@@ -382,7 +382,7 @@ func resourceManagerDeploymentWaitForFinished(ctx context.Context, client *netwo
 func resourceManagerDeploymentResultRefreshFunc(ctx context.Context, client *networkmanagers.NetworkManagersClient, id *parse.ManagerDeploymentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		listParam := networkmanagers.NetworkManagerDeploymentStatusParameter{
-			Regions:         &[]string{azure.NormalizeLocation(id.Location)},
+			Regions:         &[]string{location.Normalize(id.Location)},
 			DeploymentTypes: &[]networkmanagers.ConfigurationType{networkmanagers.ConfigurationType(id.ScopeAccess)},
 		}
 

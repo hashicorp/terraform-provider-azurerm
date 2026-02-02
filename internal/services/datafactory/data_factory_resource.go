@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
@@ -23,12 +24,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDataFactory() *pluginsdk.Resource {
@@ -203,7 +201,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Computed:     true,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 			},
 
 			"customer_managed_key_identity_id": {
@@ -211,7 +209,6 @@ func resourceDataFactory() *pluginsdk.Resource {
 				Computed:     true,
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-				RequiredWith: []string{"customer_managed_key_id"},
 			},
 
 			"tags": commonschema.Tags(),
@@ -221,6 +218,7 @@ func resourceDataFactory() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("managed_virtual_network_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && !new.(bool)
 			}),
+			validate.CMKIdentityIdRequiredAtCreation,
 		),
 	}
 }
@@ -257,9 +255,9 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
-	location := location.Normalize(d.Get("location").(string))
+	normalizedLocation := location.Normalize(d.Get("location").(string))
 	payload := factories.Factory{
-		Location: utils.String(location),
+		Location: pointer.To(normalizedLocation),
 		Properties: &factories.FactoryProperties{
 			PublicNetworkAccess: &publicNetworkAccess,
 		},
@@ -274,17 +272,17 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if keyVaultKeyID, ok := d.GetOk("customer_managed_key_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyID.(string))
+		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyID.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
 		}
 
 		payload.Properties.Encryption = &factories.EncryptionConfiguration{
-			VaultBaseURL: keyVaultKey.KeyVaultBaseUrl,
+			VaultBaseURL: keyVaultKey.KeyVaultBaseURL,
 			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &factories.CMKIdentityDefinition{
-				UserAssignedIdentity: utils.String(d.Get("customer_managed_key_identity_id").(string)),
+				UserAssignedIdentity: pointer.To(d.Get("customer_managed_key_identity_id").(string)),
 			},
 		}
 	}
@@ -303,10 +301,10 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	githubConfiguration := expandGitHubRepoConfiguration(d.Get("github_configuration").([]interface{}))
 	if githubConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
-			FactoryResourceId: utils.String(id.ID()),
+			FactoryResourceId: pointer.To(id.ID()),
 			RepoConfiguration: githubConfiguration,
 		}
-		locationId := factories.NewLocationID(id.SubscriptionId, location)
+		locationId := factories.NewLocationID(id.SubscriptionId, normalizedLocation)
 		if _, err := client.ConfigureFactoryRepo(ctx, locationId, repoUpdate); err != nil {
 			return fmt.Errorf("configuring Repository for %s: %+v", locationId, err)
 		}
@@ -314,10 +312,10 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 	vstsConfiguration := expandVSTSRepoConfiguration(d.Get("vsts_configuration").([]interface{}))
 	if vstsConfiguration != nil {
 		repoUpdate := factories.FactoryRepoUpdate{
-			FactoryResourceId: utils.String(id.ID()),
+			FactoryResourceId: pointer.To(id.ID()),
 			RepoConfiguration: vstsConfiguration,
 		}
-		locationId := factories.NewLocationID(id.SubscriptionId, location)
+		locationId := factories.NewLocationID(id.SubscriptionId, normalizedLocation)
 		if _, err := client.ConfigureFactoryRepo(ctx, locationId, repoUpdate); err != nil {
 			return fmt.Errorf("configuring Repository for %s: %+v", locationId, err)
 		}
@@ -380,17 +378,17 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					if enc.KeyVersion != nil && *enc.KeyVersion != "" {
 						version = *enc.KeyVersion
 					}
-					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseURL, enc.KeyName, version)
+					keyId, err := keyvault.NewNestedItemID(enc.VaultBaseURL, keyvault.NestedItemTypeKey, enc.KeyName, version)
 					if err != nil {
 						return fmt.Errorf("parsing Nested Item ID: %+v", err)
 					}
 					customerManagedKeyId = keyId.ID()
 				}
 
-				if encIdentity := enc.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil {
-					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*encIdentity.UserAssignedIdentity)
+				if encIdentity := enc.Identity; encIdentity != nil && pointer.From(encIdentity.UserAssignedIdentity) != "" {
+					parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encIdentity.UserAssignedIdentity))
 					if err != nil {
-						return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
+						return err
 					}
 					customerManagedKeyIdentityId = parsed.ID()
 				}

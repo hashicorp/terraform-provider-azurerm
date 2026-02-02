@@ -53,11 +53,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the share. Must be unique within the storage account where the share is located. Changing this forces a new resource to be created.
 
-* `storage_account_name` - (Optional) Specifies the storage account in which to create the share. Changing this forces a new resource to be created. This property is deprecated in favour of `storage_account_id`.
+* `storage_account_name` - (Optional) Specifies the storage account in which to create the share. This property is deprecated in favour of `storage_account_id`.
 
 ~> **Note:** Migrating from the deprecated `storage_account_name` to `storage_account_id` is supported without recreation. Any other change to either property will result in the resource being recreated.
 
-* `storage_account_id` - (Optional) Specifies the storage account in which to create the share. Changing this forces a new resource to be created.
+* `storage_account_id` - (Optional) Specifies the storage account in which to create the share.
 
 ~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 

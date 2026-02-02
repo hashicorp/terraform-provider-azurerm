@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -9,8 +9,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/migration"
@@ -200,7 +201,7 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	distinguishedName := d.Get("distinguished_name").(string)
 	csr := d.Get("csr").(string)
@@ -209,11 +210,11 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 	validityInYears := d.Get("validity_in_years").(int)
 
 	properties := web.AppServiceCertificateOrderProperties{
-		DistinguishedName: utils.String(distinguishedName),
-		Csr:               utils.String(csr),
-		KeySize:           utils.Int32(int32(keySize)),
-		AutoRenew:         utils.Bool(autoRenew),
-		ValidityInYears:   utils.Int32(int32(validityInYears)),
+		DistinguishedName: pointer.To(distinguishedName),
+		Csr:               pointer.To(csr),
+		KeySize:           pointer.To(int32(keySize)),
+		AutoRenew:         pointer.To(autoRenew),
+		ValidityInYears:   pointer.To(int32(validityInYears)),
 	}
 
 	switch d.Get("product_type").(string) {
@@ -227,7 +228,7 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 
 	certificateOrder := web.AppServiceCertificateOrder{
 		AppServiceCertificateOrderProperties: &properties,
-		Location:                             utils.String(location),
+		Location:                             pointer.To(location),
 		Tags:                                 tags.Expand(t),
 	}
 
@@ -269,8 +270,8 @@ func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	if props := resp.AppServiceCertificateOrderProperties; props != nil {

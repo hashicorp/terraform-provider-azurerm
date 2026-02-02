@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlVirtualMachineResource struct{}
@@ -395,7 +395,7 @@ func (MsSqlVirtualMachineResource) Exists(ctx context.Context, client *clients.C
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.VirtualMachinesClient.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: utils.String("*")})
+	resp, err := client.MSSQL.VirtualMachinesClient.Get(ctx, *id, sqlvirtualmachines.GetOperationOptions{Expand: pointer.To("*")})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("%s does not exist", *id)
@@ -403,7 +403,7 @@ func (MsSqlVirtualMachineResource) Exists(ctx context.Context, client *clients.C
 		return nil, fmt.Errorf("reading %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (MsSqlVirtualMachineResource) template(data acceptance.TestData) string {
@@ -809,7 +809,7 @@ func (r MsSqlVirtualMachineResource) withKeyVault(data acceptance.TestData) stri
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -879,7 +879,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestData) string {
@@ -889,7 +889,7 @@ func (r MsSqlVirtualMachineResource) withKeyVaultUpdated(data acceptance.TestDat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-%[2]d"
+  name                = "acctest-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -959,7 +959,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     service_principal_secret = azuread_application_password.test.value
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r MsSqlVirtualMachineResource) sqlInstanceDefault(data acceptance.TestData) string {

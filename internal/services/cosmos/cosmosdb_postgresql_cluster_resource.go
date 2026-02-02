@@ -1,7 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
+
+// NOTE: Resource Identity is NOT implemented for this resource.
+// The ID contains "ServerGroupsv2" which strcase.ToSnake() incorrectly converts
+// to "server_groupsv_2" (splitting on the number boundary) instead of "server_groupsv2".
+// This will be addressed once the framework handles numeric boundaries correctly.
 
 import (
 	"context"
@@ -16,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var CosmosDbPostgreSQLClusterResourceName = "azurerm_cosmosdb_postgresql_cluster"
@@ -375,11 +379,11 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if v := model.NodeStorageQuotaInMb; v != 0 {
-				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
+				parameters.Properties.NodeStorageQuotaInMb = pointer.To(model.NodeStorageQuotaInMb)
 			}
 
 			if v := model.NodeVCores; v != 0 {
-				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
+				parameters.Properties.NodeVCores = pointer.To(model.NodeVCores)
 			}
 
 			if v := model.PointInTimeInUTC; v != "" {
@@ -414,7 +418,7 @@ func (r CosmosDbPostgreSQLClusterResource) Create() sdk.ResourceFunc {
 			// As `shards_on_coordinator_enabled` is `bool` and it's always set to `false` as zero value when it isn't set, so we cannot use `model.ShardsOnCoordinatorEnabled` to check if this property is set in tf config.
 			// nolint staticcheck
 			if v, ok := metadata.ResourceData.GetOkExists("shards_on_coordinator_enabled"); ok {
-				parameters.Properties.EnableShardsOnCoordinator = utils.Bool(v.(bool))
+				parameters.Properties.EnableShardsOnCoordinator = pointer.To(v.(bool))
 			}
 
 			if v := model.Tags; v != nil {
@@ -508,11 +512,11 @@ func (r CosmosDbPostgreSQLClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("node_storage_quota_in_mb") {
-				parameters.Properties.NodeStorageQuotaInMb = utils.Int64(model.NodeStorageQuotaInMb)
+				parameters.Properties.NodeStorageQuotaInMb = pointer.To(model.NodeStorageQuotaInMb)
 			}
 
 			if metadata.ResourceData.HasChange("node_vcores") {
-				parameters.Properties.NodeVCores = utils.Int64(model.NodeVCores)
+				parameters.Properties.NodeVCores = pointer.To(model.NodeVCores)
 			}
 
 			if metadata.ResourceData.HasChange("preferred_primary_zone") {

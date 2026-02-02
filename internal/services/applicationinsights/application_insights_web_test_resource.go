@@ -1,5 +1,7 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_web_test -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
 
 package applicationinsights
 
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
@@ -31,10 +34,11 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 		Read:   resourceApplicationInsightsWebTestsRead,
 		Update: resourceApplicationInsightsWebTestsCreateUpdate,
 		Delete: resourceApplicationInsightsWebTestsDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webtests.ParseWebTestID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&webtests.WebTestId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webtests.WebTestId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -205,6 +209,9 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceApplicationInsightsWebTestsRead(d, meta)
 }
@@ -274,9 +281,12 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("application_insights_id", parsedAppInsightsId.ID())
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta interface{}) error {

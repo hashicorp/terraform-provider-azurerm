@@ -133,6 +133,8 @@ A `authentication_credentials` block supports the following:
 
 ~> **Note:** Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
 
+---
+
 An `identity` block supports the following:
 
 * `type` - (Required) The type of Managed Service Identity that is configured on for the Container Registry Credential Set. Currently the only possible value is `SystemAssigned`.

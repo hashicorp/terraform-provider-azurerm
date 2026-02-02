@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -320,7 +320,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			}
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				state.Description = pointer.ToString(prop.Description)
+				state.Description = pointer.From(prop.Description)
 				state.RoleType = string(prop.RoleType)
 				state.RoleName = pointer.From(prop.RoleName)
 				state.Permission = flattenKeyVaultMHSMRolePermission(prop.Permissions)

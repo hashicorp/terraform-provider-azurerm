@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -1725,6 +1726,10 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceApplicationGatewayRead(d, meta)
 }
 
@@ -4801,6 +4806,18 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
+	if tier != "" && d.HasChange("sku.0.tier") && slices.Contains(networkValidate.DeprecatedV1SkuTiers, tier) {
+		return fmt.Errorf("new creation / update to %q SKU tier is no longer supported, please use supported SKU tiers: \"Basic\", \"Standard_v2\", \"WAF_v2\", refer to https://aka.ms/V1retirement", tier)
+	}
+
+	if d.HasChange("sku.0.name") {
+		skuName := d.Get("sku.0.name").(string)
+
+		if skuName != "" && slices.Contains(networkValidate.DeprecatedV1SkuNames, skuName) {
+			return fmt.Errorf("new creation / update to %q SKU name is no longer supported, please use supported SKU names: \"Basic\", \"Standard_v2\", \"WAF_v2\", refer to https://aka.ms/V1retirement", skuName)
+		}
+	}
+
 	return nil
 }
 
@@ -4955,8 +4972,13 @@ func applicationGatewayProbeHash(v interface{}) int {
 		if match, ok := m["match"]; ok {
 			if attrs := match.([]interface{}); len(attrs) == 1 {
 				attr := attrs[0].(map[string]interface{})
-				if attr["body"].(string) != "" || len(attr["status_code"].([]interface{})) != 0 {
-					buf.WriteString(fmt.Sprintf("%s-%+v", attr["body"].(string), attr["status_code"].([]interface{})))
+				body := attr["body"].(string)
+				statusCodes := attr["status_code"].([]interface{})
+
+				// Only include in hash if it's not the default
+				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
+				if !defaultMatch {
+					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
 				}
 			}
 		}

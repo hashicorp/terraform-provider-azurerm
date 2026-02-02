@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
@@ -224,7 +223,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		erc.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	} else {
 		erc.Properties.ExpressRoutePort.Id = pointer.To(d.Get("express_route_port_id").(string))
-		erc.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+		erc.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
@@ -403,7 +402,9 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("bandwidth_in_mbps", serviceProviderProps.BandwidthInMbps)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
