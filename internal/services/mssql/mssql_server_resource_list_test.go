@@ -64,7 +64,7 @@ func TestAccMssqlServer_list_by_resource_group(t *testing.T) {
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLength("azurerm_mssql_server.list", 2), // only 1 should be returned
+					querycheck.ExpectLength("azurerm_mssql_server.list", 2), // only 2 should be returned
 					querycheck.ExpectIdentity(
 						"azurerm_mssql_server.list",
 						map[string]knownvalue.Check{
@@ -151,7 +151,7 @@ list "azurerm_mssql_server" "list" {
   provider = azurerm
   config {
 	subscription_id     = "%s"
-	resource_group_name = "acctestRG-mysql-%d"
+	resource_group_name = "acctestRG-mssql-%d"
   }
 }
 `, data.Subscriptions.Primary, data.RandomInteger)
