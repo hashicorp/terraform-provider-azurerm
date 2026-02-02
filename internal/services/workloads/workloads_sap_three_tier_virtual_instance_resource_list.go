@@ -186,7 +186,10 @@ func flattenForListResource(d *pluginsdk.ResourceData, id *sapvirtualinstances.S
 						if err != nil {
 							return fmt.Errorf("flattening `three_tier_configuration`: %+v", err)
 						}
-						if err := d.Set("three_tier_configuration", threeTierConfig); err != nil {
+						// Convert the struct slice to []interface{} for use with pluginsdk.ResourceData.Set()
+						// Using SDK helper since pluginsdk cannot handle custom structs directly
+						threeTierConfigForList := sdk.PluginSDKFlattenStructSliceToInterface(threeTierConfig, nil)
+						if err := d.Set("three_tier_configuration", threeTierConfigForList); err != nil {
 							return fmt.Errorf("setting `three_tier_configuration`: %+v", err)
 						}
 					}
