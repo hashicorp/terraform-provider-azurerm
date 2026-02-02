@@ -965,7 +965,7 @@ func validateDigiCertCertificateType(policiesRaw []interface{}) error {
 	}
 
 	if !strings.EqualFold(issuerName, "DigiCert") {
-		return fmt.Errorf("`certificate_type` can only be specified when the issuer is DigiCert")
+		return errors.New("`certificate_type` can only be specified when the issuer is DigiCert")
 	}
 
 	if !slices.Contains(validDigiCertCertificateTypes, certificateType) {
