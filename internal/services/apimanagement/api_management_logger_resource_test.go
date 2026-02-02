@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/logger"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -213,6 +215,72 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 	})
+}
+
+func TestAccApiManagementLogger_switchBetweenApplicationInsightsAndEventHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+	// switching between Application Insights and Event Hub requires recreation of the resource
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicEventHub(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("0"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
+				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
+			),
+		},
+		{
+			Config:           r.basicApplicationInsights(data),
+			ConfigPlanChecks: expectResourceActionCheck(data.ResourceName, plancheck.ResourceActionReplace),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+			),
+		},
+		{
+			Config:           r.complete(data, "Logger from Terraform test", "false"),
+			ConfigPlanChecks: expectResourceActionCheck(data.ResourceName, plancheck.ResourceActionReplace),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("false"),
+				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
+				check.That(data.ResourceName).Key("resource_id").Exists(),
+			),
+		},
+		{
+			Config:           r.basicEventHub(data),
+			ConfigPlanChecks: expectResourceActionCheck(data.ResourceName, plancheck.ResourceActionReplace),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("buffered").HasValue("true"),
+				check.That(data.ResourceName).Key("description").HasValue(""),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("0"),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
+				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
+				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
+			),
+		},
+	})
+}
+
+func expectResourceActionCheck(resourceName string, action plancheck.ResourceActionType) resource.ConfigPlanChecks {
+	return resource.ConfigPlanChecks{
+		PreApply: []plancheck.PlanCheck{
+			plancheck.ExpectResourceAction(resourceName, action),
+		},
+	}
 }
 
 func (ApiManagementLoggerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
