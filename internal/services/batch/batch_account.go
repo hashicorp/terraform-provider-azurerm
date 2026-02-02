@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 )
 
-var dataPlaneEndpointFmt = "https://%s.%s.batch.azure.com"
+const dataPlaneEndpointFmt string = "https://%s.%s.batch.azure.com"
 
 // expandBatchAccountKeyVaultReference expands Batch account KeyVault reference
 func expandBatchAccountKeyVaultReference(list []interface{}) (*batchaccount.KeyVaultReference, error) {
