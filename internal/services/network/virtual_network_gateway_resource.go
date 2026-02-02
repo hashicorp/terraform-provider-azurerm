@@ -878,7 +878,6 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Properties.EnableBgp = pointer.To(enableBgp)
 	} else if d.HasChange("bgp_enabled") {
 		payload.Properties.EnableBgp = pointer.To(d.Get("bgp_enabled").(bool))
-
 	}
 
 	if d.HasChange("active_active") {
@@ -973,7 +972,6 @@ func resourceVirtualNetworkGatewayDelete(d *pluginsdk.ResourceData, meta interfa
 }
 
 func getVirtualNetworkGatewayProperties(id virtualnetworkgateways.VirtualNetworkGatewayId, d *pluginsdk.ResourceData) (*virtualnetworkgateways.VirtualNetworkGatewayPropertiesFormat, error) {
-
 	enableBgp := d.Get("bgp_enabled").(bool)
 	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
 		enableBgp = d.Get("enable_bgp").(bool)
