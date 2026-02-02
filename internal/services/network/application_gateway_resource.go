@@ -1804,10 +1804,8 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 			enableHttp2 = d.Get("http2_enabled").(bool)
 		}
 		payload.Properties.EnableHTTP2 = pointer.To(enableHttp2)
-	} else {
-		if d.HasChange("http2_enabled") {
-			payload.Properties.EnableHTTP2 = pointer.To(d.Get("http2_enabled").(bool))
-		}
+	} else if d.HasChange("http2_enabled") {
+		payload.Properties.EnableHTTP2 = pointer.To(d.Get("http2_enabled").(bool))
 	}
 
 	if d.HasChange("trusted_root_certificate") {

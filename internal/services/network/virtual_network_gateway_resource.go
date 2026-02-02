@@ -672,7 +672,6 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 		}
 	}
 	return resource
-
 }
 
 func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
