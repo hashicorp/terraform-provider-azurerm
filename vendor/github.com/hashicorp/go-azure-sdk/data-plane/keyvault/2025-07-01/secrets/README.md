@@ -89,7 +89,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := secrets.NewSecretversionID("secretName", "secretversion")
+id := secrets.NewSecretversionID("https://endpoint-url.example.com", "secretName")
 
 read, err := client.GetSecret(ctx, id, secrets.DefaultGetSecretOperationOptions())
 if err != nil {
@@ -212,7 +212,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := secrets.NewSecretversionID("secretName", "secretversion")
+id := secrets.NewSecretversionID("https://endpoint-url.example.com", "secretName")
 
 payload := secrets.SecretUpdateParameters{
 	// ...

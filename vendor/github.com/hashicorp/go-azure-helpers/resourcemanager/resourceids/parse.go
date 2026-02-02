@@ -154,7 +154,7 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 		}
 
 		idPrefix = *prefix
-		parseResult.Parsed[p.segments[0].Name] = *prefix
+		parseResult.Parsed[p.segments[0].Name] = strings.TrimSuffix(*prefix, "/") // Trim the trailing / to match up to the ID builder value or we'll get a double
 	}
 
 	// trim off the scopePrefix and the leading `/` to give us the segments we expect plus the final scope string
@@ -251,7 +251,7 @@ func (p Parser) parseScopePrefix(input, regexForNonScopeSegments string, insensi
 }
 
 func (p Parser) parseDataPlaneBaseURIPrefix(input string) (*string, error) {
-	regexToUse := `^(https?://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)`
+	regexToUse := `^((?i:https?)://[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)`
 	r, err := regexp.Compile(regexToUse)
 	if err != nil {
 		return nil, fmt.Errorf("internal error: compiling regex %q to find BaseURI prefix: %+v", regexToUse, err)

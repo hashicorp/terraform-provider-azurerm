@@ -91,7 +91,7 @@ func ValidateDeletedsecretID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Deletedsecret ID
 func (id DeletedsecretId) ID() string {
 	fmtString := "%s/deletedsecrets/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.DeletedsecretName)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.DeletedsecretName)
 }
 
 // Path returns the formatted Deletedsecret ID without the BaseURI
@@ -108,7 +108,7 @@ func (id DeletedsecretId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Deletedsecret ID
 func (id DeletedsecretId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticDeletedsecrets", "deletedsecrets", "deletedsecrets"),
 		resourceids.UserSpecifiedSegment("deletedsecretName", "deletedsecretName"),
 	}

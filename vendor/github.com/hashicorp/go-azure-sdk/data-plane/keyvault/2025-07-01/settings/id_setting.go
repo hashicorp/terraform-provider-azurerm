@@ -91,7 +91,7 @@ func ValidateSettingID(input interface{}, key string) (warnings []string, errors
 // ID returns the formatted Setting ID
 func (id SettingId) ID() string {
 	fmtString := "%s/settings/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.SettingName)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.SettingName)
 }
 
 // Path returns the formatted Setting ID without the BaseURI
@@ -108,7 +108,7 @@ func (id SettingId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Setting ID
 func (id SettingId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticSettings", "settings", "settings"),
 		resourceids.UserSpecifiedSegment("settingName", "settingName"),
 	}

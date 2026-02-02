@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewIssuernameID("https://endpoint_url")
+id := certificates.NewIssuernameID("https://endpoint-url.example.com")
 
 read, err := client.DeleteCertificateIssuer(ctx, id)
 if err != nil {
@@ -125,7 +125,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewCertificateversionID("https://endpoint_url", "certificateName")
+id := certificates.NewCertificateversionID("https://endpoint-url.example.com", "certificateName")
 
 read, err := client.GetCertificate(ctx, id)
 if err != nil {
@@ -157,7 +157,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewIssuernameID("https://endpoint_url")
+id := certificates.NewIssuernameID("https://endpoint-url.example.com")
 
 read, err := client.GetCertificateIssuer(ctx, id)
 if err != nil {
@@ -403,7 +403,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewIssuernameID("https://endpoint_url")
+id := certificates.NewIssuernameID("https://endpoint-url.example.com")
 
 payload := certificates.CertificateIssuerSetParameters{
 	// ...
@@ -424,7 +424,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewCertificateversionID("https://endpoint_url", "certificateName")
+id := certificates.NewCertificateversionID("https://endpoint-url.example.com", "certificateName")
 
 payload := certificates.CertificateUpdateParameters{
 	// ...
@@ -445,7 +445,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificates.NewIssuernameID("https://endpoint_url")
+id := certificates.NewIssuernameID("https://endpoint-url.example.com")
 
 payload := certificates.CertificateIssuerUpdateParameters{
 	// ...

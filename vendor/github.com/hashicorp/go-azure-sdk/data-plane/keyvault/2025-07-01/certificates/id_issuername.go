@@ -91,7 +91,7 @@ func ValidateIssuernameID(input interface{}, key string) (warnings []string, err
 // ID returns the formatted Issuername ID
 func (id IssuernameId) ID() string {
 	fmtString := "%s/certificates/issuers/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.IssuerName)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.IssuerName)
 }
 
 // Path returns the formatted Issuername ID without the BaseURI
@@ -108,7 +108,7 @@ func (id IssuernameId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Issuername ID
 func (id IssuernameId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticCertificates", "certificates", "certificates"),
 		resourceids.StaticSegment("staticIssuers", "issuers", "issuers"),
 		resourceids.UserSpecifiedSegment("issuerName", "issuerName"),

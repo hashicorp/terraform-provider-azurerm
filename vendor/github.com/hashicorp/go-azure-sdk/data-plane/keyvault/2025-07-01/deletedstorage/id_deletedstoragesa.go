@@ -97,7 +97,7 @@ func ValidateDeletedstorageSaID(input interface{}, key string) (warnings []strin
 // ID returns the formatted Deletedstorage Sa ID
 func (id DeletedstorageSaId) ID() string {
 	fmtString := "%s/deletedstorage/%s/sas/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.DeletedstorageName, id.SaName)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.DeletedstorageName, id.SaName)
 }
 
 // Path returns the formatted Deletedstorage Sa ID without the BaseURI
@@ -114,7 +114,7 @@ func (id DeletedstorageSaId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Deletedstorage Sa ID
 func (id DeletedstorageSaId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticDeletedstorage", "deletedstorage", "deletedstorage"),
 		resourceids.UserSpecifiedSegment("deletedstorageName", "deletedstorageName"),
 		resourceids.StaticSegment("staticSas", "sas", "sas"),

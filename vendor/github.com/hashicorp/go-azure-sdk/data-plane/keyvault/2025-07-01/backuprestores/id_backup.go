@@ -91,7 +91,7 @@ func ValidateBackupID(input interface{}, key string) (warnings []string, errors 
 // ID returns the formatted Backup ID
 func (id BackupId) ID() string {
 	fmtString := "%s/backup/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.JobId)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.JobId)
 }
 
 // Path returns the formatted Backup ID without the BaseURI
@@ -108,7 +108,7 @@ func (id BackupId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Backup ID
 func (id BackupId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticBackup", "backup", "backup"),
 		resourceids.UserSpecifiedSegment("jobId", "jobId"),
 	}

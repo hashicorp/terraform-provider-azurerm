@@ -91,7 +91,7 @@ func ValidateDeletedcertificateID(input interface{}, key string) (warnings []str
 // ID returns the formatted Deletedcertificate ID
 func (id DeletedcertificateId) ID() string {
 	fmtString := "%s/deletedcertificates/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.DeletedcertificateName)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.DeletedcertificateName)
 }
 
 // Path returns the formatted Deletedcertificate ID without the BaseURI
@@ -108,7 +108,7 @@ func (id DeletedcertificateId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Deletedcertificate ID
 func (id DeletedcertificateId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticDeletedcertificates", "deletedcertificates", "deletedcertificates"),
 		resourceids.UserSpecifiedSegment("deletedcertificateName", "deletedcertificateName"),
 	}

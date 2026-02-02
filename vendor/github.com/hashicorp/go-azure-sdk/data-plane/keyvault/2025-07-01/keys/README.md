@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeyOperationsParameters{
 	// ...
@@ -98,7 +98,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeyOperationsParameters{
 	// ...
@@ -152,7 +152,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 read, err := client.GetKey(ctx, id)
 if err != nil {
@@ -168,7 +168,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 read, err := client.GetKeyAttestation(ctx, id)
 if err != nil {
@@ -254,7 +254,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeySignParameters{
 	// ...
@@ -328,7 +328,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeyReleaseParameters{
 	// ...
@@ -385,7 +385,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeyOperationsParameters{
 	// ...
@@ -406,7 +406,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeyUpdateParameters{
 	// ...
@@ -448,7 +448,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeyVerifyParameters{
 	// ...
@@ -469,7 +469,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := keys.NewKeyversionID("https://endpoint_url", "keyName")
+id := keys.NewKeyversionID("https://endpoint-url.example.com", "keyName")
 
 payload := keys.KeyOperationsParameters{
 	// ...

@@ -97,7 +97,7 @@ func ValidateScopedRoleAssignmentID(input interface{}, key string) (warnings []s
 // ID returns the formatted Scoped Role Assignment ID
 func (id ScopedRoleAssignmentId) ID() string {
 	fmtString := "%s/%s/providers/Microsoft.Authorization/roleAssignments/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, strings.TrimPrefix(id.Scope, "/"), id.RoleAssignmentName)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), strings.TrimPrefix(id.Scope, "/"), id.RoleAssignmentName)
 }
 
 // Path returns the formatted Scoped Role Assignment ID without the BaseURI
@@ -114,7 +114,7 @@ func (id ScopedRoleAssignmentId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Scoped Role Assignment ID
 func (id ScopedRoleAssignmentId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.ScopeSegment("scope", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),

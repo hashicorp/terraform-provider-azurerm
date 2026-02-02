@@ -16,10 +16,10 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.76.0
-	github.com/hashicorp/go-azure-sdk/data-plane v0.0.0-20260127155722-de356fb40bd7
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260129.1200123
-	github.com/hashicorp/go-azure-sdk/sdk v0.20260129.1200123
+	github.com/hashicorp/go-azure-helpers v0.76.1
+	github.com/hashicorp/go-azure-sdk/data-plane v0.0.0-20260202095544-474d04ffbf20
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260129.1200124-0.20260202095544-474d04ffbf20
+	github.com/hashicorp/go-azure-sdk/sdk v0.20260129.1200124-0.20260202095544-474d04ffbf20
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1

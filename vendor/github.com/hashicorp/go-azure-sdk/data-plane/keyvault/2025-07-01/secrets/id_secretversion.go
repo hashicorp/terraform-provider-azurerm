@@ -97,7 +97,7 @@ func ValidateSecretversionID(input interface{}, key string) (warnings []string, 
 // ID returns the formatted Secretversion ID
 func (id SecretversionId) ID() string {
 	fmtString := "%s/secrets/%s/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.SecretName, id.Secretversion)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.SecretName, id.Secretversion)
 }
 
 // Path returns the formatted Secretversion ID without the BaseURI
@@ -114,7 +114,7 @@ func (id SecretversionId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Secretversion ID
 func (id SecretversionId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticSecrets", "secrets", "secrets"),
 		resourceids.UserSpecifiedSegment("secretName", "secretName"),
 		resourceids.UserSpecifiedSegment("secretversion", "secretversion"),

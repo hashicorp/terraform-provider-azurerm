@@ -91,7 +91,7 @@ func ValidateDeletedkeyID(input interface{}, key string) (warnings []string, err
 // ID returns the formatted Deletedkey ID
 func (id DeletedkeyId) ID() string {
 	fmtString := "%s/deletedkeys/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.DeletedkeyName)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.DeletedkeyName)
 }
 
 // Path returns the formatted Deletedkey ID without the BaseURI
@@ -108,7 +108,7 @@ func (id DeletedkeyId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Deletedkey ID
 func (id DeletedkeyId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticDeletedkeys", "deletedkeys", "deletedkeys"),
 		resourceids.UserSpecifiedSegment("deletedkeyName", "deletedkeyName"),
 	}

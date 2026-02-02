@@ -91,7 +91,7 @@ func ValidateRestoreID(input interface{}, key string) (warnings []string, errors
 // ID returns the formatted Restore ID
 func (id RestoreId) ID() string {
 	fmtString := "%s/restore/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.JobId)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.JobId)
 }
 
 // Path returns the formatted Restore ID without the BaseURI
@@ -108,7 +108,7 @@ func (id RestoreId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Restore ID
 func (id RestoreId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticRestore", "restore", "restore"),
 		resourceids.UserSpecifiedSegment("jobId", "jobId"),
 	}

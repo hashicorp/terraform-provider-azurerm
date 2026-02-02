@@ -97,7 +97,7 @@ func ValidateKeyversionID(input interface{}, key string) (warnings []string, err
 // ID returns the formatted Keyversion ID
 func (id KeyversionId) ID() string {
 	fmtString := "%s/keys/%s/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.KeyName, id.Keyversion)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.KeyName, id.Keyversion)
 }
 
 // Path returns the formatted Keyversion ID without the BaseURI
@@ -114,7 +114,7 @@ func (id KeyversionId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Keyversion ID
 func (id KeyversionId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticKeys", "keys", "keys"),
 		resourceids.UserSpecifiedSegment("keyName", "keyName"),
 		resourceids.UserSpecifiedSegment("keyversion", "keyversion"),

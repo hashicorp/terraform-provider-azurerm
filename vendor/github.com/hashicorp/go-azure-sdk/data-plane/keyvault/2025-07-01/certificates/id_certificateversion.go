@@ -97,7 +97,7 @@ func ValidateCertificateversionID(input interface{}, key string) (warnings []str
 // ID returns the formatted Certificateversion ID
 func (id CertificateversionId) ID() string {
 	fmtString := "%s/certificates/%s/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.CertificateName, id.Certificateversion)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.CertificateName, id.Certificateversion)
 }
 
 // Path returns the formatted Certificateversion ID without the BaseURI
@@ -114,7 +114,7 @@ func (id CertificateversionId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Certificateversion ID
 func (id CertificateversionId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticCertificates", "certificates", "certificates"),
 		resourceids.UserSpecifiedSegment("certificateName", "certificateName"),
 		resourceids.UserSpecifiedSegment("certificateversion", "certificateversion"),

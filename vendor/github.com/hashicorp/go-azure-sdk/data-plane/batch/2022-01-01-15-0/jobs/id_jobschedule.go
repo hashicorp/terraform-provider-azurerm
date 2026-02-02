@@ -91,7 +91,7 @@ func ValidateJobscheduleID(input interface{}, key string) (warnings []string, er
 // ID returns the formatted Jobschedule ID
 func (id JobscheduleId) ID() string {
 	fmtString := "%s/jobschedules/%s"
-	return fmt.Sprintf(fmtString, id.BaseURI, id.JobScheduleId)
+	return fmt.Sprintf(fmtString, strings.TrimSuffix(id.BaseURI, "/"), id.JobScheduleId)
 }
 
 // Path returns the formatted Jobschedule ID without the BaseURI
@@ -108,7 +108,7 @@ func (id JobscheduleId) PathElements() []any {
 // Segments returns a slice of Resource ID Segments which comprise this Jobschedule ID
 func (id JobscheduleId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint_url"),
+		resourceids.DataPlaneBaseURISegment("baseURI", "https://endpoint-url.example.com"),
 		resourceids.StaticSegment("staticJobschedules", "jobschedules", "jobschedules"),
 		resourceids.UserSpecifiedSegment("jobScheduleId", "jobScheduleId"),
 	}
