@@ -687,26 +687,6 @@ resource "azurerm_container_registry" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ContainerRegistryResource) networkAccessProfileNone(data acceptance.TestData, sku string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_container_registry" "test" {
-  name                = "testAccCr%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "%[3]s"
-}
-`, data.RandomInteger, data.Locations.Primary, sku)
-}
-
 func (ContainerRegistryResource) networkAccessProfileIp(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
