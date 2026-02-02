@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning_test
@@ -388,7 +388,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger,
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15),
 		data.RandomIntOfLength(15), data.RandomIntOfLength(16))
 }
 
@@ -420,7 +420,7 @@ resource "azurerm_application_insights" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%[1]d"
+  name                       = "acctest%[3]d"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -462,5 +462,5 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   local_auth_enabled            = false
   node_public_ip_enabled        = false
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package costmanagement_test
@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/scheduledactions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AnomalyAlertResource struct{}
@@ -72,7 +72,7 @@ func (AnomalyAlertResource) Exists(ctx context.Context, client *clients.Client, 
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (AnomalyAlertResource) basicConfig(data acceptance.TestData) string {

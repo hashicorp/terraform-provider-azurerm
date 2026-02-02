@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -104,8 +104,9 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"admin_password": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
 		},
 
 		"admin_username": {

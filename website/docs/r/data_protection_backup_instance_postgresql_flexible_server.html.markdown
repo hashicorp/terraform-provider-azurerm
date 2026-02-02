@@ -101,6 +101,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Backup Instance PostgreSQL Flexible Server.
 
+* `protection_state` - The protection state of the Backup Instance PostgreSQL Flexible Server.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

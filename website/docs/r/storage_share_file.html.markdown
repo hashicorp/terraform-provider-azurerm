@@ -29,15 +29,15 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_share" "example" {
-  name                 = "sharename"
-  storage_account_name = azurerm_storage_account.example.name
-  quota                = 50
+  name               = "sharename"
+  storage_account_id = azurerm_storage_account.example.id
+  quota              = 50
 }
 
 resource "azurerm_storage_share_file" "example" {
-  name             = "my-awesome-content.zip"
-  storage_share_id = azurerm_storage_share.example.id
-  source           = "some-local-file.zip"
+  name              = "my-awesome-content.zip"
+  storage_share_url = azurerm_storage_share.example.url
+  source            = "some-local-file.zip"
 }
 ```
 
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name (or path) of the File that should be created within this File Share. Changing this forces a new resource to be created.
 
-* `storage_share_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
+* `storage_share_url` - (Required) The Storage Share URL in which this file will be placed into. Changing this forces a new resource to be created.
 
 * `path` - (Optional) The storage share directory that you would like the file placed into. Changing this forces a new resource to be created. Defaults to `""`.
 
