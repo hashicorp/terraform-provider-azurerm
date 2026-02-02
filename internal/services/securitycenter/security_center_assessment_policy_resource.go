@@ -102,9 +102,8 @@ func resourceArmSecurityCenterAssessmentPolicy() *pluginsdk.Resource {
 			},
 
 			"threats": {
-				Type:             pluginsdk.TypeSet,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
