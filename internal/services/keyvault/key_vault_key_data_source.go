@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -140,7 +140,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	resp, err := client.GetKey(ctx, *keyVaultBaseUri, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Key %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
+			return fmt.Errorf("key %q was not found in Key Vault at URI %q", name, *keyVaultBaseUri)
 		}
 
 		return err
@@ -171,7 +171,8 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		d.Set("curve", key.Crv)
 
 		if key := resp.Key; key != nil {
-			if key.Kty == keyvault.JSONWebKeyTypeRSA || key.Kty == keyvault.JSONWebKeyTypeRSAHSM {
+			switch key.Kty {
+			case keyvault.JSONWebKeyTypeRSA, keyvault.JSONWebKeyTypeRSAHSM:
 				nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 				if err != nil {
 					return fmt.Errorf("failed to decode N: %+v", err)
@@ -188,7 +189,7 @@ func dataSourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				if err != nil {
 					return fmt.Errorf("failed to read public key: %+v", err)
 				}
-			} else if key.Kty == keyvault.JSONWebKeyTypeEC || key.Kty == keyvault.JSONWebKeyTypeECHSM {
+			case keyvault.JSONWebKeyTypeEC, keyvault.JSONWebKeyTypeECHSM:
 				// do ec keys
 				xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 				if err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2019-06-01/agentregistrationinformation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -29,16 +29,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_account -service-package-name automation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceAutomationAccount() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: resourceAutomationAccountCreate,
-		Read:   resourceAutomationAccountRead,
-		Update: resourceAutomationAccountUpdate,
-		Delete: resourceAutomationAccountDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := automationaccount.ParseAutomationAccountID(id)
-			return err
-		}),
+		Create:   resourceAutomationAccountCreate,
+		Read:     resourceAutomationAccountRead,
+		Update:   resourceAutomationAccountUpdate,
+		Delete:   resourceAutomationAccountDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&automationaccount.AutomationAccountId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -141,6 +140,10 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&automationaccount.AutomationAccountId{}),
+		},
 	}
 
 	if !features.FivePointOh() {
@@ -215,6 +218,10 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceAutomationAccountRead(d, meta)
 }
 
@@ -303,7 +310,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		if props := model.Properties; props != nil {
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil {
@@ -352,7 +359,7 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {

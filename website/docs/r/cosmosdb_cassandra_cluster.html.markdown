@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `repair_enabled` - (Optional) Is the automatic repair enabled on the Cassandra Cluster? Defaults to `true`.
 
-* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11` and `4.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
+* `version` - (Optional) The version of Cassandra what the Cluster converges to run. Possible values are `3.11`, `4.0`, `4.1` and `5.0`. Defaults to `3.11`. Changing this forces a new Cassandra Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource.
 
@@ -111,7 +111,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cassandra Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cassandra Cluster.

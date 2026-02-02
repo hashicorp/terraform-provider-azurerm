@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -88,8 +88,7 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 
 					"filtering_tag": {
 						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {
@@ -127,8 +126,7 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"filtering_tag": {
 						Type:     pluginsdk.TypeList,
-						Required: true,
-						MinItems: 1,
+						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*schema.Schema{
 								"action": {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package bot
@@ -45,13 +45,13 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+					return nil, fmt.Errorf("the Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 				}
 
-				return nil, fmt.Errorf("retrieving Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return nil, fmt.Errorf("retrieving Web App %s: %+v", id, err)
 			}
 			if resp.Kind != botservice.KindSdk {
-				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Web App - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
+				return nil, fmt.Errorf("%s was not a Web App - got %q", id, string(resp.Kind))
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil
@@ -198,17 +198,17 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
-			DisplayName:                       utils.String(displayName),
-			Endpoint:                          utils.String(d.Get("endpoint").(string)),
-			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
+			DisplayName:                       pointer.To(displayName),
+			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
+			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
 			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
-			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
-			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
-			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
+			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
+			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
+			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
 			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
-			LuisKey:                           utils.String(d.Get("luis_key").(string)),
+			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 		Sku: &botservice.Sku{
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
@@ -227,8 +227,6 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	if _, err := client.Create(ctx, resourceId.ResourceGroup, resourceId.Name, bot); err != nil {
 		return fmt.Errorf("creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
-
-	// TODO: in 4.0 we should remove the "Default Site" on the Directline resource at this point if we can
 
 	d.SetId(resourceId.ID())
 	return resourceBotWebAppRead(d, meta)
@@ -295,17 +293,17 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
-			DisplayName:                       utils.String(displayName),
-			Endpoint:                          utils.String(d.Get("endpoint").(string)),
-			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
+			DisplayName:                       pointer.To(displayName),
+			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
+			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
 			MsaAppType:                        botservice.MsaAppType(d.Get("microsoft_app_type").(string)),
-			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
-			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
-			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
+			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
+			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
+			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
 			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
-			LuisKey:                           utils.String(d.Get("luis_key").(string)),
+			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 		Sku: &botservice.Sku{
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},

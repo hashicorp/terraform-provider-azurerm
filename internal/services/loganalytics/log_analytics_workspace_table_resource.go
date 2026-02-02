@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsWorkspaceTableResource struct{}
@@ -132,7 +131,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 
 			if model.Plan == string(tables.TablePlanEnumAnalytics) {
 				// The service will return HTTP 400 if it's specified `0` in payload, to keep it as default, we need to pass `-1`
-				updateInput.Properties.RetentionInDays = pointer.FromInt64(-1)
+				updateInput.Properties.RetentionInDays = pointer.To(int64(-1))
 				// `0` is not a valid value for `retention_in_days`, so we can use it to validate if it's specified.
 				if model.RetentionInDays != 0 {
 					updateInput.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
@@ -193,7 +192,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 							// `0` is not a valid value for `retention_in_days`, and the service will return HTTP 400
 							// to reset it to its default value, we need to pass `-1`
 							if state.RetentionInDays == 0 {
-								updateInput.Properties.RetentionInDays = pointer.FromInt64(-1)
+								updateInput.Properties.RetentionInDays = pointer.To(int64(-1))
 							}
 						}
 					}
@@ -273,8 +272,8 @@ func (r LogAnalyticsWorkspaceTableResource) Delete() sdk.ResourceFunc {
 
 			// We do not delete the resource here, just set the retention to workspace default value, which is
 			// achieved by setting the value to `-1`
-			retentionInDays := utils.Int64(-1)
-			totalRetentionInDays := utils.Int64(-1)
+			retentionInDays := pointer.To(int64(-1))
+			totalRetentionInDays := pointer.To(int64(-1))
 
 			updateInput := tables.Table{
 				Properties: &tables.TableProperties{

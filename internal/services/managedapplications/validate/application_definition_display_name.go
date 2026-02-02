@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -9,7 +9,7 @@ func ApplicationDefinitionDisplayName(v interface{}, k string) (warnings []strin
 	value := v.(string)
 
 	if len(value) < 4 || len(value) > 60 {
-		errors = append(errors, fmt.Errorf("%q must be between 4 and 60 characters in length.", k))
+		errors = append(errors, fmt.Errorf("%q must be between 4 and 60 characters in length", k))
 	}
 
 	return warnings, errors

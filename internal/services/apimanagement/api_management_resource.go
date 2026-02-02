@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -32,11 +32,11 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -91,13 +91,13 @@ func resourceApiManagementService() *pluginsdk.Resource {
 		// Issue: https://github.com/Azure/azure-rest-api-specs/issues/10395
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("virtual_network_type", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(old.(string) == string(apimanagementservice.VirtualNetworkTypeNone) &&
-					(new.(string) == string(apimanagementservice.VirtualNetworkTypeInternal) ||
-						new.(string) == string(apimanagementservice.VirtualNetworkTypeExternal)))
+				return old.(string) != string(apimanagementservice.VirtualNetworkTypeNone) ||
+					(new.(string) != string(apimanagementservice.VirtualNetworkTypeInternal) &&
+						new.(string) != string(apimanagementservice.VirtualNetworkTypeExternal))
 			}),
 
 			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
+				return len(old.([]interface{})) != 0 || len(new.([]interface{})) == 0
 			}),
 
 			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -767,7 +767,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		return tf.ImportAsExistsError("azurerm_api_management", id.ID())
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	publicIpAddressId := d.Get("public_ip_address_id").(string)
@@ -1064,7 +1064,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		if publicIpAddressId != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium && sku.Name != apimanagementservice.SkuTypeDeveloper {
 				if d.Get("virtual_network_type").(string) == string(apimanagementservice.VirtualNetworkTypeNone) {
-					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network.")
+					return fmt.Errorf("`public_ip_address_id` is only supported when sku type is `Developer` or `Premium`, and the APIM instance is deployed in a virtual network")
 				}
 			}
 			props.PublicIPAddressId = pointer.To(publicIpAddressId)
@@ -1079,7 +1079,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.VirtualNetworkType = pointer.To(apimanagementservice.VirtualNetworkType(virtualNetworkType))
 		if virtualNetworkType != string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration == nil {
-				return fmt.Errorf("You must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
+				return fmt.Errorf("you must specify 'virtual_network_configuration' when 'virtual_network_type' is %q", virtualNetworkType)
 			}
 			props.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		}
@@ -1089,7 +1089,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 		props.VirtualNetworkConfiguration = virtualNetworkConfiguration
 		if virtualNetworkType == string(apimanagementservice.VirtualNetworkTypeNone) {
 			if virtualNetworkConfiguration != nil {
-				return fmt.Errorf("You must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
+				return fmt.Errorf("you must specify 'virtual_network_type' when specifying 'virtual_network_configuration'")
 			}
 		}
 	}
@@ -1290,7 +1290,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
@@ -1533,40 +1533,57 @@ func expandAzureRmApiManagementHostnameConfigurations(d *pluginsdk.ResourceData)
 		hostnameV := hostnameRawVal.(map[string]interface{})
 
 		managementVs := hostnameV["management"].([]interface{})
-		for _, managementV := range managementVs {
+		for idx, managementV := range managementVs {
 			v := managementV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeManagement)
-			results = append(results, output)
-		}
-
-		portalVs := hostnameV["portal"].([]interface{})
-		for _, portalV := range portalVs {
-			v := portalV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
-			results = append(results, output)
-		}
-
-		developerPortalVs := hostnameV["developer_portal"].([]interface{})
-		for _, developerPortalV := range developerPortalVs {
-			v := developerPortalV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
-			results = append(results, output)
-		}
-
-		proxyVs := hostnameV["proxy"].([]interface{})
-		for _, proxyV := range proxyVs {
-			v := proxyV.(map[string]interface{})
-			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
-			if value, ok := v["default_ssl_binding"]; ok {
-				output.DefaultSslBinding = pointer.To(value.(bool))
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeManagement, fmt.Sprintf("hostname_configuration.0.management.%d", idx))
 			}
 			results = append(results, output)
 		}
 
+		portalVs := hostnameV["portal"].([]interface{})
+		for idx, portalV := range portalVs {
+			v := portalV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypePortal, fmt.Sprintf("hostname_configuration.0.portal.%d", idx))
+			}
+			results = append(results, output)
+		}
+
+		developerPortalVs := hostnameV["developer_portal"].([]interface{})
+		for idx, developerPortalV := range developerPortalVs {
+			v := developerPortalV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeDeveloperPortal, fmt.Sprintf("hostname_configuration.0.developer_portal.%d", idx))
+			}
+			results = append(results, output)
+		}
+
+		proxyVs := hostnameV["proxy"].([]interface{})
+		for idx, proxyV := range proxyVs {
+			v := proxyV.(map[string]interface{})
+			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeProxy, fmt.Sprintf("hostname_configuration.0.proxy.%d", idx))
+			}
+
+			if value, ok := v["default_ssl_binding"]; ok {
+				output.DefaultSslBinding = pointer.To(value.(bool))
+			}
+
+			results = append(results, output)
+		}
+
 		scmVs := hostnameV["scm"].([]interface{})
-		for _, scmV := range scmVs {
+		for idx, scmV := range scmVs {
 			v := scmV.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeScm)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(d, v, apimanagementservice.HostnameTypeScm, fmt.Sprintf("hostname_configuration.0.scm.%d", idx))
+			}
 			results = append(results, output)
 		}
 	}
@@ -1590,9 +1607,38 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	if v, ok := input["key_vault_certificate_id"]; ok && v.(string) != "" {
 		output.KeyVaultId = pointer.To(v.(string))
 	}
+
+	if v, ok := input["negotiate_client_certificate"]; ok {
+		output.NegotiateClientCertificate = pointer.To(v.(bool))
+	}
+
+	if v, ok := input["ssl_keyvault_identity_client_id"]; ok && v.(string) != "" {
+		output.IdentityClientId = pointer.To(v.(string))
+	}
+
+	return output
+}
+
+func expandApiManagementCommonHostnameConfigurationFourPointOh(d *pluginsdk.ResourceData, input map[string]interface{}, hostnameType apimanagementservice.HostnameType, addressPrefix string) apimanagementservice.HostnameConfiguration {
+	output := apimanagementservice.HostnameConfiguration{
+		Type: hostnameType,
+	}
+	if v, ok := input["certificate"]; ok && v.(string) != "" {
+		output.EncodedCertificate = pointer.To(v.(string))
+	}
+	if v, ok := input["certificate_password"]; ok && v.(string) != "" {
+		output.CertificatePassword = pointer.To(v.(string))
+	}
+	if v, ok := input["host_name"]; ok && v.(string) != "" {
+		output.HostName = v.(string)
+	}
+	if v, ok := input["key_vault_certificate_id"]; ok && v.(string) != "" {
+		output.KeyVaultId = pointer.To(v.(string))
+	}
 	if !features.FivePointOh() {
-		if v, ok := input["key_vault_id"]; ok && v.(string) != "" {
-			output.KeyVaultId = pointer.To(v.(string))
+		rawKeyVaultID, diags := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("%s.key_vault_id", addressPrefix)))
+		if !diags.HasError() && !rawKeyVaultID.IsNull() {
+			output.KeyVaultId = pointer.To(input["key_vault_id"].(string))
 		}
 	}
 
@@ -1725,7 +1771,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 
 	for _, v := range inputLocations {
 		config := v.(map[string]interface{})
-		location := azure.NormalizeLocation(config["location"].(string))
+		location := location.Normalize(config["location"].(string))
 
 		if config["capacity"].(int) > 0 {
 			sku.Capacity = int64(config["capacity"].(int))
@@ -1755,7 +1801,7 @@ func expandAzureRmApiManagementAdditionalLocations(d *pluginsdk.ResourceData, sk
 		if publicIPAddressID != "" {
 			if sku.Name != apimanagementservice.SkuTypePremium {
 				if len(childVnetConfig) == 0 {
-					return nil, errors.New("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network.")
+					return nil, errors.New("`public_ip_address_id` for an additional location is only supported when sku type is `Premium`, and the APIM instance is deployed in a virtual network")
 				}
 			}
 			additionalLocation.PublicIPAddressId = &publicIPAddressID

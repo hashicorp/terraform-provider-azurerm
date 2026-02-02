@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -6,6 +6,7 @@ package datafactory
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -125,13 +126,13 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
 				Sensitive:     true,
-				ConflictsWith: []string{"password", "key_vault_password", "key_vault_private_key_passphrase"},
+				ConflictsWith: []string{"key_vault_private_key_passphrase"},
 			},
 
 			"key_vault_private_key_passphrase": {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
-				ConflictsWith: []string{"password", "key_vault_password", "private_key_passphrase"},
+				ConflictsWith: []string{"private_key_passphrase"},
 				MaxItems:      1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -151,16 +152,17 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			},
 
 			"password": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
-				ExactlyOneOf: []string{"password", "key_vault_password", "private_key_content_base64", "key_vault_private_key_content_base64", "private_key_path"},
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"key_vault_password"},
 			},
 
 			"key_vault_password": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"password"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"linked_service_name": {
@@ -179,16 +181,18 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			},
 
 			"private_key_content_base64": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsBase64,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsBase64,
+				ConflictsWith: []string{"key_vault_private_key_content_base64", "private_key_path"},
 			},
 
 			"key_vault_private_key_content_base64": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"private_key_content_base64", "private_key_path"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"linked_service_name": {
@@ -207,8 +211,9 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 			},
 
 			"private_key_path": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"key_vault_private_key_content_base64", "private_key_content_base64"},
 			},
 
 			"skip_host_key_validation": {
@@ -221,6 +226,7 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 				authCombinations := map[string]string{
 					"private_key_content_base64":           string(datafactory.SftpAuthenticationTypeSSHPublicKey),
 					"key_vault_private_key_content_base64": string(datafactory.SftpAuthenticationTypeSSHPublicKey),
+					"key_vault_private_key_passphrase":     string(datafactory.SftpAuthenticationTypeSSHPublicKey),
 					"private_key_path":                     string(datafactory.SftpAuthenticationTypeSSHPublicKey),
 					"password":                             string(datafactory.SftpAuthenticationTypeBasic),
 					"key_vault_password":                   string(datafactory.SftpAuthenticationTypeBasic),
@@ -228,8 +234,8 @@ func resourceDataFactoryLinkedServiceSFTP() *pluginsdk.Resource {
 
 				for keyType, authType := range authCombinations {
 					if _, ok := d.GetOk(keyType); ok {
-						if d.Get("authentication_type").(string) != authType {
-							return fmt.Errorf("`authentication_type` must be `%s` when `%s` is defined", authType, keyType)
+						if !slices.Contains([]string{authType, string(datafactory.SftpAuthenticationTypeMultiFactor)}, d.Get("authentication_type").(string)) {
+							return fmt.Errorf("when `%s` is defined, `authentication_type` must be `%s` or `%s`", keyType, authType, datafactory.SftpAuthenticationTypeMultiFactor)
 						}
 					}
 				}

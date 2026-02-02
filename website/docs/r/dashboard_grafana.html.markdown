@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
-* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`. Changing this forces a new resource to be created.
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`.
 
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 
@@ -127,7 +127,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dashboard Grafana.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard Grafana.
@@ -146,4 +146,4 @@ terraform import azurerm_dashboard_grafana.example /subscriptions/00000000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Dashboard` - 2023-09-01
+* `Microsoft.Dashboard` - 2025-08-01

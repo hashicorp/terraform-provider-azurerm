@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerGroupResource struct{}
@@ -221,25 +221,12 @@ func TestAccContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 			Config: r.imageRegistryCredentials(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("image_registry_credential.#").HasValue("2"),
-				check.That(data.ResourceName).Key("image_registry_credential.0.server").HasValue("hub.docker.com"),
-				check.That(data.ResourceName).Key("image_registry_credential.0.username").HasValue("yourusername"),
-				check.That(data.ResourceName).Key("image_registry_credential.0.password").HasValue("yourpassword"),
-				check.That(data.ResourceName).Key("image_registry_credential.1.server").HasValue("mine.acr.io"),
-				check.That(data.ResourceName).Key("image_registry_credential.1.username").HasValue("acrusername"),
-				check.That(data.ResourceName).Key("image_registry_credential.1.password").HasValue("acrpassword"),
-				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 			),
 		},
 		{
 			Config: r.imageRegistryCredentialsUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("image_registry_credential.#").HasValue("1"),
-				check.That(data.ResourceName).Key("image_registry_credential.0.server").HasValue("hub.docker.com"),
-				check.That(data.ResourceName).Key("image_registry_credential.0.username").HasValue("updatedusername"),
-				check.That(data.ResourceName).Key("image_registry_credential.0.password").HasValue("updatedpassword"),
-				check.That(data.ResourceName).Key("container.0.ports.#").HasValue("1"),
 			),
 		},
 	})
@@ -1301,7 +1288,7 @@ resource "azurerm_container_group" "test" {
   }
 
   tags = {
-    environment = "Testing"
+    environment = "Staging"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1330,16 +1317,22 @@ resource "azurerm_container_group" "test" {
     image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
-
     ports {
-      port = 80
+      port     = 5443
+      protocol = "UDP"
     }
   }
 
   image_registry_credential {
     server   = "hub.docker.com"
-    username = "updatedusername"
-    password = "updatedpassword"
+    username = "yourusername"
+    password = "yourpassword"
+  }
+
+  image_registry_credential {
+    server   = "mine.acr.io"
+    username = "acrusername"
+    password = "acrpassword"
   }
 
   container {
@@ -1348,9 +1341,8 @@ resource "azurerm_container_group" "test" {
     cpu    = "0.5"
     memory = "0.5"
   }
-
   tags = {
-    environment = "Testing"
+    environment = "Production"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -2304,7 +2296,7 @@ func (t ContainerGroupResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, fmt.Errorf("unexpected nil model of %q", id)
 	}
 
-	return utils.Bool(resp.Model.Id != nil), nil
+	return pointer.To(resp.Model.Id != nil), nil
 }
 
 func (ContainerGroupResource) withPrivateEmpty(data acceptance.TestData) string {

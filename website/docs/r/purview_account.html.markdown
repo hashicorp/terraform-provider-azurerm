@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
-* `managed_event_hub_enabled`- (Optional) Whether the Purview Account should create a managed Event Hub Namespace. Defaults to `true`.
+* `managed_event_hub_enabled` - (Optional) Whether the Purview Account should create a managed Event Hub Namespace. Defaults to `true`.
 
 ~> **Note:** `managed_event_hub_enabled` must be `false` in order to use a Kafka Configuration with the Purview Account.
 
@@ -107,7 +107,7 @@ A `managed_resources` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Purview Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Purview Account.

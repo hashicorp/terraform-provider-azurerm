@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -73,7 +73,7 @@ func dataSourceIotHubDPSRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Error: IoT Device Provisioning Service %s was not found", id)
+			return fmt.Errorf("the IoT Device Provisioning Service %s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving IoT Device Provisioning Service %s: %+v", id, err)
