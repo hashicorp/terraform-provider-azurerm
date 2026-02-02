@@ -299,6 +299,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	id := keys.NewKeyID(keyVaultBaseUri, name)
 
 	client.KeysClientSetEndpoint(keyVaultBaseUri)
+
 	keyVersionID := keys.NewKeyversionID(id.BaseURI, id.KeyName, "")
 	existing, err := client.GetKey(ctx, keyVersionID)
 	if err != nil {
