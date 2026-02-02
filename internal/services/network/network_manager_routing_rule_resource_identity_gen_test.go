@@ -16,10 +16,20 @@ func TestAccNetworkManagerRoutingRule_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_manager_routing_rule", "test")
 	r := NetworkManagerRoutingRuleResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                       {},
+		"network_manager_name":       {},
+		"resource_group_name":        {},
+		"routing_configuration_name": {},
+		"rule_collection_name":       {},
+		"subscription_id":            {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_network_manager_routing_rule.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("network_manager_name"), tfjsonpath.New("rule_collection_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_network_manager_routing_rule.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("rule_collection_id")),
