@@ -7,12 +7,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,6 +32,16 @@ func (r MssqlDatabaseListResource) Metadata(_ context.Context, _ resource.Metada
 	response.TypeName = `azurerm_mssql_D\database`
 }
 
+func (r MssqlDatabaseListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	response.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			"server_id": schema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
+}
+
 func (r MssqlDatabaseListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.MSSQL.DatabasesClient
 
@@ -42,9 +54,10 @@ func (r MssqlDatabaseListResource) List(ctx context.Context, request list.ListRe
 
 	results := make([]databases.Database, 0)
 
-	subscriptionID := metadata.SubscriptionId
-	if !data.SubscriptionId.IsNull() {
-		subscriptionID = data.SubscriptionId.ValueString()
+	serverId, err := databases.ParseServerID(data.ServerId.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Mysql Server ID for `%s`", mysqlFlexibleDatabaseResourceName), err)
+		return
 	}
 
 	// Make the request based on which list parameters have been set in the config
