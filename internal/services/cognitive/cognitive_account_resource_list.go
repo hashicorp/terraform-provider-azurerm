@@ -73,8 +73,8 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 	stream.Results = func(push func(list.ListResult) bool) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Until(ctxDeadline))
 		defer cancel()
-		for _, account := range results {
 
+		for _, account := range results {
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(account.Name)
 
