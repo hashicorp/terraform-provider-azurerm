@@ -2192,11 +2192,9 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 		// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
 		// resources when a new field gets added - meaning we need to default the values below.
-		var allowBlobPublicAccess bool
+		allowBlobPublicAccess := false
 		if !features.FivePointOh() {
 			allowBlobPublicAccess = true
-		} else {
-			allowBlobPublicAccess = false
 		}
 		if props.AllowBlobPublicAccess != nil {
 			allowBlobPublicAccess = *props.AllowBlobPublicAccess
