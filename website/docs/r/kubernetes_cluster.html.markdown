@@ -658,7 +658,7 @@ A `microsoft_defender` block supports the following:
 
 A `network_profile` block supports the following:
 
-* `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure`, `kubenet` and `none`. Changing this forces a new resource to be created.
+* `network_plugin` - (Required) Network plugin to use for networking. Currently supported values are `azure`, `kubenet` and `none`. Changing this forces a new resource to be created, except when upgrading from `kubenet` to `azure`.
 
 ~> **Note:** When `network_plugin` is set to `azure` - the `pod_cidr` field must not be set, unless specifying `network_plugin_mode` to `overlay`.
 
