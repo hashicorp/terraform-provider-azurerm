@@ -91,28 +91,26 @@ func parseComplianceSecurityProfileValue(input string) (*ComplianceSecurityProfi
 	return &out, nil
 }
 
-type ComplianceStandard string
+type ComputeMode string
 
 const (
-	ComplianceStandardHIPAA  ComplianceStandard = "HIPAA"
-	ComplianceStandardNONE   ComplianceStandard = "NONE"
-	ComplianceStandardPCIDSS ComplianceStandard = "PCI_DSS"
+	ComputeModeHybrid     ComputeMode = "Hybrid"
+	ComputeModeServerless ComputeMode = "Serverless"
 )
 
-func PossibleValuesForComplianceStandard() []string {
+func PossibleValuesForComputeMode() []string {
 	return []string{
-		string(ComplianceStandardHIPAA),
-		string(ComplianceStandardNONE),
-		string(ComplianceStandardPCIDSS),
+		string(ComputeModeHybrid),
+		string(ComputeModeServerless),
 	}
 }
 
-func (s *ComplianceStandard) UnmarshalJSON(bytes []byte) error {
+func (s *ComputeMode) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseComplianceStandard(decoded)
+	out, err := parseComputeMode(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -120,18 +118,17 @@ func (s *ComplianceStandard) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseComplianceStandard(input string) (*ComplianceStandard, error) {
-	vals := map[string]ComplianceStandard{
-		"hipaa":   ComplianceStandardHIPAA,
-		"none":    ComplianceStandardNONE,
-		"pci_dss": ComplianceStandardPCIDSS,
+func parseComputeMode(input string) (*ComputeMode, error) {
+	vals := map[string]ComputeMode{
+		"hybrid":     ComputeModeHybrid,
+		"serverless": ComputeModeServerless,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ComplianceStandard(input)
+	out := ComputeMode(input)
 	return &out, nil
 }
 

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
@@ -357,11 +357,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(workspaces.ComplianceStandardHIPAA),
-									string(workspaces.ComplianceStandardPCIDSS),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(validate.PossibleValuesForComplianceStandard(), false),
 							},
 						},
 						"enhanced_security_monitoring_enabled": {
@@ -673,7 +670,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
 			PublicNetworkAccess:    &publicNetworkAccess,
-			ManagedResourceGroupId: managedResourceGroupID,
+			ManagedResourceGroupId: pointer.To(managedResourceGroupID),
 			Parameters:             customParams,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -799,7 +796,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku", sku.Name)
 		}
 
-		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(model.Properties.ManagedResourceGroupId)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
@@ -1506,7 +1503,7 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 
 		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
 		for _, s := range pointer.From(v.ComplianceStandards) {
-			if s == workspaces.ComplianceStandardNONE {
+			if s == string(validate.ComplianceStandardNONE) {
 				continue
 			}
 			standards.Add(string(s))
@@ -1540,15 +1537,15 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 		complianceSecurityProfileEnabled = workspaces.ComplianceSecurityProfileValueEnabled
 	}
 
-	complianceStandards := []workspaces.ComplianceStandard{}
+	complianceStandards := make([]string, 0)
 	if standardSet, ok := config["compliance_security_profile_standards"].(*pluginsdk.Set); ok {
 		for _, s := range standardSet.List() {
-			complianceStandards = append(complianceStandards, workspaces.ComplianceStandard(s.(string)))
+			complianceStandards = append(complianceStandards, s.(string))
 		}
 	}
 
 	if complianceSecurityProfileEnabled == workspaces.ComplianceSecurityProfileValueEnabled && len(complianceStandards) == 0 {
-		complianceStandards = append(complianceStandards, workspaces.ComplianceStandardNONE)
+		complianceStandards = append(complianceStandards, string(validate.ComplianceStandardNONE))
 	}
 
 	return &workspaces.EnhancedSecurityComplianceDefinition{
