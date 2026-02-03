@@ -66,6 +66,7 @@ jobs:
           DD_LOG_LEVEL: debug
           DD_SERVICE: terraform-provider-azurerm
           DD_ENV: unit-test
+          ORCHESTRION_TRACE: "1"
           # ORCHESTRION_LOG_LEVEL: debug
 
   save-artifacts-on-fail:
