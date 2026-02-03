@@ -115,6 +115,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: networkValidate.PrivateLinkName,
 						},
 						"private_ip_address": {
@@ -140,6 +141,7 @@ func resourcePrivateLinkService() *pluginsdk.Resource {
 						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
