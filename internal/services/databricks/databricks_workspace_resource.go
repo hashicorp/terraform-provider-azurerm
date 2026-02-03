@@ -1507,7 +1507,7 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 			if s == string(validate.ComplianceStandardNONE) {
 				continue
 			}
-			standards.Add(string(s))
+			standards.Add(s)
 		}
 
 		enhancedSecurityCompliance["compliance_security_profile_standards"] = standards
