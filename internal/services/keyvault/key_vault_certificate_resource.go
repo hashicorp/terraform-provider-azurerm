@@ -8,6 +8,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"math"
