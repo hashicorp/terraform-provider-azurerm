@@ -109,6 +109,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 				return true
 			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin", func(ctx context.Context, old, new, meta interface{}) bool {
+				oldStr := old.(string)
+				newStr := new.(string)
+
+				if oldStr == "kubenet" && newStr == "azure" {
+					return false
+				}
+
+				return true
+			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
 					d.SetNewComputed("oidc_issuer_url")
@@ -1083,7 +1093,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_plugin": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginAzure),
 								string(managedclusters.NetworkPluginKubenet),
@@ -2353,6 +2362,11 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		if d.HasChange("network_profile.0.network_data_plane") {
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(d.Get("network_profile.0.network_data_plane").(string)))
+		}
+
+		if key := "network_profile.0.network_plugin"; d.HasChange(key) {
+			networkPlugin := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkPlugin = pointer.To(managedclusters.NetworkPlugin(networkPlugin))
 		}
 
 		if key := "network_profile.0.network_plugin_mode"; d.HasChange(key) {
