@@ -76,6 +76,12 @@ A `plan` block includes:
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution. Changing this forces a new resource to be created.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Log Analytics Solution.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

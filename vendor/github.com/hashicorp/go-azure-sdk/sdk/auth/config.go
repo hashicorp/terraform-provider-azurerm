@@ -18,6 +18,8 @@ type Credentials struct {
 	ClientID string
 	// TenantID specifies the Azure Active Directory Tenant to connect to, which must be a valid UUID.
 	TenantID string
+	// ForceAuthAtTenant forces the Authoriser to obtain tokens at the Tenant scope rather than limiting to Subscription - Currently only meaningful for CLI based authentication
+	ForceAuthAtTenant bool
 
 	// EnableAuthenticatingUsingAzureCLI specifies whether Azure CLI authentication should be checked.
 	EnableAuthenticatingUsingAzureCLI bool

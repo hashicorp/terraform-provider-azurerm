@@ -74,7 +74,7 @@ The following arguments are supported:
 * `access_mode` - (Required) The access mode to connect this storage to the Container App. Possible values include `ReadOnly` and `ReadWrite`. Changing this forces a new resource to be created.
 
 * `nfs_server_url` - (Optional) The NFS server to use for the Azure File Share, the format will be `yourstorageaccountname.file.core.windows.net`. Changing this forces a new resource to be created.
-* 
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -103,4 +103,4 @@ terraform import azurerm_container_app_environment_storage.example "/subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App` - 2025-01-01
+* `Microsoft.App` - 2025-07-01

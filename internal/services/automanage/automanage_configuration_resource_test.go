@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automanage_test
@@ -15,14 +15,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutoManageConfigurationProfileResource struct{}
+type AutomanageConfigurationResource struct{}
 
 func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -36,7 +35,7 @@ func TestAccAutoManageConfigurationProfile_basic(t *testing.T) {
 
 func TestAccAutoManageConfigurationProfile_antimalware(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.antimalware(data),
@@ -61,7 +60,7 @@ func TestAccAutoManageConfigurationProfile_antimalware(t *testing.T) {
 
 func TestAccAutoManageConfigurationProfile_azureSecurityBaseline(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.azureSecurityBaseline(data),
@@ -94,7 +93,7 @@ func TestAccAutoManageConfigurationProfile_azureSecurityBaseline(t *testing.T) {
 
 func TestAccAutoManageConfigurationProfile_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -108,7 +107,7 @@ func TestAccAutoManageConfigurationProfile_requiresImport(t *testing.T) {
 
 func TestAccAutoManageConfigurationProfile_backup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.backup(data),
@@ -182,7 +181,7 @@ func TestAccAutoManageConfigurationProfile_backup(t *testing.T) {
 
 func TestAccAutoManageConfigurationProfile_logAnalytics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.logAnalytics(data),
@@ -205,7 +204,7 @@ func TestAccAutoManageConfigurationProfile_logAnalytics(t *testing.T) {
 
 func TestAccAutoManageConfigurationProfile_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -233,7 +232,7 @@ func TestAccAutoManageConfigurationProfile_complete(t *testing.T) {
 
 func TestAccAutoManageConfigurationProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_automanage_configuration", "test")
-	r := AutoManageConfigurationProfileResource{}
+	r := AutomanageConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -266,7 +265,7 @@ func TestAccAutoManageConfigurationProfile_update(t *testing.T) {
 	})
 }
 
-func (r AutoManageConfigurationProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AutomanageConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Automanage.ConfigurationProfilesClient
 
 	id, err := configurationprofiles.ParseConfigurationProfileID(state.ID)
@@ -277,14 +276,14 @@ func (r AutoManageConfigurationProfileResource) Exists(ctx context.Context, clie
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AutoManageConfigurationProfileResource) template(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -297,7 +296,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AutoManageConfigurationProfileResource) basic(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -310,7 +309,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AutoManageConfigurationProfileResource) antimalware(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) antimalware(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -330,7 +329,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AutoManageConfigurationProfileResource) logAnalytics(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) logAnalytics(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 				%s
@@ -344,7 +343,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AutoManageConfigurationProfileResource) requiresImport(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) requiresImport(data acceptance.TestData) string {
 	config := r.antimalware(data)
 	return fmt.Sprintf(`
 			%s
@@ -357,7 +356,7 @@ resource "azurerm_automanage_configuration" "import" {
 `, config, data.Locations.Primary)
 }
 
-func (r AutoManageConfigurationProfileResource) complete(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -390,7 +389,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AutoManageConfigurationProfileResource) update(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -417,7 +416,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r AutoManageConfigurationProfileResource) azureSecurityBaseline(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) azureSecurityBaseline(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -433,7 +432,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r AutoManageConfigurationProfileResource) azureSecurityBaselineUpdate(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) azureSecurityBaselineUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -449,7 +448,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r AutoManageConfigurationProfileResource) backup(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) backup(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s
@@ -494,7 +493,7 @@ resource "azurerm_automanage_configuration" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
-func (r AutoManageConfigurationProfileResource) backupUpdate(data acceptance.TestData) string {
+func (r AutomanageConfigurationResource) backupUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 			%s

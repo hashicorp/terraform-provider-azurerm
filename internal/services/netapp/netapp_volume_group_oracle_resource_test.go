@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeGroupOracleResource struct{}
@@ -234,12 +234,12 @@ func (t NetAppVolumeGroupOracleResource) Exists(ctx context.Context, clients *cl
 	resp, err := clients.NetApp.VolumeGroupClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (NetAppVolumeGroupOracleResource) basicAvailabilityZone(data acceptance.TestData) string {
@@ -281,7 +281,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -312,7 +312,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -359,7 +359,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -390,7 +390,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -441,7 +441,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -471,7 +471,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -499,7 +499,7 @@ resource "azurerm_netapp_snapshot_policy" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -541,7 +541,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -575,7 +575,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -607,7 +607,7 @@ resource "azurerm_netapp_snapshot_policy" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -645,7 +645,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -675,7 +675,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -725,7 +725,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -755,7 +755,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -785,7 +785,7 @@ resource "azurerm_resource_group" "test" {
 
   tags = {
     "SkipNRMSNSG"   = "true",
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 
@@ -799,18 +799,19 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 
 resource "azurerm_key_vault" "test" {
-  name                            = "anfakv%[1]d"
+  name                            = "acctest%[1]d"
   location                        = azurerm_resource_group.test.location
   resource_group_name             = azurerm_resource_group.test.name
   enabled_for_disk_encryption     = true
   enabled_for_deployment          = true
   enabled_for_template_deployment = true
   purge_protection_enabled        = true
+  soft_delete_retention_days      = 7
   tenant_id                       = "%[2]s"
   sku_name                        = "standard"
 
@@ -847,12 +848,12 @@ resource "azurerm_key_vault" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "anfenckey%[1]d"
+  name         = "acctest%[1]d"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
@@ -880,7 +881,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.88.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -936,7 +937,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 
@@ -1009,7 +1010,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
   }
 }
-`, data.RandomInteger, tenantID, data.Locations.Primary)
+`, data.RandomIntOfLength(17), tenantID, data.Locations.Primary)
 }
 
 func (NetAppVolumeGroupOracleResource) templatePpgOracle(data acceptance.TestData) string {
@@ -1045,7 +1046,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 
@@ -1055,7 +1056,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1067,7 +1068,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1106,7 +1107,7 @@ resource "azurerm_proximity_placement_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1122,7 +1123,7 @@ resource "azurerm_availability_set" "test" {
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1139,7 +1140,7 @@ resource "azurerm_network_interface" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1159,13 +1160,11 @@ resource "azurerm_linux_virtual_machine" "test" {
   ]
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "MicrosoftCBLMariner"
+    offer     = "azure-linux-3"
+    sku       = "azure-linux-3"
     version   = "latest"
   }
-
-  patch_assessment_mode = "AutomaticByPlatform"
 
   os_disk {
     storage_account_type = "Standard_LRS"
@@ -1182,7 +1181,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   tags = {
     "AzSecPackAutoConfigReady"                                                 = "true",
     "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
-    "CreatedOnDate"                                                            = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"                                                            = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack"                                                         = "true",
     "Owner"                                                                    = "pmarques"
   }
@@ -1199,7 +1198,7 @@ resource "azurerm_netapp_account" "test" {
   ]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1214,81 +1213,11 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r NetAppVolumeGroupOracleResource) templateForAvgCrossRegionReplicationOracle(data acceptance.TestData) string {
-	template := NetAppVolumeGroupOracleResource{}.templatePpgOracle(data)
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_resource_group" "test_secondary" {
-  name     = "acctestRG-netapp-secondary-%[2]d"
-  location = "%[3]s"
-
-  tags = {
-    "SkipNRMSNSG" = "true"
-  }
-}
-
-resource "azurerm_virtual_network" "test_secondary" {
-  name                = "acctest-VirtualNetwork-secondary-%[2]d"
-  location            = azurerm_resource_group.test_secondary.location
-  resource_group_name = azurerm_resource_group.test_secondary.name
-  address_space       = ["10.1.0.0/16"]
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-
-resource "azurerm_subnet" "test_secondary" {
-  name                 = "acctest-DelegatedSubnet-secondary-%[2]d"
-  resource_group_name  = azurerm_resource_group.test_secondary.name
-  virtual_network_name = azurerm_virtual_network.test_secondary.name
-  address_prefixes     = ["10.1.2.0/24"]
-
-  delegation {
-    name = "testdelegation"
-
-    service_delegation {
-      name    = "Microsoft.Netapp/volumes"
-      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
-}
-
-resource "azurerm_netapp_account" "test_secondary" {
-  name                = "acctest-NetAppAccount-secondary-%[2]d"
-  location            = azurerm_resource_group.test_secondary.location
-  resource_group_name = azurerm_resource_group.test_secondary.name
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-
-resource "azurerm_netapp_pool" "test_secondary" {
-  name                = "acctest-NetAppPool-secondary-%[2]d"
-  location            = azurerm_resource_group.test_secondary.location
-  resource_group_name = azurerm_resource_group.test_secondary.name
-  account_name        = azurerm_netapp_account.test_secondary.name
-  service_level       = "Standard"
-  size_in_tb          = 4
-  qos_type            = "Manual"
-
-  tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
-    "SkipASMAzSecPack" = "true"
-  }
-}
-`, template, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r NetAppVolumeGroupOracleResource) templateForAvgCrossRegionReplicationOracleAZ(data acceptance.TestData) string {
@@ -1312,7 +1241,7 @@ resource "azurerm_virtual_network" "test_secondary" {
   address_space       = ["10.1.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1339,7 +1268,7 @@ resource "azurerm_netapp_account" "test_secondary" {
   resource_group_name = azurerm_resource_group.test_secondary.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1354,7 +1283,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1389,7 +1318,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1401,7 +1330,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1445,7 +1374,7 @@ resource "azurerm_netapp_account" "test" {
   ]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1460,7 +1389,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1468,7 +1397,7 @@ resource "azurerm_netapp_pool" "test" {
 }
 
 func (NetAppVolumeGroupOracleResource) crossRegionReplication(data acceptance.TestData) string {
-	template := NetAppVolumeGroupOracleResource{}.templateForAvgCrossRegionReplicationOracle(data)
+	template := NetAppVolumeGroupOracleResource{}.templateForAvgCrossRegionReplicationOracleAZ(data)
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1481,18 +1410,19 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
   application_identifier = "TST"
 
   volume {
-    name                         = "acctest-NetAppVolume-ora1-Primary-%[2]d"
-    volume_path                  = "my-unique-file-ora-path-1-Primary-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
-    volume_spec_name             = "ora-data1"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-ora1-Primary-%[2]d"
+    volume_path                = "my-unique-file-ora-path-1-Primary-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-data1"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+    network_features           = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -1505,24 +1435,25 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
 
   volume {
-    name                         = "acctest-NetAppVolume-oraLog-Primary-%[2]d"
-    volume_path                  = "my-unique-file-oralog-path-Primary-%[2]d"
-    service_level                = "Standard"
-    capacity_pool_id             = azurerm_netapp_pool.test.id
-    subnet_id                    = azurerm_subnet.test.id
-    proximity_placement_group_id = azurerm_proximity_placement_group.test.id
-    volume_spec_name             = "ora-log"
-    storage_quota_in_gb          = 1024
-    throughput_in_mibps          = 24
-    protocols                    = ["NFSv4.1"]
-    security_style               = "unix"
-    snapshot_directory_visible   = false
+    name                       = "acctest-NetAppVolume-oraLog-Primary-%[2]d"
+    volume_path                = "my-unique-file-oralog-path-Primary-%[2]d"
+    service_level              = "Standard"
+    capacity_pool_id           = azurerm_netapp_pool.test.id
+    subnet_id                  = azurerm_subnet.test.id
+    zone                       = "1"
+    volume_spec_name           = "ora-log"
+    storage_quota_in_gb        = 1024
+    throughput_in_mibps        = 24
+    protocols                  = ["NFSv4.1"]
+    security_style             = "unix"
+    snapshot_directory_visible = false
+    network_features           = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -1535,14 +1466,10 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
-
-  depends_on = [
-    azurerm_proximity_placement_group.test
-  ]
 }
 
 resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
@@ -1559,12 +1486,14 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test_secondary.id
     subnet_id                  = azurerm_subnet.test_secondary.id
+    zone                       = "1"
     volume_spec_name           = "ora-data1"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
     security_style             = "unix"
     snapshot_directory_visible = false
+    network_features           = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -1584,7 +1513,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1595,12 +1524,14 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     service_level              = "Standard"
     capacity_pool_id           = azurerm_netapp_pool.test_secondary.id
     subnet_id                  = azurerm_subnet.test_secondary.id
+    zone                       = "1"
     volume_spec_name           = "ora-log"
     storage_quota_in_gb        = 1024
     throughput_in_mibps        = 24
     protocols                  = ["NFSv4.1"]
     security_style             = "unix"
     snapshot_directory_visible = false
+    network_features           = "Standard"
 
     export_policy_rule {
       rule_index          = 1
@@ -1620,7 +1551,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1670,7 +1601,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1700,7 +1631,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1746,7 +1677,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1783,7 +1714,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1833,7 +1764,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1863,7 +1794,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_primary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1909,7 +1840,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1946,7 +1877,7 @@ resource "azurerm_netapp_volume_group_oracle" "test_secondary" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -1997,7 +1928,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -2028,7 +1959,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -2075,7 +2006,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }
@@ -2106,7 +2037,7 @@ resource "azurerm_netapp_volume_group_oracle" "test" {
     }
 
     tags = {
-      "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+      "CreatedOnDate"    = "2022-07-08T23-50-21Z",
       "SkipASMAzSecPack" = "true"
     }
   }

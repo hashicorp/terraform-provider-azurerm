@@ -55,6 +55,12 @@ The following arguments are supported:
 
 * `app_service_slot_name` - (Required) The name of the App Service Slot which should be promoted to the Production Slot within the App Service.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the App Service.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

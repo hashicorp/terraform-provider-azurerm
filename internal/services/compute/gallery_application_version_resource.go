@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application_version -properties "name" -service-package-name compute -compare-values "subscription_id:gallery_application_id,resource_group_name:gallery_application_id,gallery_name:gallery_application_id,application_name:gallery_application_id"
@@ -254,8 +253,8 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(state.Location),
 				Properties: &galleryapplicationversions.GalleryApplicationVersionProperties{
 					PublishingProfile: galleryapplicationversions.GalleryApplicationVersionPublishingProfile{
-						EnableHealthCheck: utils.Bool(state.EnableHealthCheck),
-						ExcludeFromLatest: utils.Bool(state.ExcludeFromLatest),
+						EnableHealthCheck: pointer.To(state.EnableHealthCheck),
+						ExcludeFromLatest: pointer.To(state.ExcludeFromLatest),
 						ManageActions:     expandGalleryApplicationVersionManageAction(state.ManageAction),
 						Source:            expandGalleryApplicationVersionSource(state.Source),
 						TargetRegions:     expandGalleryApplicationVersionTargetRegion(state.TargetRegion),
@@ -293,7 +292,7 @@ func (r GalleryApplicationVersionResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 		Timeout: 30 * time.Minute,
 	}
@@ -394,7 +393,7 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("enable_health_check") {
-					payload.Properties.PublishingProfile.EnableHealthCheck = utils.Bool(state.EnableHealthCheck)
+					payload.Properties.PublishingProfile.EnableHealthCheck = pointer.To(state.EnableHealthCheck)
 				}
 
 				if metadata.ResourceData.HasChange("end_of_life_date") {
@@ -403,7 +402,7 @@ func (r GalleryApplicationVersionResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("exclude_from_latest") {
-					payload.Properties.PublishingProfile.ExcludeFromLatest = utils.Bool(state.ExcludeFromLatest)
+					payload.Properties.PublishingProfile.ExcludeFromLatest = pointer.To(state.ExcludeFromLatest)
 				}
 
 				if metadata.ResourceData.HasChange("manage_actions") {
@@ -504,7 +503,7 @@ func expandGalleryApplicationVersionManageAction(input []ManageAction) *gallerya
 	return &galleryapplicationversions.UserArtifactManage{
 		Install: v.Install,
 		Remove:  v.Remove,
-		Update:  utils.String(v.Update),
+		Update:  pointer.To(v.Update),
 	}
 }
 
@@ -534,7 +533,7 @@ func expandGalleryApplicationVersionSource(input []Source) galleryapplicationver
 	v := input[0]
 	return galleryapplicationversions.UserArtifactSource{
 		MediaLink:                v.MediaLink,
-		DefaultConfigurationLink: utils.String(v.DefaultConfigurationLink),
+		DefaultConfigurationLink: pointer.To(v.DefaultConfigurationLink),
 	}
 }
 

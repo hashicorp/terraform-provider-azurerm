@@ -34,6 +34,12 @@ The following arguments are supported:
 
 * `token_secret` - (Optional) The OAuth access token secret.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the App Service Source Control Token.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

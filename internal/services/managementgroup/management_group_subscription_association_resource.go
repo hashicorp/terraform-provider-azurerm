@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/migration"
@@ -83,7 +83,7 @@ func resourceManagementGroupSubscriptionAssociationCreate(d *pluginsdk.ResourceD
 	existing, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      pointer.FromBool(false),
+		Recurse:      pointer.To(false),
 	})
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
@@ -129,7 +129,7 @@ func resourceManagementGroupSubscriptionAssociationRead(d *pluginsdk.ResourceDat
 	managementGroup, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 		CacheControl: &managementGroupCacheControl,
 		Expand:       pointer.To(managementgroups.ExpandChildren),
-		Recurse:      pointer.FromBool(false),
+		Recurse:      pointer.To(false),
 	})
 	if err != nil {
 		return fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.GroupId, err)
@@ -206,7 +206,7 @@ func subscriptionAssociationRefreshFunc(ctx context.Context, client *managementg
 		managementGroup, err := client.Get(ctx, commonids.NewManagementGroupID(id.GroupId), managementgroups.GetOperationOptions{
 			CacheControl: &managementGroupCacheControl,
 			Expand:       pointer.To(managementgroups.ExpandChildren),
-			Recurse:      pointer.FromBool(false),
+			Recurse:      pointer.To(false),
 		})
 		if err != nil {
 			return nil, "", fmt.Errorf("reading Management Group %q for Subscription Associations: %+v", id.GroupId, err)

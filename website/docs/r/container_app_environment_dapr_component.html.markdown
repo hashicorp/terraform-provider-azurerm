@@ -83,7 +83,11 @@ A `secret` block supports the following:
 
 * `name` - (Required) The Secret name.
 
-* `value` - (Required) The value for this secret.
+* `value` - (Optional) The value for this secret.
+
+* `identity` - (Optional) The identity to use for accessing key vault reference. Possible values are the Resource ID of a User Assigned Managed Identity, or `System` to use the System Assigned Managed Identity.
+
+* `key_vault_secret_id` - (Optional) The Key Vault Secret ID.
 
 ## Attributes Reference
 
@@ -113,4 +117,4 @@ terraform import azurerm_container_app_environment_dapr_component.example "/subs
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App` - 2025-01-01
+* `Microsoft.App` - 2025-07-01

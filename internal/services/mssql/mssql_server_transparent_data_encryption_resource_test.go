@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -6,6 +6,7 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -36,6 +37,10 @@ func TestAccMsSqlServerTransparentDataEncryption_keyVault(t *testing.T) {
 }
 
 func TestAccMsSqlServerTransparentDataEncryption_managedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
 	r := MsSqlServerTransparentDataEncryptionResource{}
 

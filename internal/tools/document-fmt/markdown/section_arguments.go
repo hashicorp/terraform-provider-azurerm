@@ -1,9 +1,12 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package markdown
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 type ArgumentsSection struct {
 	heading Heading
@@ -13,7 +16,7 @@ type ArgumentsSection struct {
 var _ SectionWithTemplate = &ArgumentsSection{}
 
 func (s *ArgumentsSection) Match(line string) bool {
-	return strings.Contains(strings.ToLower(line), "arguments")
+	return regexp.MustCompile(`#+(\s)*argument.*`).MatchString(strings.ToLower(line))
 }
 
 func (s *ArgumentsSection) SetHeading(line string) {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -16,14 +16,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	synapseValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSynapseSpark() *pluginsdk.Resource {
@@ -118,13 +116,13 @@ func resourceSynapseSparkCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	parameters := machinelearningcomputes.ComputeResource{
 		Properties: &machinelearningcomputes.SynapseSpark{
 			Properties:       nil,
-			ComputeLocation:  utils.String(d.Get("location").(string)),
-			Description:      utils.String(d.Get("description").(string)),
-			ResourceId:       utils.String(d.Get("synapse_spark_pool_id").(string)),
-			DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			ComputeLocation:  pointer.To(d.Get("location").(string)),
+			Description:      pointer.To(d.Get("description").(string)),
+			ResourceId:       pointer.To(d.Get("synapse_spark_pool_id").(string)),
+			DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 		},
 		Identity: identity,
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
@@ -166,8 +164,8 @@ func resourceSynapseSparkRead(d *pluginsdk.ResourceData, meta interface{}) error
 	workspaceId := workspaces.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.WorkspaceName)
 	d.Set("machine_learning_workspace_id", workspaceId.ID())
 
-	if location := resp.Model.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	if loc := resp.Model.Location; loc != nil {
+		d.Set("location", location.Normalize(*loc))
 	}
 
 	identity, err := flattenIdentity(resp.Model.Identity)

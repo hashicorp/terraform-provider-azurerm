@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice_test
@@ -11,13 +11,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type WindowsFunctionAppResource struct{}
@@ -599,6 +599,56 @@ func TestAccWindowsFunctionApp_withAuthSettingsStandard(t *testing.T) {
 	})
 }
 
+func TestAccWindowsFunctionApp_withAuthSettingsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withAuthSettings(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withAuthSettingsUpdate(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withAuthSettingsExplicitlyDisabled(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withAuthSettingsUpdate(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data, SkuStandardPlan),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccWindowsFunctionApp_withStorageAccountBlock(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
 	r := WindowsFunctionAppResource{}
@@ -1063,7 +1113,7 @@ func TestAccWindowsFunctionApp_appStackDotNet6Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "v6.0"),
+			Config: r.appStackDotNetIsolated(data, "v6.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -1095,7 +1145,7 @@ func TestAccWindowsFunctionApp_appStackDotNet8Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "v8.0"),
+			Config: r.appStackDotNetIsolated(data, "v8.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -1111,7 +1161,23 @@ func TestAccWindowsFunctionApp_appStackDotNet9Isolated(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appStackDotNetIsolated(data, SkuBasicPlan, "v9.0"),
+			Config: r.appStackDotNetIsolated(data, "v9.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccWindowsFunctionApp_appStackDotNet10Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_function_app", "test")
+	r := WindowsFunctionAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, "v10.0"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -1216,6 +1282,14 @@ func TestAccWindowsFunctionApp_appStackNodeUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.appStackNode(data, SkuBasicPlan, "~22"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackNode(data, SkuBasicPlan, "~24"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp"),
@@ -1697,14 +1771,14 @@ func (r WindowsFunctionAppResource) Exists(ctx context.Context, client *clients.
 	resp, err := client.AppService.WebAppsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Windows Web App %s: %+v", id, err)
 	}
 	if response.WasNotFound(resp.HttpResponse) {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 // Configs
@@ -2737,6 +2811,111 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.RandomString)
 }
 
+func (r WindowsFunctionAppResource) withAuthSettingsUpdate(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+
+    additional_login_parameters = {
+      test_key = "test_value"
+    }
+
+    allowed_external_redirect_urls = ["https://example.com"]
+
+    default_provider              = "AzureActiveDirectory"
+    token_refresh_extension_hours = 24
+    token_store_enabled           = true
+    unauthenticated_client_action = "RedirectToLoginPage"
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+
+    facebook {
+      app_id     = "facebookappid"
+      app_secret = "facebookappsecret"
+
+      oauth_scopes = [
+        "facebookscope",
+      ]
+    }
+
+    google {
+      client_id     = "googleclientid"
+      client_secret = "googleclientsecret"
+
+      oauth_scopes = [
+        "googlescope",
+      ]
+    }
+
+    microsoft {
+      client_id     = "microsoftclientid"
+      client_secret = "microsoftclientsecret"
+
+      oauth_scopes = [
+        "microsoftscope",
+      ]
+    }
+
+    twitter {
+      consumer_key    = "twitterconsumerkey"
+      consumer_secret = "twitterconsumersecret"
+    }
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger, data.RandomString)
+}
+
+func (r WindowsFunctionAppResource) withAuthSettingsExplicitlyDisabled(data acceptance.TestData, planSku string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  auth_settings {
+    enabled = false
+  }
+
+  site_config {}
+}
+`, r.template(data, planSku), data.RandomInteger)
+}
+
 func (r WindowsFunctionAppResource) builtInLogging(data acceptance.TestData, planSku string, builtInLogging bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2951,7 +3130,7 @@ resource "azurerm_windows_function_app" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
-func (r WindowsFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, planSku string, version string) string {
+func (r WindowsFunctionAppResource) appStackDotNetIsolated(data acceptance.TestData, version string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2975,7 +3154,7 @@ resource "azurerm_windows_function_app" "test" {
     }
   }
 }
-`, r.template(data, planSku), data.RandomInteger, version)
+`, r.template(data, SkuBasicPlan), data.RandomInteger, version)
 }
 
 // nolint: unparam

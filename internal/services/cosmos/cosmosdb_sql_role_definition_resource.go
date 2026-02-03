@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -141,7 +142,7 @@ func resourceCosmosDbSQLRoleDefinitionCreate(d *pluginsdk.ResourceData, meta int
 
 	parameters := documentdb.SQLRoleDefinitionCreateUpdateParameters{
 		SQLRoleDefinitionResource: &documentdb.SQLRoleDefinitionResource{
-			RoleName:         utils.String(d.Get("name").(string)),
+			RoleName:         pointer.To(d.Get("name").(string)),
 			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
 			Type:             documentdb.RoleDefinitionType(d.Get("type").(string)),
@@ -214,7 +215,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := documentdb.SQLRoleDefinitionCreateUpdateParameters{
 		SQLRoleDefinitionResource: &documentdb.SQLRoleDefinitionResource{
-			RoleName:         utils.String(d.Get("name").(string)),
+			RoleName:         pointer.To(d.Get("name").(string)),
 			AssignableScopes: utils.ExpandStringSlice(d.Get("assignable_scopes").(*pluginsdk.Set).List()),
 			Permissions:      expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List()),
 			Type:             documentdb.RoleDefinitionType(d.Get("type").(string)),
