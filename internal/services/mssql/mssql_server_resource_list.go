@@ -95,6 +95,5 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 
 			sdk.EncodeListResult(ctx, rd, result, push)
 		}
-		return
 	}
 }
