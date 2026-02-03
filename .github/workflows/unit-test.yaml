@@ -55,7 +55,7 @@ jobs:
 
       - name: Run tests
         run: |
-          go test \
+          orchestrion go test \
           -v \
           -parallel=20 \
           -timeout=30m \
