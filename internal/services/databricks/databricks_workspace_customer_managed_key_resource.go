@@ -278,6 +278,7 @@ func getProps(workspace workspaces.Workspace, params *workspaces.WorkspaceCustom
 		Location: workspace.Location,
 		Sku:      workspace.Sku,
 		Properties: workspaces.WorkspaceProperties{
+			ComputeMode:            workspaces.ComputeModeHybrid,
 			PublicNetworkAccess:    workspace.Properties.PublicNetworkAccess,
 			ManagedResourceGroupId: workspace.Properties.ManagedResourceGroupId,
 			Parameters:             params,

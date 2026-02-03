@@ -669,6 +669,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		},
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
+			ComputeMode:            workspaces.ComputeModeHybrid,
 			PublicNetworkAccess:    &publicNetworkAccess,
 			ManagedResourceGroupId: pointer.To(managedResourceGroupID),
 			Parameters:             customParams,
