@@ -43,6 +43,8 @@ jobs:
       - name: '[Diagnostic] Report Go module cache and build cache disk usage'
         run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE)'
       - run: bash scripts/gogetcookie.sh
+      - name: fmtcheck
+        run: make fmtcheck
       - name: Run tests
         run: go test -v -timeout=30s -parallel=20 -run='^Test[^A][^c][^c]' ./...
   save-artifacts-on-fail:
