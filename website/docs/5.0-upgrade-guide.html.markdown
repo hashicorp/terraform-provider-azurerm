@@ -383,7 +383,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_mssql_server_transparent_data_encryption`
 
-* The deprecated `managed_hsm_key_id` property has been removed in favour of `key_vault_key_id`. 
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
 
 ### `azurerm_mysql_flexible_server`
 
