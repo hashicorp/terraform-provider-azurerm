@@ -56,6 +56,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 
 func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	gatewayType := d.Get("type").(string)
+	sku := d.Get("sku").(string)
 
 	// Validate that public_ip_address_id is not set for ExpressRoute gateways
 	if gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) {
@@ -64,6 +65,38 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 			ipConfig := ipConfigRaw.(map[string]interface{})
 			if publicIPID, ok := ipConfig["public_ip_address_id"].(string); ok && publicIPID != "" {
 				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` cannot be set when `type` is set to `ExpressRoute`", i)
+			}
+		}
+	}
+
+	minScaleUnitRaw, minScaleUnitOk := d.GetOk("min_scale_unit")
+	maxScaleUnitRaw, maxScaleUnitOk := d.GetOk("max_scale_unit")
+	if minScaleUnitOk || maxScaleUnitOk {
+		if sku != string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale) {
+			return fmt.Errorf("`min_scale_unit` and `max_scale_unit` are only supported when `sku` is set to `%s`", virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwScale)
+		}
+
+		if maxScaleUnitOk {
+			maxScaleUnit := int64(maxScaleUnitRaw.(int))
+			if maxScaleUnit == 1 {
+				if !minScaleUnitOk {
+					return fmt.Errorf("when `max_scale_unit` is set to 1, `min_scale_unit` must also be set to 1")
+				}
+				minScaleUnit := int64(minScaleUnitRaw.(int))
+				if minScaleUnit != 1 {
+					return fmt.Errorf("when `max_scale_unit` is set to 1, `min_scale_unit` must also be set to 1")
+				}
+			}
+		}
+
+		if minScaleUnitOk && maxScaleUnitOk {
+			minScaleUnit := int64(minScaleUnitRaw.(int))
+			maxScaleUnit := int64(maxScaleUnitRaw.(int))
+			if minScaleUnit > maxScaleUnit {
+				return fmt.Errorf("`min_scale_unit` (%d) cannot be greater than `max_scale_unit` (%d)", minScaleUnit, maxScaleUnit)
+			}
+			if minScaleUnit != maxScaleUnit && minScaleUnit < 2 {
+				return fmt.Errorf("when configuring autoscaling `min_scale_unit` must be 2 or greater")
 			}
 		}
 	}
@@ -664,13 +697,13 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 		"max_scale_unit": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(0),
+			ValidateFunc: validation.IntBetween(1, 40),
 		},
 
 		"min_scale_unit": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(0),
+			ValidateFunc: validation.IntBetween(1, 40),
 		},
 
 		"remote_vnet_traffic_enabled": {
@@ -916,8 +949,31 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Properties.AllowVirtualWanTraffic = pointer.To(d.Get("virtual_wan_traffic_enabled").(bool))
 	}
 
-	if d.HasChanges("min_scale_unit", "max_scale_unit") {
-		payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
+	if payload.Properties.AutoScaleConfiguration == nil {
+		payload.Properties.AutoScaleConfiguration = &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration{}
+	}
+	if payload.Properties.AutoScaleConfiguration.Bounds == nil {
+		payload.Properties.AutoScaleConfiguration.Bounds = &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleBounds{}
+	}
+
+	if d.HasChange("min_scale_unit") {
+		if v, ok := d.GetOk("min_scale_unit"); ok {
+			payload.Properties.AutoScaleConfiguration.Bounds.Min = pointer.To(int64(v.(int)))
+		} else {
+			payload.Properties.AutoScaleConfiguration.Bounds.Min = nil
+		}
+	}
+
+	if d.HasChange("max_scale_unit") {
+		if v, ok := d.GetOk("max_scale_unit"); ok {
+			payload.Properties.AutoScaleConfiguration.Bounds.Max = pointer.To(int64(v.(int)))
+		} else {
+			payload.Properties.AutoScaleConfiguration.Bounds.Max = nil
+		}
+	}
+
+	if payload.Properties.AutoScaleConfiguration.Bounds.Min == nil && payload.Properties.AutoScaleConfiguration.Bounds.Max == nil {
+		payload.Properties.AutoScaleConfiguration = nil
 	}
 
 	if d.HasChange("tags") {
@@ -1766,10 +1822,20 @@ func expandVirtualNetworkGatewayAutoScaleConfiguration(d *pluginsdk.ResourceData
 	return result
 }
 
-func flattenVirtualNetworkGatewayAutoScaleConfiguration(input *virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration) (int64, int64) {
+func flattenVirtualNetworkGatewayAutoScaleConfiguration(input *virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration) (interface{}, interface{}) {
 	if input == nil || input.Bounds == nil {
-		return 0, 0
+		return nil, nil
 	}
 
-	return pointer.From(input.Bounds.Min), pointer.From(input.Bounds.Max)
+	var min interface{}
+	if input.Bounds.Min != nil {
+		min = int(pointer.From(input.Bounds.Min))
+	}
+
+	var max interface{}
+	if input.Bounds.Max != nil {
+		max = int(pointer.From(input.Bounds.Max))
+	}
+
+	return min, max
 }
