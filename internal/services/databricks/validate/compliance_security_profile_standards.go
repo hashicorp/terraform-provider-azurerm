@@ -11,7 +11,6 @@ const (
 func PossibleValuesForComplianceStandard() []string {
 	return []string{
 		string(ComplianceStandardHIPAA),
-		string(ComplianceStandardNONE),
 		string(ComplianceStandardPCIDSS),
 	}
 }
