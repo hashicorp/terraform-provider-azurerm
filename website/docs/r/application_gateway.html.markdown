@@ -186,7 +186,7 @@ The following arguments are supported:
 
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
-* `backend_settings` - (Optional) One or more `backend_settings` blocks as defined below.
+* `backend` - (Optional) One or more `backend` blocks as defined below.
 
 * `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
 
@@ -226,7 +226,7 @@ A `backend_address_pool` block supports the following:
 
 ---
 
-A `backend_settings` block supports the following:
+A `backend` block supports the following:
 
 * `name` - (Required) The name of the Backend Settings Collection.
 
@@ -731,7 +731,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
 
-* `backend_settings` - A list of `backend_settings` blocks as defined below.
+* `backend` - A list of `backend` blocks as defined below.
 
 * `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
 
@@ -779,7 +779,7 @@ A `backend_address_pool` block exports the following:
 
 ---
 
-A `backend_settings` block exports the following:
+A `backend` block exports the following:
 
 * `id` - The ID of the Backend Settings Configuration.
 

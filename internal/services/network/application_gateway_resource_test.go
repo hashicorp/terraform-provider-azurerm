@@ -7735,7 +7735,7 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  backend_settings_name          = "${azurerm_virtual_network.test.name}-besettings"
+  backend_name                   = "${azurerm_virtual_network.test.name}-besettings"
   probe_name                     = "${azurerm_virtual_network.test.name}-probe"
 
 }
@@ -7777,8 +7777,8 @@ resource "azurerm_application_gateway" "test" {
     protocol              = "Http"
   }
 
-  backend_settings {
-    name     = local.backend_settings_name
+  backend {
+    name     = local.backend_name
     port     = 8443
     protocol = "Tcp"
     timeout  = 30
@@ -7815,8 +7815,8 @@ locals {
   http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
   listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  backend_settings_name          = "${azurerm_virtual_network.test.name}-besettings"
-  second_backend_settings_name   = "${azurerm_virtual_network.test.name}-besettings2"
+  backend_name                   = "${azurerm_virtual_network.test.name}-besettings"
+  second_backend_name            = "${azurerm_virtual_network.test.name}-besettings2"
   trusted_root_cert_name         = "${azurerm_virtual_network.test.name}-trusted-root-cert"
   ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl-cert"
   probe_name                     = "${azurerm_virtual_network.test.name}-probe"
@@ -7880,8 +7880,8 @@ resource "azurerm_application_gateway" "test" {
     }
   }
 
-  backend_settings {
-    name                                = local.backend_settings_name
+  backend {
+    name                                = local.backend_name
     port                                = 8443
     protocol                            = "Tls"
     timeout                             = 60
@@ -7891,8 +7891,8 @@ resource "azurerm_application_gateway" "test" {
     probe_name                          = local.probe_name
   }
 
-  backend_settings {
-    name                                = local.second_backend_settings_name
+  backend {
+    name                                = local.second_backend_name
     port                                = 8443
     protocol                            = "Tcp"
     timeout                             = 30

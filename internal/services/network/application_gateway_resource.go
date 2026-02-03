@@ -310,7 +310,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Set: applicationGatewayBackendSettingsHash,
 			},
 
-			"backend_settings": {
+			"backend": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -1782,7 +1782,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	backendSettingsCollection, err := expandApplicationGatewayBackendSettings(d, id.ID())
 	if err != nil {
-		return fmt.Errorf("expanding `backend_settings`: %+v", err)
+		return fmt.Errorf("expanding `backend`: %+v", err)
 	}
 
 	probes, err := expandApplicationGatewayProbes(d)
@@ -2022,10 +2022,10 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties.BackendHTTPSettingsCollection = backendHTTPSettingsCollection
 	}
 
-	if d.HasChange("backend_settings") {
+	if d.HasChange("backend") {
 		backendSettingsCollection, err := expandApplicationGatewayBackendSettings(d, id.ID())
 		if err != nil {
-			return fmt.Errorf("expanding `backend_settings`: %+v", err)
+			return fmt.Errorf("expanding `backend`: %+v", err)
 		}
 
 		payload.Properties.BackendSettingsCollection = backendSettingsCollection
@@ -2184,10 +2184,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 			backendSettings, err := flattenApplicationGatewayBackendSettings(props.BackendSettingsCollection)
 			if err != nil {
-				return fmt.Errorf("flattening `backend_settings`: %+v", err)
+				return fmt.Errorf("flattening `backend`: %+v", err)
 			}
-			if setErr := d.Set("backend_settings", backendSettings); setErr != nil {
-				return fmt.Errorf("setting `backend_settings`: %+v", setErr)
+			if setErr := d.Set("backend", backendSettings); setErr != nil {
+				return fmt.Errorf("setting `backend`: %+v", setErr)
 			}
 
 			if setErr := d.Set("ssl_policy", flattenApplicationGatewaySslPolicy(props.SslPolicy)); setErr != nil {
@@ -2785,7 +2785,7 @@ func flattenApplicationGatewayConnectionDraining(input *applicationgateways.Appl
 
 func expandApplicationGatewayBackendSettings(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayBackendSettings, error) {
 	results := make([]applicationgateways.ApplicationGatewayBackendSettings, 0)
-	vs := d.Get("backend_settings").([]interface{})
+	vs := d.Get("backend").([]interface{})
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
