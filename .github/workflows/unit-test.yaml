@@ -64,6 +64,7 @@ jobs:
         env:
           DD_TEST_SESSION_NAME: go-test-helpers
           DD_LOG_LEVEL: debug
+          DD_TRACE_DEBUG: "true"
           DD_SERVICE: terraform-provider-azurerm
           DD_ENV: unit-test
           ORCHESTRION_TRACE: "1"
