@@ -661,7 +661,7 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"bgp_enabled"},
-			Deprecated:    "`enable_bgp` has been deprecated in favour of the `bgp_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "the `enable_bgp` property has been deprecated in favour of the `bgp_enabled` property and will be removed in v5.0 of the AzureRM Provider",
 		}
 
 		resource.Schema["bgp_enabled"] = &pluginsdk.Schema{

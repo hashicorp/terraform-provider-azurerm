@@ -1078,7 +1078,7 @@ func TestAccApplicationGateway_sslProfileDeprecated(t *testing.T) {
 			Config: r.sslProfile(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_cert_issuer_dn").HasValue("true"),
+				check.That(data.ResourceName).Key("ssl_profile.0.verify_client_cert_issuer_dn").HasValue("false"),
 				check.That(data.ResourceName).Key("ssl_profile.0.trusted_client_certificate_names.0").DoesNotExist(),
 				check.That(data.ResourceName).Key("http_listener.0.ssl_profile_name").Exists(),
 				check.That(data.ResourceName).Key("ssl_profile.0.ssl_policy.0.policy_type").HasValue("Predefined"),
