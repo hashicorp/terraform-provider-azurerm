@@ -6,8 +6,9 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"time"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
