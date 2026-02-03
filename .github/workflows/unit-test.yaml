@@ -61,8 +61,10 @@ jobs:
           -timeout=30m \
           $(go list ./helpers/...) # for fast feedback
         env:
-          DD_TEST_SESSION_NAME: "unit-test"
+          DD_TEST_SESSION_NAME: go-test-helpers
           DD_LOG_LEVEL: debug
+          DD_SERVICE: terraform-provider-azurerm
+          DD_ENV: unit-test
           # ORCHESTRION_LOG_LEVEL: debug
 
   save-artifacts-on-fail:
