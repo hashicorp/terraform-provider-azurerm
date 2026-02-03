@@ -52,6 +52,7 @@ jobs:
         with:
           languages: go
           api_key: ${{ secrets.DATADOG_API_KEY }}
+          service: terraform-provider-azurerm
 
       - name: Run tests
         run: |
