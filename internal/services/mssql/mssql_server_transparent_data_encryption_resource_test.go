@@ -477,7 +477,7 @@ resource "azurerm_key_vault_managed_hardware_security_module_key" "test2" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver-%[2]s"
+  name                         = "acctestsqlserver-%[3]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -497,5 +497,5 @@ resource "azurerm_mssql_server" "test" {
     ignore_changes = [transparent_data_encryption_key_vault_key_id]
   }
 }
-`, data.Locations.Primary, data.RandomStringOfLength(5))
+`, data.Locations.Primary, data.RandomStringOfLength(5), data.RandomInteger)
 }
