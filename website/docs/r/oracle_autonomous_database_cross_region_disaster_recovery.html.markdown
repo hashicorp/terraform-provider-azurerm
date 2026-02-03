@@ -14,21 +14,20 @@ A Cross Region Disaster Recovery Autonomous Database is an Autonomous Database w
 ## Example Usage
 
 ```hcl
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "eastus"
 }
 
 resource "azurerm_virtual_network" "example_vnet" {
-  name                = "exampleVnet"
+  name                = "example-vnet"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example_subnet" {
-  name                 = "exampleSubnet"
+  name                 = "example-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example_vnet.name
   address_prefixes     = ["10.0.1.0/24"]
@@ -36,8 +35,8 @@ resource "azurerm_subnet" "example_subnet" {
 
 
 resource "azurerm_oracle_autonomous_database" "primary" {
-  name                             = "examplePrimary"
-  display_name                     = "ExamplePrimary"
+  name                             = "example-primary"
+  display_name                     = "example-primary"
   resource_group_name              = azurerm_resource_group.example.name
   location                         = "eastus"
   compute_model                    = "ECPU"
@@ -59,22 +58,22 @@ resource "azurerm_oracle_autonomous_database" "primary" {
 }
 
 resource "azurerm_virtual_network" "dr_vnet" {
-  name                = "exampleDrVnet"
+  name                = "example-dr-vnet"
   location            = "westus"
   resource_group_name = azurerm_resource_group.example.name
   address_space       = ["10.1.0.0/16"]
 }
 
 resource "azurerm_subnet" "dr_subnet" {
-  name                 = "exampleDrSubnet"
+  name                 = "example-dr-subnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.dr_vnet.name
   address_prefixes     = ["10.1.1.0/24"]
 }
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "dr_example" {
-  name                                = "exampleDr"
-  display_name                        = "ExampleDR"
+  name                                = "example-dr"
+  display_name                        = "example-dr"
   location                            = "westus"
   resource_group_name                 = azurerm_resource_group.example.name
   source_autonomous_database_id       = azurerm_oracle_autonomous_database.primary.id

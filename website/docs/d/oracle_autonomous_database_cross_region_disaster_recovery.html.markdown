@@ -22,6 +22,7 @@ output "id" {
   value = data.azurerm_oracle_autonomous_database_cross_region_disaster_recovery.example.id
 }
 ```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -60,7 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 -> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
 
-* `customer_contacts` - A list of Customer's contact email addresses.
+* `customer_contacts` - A list of customer contact email addresses.
 
 * `data_storage_size_in_gb` - The quantity of data in the database in Gigabytes.
 

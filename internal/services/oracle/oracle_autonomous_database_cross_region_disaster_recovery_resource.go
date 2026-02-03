@@ -177,26 +177,27 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 				return fmt.Errorf("retrieving %s: %+v", sourceId, err)
 			}
 			if sourceDb.Model == nil {
-				return fmt.Errorf("retrieving %s: `Model` was nil", sourceId)
+				return fmt.Errorf("retrieving %s: `model` was nil", sourceId)
 			}
 			sourceLocation := location.Normalize(sourceDb.Model.Location)
-			if location.Normalize(model.Location) == location.Normalize(sourceLocation) {
+			normalizedLocation := location.Normalize(model.Location)
+			if normalizedLocation == sourceLocation {
 				return fmt.Errorf("disaster Recovery database must reside in a different region from the source database (source is '%s', target is '%s')", sourceLocation, model.Location)
 			}
 			subnetId, err := commonids.ParseSubnetID(model.SubnetId)
 			if err != nil {
 				return err
 			}
-			VnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
+			vnetId := commonids.NewVirtualNetworkID(subnetId.SubscriptionId, subnetId.ResourceGroupName, subnetId.VirtualNetworkName)
 
 			if sourceDb.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `Properties` was nil", sourceId)
+				return fmt.Errorf("retrieving %s: `properties` was nil", sourceId)
 			}
 			sourceProps := sourceDb.Model.Properties.AutonomousDatabaseBaseProperties()
 
 			param := autonomousdatabases.AutonomousDatabase{
 				Name:     pointer.To(model.Name),
-				Location: location.Normalize(model.Location),
+				Location: normalizedLocation,
 				Tags:     pointer.To(model.Tags),
 				Properties: &autonomousdatabases.AutonomousDatabaseCrossRegionDisasterRecoveryProperties{
 					Source:                         autonomousdatabases.SourceCrossRegionDisasterRecovery,
@@ -222,7 +223,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 					LicenseModel:                   sourceProps.LicenseModel,
 					NcharacterSet:                  sourceProps.NcharacterSet,
 					SubnetId:                       pointer.To(model.SubnetId),
-					VnetId:                         pointer.To(VnetId.ID()),
+					VnetId:                         pointer.To(vnetId.ID()),
 				},
 			}
 
