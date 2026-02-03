@@ -52,11 +52,11 @@ func TestAccMySqlFlexibleDatabase_list_by_resource_group(t *testing.T) {
 func (r MysqlFlexibleDatabaseResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_mysql_flexible_server" "list" {
-  provider = azurerm
+  provider         = azurerm
   include_resource = true
   config {
-	subscription_id     = "%s"
-	resource_group_name = "acctestRG-%d"
+    subscription_id     = "%s"
+    resource_group_name = "acctestRG-%d"
   }
 }
 
