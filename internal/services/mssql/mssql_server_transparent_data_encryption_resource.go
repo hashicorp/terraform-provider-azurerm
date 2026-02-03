@@ -242,8 +242,10 @@ func resourceMsSqlTransparentDataEncryptionRead(d *pluginsdk.ResourceData, meta 
 				}
 			}
 
-			if err := d.Set("managed_hsm_key_id", hsmKeyId); err != nil {
-				return fmt.Errorf("setting `managed_hsm_key_id`: %+v", err)
+			if !features.FivePointOh() {
+				if err := d.Set("managed_hsm_key_id", hsmKeyId); err != nil {
+					return fmt.Errorf("setting `managed_hsm_key_id`: %+v", err)
+				}
 			}
 
 			if err := d.Set("key_vault_key_id", keyVaultKeyId); err != nil {
