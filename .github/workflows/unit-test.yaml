@@ -46,7 +46,8 @@ jobs:
       - name: fmtcheck
         run: make fmtcheck
       - name: Run tests
-        run: go test -v -timeout=30s -parallel=20 -run='^Test[^A][^c][^c]' ./...
+        run: go test -v -timeout=30s -parallel=20 ./...
+
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}
