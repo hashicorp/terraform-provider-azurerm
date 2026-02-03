@@ -146,9 +146,15 @@ The following arguments are supported:
 
 * `ip_sec_replay_protection_enabled` - (Optional) Is IP Sec Replay Protection enabled? Defaults to `true`.
 
-* `max_scale_unit` - (Optional) The maximum scale unit for auto scaling of the Virtual Network Gateway. This is only supported for the `ErGwScale` SKU.
+* `max_scale_unit` - (Optional) The maximum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
 
-* `min_scale_unit` - (Optional) The minimum scale unit for auto scaling of the Virtual Network Gateway. This is only supported for the `ErGwScale` SKU.
+~> `max_scale_unit` is only supported for the `ErGwScale` SKU.
+
+* `min_scale_unit` - (Optional) The minimum scale unit for the Virtual Network Gateway, possible values are `1` through `40`. 
+
+~> `min_scale_unit` is only supported for the `ErGwScale` SKU.
+
+~> To configure a `fixed-size` gateway, set `min_scale_unit` and `max_scale_unit` to the same value. To enable `autoscaling`, set `min_scale_unit` to `2` or higher and `max_scale_unit` up to `40`. When `max_scale_unit` is set to `1`, `min_scale_unit` must also be set to `1`.
 
 * `policy_group` - (Optional) One or more `policy_group` blocks as defined below.
 
