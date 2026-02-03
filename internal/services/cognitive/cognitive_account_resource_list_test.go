@@ -6,6 +6,7 @@ package cognitive_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -49,11 +50,10 @@ func TestAccCognitiveAccount_list_basic(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQueryWithIncludeResource(),
+				Config: r.basicQueryWithIncludeResource(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength(listResourceAddress, 3),
-					// querycheck.ExpectResourceKnownValues() // How to check the primary_access_key and secondary_access_key is set here?
-					querycheck.ExpectResourceKnownValues(listResourceAddress, queryfilter.ByDisplayName(knownvalue.StringExact("aaa")), []querycheck.KnownValueCheck{
+					querycheck.ExpectResourceKnownValues(listResourceAddress, queryfilter.ByDisplayName(knownvalue.StringRegexp(regexp.MustCompile("acctestcogacclist-"))), []querycheck.KnownValueCheck{
 						{
 							Path:       tfjsonpath.New("primary_access_key"),
 							KnownValue: knownvalue.NotNull(),
@@ -108,30 +108,32 @@ resource "azurerm_cognitive_account" "test3" {
 
 func (r CognitiveAccountResource) basicQuery() string {
 	return `
-    list "azurerm_cognitive_account" "list" {
-      provider = azurerm
-      config {}
-    }
+list "azurerm_cognitive_account" "list" {
+  provider = azurerm
+  config {}
+}
     `
 }
 
 func (r CognitiveAccountResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-    list "azurerm_cognitive_account" "list" {
-      provider = azurerm
-      config {
-        resource_group_name = "acctestRG-cognitive-list-%[1]d"
-      }
-    }
+list "azurerm_cognitive_account" "list" {
+  provider = azurerm
+  config {
+    resource_group_name = "acctestRG-cognitive-list-%[1]d"
+  }
+}
     `, data.RandomInteger)
 }
 
-func (r CognitiveAccountResource) basicQueryWithIncludeResource() string {
-	return `
-    list "azurerm_cognitive_account" "list" {
-      provider = azurerm
-      config {}
-			include_resource = true
-    }
-    `
+func (r CognitiveAccountResource) basicQueryWithIncludeResource(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+list "azurerm_cognitive_account" "list" {
+  provider = azurerm
+  config {
+    resource_group_name = "acctestRG-cognitive-list-%[1]d"
+  }
+  include_resource = true
+}
+    `, data.RandomInteger)
 }

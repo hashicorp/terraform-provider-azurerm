@@ -65,8 +65,14 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 
 		results = resp.Items
 	}
-
+	ctxDeadline, ok := ctx.Deadline()
+	if !ok {
+		sdk.SetResponseErrorDiagnostic(stream, "obtaining ctxDeadline", "no deadline set on the context")
+		return
+	}
 	stream.Results = func(push func(list.ListResult) bool) {
+		ctx, cancel := context.WithTimeout(context.Background(), time.Until(ctxDeadline))
+		defer cancel()
 		for _, account := range results {
 
 			result := request.NewListResult(ctx)
@@ -81,15 +87,8 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 			}
 			rd.SetId(id.ID())
 
-			if err := func() error {
-				ctx, cancel := context.WithTimeout(context.Background(), time.Minute*5)
-				defer cancel()
-				if err := resourceCognitiveAccountFlatten(ctx, client, rd, id, &account, request.IncludeResource); err != nil {
-					sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureCognitiveAccountResourceName), err)
-					return err
-				}
-				return nil
-			}(); err != nil {
+			if err := resourceCognitiveAccountFlatten(ctx, client, rd, id, &account, request.IncludeResource); err != nil {
+				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureCognitiveAccountResourceName), err)
 				return
 			}
 

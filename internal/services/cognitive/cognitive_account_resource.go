@@ -689,7 +689,7 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			// lintignore:R001
 			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
-			localAuthEnabled := pointer.From(props.DisableLocalAuth)
+			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)
 
 			if localAuthEnabled && fetchAccessKeys {
