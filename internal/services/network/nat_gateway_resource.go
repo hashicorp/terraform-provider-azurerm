@@ -4,11 +4,8 @@
 package network
 
 import (
-	"context"
 	"fmt"
 	"log"
-	"slices"
-	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -53,30 +50,6 @@ func resourceNatGateway() *pluginsdk.Resource {
 		},
 
 		Schema: resourceNatGatewaySchema(),
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-			skuName := d.Get("sku_name").(string)
-
-			if skuName == string(natgateways.NatGatewaySkuNameStandardVTwo) {
-				zonesRaw := d.Get("zones").(*schema.Set).List()
-				if len(zonesRaw) == 0 {
-					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU")
-				}
-
-				zones := make([]string, 0, len(zonesRaw))
-				for _, z := range zonesRaw {
-					zones = append(zones, z.(string))
-				}
-
-				sort.Strings(zones)
-
-				if !slices.Equal(zones, []string{"1", "2", "3"}) {
-					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU")
-				}
-			}
-
-			return nil
-		}),
 	}
 }
 
@@ -107,7 +80,16 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 
 		"resource_guid": {
 			Type:     pluginsdk.TypeString,
