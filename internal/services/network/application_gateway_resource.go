@@ -181,9 +181,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			// lintignore:S016,S017,S023
 			"backend_http_settings": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				MinItems: 1,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"backend_http_settings", "backend"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -311,8 +312,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"backend": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"backend_http_settings", "backend"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -507,8 +509,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 			// lintignore:S016,S023
 			"http_listener": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"http_listener", "listener"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -623,8 +626,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"listener": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				AtLeastOneOf: []string{"http_listener", "listener"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -784,9 +788,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"request_routing_rule": {
-				Type:     pluginsdk.TypeSet,
-				Required: true,
-				MinItems: 1,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				MinItems:     1,
+				AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -872,6 +877,74 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"rewrite_rule_set_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"routing_rule": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
+						},
+
+						"backend_address_pool_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
+						},
+
+						"backend_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
+						},
+
+						"listener_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
+						},
+
+						"priority": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20000),
+						},
+
+						"rule_type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							// only basic is supported as Feb 2026
+							ValidateFunc: validation.StringInSlice([]string{
+								string(applicationgateways.ApplicationGatewayRequestRoutingRuleTypeBasic),
+							}, false),
+						},
+
+						"backend_address_pool_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"backend_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"listener_id": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
@@ -1770,6 +1843,11 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("expanding `listener`: %+v", err)
 	}
 
+	routingRules, err := expandApplicationGatewayRoutingRules(d, id.ID())
+	if err != nil {
+		return fmt.Errorf("expanding `routing_rule`: %+v", err)
+	}
+
 	rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
 	if err != nil {
 		return fmt.Errorf("expanding `rewrite_rule_set`: %v", err)
@@ -1811,6 +1889,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			PrivateLinkConfigurations:     expandApplicationGatewayPrivateLinkConfigurations(d),
 			Probes:                        probes,
 			RequestRoutingRules:           requestRoutingRules,
+			RoutingRules:                  routingRules,
 			RedirectConfigurations:        redirectConfigurations,
 			Sku:                           expandApplicationGatewaySku(d),
 			SslCertificates:               sslCertificates,
@@ -1918,6 +1997,14 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 			return fmt.Errorf("expanding `request_routing_rule`: %+v", err)
 		}
 		payload.Properties.RequestRoutingRules = requestRoutingRules
+	}
+
+	if d.HasChange("routing_rule") {
+		routingRules, err := expandApplicationGatewayRoutingRules(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `routing_rule`: %+v", err)
+		}
+		payload.Properties.RoutingRules = routingRules
 	}
 
 	if d.HasChange("url_path_map") {
@@ -2252,6 +2339,14 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 			}
 			if setErr := d.Set("request_routing_rule", requestRoutingRules); setErr != nil {
 				return fmt.Errorf("setting `request_routing_rule`: %+v", setErr)
+			}
+
+			routingRules, err := flattenApplicationGatewayRoutingRules(props.RoutingRules)
+			if err != nil {
+				return fmt.Errorf("flattening `routing_rule`: %+v", err)
+			}
+			if setErr := d.Set("routing_rule", routingRules); setErr != nil {
+				return fmt.Errorf("setting `routing_rule`: %+v", setErr)
 			}
 
 			redirectConfigurations, err := flattenApplicationGatewayRedirectConfigurations(props.RedirectConfigurations)
@@ -3953,6 +4048,105 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.A
 					}
 					output["rewrite_rule_set_name"] = rewriteId.Name
 					output["rewrite_rule_set_id"] = rewriteId.ID()
+				}
+			}
+
+			results = append(results, output)
+		}
+	}
+
+	return results, nil
+}
+
+func expandApplicationGatewayRoutingRules(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayRoutingRule, error) {
+	vs := d.Get("routing_rule").([]interface{})
+	results := make([]applicationgateways.ApplicationGatewayRoutingRule, 0)
+
+	for _, raw := range vs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		ruleType := v["rule_type"].(string)
+		listenerName := v["listener_name"].(string)
+		listenerID := fmt.Sprintf("%s/listeners/%s", gatewayID, listenerName)
+		backendAddressPoolName := v["backend_address_pool_name"].(string)
+		backendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, backendAddressPoolName)
+		backendName := v["backend_name"].(string)
+		backendSettingsID := fmt.Sprintf("%s/backendSettingsCollection/%s", gatewayID, backendName)
+		priority := int64(v["priority"].(int))
+
+		rule := applicationgateways.ApplicationGatewayRoutingRule{
+			Name: pointer.To(name),
+			Properties: &applicationgateways.ApplicationGatewayRoutingRulePropertiesFormat{
+				RuleType: pointer.To(applicationgateways.ApplicationGatewayRequestRoutingRuleType(ruleType)),
+				Listener: &applicationgateways.SubResource{
+					Id: pointer.To(listenerID),
+				},
+				BackendAddressPool: &applicationgateways.SubResource{
+					Id: pointer.To(backendAddressPoolID),
+				},
+				BackendSettings: &applicationgateways.SubResource{
+					Id: pointer.To(backendSettingsID),
+				},
+				Priority: priority,
+			},
+		}
+
+		results = append(results, rule)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayRoutingRules(input *[]applicationgateways.ApplicationGatewayRoutingRule) ([]interface{}, error) {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results, nil
+	}
+
+	for _, config := range *input {
+		if props := config.Properties; props != nil {
+			output := map[string]interface{}{
+				"rule_type": string(pointer.From(props.RuleType)),
+				"priority":  props.Priority,
+			}
+
+			if config.Id != nil {
+				output["id"] = *config.Id
+			}
+
+			if config.Name != nil {
+				output["name"] = *config.Name
+			}
+
+			if pool := props.BackendAddressPool; pool != nil {
+				if pool.Id != nil {
+					poolId, err := parse.BackendAddressPoolIDInsensitively(*pool.Id)
+					if err != nil {
+						return nil, err
+					}
+					output["backend_address_pool_name"] = poolId.Name
+					output["backend_address_pool_id"] = poolId.ID()
+				}
+			}
+
+			if settings := props.BackendSettings; settings != nil {
+				if settings.Id != nil {
+					segments := strings.Split(*settings.Id, "/")
+					if len(segments) > 0 {
+						output["backend_name"] = segments[len(segments)-1]
+						output["backend_id"] = *settings.Id
+					}
+				}
+			}
+
+			if listener := props.Listener; listener != nil {
+				if listener.Id != nil {
+					segments := strings.Split(*listener.Id, "/")
+					if len(segments) > 0 {
+						output["listener_name"] = segments[len(segments)-1]
+						output["listener_id"] = *listener.Id
+					}
 				}
 			}
 

@@ -124,71 +124,87 @@ The following arguments are supported:
 
 * `backend_address_pool` - (Required) One or more `backend_address_pool` blocks as defined below.
 
-* `backend_http_settings` - (Required) One or more `backend_http_settings` blocks as defined below.
-
 * `frontend_ip_configuration` - (Required) One or more `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - (Required) One or more `frontend_port` blocks as defined below.
 
 * `gateway_ip_configuration` - (Required) One or more `gateway_ip_configuration` blocks as defined below.
 
-* `http_listener` - (Required) One or more `http_listener` blocks as defined below.
-
-* `listener` - (Optional) One or more `listener` blocks as defined below.
-
-* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
-
 * `sku` - (Required) A `sku` block as defined below.
 
 ---
 
-* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
-
-* `global` - (Optional) A `global` block as defined below.
-
-* `identity` - (Optional) An `identity` block as defined below.
-
-* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
-
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
-
--> **Note:** Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
-
-* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
-
-* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
-
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
-
-* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
-
-* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
-
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
-
-* `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
-
-* `probe` - (Optional) One or more `probe` blocks as defined below.
-
-* `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
-
-* `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
-
-* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
-
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
-
-* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
 
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
 * `backend` - (Optional) One or more `backend` blocks as defined below.
 
+~> **Note:** At least one of `backend_http_settings` or `backend` must be specified.
+
+* `backend_http_settings` - (Optional) One or more `backend_http_settings` blocks as defined below.
+
+~> **Note:** At least one of `backend_http_settings` or `backend` must be specified.
+
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
+
+* `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
+
+* `global` - (Optional) A `global` block as defined below.
+
+* `http_listener` - (Optional) One or more `http_listener` blocks as defined below.
+
+~> **Note:** At least one of `http_listener` or `listener` must be specified.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `listener` - (Optional) One or more `listener` blocks as defined below.
+
+~> **Note:** At least one of `http_listener` or `listener` must be specified.
+
+* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
+
+* `probe` - (Optional) One or more `probe` blocks as defined below.
+
+* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
+
+* `request_routing_rule` - (Optional) One or more `request_routing_rule` blocks as defined below.
+
+~> **Note:** At least one of `request_routing_rule` or `routing_rule` must be specified.
+
 * `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
+
+* `routing_rule` - (Optional) One or more `routing_rule` blocks as defined below.
+
+~> **Note:** At least one of `request_routing_rule` or `routing_rule` must be specified.
+
+* `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
+
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+
+* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
+
+* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
+
+* `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
+
+* `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
+
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
+
+-> **Note:** Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
+
+---
 
 ---
 
@@ -484,6 +500,22 @@ A `request_routing_rule` block supports the following:
 
 ---
 
+A `routing_rule` block supports the following:
+
+* `name` - (Required) The Name of this Routing Rule.
+
+* `backend_address_pool_name` - (Required) The Name of the Backend Address Pool which should be used for this Routing Rule.
+
+* `backend_name` - (Required) The Name of the Backend Settings which should be used for this Routing Rule.
+
+* `listener_name` - (Required) The Name of the Listener which should be used for this Routing Rule.
+
+* `priority` - (Required) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+
+* `rule_type` - (Required) The Type of Routing that should be used for this Rule. The only possible value is `Basic`.
+
+---
+
 A `global` block supports the following:
 
 * `request_buffering_enabled` - (Required) Whether Application Gateway's Request buffer is enabled.
@@ -751,6 +783,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
 
+* `routing_rule` - A list of `routing_rule` blocks as defined below.
+
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 
 * `url_path_map` - A list of `url_path_map` blocks as defined below.
@@ -892,6 +926,18 @@ A `request_routing_rule` block exports the following:
 * `rewrite_rule_set_id` - The ID of the associated Rewrite Rule Set.
 
 * `url_path_map_id` - The ID of the associated URL Path Map.
+
+---
+
+A `routing_rule` block exports the following:
+
+* `backend_address_pool_id` - The ID of the associated Backend Address Pool.
+
+* `backend_id` - The ID of the associated Backend Settings.
+
+* `id` - The ID of the Routing Rule.
+
+* `listener_id` - The ID of the associated Listener.
 
 ---
 
