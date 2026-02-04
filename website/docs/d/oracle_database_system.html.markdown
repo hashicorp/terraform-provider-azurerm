@@ -96,7 +96,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `storage_volume_performance_mode` - The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information.
 
-* `time_zone` - The time zone of the Database system, e.g., UTC, to set the timeZone as UTC.
+* `time_zone_in_utc` - The time zone of the Database system, e.g., UTC, to set the timeZone as UTC.
 
 * `version` - The Oracle Database version of the Database system.
 

@@ -64,11 +64,14 @@ resource "azurerm_oracle_database_system" "example" {
   resource_group_name = azurerm_resource_group.example.name
   location            = "eastus"
   zones               = ["1"]
+  admin_password                   = "BEstrO0ng_#11"
   cpu_core_count      = 4
-  source              = "None"
+  compute_count                    = 2.0
+  compute_model                    = "ECPU"
   database_edition    = "StandardEdition"
   database_version    = "19.27.0.0"
   hostname            = "hostname"
+  license_model       = "LicenseIncluded"
   network_anchor_id   = azurerm_oracle_network_anchor.example.id
   resource_anchor_id  = azurerm_oracle_resource_anchor.example.id
   shape               = "VM.Standard.x86"
@@ -86,7 +89,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Database System should exist. Changing this forces a new Database system to be created.
 
-* `admin_password` - (Required) A strong password for SYS, SYSTEM, and PDB Admin.  Changing this forces a new Database system to be created.
+* `admin_password` - (Required) A strong password for SYS, SYSTEM, and PDB Admin. Changing this forces a new Database system to be created.
 
 * `compute_count` - (Required) The number of compute servers for the Database system. Changing this forces a new Database system to be created.
 
@@ -105,8 +108,6 @@ The following arguments are supported:
 * `resource_anchor_id` - (Required) The ID of the Azure Resource Anchor. Changing this forces a new Database system to be created.
 
 * `shape` - (Required) The shape of the Database system. The shape determines resources to allocate to the Database system. For virtual machine shapes, the number of CPU cores and memory. For bare metal and Exadata shapes, the number of CPU cores, storage, and memory. The only possible value is `VM.Standard.x86`. Changing this forces a new Database system to be created.
-
-* `source` - (Required) The source of the database: Use NONE for creating a new database. Possible value is  `None`. Changing this forces a new Database System to be created.
 
 * `ssh_public_keys` - (Required) The public key portion of one or more key pairs used for SSH access to the Database system. Changing this forces a new Database system to be created.
 
@@ -130,17 +131,17 @@ The following arguments are supported:
 
 * `pluggable_database_name` - (Optional) The name of the pluggable database. The name must begin with an alphabetic character and can contain a maximum of thirty alphanumeric characters. Special characters are not permitted. The pluggable database name should not be the same as the database name. Changing this forces a new Database system to be created.
 
-* `storage_volume_performance_mode` - (Optional) The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information. Changing this forces a new Database system to be created.
+* `storage_volume_performance_mode` - (Optional) The block storage volume performance level. Possible values are `Balanced` and `HighPerformance`. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information. Changing this forces a new Database system to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Database System.
 
-* `time_zone` - (Optional) The time zone of the Database system, e.g., UTC, to set the timeZone as UTC. Changing this forces a new Database System to be created.
+* `time_zone_in_utc` - (Optional) The time zone of the Database system, e.g., UTC, to set the timeZone as UTC. Changing this forces a new Database System to be created.
 
 ---
 
 A `database_system_options` block supports the following:
 
-* `storage_management` - (Optional) The storage option used in the Database system. ASM - Automatic storage management, LVM - Logical Volume management.
+* `storage_management` - (Optional) The storage option used in the Database system. Possible values are `ASM`, `LVM`.
 
 ---
 

@@ -2,6 +2,7 @@ package oracle
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -54,9 +55,9 @@ type DatabaseSystemResourceModel struct {
 	Domain                       string                       `tfschema:"domain"`
 	InitialDataStorageSizeInGb   int64                        `tfschema:"initial_data_storage_size_in_gb"`
 	NodeCount                    int64                        `tfschema:"node_count"`
-	PluggableDatabaseName        string                       `tfschema:"pluggable_database_name`
+	PluggableDatabaseName        string                       `tfschema:"pluggable_database_name"`
 	StorageVolumePerformanceMode string                       `tfschema:"storage_volume_performance_mode"`
-	TimeZone                     string                       `tfschema:"time_zone"`
+	TimeZoneInUtc                string                       `tfschema:"time_zone_in_utc"`
 }
 
 func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
@@ -101,7 +102,20 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForDbSystemDatabaseEditionType(), false),
 		},
-
+		"database_system_options": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"storage_management": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageManagementType(), false),
+					},
+				},
+			},
+		},
 		"database_version": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -134,13 +148,6 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(dbversions.PossibleValuesForBaseDbSystemShapes(), false),
 		},
 
-		"source": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForSource(), false),
-		},
-
 		"ssh_public_keys": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -162,20 +169,6 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew:     true,
 			ValidateFunc: validate.ClusterName,
 		},
-		"database_system_options": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"storage_management": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageManagementType(), false),
-					},
-				},
-			},
-		},
 		"disk_redundancy": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -193,11 +186,12 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DatabaseSystemName,
 		},
 		"domain": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C Customer can can add custom domain name otherwise a default domain name will be created from OCI side and assigned to the database systems.
-			Computed: true,
-			ForceNew: true,
+			// NOTE: O+C Customer can add custom domain name otherwise a default domain name will be created from OCI side and assigned to the database systems.
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"initial_data_storage_size_in_gb": {
 			Type:         pluginsdk.TypeInt,
@@ -208,7 +202,7 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 		"node_count": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
-			// NOTE: O+C Customer can the number of nodes for the database systems, otherwise OCI will assign certain number of nodes.
+			// NOTE: O+C Customer can choose the number of nodes for the database systems, otherwise OCI will assign certain number of nodes.
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.IntAtLeast(1),
@@ -228,7 +222,8 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringInSlice(dbsystems.PossibleValuesForStorageVolumePerformanceMode(), false),
 		},
 		"tags": commonschema.Tags(),
-		"time_zone": {
+
+		"time_zone_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// NOTE: O+C Customer can choose specific timezone if not OCI will assign to database systems.
@@ -243,7 +238,7 @@ func (DatabaseSystemResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (DatabaseSystemResource) ModelObject() interface{} {
-	return &DatabaseSystemResource{}
+	return &DatabaseSystemResourceModel{}
 }
 
 func (DatabaseSystemResource) ResourceType() string {
@@ -288,7 +283,7 @@ func (r DatabaseSystemResource) Create() sdk.ResourceFunc {
 					Hostname:         model.Hostname,
 					NetworkAnchorId:  model.NetworkAnchorId,
 					ResourceAnchorId: model.ResourceAnchorId,
-					Source:           dbsystems.DbSystemSourceType(model.Source),
+					Source:           dbsystems.DbSystemSourceTypeNone,
 					Shape:            model.Shape,
 					LicenseModel:     pointer.ToEnum[dbsystems.LicenseModel](model.LicenseModel),
 					SshPublicKeys:    model.SshPublicKeys,
@@ -325,8 +320,8 @@ func (r DatabaseSystemResource) Create() sdk.ResourceFunc {
 			if model.StorageVolumePerformanceMode != "" {
 				param.Properties.StorageVolumePerformanceMode = pointer.ToEnum[dbsystems.StorageVolumePerformanceMode](model.StorageVolumePerformanceMode)
 			}
-			if model.TimeZone != "" {
-				param.Properties.TimeZone = pointer.To(model.TimeZone)
+			if model.TimeZoneInUtc != "" {
+				param.Properties.TimeZone = pointer.To(model.TimeZoneInUtc)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
@@ -435,7 +430,7 @@ func (DatabaseSystemResource) Read() sdk.ResourceFunc {
 					state.NodeCount = pointer.From(props.NodeCount)
 					state.PluggableDatabaseName = pointer.From(props.PdbName)
 					state.StorageVolumePerformanceMode = pointer.FromEnum(props.StorageVolumePerformanceMode)
-					state.TimeZone = pointer.From(props.TimeZone)
+					state.TimeZoneInUtc = pointer.From(props.TimeZone)
 				}
 			}
 
@@ -484,12 +479,7 @@ func customizeDbSystemDiff(diff *schema.ResourceDiff, v interface{}) error {
 
 	if hasComputeCount {
 		if computeCount.(int) > 0 && !hasComputeModel {
-			return fmt.Errorf("compute_model is required when compute_count is set")
-		}
-	}
-	if _, hasCpuCoreCount := diff.GetOk("cpu_core_count"); hasCpuCoreCount {
-		if hasComputeModel {
-			return fmt.Errorf("it is an error to specify compute_model when cpu_core_count is set")
+			return errors.New("`compute_model` is required when `compute_count` is set")
 		}
 	}
 	return nil

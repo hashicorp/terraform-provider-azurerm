@@ -53,7 +53,7 @@ type DatabaseSystemDataModel struct {
 	Source                       string                       `tfschema:"source"`
 	SshPublicKeys                []string                     `tfschema:"ssh_public_keys"`
 	StorageVolumePerformanceMode string                       `tfschema:"storage_volume_performance_mode"`
-	TimeZone                     string                       `tfschema:"time_zone"`
+	TimeZoneInUtc                string                       `tfschema:"time_zone_in_utc"`
 	Version                      string                       `tfschema:"version"`
 }
 
@@ -77,17 +77,17 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"location": commonschema.LocationComputed(),
 
 		// DatabaseSystemProperties
+		"cluster_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"compute_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
 		"compute_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"cluster_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -171,13 +171,13 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"node_count": {
-			Type:     pluginsdk.TypeInt,
+		"network_anchor_id": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"network_anchor_id": {
-			Type:     pluginsdk.TypeString,
+		"node_count": {
+			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
@@ -214,6 +214,11 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"source": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"ssh_public_keys": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -222,17 +227,12 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"source": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"storage_volume_performance_mode": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_zone": {
+		"time_zone_in_utc_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -315,7 +315,7 @@ func (d DatabaseSystemDataSource) Read() sdk.ResourceFunc {
 					state.Source = string(databaseSystemProps.Source)
 					state.SshPublicKeys = databaseSystemProps.SshPublicKeys
 					state.StorageVolumePerformanceMode = pointer.FromEnum(databaseSystemProps.StorageVolumePerformanceMode)
-					state.TimeZone = pointer.From(databaseSystemProps.TimeZone)
+					state.TimeZoneInUtc = pointer.From(databaseSystemProps.TimeZone)
 					state.Version = pointer.From(databaseSystemProps.Version)
 				}
 			}
