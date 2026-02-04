@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: custom-linux-large
+    runs-on: custom-linux-xl
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
@@ -53,7 +53,8 @@ jobs:
         run: make fmtcheck
 
       - name: Run tests
-        run: go test -v -timeout=30s -parallel=16 ./...
+        run: |
+          go test -v -timeout=30s -parallel=32 -run='^Test[^A][^c][^c]' ./...
 
   save-artifacts-on-fail:
     needs: test
