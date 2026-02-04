@@ -42,7 +42,7 @@ The following attributes are exported:
 
 * `endpoint` - The endpoint for the Event Grid Partner Namespace.
 
-* `inbound_ip_rule` - One or more `inbound_ip_rule` blocks as defined below.
+* `inbound_ip_rule` - A list of `inbound_ip_rule` blocks as defined below.
 
 * `local_authentication_enabled` - Whether local authentication methods are enabled for the Event Grid Partner Namespace.
 

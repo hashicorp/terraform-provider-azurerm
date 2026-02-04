@@ -41,9 +41,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `description` - Description of the resource.
 
-* `encryption` - An `encryption` block as defined below.
+* `encryption` - A list of `encryption` blocks as defined below.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `location` - The Azure Region where the Load Test exists.
 
@@ -65,7 +65,7 @@ A `identity` block exports the following:
 
 A `encryption` block exports the following:
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `key_url` - The URI specifying the Key vault and key to be used to encrypt data in this resource.
 

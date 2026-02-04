@@ -475,7 +475,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `source_control` - A `source_control` block as defined below, which contains the Source Control information when `scm_type` is set to `LocalGit`.
 
-* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+* `site_credential` - A list of `site_credential` blocks as defined below, which contains the site-level credentials used to publish to this App Service.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 

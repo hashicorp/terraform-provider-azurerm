@@ -29,7 +29,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `autonomous_database_backups` - An `autonomous_database_backups` block as defined below.
+* `autonomous_database_backups` - A list of `autonomous_database_backups` blocks as defined below.
 
 ---
 

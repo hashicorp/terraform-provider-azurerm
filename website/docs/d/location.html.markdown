@@ -30,7 +30,7 @@ data "azurerm_location" "example" {
 
 * `display_name` - The display name of the location.
 
-* `zone_mappings` - A `zone_mappings` block as defined below.
+* `zone_mappings` - A list of `zone_mappings` blocks as defined below.
 
 ---
 

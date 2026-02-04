@@ -86,7 +86,7 @@ The `frontend_ip_configuration` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The Load Balancer ID.
-* `frontend_ip_configuration` - A `frontend_ip_configuration` block as documented below.
+* `frontend_ip_configuration` - One or more `frontend_ip_configuration` blocks as defined below.
 * `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 * `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 

@@ -138,7 +138,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `guid` - The guid of this Sentinel Threat Intelligence Indicator.
 
-* `parsed_pattern` - A `parsed_pattern` block as defined below.
+* `parsed_pattern` - A list of `parsed_pattern` blocks as defined below.
 
 ---
 

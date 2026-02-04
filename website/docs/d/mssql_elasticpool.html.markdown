@@ -50,7 +50,7 @@ output "elasticpool_id" {
 
 * `per_db_max_capacity` - The maximum capacity any one database can consume.
 
-* `sku` - A `sku` block as defined below.
+* `sku` - A list of `sku` blocks as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
 

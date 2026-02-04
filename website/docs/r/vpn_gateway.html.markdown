@@ -97,7 +97,7 @@ In addition to the arguments above, the following attributes are exported:
 
 * `bgp_settings` - A `bgp_settings` block as defined below.
 
-* `ip_configuration` - An `ip_configuration` block as defined below.
+* `ip_configuration` - A list of `ip_configuration` blocks as defined below.
 
 ---
 

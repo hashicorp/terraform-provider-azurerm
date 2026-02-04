@@ -59,7 +59,7 @@ The following attributes are exported:
 
 * `workflow_outbound_ip_addresses` - The list of outgoing IP addresses of workflow.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 ---
 

@@ -41,7 +41,7 @@ output "app_service_id" {
 
 * `app_settings` - A key-value pair of App Settings for the App Service.
 
-* `connection_string` - An `connection_string` block as defined below.
+* `connection_string` - A list of `connection_string` blocks as defined below.
 
 * `client_affinity_enabled` - Does the App Service send session affinity cookies, which route client requests in the same session to the same instance?
 
@@ -53,7 +53,7 @@ output "app_service_id" {
 
 * `client_cert_enabled` - Does the App Service require client certificates for incoming requests?
 
-* `site_config` - A `site_config` block as defined below.
+* `site_config` - A list of `site_config` blocks as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
 
@@ -67,7 +67,7 @@ output "app_service_id" {
 
 * `possible_outbound_ip_address_list` - A list of outbound IP addresses - such as `["52.23.25.3", "52.143.43.12", "52.143.43.17"]` - not all of which are necessarily in use. Superset of `outbound_ip_address_list`.
 
-* `source_control` - A `source_control` block as defined below.
+* `source_control` - A list of `source_control` blocks as defined below.
 
 ---
 

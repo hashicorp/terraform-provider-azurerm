@@ -38,7 +38,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cdn_frontdoor_profile_id` - Specifies the ID of the Front Door Profile within which this Front Door Secret exists.
 
-* `secret` - A `secret` block as defined below.
+* `secret` - A list of `secret` blocks as defined below.
 
 ---
 

@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Application Volume Group exists.
 
-* `volume` - A `volume` block as defined below.
+* `volume` - A list of `volume` blocks as defined below.
 
 ---
 
@@ -80,7 +80,7 @@ A `volume` block exports the following:
 
 * `data_protection_snapshot_policy` - A `data_protection_snapshot_policy` block as defined below.
 
-* `export_policy_rule` - A `export_policy_rule` block as defined below.
+* `export_policy_rule` - An `export_policy_rule` block as defined below.
 
 * `mount_ip_addresses` - A `mount_ip_addresses` block as defined below.
 

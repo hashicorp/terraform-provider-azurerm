@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `description` - A text description of the Key Vault Managed Hardware Security Module Role Definition.
 
-* `permission` - A `permission` block as defined below.
+* `permission` - A list of `permission` blocks as defined below.
 
 * `resource_manager_id` - The ID of the Key Vault Managed Hardware Security Module Role Definition resource without base url.
 

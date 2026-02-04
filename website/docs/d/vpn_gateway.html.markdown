@@ -37,9 +37,9 @@ output "azurerm_vpn_gateway_id" {
 
 * `virtual_hub_id` -  The ID of the Virtual Hub within which this VPN Gateway has been created.
 
-* `bgp_settings` - A `bgp_settings` block as defined below.
+* `bgp_settings` - A list of `bgp_settings` blocks as defined below.
 
-* `ip_configuration` - An `ip_configuration` block as defined below.
+* `ip_configuration` - A list of `ip_configuration` blocks as defined below.
 
 * `scale_unit` -  The Scale Unit of this VPN Gateway.
 
@@ -63,7 +63,7 @@ A `instance_bgp_peering_address` block exports the following:
 
 * `custom_ips` -  A list of custom BGP peering addresses to assigned to this instance.
 
-* `bgp_settings` - A `bgp_settings` block as defined below.
+* `bgp_settings` - A list of `bgp_settings` blocks as defined below.
 
 ---
 

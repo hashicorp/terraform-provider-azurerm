@@ -42,7 +42,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `type` - The type of the Cosmos DB SQL Role Definition.
 
-* `permissions` - A `permissions` block as defined below.
+* `permissions` - A list of `permissions` blocks as defined below.
 
 ---
 

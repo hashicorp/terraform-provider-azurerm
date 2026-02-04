@@ -36,21 +36,21 @@ output "rule_id" {
 
 * `data_collection_endpoint_id` - The resource ID of the Data Collection Endpoint that this rule can be used with.
 
-* `data_flow` - One or more `data_flow` blocks as defined below.
+* `data_flow` - A list of `data_flow` blocks as defined below.
 
-* `destinations` - A `destinations` block as defined below.
+* `destinations` - A list of `destinations` blocks as defined below.
 
 * `location` - The Azure Region where the Data Collection Rule should exist. Changing this forces a new Data Collection Rule to be created.
 
-* `data_sources` - A `data_sources` block as defined below. This property is optional and can be omitted if the rule is meant to be used via direct calls to the provisioned endpoint.
+* `data_sources` - A list of `data_sources` blocks as defined below. This property is optional and can be omitted if the rule is meant to be used via direct calls to the provisioned endpoint.
 
 * `description` - The description of the Data Collection Rule.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `kind` - The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`,and `AgentDirectToStore`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
-* `stream_declaration` - A `stream_declaration` block as defined below.
+* `stream_declaration` - A list of `stream_declaration` blocks as defined below.
  
 * `tags` - A mapping of tags which should be assigned to the Data Collection Rule.
 
@@ -116,7 +116,7 @@ A `data_sources` block exports the following:
 
 A `destinations` block exports the following:
 
-* `azure_monitor_metrics` - A `azure_monitor_metrics` block as defined above.
+* `azure_monitor_metrics` - An `azure_monitor_metrics` block as defined above.
 
 * `event_hub` - One or more `event_hub` blocks as defined below.
 

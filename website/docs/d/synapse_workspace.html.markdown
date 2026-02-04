@@ -43,7 +43,7 @@ the following Attributes are exported:
 
 * `tags` - A mapping of tags assigned to the resource.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Synapse Workspace.
+* `identity` - A list of `identity` blocks as defined below, which contains the Managed Service Identity information for this Synapse Workspace.
 
 ---
 

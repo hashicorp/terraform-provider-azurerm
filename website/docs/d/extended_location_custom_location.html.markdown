@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `host_resource_id` - The host resource ID.
 
-* `authentication` - An `authentication` block as defined below.
+* `authentication` - A list of `authentication` blocks as defined below.
 
 * `display_name` - The display name of the Custom Location.
 

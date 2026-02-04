@@ -32,7 +32,7 @@ output "first_available_subscription_display_name" {
 
 ## Attributes Reference
 
-* `subscriptions` - One or more `subscription` blocks as defined below.
+* `subscriptions` - A list of `subscription` blocks as defined below.
 
 The `subscription` block contains:
 

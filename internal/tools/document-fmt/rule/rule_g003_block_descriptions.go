@@ -136,6 +136,17 @@ func (r G003) Run(d *data.TerraformNodeData, fix bool) []error {
 
 			if hasSchemaInfo && schemaProp.IsBlock {
 				// Use schema to determine singular vs plural
+				//
+				// Quantifier Logic:
+				// - MaxItems == 1: Single block, use "A" or "An" (based on vowel) + "block"
+				// - MaxItems != 1 (multiple allowed):
+				//   - MinItems >= 1: Required block(s), use "One or more" + "blocks"
+				//   - MinItems == 0: Optional block(s), use "A list of" + "blocks"
+				//
+				// The distinction between "One or more" and "A list of" reflects whether
+				// at least one block is required (MinItems >= 1) or if zero blocks is valid (MinItems == 0).
+				// Note: The (Required)/(Optional) prefix already indicates this, but the quantifier
+				// provides additional clarity in the description text itself.
 				if schemaProp.MaxItems == 1 {
 					// Single block: "A" or "An"
 					firstChar := strings.ToLower(string(blockName[0]))

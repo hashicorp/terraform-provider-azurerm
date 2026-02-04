@@ -776,7 +776,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_addresses` - A comma separated list of possible outbound IP addresses as a string. For example `52.23.25.3,52.143.43.12,52.143.43.17`. This is a superset of `outbound_ip_addresses`. For example `["52.23.25.3", "52.143.43.12","52.143.43.17"]`.
 
-* `site_credential` - A `site_credential` block as defined below.
+* `site_credential` - A list of `site_credential` blocks as defined below.
 
 ---
 

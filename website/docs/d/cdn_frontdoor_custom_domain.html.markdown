@@ -42,7 +42,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `host_name` - The host name of the domain.
 
-* `tls` - A `tls` block as defined below.
+* `tls` - A list of `tls` blocks as defined below.
 
 * `validation_token` - The challenge used for DNS TXT record or file based validation.
 

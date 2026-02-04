@@ -101,7 +101,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `earliest_restore_time` - The earliest restore point time (ISO8601 format) for the Azure Cosmos DB for PostgreSQL Cluster.
 
-* `servers` - A `servers` block as defined below.
+* `servers` - A list of `servers` blocks as defined below.
 
 ---
 

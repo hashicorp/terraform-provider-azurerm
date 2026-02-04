@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cloud_id` - An immutable UUID for the Azure Stack HCI Cluster.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `location` - The Azure Region where the Azure Stack HCI Cluster exists.
 

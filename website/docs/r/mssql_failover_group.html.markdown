@@ -110,7 +110,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Failover Group.
 
-* `partner_server` - A `partner_server` block as defined below.
+* `partner_server` - One or more `partner_server` blocks as defined below.
 
 ---
 

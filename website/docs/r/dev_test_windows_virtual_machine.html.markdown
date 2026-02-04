@@ -131,7 +131,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the Virtual Machine.
 
-* `inbound_nat_rule` - One or more `inbound_nat_rule` blocks as defined below.
+* `inbound_nat_rule` - A list of `inbound_nat_rule` blocks as defined below.
 
 * `unique_identifier` - The unique immutable identifier of the Virtual Machine.
 

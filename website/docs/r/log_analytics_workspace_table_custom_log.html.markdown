@@ -84,7 +84,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `solutions` - A list of solutions associated with the table.
 
-* `standard_column` - One or more `standard_column` blocks as defined below.
+* `standard_column` - A list of `standard_column` blocks as defined below.
 
 ---
 

@@ -34,7 +34,7 @@ output "name" {
 
 ## Attributes Reference
 
-* `configs` - A `configs` block as defined below.
+* `configs` - A list of `configs` blocks as defined below.
 
 ---
 

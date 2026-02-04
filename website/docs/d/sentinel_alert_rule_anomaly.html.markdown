@@ -68,7 +68,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `frequency` - The frequency the Anomaly Alert Rule will be run.
 
-* `required_data_connector` - A `required_data_connector` block as defined below.
+* `required_data_connector` - A list of `required_data_connector` blocks as defined below.
 
 * `settings_definition_id` - The ID of the anomaly settings definition Id.
 

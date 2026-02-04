@@ -39,13 +39,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `active_directory_fqdn` - Specifies the AD fully qualified display name.
 
-* `agent` - A `agent` block as defined below.
+* `agent` - A list of `agent` blocks as defined below.
 
 * `agent_version` - The Azure Arc machine agent full version.
 
 * `client_public_key` - Public Key that the client provides to be used during initial resource onboarding.
 
-* `cloud_metadata` - A `cloud_metadata` block as defined below.
+* `cloud_metadata` - A list of `cloud_metadata` blocks as defined below.
 
 * `detected_properties` - A `detected_properties` block as defined below.
 
@@ -55,15 +55,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `domain_name` - Specifies the Windows domain name.
 
-* `error_details` - A `error_details` block as defined below.
+* `error_details` - An `error_details` block as defined below.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `last_status_change_time` - The time of the last status change.
 
 * `location` - The Azure Region where the Azure Arc machine exists.
 
-* `location_data` - A `location_data` block as defined below.
+* `location_data` - A list of `location_data` blocks as defined below.
 
 * `machine_fqdn` - Specifies the Azure Arc machine fully qualified display name.
 
@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `os_name` - The Operating System running on the Azure Arc machine.
 
-* `os_profile` - A `os_profile` block as defined below.
+* `os_profile` - A list of `os_profile` blocks as defined below.
 
 * `os_sku` - Specifies the Operating System product SKU.
 
@@ -83,7 +83,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_link_scope_resource_id` - The resource id of the parent cluster (Azure HCI) this machine is assigned to, if any.
 
-* `service_status` - A `service_status` block as defined below.
+* `service_status` - A list of `service_status` blocks as defined below.
 
 * `status` - The status of the Azure Arc machine agent.
 
@@ -97,9 +97,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `agent` block exports the following:
 
-* `extensions_allow_list` - A `extensions_allow_list` block as defined below.
+* `extensions_allow_list` - An `extensions_allow_list` block as defined below.
 
-* `extensions_block_list` - A `extensions_block_list` block as defined below.
+* `extensions_block_list` - An `extensions_block_list` block as defined below.
 
 * `extensions_enabled` - Specifies whether the extension service is enabled or disabled.
 
@@ -121,7 +121,7 @@ A `cloud_metadata` block exports the following:
 
 A `error_details` block exports the following:
 
-* `additional_info` - A `additional_info` block as defined above.
+* `additional_info` - An `additional_info` block as defined above.
 
 * `code` - The error code.
 
@@ -211,7 +211,7 @@ A `patch` block exports the following:
 
 A `service_status` block exports the following:
 
-* `extension_service` - A `extension_service` block as defined above.
+* `extension_service` - An `extension_service` block as defined above.
 
 * `guest_configuration_service` - A `guest_configuration_service` block as defined above.
 

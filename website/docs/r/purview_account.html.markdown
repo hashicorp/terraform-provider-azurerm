@@ -83,9 +83,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `scan_endpoint` - Scan endpoint.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
 
-* `managed_resources` - A `managed_resources` block as defined below.
+* `managed_resources` - A list of `managed_resources` blocks as defined below.
 
 ---
 

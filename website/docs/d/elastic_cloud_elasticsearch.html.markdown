@@ -58,7 +58,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which this Elasticsearch exists.
 
-* `logs` - A `logs` block as defined below.
+* `logs` - A list of `logs` blocks as defined below.
 
 * `monitoring_enabled` - Specifies if monitoring is enabled on this Elasticsearch or not.
 

@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of this Role Assignments data source.
 
-* `role_assignments` - A `role_assignments` block as defined below.
+* `role_assignments` - A list of `role_assignments` blocks as defined below.
 
 ---
 

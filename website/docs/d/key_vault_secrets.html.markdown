@@ -39,7 +39,7 @@ In addition to the Argument listed above - the following Attributes are exported
 
 * `names` - List containing names of secrets that exist in this Key Vault.
 
-* `secrets` - One or more `secrets` blocks as defined below.
+* `secrets` - A list of `secrets` blocks as defined below.
 
 ---
 

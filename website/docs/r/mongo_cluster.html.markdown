@@ -153,7 +153,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the MongoDB Cluster.
 
-* `connection_strings` - One or more `connection_strings` blocks as defined below.
+* `connection_strings` - A list of `connection_strings` blocks as defined below.
 
 ---
 

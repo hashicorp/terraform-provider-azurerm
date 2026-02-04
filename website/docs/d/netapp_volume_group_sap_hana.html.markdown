@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Application Volume Group exists.
 
-* `volume` - A `volume` block as defined below.
+* `volume` - A list of `volume` blocks as defined below.
 
 ---
 
@@ -84,7 +84,7 @@ A `volume` block exports the following:
 
 * `encryption_key_source` - The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys.
 
-* `export_policy_rule` - A `export_policy_rule` block as defined below.
+* `export_policy_rule` - An `export_policy_rule` block as defined below.
 
 * `key_vault_private_endpoint_id` - The Private Endpoint ID for Key Vault, which is required when using customer-managed keys.
 

@@ -34,9 +34,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Nginx Configuration.
 
-* `config_file` - A `config_file` block as defined below.
+* `config_file` - A list of `config_file` blocks as defined below.
 
-* `protected_file` - A `protected_file` block as defined below.
+* `protected_file` - A list of `protected_file` blocks as defined below.
 
 * `package_data` - The package data for this configuration.
 

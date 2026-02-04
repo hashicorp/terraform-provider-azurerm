@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Advisor Recommendations.
 
-* `recommendations` - One or more `recommendations` blocks as defined below.
+* `recommendations` - A list of `recommendations` blocks as defined below.
 
 ---
 

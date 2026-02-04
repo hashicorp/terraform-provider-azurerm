@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `id` - The SQL Managed Instance ID.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `license_type` - What type of license the SQL Managed Instance uses.
 

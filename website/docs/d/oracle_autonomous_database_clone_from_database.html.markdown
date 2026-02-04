@@ -91,7 +91,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `location` - The Azure Region where the autonomous database cloned from database exists.
 
-* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below.
+* `long_term_backup_schedule` - A list of `long_term_backup_schedule` blocks as defined below.
 
 * `memory_per_oracle_compute_unit_in_gb` - The amount of memory in gigabytes per ECPU or OCPU.
 

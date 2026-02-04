@@ -33,17 +33,17 @@ output "action_group_id" {
 * `id` - The ID of the Action Group.
 * `short_name` - The short name of the action group.
 * `enabled` - Whether this action group is enabled.
-* `arm_role_receiver` - One or more `arm_role_receiver` blocks as defined below.
-* `automation_runbook_receiver` - One or more `automation_runbook_receiver` blocks as defined below.
-* `azure_app_push_receiver` - One or more `azure_app_push_receiver` blocks as defined below.
-* `azure_function_receiver` - One or more `azure_function_receiver` blocks as defined below.
-* `email_receiver` - One or more `email_receiver` blocks as defined below.
-* `event_hub_receiver` - One or more `event_hub_receiver` blocks as defined below.
-* `itsm_receiver` - One or more `itsm_receiver` blocks as defined below.
-* `logic_app_receiver` - One or more `logic_app_receiver` blocks as defined below.
-* `sms_receiver` - One or more `sms_receiver` blocks as defined below.
-* `webhook_receiver` - One or more `webhook_receiver` blocks as defined below.
-* `voice_receiver` - One or more `voice_receiver` blocks as defined below.
+* `arm_role_receiver` - A list of `arm_role_receiver` blocks as defined below.
+* `automation_runbook_receiver` - A list of `automation_runbook_receiver` blocks as defined below.
+* `azure_app_push_receiver` - A list of `azure_app_push_receiver` blocks as defined below.
+* `azure_function_receiver` - A list of `azure_function_receiver` blocks as defined below.
+* `email_receiver` - A list of `email_receiver` blocks as defined below.
+* `event_hub_receiver` - A list of `event_hub_receiver` blocks as defined below.
+* `itsm_receiver` - A list of `itsm_receiver` blocks as defined below.
+* `logic_app_receiver` - A list of `logic_app_receiver` blocks as defined below.
+* `sms_receiver` - A list of `sms_receiver` blocks as defined below.
+* `webhook_receiver` - A list of `webhook_receiver` blocks as defined below.
+* `voice_receiver` - A list of `voice_receiver` blocks as defined below.
 
 ---
 

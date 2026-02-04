@@ -691,9 +691,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_address_pool` - A list of `backend_address_pool` blocks as defined below.
 
-* `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
+* `backend_http_settings` - One or more `backend_http_settings` blocks as defined below.
 
-* `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
+* `frontend_ip_configuration` - One or more `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - A list of `frontend_port` blocks as defined below.
 
@@ -705,9 +705,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
 
-* `probe` - A `probe` block as defined below.
+* `probe` - A list of `probe` blocks as defined below.
 
-* `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
+* `request_routing_rule` - One or more `request_routing_rule` blocks as defined below.
 
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 

@@ -43,11 +43,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Sentinel.
 
-* `nrt_template` - A `nrt_template` block as defined below. This only applies to Sentinel NRT Alert Rule Template.
+* `nrt_template` - A list of `nrt_template` blocks as defined below. This only applies to Sentinel NRT Alert Rule Template.
 
-* `security_incident_template` - A `security_incident_template` block as defined below. This only applies to Sentinel MS Security Incident Alert Rule Template.
+* `security_incident_template` - A list of `security_incident_template` blocks as defined below. This only applies to Sentinel MS Security Incident Alert Rule Template.
 
-* `scheduled_template` - A `scheduled_template` block as defined below. This only applies to Sentinel Scheduled Alert Rule Template.
+* `scheduled_template` - A list of `scheduled_template` blocks as defined below. This only applies to Sentinel Scheduled Alert Rule Template.
 
 ---
 

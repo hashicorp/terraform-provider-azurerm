@@ -41,11 +41,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `databases` - A set of database names in the Failover Group.
 
-* `partner_server` - A `partner_server` block as defined below.
+* `partner_server` - A list of `partner_server` blocks as defined below.
 
 * `readonly_endpoint_failover_policy_enabled` - Whether failover is enabled for the readonly endpoint.
 
-* `read_write_endpoint_failover_policy` - A `read_write_endpoint_failover_policy` block as defined below.
+* `read_write_endpoint_failover_policy` - A list of `read_write_endpoint_failover_policy` blocks as defined below.
  
 * `tags` - A mapping of tags which are assigned to the resource.
 

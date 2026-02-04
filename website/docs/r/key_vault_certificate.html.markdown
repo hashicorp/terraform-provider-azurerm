@@ -354,7 +354,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
 * `certificate_data_base64` - The Base64 encoded Key Vault Certificate data.
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
-* `certificate_attribute` - A `certificate_attribute` block as defined below.
+* `certificate_attribute` - A list of `certificate_attribute` blocks as defined below.
  
 * `resource_manager_id` - The (Versioned) ID for this Key Vault Certificate. This property points to a specific version of a Key Vault Certificate, as such using this won't auto-rotate values if used in other Azure Services.
 

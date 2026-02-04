@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Network Manager.
 
-* `cross_tenant_scopes` - One or more `cross_tenant_scopes` blocks as defined below.
+* `cross_tenant_scopes` - A list of `cross_tenant_scopes` blocks as defined below.
 
 ---
 

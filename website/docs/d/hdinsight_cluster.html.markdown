@@ -48,7 +48,7 @@ output "cluster_id" {
 
 * `component_versions` - A map of versions of software used on this HDInsights Cluster.
 
-* `gateway` - A `gateway` block as defined below.
+* `gateway` - A list of `gateway` blocks as defined below.
 
 * `edge_ssh_endpoint` - The SSH Endpoint of the Edge Node for this HDInsight Cluster, if an Edge Node exists.
 

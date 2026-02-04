@@ -32,7 +32,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `character_sets` - A `character_sets` block as defined below.
+* `character_sets` - A list of `character_sets` blocks as defined below.
 
 ---
 

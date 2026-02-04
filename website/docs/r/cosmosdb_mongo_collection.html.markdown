@@ -80,7 +80,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cosmos DB Mongo Collection.
 
-* `system_indexes` - One or more `system_indexes` blocks as defined below.
+* `system_indexes` - A list of `system_indexes` blocks as defined below.
 
 ---
 

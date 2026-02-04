@@ -264,13 +264,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Private Endpoint.
 
-* `network_interface` - A `network_interface` block as defined below.
+* `network_interface` - A list of `network_interface` blocks as defined below.
 
-* `custom_dns_configs` - A `custom_dns_configs` block as defined below.
+* `custom_dns_configs` - A list of `custom_dns_configs` blocks as defined below.
 
-* `private_dns_zone_configs` - A `private_dns_zone_configs` block as defined below.
+* `private_dns_zone_configs` - A list of `private_dns_zone_configs` blocks as defined below.
 
-* `ip_configuration` - A `ip_configuration` block as defined below.
+* `ip_configuration` - A list of `ip_configuration` blocks as defined below.
 
 ---
 

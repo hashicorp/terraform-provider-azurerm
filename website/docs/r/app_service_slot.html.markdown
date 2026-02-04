@@ -497,7 +497,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `default_site_hostname` - The Default Hostname associated with the App Service Slot - such as `mysite.azurewebsites.net`
 
-* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service slot.
+* `site_credential` - A list of `site_credential` blocks as defined below, which contains the site-level credentials used to publish to this App Service slot.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service slot.
 

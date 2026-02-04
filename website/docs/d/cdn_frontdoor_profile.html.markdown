@@ -41,13 +41,13 @@ In addition to the Arguments listed above - the following attributes are exporte
 
 * `id` - The ID of this Front Door Profile.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `resource_guid` - The UUID of the Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
 
 * `sku_name` - Specifies the SKU for this Front Door Profile.
 
-* `log_scrubbing_rule` - One or more `log_scrubbing_rule` blocks as defined below.
+* `log_scrubbing_rule` - A list of `log_scrubbing_rule` blocks as defined below.
 
 * `response_timeout_seconds` - Specifies the maximum response timeout in seconds.
 

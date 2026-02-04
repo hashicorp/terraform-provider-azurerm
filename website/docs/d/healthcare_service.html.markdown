@@ -39,10 +39,10 @@ The following attributes are exported:
 ~> **Note:** Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
 * `kind` - The type of the service.
-* `authentication_configuration` - An `authentication_configuration` block as defined below.
+* `authentication_configuration` - A list of `authentication_configuration` blocks as defined below.
 * `cosmosdb_throughput` - The provisioned throughput for the backing database.
 * `cosmosdb_key_vault_key_versionless_id` - The versionless Key Vault Key ID for CMK encryption of the backing database.
-* `cors_configuration` - A `cors_configuration` block as defined below.
+* `cors_configuration` - A list of `cors_configuration` blocks as defined below.
 * `tags` - A mapping of tags to assign to the resource.
 
 ---

@@ -88,7 +88,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Kubernetes Cluster Extension.
 
-* `aks_assigned_identity` - An `aks_assigned_identity` block as defined below.
+* `aks_assigned_identity` - A list of `aks_assigned_identity` blocks as defined below.
 
 * `current_version` - The current version of the extension.
 

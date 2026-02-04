@@ -178,7 +178,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Automation Runbook ID.
 
-* `job_schedule` - One or more `job_schedule` block as defined below.
+* `job_schedule` - A list of `job_schedule` blocks as defined below.
 
 ---
 

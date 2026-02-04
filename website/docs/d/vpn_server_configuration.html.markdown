@@ -51,21 +51,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 When `vpn_authentication_types` contains `AAD` the following arguments are exported:
 
-* `azure_active_directory_authentication` - A `azure_active_directory_authentication` block as defined below.
+* `azure_active_directory_authentication` - A list of `azure_active_directory_authentication` blocks as defined below.
 
 ---
 
 When `vpn_authentication_types` contains `Certificate` the following arguments are supported:
 
-* `client_root_certificate` - One or more `client_root_certificate` blocks as defined below.
+* `client_root_certificate` - A list of `client_root_certificate` blocks as defined below.
 
-* `client_revoked_certificate` - One or more `client_revoked_certificate` blocks as defined below.
+* `client_revoked_certificate` - A list of `client_revoked_certificate` blocks as defined below.
 
 ---
 
 When `vpn_authentication_types` contains `Radius` the following arguments are exported:
 
-* `radius` - A `radius` block as defined below.
+* `radius` - A list of `radius` blocks as defined below.
 
 A `azure_active_directory_authentication` block exports the following:
 
@@ -117,7 +117,7 @@ A `radius` block exports the following:
 
 * `server` - One or more `server` blocks as defined below.
 
-* `client_root_certificate` - One or more `client_root_certificate` blocks as defined below.
+* `client_root_certificate` - A list of `client_root_certificate` blocks as defined below.
 
 * `server_root_certificate` - One or more `server_root_certificate` blocks as defined below.
 

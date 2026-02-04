@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `specialized` - Specifies that the Operating System used inside this Image has not been Generalized (for example, `sysprep` on Windows has not been run).
 
-* `identifier` - An `identifier` block as defined below.
+* `identifier` - A list of `identifier` blocks as defined below.
 
 * `os_type` - The type of Operating System present in this Shared Image.
 

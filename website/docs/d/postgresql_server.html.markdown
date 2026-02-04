@@ -39,7 +39,7 @@ output "postgresql_server_id" {
 
 * `fqdn` - The fully qualified domain name of the PostgreSQL Server.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `version` - The version of the PostgreSQL Server.
 

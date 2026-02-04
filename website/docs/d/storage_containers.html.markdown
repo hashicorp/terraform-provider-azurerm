@@ -38,7 +38,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Storage Containers.
 
-* `containers` - A `containers` block as defined below.
+* `containers` - A list of `containers` blocks as defined below.
 
 ---
 

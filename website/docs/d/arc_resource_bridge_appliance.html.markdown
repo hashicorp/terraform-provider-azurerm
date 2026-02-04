@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `distro` - Fabric/Infrastructure for this Arc Resource Bridge Appliance.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `infrastructure_provider` - The infrastructure provider about the connected Arc Resource Bridge Appliance.
 

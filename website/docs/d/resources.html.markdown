@@ -62,7 +62,7 @@ resource "azurerm_virtual_network_peering" "spoke_peers" {
 
 ## Attributes Reference
 
-* `resources` - One or more `resource` blocks as defined below.
+* `resources` - A list of `resource` blocks as defined below.
 
 ---
 

@@ -34,7 +34,7 @@ output "location" {
 
 * `location` - The supported Azure location where the resource exists.
 
-* `security_rule` - One or more `security_rule` blocks as defined below.
+* `security_rule` - A list of `security_rule` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the resource.
 

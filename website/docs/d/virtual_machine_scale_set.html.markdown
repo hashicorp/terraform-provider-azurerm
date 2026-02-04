@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region in which this Virtual Machine Scale Set exists.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `instances` - A list of `instances` blocks as defined below.
 

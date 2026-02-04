@@ -46,11 +46,11 @@ The following attributes are exported:
 
 * `https_only` - Is only HTTPS allowed?
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `is_public` - Does the Spring Cloud Application have public endpoint?
 
-* `persistent_disk` - A `persistent_disk` block as defined below.
+* `persistent_disk` - A list of `persistent_disk` blocks as defined below.
 
 * `url` - The public endpoint of the Spring Cloud Application.
 
