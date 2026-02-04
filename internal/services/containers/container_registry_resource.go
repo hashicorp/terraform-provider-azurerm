@@ -225,6 +225,12 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"azuread_authentication_as_arm_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"zone_redundancy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -258,6 +264,13 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 					string(registries.NetworkRuleBypassOptionsNone),
 				}, false),
 				Default: string(registries.NetworkRuleBypassOptionsAzureServices),
+			},
+
+			"role_assignment_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(registries.PossibleValuesForRoleAssignmentMode(), false),
+				Default:      registries.RoleAssignmentModeLegacyRegistryPermissions,
 			},
 
 			"tags": commonschema.Tags(),
@@ -309,6 +322,11 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 					return errors.New("to disable export of artifacts, `public_network_access_enabled` must also be `false`")
 				}
 			}
+
+			// aadAuthAsArmPolicyEnabled := d.Get("azuread_authentication_as_arm_policy_enabled").(bool)
+			// if aadAuthAsArmPolicyEnabled && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
+			// 	return errors.New("an ACR AzureAD Authentication As ARM policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset azuread_authentication_as_arm_policy_enabled")
+			// }
 
 			encryptionEnabled, ok := d.GetOk("encryption")
 			if ok && len(encryptionEnabled.([]interface{})) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
@@ -439,16 +457,18 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 			Encryption:       expandEncryption(d.Get("encryption").([]interface{})),
 			NetworkRuleSet:   networkRuleSet,
 			Policies: &registries.Policies{
-				QuarantinePolicy: expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
-				RetentionPolicy:  retentionPolicy,
-				TrustPolicy:      trustPolicy,
-				ExportPolicy:     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
+				QuarantinePolicy:                 expandQuarantinePolicy(d.Get("quarantine_policy_enabled").(bool)),
+				RetentionPolicy:                  retentionPolicy,
+				TrustPolicy:                      trustPolicy,
+				ExportPolicy:                     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
+				AzureADAuthenticationAsArmPolicy: expandAadAuthAsArmPolicy(d.Get("azuread_authentication_as_arm_policy_enabled").(bool)),
 			},
 			PublicNetworkAccess:      &publicNetworkAccess,
 			ZoneRedundancy:           &zoneRedundancy,
 			AnonymousPullEnabled:     pointer.To(d.Get("anonymous_pull_enabled").(bool)),
 			DataEndpointEnabled:      pointer.To(d.Get("data_endpoint_enabled").(bool)),
 			NetworkRuleBypassOptions: pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
+			RoleAssignmentMode:       pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -540,6 +560,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	policyKeys := []string{
 		"quarantine_policy_enabled",
 		"export_policy_enabled",
+		"azuread_authentication_as_arm_policy_enabled",
 	}
 
 	policyKeys = append(policyKeys, []string{"retention_policy_in_days", "trust_policy_enabled"}...)
@@ -597,6 +618,10 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("azuread_authentication_as_arm_policy_enabled") {
+		payload.Properties.Policies.AzureADAuthenticationAsArmPolicy = expandAadAuthAsArmPolicy(d.Get("azuread_authentication_as_arm_policy_enabled").(bool))
+	}
+
 	if d.HasChange("admin_enabled") {
 		payload.Properties.AdminUserEnabled = pointer.To(d.Get("admin_enabled").(bool))
 	}
@@ -615,6 +640,10 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("network_rule_bypass_option") {
 		payload.Properties.NetworkRuleBypassOptions = pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string)))
+	}
+
+	if d.HasChange("role_assignment_mode") {
+		payload.Properties.RoleAssignmentMode = pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string))
 	}
 
 	if d.HasChange("tags") {
@@ -857,6 +886,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
+			d.Set("role_assignment_mode", string(pointer.From(props.RoleAssignmentMode)))
 
 			if policies := props.Policies; policies != nil {
 				var retentionInDays int64
@@ -871,6 +901,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 				d.Set("quarantine_policy_enabled", flattenQuarantinePolicy(props.Policies))
 				d.Set("export_policy_enabled", flattenExportPolicy(props.Policies))
+				d.Set("azuread_authentication_as_arm_policy_enabled", flattenAadAuthAsArmPolicy(props.Policies))
 			}
 
 			if *props.AdminUserEnabled {
@@ -996,6 +1027,18 @@ func expandExportPolicy(enabled bool) *registries.ExportPolicy {
 	return &exportPolicy
 }
 
+func expandAadAuthAsArmPolicy(enabled bool) *registries.AzureADAuthenticationAsArmPolicy {
+	policy := registries.AzureADAuthenticationAsArmPolicy{
+		Status: pointer.To(registries.AzureADAuthenticationAsArmPolicyStatusDisabled),
+	}
+
+	if enabled {
+		policy.Status = pointer.To(registries.AzureADAuthenticationAsArmPolicyStatusEnabled)
+	}
+
+	return &policy
+}
+
 func expandReplications(p []interface{}) []replications.Replication {
 	reps := make([]replications.Replication, 0)
 	if p == nil {
@@ -1091,4 +1134,12 @@ func flattenExportPolicy(p *registries.Policies) bool {
 	}
 
 	return *p.ExportPolicy.Status == registries.ExportPolicyStatusEnabled
+}
+
+func flattenAadAuthAsArmPolicy(p *registries.Policies) bool {
+	if p.AzureADAuthenticationAsArmPolicy == nil {
+		return false
+	}
+
+	return *p.AzureADAuthenticationAsArmPolicy.Status == registries.AzureADAuthenticationAsArmPolicyStatusEnabled
 }
