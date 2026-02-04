@@ -235,7 +235,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identityVal, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -247,7 +247,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	parameters := automationaccount.AutomationAccountUpdateParameters{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Identity: identity,
+		Identity: identityVal,
 		Properties: &automationaccount.AutomationAccountUpdateProperties{
 			Sku: &automationaccount.Sku{
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
@@ -306,11 +306,16 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving Registration Info for %s: %+v", *id, err)
 	}
 
+	return resourceAutomationAccountFlatten(d, id, resp.Model, keysResp.Model)
+}
+
+func resourceAutomationAccountFlatten(d *pluginsdk.ResourceData, id *automationaccount.AutomationAccountId, model *automationaccount.AutomationAccount, registration *agentregistrationinformation.AgentRegistration) error {
 	d.Set("name", id.AutomationAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
+
 		if props := model.Properties; props != nil {
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil {
@@ -335,11 +340,11 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
 
-			identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+			identityVal, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", identity); err != nil {
+			if err := d.Set("identity", identityVal); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -351,9 +356,9 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	if model := keysResp.Model; model != nil {
-		d.Set("dsc_server_endpoint", model.Endpoint)
-		if keys := model.Keys; keys != nil {
+	if registration != nil {
+		d.Set("dsc_server_endpoint", registration.Endpoint)
+		if keys := registration.Keys; keys != nil {
 			d.Set("dsc_primary_access_key", keys.Primary)
 			d.Set("dsc_secondary_access_key", keys.Secondary)
 		}
