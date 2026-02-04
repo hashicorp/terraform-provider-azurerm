@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -17,11 +17,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupInstancePostgreSQLResource struct{}
+type DataProtectionBackupInstancePostgresqlResource struct{}
 
 func TestAccDataProtectionBackupInstancePostgreSQL_basic(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_instance_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql", "test")
-	r := DataProtectionBackupInstancePostgreSQLResource{}
+	r := DataProtectionBackupInstancePostgresqlResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -34,8 +36,10 @@ func TestAccDataProtectionBackupInstancePostgreSQL_basic(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupInstancePostgreSQL_requiresImport(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_instance_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql", "test")
-	r := DataProtectionBackupInstancePostgreSQLResource{}
+	r := DataProtectionBackupInstancePostgresqlResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -48,8 +52,10 @@ func TestAccDataProtectionBackupInstancePostgreSQL_requiresImport(t *testing.T) 
 }
 
 func TestAccDataProtectionBackupInstancePostgreSQL_complete(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_instance_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql", "test")
-	r := DataProtectionBackupInstancePostgreSQLResource{}
+	r := DataProtectionBackupInstancePostgresqlResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -62,8 +68,10 @@ func TestAccDataProtectionBackupInstancePostgreSQL_complete(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupInstancePostgreSQL_keyVaultAuth(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_instance_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql", "test")
-	r := DataProtectionBackupInstancePostgreSQLResource{}
+	r := DataProtectionBackupInstancePostgresqlResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.keyVaultAuth(data),
@@ -76,8 +84,10 @@ func TestAccDataProtectionBackupInstancePostgreSQL_keyVaultAuth(t *testing.T) {
 }
 
 func TestAccDataProtectionBackupInstancePostgreSQL_update(t *testing.T) {
+	t.Skipf("Skipping since `azurerm_data_protection_backup_instance_postgresql` is deprecated and will be removed in 5.0")
+
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_instance_postgresql", "test")
-	r := DataProtectionBackupInstancePostgreSQLResource{}
+	r := DataProtectionBackupInstancePostgresqlResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -103,7 +113,7 @@ func TestAccDataProtectionBackupInstancePostgreSQL_update(t *testing.T) {
 	})
 }
 
-func (r DataProtectionBackupInstancePostgreSQLResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r DataProtectionBackupInstancePostgresqlResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backupinstances.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -118,7 +128,7 @@ func (r DataProtectionBackupInstancePostgreSQLResource) Exists(ctx context.Conte
 	return pointer.To(true), nil
 }
 
-func (r DataProtectionBackupInstancePostgreSQLResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -247,7 +257,7 @@ resource "azurerm_data_protection_backup_policy_postgresql" "another" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(16))
 }
 
-func (r DataProtectionBackupInstancePostgreSQLResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -262,7 +272,7 @@ resource "azurerm_data_protection_backup_instance_postgresql" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstancePostgreSQLResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -277,7 +287,7 @@ resource "azurerm_data_protection_backup_instance_postgresql" "import" {
 `, config)
 }
 
-func (r DataProtectionBackupInstancePostgreSQLResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -292,7 +302,7 @@ resource "azurerm_data_protection_backup_instance_postgresql" "test" {
 `, template, data.RandomInteger)
 }
 
-func (r DataProtectionBackupInstancePostgreSQLResource) keyVaultAuth(data acceptance.TestData) string {
+func (r DataProtectionBackupInstancePostgresqlResource) keyVaultAuth(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s

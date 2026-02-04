@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -29,16 +29,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automation_account -service-package-name automation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceAutomationAccount() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: resourceAutomationAccountCreate,
-		Read:   resourceAutomationAccountRead,
-		Update: resourceAutomationAccountUpdate,
-		Delete: resourceAutomationAccountDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := automationaccount.ParseAutomationAccountID(id)
-			return err
-		}),
+		Create:   resourceAutomationAccountCreate,
+		Read:     resourceAutomationAccountRead,
+		Update:   resourceAutomationAccountUpdate,
+		Delete:   resourceAutomationAccountDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&automationaccount.AutomationAccountId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -141,6 +140,10 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&automationaccount.AutomationAccountId{}),
+		},
 	}
 
 	if !features.FivePointOh() {
@@ -215,6 +218,10 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceAutomationAccountRead(d, meta)
 }
 
@@ -228,7 +235,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	identityVal, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
@@ -240,7 +247,7 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	parameters := automationaccount.AutomationAccountUpdateParameters{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Identity: identity,
+		Identity: identityVal,
 		Properties: &automationaccount.AutomationAccountUpdateProperties{
 			Sku: &automationaccount.Sku{
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
@@ -299,11 +306,16 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving Registration Info for %s: %+v", *id, err)
 	}
 
+	return resourceAutomationAccountFlatten(d, id, resp.Model, keysResp.Model)
+}
+
+func resourceAutomationAccountFlatten(d *pluginsdk.ResourceData, id *automationaccount.AutomationAccountId, model *automationaccount.AutomationAccount, registration *agentregistrationinformation.AgentRegistration) error {
 	d.Set("name", id.AutomationAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
+
 		if props := model.Properties; props != nil {
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil {
@@ -328,11 +340,11 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			d.Set("hybrid_service_url", props.AutomationHybridServiceURL)
 
-			identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+			identityVal, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
-			if err := d.Set("identity", identity); err != nil {
+			if err := d.Set("identity", identityVal); err != nil {
 				return fmt.Errorf("setting `identity`: %+v", err)
 			}
 
@@ -344,15 +356,15 @@ func resourceAutomationAccountRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	if model := keysResp.Model; model != nil {
-		d.Set("dsc_server_endpoint", model.Endpoint)
-		if keys := model.Keys; keys != nil {
+	if registration != nil {
+		d.Set("dsc_server_endpoint", registration.Endpoint)
+		if keys := registration.Keys; keys != nil {
 			d.Set("dsc_primary_access_key", keys.Primary)
 			d.Set("dsc_secondary_access_key", keys.Secondary)
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAutomationAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
