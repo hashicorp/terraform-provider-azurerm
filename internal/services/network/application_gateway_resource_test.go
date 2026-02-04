@@ -239,87 +239,6 @@ func TestAccApplicationGateway_customPathRuleFirewallPolicy(t *testing.T) {
 	})
 }
 
-func (r ApplicationGatewayResource) authCertificate(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  auth_cert_name                 = "${azurerm_virtual_network.test.name}-auth"
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-}
-
-resource "azurerm_application_gateway" "test" {
-  name                = "acctestag-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 2
-  }
-
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
-  }
-
-  frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.test.id
-  }
-
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
-
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 443
-    protocol              = "Https"
-    request_timeout       = 1
-
-    authentication_certificate {
-      name = local.auth_cert_name
-    }
-  }
-
-  authentication_certificate {
-    name = local.auth_cert_name
-    data = file("testdata/application_gateway_test.cer")
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-    priority                   = 10
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func TestAccApplicationGateway_trustedRootCertificate_keyvault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_gateway", "test")
 	r := ApplicationGatewayResource{}
@@ -7860,6 +7779,14 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend {
+    name                                = local.second_backend_name
+    port                                = 8443
+    protocol                            = "Tcp"
+    timeout                             = 30
+    pick_host_name_from_backend_address = false
+  }
+
+  backend {
     name                                = local.backend_name
     port                                = 8443
     protocol                            = "Tls"
@@ -7868,14 +7795,6 @@ resource "azurerm_application_gateway" "test" {
     pick_host_name_from_backend_address = false
     trusted_root_certificate_names      = [local.trusted_root_cert_name]
     probe_name                          = local.probe_name
-  }
-
-  backend {
-    name                                = local.second_backend_name
-    port                                = 8443
-    protocol                            = "Tcp"
-    timeout                             = 30
-    pick_host_name_from_backend_address = false
   }
 
   http_listener {
@@ -7980,19 +7899,19 @@ func (r ApplicationGatewayResource) routingRuleComplete(data acceptance.TestData
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name       = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name              = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name  = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name               = "${azurerm_virtual_network.test.name}-be-htst"
-  http_listener_name              = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name       = "${azurerm_virtual_network.test.name}-rqrt"
-  tcp_listener_name               = "${azurerm_virtual_network.test.name}-tcplstn"
-  tcp_listener_name_2             = "${azurerm_virtual_network.test.name}-tcplstn2"
-  tcp_frontend_port_name          = "${azurerm_virtual_network.test.name}-tcpport"
-  tcp_frontend_port_name_2        = "${azurerm_virtual_network.test.name}-tcpport2"
-  backend_name                    = "${azurerm_virtual_network.test.name}-besettings"
-  routing_rule_name               = "${azurerm_virtual_network.test.name}-routingrule"
-  routing_rule_name_2             = "${azurerm_virtual_network.test.name}-routingrule2"
+  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
+  http_listener_name             = "${azurerm_virtual_network.test.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
+  tcp_listener_name              = "${azurerm_virtual_network.test.name}-tcplstn"
+  tcp_listener_name_2            = "${azurerm_virtual_network.test.name}-tcplstn2"
+  tcp_frontend_port_name         = "${azurerm_virtual_network.test.name}-tcpport"
+  tcp_frontend_port_name_2       = "${azurerm_virtual_network.test.name}-tcpport2"
+  backend_name                   = "${azurerm_virtual_network.test.name}-besettings"
+  routing_rule_name              = "${azurerm_virtual_network.test.name}-routingrule"
+  routing_rule_name_2            = "${azurerm_virtual_network.test.name}-routingrule2"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -8080,21 +7999,21 @@ resource "azurerm_application_gateway" "test" {
   }
 
   routing_rule {
-    name                      = local.routing_rule_name
-    rule_type                 = "Basic"
-    listener_name             = local.tcp_listener_name
-    backend_address_pool_name = local.backend_address_pool_name
-    backend_name              = local.backend_name
-    priority                  = 20
-  }
-
-  routing_rule {
     name                      = local.routing_rule_name_2
     rule_type                 = "Basic"
     listener_name             = local.tcp_listener_name_2
     backend_address_pool_name = local.backend_address_pool_name
     backend_name              = local.backend_name
     priority                  = 30
+  }
+
+  routing_rule {
+    name                      = local.routing_rule_name
+    rule_type                 = "Basic"
+    listener_name             = local.tcp_listener_name
+    backend_address_pool_name = local.backend_address_pool_name
+    backend_name              = local.backend_name
+    priority                  = 20
   }
 }
 `, r.template(data), data.RandomInteger)

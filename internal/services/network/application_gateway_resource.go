@@ -636,6 +636,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"http_listener", "listener"},
+				Set:          applicationGatewayListenerHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -892,9 +893,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			},
 
 			"routing_rule": {
-				Type:         pluginsdk.TypeList,
+				Type:         pluginsdk.TypeSet,
 				Optional:     true,
 				AtLeastOneOf: []string{"request_routing_rule", "routing_rule"},
+				Set:          applicationGatewayRoutingRuleHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -930,7 +932,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"rule_type": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							// only basic is supported as Feb 2026
+							// only  `Basic` is supported as Feb 2026
 							ValidateFunc: validation.StringInSlice([]string{
 								string(applicationgateways.ApplicationGatewayRequestRoutingRuleTypeBasic),
 							}, false),
@@ -1850,10 +1852,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("expanding `listener`: %+v", err)
 	}
 
-	routingRules, err := expandApplicationGatewayRoutingRules(d, id.ID())
-	if err != nil {
-		return fmt.Errorf("expanding `routing_rule`: %+v", err)
-	}
+	routingRules := expandApplicationGatewayRoutingRules(d, id.ID())
 
 	rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
 	if err != nil {
@@ -2011,10 +2010,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("routing_rule") {
-		routingRules, err := expandApplicationGatewayRoutingRules(d, id.ID())
-		if err != nil {
-			return fmt.Errorf("expanding `routing_rule`: %+v", err)
-		}
+		routingRules := expandApplicationGatewayRoutingRules(d, id.ID())
 		payload.Properties.RoutingRules = routingRules
 	}
 
@@ -4071,44 +4067,34 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]applicationgateways.A
 	return results, nil
 }
 
-func expandApplicationGatewayRoutingRules(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayRoutingRule, error) {
-	vs := d.Get("routing_rule").([]interface{})
+func expandApplicationGatewayRoutingRules(d *pluginsdk.ResourceData, gatewayID string) *[]applicationgateways.ApplicationGatewayRoutingRule {
+	vs := d.Get("routing_rule").(*pluginsdk.Set).List()
 	results := make([]applicationgateways.ApplicationGatewayRoutingRule, 0)
 
 	for _, raw := range vs {
 		v := raw.(map[string]interface{})
 
-		name := v["name"].(string)
-		ruleType := v["rule_type"].(string)
-		listenerName := v["listener_name"].(string)
-		listenerID := fmt.Sprintf("%s/listeners/%s", gatewayID, listenerName)
-		backendAddressPoolName := v["backend_address_pool_name"].(string)
-		backendAddressPoolID := fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, backendAddressPoolName)
-		backendName := v["backend_name"].(string)
-		backendSettingsID := fmt.Sprintf("%s/backendSettingsCollection/%s", gatewayID, backendName)
-		priority := int64(v["priority"].(int))
-
 		rule := applicationgateways.ApplicationGatewayRoutingRule{
-			Name: pointer.To(name),
+			Name: pointer.To(v["name"].(string)),
 			Properties: &applicationgateways.ApplicationGatewayRoutingRulePropertiesFormat{
-				RuleType: pointer.To(applicationgateways.ApplicationGatewayRequestRoutingRuleType(ruleType)),
+				RuleType: pointer.To(applicationgateways.ApplicationGatewayRequestRoutingRuleType(v["rule_type"].(string))),
 				Listener: &applicationgateways.SubResource{
-					Id: pointer.To(listenerID),
+					Id: pointer.To(fmt.Sprintf("%s/listeners/%s", gatewayID, v["listener_name"].(string))),
 				},
 				BackendAddressPool: &applicationgateways.SubResource{
-					Id: pointer.To(backendAddressPoolID),
+					Id: pointer.To(fmt.Sprintf("%s/backendAddressPools/%s", gatewayID, v["backend_address_pool_name"].(string))),
 				},
 				BackendSettings: &applicationgateways.SubResource{
-					Id: pointer.To(backendSettingsID),
+					Id: pointer.To(fmt.Sprintf("%s/backendSettingsCollection/%s", gatewayID, v["backend_name"].(string))),
 				},
-				Priority: priority,
+				Priority: int64(v["priority"].(int)),
 			},
 		}
 
 		results = append(results, rule)
 	}
 
-	return &results, nil
+	return &results
 }
 
 func flattenApplicationGatewayRoutingRules(input *[]applicationgateways.ApplicationGatewayRoutingRule) ([]interface{}, error) {
@@ -4120,47 +4106,37 @@ func flattenApplicationGatewayRoutingRules(input *[]applicationgateways.Applicat
 	for _, config := range *input {
 		if props := config.Properties; props != nil {
 			output := map[string]interface{}{
-				"rule_type": string(pointer.From(props.RuleType)),
+				"id":        pointer.From(config.Id),
+				"name":      pointer.From(config.Name),
+				"rule_type": pointer.FromEnum(props.RuleType),
 				"priority":  props.Priority,
 			}
 
-			if config.Id != nil {
-				output["id"] = *config.Id
-			}
-
-			if config.Name != nil {
-				output["name"] = *config.Name
-			}
-
-			if pool := props.BackendAddressPool; pool != nil {
-				if pool.Id != nil {
-					poolId, err := parse.BackendAddressPoolIDInsensitively(*pool.Id)
-					if err != nil {
-						return nil, err
-					}
-					output["backend_address_pool_name"] = poolId.Name
-					output["backend_address_pool_id"] = poolId.ID()
+			if pool := props.BackendAddressPool; pool != nil && pool.Id != nil {
+				poolId, err := parse.BackendAddressPoolIDInsensitively(pointer.From(pool.Id))
+				if err != nil {
+					return nil, err
 				}
+				output["backend_address_pool_name"] = poolId.Name
+				output["backend_address_pool_id"] = poolId.ID()
 			}
 
-			if settings := props.BackendSettings; settings != nil {
-				if settings.Id != nil {
-					segments := strings.Split(*settings.Id, "/")
-					if len(segments) > 0 {
-						output["backend_name"] = segments[len(segments)-1]
-						output["backend_id"] = *settings.Id
-					}
+			if settings := props.BackendSettings; settings != nil && settings.Id != nil {
+				settingsId, err := parse.BackendSettingsCollectionIDInsensitively(pointer.From(settings.Id))
+				if err != nil {
+					return nil, err
 				}
+				output["backend_name"] = settingsId.BackendSettingsCollectionName
+				output["backend_id"] = settingsId.ID()
 			}
 
-			if listener := props.Listener; listener != nil {
-				if listener.Id != nil {
-					segments := strings.Split(*listener.Id, "/")
-					if len(segments) > 0 {
-						output["listener_name"] = segments[len(segments)-1]
-						output["listener_id"] = *listener.Id
-					}
+			if listener := props.Listener; listener != nil && listener.Id != nil {
+				listenerId, err := parse.ListenerIDInsensitively(pointer.From(listener.Id))
+				if err != nil {
+					return nil, err
 				}
+				output["listener_name"] = listenerId.Name
+				output["listener_id"] = listenerId.ID()
 			}
 
 			results = append(results, output)
@@ -5581,6 +5557,46 @@ func applicationGatewayProbeHash(v interface{}) int {
 				}
 			}
 		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayListenerHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["frontend_ip_configuration_name"].(string))
+		buf.WriteString(m["frontend_port_name"].(string))
+		buf.WriteString(m["protocol"].(string))
+
+		if v, ok := m["ssl_certificate_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+
+		if v, ok := m["ssl_profile_name"]; ok {
+			buf.WriteString(v.(string))
+		}
+
+		if hostNames, ok := m["host_names"]; ok {
+			buf.WriteString(fmt.Sprintf("%s-", hostNames.(*pluginsdk.Set).List()))
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func applicationGatewayRoutingRuleHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["backend_address_pool_name"].(string))
+		buf.WriteString(m["backend_name"].(string))
+		buf.WriteString(m["listener_name"].(string))
+		buf.WriteString(fmt.Sprintf("%d", m["priority"].(int)))
+		buf.WriteString(m["rule_type"].(string))
 	}
 
 	return pluginsdk.HashString(buf.String())
