@@ -1,893 +1,1272 @@
----
-subcategory: "Network"
-layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_application_gateway"
-description: |-
-  Manages an Application Gateway.
----
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
 
-# azurerm_application_gateway
+package network
 
-Manages an Application Gateway.
+import (
+	"fmt"
+	"log"
+	"time"
 
-~> **Note:** The `backend_address_pool`, `backend_http_settings`, `http_listener`, `private_link_configuration`, `request_routing_rule`, `redirect_configuration`, `probe`, `ssl_certificate`,
-and `frontend_port` properties are Sets as the service API returns these lists of objects in a different order from how the provider sends them. As Sets are stored using a hash, if one 
-value is added or removed from the Set, Terraform considers the entire list of objects changed and the plan shows that it is removing every value in the list and re-adding it with the 
-new information. Though Terraform is showing all the values being removed and re-added, we are not actually removing anything unless the user specifies a removal in the configfile.
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/webapplicationfirewallpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
+)
 
-## Example Usage
+func resourceWebApplicationFirewallPolicy() *pluginsdk.Resource {
+	return &pluginsdk.Resource{
+		Create: resourceWebApplicationFirewallPolicyCreate,
+		Read:   resourceWebApplicationFirewallPolicyRead,
+		Update: resourceWebApplicationFirewallPolicyUpdate,
+		Delete: resourceWebApplicationFirewallPolicyDelete,
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			_, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(id)
+			return err
+		}),
 
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
+		Timeouts: &pluginsdk.ResourceTimeout{
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.WebApplicationFirewallPolicyV0ToV1{},
+		}),
+
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"location": commonschema.Location(),
+
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+
+			"custom_rules": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"action": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(webapplicationfirewallpolicies.WebApplicationFirewallActionAllow),
+								string(webapplicationfirewallpolicies.WebApplicationFirewallActionBlock),
+								string(webapplicationfirewallpolicies.WebApplicationFirewallActionLog),
+								string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
+							}, false),
+						},
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"match_conditions": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"match_values": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type: pluginsdk.TypeString,
+										},
+									},
+									"match_variables": {
+										Type:     pluginsdk.TypeList,
+										Required: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"variable_name": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice([]string{
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRemoteAddr),
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestMethod),
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableQueryString),
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariablePostArgs),
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestUri),
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestHeaders),
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestBody),
+														string(webapplicationfirewallpolicies.WebApplicationFirewallMatchVariableRequestCookies),
+													}, false),
+												},
+												"selector": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+												},
+											},
+										},
+									},
+									"operator": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorAny),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorIPMatch),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGeoMatch),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorEqual),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorContains),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorLessThan),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGreaterThan),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorLessThanOrEqual),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorGreaterThanOrEqual),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorBeginsWith),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorEndsWith),
+											string(webapplicationfirewallpolicies.WebApplicationFirewallOperatorRegex),
+										}, false),
+									},
+									"negation_condition": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+									},
+									"transforms": {
+										Type:     pluginsdk.TypeSet,
+										Optional: true,
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForWebApplicationFirewallTransform(), false),
+										},
+									},
+								},
+							},
+						},
+						"priority": {
+							Type:     pluginsdk.TypeInt,
+							Required: true,
+						},
+						"rule_type": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeMatchRule),
+								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeRateLimitRule),
+								string(webapplicationfirewallpolicies.WebApplicationFirewallRuleTypeInvalid),
+							}, false),
+						},
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+						"rate_limit_duration": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForApplicationGatewayFirewallRateLimitDuration(), false),
+						},
+						"rate_limit_threshold": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
+						},
+						"group_rate_limit_by": {
+							// group variables combination not supported yet, use a single variable name
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(webapplicationfirewallpolicies.PossibleValuesForApplicationGatewayFirewallUserSessionVariable(), false),
+						},
+					},
+				},
+			},
+
+			"managed_rules": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"exclusion": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"match_variable": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgKeys),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgNames),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestArgValues),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieKeys),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieNames),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestCookieValues),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderKeys),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderNames),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariableRequestHeaderValues),
+										}, false),
+									},
+									"selector": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.NoZeroValues,
+									},
+									"selector_match_operator": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorContains),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEndsWith),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEquals),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorEqualsAny),
+											string(webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperatorStartsWith),
+										}, false),
+									},
+									"excluded_rule_set": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										MaxItems: 1,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"type": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													Default:      "OWASP",
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetType,
+												},
+												"version": {
+													Type:         pluginsdk.TypeString,
+													Optional:     true,
+													Default:      "3.2",
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyExclusionRuleSetVersion,
+												},
+												"rule_group": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"rule_group_name": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+															},
+															"excluded_rules": {
+																Type:     pluginsdk.TypeList,
+																Optional: true,
+																Elem: &pluginsdk.Schema{
+																	Type: pluginsdk.TypeString,
+																},
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"managed_rule_set": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"type": {
+										Type:         pluginsdk.TypeString,
+										Optional:     true,
+										Default:      "OWASP",
+										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetType,
+									},
+									"version": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleSetVersion,
+									},
+									"rule_group_override": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"rule_group_name": {
+													Type:         pluginsdk.TypeString,
+													Required:     true,
+													ValidateFunc: validate.ValidateWebApplicationFirewallPolicyRuleGroupName,
+												},
+												"rule": {
+													Type:     pluginsdk.TypeList,
+													Optional: true,
+													Elem: &pluginsdk.Resource{
+														Schema: map[string]*pluginsdk.Schema{
+															"id": {
+																Type:         pluginsdk.TypeString,
+																Required:     true,
+																ValidateFunc: validation.StringIsNotEmpty,
+															},
+
+															"enabled": {
+																Type:     pluginsdk.TypeBool,
+																Optional: true,
+																Default:  false,
+															},
+
+															"action": {
+																Type:     pluginsdk.TypeString,
+																Optional: true,
+																ValidateFunc: validation.StringInSlice([]string{
+																	string(webapplicationfirewallpolicies.ActionTypeAllow),
+																	string(webapplicationfirewallpolicies.ActionTypeAnomalyScoring),
+																	string(webapplicationfirewallpolicies.ActionTypeBlock),
+																	string(webapplicationfirewallpolicies.ActionTypeJSChallenge),
+																	string(webapplicationfirewallpolicies.ActionTypeLog),
+																}, false),
+															},
+														},
+													},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"policy_settings": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
+								string(webapplicationfirewallpolicies.WebApplicationFirewallModeDetection),
+							}, false),
+							Default: string(webapplicationfirewallpolicies.WebApplicationFirewallModePrevention),
+						},
+
+						"request_body_check": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"file_upload_limit_in_mb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 4000),
+							Default:      100,
+						},
+
+						"request_body_enforcement": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"file_upload_enforcement": {
+							Type: pluginsdk.TypeBool,
+							/*
+								NOTE: O+C: This value defaults to true but is only available under certain conditions (i.e. when version is 3.2)
+									managed_rules {
+										managed_rule_set {
+										  type    = "OWASP"
+										  version = "3.2"
+										}
+									  }
+							*/
+							Optional: true,
+							// We'll remove computed in 5.0 so we don't break existing configurations
+							Computed: !features.FivePointOh(),
+						},
+
+						"max_request_body_size_in_kb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(8, 2000),
+							Default:      128,
+						},
+
+						"request_body_inspect_limit_in_kb": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      128,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"js_challenge_cookie_expiration_in_minutes": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							Default:      30,
+							ValidateFunc: validation.IntBetween(5, 1440),
+						},
+
+						"log_scrubbing": {
+							Type:     pluginsdk.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"enabled": {
+										Type:     pluginsdk.TypeBool,
+										Optional: true,
+										Default:  true,
+									},
+
+									"rule": {
+										Type:     pluginsdk.TypeList,
+										Optional: true,
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"enabled": {
+													Type:     pluginsdk.TypeBool,
+													Optional: true,
+													Default:  true,
+												},
+
+												"match_variable": {
+													Type:     pluginsdk.TypeString,
+													Required: true,
+													ValidateFunc: validation.StringInSlice(
+														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+														false),
+												},
+
+												"selector_match_operator": {
+													Type:     pluginsdk.TypeString,
+													Optional: true,
+													Default:  "Equals",
+													ValidateFunc: validation.StringInSlice(
+														webapplicationfirewallpolicies.PossibleValuesForScrubbingRuleEntryMatchOperator(),
+														false),
+												},
+
+												"selector": {
+													Type:        pluginsdk.TypeString,
+													Optional:    true,
+													Description: "When matchVariable is a collection, operator used to specify which elements in the collection this rule applies to.",
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"http_listener_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
+			"path_based_rule_ids": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			},
+
+			"tags": commonschema.Tags(),
+		},
+	}
 }
 
-resource "azurerm_virtual_network" "example" {
-  name                = "example-network"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  address_space       = ["10.254.0.0/16"]
+func resourceWebApplicationFirewallPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
+		}
+	}
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_web_application_firewall_policy", id.ID())
+	}
+
+	location := location.Normalize(d.Get("location").(string))
+	customRules := d.Get("custom_rules").([]interface{})
+	policySettings := d.Get("policy_settings").([]interface{})
+	managedRules := d.Get("managed_rules").([]interface{})
+	t := d.Get("tags").(map[string]interface{})
+
+	parameters := webapplicationfirewallpolicies.WebApplicationFirewallPolicy{
+		Location: pointer.To(location),
+		Properties: &webapplicationfirewallpolicies.WebApplicationFirewallPolicyPropertiesFormat{
+			CustomRules:    expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
+			PolicySettings: expandWebApplicationFirewallPolicyPolicySettings(policySettings),
+			ManagedRules:   pointer.From(expandWebApplicationFirewallPolicyManagedRulesDefinition(managedRules)),
+		},
+		Tags: tags.Expand(t),
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
 
-resource "azurerm_subnet" "example" {
-  name                 = "example"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.254.0.0/24"]
+func resourceWebApplicationFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := webapplicationfirewallpolicies.NewApplicationGatewayWebApplicationFirewallPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: model was nil", id)
+	}
+	if resp.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: properties was nil", id)
+	}
+
+	model := resp.Model
+
+	if d.HasChange("custom_rules") {
+		model.Properties.CustomRules = expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(d.Get("custom_rules").([]interface{}))
+	}
+
+	if d.HasChange("policy_settings") {
+		model.Properties.PolicySettings = expandWebApplicationFirewallPolicyPolicySettings(d.Get("policy_settings").([]interface{}))
+	}
+
+	if d.HasChange("managed_rules") {
+		model.Properties.ManagedRules = pointer.From(expandWebApplicationFirewallPolicyManagedRulesDefinition(d.Get("managed_rules").([]interface{})))
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, *model); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	return resourceWebApplicationFirewallPolicyRead(d, meta)
 }
 
-resource "azurerm_public_ip" "example" {
-  name                = "example-pip"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  allocation_method   = "Static"
+func resourceWebApplicationFirewallPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] Web Application Firewall Policy %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("reading %s: %+v", *id, err)
+	}
+
+	d.Set("name", id.ApplicationGatewayWebApplicationFirewallPolicyName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if prop := model.Properties; prop != nil {
+			if err := d.Set("custom_rules", flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(prop.CustomRules)); err != nil {
+				return fmt.Errorf("setting `custom_rules`: %+v", err)
+			}
+			if err := d.Set("policy_settings", flattenWebApplicationFirewallPolicyPolicySettings(prop.PolicySettings)); err != nil {
+				return fmt.Errorf("setting `policy_settings`: %+v", err)
+			}
+			if err := d.Set("managed_rules", flattenWebApplicationFirewallPolicyManagedRulesDefinition(prop.ManagedRules)); err != nil {
+				return fmt.Errorf("setting `managed_rules`: %+v", err)
+			}
+			if err := d.Set("http_listener_ids", flattenWebApplicationFirewallPoliciesSubResourcesToIDs(prop.HTTPListeners)); err != nil {
+				return fmt.Errorf("setting `http_listeners`: %+v", err)
+			}
+			if err := d.Set("path_based_rule_ids", flattenWebApplicationFirewallPoliciesSubResourcesToIDs(prop.PathBasedRules)); err != nil {
+				return fmt.Errorf("setting `path_based_rules`: %+v", err)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-# since these variables are re-used - a locals block makes this more maintainable
-locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.example.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.example.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.example.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.example.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.example.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.example.name}-rqrt"
-  redirect_configuration_name    = "${azurerm_virtual_network.example.name}-rdrcfg"
+func resourceWebApplicationFirewallPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.WebApplicationFirewallPolicies
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	return nil
 }
 
-resource "azurerm_application_gateway" "network" {
-  name                = "example-appgateway"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+func expandWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input []interface{}) *[]webapplicationfirewallpolicies.WebApplicationFirewallCustomRule {
+	results := make([]webapplicationfirewallpolicies.WebApplicationFirewallCustomRule, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		name := v["name"].(string)
+		priority := v["priority"].(int)
+		ruleType := v["rule_type"].(string)
+		matchConditions := v["match_conditions"].([]interface{})
+		action := v["action"].(string)
 
-  sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
-    capacity = 2
-  }
+		enabled := webapplicationfirewallpolicies.WebApplicationFirewallStateEnabled
+		if value, ok := v["enabled"].(bool); ok && !value {
+			enabled = webapplicationfirewallpolicies.WebApplicationFirewallStateDisabled
+		}
 
-  gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.example.id
-  }
+		result := webapplicationfirewallpolicies.WebApplicationFirewallCustomRule{
+			State:           pointer.To(enabled),
+			Action:          webapplicationfirewallpolicies.WebApplicationFirewallAction(action),
+			MatchConditions: expandWebApplicationFirewallPolicyMatchCondition(matchConditions),
+			Name:            pointer.To(name),
+			Priority:        int64(priority),
+			RuleType:        webapplicationfirewallpolicies.WebApplicationFirewallRuleType(ruleType),
+		}
 
-  frontend_port {
-    name = local.frontend_port_name
-    port = 80
-  }
+		if rateLimitDuration, ok := v["rate_limit_duration"]; ok && rateLimitDuration.(string) != "" {
+			result.RateLimitDuration = pointer.To(webapplicationfirewallpolicies.ApplicationGatewayFirewallRateLimitDuration(rateLimitDuration.(string)))
+		}
 
-  frontend_ip_configuration {
-    name                 = local.frontend_ip_configuration_name
-    public_ip_address_id = azurerm_public_ip.example.id
-  }
+		if rateLimitThreshHold, ok := v["rate_limit_threshold"]; ok && rateLimitThreshHold.(int) > 0 {
+			result.RateLimitThreshold = pointer.To(int64(rateLimitThreshHold.(int)))
+		}
 
-  backend_address_pool {
-    name = local.backend_address_pool_name
-  }
+		if groupBy, ok := v["group_rate_limit_by"]; ok && groupBy.(string) != "" {
+			groups := []webapplicationfirewallpolicies.GroupByUserSession{
+				{
+					GroupByVariables: []webapplicationfirewallpolicies.GroupByVariable{
+						{
+							VariableName: webapplicationfirewallpolicies.ApplicationGatewayFirewallUserSessionVariable(groupBy.(string)),
+						},
+					},
+				},
+			}
+			result.GroupByUserSession = &groups
+		}
 
-  backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    path                  = "/path1/"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 60
-  }
-
-  http_listener {
-    name                           = local.listener_name
-    frontend_ip_configuration_name = local.frontend_ip_configuration_name
-    frontend_port_name             = local.frontend_port_name
-    protocol                       = "Http"
-  }
-
-  request_routing_rule {
-    name                       = local.request_routing_rule_name
-    priority                   = 9
-    rule_type                  = "Basic"
-    http_listener_name         = local.listener_name
-    backend_address_pool_name  = local.backend_address_pool_name
-    backend_http_settings_name = local.http_setting_name
-  }
+		results = append(results, result)
+	}
+	return &results
 }
-```
 
-## Arguments Reference
-
-The following arguments are supported:
-
-* `name` - (Required) The name of the Application Gateway. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to the Application Gateway should exist. Changing this forces a new resource to be created.
-
-* `location` - (Required) The Azure region where the Application Gateway should exist. Changing this forces a new resource to be created.
-
-* `backend_address_pool` - (Required) One or more `backend_address_pool` blocks as defined below.
-
-* `backend_http_settings` - (Required) One or more `backend_http_settings` blocks as defined below.
-
-* `frontend_ip_configuration` - (Required) One or more `frontend_ip_configuration` blocks as defined below.
-
-* `frontend_port` - (Required) One or more `frontend_port` blocks as defined below.
-
-* `gateway_ip_configuration` - (Required) One or more `gateway_ip_configuration` blocks as defined below.
-
-* `http_listener` - (Required) One or more `http_listener` blocks as defined below.
-
-* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
-
-* `sku` - (Required) A `sku` block as defined below.
-
----
-
-* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
-
-* `global` - (Optional) A `global` block as defined below.
-
-* `identity` - (Optional) An `identity` block as defined below.
-
-* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
-
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
-
--> **Note:** Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
-
-* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
-
-* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
-
-* `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
-
-* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
-
-* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
-
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
-
-* `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
-
-* `probe` - (Optional) One or more `probe` blocks as defined below.
-
-* `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
-* `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
-
-* `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
-
-* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
-
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
-
-* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
-
-* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
-
-* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
-
----
-
-An `authentication_certificate` block supports the following:
-
-* `name` - (Required) The Name of the Authentication Certificate to use.
-
-* `data` - (Required) The contents of the Authentication Certificate which should be used.
-
----
-
-A `trusted_root_certificate` block supports the following:
-
-* `name` - (Required) The Name of the Trusted Root Certificate to use.
-
-* `data` - (Optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
-
-* `key_vault_secret_id` - (Optional) The Secret ID of the (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
-
--> **Note:** To implement certificate rotation, `versionless_secret_id` should be used, although `secret_id` is also supported.
-
--> **Note:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
-
--> **Note:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
-
----
-
-A `backend_address_pool` block supports the following:
-
-* `name` - (Required) The name of the Backend Address Pool.
-
-* `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
-
-* `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
-
----
-
-A `backend_http_settings` block supports the following:
-
-* `cookie_based_affinity` - (Required) Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
-
-* `name` - (Required) The name of the Backend HTTP Settings Collection.
-
-* `port` - (Required) The port which should be used for this Backend HTTP Settings Collection.
-
-* `protocol` - (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
- 
-* `affinity_cookie_name` - (Optional) The name of the affinity cookie.
-
-* `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
-
-* `connection_draining` - (Optional) A `connection_draining` block as defined below.
-
-* `dedicated_backend_connection_enabled` - (Optional) Whether to use a dedicated backend connection. Defaults to `false`.
-
-* `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
-
-* `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
-
-* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
-
-* `probe_name` - (Optional) The name of an associated HTTP Probe.
-
-* `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
-
-* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
-
----
-
-A `authentication_certificate_backend` block, within the `backend_http_settings` block supports the following:
-
-* `name` - (Required) The name of the Authentication Certificate.
-
----
-
-A `connection_draining` block supports the following:
-
-* `enabled` - (Required) If connection draining is enabled or not.
-
-* `drain_timeout_sec` - (Required) The number of seconds connection draining is active. Acceptable values are from `1` second to `3600` seconds.
-
----
-
-A `frontend_ip_configuration` block supports the following:
-
-* `name` - (Required) The name of the Frontend IP Configuration.
-
-* `subnet_id` - (Optional) The ID of the Subnet.
-
-* `private_ip_address` - (Optional) The Private IP Address to use for the Application Gateway.
-
-* `public_ip_address_id` - (Optional) The ID of a Public IP Address which the Application Gateway should use. The allocation method for the Public IP Address depends on the `sku` of this Application Gateway. Please refer to the [Azure documentation for public IP addresses](https://docs.microsoft.com/azure/virtual-network/public-ip-addresses#application-gateways) for details.
-
-* `private_ip_address_allocation` - (Optional) The Allocation Method for the Private IP Address. Possible values are `Dynamic` and `Static`. Defaults to `Dynamic`.
-
-* `private_link_configuration_name` - (Optional) The name of the private link configuration to use for this frontend IP configuration.
-
----
-
-A `frontend_port` block supports the following:
-
-* `name` - (Required) The name of the Frontend Port.
-
-* `port` - (Required) The port used for this Frontend Port.
-
----
-
-A `gateway_ip_configuration` block supports the following:
-
-* `name` - (Required) The Name of this Gateway IP Configuration.
-
-* `subnet_id` - (Required) The ID of the Subnet which the Application Gateway should be connected to.
-
----
-
-A `http_listener` block supports the following:
-
-* `name` - (Required) The Name of the HTTP Listener.
-
-* `frontend_ip_configuration_name` - (Required) The Name of the Frontend IP Configuration used for this HTTP Listener.
-
-* `frontend_port_name` - (Required) The Name of the Frontend Port use for this HTTP Listener.
-
-* `host_name` - (Optional) The Hostname which should be used for this HTTP Listener. Setting this value changes Listener Type to 'Multi site'.
-
-* `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
-
--> **Note:** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
-
-* `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
-
-* `require_sni` - (Optional) Should Server Name Indication be Required? Defaults to `false`.
-
-* `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this HTTP Listener.
-
-* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
-
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used for this HTTP Listener.
-
-* `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this HTTP Listener.
-
----
-
-An `identity` block supports the following:
-
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
-
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
-
----
-
-A `private_link_configuration` block supports the following:
-
-* `name` - (Required) The name of the private link configuration.
-
-* `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
-
--> **Note:** The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
-
-```bash
-az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
-```
-
----
-
-An `ip_configuration` block supports the following:
-
-* `name` - (Required) The name of the IP configuration.
-
-* `subnet_id` - (Required) The ID of the subnet the private link configuration should connect to.
-
-* `private_ip_address_allocation` - (Required) The allocation method used for the Private IP Address. Possible values are `Dynamic` and `Static`.
-
-* `primary` - (Required) Is this the Primary IP Configuration?
-
-* `private_ip_address` - (Optional) The Static IP Address which should be used.
-
----
-
-A `match` block supports the following:
-
-* `body` - (Optional) A snippet from the Response Body which must be present in the Response.
-
-* `status_code` - (Required) A list of allowed status codes for this Health Probe.
-
----
-
-A `path_rule` block supports the following:
-
-* `name` - (Required) The Name of the Path Rule.
-
-* `paths` - (Required) A list of Paths used in this Path Rule.
-
-* `backend_address_pool_name` - (Optional) The Name of the Backend Address Pool to use for this Path Rule. Cannot be set if `redirect_configuration_name` is set.
-
-* `backend_http_settings_name` - (Optional) The Name of the Backend HTTP Settings Collection to use for this Path Rule. Cannot be set if `redirect_configuration_name` is set.
-
-* `redirect_configuration_name` - (Optional) The Name of a Redirect Configuration to use for this Path Rule. Cannot be set if `backend_address_pool_name` or `backend_http_settings_name` is set.
-
-* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
-
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used as an HTTP Listener.
-
----
-
-A `probe` block supports the following:
-
-* `host` - (Optional) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as `127.0.0.1`, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
-
-* `interval` - (Required) The Interval between two consecutive probes in seconds. Possible values range from 1 second to a maximum of 86,400 seconds.
-
-* `name` - (Required) The Name of the Probe.
-
-* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
-
-* `path` - (Required) The Path used for this Probe.
-
-* `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
-
-* `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
-
-* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Basic, Standard_v2 and WAF_v2 only.
-
-* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
-
-* `match` - (Optional) A `match` block as defined above.
-
-* `minimum_servers` - (Optional) The minimum number of servers that are always marked as healthy. Defaults to `0`.
-
----
-
-A `request_routing_rule` block supports the following:
-
-* `name` - (Required) The Name of this Request Routing Rule.
-
-* `rule_type` - (Required) The Type of Routing that should be used for this Rule. Possible values are `Basic` and `PathBasedRouting`.
-
-* `http_listener_name` - (Required) The Name of the HTTP Listener which should be used for this Routing Rule.
-
-* `backend_address_pool_name` - (Optional) The Name of the Backend Address Pool which should be used for this Routing Rule. Cannot be set if `redirect_configuration_name` is set.
-
-* `backend_http_settings_name` - (Optional) The Name of the Backend HTTP Settings Collection which should be used for this Routing Rule. Cannot be set if `redirect_configuration_name` is set.
-
-* `redirect_configuration_name` - (Optional) The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
-
-* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
-
--> **Note:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
-
-* `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
-
-* `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
-
--> **Note:** `priority` is required when `sku[0].tier` is set to `*_v2`.
-
----
-
-A `global` block supports the following:
-
-* `request_buffering_enabled` - (Required) Whether Application Gateway's Request buffer is enabled.
-
-* `response_buffering_enabled` - (Required) Whether Application Gateway's Response buffer is enabled.
-
----
-
-A `sku` block supports the following:
-
-* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_Small`, `Standard_Medium`, `Standard_Large`, `Standard_v2`, `WAF_Large`, `WAF_Medium` and `WAF_v2`.
-
-~> **Note:** `Standard_Small`, `Standard_Medium`, `Standard_Large`, `WAF_Medium`, and `WAF_Large` values are deprecated. `name` can no longer be created with or updated to these values. Refer to <https://aka.ms/V1retirement>.
-
-* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard`, `Standard_v2`, `WAF`, and `WAF_v2`.
-
-~> **Note:** `Standard` and `WAF` values are deprecated. `tier` can no longer be created with or updated to these values. Refer to <https://aka.ms/V1retirement>.
-
-* `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between `1` and `32`, and `1` to `125` for a V2 SKU. When using a `Basic` SKU this property must be between `1` and `2`. This property is optional if `autoscale_configuration` is set.
-
----
-
-A `ssl_certificate` block supports the following:
-
-* `name` - (Required) The Name of the SSL certificate that is unique within this Application Gateway
-
-* `data` - (Optional) The base64-encoded PFX certificate data. Required if `key_vault_secret_id` is not set.
-
--> **Note:** When specifying a file, use `data = filebase64("path/to/file")` to encode the contents of that file.
-
-* `password` - (Optional) Password for the pfx file specified in data. Required if `data` is set.
-
-* `key_vault_secret_id` - (Optional) The Secret ID of the (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for Key Vault to use this feature. Required if `data` is not set.
-
--> **Note:** To implement certificate rotation, the `azurerm_key_vault_secret` attribute `versionless_id` should be used, although `id` is also supported.
-
--> **Note:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
-
--> **Note:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
-
----
-
-A `url_path_map` block supports the following:
-
-* `name` - (Required) The Name of the URL Path Map.
-
-* `default_backend_address_pool_name` - (Optional) The Name of the Default Backend Address Pool which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
-
-* `default_backend_http_settings_name` - (Optional) The Name of the Default Backend HTTP Settings Collection which should be used for this URL Path Map. Cannot be set if `default_redirect_configuration_name` is set.
-
-* `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
-
--> **Note:** Both `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` should be specified.
-
-* `default_rewrite_rule_set_name` - (Optional) The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
-
-* `path_rule` - (Required) One or more `path_rule` blocks as defined above.
-
----
-A `trusted_client_certificate` block supports the following:
-
-* `name` - (Required) The name of the Trusted Client Certificate that is unique within this Application Gateway.
-
-* `data` - (Required) The base-64 encoded certificate.
-
----
-
-A `ssl_profile` block supports the following:
-
-* `name` - (Required) The name of the SSL Profile that is unique within this Application Gateway.
-
-* `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
-
-* `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
- 
-* `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
-
-* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
-
----
-
-A `ssl_policy` block supports the following:
-
-* `disabled_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1`, `TLSv1_2` and `TLSv1_3`.
-
-~> **Note:** `disabled_protocols` cannot be set when `policy_name` or `policy_type` are set.
-
-* `policy_type` - (Optional) The Type of the Policy. Possible values are `Predefined`, `Custom` and `CustomV2`.
-
-~> **Note:** `policy_type` is Required when `policy_name` is set - cannot be set if `disabled_protocols` is set.
-
-When using a `policy_type` of `Predefined` the following fields are supported:
-
-* `policy_name` - (Optional) The Name of the Policy e.g. AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and are published here <https://docs.microsoft.com/azure/application-gateway/application-gateway-ssl-policy-overview>. Not compatible with `disabled_protocols`.
-
-When using a `policy_type` of `Custom` the following fields are supported:
-
-* `cipher_suites` - (Optional) A List of accepted cipher suites. Possible values are: `TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA256`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA256`, `TLS_DHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_DHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_RSA_WITH_3DES_EDE_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA256`, `TLS_RSA_WITH_AES_128_GCM_SHA256`, `TLS_RSA_WITH_AES_256_CBC_SHA`, `TLS_RSA_WITH_AES_256_CBC_SHA256` and `TLS_RSA_WITH_AES_256_GCM_SHA384`.
-
-* `min_protocol_version` - (Optional) The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1`, `TLSv1_2` and `TLSv1_3`.
-
----
-
-A `waf_configuration` block supports the following:
-
-* `enabled` - (Required) Is the Web Application Firewall enabled?
-
-* `firewall_mode` - (Required) The Web Application Firewall Mode. Possible values are `Detection` and `Prevention`.
-
-* `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Possible values are `OWASP`, `Microsoft_BotManagerRuleSet` and `Microsoft_DefaultRuleSet`. Defaults to `OWASP`.
-
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `1.1`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
-
-* `disabled_rule_group` - (Optional) One or more `disabled_rule_group` blocks as defined below.
-
-* `file_upload_limit_mb` - (Optional) The File Upload Limit in MB. Accepted values are in the range `1`MB to `750`MB for the `WAF_v2` SKU, and `1`MB to `500`MB for all other SKUs. Defaults to `100`MB.
-
-* `request_body_check` - (Optional) Is Request Body Inspection enabled? Defaults to `true`.
-
-* `max_request_body_size_kb` - (Optional) The Maximum Request Body Size in KB. Accepted values are in the range `1`KB to `128`KB. Defaults to `128`KB.
-
-* `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
-
----
-
-A `disabled_rule_group` block supports the following:
-
-* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `crs_49_inbound_blocking`, `General`, `GoodBots`, `KnownBadBots`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA`, `UnknownBots`, `METHOD-ENFORCEMENT`, `PROTOCOL-ENFORCEMENT`, `PROTOCOL-ATTACK`, `LFI`, `RFI`, `RCE`, `PHP`, `NODEJS`, `XSS`, `SQLI`, `FIX`, `JAVA`, `MS-ThreatIntel-WebShells`, `MS-ThreatIntel-AppSec`, `MS-ThreatIntel-SQLI` and `MS-ThreatIntel-CVEs`.
-
-* `rules` - (Optional) A list of rules which should be disabled in that group. Disables all rules in the specified group if `rules` is not specified.
-
----
-
-A `exclusion` block supports the following:
-
-* `match_variable` - (Required) Match variable of the exclusion rule to exclude header, cookie or GET arguments. Possible values are `RequestArgKeys`, `RequestArgNames`, `RequestArgValues`, `RequestCookieKeys`, `RequestCookieNames`, `RequestCookieValues`, `RequestHeaderKeys`, `RequestHeaderNames` and `RequestHeaderValues`
-
-* `selector_match_operator` - (Optional) Operator which will be used to search in the variable content. Possible values are `Contains`, `EndsWith`, `Equals`, `EqualsAny` and `StartsWith`. If empty will exclude all traffic on this `match_variable`
-
-* `selector` - (Optional) String value which will be used for the filter operation. If empty will exclude all traffic on this `match_variable`
-
----
-
-A `custom_error_configuration` block supports the following:
-
-* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus400`, `HttpStatus403`, `HttpStatus404`, `HttpStatus405`, `HttpStatus408`, `HttpStatus500`, `HttpStatus502`, `HttpStatus503` and `HttpStatus504`
-
-* `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
-
----
-
-A `redirect_configuration` block supports the following:
-
-* `name` - (Required) Unique name of the redirect configuration block
-
-* `redirect_type` - (Required) The type of redirect. Possible values are `Permanent`, `Temporary`, `Found` and `SeeOther`
-
-* `target_listener_name` - (Optional) The name of the listener to redirect to. Cannot be set if `target_url` is set.
-
-* `target_url` - (Optional) The URL to redirect the request to. Cannot be set if `target_listener_name` is set.
-
-* `include_path` - (Optional) Whether to include the path in the redirected URL. Defaults to `false`
-
-* `include_query_string` - (Optional) Whether to include the query string in the redirected URL. Default to `false`
-
----
-
-An `autoscale_configuration` block supports the following:
-
-* `min_capacity` - (Required) Minimum capacity for autoscaling. Accepted values are in the range `0` to `100`.
-
-* `max_capacity` - (Optional) Maximum capacity for autoscaling. Accepted values are in the range `2` to `125`.
-
----
-
-A `rewrite_rule_set` block supports the following:
-
-* `name` - (Required) Unique name of the rewrite rule set block
-
-* `rewrite_rule` - (Optional) One or more `rewrite_rule` blocks as defined below.
-
----
-
-A `rewrite_rule` block supports the following:
-
-* `name` - (Required) Unique name of the rewrite rule block
-
-* `rule_sequence` - (Required) Rule sequence of the rewrite rule that determines the order of execution in a set.
-
-* `condition` - (Optional) One or more `condition` blocks as defined above.
-
-* `request_header_configuration` - (Optional) One or more `request_header_configuration` blocks as defined above.
-
-* `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
-
-* `url` - (Optional) One `url` block as defined below
-
----
-
-A `condition` block supports the following:
-
-* `variable` - (Required) The [variable](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
-
-* `pattern` - (Required) The pattern, either fixed string or regular expression, that evaluates the truthfulness of the condition.
-
-* `ignore_case` - (Optional) Perform a case in-sensitive comparison. Defaults to `false`
-
-* `negate` - (Optional) Negate the result of the condition evaluation. Defaults to `false`
-
----
-
-A `request_header_configuration` block supports the following:
-
-* `header_name` - (Required) Header name of the header configuration.
-
-* `header_value` - (Required) Header value of the header configuration. To delete a request header set this property to an empty string.
-
----
-
-A `response_header_configuration` block supports the following:
-
-* `header_name` - (Required) Header name of the header configuration.
-
-* `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
-
----
-
-A `url` block supports the following:
-
-* `path` - (Optional) The URL path to rewrite.
-
-* `query_string` - (Optional) The query string to rewrite.
-
-* `components` - (Optional) The components used to rewrite the URL. Possible values are `path_only` and `query_string_only` to limit the rewrite to the URL Path or URL Query String only.
-
-~> **Note:** One or both of `path` and `query_string` must be specified. If one of these is not specified, it means the value will be empty. If you only want to rewrite `path` or `query_string`, use `components`.
-
-* `reroute` - (Optional) Whether the URL path map should be reevaluated after this rewrite has been applied. [More info on rewrite configuration](https://docs.microsoft.com/azure/application-gateway/rewrite-http-headers-url#rewrite-configuration)
-
-## Attributes Reference
-
-In addition to the Arguments listed above - the following Attributes are exported:
-
-* `id` - The ID of the Application Gateway.
-
-* `authentication_certificate` - A list of `authentication_certificate` blocks as defined below.
-
-* `backend_address_pool` - A list of `backend_address_pool` blocks as defined below.
-
-* `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
-
-* `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
-
-* `frontend_port` - A list of `frontend_port` blocks as defined below.
-
-* `gateway_ip_configuration` - A list of `gateway_ip_configuration` blocks as defined below.
-
-* `http_listener` - A list of `http_listener` blocks as defined below.
-
-* `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
-
-* `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
-
-* `probe` - A `probe` block as defined below.
-
-* `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
-
-* `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
-
-* `url_path_map` - A list of `url_path_map` blocks as defined below.
-
-* `custom_error_configuration` - A list of `custom_error_configuration` blocks as defined below.
-
-* `redirect_configuration` - A list of `redirect_configuration` blocks as defined below.
-
----
-
-A `authentication_certificate` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
-
----
-
-A `authentication_certificate` block, within the `backend_http_settings` block exports the following:
-
-* `id` - The ID of the Authentication Certificate.
-
----
-
-A `backend_address_pool` block exports the following:
-
-* `id` - The ID of the Backend Address Pool.
-
----
-
-A `backend_http_settings` block exports the following:
-
-* `id` - The ID of the Backend HTTP Settings Configuration.
-
-* `probe_id` - The ID of the associated Probe.
-
----
-
-A `frontend_ip_configuration` block exports the following:
-
-* `id` - The ID of the Frontend IP Configuration.
-
-* `private_link_configuration_id` - The ID of the associated private link configuration.
-
----
-
-A `frontend_port` block exports the following:
-
-* `id` - The ID of the Frontend Port.
-
----
-
-A `gateway_ip_configuration` block exports the following:
-
-* `id` - The ID of the Gateway IP Configuration.
-
----
-
-A `http_listener` block exports the following:
-
-* `id` - The ID of the HTTP Listener.
-
-* `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
-
-* `frontend_port_id` - The ID of the associated Frontend Port.
-
-* `ssl_certificate_id` - The ID of the associated SSL Certificate.
-
-* `ssl_profile_id` - The ID of the associated SSL Profile.
-
----
-
-A `path_rule` block exports the following:
-
-* `id` - The ID of the Path Rule.
-
-* `backend_address_pool_id` - The ID of the Backend Address Pool used in this Path Rule.
-
-* `backend_http_settings_id` - The ID of the Backend HTTP Settings Collection used in this Path Rule.
-
-* `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
-
-* `rewrite_rule_set_id` - The ID of the Rewrite Rule Set used in this Path Rule.
-
----
-
-A `private_endpoint_connection` block exports the following:
-
-* `name` - The name of the private endpoint connection.
-
-* `id` - The ID of the private endpoint connection.
-
----
-
-A `private_link_configuration` block exports the following:
-
-* `id` - The ID of the private link configuration.
-
----
-
-A `probe` block exports the following:
-
-* `id` - The ID of the Probe.
-
----
-
-A `request_routing_rule` block exports the following:
-
-* `id` - The ID of the Request Routing Rule.
-
-* `http_listener_id` - The ID of the associated HTTP Listener.
-
-* `backend_address_pool_id` - The ID of the associated Backend Address Pool.
-
-* `backend_http_settings_id` - The ID of the associated Backend HTTP Settings Configuration.
-
-* `redirect_configuration_id` - The ID of the associated Redirect Configuration.
-
-* `rewrite_rule_set_id` - The ID of the associated Rewrite Rule Set.
-
-* `url_path_map_id` - The ID of the associated URL Path Map.
-
----
-
-A `ssl_certificate` block exports the following:
-
-* `id` - The ID of the SSL Certificate.
-
-* `public_cert_data` - The Public Certificate Data associated with the SSL Certificate.
-
----
-
-A `url_path_map` block exports the following:
-
-* `id` - The ID of the URL Path Map.
-
-* `default_backend_address_pool_id` - The ID of the Default Backend Address Pool.
-
-* `default_backend_http_settings_id` - The ID of the Default Backend HTTP Settings Collection.
-
-* `default_redirect_configuration_id` - The ID of the Default Redirect Configuration.
-
-* `path_rule` - (Required) A list of `path_rule` blocks as defined above.
-
----
-
-A `custom_error_configuration` block exports the following:
-
-* `id` - The ID of the Custom Error Configuration.
-
----
-
-A `redirect_configuration` block exports the following:
-
-* `id` - The ID of the Redirect Configuration.
-
----
-
-A `rewrite_rule_set` block exports the following:
-
-* `id` - The ID of the Rewrite Rule Set
-
-## Timeouts
-
-The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
-
-* `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
-* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
-* `delete` - (Defaults to 90 minutes) Used when deleting the Application Gateway.
-
-## Import
-
-Application Gateway's can be imported using the `resource id`, e.g.
-
-```shell
-terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
-```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.Network` - 2025-01-01
+func expandWebApplicationFirewallPolicyPolicySettings(input []interface{}) *webapplicationfirewallpolicies.PolicySettings {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	enabled := webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateDisabled
+	if value, ok := v["enabled"].(bool); ok && value {
+		enabled = webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateEnabled
+	}
+	mode := v["mode"].(string)
+	requestBodyCheck := v["request_body_check"].(bool)
+	requestBodyEnforcement := v["request_body_enforcement"].(bool)
+	fileUploadEnforcement := v["file_upload_enforcement"].(bool)
+	maxRequestBodySizeInKb := v["max_request_body_size_in_kb"].(int)
+	fileUploadLimitInMb := v["file_upload_limit_in_mb"].(int)
+
+	result := webapplicationfirewallpolicies.PolicySettings{
+		State:                             pointer.To(enabled),
+		Mode:                              pointer.To(webapplicationfirewallpolicies.WebApplicationFirewallMode(mode)),
+		FileUploadEnforcement:             pointer.To(fileUploadEnforcement),
+		RequestBodyCheck:                  pointer.To(requestBodyCheck),
+		RequestBodyEnforcement:            pointer.To(requestBodyEnforcement),
+		MaxRequestBodySizeInKb:            pointer.To(int64(maxRequestBodySizeInKb)),
+		FileUploadLimitInMb:               pointer.To(int64(fileUploadLimitInMb)),
+		LogScrubbing:                      expandWebApplicationFirewallPolicyLogScrubbing(v["log_scrubbing"].([]interface{})),
+		RequestBodyInspectLimitInKB:       pointer.To(int64(v["request_body_inspect_limit_in_kb"].(int))),
+		JsChallengeCookieExpirationInMins: pointer.To(int64(v["js_challenge_cookie_expiration_in_minutes"].(int))),
+	}
+
+	return &result
+}
+
+func expandWebApplicationFirewallPolicyLogScrubbing(input []interface{}) *webapplicationfirewallpolicies.PolicySettingsLogScrubbing {
+	if len(input) == 0 {
+		return nil
+	}
+
+	var res webapplicationfirewallpolicies.PolicySettingsLogScrubbing
+	v := input[0].(map[string]interface{})
+	state := webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateDisabled
+	if value, ok := v["enabled"].(bool); ok && value {
+		state = webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
+	}
+	res.State = &state
+
+	res.ScrubbingRules = expandWebApplicationPolicyScrubbingRules(v["rule"].([]interface{}))
+
+	return &res
+}
+
+func expandWebApplicationPolicyScrubbingRules(input []interface{}) *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules {
+	if len(input) == 0 {
+		return nil
+	}
+
+	res := make([]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules, 0)
+	for _, rule := range input {
+		v := rule.(map[string]interface{})
+		var item webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules
+		state := webapplicationfirewallpolicies.ScrubbingRuleEntryStateDisabled
+		if value, ok := v["enabled"].(bool); ok && value {
+			state = webapplicationfirewallpolicies.ScrubbingRuleEntryStateEnabled
+		}
+		item.State = &state
+		item.MatchVariable = webapplicationfirewallpolicies.ScrubbingRuleEntryMatchVariable(v["match_variable"].(string))
+		item.SelectorMatchOperator = webapplicationfirewallpolicies.ScrubbingRuleEntryMatchOperator(v["selector_match_operator"].(string))
+		if val, ok := v["selector"]; ok {
+			item.Selector = pointer.To(val.(string))
+		}
+
+		res = append(res, item)
+	}
+	return &res
+}
+
+func expandWebApplicationFirewallPolicyManagedRulesDefinition(input []interface{}) *webapplicationfirewallpolicies.ManagedRulesDefinition {
+	if len(input) == 0 {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	exclusions := v["exclusion"].([]interface{})
+	managedRuleSets := v["managed_rule_set"].([]interface{})
+
+	expandedManagedRuleSets := expandWebApplicationFirewallPolicyManagedRuleSet(managedRuleSets)
+
+	return &webapplicationfirewallpolicies.ManagedRulesDefinition{
+		Exclusions:      expandWebApplicationFirewallPolicyExclusions(exclusions),
+		ManagedRuleSets: *expandedManagedRuleSets,
+	}
+}
+
+func expandWebApplicationFirewallPolicyExclusionManagedRules(input []interface{}) *[]webapplicationfirewallpolicies.ExclusionManagedRule {
+	results := make([]webapplicationfirewallpolicies.ExclusionManagedRule, 0)
+	for _, item := range input {
+		ruleID := item.(string)
+
+		result := webapplicationfirewallpolicies.ExclusionManagedRule{
+			RuleId: ruleID,
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(input []interface{}) *[]webapplicationfirewallpolicies.ExclusionManagedRuleGroup {
+	results := make([]webapplicationfirewallpolicies.ExclusionManagedRuleGroup, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleGroupName := v["rule_group_name"].(string)
+
+		result := webapplicationfirewallpolicies.ExclusionManagedRuleGroup{
+			RuleGroupName: ruleGroupName,
+		}
+
+		if excludedRules := v["excluded_rules"].([]interface{}); len(excludedRules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyExclusionManagedRules(excludedRules)
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExclusionManagedRuleSet(input []interface{}) *[]webapplicationfirewallpolicies.ExclusionManagedRuleSet {
+	results := make([]webapplicationfirewallpolicies.ExclusionManagedRuleSet, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleSetType := v["type"].(string)
+		ruleSetVersion := v["version"].(string)
+		ruleGroups := make([]interface{}, 0)
+		if value, exists := v["rule_group"]; exists {
+			ruleGroups = value.([]interface{})
+		}
+		result := webapplicationfirewallpolicies.ExclusionManagedRuleSet{
+			RuleSetType:    ruleSetType,
+			RuleSetVersion: ruleSetVersion,
+			RuleGroups:     expandWebApplicationFirewallPolicyExclusionManagedRuleGroup(ruleGroups),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyExclusions(input []interface{}) *[]webapplicationfirewallpolicies.OwaspCrsExclusionEntry {
+	results := make([]webapplicationfirewallpolicies.OwaspCrsExclusionEntry, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		matchVariable := v["match_variable"].(string)
+		selectorMatchOperator := v["selector_match_operator"].(string)
+		selector := v["selector"].(string)
+		exclusionManagedRuleSets := v["excluded_rule_set"].([]interface{})
+
+		result := webapplicationfirewallpolicies.OwaspCrsExclusionEntry{
+			MatchVariable:            webapplicationfirewallpolicies.OwaspCrsExclusionEntryMatchVariable(matchVariable),
+			SelectorMatchOperator:    webapplicationfirewallpolicies.OwaspCrsExclusionEntrySelectorMatchOperator(selectorMatchOperator),
+			Selector:                 selector,
+			ExclusionManagedRuleSets: expandWebApplicationFirewallPolicyExclusionManagedRuleSet(exclusionManagedRuleSets),
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyManagedRuleSet(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleSet {
+	results := make([]webapplicationfirewallpolicies.ManagedRuleSet, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		ruleSetType := v["type"].(string)
+		ruleSetVersion := v["version"].(string)
+		ruleGroupOverrides := []interface{}{}
+		if value, exists := v["rule_group_override"]; exists {
+			ruleGroupOverrides = value.([]interface{})
+		}
+
+		expandedRuleGroupOverrides := expandWebApplicationFirewallPolicyRuleGroupOverrides(ruleGroupOverrides)
+
+		result := webapplicationfirewallpolicies.ManagedRuleSet{
+			RuleSetType:        ruleSetType,
+			RuleSetVersion:     ruleSetVersion,
+			RuleGroupOverrides: expandedRuleGroupOverrides,
+		}
+
+		results = append(results, result)
+	}
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyRuleGroupOverrides(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride {
+	results := make([]webapplicationfirewallpolicies.ManagedRuleGroupOverride, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		ruleGroupName := v["rule_group_name"].(string)
+
+		result := webapplicationfirewallpolicies.ManagedRuleGroupOverride{
+			RuleGroupName: ruleGroupName,
+		}
+
+		if rules := v["rule"].([]interface{}); len(rules) > 0 {
+			result.Rules = expandWebApplicationFirewallPolicyOverrideRules(rules)
+		}
+
+		results = append(results, result)
+	}
+
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyOverrideRules(input []interface{}) *[]webapplicationfirewallpolicies.ManagedRuleOverride {
+	results := make([]webapplicationfirewallpolicies.ManagedRuleOverride, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		state := webapplicationfirewallpolicies.ManagedRuleEnabledStateDisabled
+		if v["enabled"].(bool) {
+			state = webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
+		}
+
+		result := webapplicationfirewallpolicies.ManagedRuleOverride{
+			RuleId: v["id"].(string),
+			State:  pointer.To(state),
+		}
+
+		action := v["action"].(string)
+		if action != "" {
+			result.Action = pointer.To(webapplicationfirewallpolicies.ActionType(action))
+		}
+
+		results = append(results, result)
+	}
+
+	return &results
+}
+
+func expandWebApplicationFirewallPolicyMatchCondition(input []interface{}) []webapplicationfirewallpolicies.MatchCondition {
+	results := make([]webapplicationfirewallpolicies.MatchCondition, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		matchVariables := v["match_variables"].([]interface{})
+		operator := v["operator"].(string)
+		negationCondition := v["negation_condition"].(bool)
+		matchValues := v["match_values"].([]interface{})
+		transformsRaw := v["transforms"].(*pluginsdk.Set).List()
+
+		var transforms []webapplicationfirewallpolicies.WebApplicationFirewallTransform
+		for _, trans := range transformsRaw {
+			transforms = append(transforms, webapplicationfirewallpolicies.WebApplicationFirewallTransform(trans.(string)))
+		}
+		result := webapplicationfirewallpolicies.MatchCondition{
+			MatchValues:      pointer.From(utils.ExpandStringSlice(matchValues)),
+			MatchVariables:   expandWebApplicationFirewallPolicyMatchVariable(matchVariables),
+			NegationConditon: pointer.To(negationCondition),
+			Operator:         webapplicationfirewallpolicies.WebApplicationFirewallOperator(operator),
+			Transforms:       &transforms,
+		}
+
+		results = append(results, result)
+	}
+	return results
+}
+
+func expandWebApplicationFirewallPolicyMatchVariable(input []interface{}) []webapplicationfirewallpolicies.MatchVariable {
+	results := make([]webapplicationfirewallpolicies.MatchVariable, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		variableName := v["variable_name"].(string)
+		selector := v["selector"].(string)
+
+		result := webapplicationfirewallpolicies.MatchVariable{
+			Selector:     pointer.To(selector),
+			VariableName: webapplicationfirewallpolicies.WebApplicationFirewallMatchVariable(variableName),
+		}
+
+		results = append(results, result)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(input *[]webapplicationfirewallpolicies.WebApplicationFirewallCustomRule) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		if name := item.Name; name != nil {
+			v["name"] = *name
+		}
+		v["action"] = string(item.Action)
+		v["enabled"] = pointer.From(item.State) == webapplicationfirewallpolicies.WebApplicationFirewallStateEnabled
+		v["match_conditions"] = flattenWebApplicationFirewallPolicyMatchCondition(item.MatchConditions)
+		v["priority"] = int(item.Priority)
+		v["rule_type"] = string(item.RuleType)
+		v["rate_limit_duration"] = pointer.From(item.RateLimitDuration)
+		v["rate_limit_threshold"] = pointer.From(item.RateLimitThreshold)
+
+		if item.GroupByUserSession != nil && len(*item.GroupByUserSession) > 0 {
+			if groupVariable := (*item.GroupByUserSession)[0].GroupByVariables; len(groupVariable) > 0 {
+				v["group_rate_limit_by"] = groupVariable[0].VariableName
+			}
+		}
+
+		results = append(results, v)
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyPolicySettings(input *webapplicationfirewallpolicies.PolicySettings) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+
+	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallEnabledStateEnabled
+	result["mode"] = string(pointer.From(input.Mode))
+	result["request_body_check"] = input.RequestBodyCheck
+	result["request_body_enforcement"] = input.RequestBodyEnforcement
+	result["file_upload_enforcement"] = input.FileUploadEnforcement
+	result["max_request_body_size_in_kb"] = int(pointer.From(input.MaxRequestBodySizeInKb))
+	result["file_upload_limit_in_mb"] = int(pointer.From(input.FileUploadLimitInMb))
+	result["log_scrubbing"] = flattenWebApplicationFirewallPolicyLogScrubbing(input.LogScrubbing)
+	result["request_body_inspect_limit_in_kb"] = pointer.From(input.RequestBodyInspectLimitInKB)
+
+	jsChallengeCookieExpirationInMins := 30 // default value is not returned, https://github.com/Azure/azure-rest-api-specs/issues/36330
+	if v := pointer.From(input.JsChallengeCookieExpirationInMins); v != 0 {
+		jsChallengeCookieExpirationInMins = int(v)
+	}
+	result["js_challenge_cookie_expiration_in_minutes"] = jsChallengeCookieExpirationInMins
+
+	return []interface{}{result}
+}
+
+func flattenWebApplicationFirewallPolicyLogScrubbing(input *webapplicationfirewallpolicies.PolicySettingsLogScrubbing) interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+	result := make(map[string]interface{})
+	result["enabled"] = pointer.From(input.State) == webapplicationfirewallpolicies.WebApplicationFirewallScrubbingStateEnabled
+	result["rule"] = flattenWebApplicationFirewallPolicyLogScrubbingRules(input.ScrubbingRules)
+	return []interface{}{result}
+}
+
+func flattenWebApplicationFirewallPolicyLogScrubbingRules(rules *[]webapplicationfirewallpolicies.WebApplicationFirewallScrubbingRules) interface{} {
+	result := make([]interface{}, 0)
+	if rules == nil || len(*rules) == 0 {
+		return result
+	}
+	for _, rule := range *rules {
+		item := map[string]interface{}{}
+		item["enabled"] = pointer.From(rule.State) == webapplicationfirewallpolicies.ScrubbingRuleEntryStateEnabled
+		item["match_variable"] = rule.MatchVariable
+		item["selector_match_operator"] = rule.SelectorMatchOperator
+		item["selector"] = pointer.From(rule.Selector)
+		result = append(result, item)
+	}
+	return &result
+}
+
+func flattenWebApplicationFirewallPolicyManagedRulesDefinition(input webapplicationfirewallpolicies.ManagedRulesDefinition) []interface{} {
+	results := make([]interface{}, 0)
+
+	v := make(map[string]interface{})
+
+	v["exclusion"] = flattenWebApplicationFirewallPolicyExclusions(input.Exclusions)
+	v["managed_rule_set"] = flattenWebApplicationFirewallPolicyManagedRuleSets(input.ManagedRuleSets)
+
+	results = append(results, v)
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusionManagedRules(input *[]webapplicationfirewallpolicies.ExclusionManagedRule) []string {
+	results := make([]string, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, item.RuleId)
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(input *[]webapplicationfirewallpolicies.ExclusionManagedRuleGroup) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["rule_group_name"] = item.RuleGroupName
+		v["excluded_rules"] = flattenWebApplicationFirewallPolicyExclusionManagedRules(item.Rules)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(input *[]webapplicationfirewallpolicies.ExclusionManagedRuleSet) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["type"] = item.RuleSetType
+		v["version"] = item.RuleSetVersion
+		v["rule_group"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleGroups(item.RuleGroups)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyExclusions(input *[]webapplicationfirewallpolicies.OwaspCrsExclusionEntry) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		selector := item.Selector
+
+		v["match_variable"] = string(item.MatchVariable)
+		v["selector"] = selector
+
+		v["selector_match_operator"] = string(item.SelectorMatchOperator)
+		v["excluded_rule_set"] = flattenWebApplicationFirewallPolicyExclusionManagedRuleSets(item.ExclusionManagedRuleSets)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyManagedRuleSets(input []webapplicationfirewallpolicies.ManagedRuleSet) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range input {
+		v := make(map[string]interface{})
+
+		v["type"] = item.RuleSetType
+		v["version"] = item.RuleSetVersion
+		v["rule_group_override"] = flattenWebApplicationFirewallPolicyRuleGroupOverrides(item.RuleGroupOverrides)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyRuleGroupOverrides(input *[]webapplicationfirewallpolicies.ManagedRuleGroupOverride) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		v["rule_group_name"] = item.RuleGroupName
+
+		v["rule"] = flattenWebApplicationFirewallPolicyOverrideRules(item.Rules)
+
+		results = append(results, v)
+	}
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyOverrideRules(input *[]webapplicationfirewallpolicies.ManagedRuleOverride) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+		v["id"] = item.RuleId
+
+		v["enabled"] = pointer.From(item.State) == webapplicationfirewallpolicies.ManagedRuleEnabledStateEnabled
+
+		v["action"] = string(pointer.From(item.Action))
+
+		results = append(results, v)
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyMatchCondition(input []webapplicationfirewallpolicies.MatchCondition) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range input {
+		v := make(map[string]interface{})
+
+		var transforms []interface{}
+		if item.Transforms != nil {
+			for _, trans := range *item.Transforms {
+				transforms = append(transforms, string(trans))
+			}
+		}
+		v["match_values"] = utils.FlattenStringSlice(pointer.To(item.MatchValues))
+		v["match_variables"] = flattenWebApplicationFirewallPolicyMatchVariable(item.MatchVariables)
+		if negationCondition := item.NegationConditon; negationCondition != nil {
+			v["negation_condition"] = *negationCondition
+		}
+		v["operator"] = string(item.Operator)
+		v["transforms"] = transforms
+
+		results = append(results, v)
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPolicyMatchVariable(input []webapplicationfirewallpolicies.MatchVariable) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range input {
+		v := make(map[string]interface{})
+
+		if selector := item.Selector; selector != nil {
+			v["selector"] = *selector
+		}
+		v["variable_name"] = string(item.VariableName)
+
+		results = append(results, v)
+	}
+
+	return results
+}
+
+func flattenWebApplicationFirewallPoliciesSubResourcesToIDs(input *[]webapplicationfirewallpolicies.SubResource) []interface{} {
+	ids := make([]interface{}, 0)
+	if input == nil {
+		return ids
+	}
+
+	for _, v := range *input {
+		if v.Id == nil {
+			continue
+		}
+
+		ids = append(ids, *v.Id)
+	}
+
+	return ids
+}
