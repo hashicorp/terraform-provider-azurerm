@@ -97,13 +97,13 @@ You can also register specific Resource Providers using the `resource_providers_
 ```hcl
 provider "azurerm" {
   resource_provider_registrations = "none"
-  
+
   resource_providers_to_register = [
     "Microsoft.Compute",
     "Microsoft.Network",
     "Microsoft.Storage",
   ]
-  
+
   features {}
 }
 ```
