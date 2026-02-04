@@ -4,7 +4,7 @@
 
 
 echo "==> Checking that acceptance test packages are used..."
-
+# shellcheck disable=SC2016 # Single quotes are intentional - awk interprets $1, not bash
 invalid_files=$(find ./internal/services -maxdepth 2 -type f -regex '.*\(resource\|data_source\).*_test\.go$' -print0 | \
   xargs -0 awk '
     FNR > 5 {
