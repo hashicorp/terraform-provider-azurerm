@@ -122,7 +122,7 @@ func (r *Runner) reportDiagnostics(graph *checker.Graph) bool {
 	var foundIssues bool
 	var issueCount int
 	// Deduplicate diagnostics by "file:line:column|message"
-	// When Tests=true, the same source file may be analyzed in both main and test packages,
+	// When Tests=true, the same source file may be analyzed in both main and test packages (when user doesn't mark test pkg as *_test),
 	// causing identical diagnostics to be reported multiple times
 	reported := make(map[string]bool)
 
