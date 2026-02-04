@@ -691,24 +691,6 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 	return nil
 }
 
-func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-	gatewayType := d.Get("type").(string)
-
-	// Validate that public_ip_address_id is not set for ExpressRoute gateways
-	if gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) {
-		ipConfigs := d.Get("ip_configuration").([]interface{})
-		for i, ipConfigRaw := range ipConfigs {
-			ipConfig := ipConfigRaw.(map[string]interface{})
-			if publicIPID, ok := ipConfig["public_ip_address_id"].(string); ok && publicIPID != "" {
-				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` cannot be set when `type` is set to `ExpressRoute`", i)
-			}
-		}
-	}
-
-	return nil
-}
-
-
 func resourceVirtualNetworkGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualNetworkGateways
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
