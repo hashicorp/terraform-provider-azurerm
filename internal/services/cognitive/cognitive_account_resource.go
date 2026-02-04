@@ -677,7 +677,11 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			}
 			d.Set("project_management_enabled", allowProjectManagement)
 
-			d.Set("public_network_access_enabled", pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled)
+			publicNetworkAccess := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccess = pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccess)
 
 			if err := d.Set("storage", flattenCognitiveAccountStorage(props.UserOwnedStorage)); err != nil {
 				return fmt.Errorf("setting `storages` for Cognitive Account %q: %+v", id, err)
