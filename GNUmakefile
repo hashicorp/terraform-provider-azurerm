@@ -134,14 +134,11 @@ ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=azurerm
 
-document-validate:
+document-validate docu-validate:
 	@./scripts/documentfmt-validate.sh
 
-document-fix:
+document-fix docu-fmt:
 	@./scripts/documentfmt-fix.sh
-
-document-lint:
-	go run $(CURDIR)/internal/tools/document-lint/main.go check
 
 scaffold-website:
 	./scripts/scaffold-website.sh
