@@ -16,12 +16,14 @@ import (
 // at `terraform plan` time. When disabled, these errors are caught at `terraform apply` time
 // when Azure rejects the request.
 //
-// This is disabled by default as of version 5.0 of the Azure Provider, and can be enabled by
-// setting the Environment Variable `ARM_PROVIDER_ENHANCED_VALIDATION` to `true`.
+// This is enabled by default in version 4.x and disabled by default as of version 5.0 of the
+// Azure Provider. The default can be overridden by setting the Environment Variable
+// `ARM_PROVIDER_ENHANCED_VALIDATION` to `true` or `false`.
 func EnhancedValidationEnabled() bool {
 	value := os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION")
 	if value == "" {
-		return false
+		// In 5.0, default to disabled; in 4.x, default to enabled
+		return !FivePointOh()
 	}
 
 	return strings.EqualFold(value, "true")
