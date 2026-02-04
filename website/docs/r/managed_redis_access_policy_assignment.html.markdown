@@ -9,6 +9,7 @@ description: |-
 # azurerm_managed_redis_access_policy_assignment
 
 Manages a Managed Redis Access Policy Assignment.
+
 ## Example Usage
 
 ```hcl
@@ -65,7 +66,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Managed Redis Access Policy Assignments can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_managed_redis_access_policy_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redisEnterprise/redis1/databases/default/accessPolicyAssignments/assignment1
+terraform import azurerm_managed_redis_access_policy_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redisEnterprise/redis1/databases/default/accessPolicyAssignments/00000000-0000-0000-0000-000000000000
 ```
 
 ## API Providers
