@@ -257,6 +257,10 @@ Would be better exposed as the following resources:
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
+## Common Fields Excluded from the Schema
+
+Some top-level common fields of Azure APIs should not be exposed in the schema, such as `type`, `state`, `provisioning_state`, etc.
+
 ## Preview Fields
 
 Fields that are in preview should not be supported until they reach General Availability (GA) status, as they may change or be removed before becoming stable.
