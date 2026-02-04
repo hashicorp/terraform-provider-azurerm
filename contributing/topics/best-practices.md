@@ -78,7 +78,7 @@ Data Sources and Resources built using the Typed SDK have a number of benefits o
     2. Default values can be implied for fields, rather than requiring an explicit `d.Set` in the Read function for every field - this allows us to ensure that an empty value/list is set for a field, rather than being `null` and thus not able to be referenced in user configs.
 * Using the Typed SDK allows Data Sources and Resources to (in the future) be migrated across to using `hashicorp/terraform-plugin-framework` rather than `hashicorp/terraform-plugin-sdk` without rewriting the resource - which will unlock a number of benefits to end-users, but does involve some configuration changes (and as such will need to be done in a major release).
 * Using the Typed SDK means that these Data Sources/Resources can be more easily swapped out for generated versions down the line (since the code changes will be far smaller).
-  
+
 To facilitate the migration across to Typed Resources, we ask that any new Data Source or Resource which is added to the Provider is added as a Typed Data Source/Resource. Enhancements to existing Data Sources/Resources which are Untyped Resources can remain as Untyped Resources, however these will need to be migrated across in the future.
 
 Here is an example of an Untyped Resource:
@@ -178,7 +178,7 @@ func (r SomeResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func:    func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// create logic is defined here 
+			// create logic is defined here
 		},
 	}
 }
@@ -261,7 +261,7 @@ When adding or updating the licensing header at the top of a Go source file, alw
 
 - `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
 
-:white_check_mark: **DO**
+**DO**
 
 ```go
 output.Name = pointer.From(input.Name)
@@ -269,7 +269,7 @@ output.Name = pointer.From(input.Name)
 
 - Use `pointer.To` to take the address of a value without declaring temporary variables.
 
-:white_check_mark: **DO**
+**DO**
 
 ```go
 if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
@@ -279,11 +279,10 @@ if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch
 
 - Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
 
-:white_check_mark: **DO**
+**DO**
 
 ```go
 return &managedclusters.ManagedClusterBootstrapProfile{
     ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
 }
 ```
-

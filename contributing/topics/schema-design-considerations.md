@@ -106,7 +106,7 @@ A judgement call should be made based off the behaviour of the API and expectati
 
 ## The `None` value or similar
 
-Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification. 
+Many Azure APIs and services will accept the values like `None`, `Off`, or `Default` as a default value and expose it as a constant in the API specification.
 
 ```
     "shutdownOnIdleMode": {
@@ -139,38 +139,38 @@ The resulting schema in Terraform would look as follows and also requires a conv
 
 // Normalising in the create or expand function
 func (r resource) Create() sdk.ResourceFunc {
-	
+
 	...
-	
+
 	var config resourceModel
 	if err := metadata.Decode(&config); err != nil {
         return fmt.Errorf("decoding: %+v", err)
     }
-	
+
 	// The resource property shutdown_on_idle maps to the attribute shutdownOnIdle in the defined model for a typed resource in this example
 	shutdownOnIdle := string(labplan.ShutdownOnIdleModeNone)
 	if v := model.ShutdownOnIdle; v != "" {
 		shutdownOnIdle = v
     }
-	
+
 	...
-	
+
 }
 
 // Normalising in the read or flatten function
 func (r resource) Read() sdk.ResourceFunc {
-	
+
 	...
-	
+
 	shutdownOnIdle := ""
 	if v := props.ShutdownOnIdle; v != nil && v != string(labplan.ShutdownOnIdleModeNone) {
 		shutdownOnIdle = string(*v)
     }
-	
+
 	state.ShutdownOnIdle = shutdownOnIdle
-	
+
 	...
-	
+
 }
 ```
 
@@ -178,7 +178,7 @@ func (r resource) Read() sdk.ResourceFunc {
 
 Because the Azure API implementation for SKU fields tends to vary we can't easily standardise on a single approach, however, we should try to stick to one of the following two implementations:
 
-1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument. 
+1. When the SKU can be set using a single argument (e.g. only the SKU name), use a top-level `sku` argument.
 2. When the SKU requires multiple arguments (e.g. `name` and `capacity`), use a `sku` block.
 
 Example of a `sku` argument:
@@ -265,13 +265,14 @@ Fields that are in preview should not be supported until they reach General Avai
 
 When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
 
-:white_check_mark: **DO**
+**DO**
 ```go
 "credential_certificate": {
     Type:     pluginsdk.TypeList,
     Optional: true,
     Elem:     &pluginsdk.Schema{
         Type:         pluginsdk.TypeString,
+        // NOTE: validation is intentionally minimal since there is no stable RP contract for the certificate contents beyond a non-empty string.
         ValidateFunc: validation.StringIsNotEmpty,
     },
 }
@@ -283,14 +284,14 @@ If a field is an array, proper `MinItems` and `MaxItems` should be set based on 
 
 ```go
 "email_addresses": {
-	Type:     pluginsdk.TypeList,
-	Required: true,
-	MinItems: 1,
-	MaxItems: 20,
-	Elem: &pluginsdk.Schema{
-		Type:         pluginsdk.TypeString,
-		ValidateFunc: validation.StringIsNotEmpty,
-	},
+    Type:     pluginsdk.TypeList,
+    Required: true,
+    MinItems: 1,
+    MaxItems: 20,
+    Elem: &pluginsdk.Schema{
+        Type:         pluginsdk.TypeString,
+        ValidateFunc: validation.IsEmailAddress,
+    },
 },
 ```
 
@@ -328,9 +329,79 @@ When a `pluginsdk.TypeList` block has no required nested fields, conditional val
 
 ## Validation
 
-String arguments must be validated. Use `StringNotEmpty` at a minimum but ideally validation should be more strict. Validate `name` fields for length and allowed characters. Use `commonids` or SDK-specific functions for Resource IDs. Ensure common formats like dates, IPs, ports, emails, and URIs are validated.
+String arguments must be validated against the Resource Provider (RP) / API contract wherever possible.
 
-Numeric arguments should specify a valid range.
+As a rule of thumb, ensure common shapes have appropriate, specific validators:
+- Validate `name`-like fields for length and allowed characters (use regex/patterns from the spec where available)
+- Use `commonids` or service-specific ID validators for resource IDs
+- Validate common formats like dates, IPs, ports, emails, and URIs
+
+This means using constraints from the swagger/spec, SDK types/constants, or RP documentation:
+- Allowed values (enums)
+- Patterns/regex
+- Length bounds
+- Formats (dates, IPs, ports, emails, URIs)
+- Resource ID shapes (prefer `commonids` or service-specific validators)
+
+`validation.StringIsNotEmpty` is a LAST RESORT ONLY.
+It is only acceptable when you have confirmed the RP truly accepts arbitrary free-form text and there are no stable rules to validate.
+If you use `validation.StringIsNotEmpty`, you MUST add an inline comment explaining why stronger validation cannot be applied and what you checked.
+
+Numeric arguments must specify a valid range wherever possible.
+`validation.IntAtLeast(0)` is a LAST RESORT ONLY and must be justified the same way as above.
+
+### Avoid overly-generic ValidateFunc (no "lazy validation")
+
+When adding or modifying schema fields, do not default to minimal validators if the RP provides stronger constraints.
+
+**DO** validate using the RP contract
+```go
+"allocation_strategy": {
+    Type:     pluginsdk.TypeString,
+    Optional: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        string(compute.AllocationStrategyAutomatic),
+        string(compute.AllocationStrategyPrioritized),
+    }, false),
+},
+
+"name": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringMatch(
+        regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9.\-_]{0,79}$`),
+        "...",
+    ),
+},
+```
+
+**DO** use ID/format validators for well-known shapes
+```go
+"subnet_id": {
+    Type:         pluginsdk.TypeString,
+    Required:     true,
+    ValidateFunc: commonids.ValidateSubnetID,
+},
+```
+
+**DO NOT** use minimal validation when stronger constraints exist
+```go
+// BAD: RP defines allowed values / pattern / bounds, but this accepts nearly anything.
+ValidateFunc: validation.StringIsNotEmpty,
+
+// BAD: RP bounds exist, but this only enforces non-negative.
+ValidateFunc: validation.IntAtLeast(0),
+```
+
+**LAST RESORT** (only when RP truly has no constraints)
+```go
+"description": {
+    Type:     pluginsdk.TypeString,
+    Optional: true,
+    // NOTE: validation is intentionally minimal because the RP accepts arbitrary free-form text for this field (no enum/pattern/length constraints found).
+    ValidateFunc: validation.StringIsNotEmpty,
+},
+```
 
 ```go
 "name": {
@@ -352,6 +423,7 @@ Numeric arguments should specify a valid range.
 "description": {
 	Type:         pluginsdk.TypeString,
 	Optional:     true,
+	// NOTE: validation is intentionally minimal because the RP accepts arbitrary free-form text for this field (no enum/pattern/length constraints found).
 	ValidateFunc: validation.StringIsNotEmpty,
 },
 
