@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccMySqlFlexibleServer_list_no_config(t *testing.T) {
+func TestAccMySqlFlexibleServer_list_with_config(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "testlist1")
 	r := MysqlFlexibleServerResource{}
 
@@ -45,23 +45,6 @@ func TestAccMySqlFlexibleServer_list_no_config(t *testing.T) {
 						},
 					),
 				},
-			},
-		},
-	})
-}
-
-func TestAccMySqlFlexibleServer_list_by_resource_group(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "testlist")
-	r := MysqlFlexibleServerResource{}
-
-	resource.Test(t, resource.TestCase{
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_14_0),
-		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		Steps: []resource.TestStep{
-			{
-				Config: r.basic(data),
 			},
 			{
 				Query:  true,
