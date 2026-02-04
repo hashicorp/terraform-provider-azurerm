@@ -69,7 +69,6 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, server := range results {
-
 			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
 

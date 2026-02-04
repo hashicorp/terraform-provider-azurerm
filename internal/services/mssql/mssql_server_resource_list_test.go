@@ -150,8 +150,8 @@ func (r MssqlServerResource) basicQueryByResourceGroupName(data acceptance.TestD
 list "azurerm_mssql_server" "list" {
   provider = azurerm
   config {
-	subscription_id     = "%s"
-	resource_group_name = "acctestRG-mssql-%d"
+    subscription_id     = "%s"
+    resource_group_name = "acctestRG-mssql-%d"
   }
 }
 `, data.Subscriptions.Primary, data.RandomInteger)
