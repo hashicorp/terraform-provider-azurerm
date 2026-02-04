@@ -5,7 +5,7 @@ package capacitypools
 
 type PoolPatchProperties struct {
 	CoolAccess            *bool    `json:"coolAccess,omitempty"`
-	CustomThroughputMibps *float64 `json:"customThroughputMibps,omitempty"`
+	CustomThroughputMibps *int64   `json:"customThroughputMibps,omitempty"`
 	QosType               *QosType `json:"qosType,omitempty"`
 	Size                  *int64   `json:"size,omitempty"`
 }

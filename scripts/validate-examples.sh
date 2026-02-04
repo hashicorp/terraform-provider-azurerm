@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 
 echo "==> Checking examples validate with 'terraform validate'..."
 
-exampleDirs=$(find ./examples -mindepth 2 -maxdepth 2 -type d '!' -exec test -e "{}/*.tf" ';' -print | sort | egrep -v "tfc-checks")
+exampleDirs=$(find ./examples -mindepth 2 -maxdepth 2 -type d '!' -exec test -e "{}/*.tf" ';' -print | sort | grep -E -v "tfc-checks")
 examplesWithErrors=()
 hasError=false
 
 # Setup a local Terraform config file for setting up the dev_overrides for this provider.
 terraformrc=$(mktemp)
-cat << EOF > $terraformrc
+cat << EOF > "$terraformrc"
 provider_installation {
   dev_overrides {
     "hashicorp/azurerm" = "$(go env GOPATH)/bin"
@@ -26,11 +26,11 @@ for d in $exampleDirs; do
   exampleHasErrors=false
   # Though we are using the local built azurerm provider to validate example,
   # we still need to call `terraform init` here as examples might contain other providers.
-  TF_CLI_CONFIG_FILE=$terraformrc terraform -chdir=$d init > /dev/null || exampleHasErrors=true
+  TF_CLI_CONFIG_FILE=$terraformrc terraform -chdir="$d" init > /dev/null || exampleHasErrors=true
   if ! ${exampleHasErrors}; then
     # Always use the local built azurerm provider to validate examples, to avoid examples using
     # unreleased features leading to error during CI.
-    TF_CLI_CONFIG_FILE=$terraformrc terraform -chdir=$d validate > /dev/null || exampleHasErrors=true
+    TF_CLI_CONFIG_FILE=$terraformrc terraform -chdir="$d" validate > /dev/null || exampleHasErrors=true
   fi
   if ${exampleHasErrors}; then
     examplesWithErrors[${#examplesWithErrors[@]}]=$d
@@ -55,7 +55,7 @@ fi
 for d in $exampleDirs; do
   echo "Checking formatting for $d.."
   exampleHasErrors=false
-  terraform fmt -check $d > /dev/null || exampleHasErrors=true
+  terraform fmt -check "$d" > /dev/null || exampleHasErrors=true
   if ${exampleHasErrors}; then
     examplesWithErrors[${#examplesWithErrors[@]}]=$d
     hasError=true

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -314,13 +314,18 @@ func TestResourcesDoNotContainANameFieldWithADefaultOfDefault(t *testing.T) {
 			"name": {},
 		},
 
-		// 2: False Positives?
-		"azurerm_redis_enterprise_database": {
+		// 2: "default" is the expected name:
+		"azurerm_managed_redis_database": {
 			"name": {},
 		},
 
 		// 3: Deprecated / to be removed in 4.0
 		"azurerm_cosmosdb_notebook_workspace": {
+			"name": {},
+		},
+
+		// 4: Deprecated / to be removed in 5.0
+		"azurerm_redis_enterprise_database": {
 			"name": {},
 		},
 	}

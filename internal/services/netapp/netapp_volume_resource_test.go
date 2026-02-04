@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -230,6 +230,40 @@ func TestAccNetAppVolume_crossRegionReplication(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.crossRegionReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_crossZoneReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_secondary")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossZoneReplication(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("zone").HasValue("2"),
+				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
+				check.That(data.ResourceName).Key("data_protection_replication.0.remote_volume_location").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_crossZoneRegionReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test_cross_region")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossZoneRegionReplication(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("data_protection_replication.0.endpoint_type").HasValue("dst"),
@@ -580,7 +614,7 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 4
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 
@@ -604,7 +638,7 @@ resource "azurerm_netapp_volume" "test" {
   key_vault_private_endpoint_id = azurerm_private_endpoint.test.id
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 
@@ -651,7 +685,7 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 4
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 
@@ -675,7 +709,7 @@ resource "azurerm_netapp_volume" "test" {
   key_vault_private_endpoint_id = azurerm_private_endpoint.test.id
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 
@@ -801,7 +835,7 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -836,7 +870,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -862,7 +896,7 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.0
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -897,7 +931,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -924,7 +958,7 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1027,7 +1061,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1069,7 +1103,7 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1105,7 +1139,7 @@ resource "azurerm_netapp_volume" "test_primary" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1140,7 +1174,7 @@ resource "azurerm_netapp_volume" "test_secondary" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1174,7 +1208,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1210,7 +1244,7 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1245,7 +1279,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_true" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1280,7 +1314,7 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1348,7 +1382,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -1398,7 +1432,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -1440,7 +1474,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "FoO"              = "BaR",
     "bAr"              = "fOo",
     "SkipASMAzSecPack" = "true"
@@ -1475,7 +1509,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "FoO"              = "BaR",
     "SkipASMAzSecPack" = "true"
   }
@@ -1569,7 +1603,7 @@ resource "azurerm_virtual_network" "test_secondary" {
   address_space       = ["10.88.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1596,7 +1630,7 @@ resource "azurerm_netapp_account" "test_secondary" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1611,7 +1645,7 @@ resource "azurerm_netapp_pool" "test_secondary" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1628,7 +1662,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true",
     "SkipNRMSNSG"      = "true"
   }
@@ -1641,7 +1675,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.88.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1668,7 +1702,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1683,7 +1717,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1700,7 +1734,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true",
     "SkipNRMSNSG"      = "true"
   }
@@ -1713,7 +1747,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.88.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1740,7 +1774,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1756,7 +1790,7 @@ resource "azurerm_netapp_pool" "test" {
   cool_access_enabled = true
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1773,7 +1807,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
     "SkipNRMSNSG"      = "true"
   }
@@ -1785,7 +1819,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     environment        = "Production",
     "SkipASMAzSecPack" = "true"
   }
@@ -1798,7 +1832,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.88.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1825,7 +1859,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1840,7 +1874,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1856,7 +1890,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.88.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1922,7 +1956,7 @@ resource "azurerm_netapp_pool" "test2" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1940,7 +1974,7 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1969,7 +2003,7 @@ resource "azurerm_netapp_volume" "test" {
     coolness_period_in_days = 10
   }
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -1998,7 +2032,7 @@ resource "azurerm_netapp_volume" "test" {
     coolness_period_in_days = 10
   }
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -2028,7 +2062,7 @@ resource "azurerm_netapp_volume" "test" {
   }
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -2052,7 +2086,7 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -2169,4 +2203,337 @@ resource "azurerm_netapp_volume" "test" {
   }
 }
 `, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) crossZoneReplication(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.templateCrossZoneReplication(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_primary" {
+  name                       = "acctest-NetAppVolume-primary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "1"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-primary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test_secondary" {
+  name                       = "acctest-NetAppVolume-secondary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "2"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test_secondary.name
+  volume_path                = "my-unique-file-path-secondary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test_secondary.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.test.location
+    remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
+    replication_frequency     = "10minutes"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) crossZoneRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
+	template := NetAppVolumeResource{}.templateCrossZoneRegionReplication(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_primary" {
+  name                       = "acctest-NetAppVolume-primary-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "1"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test.name
+  volume_path                = "my-unique-file-path-primary-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test_cross_zone" {
+  name                       = "acctest-NetAppVolume-cross-zone-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  zone                       = "2"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test.name
+  pool_name                  = azurerm_netapp_pool.test_cross_zone.name
+  volume_path                = "my-unique-file-path-cross-zone-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test_cross_zone.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.test.location
+    remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
+    replication_frequency     = "10minutes"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_volume" "test_cross_region" {
+  name                       = "acctest-NetAppVolume-cross-region-%[2]d"
+  location                   = "%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  account_name               = azurerm_netapp_account.test_secondary.name
+  pool_name                  = azurerm_netapp_pool.test_secondary.name
+  volume_path                = "my-unique-file-path-cross-region-%[2]d"
+  service_level              = "Standard"
+  subnet_id                  = azurerm_subnet.test_secondary.id
+  protocols                  = ["NFSv3"]
+  storage_quota_in_gb        = 100
+  snapshot_directory_visible = true
+  throughput_in_mibps        = 1.562
+
+  export_policy_rule {
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
+  }
+
+  data_protection_replication {
+    endpoint_type             = "dst"
+    remote_volume_location    = azurerm_resource_group.test.location
+    remote_volume_resource_id = azurerm_netapp_volume.test_primary.id
+    replication_frequency     = "10minutes"
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, overriddenlocations.Secondary)
+}
+
+func (r NetAppVolumeResource) templateCrossZoneReplication(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test_secondary" {
+  name                = "acctest-VirtualNetwork-secondary-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.89.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test_secondary" {
+  name                 = "acctest-Subnet-secondary-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test_secondary.name
+  address_prefixes     = ["10.89.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_pool" "test_secondary" {
+  name                = "acctest-NetAppPool-secondary-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r NetAppVolumeResource) templateCrossZoneRegionReplication(data acceptance.TestData) string {
+	overriddenlocations := getOverriddenTestLocations()
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_network" "test_cross_zone" {
+  name                = "acctest-VirtualNetwork-cross-zone-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.89.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test_cross_zone" {
+  name                 = "acctest-Subnet-cross-zone-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test_cross_zone.name
+  address_prefixes     = ["10.89.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_virtual_network" "test_secondary" {
+  name                = "acctest-VirtualNetwork-secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.90.0.0/16"]
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_subnet" "test_secondary" {
+  name                 = "acctest-Subnet-secondary-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test_secondary.name
+  address_prefixes     = ["10.90.2.0/24"]
+
+  delegation {
+    name = "testdelegation"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_netapp_account" "test_secondary" {
+  name                = "acctest-NetAppAccount-secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test_cross_zone" {
+  name                = "acctest-NetAppPool-cross-zone-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+
+resource "azurerm_netapp_pool" "test_secondary" {
+  name                = "acctest-NetAppPool-secondary-%[2]d"
+  location            = "%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test_secondary.name
+  service_level       = "Standard"
+  size_in_tb          = 4
+  qos_type            = "Manual"
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, r.template(data), data.RandomInteger, overriddenlocations.Secondary)
 }
