@@ -718,12 +718,16 @@ resource "azurerm_virtual_desktop_application_group" "test" {
   type                         = "Desktop"
   default_desktop_display_name = "Acceptance Test"
   host_pool_id                 = azurerm_virtual_desktop_host_pool.test.id
+
+  depends_on = [azurerm_virtual_desktop_host_pool.test]
 }
 
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_virtual_desktop_application_group.test.id
   role_definition_name = "Desktop Virtualization User"
   principal_id         = data.azurerm_client_config.test.object_id
+
+  depends_on = [azurerm_virtual_desktop_application_group.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
