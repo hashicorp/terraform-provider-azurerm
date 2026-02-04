@@ -69,7 +69,7 @@ func (r RouteTableListResource) List(ctx context.Context, request list.ListReque
 
 			id, err := routetables.ParseRouteTableID(pointer.From(table.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Route Table ID", err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Route Table ID", err)
 				return
 			}
 
@@ -77,29 +77,13 @@ func (r RouteTableListResource) List(ctx context.Context, request list.ListReque
 			rd.SetId(id.ID())
 
 			if err := resourceRouteTableFlatten(rd, id, &table); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", routeTableResourceName), err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, fmt.Sprintf("encoding `%s` resource data", routeTableResourceName), err)
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 

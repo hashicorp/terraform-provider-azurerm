@@ -69,7 +69,7 @@ func (r NetworkSecurityGroupListResource) List(ctx context.Context, request list
 
 			id, err := networksecuritygroups.ParseNetworkSecurityGroupID(pointer.From(nsg.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Security Group ID", err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Network Security Group ID", err)
 				return
 			}
 
@@ -77,29 +77,29 @@ func (r NetworkSecurityGroupListResource) List(ctx context.Context, request list
 			rd.SetId(id.ID())
 
 			if err := resourceNetworkSecurityGroupFlatten(rd, id, &nsg); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", networkSecurityGroupResourceName), err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, fmt.Sprintf("encoding `%s` resource data", networkSecurityGroupResourceName), err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "setting Identity Data", err)
 				return
 			}
 
 			tfTypeResourceState, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "converting Resource State", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "setting Resource Data", err)
 				return
 			}
 

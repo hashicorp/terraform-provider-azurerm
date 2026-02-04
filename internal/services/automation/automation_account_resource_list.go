@@ -73,7 +73,7 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 
 			id, err := automationaccount.ParseAutomationAccountID(pointer.From(account.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Automation Account ID", err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Automation Account ID", err)
 				return
 			}
 
@@ -85,7 +85,7 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 			if request.IncludeResource {
 				infoId := agentregistrationinformation.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
 				if keysResp, err := metadata.Client.Automation.AgentRegistrationInfoClient.Get(ctx, infoId); err != nil {
-					sdk.SetListIteratorErrorDiagnostic(result, push, "retrieving Automation Account Agent Registration Information", err)
+					sdk.SetErrorDiagnosticAndYieldListResult(result, push, "retrieving Automation Account Agent Registration Information", err)
 					return
 				} else {
 					registration = keysResp.Model
@@ -93,29 +93,13 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 			}
 
 			if err := resourceAutomationAccountFlatten(rd, id, &account, registration); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_automation_account"), err)
+				sdk.SetErrorDiagnosticAndYieldListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_automation_account"), err)
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-				return
-			}
-
-			tfTypeResourceState, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 

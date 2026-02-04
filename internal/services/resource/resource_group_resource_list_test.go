@@ -87,7 +87,7 @@ resource "azurerm_resource_group" "test4" {
 
 func (r ResourceGroupResource) basicQuery() string {
 	return `
-list "azurerm_network_interface" "list" {
+list "azurerm_resource_group" "list" {
   provider = azurerm
   config {}
 }
