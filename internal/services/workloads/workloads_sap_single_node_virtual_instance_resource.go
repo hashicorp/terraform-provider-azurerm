@@ -951,3 +951,88 @@ func flattenSingleServerConfiguration(input sapvirtualinstances.SingleServerConf
 
 	return append(result, singleServerConfig)
 }
+
+// flattenSingleNodeForListResource populates pluginsdk.ResourceData directly for list resources
+// This is separate from the Read() function which uses metadata.Encode() with typed models
+func flattenSingleNodeForListResource(d *pluginsdk.ResourceData, id *sapvirtualinstances.SapVirtualInstanceId, model *sapvirtualinstances.SAPVirtualInstance) error {
+	if err := d.Set("name", id.SapVirtualInstanceName); err != nil {
+		return fmt.Errorf("setting `name`: %+v", err)
+	}
+	if err := d.Set("resource_group_name", id.ResourceGroupName); err != nil {
+		return fmt.Errorf("setting `resource_group_name`: %+v", err)
+	}
+
+	if model == nil {
+		return nil
+	}
+
+	if err := d.Set("location", location.Normalize(model.Location)); err != nil {
+		return fmt.Errorf("setting `location`: %+v", err)
+	}
+
+	identityFlattened, err := identity.FlattenUserAssignedMap(model.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", identityFlattened); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if props := model.Properties; props != nil {
+		if err := d.Set("environment", string(props.Environment)); err != nil {
+			return fmt.Errorf("setting `environment`: %+v", err)
+		}
+
+		if err := d.Set("managed_resources_network_access_type", string(pointer.From(props.ManagedResourcesNetworkAccessType))); err != nil {
+			return fmt.Errorf("setting `managed_resources_network_access_type`: %+v", err)
+		}
+
+		if err := d.Set("sap_product", string(props.SapProduct)); err != nil {
+			return fmt.Errorf("setting `sap_product`: %+v", err)
+		}
+
+		if err := d.Set("tags", pointer.From(model.Tags)); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+
+		if config := props.Configuration; config != nil {
+			if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+				// Set app location
+				appLocation := ""
+				if appLocationVal := v.AppLocation; appLocationVal != nil {
+					appLocation = *v.AppLocation
+				}
+				if err := d.Set("app_location", location.Normalize(appLocation)); err != nil {
+					return fmt.Errorf("setting `app_location`: %+v", err)
+				}
+
+				sapFqdn := ""
+				if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+					sapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+				}
+				if err := d.Set("sap_fqdn", sapFqdn); err != nil {
+					return fmt.Errorf("setting `sap_fqdn`: %+v", err)
+				}
+
+				if configuration := v.InfrastructureConfiguration; configuration != nil {
+					if singleServerConfiguration, ok := configuration.(sapvirtualinstances.SingleServerConfiguration); ok {
+						singleServerConfig := flattenSingleServerConfiguration(singleServerConfiguration, d)
+						// Convert the struct slice to []interface{} for use with pluginsdk.ResourceData.Set()
+						singleServerConfigForList := sdk.PluginSDKFlattenStructSliceToInterface(singleServerConfig, nil)
+						if err := d.Set("single_server_configuration", singleServerConfigForList); err != nil {
+							return fmt.Errorf("setting `single_server_configuration`: %+v", err)
+						}
+					}
+				}
+			}
+		}
+
+		if v := props.ManagedResourceGroupConfiguration; v != nil {
+			if err := d.Set("managed_resource_group_name", pointer.From(v.Name)); err != nil {
+				return fmt.Errorf("setting `managed_resource_group_name`: %+v", err)
+			}
+		}
+	}
+
+	return nil
+}
