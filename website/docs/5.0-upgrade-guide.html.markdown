@@ -23,6 +23,19 @@ TODO
 * [Breaking Changes in Resources](#breaking-changes-in-resources)
 * [Breaking Changes in Data Sources](#breaking-changes-in-data-sources)
 
+## Provider-Level Changes
+
+### Enhanced Validation Default Changed
+
+The `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which controls enhanced validation of `location` and Resource Provider fields by caching supported Azure regions and Resource Providers from the Azure MetaData Service, now defaults to `false` instead of `true`.
+
+**Timing Impact:** With enhanced validation enabled, invalid locations or resource providers are caught at `terraform plan` time. With it disabled (the new default), these errors are caught at `terraform apply` time when Azure rejects the request.
+
+This change was made because:
+* A region may be functional even if not present in the ARM region list
+* The MetaData Service call adds latency to provider initialization
+
+If you relied on enhanced validation to catch errors at plan time, you can re-enable it by setting the `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable to `true`.
 
 ## Removed Resources
 
