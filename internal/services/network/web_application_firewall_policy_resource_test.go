@@ -356,15 +356,14 @@ func TestAccWebApplicationFirewallPolicy_ManagedRuleSetDRS(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-
 		},
 		data.ImportStep(),
-    {
+		{
 			Config: r.withManagedRuleSetDRS22(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
-    },
+		},
 	})
 }
 
