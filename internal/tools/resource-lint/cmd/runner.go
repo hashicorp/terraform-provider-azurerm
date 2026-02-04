@@ -121,6 +121,10 @@ func (r *Runner) Run(ctx context.Context) ExitCode {
 func (r *Runner) reportDiagnostics(graph *checker.Graph) bool {
 	var foundIssues bool
 	var issueCount int
+	// Deduplicate diagnostics by "file:line:column|message"
+	// When Tests=true, the same source file may be analyzed in both main and test packages,
+	// causing identical diagnostics to be reported multiple times
+	reported := make(map[string]bool)
 
 	for act := range graph.All() {
 		if act.Err != nil {
@@ -130,9 +134,17 @@ func (r *Runner) reportDiagnostics(graph *checker.Graph) bool {
 		}
 
 		for _, diag := range act.Diagnostics {
+			pos := act.Package.Fset.Position(diag.Pos)
+			key := fmt.Sprintf("%s:%d:%d|%s", pos.Filename, pos.Line, pos.Column, diag.Message)
+
+			if reported[key] {
+				continue
+			}
+			reported[key] = true
+
 			foundIssues = true
 			issueCount++
-			fmt.Printf("%s: %s\n", act.Package.Fset.Position(diag.Pos), diag.Message)
+			fmt.Printf("%s: %s\n", pos, diag.Message)
 		}
 	}
 
