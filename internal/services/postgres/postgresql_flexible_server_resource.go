@@ -363,18 +363,19 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"size": {
-							Type:     pluginsdk.TypeInt,
-							Required: true,
-							// Confirmed with service team: the max size will be 32 whilst current is 20
-							ValidateFunc: validation.IntBetween(1, 32),
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20),
 						},
 						"default_database_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ForceNew:     true,
+							Default:      "postgres",
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 					},
@@ -497,15 +498,22 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			}
 
 			// can't downgrade cluster size
-			oldCluster, newCluster := diff.GetChange("cluster")
-			oldClusterObj := oldCluster.([]interface{})
-			newClusterObj := newCluster.([]interface{})
-			if len(oldClusterObj) > 0 && len(newClusterObj) > 0 {
-				// below type assertions are safe since schema ensure the types
-				oldClusterSize := oldClusterObj[0].(map[string]interface{})["size"].(int)
-				newClusterSize := newClusterObj[0].(map[string]interface{})["size"].(int)
-				if newClusterSize < oldClusterSize {
-					diff.ForceNew("cluster.0.size")
+			if diff.HasChange("cluster") {
+				oldCluster, newCluster := diff.GetChange("cluster")
+				oldClusterObj := oldCluster.([]interface{})
+				newClusterObj := newCluster.([]interface{})
+				if len(oldClusterObj) > 0 && len(newClusterObj) > 0 {
+					var oldClusterSize, newClusterSize int
+					if tmpObj, ok := oldClusterObj[0].(map[string]interface{}); ok {
+						oldClusterSize, _ = tmpObj["size"].(int)
+					}
+					if tempObj, ok := newClusterObj[0].(map[string]interface{}); ok {
+						newClusterSize, _ = tempObj["size"].(int)
+					}
+
+					if newClusterSize < oldClusterSize {
+						diff.ForceNew("cluster.0.size")
+					}
 				}
 			}
 
@@ -1537,7 +1545,7 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 }
 
 func expandFlexibleServerCluster(input []interface{}) *servers.Cluster {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	v := input[0].(map[string]interface{})

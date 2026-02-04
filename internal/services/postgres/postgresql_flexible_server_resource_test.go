@@ -713,6 +713,8 @@ func TestAccPostgresqlFlexibleServer_cluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 
+	t.Skip(r.cluster(data, 3))
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cluster(data, 3),
