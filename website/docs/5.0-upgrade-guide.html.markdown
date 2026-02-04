@@ -448,6 +448,7 @@ Please follow the format in the example below for listing breaking changes in re
 * The property `min_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
 * The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
+* The property `allow_nested_items_to_be_public` now defaults to `false`.
 
 ### `azurerm_storage_account_customer_managed_key`
 
