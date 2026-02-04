@@ -477,9 +477,7 @@ func (r LinuxWebAppResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(webApp.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccounts(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Linux %s: %+v", id, err)
 				}
 			}
 
