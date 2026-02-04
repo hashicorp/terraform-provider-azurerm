@@ -39,6 +39,7 @@ var Registration = map[string]Rule{
 	// global
 	G001{}.ID(): G001{}, // Files Exist
 	G002{}.ID(): G002{}, // Note Formatting
+	G003{}.ID(): G003{}, // Block Descriptions
 
 	// section
 	S001{}.ID(): S001{}, // API Section
