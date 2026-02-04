@@ -238,7 +238,7 @@ func (cs *ChangeSet) getChangedPackages() []string {
 		serviceParts := strings.Split(parts[1], "/")
 		if len(serviceParts) > 0 {
 			serviceName := serviceParts[0]
-			packagePath := "./" + servicePathPrefix + serviceName
+			packagePath := "./" + servicePathPrefix + serviceName + "/..."
 			packageSet[packagePath] = true
 		}
 	}
