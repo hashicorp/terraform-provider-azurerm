@@ -84,3 +84,9 @@ A Deployment Safeguard for a Kubernetes Cluster can be imported using the Kubern
 ```shell
 terraform import azurerm_kubernetes_cluster_deployment_safeguard.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2025-07-01
