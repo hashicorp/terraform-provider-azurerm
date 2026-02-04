@@ -45,7 +45,7 @@ jobs:
           go-version-file: ./.go-version
 
       - name: '[Diagnostic] Report Go module cache and build cache disk usage'
-        run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE)'
+        run: 'du -h -d 0 $(go env GOMODCACHE) $(go env GOCACHE) || true'
 
       - run: bash scripts/gogetcookie.sh
 
