@@ -136,7 +136,7 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 ### `azurerm_trusted_signing_account`
 
-* This deprecated resource has been removed in favour of `azurerm_artifacts_signing_account`.
+* This deprecated resource has been removed in favour of `azurerm_artifact_signing_account`.
 
 
 ## Removed Data Sources
@@ -163,7 +163,7 @@ This deprecated data source has been superseded/retired and has been removed fro
 
 ### `azurerm_trusted_signing_account`
 
-* This deprecated data source has been retired and has been removed in favour of `azurerm_artifacts_signing_account`.
+* This deprecated data source has been retired and has been removed in favour of `azurerm_artifact_signing_account`.
 
 ## Breaking Changes in Resources
 

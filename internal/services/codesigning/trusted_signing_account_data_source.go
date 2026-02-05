@@ -35,7 +35,7 @@ var _ sdk.DataSource = TrustedSigningAccountDataSource{}
 var _ sdk.DataSourceWithDeprecationReplacedBy = TrustedSigningAccountDataSource{}
 
 func (d TrustedSigningAccountDataSource) DeprecatedInFavourOfDataSource() string {
-	return "azurerm_artifacts_signing_account"
+	return "azurerm_artifact_signing_account"
 }
 
 func (d TrustedSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schema {

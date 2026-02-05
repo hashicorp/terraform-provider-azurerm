@@ -35,7 +35,7 @@ var _ sdk.Resource = TrustedSigningAccountResource{}
 var _ sdk.ResourceWithDeprecationReplacedBy = TrustedSigningAccountResource{}
 
 func (r TrustedSigningAccountResource) DeprecatedInFavourOfResource() string {
-	return `azurerm_artifacts_signing_account`
+	return `azurerm_artifact_signing_account`
 }
 
 func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema {

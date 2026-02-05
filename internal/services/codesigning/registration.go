@@ -26,7 +26,7 @@ func (r Registration) Name() string {
 	if !features.FivePointOh() {
 		return "Trusted Signing"
 	}
-	return "Artifacts Signing"
+	return "Artifact Signing"
 }
 
 // WebsiteCategories returns a list of categories which can be used for the sidebar
@@ -34,11 +34,11 @@ func (r Registration) WebsiteCategories() []string {
 	if !features.FivePointOh() {
 		return []string{
 			"Trusted Signing",
-			"Artifacts Signing",
+			"Artifact Signing",
 		}
 	}
 	return []string{
-		"Artifacts Signing",
+		"Artifact Signing",
 	}
 }
 
@@ -46,12 +46,12 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) DataSources() []sdk.DataSource {
 	if !features.FivePointOh() {
 		return []sdk.DataSource{
-			ArtifactsSigningAccountDataSource{},
+			ArtifactSigningAccountDataSource{},
 			TrustedSigningAccountDataSource{},
 		}
 	}
 	return []sdk.DataSource{
-		ArtifactsSigningAccountDataSource{},
+		ArtifactSigningAccountDataSource{},
 	}
 }
 
