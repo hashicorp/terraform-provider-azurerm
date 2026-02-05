@@ -733,6 +733,43 @@ func TestAccMsSqlDatabase_minCapacity0(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_nonServerlessNullMinCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nonServerlessNullMinCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_serverlessToProvisionedNullMinCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gpServerless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.nonServerlessNullMinCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMsSqlDatabase_withLongTermRetentionPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MsSqlDatabaseResource{}
@@ -2124,6 +2161,22 @@ resource "azurerm_mssql_database" "test" {
   server_id = azurerm_mssql_server.test.id
 
   min_capacity = 0
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) nonServerlessNullMinCapacity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name      = "acctest-db-%[2]d"
+  server_id = azurerm_mssql_server.test.id
+  sku_name  = "S1"
+  max_size_gb = 250
+
+  min_capacity                = null
+  auto_pause_delay_in_minutes = null
 }
 `, r.template(data), data.RandomInteger)
 }

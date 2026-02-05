@@ -117,10 +117,11 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			},
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
-					if d.Get("min_capacity").(float64) > 0 {
+					rawConfig := d.GetRawConfig().AsValueMap()
+					if v, ok := rawConfig["min_capacity"]; ok && !v.IsNull() {
 						return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
 					}
-					if d.Get("auto_pause_delay_in_minutes").(int) > 0 {
+					if v, ok := rawConfig["auto_pause_delay_in_minutes"]; ok && !v.IsNull() {
 						return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
 					}
 				}
@@ -320,14 +321,31 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		}
 	}
 
+	serverlessSku := strings.HasPrefix(skuName, "GP_S_") || strings.HasPrefix(skuName, "HS_S_")
+	rawConfig := d.GetRawConfig().AsValueMap()
+
+	var minCapacity *float64
+	if serverlessSku {
+		if v, ok := rawConfig["min_capacity"]; ok && !v.IsNull() {
+			minCapacity = pointer.To(d.Get("min_capacity").(float64))
+		}
+	}
+
+	var autoPauseDelay *int64
+	if serverlessSku {
+		if v, ok := rawConfig["auto_pause_delay_in_minutes"]; ok && !v.IsNull() {
+			autoPauseDelay = pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int)))
+		}
+	}
+
 	input := databases.Database{
 		Location: location,
 		Properties: &databases.DatabaseProperties{
-			AutoPauseDelay:                   pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int))),
+			AutoPauseDelay:                   autoPauseDelay,
 			Collation:                        pointer.To(d.Get("collation").(string)),
 			ElasticPoolId:                    pointer.To(elasticPoolId),
 			LicenseType:                      pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string))),
-			MinCapacity:                      pointer.To(d.Get("min_capacity").(float64)),
+			MinCapacity:                      minCapacity,
 			HighAvailabilityReplicaCount:     pointer.To(int64(d.Get("read_replica_count").(int))),
 			SampleName:                       pointer.To(databases.SampleName(d.Get("sample_name").(string))),
 			RequestedBackupStorageRedundancy: pointer.To(databases.BackupStorageRedundancy(d.Get("storage_account_type").(string))),
@@ -716,8 +734,13 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	payload := databases.DatabaseUpdate{}
 	props := databases.DatabaseUpdateProperties{}
 
-	if d.HasChange("auto_pause_delay_in_minutes") {
-		props.AutoPauseDelay = pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int)))
+	serverlessSku := strings.HasPrefix(skuName, "GP_S_") || strings.HasPrefix(skuName, "HS_S_")
+	rawConfig := d.GetRawConfig().AsValueMap()
+
+	if d.HasChange("auto_pause_delay_in_minutes") && serverlessSku {
+		if v, ok := rawConfig["auto_pause_delay_in_minutes"]; ok && !v.IsNull() {
+			props.AutoPauseDelay = pointer.To(int64(d.Get("auto_pause_delay_in_minutes").(int)))
+		}
 	}
 
 	if d.HasChange("elastic_pool_id") {
@@ -728,8 +751,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		props.LicenseType = pointer.To(databases.DatabaseLicenseType(d.Get("license_type").(string)))
 	}
 
-	if d.HasChange("min_capacity") {
-		props.MinCapacity = pointer.To(d.Get("min_capacity").(float64))
+	if d.HasChange("min_capacity") && serverlessSku {
+		if v, ok := rawConfig["min_capacity"]; ok && !v.IsNull() {
+			props.MinCapacity = pointer.To(d.Get("min_capacity").(float64))
+		}
 	}
 
 	if d.HasChange("read_replica_count") {
