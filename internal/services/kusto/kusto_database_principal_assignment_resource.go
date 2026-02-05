@@ -158,7 +158,7 @@ func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, m
 		MinTimeout:                10 * time.Second,
 		Timeout:                   time.Until(deadline),
 		NotFoundChecks:            10,
-		ContinuousTargetOccurence: 3,
+		ContinuousTargetOccurence: 2,
 		Refresh: func() (any, string, error) {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
