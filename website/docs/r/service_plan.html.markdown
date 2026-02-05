@@ -49,6 +49,8 @@ The following arguments are supported:
 
 ~> **Note:** Elastic and Consumption SKUs (`Y1`, `FC1`, `EP1`, `EP2`, and `EP3`) are for use with Function Apps.
 
+~> **Note:** The option to host Azure Functions on Linux using the Consumption plan will be retired after 30 Sep 2028. Please use Flex consumption for Linux function app.
+
 ---
 
 * `app_service_environment_id` - (Optional) The ID of the App Service Environment to create this Service Plan in.
