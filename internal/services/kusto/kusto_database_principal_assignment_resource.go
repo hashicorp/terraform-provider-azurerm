@@ -21,6 +21,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const (
+	pollStateNotFound = "notfound"
+	pollStateOk       = "ok"
+)
+
 func resourceKustoDatabasePrincipalAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceKustoDatabasePrincipalAssignmentCreate,
@@ -148,22 +153,22 @@ func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, m
 	// The CreateOrUpdateThenPoll can return before the resource is retrievable,
 	// so we wait for the resource to be available before proceeding to read.
 	createWait := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"notfound"},
-		Target:                    []string{"ok"},
+		Pending:                   []string{pollStateNotFound},
+		Target:                    []string{pollStateOk},
 		MinTimeout:                10 * time.Second,
 		Timeout:                   time.Until(deadline),
 		NotFoundChecks:            10,
 		ContinuousTargetOccurence: 3,
-		Refresh: func() (interface{}, string, error) {
+		Refresh: func() (any, string, error) {
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					log.Printf("[DEBUG] %s was not found - polling", id)
-					return nil, "notfound", nil
+					return nil, pollStateNotFound, nil
 				}
 				return nil, "error", err
 			}
-			return resp, "ok", nil
+			return resp, pollStateOk, nil
 		},
 	}
 
