@@ -167,7 +167,8 @@ func (r G003) Run(d *data.TerraformNodeData, fix bool) []error {
 				}
 			} else if quantifier != "" {
 				// No schema info, fall back to regex-based validation
-				if quantifier == "A " || quantifier == "An " {
+				switch quantifier {
+				case "A ", "An ":
 					firstChar := strings.ToLower(string(blockName[0]))
 					if strings.ContainsAny(firstChar, "aeiou") {
 						expectedQuantifier = "An "
@@ -175,7 +176,7 @@ func (r G003) Run(d *data.TerraformNodeData, fix bool) []error {
 						expectedQuantifier = "A "
 					}
 					expectedBlockWord = "block"
-				} else if quantifier == "One or more " || quantifier == "A list of " {
+				case "One or more ", "A list of ":
 					expectedBlockWord = "blocks"
 				}
 			}
