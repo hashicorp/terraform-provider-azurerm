@@ -59,12 +59,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	if !features.FivePointOh() {
 		return []sdk.Resource{
-			ArtifactsSigningAccountResource{},
+			ArtifactSigningAccountResource{},
 			TrustedSigningAccountResource{},
 		}
 	}
 	return []sdk.Resource{
-		ArtifactsSigningAccountResource{},
+		ArtifactSigningAccountResource{},
 	}
 }
 

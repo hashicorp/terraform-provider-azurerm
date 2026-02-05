@@ -112,6 +112,7 @@ func All() ResourceProviders {
 		"Microsoft.AlertsManagement":        {},
 		"Microsoft.Blueprint":               {},
 		"Microsoft.BotService":              {},
+		"Microsoft.CodeSigning":             {},
 		"Microsoft.CognitiveServices":       {},
 		"Microsoft.CustomProviders":         {},
 		"Microsoft.Dashboard":               {},
@@ -127,7 +128,6 @@ func All() ResourceProviders {
 		"Microsoft.PolicyInsights":          {},
 		"Microsoft.RecoveryServices":        {},
 		"Microsoft.Search":                  {},
-		"Microsoft.CodeSigning":             {},
 	})
 }
 

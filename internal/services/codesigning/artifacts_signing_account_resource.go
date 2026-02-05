@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ArtifactsSigningAccountModel struct {
+type ArtifactSigningAccountModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
@@ -28,11 +28,11 @@ type ArtifactsSigningAccountModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type ArtifactsSigningAccountResource struct{}
+type ArtifactSigningAccountResource struct{}
 
-var _ sdk.Resource = ArtifactsSigningAccountResource{}
+var _ sdk.Resource = ArtifactSigningAccountResource{}
 
-func (r ArtifactsSigningAccountResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ArtifactSigningAccountResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -63,7 +63,7 @@ func (r ArtifactsSigningAccountResource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (r ArtifactsSigningAccountResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ArtifactSigningAccountResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_uri": {
 			Type:     pluginsdk.TypeString,
@@ -72,21 +72,21 @@ func (r ArtifactsSigningAccountResource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (r ArtifactsSigningAccountResource) ModelObject() interface{} {
-	return &ArtifactsSigningAccountModel{}
+func (r ArtifactSigningAccountResource) ModelObject() interface{} {
+	return &ArtifactSigningAccountModel{}
 }
 
-func (r ArtifactsSigningAccountResource) ResourceType() string {
-	return "azurerm_artifacts_signing_account"
+func (r ArtifactSigningAccountResource) ResourceType() string {
+	return "azurerm_artifact_signing_account"
 }
 
-func (r ArtifactsSigningAccountResource) Create() sdk.ResourceFunc {
+func (r ArtifactSigningAccountResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
 			client := meta.Client.CodeSigning.Client.CodeSigningAccounts
 
-			var model ArtifactsSigningAccountModel
+			var model ArtifactSigningAccountModel
 			if err := meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -123,7 +123,7 @@ func (r ArtifactsSigningAccountResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r ArtifactsSigningAccountResource) Read() sdk.ResourceFunc {
+func (r ArtifactSigningAccountResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
@@ -136,10 +136,13 @@ func (r ArtifactsSigningAccountResource) Read() sdk.ResourceFunc {
 
 			result, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					return meta.MarkAsGone(id)
+				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			output := ArtifactsSigningAccountModel{
+			output := ArtifactSigningAccountModel{
 				Name:              id.CodeSigningAccountName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -161,7 +164,7 @@ func (r ArtifactsSigningAccountResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ArtifactsSigningAccountResource) Update() sdk.ResourceFunc {
+func (r ArtifactSigningAccountResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
@@ -170,7 +173,7 @@ func (r ArtifactsSigningAccountResource) Update() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			var model ArtifactsSigningAccountModel
+			var model ArtifactSigningAccountModel
 			if err = meta.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -196,7 +199,7 @@ func (r ArtifactsSigningAccountResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r ArtifactsSigningAccountResource) Delete() sdk.ResourceFunc {
+func (r ArtifactSigningAccountResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
@@ -217,6 +220,6 @@ func (r ArtifactsSigningAccountResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r ArtifactsSigningAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ArtifactSigningAccountResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return codesigningaccounts.ValidateCodeSigningAccountID
 }

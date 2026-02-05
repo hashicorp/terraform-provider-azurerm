@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type ArtifactsSigningAccountDataSourceModel struct {
+type ArtifactSigningAccountDataSourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
@@ -28,11 +28,11 @@ type ArtifactsSigningAccountDataSourceModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-type ArtifactsSigningAccountDataSource struct{}
+type ArtifactSigningAccountDataSource struct{}
 
-var _ sdk.DataSource = ArtifactsSigningAccountDataSource{}
+var _ sdk.DataSource = ArtifactSigningAccountDataSource{}
 
-func (d ArtifactsSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (d ArtifactSigningAccountDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -50,7 +50,7 @@ func (d ArtifactsSigningAccountDataSource) Arguments() map[string]*pluginsdk.Sch
 	}
 }
 
-func (d ArtifactsSigningAccountDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (d ArtifactSigningAccountDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"account_uri": {
 			Type:     pluginsdk.TypeString,
@@ -68,15 +68,15 @@ func (d ArtifactsSigningAccountDataSource) Attributes() map[string]*pluginsdk.Sc
 	}
 }
 
-func (d ArtifactsSigningAccountDataSource) ModelObject() interface{} {
-	return &ArtifactsSigningAccountDataSourceModel{}
+func (d ArtifactSigningAccountDataSource) ModelObject() interface{} {
+	return &ArtifactSigningAccountDataSourceModel{}
 }
 
-func (d ArtifactsSigningAccountDataSource) ResourceType() string {
-	return "azurerm_artifacts_signing_account"
+func (d ArtifactSigningAccountDataSource) ResourceType() string {
+	return "azurerm_artifact_signing_account"
 }
 
-func (d ArtifactsSigningAccountDataSource) Read() sdk.ResourceFunc {
+func (d ArtifactSigningAccountDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -84,7 +84,7 @@ func (d ArtifactsSigningAccountDataSource) Read() sdk.ResourceFunc {
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state ArtifactsSigningAccountDataSourceModel
+			var state ArtifactSigningAccountDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

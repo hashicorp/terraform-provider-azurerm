@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ArtifactsSigningAccountDataSource struct{}
+type ArtifactSigningAccountDataSource struct{}
 
-func TestAccArtifactsSigningAccountDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_artifacts_signing_account", "test")
-	r := ArtifactsSigningAccountDataSource{}
+func TestAccArtifactSigningAccountDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_artifact_signing_account", "test")
+	r := ArtifactSigningAccountDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccArtifactsSigningAccountDataSource_basic(t *testing.T) {
 	})
 }
 
-func (ArtifactsSigningAccountDataSource) basic(data acceptance.TestData) string {
+func (ArtifactSigningAccountDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -44,7 +44,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[3]s"
 }
 
-resource "azurerm_artifacts_signing_account" "test" {
+resource "azurerm_artifact_signing_account" "test" {
   name                = "acctest-%[2]s"
   location            = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
@@ -55,8 +55,8 @@ resource "azurerm_artifacts_signing_account" "test" {
   }
 }
 
-data "azurerm_artifacts_signing_account" "test" {
-  name                = azurerm_artifacts_signing_account.test.name
+data "azurerm_artifact_signing_account" "test" {
+  name                = azurerm_artifact_signing_account.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.RandomString, data.Locations.Primary)
