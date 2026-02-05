@@ -1513,10 +1513,10 @@ resource "azurerm_mssql_elasticpool" "test" {
 }
 
 resource "azurerm_mssql_database" "test" {
-  name            = "acctest-db-%[2]d"
-  server_id       = azurerm_mssql_server.test.id
-  elastic_pool_id = azurerm_mssql_elasticpool.test.id
-  sku_name        = "ElasticPool"
+  name                        = "acctest-db-%[2]d"
+  server_id                   = azurerm_mssql_server.test.id
+  elastic_pool_id             = azurerm_mssql_elasticpool.test.id
+  sku_name                    = "ElasticPool"
   auto_pause_delay_in_minutes = null
   min_capacity                = null
 }
