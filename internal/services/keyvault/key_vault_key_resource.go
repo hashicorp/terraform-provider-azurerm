@@ -34,6 +34,8 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+const vaultBaseURLFmt string = "https://%s.vault.azure.net"
+
 func resourceKeyVaultKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceKeyVaultKeyCreate,
@@ -274,8 +276,6 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 }
 
 func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	keyVaultsClient := meta.(*clients.Client).KeyVault.VaultsClient
-	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -287,18 +287,11 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	name := d.Get("name").(string)
 
-	kv, err := keyVaultsClient.Get(ctx, *keyVaultId)
-	if err != nil {
-		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
-	}
-	var keyVaultBaseUri string
-	if model := kv.Model; model != nil {
-		keyVaultBaseUri = pointer.From(model.Properties.VaultUri)
-	}
+	keyVaultBaseUri := fmt.Sprintf(vaultBaseURLFmt, keyVaultId.VaultName)
 
 	id := keys.NewKeyID(keyVaultBaseUri, name)
 
-	client.KeysClientSetEndpoint(keyVaultBaseUri)
+	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys.Clone(keyVaultBaseUri)
 
 	keyVersionID := keys.NewKeyversionID(id.BaseURI, id.KeyName, "")
 	existing, err := client.GetKey(ctx, keyVersionID)
@@ -412,7 +405,6 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -421,7 +413,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	client.KeysClientSetEndpoint(id.BaseURI)
+	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys.Clone(id.BaseURI)
 
 	keyOptions := expandKeyVaultKeyOptions(d)
 	t := d.Get("tags").(map[string]interface{})
@@ -462,7 +454,6 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -471,7 +462,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	client.KeysClientSetEndpoint(id.BaseURI)
+	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys.Clone(id.BaseURI)
 
 	resp, err := client.GetKey(ctx, *id)
 	if err != nil {
@@ -607,7 +598,6 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 }
 
 func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -617,7 +607,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	client.KeysClientSetEndpoint(id.BaseURI)
+	client := meta.(*clients.Client).KeyVault.DataPlaneClient.Keys.Clone(id.BaseURI)
 
 	resp, err := client.DeleteKey(ctx, keyId)
 	if err != nil {

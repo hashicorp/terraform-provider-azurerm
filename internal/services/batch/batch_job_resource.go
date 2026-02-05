@@ -117,9 +117,8 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 
 			loc := location.Normalize(account.Model.Location)
 
-			client := metadata.Client.Batch.JobsDataPlaneClient
-
 			id := jobs.NewJobID(fmt.Sprintf(dataPlaneEndpointFmt, poolId.BatchAccountName, loc), model.Name)
+			client := metadata.Client.Batch.JobsDataPlaneClient.Clone(id.BaseURI)
 
 			client.JobsClientSetEndpoint(id.BaseURI)
 
@@ -160,8 +159,6 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Batch.JobsDataPlaneClient
-
 			data := BatchJobModel{}
 
 			if err := metadata.Decode(&data); err != nil {
@@ -174,7 +171,7 @@ func (r BatchJobResource) Read() sdk.ResourceFunc {
 			}
 
 			// client, err := metadata.Client.Batch.JobClient(ctx, accountId)
-			client.JobsClientSetEndpoint(id.BaseURI)
+			client := metadata.Client.Batch.JobsDataPlaneClient.Clone(id.BaseURI)
 
 			resp, err := client.JobGet(ctx, *id, jobs.DefaultJobGetOperationOptions())
 			if err != nil {
@@ -208,13 +205,11 @@ func (r BatchJobResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Batch.JobsDataPlaneClient
-
 			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-			client.JobsClientSetEndpoint(id.BaseURI)
+			client := metadata.Client.Batch.JobsDataPlaneClient.Clone(id.BaseURI)
 
 			var model BatchJobModel
 			if err := metadata.Decode(&model); err != nil {
@@ -247,14 +242,12 @@ func (r BatchJobResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Batch.JobsDataPlaneClient
-
 			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			client.JobsClientSetEndpoint(id.BaseURI)
+			client := metadata.Client.Batch.JobsDataPlaneClient.Clone(id.BaseURI)
 
 			if _, err := client.JobDelete(ctx, *id, jobs.DefaultJobDeleteOperationOptions()); err != nil {
 				return err

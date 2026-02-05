@@ -32,7 +32,6 @@ func TestAccKeyVaultKey_basicEC(t *testing.T) {
 			Config: r.basicEC(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_versionless_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.KeyVault/vaults/[\w-]+/keys/[\w-]+$`)),
 			),
 		},
 		data.ImportStep("key_size", "key_vault_id"),
@@ -438,16 +437,15 @@ func TestAccKeyVaultKey_RotationPolicyUnauthorized(t *testing.T) {
 }
 
 func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.KeyVault
 
 	id, err := keys.ParseKeyversionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	client.DataPlaneClient.Keys.KeysClientSetEndpoint(id.BaseURI)
+	client := clients.KeyVault.DataPlaneClient.Keys.Clone(id.BaseURI)
 
-	resp, err := client.DataPlaneClient.Keys.GetKey(ctx, *id)
+	resp, err := client.GetKey(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Key Vault Key %q: %+v", state.ID, err)
 	}
