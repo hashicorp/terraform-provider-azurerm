@@ -1085,6 +1085,49 @@ func TestAccMsSqlDatabase_elasticPoolHS(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlDatabase_updateServerlessToElastic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MsSqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gpServerless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_pause_delay_in_minutes").HasValue("42"),
+				check.That(data.ResourceName).Key("min_capacity").HasValue("0.75"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_S_Gen5_2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.elasticPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("min_capacity").DoesNotExist(),
+				check.That(data.ResourceName).Key("sku_name").HasValue("ElasticPool"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gpServerless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auto_pause_delay_in_minutes").HasValue("42"),
+				check.That(data.ResourceName).Key("min_capacity").HasValue("0.75"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("GP_S_Gen5_2"),
+			),
+		},
+		{
+			Config: r.elasticPoolWithNullServerlessProps(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("ElasticPool"),
+			),
+		},
+	})
+}
+
 func (MsSqlDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlDatabaseID(state.ID)
 	if err != nil {
@@ -1441,6 +1484,41 @@ resource "azurerm_mssql_database" "test" {
   server_id       = azurerm_mssql_server.test.id
   elastic_pool_id = azurerm_mssql_elasticpool.test.id
   sku_name        = "ElasticPool"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MsSqlDatabaseResource) elasticPoolWithNullServerlessProps(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                = "acctest-pool-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+  max_size_gb         = 5
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+
+resource "azurerm_mssql_database" "test" {
+  name            = "acctest-db-%[2]d"
+  server_id       = azurerm_mssql_server.test.id
+  elastic_pool_id = azurerm_mssql_elasticpool.test.id
+  sku_name        = "ElasticPool"
+  auto_pause_delay_in_minutes = null
+  min_capacity                = null
 }
 `, r.template(data), data.RandomInteger)
 }
