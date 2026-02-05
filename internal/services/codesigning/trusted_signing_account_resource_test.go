@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/codesigning"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -32,7 +33,9 @@ func (a TrustedSigningAccountResource) Exists(ctx context.Context, client *clien
 }
 
 func TestAccTrustedSigningAccount_basic(t *testing.T) {
-	t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+	}
 
 	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
@@ -48,7 +51,9 @@ func TestAccTrustedSigningAccount_basic(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_update(t *testing.T) {
-	t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+	}
 
 	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}
@@ -78,7 +83,9 @@ func TestAccTrustedSigningAccount_update(t *testing.T) {
 }
 
 func TestAccTrustedSigningAccount_complete(t *testing.T) {
-	t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_trusted_signing_account` is deprecated and will be removed in 5.0")
+	}
 
 	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
 	r := TrustedSigningAccountResource{}

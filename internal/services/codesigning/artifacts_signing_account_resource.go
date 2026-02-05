@@ -182,7 +182,7 @@ func (r ArtifactSigningAccountResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("sku_name") {
 				patch.Properties = pointer.To(codesigningaccounts.CodeSigningAccountPatchProperties{
 					Sku: pointer.To(codesigningaccounts.AccountSkuPatch{
-						Name: pointer.To(codesigningaccounts.SkuName(model.SkuName)),
+						Name: pointer.ToEnum[codesigningaccounts.SkuName](model.SkuName),
 					}),
 				})
 			}

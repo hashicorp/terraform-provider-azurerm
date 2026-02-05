@@ -52,12 +52,12 @@ func (d ArtifactSigningAccountDataSource) Arguments() map[string]*pluginsdk.Sche
 
 func (d ArtifactSigningAccountDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
+
 		"account_uri": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
-		"location": commonschema.LocationComputed(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
