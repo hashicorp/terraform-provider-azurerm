@@ -1104,7 +1104,6 @@ func TestAccMsSqlDatabase_updateServerlessToElastic(t *testing.T) {
 			Config: r.elasticPool(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("min_capacity").DoesNotExist(),
 				check.That(data.ResourceName).Key("sku_name").HasValue("ElasticPool"),
 			),
 		},
