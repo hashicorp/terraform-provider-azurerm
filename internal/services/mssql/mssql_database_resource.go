@@ -51,10 +51,11 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Update: resourceMsSqlDatabaseUpdate,
 		Delete: resourceMsSqlDatabaseDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := commonids.ParseSqlDatabaseID(id)
-			return err
-		}, resourceMsSqlDatabaseImporter),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SqlDatabaseId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SqlDatabaseId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -583,6 +584,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// For Data Warehouse SKUs only
 	if isDwSku {
@@ -1350,7 +1354,7 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 	}
 	d.Set("transparent_data_encryption_enabled", tdeState)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {

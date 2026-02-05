@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachinegroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -40,11 +41,11 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceMsSqlVirtualMachineCustomDiff),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := sqlvirtualmachines.ParseSqlVirtualMachineID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&sqlvirtualmachines.SqlVirtualMachineId{}),
 
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&sqlvirtualmachines.SqlVirtualMachineId{}),
+		},
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -580,6 +581,9 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// Wait for the auto backup settings to take effect
 	// See: https://github.com/Azure/azure-rest-api-specs/issues/12818
@@ -649,8 +653,11 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 		}
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
+	return resourceMssqlVirtualMachineSetFlatten(d, id, resp.Model)
+}
 
-	if model := resp.Model; model != nil {
+func resourceMssqlVirtualMachineSetFlatten(d *pluginsdk.ResourceData, id *sqlvirtualmachines.SqlVirtualMachineId, model *sqlvirtualmachines.SqlVirtualMachine) error {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("virtual_machine_id", props.VirtualMachineResourceId)
 			sqlLicenseType := ""
@@ -714,7 +721,7 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface{}) error {

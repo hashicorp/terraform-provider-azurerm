@@ -2,6 +2,7 @@ package mssql_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -14,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccMssqlDatabase_listByServerID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "testlist1")
-	r := MsSqlDatabaseResource{}
+func TestAccMssqlVirtualMachine_listByServerID(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "testlist1")
+	r := MsSqlVirtualMachineResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -29,15 +30,14 @@ func TestAccMssqlDatabase_listByServerID(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQuery(data),
+				Config: r.basicQuery(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_mssql_database.list", 1), // expect at least the 1 we created
+					querycheck.ExpectLengthAtLeast("azurerm_mssql_virtual_machine.list", 1), // expect at least the 1 we created
 					querycheck.ExpectIdentity(
-						"azurerm_mssql_database.list",
+						"azurerm_mssql_virtual_machine.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"server_name":         knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
@@ -47,9 +47,9 @@ func TestAccMssqlDatabase_listByServerID(t *testing.T) {
 	})
 }
 
-func TestAccMssqlDatabase_listByElasticPoolID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "testlist1")
-	r := MsSqlDatabaseResource{}
+func TestAccMssqlVirtualMachine_listByResourceGroupID(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_VirtualMachine", "testlist1")
+	r := MsSqlVirtualMachineResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -58,19 +58,18 @@ func TestAccMssqlDatabase_listByElasticPoolID(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.elasticPool(data),
+				Config: r.basic(data),
 			},
 			{
 				Query:  true,
-				Config: r.basicQueryElasticPool(data),
+				Config: r.basicQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_mssql_database.list", 1), // expect at least the 1 we created
+					querycheck.ExpectLengthAtLeast("azurerm_mssql_virtual_machine.list", 1), // expect at least the 1 we created
 					querycheck.ExpectIdentity(
-						"azurerm_mssql_database.list",
+						"azurerm_mssql_virtual_machine.list",
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"server_name":         knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
@@ -80,24 +79,22 @@ func TestAccMssqlDatabase_listByElasticPoolID(t *testing.T) {
 	})
 }
 
-func (r MsSqlDatabaseResource) basicQuery(data acceptance.TestData) string {
+func (r MsSqlVirtualMachineResource) basicQuery() string {
 	return `
-list "azurerm_mssql_database" "list" {
+list "azurerm_mssql_server" "list" {
   provider = azurerm
-  config {
-	server_id = "${azurerm_mssql_server.test.id}"
-  }
+  config {}
 }
 `
 }
 
-func (r MsSqlDatabaseResource) basicQueryElasticPool(data acceptance.TestData) string {
-	return `
-list "azurerm_mssql_database" "list" {
+func (r MsSqlVirtualMachineResource) basicQueryByResourceGroupName() string {
+	return fmt.Sprintf(`
+list "azurerm_mssql_server" "list" {
   provider = azurerm
   config {
-	elastic_pool_id = "${azurerm_mssql_elasticpool.test.id}"
+    resource_group_name = "{azurerm_resource_group.test.id}"
   }
 }
-`
+`)
 }

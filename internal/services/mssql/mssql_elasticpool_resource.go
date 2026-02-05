@@ -19,10 +19,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -36,10 +36,11 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 		Update: resourceMsSqlElasticPoolCreateUpdate,
 		Delete: resourceMsSqlElasticPoolDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ElasticPoolID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SqlElasticPoolId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SqlElasticPoolId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -289,6 +290,9 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMsSqlElasticPoolRead(d, meta)
 }
@@ -311,8 +315,11 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	return resourceMssqlElasticPoolSetFlatten(d, id, resp.Model)
+}
 
-	if model := resp.Model; model != nil {
+func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlElasticPoolId, model *elasticpools.ElasticPool) error {
+	if model != nil {
 		d.Set("name", model.Name)
 		d.Set("resource_group_name", id.ResourceGroupName)
 		d.Set("location", model.Location)
@@ -362,7 +369,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
