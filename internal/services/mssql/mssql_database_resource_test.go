@@ -1117,6 +1117,7 @@ func TestAccMsSqlDatabase_updateServerlessToElastic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("GP_S_Gen5_2"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.elasticPoolWithNullServerlessProps(data),
 			Check: acceptance.ComposeTestCheckFunc(
