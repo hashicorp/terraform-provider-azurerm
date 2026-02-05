@@ -3,7 +3,7 @@ name: Preview ARM API Version Linter
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 on:
   pull_request:
