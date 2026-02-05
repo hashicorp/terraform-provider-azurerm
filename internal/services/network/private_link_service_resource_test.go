@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -60,12 +61,10 @@ func TestAccPrivateLinkService_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.updateInitial(data),
+			Config: r.basicIp(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.0.primary").HasValue("true"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.3.17"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
 			),
 		},
@@ -76,10 +75,18 @@ func TestAccPrivateLinkService_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.primary").HasValue("true"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.3.30"),
 				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.env").HasValue("test"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicIp(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
+				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -95,13 +102,11 @@ func TestAccPrivateLinkService_move(t *testing.T) {
 			Config: r.moveSetup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.18"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.20"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.moveAdd(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -110,9 +115,10 @@ func TestAccPrivateLinkService_move(t *testing.T) {
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.18"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.21"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.20"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.moveChangeOne(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -120,32 +126,35 @@ func TestAccPrivateLinkService_move(t *testing.T) {
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.18"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.22"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.21"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.moveChangeTwo(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.23"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.22"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.20"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.21"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.moveChangeThree(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("4"),
 				check.That(data.ResourceName).Key("nat_ip_configuration.0.private_ip_address").HasValue("10.5.2.17"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.23"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.24"),
-				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.21"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.1.private_ip_address").HasValue("10.5.2.20"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.2.private_ip_address").HasValue("10.5.2.19"),
+				check.That(data.ResourceName).Key("nat_ip_configuration.3.private_ip_address").HasValue("10.5.2.18"),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -241,6 +250,44 @@ func TestAccPrivateLinkService_destinationIPAddress(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateLinkService_removePrivateIPAddress(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicIp(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.removePrivateIPAddress(data),
+			ExpectError: regexp.MustCompile("private_ip_address once assigned can not be removed"),
+		},
+	})
+}
+
+func TestAccPrivateLinkService_changePrimarySubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicIp(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.changePrimarySubnet(data),
+			ExpectError: regexp.MustCompile("primary subnet_id once assigned can not be changed"),
+		},
 	})
 }
 
@@ -376,63 +423,6 @@ resource "azurerm_private_link_service" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, enabled, data.RandomInteger)
 }
 
-func (r PrivateLinkServiceResource) updateInitial(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_subnet" "test" {
-  name                 = "acctestsnet-update-%d"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.5.3.0/24"]
-
-  private_link_service_network_policies_enabled = false
-}
-
-resource "azurerm_private_link_service" "test" {
-  name                = "acctestPLS-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  nat_ip_configuration {
-    name                       = "primaryIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.3.17"
-    private_ip_address_version = "IPv4"
-    primary                    = true
-  }
-
-  nat_ip_configuration {
-    name                       = "secondaryIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.3.18"
-    private_ip_address_version = "IPv4"
-    primary                    = false
-  }
-
-  nat_ip_configuration {
-    name                       = "thirdaryIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.3.19"
-    private_ip_address_version = "IPv4"
-    primary                    = false
-  }
-
-  nat_ip_configuration {
-    name                       = "fourtharyIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.3.20"
-    private_ip_address_version = "IPv4"
-    primary                    = false
-  }
-
-  load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.test.frontend_ip_configuration.0.id
-  ]
-}
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
 func (r PrivateLinkServiceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -524,30 +514,6 @@ resource "azurerm_private_link_service" "test" {
     primary                    = true
   }
 
-  nat_ip_configuration {
-    name                       = "secondaryIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.18"
-    private_ip_address_version = "IPv4"
-    primary                    = false
-  }
-
-  nat_ip_configuration {
-    name                       = "thirdaryIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.19"
-    private_ip_address_version = "IPv4"
-    primary                    = false
-  }
-
-  nat_ip_configuration {
-    name                       = "fourtharyIpConfiguration-%d"
-    subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.20"
-    private_ip_address_version = "IPv4"
-    primary                    = false
-  }
-
   load_balancer_frontend_ip_configuration_ids = [
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
@@ -556,7 +522,7 @@ resource "azurerm_private_link_service" "test" {
     env = "test"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PrivateLinkServiceResource) moveAdd(data acceptance.TestData) string {
@@ -606,7 +572,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                       = "fourtharyIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.21"
+    private_ip_address         = "10.5.2.20"
     private_ip_address_version = "IPv4"
     primary                    = false
   }
@@ -661,7 +627,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                       = "thirdaryIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.22"
+    private_ip_address         = "10.5.2.19"
     private_ip_address_version = "IPv4"
     primary                    = false
   }
@@ -716,7 +682,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                       = "secondaryIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.23"
+    private_ip_address         = "10.5.2.20"
     private_ip_address_version = "IPv4"
     primary                    = false
   }
@@ -724,7 +690,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                       = "thirdaryIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.22"
+    private_ip_address         = "10.5.2.19"
     private_ip_address_version = "IPv4"
     primary                    = false
   }
@@ -779,7 +745,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                       = "secondaryIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.23"
+    private_ip_address         = "10.5.2.20"
     private_ip_address_version = "IPv4"
     primary                    = false
   }
@@ -787,7 +753,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                       = "thirdaryIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.24"
+    private_ip_address         = "10.5.2.19"
     private_ip_address_version = "IPv4"
     primary                    = false
   }
@@ -795,7 +761,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                       = "fourtharyIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
-    private_ip_address         = "10.5.2.21"
+    private_ip_address         = "10.5.2.18"
     private_ip_address_version = "IPv4"
     primary                    = false
   }
@@ -947,7 +913,7 @@ resource "azurerm_private_link_service" "test" {
   }
 
   nat_ip_configuration {
-    name                       = "tertiaryIpConfiguration-%d"
+    name                       = "ternaryIpConfiguration-%d"
     subnet_id                  = azurerm_subnet.test.id
     private_ip_address         = "10.5.1.42"
     private_ip_address_version = "IPv4"
@@ -962,11 +928,86 @@ resource "azurerm_private_link_service" "test" {
     primary                    = false
   }
 
+
   tags = {
     env = "test"
   }
 }
 `, data.RandomInteger, "UK South", data.RandomInteger, data.RandomInteger, data.RandomInteger, destinationIPAddress, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateLinkServiceResource) removePrivateIPAddress(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-update-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.3.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                = "acctestPLS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  nat_ip_configuration {
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test.id
+    private_ip_address_version = "IPv4"
+    primary                    = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PrivateLinkServiceResource) changePrimarySubnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-update-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.3.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "acctestsnet-update2-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.5.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                = "acctestPLS-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  nat_ip_configuration {
+    name                       = "primaryIpConfiguration-%d"
+    subnet_id                  = azurerm_subnet.test2.id
+    private_ip_address         = "10.5.5.30"
+    private_ip_address_version = "IPv4"
+    primary                    = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (PrivateLinkServiceResource) template(data acceptance.TestData) string {
