@@ -6,7 +6,6 @@ package cognitive
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -71,7 +70,7 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 		return
 	}
 	stream.Results = func(push func(list.ListResult) bool) {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Until(ctxDeadline))
+		ctx, cancel := context.WithDeadline(context.Background(), ctxDeadline)
 		defer cancel()
 
 		for _, account := range results {
