@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks
 
 import (
@@ -125,7 +128,7 @@ func (DatabricksServerlessWorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.EnhancedSecurityCompliance = flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
+				state.EnhancedSecurityCompliance = DatabricksServerlessWorkspaceResource{}.flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
 
 				if model.Properties.WorkspaceId != nil {
 					state.WorkspaceId = *model.Properties.WorkspaceId

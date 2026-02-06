@@ -1,7 +1,11 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package databricks
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -48,7 +52,7 @@ type EnhancedSecurityComplianceModel struct {
 	EnhancedSecurityMonitoringEnabled  bool     `tfschema:"enhanced_security_monitoring_enabled"`
 }
 
-func (DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
+func (r DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -68,14 +72,16 @@ func (DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk.S
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"automatic_cluster_update_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						AtLeastOneOf: r.databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint(),
 					},
 					"compliance_security_profile_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						AtLeastOneOf: r.databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint(),
 					},
 					"compliance_security_profile_standards": {
 						Type:     pluginsdk.TypeSet,
@@ -88,9 +94,10 @@ func (DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk.S
 						},
 					},
 					"enhanced_security_monitoring_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						AtLeastOneOf: r.databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint(),
 					},
 				},
 			},
@@ -167,7 +174,7 @@ func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
 			}
 
 			location := location.Normalize(config.Location)
-			encryption, err := expandDatabricksServerlessWorkspaceEncryption(config, id, keyVaultClient, ctx)
+			encryption, err := r.expandDatabricksServerlessWorkspaceEncryption(config, id, keyVaultClient, ctx)
 			if err != nil {
 				return err
 			}
@@ -185,7 +192,7 @@ func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
 				Properties: workspaces.WorkspaceProperties{
 					ComputeMode:                workspaces.ComputeModeServerless,
 					Encryption:                 encryption,
-					EnhancedSecurityCompliance: expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance),
+					EnhancedSecurityCompliance: r.expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance),
 					PublicNetworkAccess:        &publicNetworkAccess,
 				},
 				Tags: pointer.To(config.Tags),
@@ -250,7 +257,7 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChanges("managed_services_cmk_key_vault_id", "managed_services_cmk_key_vault_key_id") {
-				encryption, err := expandDatabricksServerlessWorkspaceEncryption(config, *id, keyVaultClient, ctx)
+				encryption, err := r.expandDatabricksServerlessWorkspaceEncryption(config, *id, keyVaultClient, ctx)
 				if err != nil {
 					return err
 				}
@@ -259,7 +266,7 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("enhanced_security_compliance") {
-				props.EnhancedSecurityCompliance = expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance)
+				props.EnhancedSecurityCompliance = r.expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance)
 			}
 
 			model.Properties = props
@@ -277,7 +284,7 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
+func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -311,7 +318,7 @@ func (DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.EnhancedSecurityCompliance = flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
+				state.EnhancedSecurityCompliance = r.flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
 				state.ManagedServicesCmkKeyVaultId = config.ManagedServicesCmkKeyVaultId
 				if encryption := model.Properties.Encryption; encryption != nil {
 					if managedServices := encryption.Entities.ManagedServices; managedServices != nil {
@@ -409,11 +416,11 @@ func (DatabricksServerlessWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 			automaticClusterUpdateEnabled := metadata.ResourceDiff.Get("enhanced_security_compliance.0.automatic_cluster_update_enabled").(bool)
 			enhancedSecurityMonitoringEnabled := metadata.ResourceDiff.Get("enhanced_security_compliance.0.enhanced_security_monitoring_enabled").(bool)
 			if newComplianceSecurityProfileEnabled.(bool) && (!automaticClusterUpdateEnabled || !enhancedSecurityMonitoringEnabled) {
-				return fmt.Errorf("`automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` when `compliance_security_profile_enabled` is set to `true`")
+				return errors.New("`automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` when `compliance_security_profile_enabled` is set to `true`")
 			}
 
 			if !newComplianceSecurityProfileEnabled.(bool) && newComplianceSecurityProfileStandards.(*pluginsdk.Set).Len() > 0 {
-				return fmt.Errorf("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is `false`")
+				return errors.New("`compliance_security_profile_standards` cannot be set when `compliance_security_profile_enabled` is `false`")
 			}
 
 			return nil
@@ -421,7 +428,7 @@ func (DatabricksServerlessWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func expandDatabricksServerlessWorkspaceEncryption(input DatabricksServerlessWorkspaceModel, id workspaces.WorkspaceId, keyVaultClient *keyvault.Client, ctx context.Context) (*workspaces.WorkspacePropertiesEncryption, error) {
+func (DatabricksServerlessWorkspaceResource) expandDatabricksServerlessWorkspaceEncryption(input DatabricksServerlessWorkspaceModel, id workspaces.WorkspaceId, keyVaultClient *keyvault.Client, ctx context.Context) (*workspaces.WorkspacePropertiesEncryption, error) {
 	if input.ManagedServicesCmkKeyVaultKeyId == "" {
 		return nil, nil
 	}
@@ -467,7 +474,7 @@ func expandDatabricksServerlessWorkspaceEncryption(input DatabricksServerlessWor
 	return encryption, nil
 }
 
-func expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(input []EnhancedSecurityComplianceModel) *workspaces.EnhancedSecurityComplianceDefinition {
+func (DatabricksServerlessWorkspaceResource) expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(input []EnhancedSecurityComplianceModel) *workspaces.EnhancedSecurityComplianceDefinition {
 	if len(input) == 0 {
 		return nil
 	}
@@ -506,7 +513,7 @@ func expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(inp
 	}
 }
 
-func flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(input *workspaces.EnhancedSecurityComplianceDefinition) []EnhancedSecurityComplianceModel {
+func (DatabricksServerlessWorkspaceResource) flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(input *workspaces.EnhancedSecurityComplianceDefinition) []EnhancedSecurityComplianceModel {
 	if input == nil {
 		return []EnhancedSecurityComplianceModel{}
 	}
@@ -543,4 +550,12 @@ func flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(in
 	}
 
 	return enhancedSecurityCompliance
+}
+
+func (DatabricksServerlessWorkspaceResource) databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint() []string {
+	return []string{
+		"enhanced_security_compliance.0.automatic_cluster_update_enabled",
+		"enhanced_security_compliance.0.compliance_security_profile_enabled",
+		"enhanced_security_compliance.0.enhanced_security_monitoring_enabled",
+	}
 }
