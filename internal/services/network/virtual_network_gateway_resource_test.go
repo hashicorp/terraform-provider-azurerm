@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -262,6 +263,10 @@ func TestAccVirtualNetworkGateway_enableBgp(t *testing.T) {
 }
 
 func TestAccVirtualNetworkGateway_enableBgpDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping this as `enable_bgp` is deprecated in favour of `bgp_enabled` and will be removed in v5.0 of the provider")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}
 
