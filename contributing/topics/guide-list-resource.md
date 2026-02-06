@@ -143,42 +143,24 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                 // Set the ID of the resource for the ResourceData object
                 id, err := networkprofiles.ParseNetworkProfileID(pointer.From(profile.Id))
                 if err != nil {
-                    sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Profile ID", err)
+                    sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Network Profile ID", err)
                     return
                 }
                 rd.SetId(id.ID())
     
                 // Use the resource flatten function to set the attributes into the resource state
                 if err := resourceNetworkProfileFlatten(rd, id, &profile); err != nil {
-                    sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureNetworkProfileResourceName), err)
+                    sdk.SetErrorDiagnosticAndYieldListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureNetworkProfileResourceName), err)
                     return
                 }
     
-                // Convert and set the identity and resource state into the result
-                tfTypeIdentity, err := rd.TfTypeIdentityState()
-                if err != nil {
-                    sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
-                    return
-                }
-    
-                if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-                    sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
-                    return
-                }
-    
-                // Convert and set the resource state into the result
-                tfTypeResourceState, err := rd.TfTypeResourceState()
-                if err != nil {
-                    sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
-                    return
-                }
-    
-                if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-                    sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
-                    return
-                }
-    
-                // Send the result to the stream
+               // Convert and set the identity and resource state into the result
+               sdk.EncodeListResult(ctx, rd, &result)
+               if result.Diagnostics.HasError() {
+                   push(result)
+                   return
+               }
+
                 if !push(result) {
                     return
                 }
@@ -189,7 +171,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
 
 5. Register the new List Resource
 
-List Resources are registered within the `registration.go` within each Service Package - and should look something like this:
+   List Resources are registered within the `registration.go` within each Service Package - and should look something like this:
 
     ```
     package network
@@ -212,9 +194,9 @@ List Resources are registered within the `registration.go` within each Service P
 
 6. Add Acceptance Tests for this List Resource
 
-Create a new acceptance test file for the List Resource (for example, `network_profile_resource_list_test.go`) and add tests to cover the List Resource functionality. The test should provision any prerequisite resources and multiple resources of the type of List Resource we want to test. 
-
-The test should look something like this:
+   Create a new acceptance test file for the List Resource (for example, `network_profile_resource_list_test.go`) and add tests to cover the List Resource functionality. The test should provision any prerequisite resources and multiple resources of the type of List Resource we want to test. 
+   
+   The test should look something like this:
 
     ```
     package network_test
@@ -346,9 +328,9 @@ The test should look something like this:
 
 7. Add documentation for this List Resource
 
-Documentation should be written manually and added to the `./website/docs/list-resources/` folder.
-
-It should include an example, arguments reference, and look something like this:
+   Documentation should be written manually and added to the `./website/docs/list-resources/` folder.
+   
+   It should include an example, arguments reference, and look something like this:
 
     ````markdown
     ---
@@ -393,3 +375,35 @@ It should include an example, arguments reference, and look something like this:
     
     * `subscription_id` - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
     ````
+
+## Known Issues and Considerations
+
+### Cancelled Context
+
+Some resources need to send additional API requests in the flatten function, these API requests require a valid context (i.e. not cancelled or done). However, due to the way the List resources function, the context provided will be cancelled by the time Terraform calls the iterator (`stream.Results`).
+
+In this scenario, you must instantiate a new context within the iterator using the deadline from the provided context, this should look like the below:
+
+```go
+func (r ExampleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+    ...
+    
+    // retrieve the deadline from the supplied context
+    deadline, ok := ctx.Deadline()
+    if !ok {
+        // This *should* never happen given the List Wrapper instantiates a context with a timeout
+        sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
+        return
+    }
+    
+    stream.Result = func(push func(list.ListResult) bool) {
+        // Instantiate a new context based on the deadline retrieved earlier
+        ctx, cancel := context.WithDeadline(context.Background(), deadline)
+        defer cancel()
+        
+        for _, example := range results {
+            // Remaining logic to retrieve and set the resource data
+        }
+    }
+}
+```
