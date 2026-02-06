@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * dependencies: `containerinstance` - update to API version `2025-09-01` [GH-31640]
 
 FEATURES:
+* **New Data Source:** `azurerm_oracle_database_system_versions` [GH-31001]
 
 BUG FIXES:
 
