@@ -180,8 +180,8 @@ func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
 			}
 
 			publicNetworkAccess := workspaces.PublicNetworkAccessEnabled
-			if config.PublicNetworkAccessEnabled {
-				publicNetworkAccess = workspaces.PublicNetworkAccessEnabled
+			if !config.PublicNetworkAccessEnabled {
+				publicNetworkAccess = workspaces.PublicNetworkAccessDisabled
 			}
 
 			workspace := workspaces.Workspace{
@@ -250,9 +250,9 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				publicNetworkAccess := workspaces.PublicNetworkAccessDisabled
-				if config.PublicNetworkAccessEnabled {
-					publicNetworkAccess = workspaces.PublicNetworkAccessEnabled
+				publicNetworkAccess := workspaces.PublicNetworkAccessEnabled
+				if !config.PublicNetworkAccessEnabled {
+					publicNetworkAccess = workspaces.PublicNetworkAccessDisabled
 				}
 
 				props.PublicNetworkAccess = &publicNetworkAccess
@@ -294,6 +294,7 @@ func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 			defer cancel()
 
 			client := metadata.Client.DataBricks.WorkspacesClient
+			keyVaultClient := metadata.Client.KeyVault
 			id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -321,21 +322,30 @@ func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.EnhancedSecurityCompliance = r.flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
-				state.ManagedServicesCmkKeyVaultId = config.ManagedServicesCmkKeyVaultId
+
 				if encryption := model.Properties.Encryption; encryption != nil {
 					if managedServices := encryption.Entities.ManagedServices; managedServices != nil {
-						if managedServices.KeyVaultProperties.KeyVaultUri != "" {
-							key, err := keyVaultParse.NewNestedItemID(managedServices.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, managedServices.KeyVaultProperties.KeyName, managedServices.KeyVaultProperties.KeyVersion)
-							if err == nil {
-								state.ManagedServicesCmkKeyVaultKeyId = key.ID()
+						if keyVaultProperties := managedServices.KeyVaultProperties; keyVaultProperties != nil {
+							if keyVaultProperties.KeyVaultUri != "" {
+								key, err := keyVaultParse.NewNestedItemID(keyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, keyVaultProperties.KeyName, keyVaultProperties.KeyVersion)
+								if err == nil {
+									state.ManagedServicesCmkKeyVaultKeyId = key.ID()
+									state.ManagedServicesCmkKeyVaultId = config.ManagedServicesCmkKeyVaultId
+
+									// If existing state key vault ID is empty particularly during import, search the key vault under the current subscription
+									// That say, key vault ID cannot be imported when key vault is under different subscription than the current one
+									if state.ManagedServicesCmkKeyVaultId == "" {
+										servicesResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+										rawManagedServicesCmkKeyVaultId, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl)
+										if err == nil {
+											state.ManagedServicesCmkKeyVaultId = pointer.From(rawManagedServicesCmkKeyVaultId)
+										}
+									}
+								}
 							}
 						}
 					}
 				}
-
-				// Always set these even if they are empty to keep the state file
-				// consistent with the configuration file...
-				state.ManagedServicesCmkKeyVaultKeyId = config.ManagedServicesCmkKeyVaultKeyId
 
 				if model.Properties.PublicNetworkAccess != nil {
 					state.PublicNetworkAccessEnabled = *model.Properties.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled
