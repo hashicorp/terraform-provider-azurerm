@@ -9,6 +9,94 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AzureFileShareAccessTier string
+
+const (
+	AzureFileShareAccessTierCool                 AzureFileShareAccessTier = "Cool"
+	AzureFileShareAccessTierHot                  AzureFileShareAccessTier = "Hot"
+	AzureFileShareAccessTierPremium              AzureFileShareAccessTier = "Premium"
+	AzureFileShareAccessTierTransactionOptimized AzureFileShareAccessTier = "TransactionOptimized"
+)
+
+func PossibleValuesForAzureFileShareAccessTier() []string {
+	return []string{
+		string(AzureFileShareAccessTierCool),
+		string(AzureFileShareAccessTierHot),
+		string(AzureFileShareAccessTierPremium),
+		string(AzureFileShareAccessTierTransactionOptimized),
+	}
+}
+
+func (s *AzureFileShareAccessTier) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAzureFileShareAccessTier(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAzureFileShareAccessTier(input string) (*AzureFileShareAccessTier, error) {
+	vals := map[string]AzureFileShareAccessTier{
+		"cool":                 AzureFileShareAccessTierCool,
+		"hot":                  AzureFileShareAccessTierHot,
+		"premium":              AzureFileShareAccessTierPremium,
+		"transactionoptimized": AzureFileShareAccessTierTransactionOptimized,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AzureFileShareAccessTier(input)
+	return &out, nil
+}
+
+type AzureFileShareAccessType string
+
+const (
+	AzureFileShareAccessTypeExclusive AzureFileShareAccessType = "Exclusive"
+	AzureFileShareAccessTypeShared    AzureFileShareAccessType = "Shared"
+)
+
+func PossibleValuesForAzureFileShareAccessType() []string {
+	return []string{
+		string(AzureFileShareAccessTypeExclusive),
+		string(AzureFileShareAccessTypeShared),
+	}
+}
+
+func (s *AzureFileShareAccessType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAzureFileShareAccessType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAzureFileShareAccessType(input string) (*AzureFileShareAccessType, error) {
+	vals := map[string]AzureFileShareAccessType{
+		"exclusive": AzureFileShareAccessTypeExclusive,
+		"shared":    AzureFileShareAccessTypeShared,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AzureFileShareAccessType(input)
+	return &out, nil
+}
+
 type ContainerGroupIPAddressType string
 
 const (
@@ -255,6 +343,7 @@ type ContainerGroupSku string
 const (
 	ContainerGroupSkuConfidential ContainerGroupSku = "Confidential"
 	ContainerGroupSkuDedicated    ContainerGroupSku = "Dedicated"
+	ContainerGroupSkuNotSpecified ContainerGroupSku = "NotSpecified"
 	ContainerGroupSkuStandard     ContainerGroupSku = "Standard"
 )
 
@@ -262,6 +351,7 @@ func PossibleValuesForContainerGroupSku() []string {
 	return []string{
 		string(ContainerGroupSkuConfidential),
 		string(ContainerGroupSkuDedicated),
+		string(ContainerGroupSkuNotSpecified),
 		string(ContainerGroupSkuStandard),
 	}
 }
@@ -283,6 +373,7 @@ func parseContainerGroupSku(input string) (*ContainerGroupSku, error) {
 	vals := map[string]ContainerGroupSku{
 		"confidential": ContainerGroupSkuConfidential,
 		"dedicated":    ContainerGroupSkuDedicated,
+		"notspecified": ContainerGroupSkuNotSpecified,
 		"standard":     ContainerGroupSkuStandard,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
@@ -429,6 +520,50 @@ func parseGpuSku(input string) (*GpuSku, error) {
 	return &out, nil
 }
 
+type IdentityAccessLevel string
+
+const (
+	IdentityAccessLevelAll    IdentityAccessLevel = "All"
+	IdentityAccessLevelSystem IdentityAccessLevel = "System"
+	IdentityAccessLevelUser   IdentityAccessLevel = "User"
+)
+
+func PossibleValuesForIdentityAccessLevel() []string {
+	return []string{
+		string(IdentityAccessLevelAll),
+		string(IdentityAccessLevelSystem),
+		string(IdentityAccessLevelUser),
+	}
+}
+
+func (s *IdentityAccessLevel) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseIdentityAccessLevel(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseIdentityAccessLevel(input string) (*IdentityAccessLevel, error) {
+	vals := map[string]IdentityAccessLevel{
+		"all":    IdentityAccessLevelAll,
+		"system": IdentityAccessLevelSystem,
+		"user":   IdentityAccessLevelUser,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := IdentityAccessLevel(input)
+	return &out, nil
+}
+
 type LogAnalyticsLogType string
 
 const (
@@ -470,6 +605,103 @@ func parseLogAnalyticsLogType(input string) (*LogAnalyticsLogType, error) {
 	return &out, nil
 }
 
+type NGroupProvisioningState string
+
+const (
+	NGroupProvisioningStateCanceled  NGroupProvisioningState = "Canceled"
+	NGroupProvisioningStateCreating  NGroupProvisioningState = "Creating"
+	NGroupProvisioningStateDeleting  NGroupProvisioningState = "Deleting"
+	NGroupProvisioningStateFailed    NGroupProvisioningState = "Failed"
+	NGroupProvisioningStateMigrating NGroupProvisioningState = "Migrating"
+	NGroupProvisioningStateSucceeded NGroupProvisioningState = "Succeeded"
+	NGroupProvisioningStateUpdating  NGroupProvisioningState = "Updating"
+)
+
+func PossibleValuesForNGroupProvisioningState() []string {
+	return []string{
+		string(NGroupProvisioningStateCanceled),
+		string(NGroupProvisioningStateCreating),
+		string(NGroupProvisioningStateDeleting),
+		string(NGroupProvisioningStateFailed),
+		string(NGroupProvisioningStateMigrating),
+		string(NGroupProvisioningStateSucceeded),
+		string(NGroupProvisioningStateUpdating),
+	}
+}
+
+func (s *NGroupProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNGroupProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseNGroupProvisioningState(input string) (*NGroupProvisioningState, error) {
+	vals := map[string]NGroupProvisioningState{
+		"canceled":  NGroupProvisioningStateCanceled,
+		"creating":  NGroupProvisioningStateCreating,
+		"deleting":  NGroupProvisioningStateDeleting,
+		"failed":    NGroupProvisioningStateFailed,
+		"migrating": NGroupProvisioningStateMigrating,
+		"succeeded": NGroupProvisioningStateSucceeded,
+		"updating":  NGroupProvisioningStateUpdating,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := NGroupProvisioningState(input)
+	return &out, nil
+}
+
+type NGroupUpdateMode string
+
+const (
+	NGroupUpdateModeManual  NGroupUpdateMode = "Manual"
+	NGroupUpdateModeRolling NGroupUpdateMode = "Rolling"
+)
+
+func PossibleValuesForNGroupUpdateMode() []string {
+	return []string{
+		string(NGroupUpdateModeManual),
+		string(NGroupUpdateModeRolling),
+	}
+}
+
+func (s *NGroupUpdateMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseNGroupUpdateMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseNGroupUpdateMode(input string) (*NGroupUpdateMode, error) {
+	vals := map[string]NGroupUpdateMode{
+		"manual":  NGroupUpdateModeManual,
+		"rolling": NGroupUpdateModeRolling,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := NGroupUpdateMode(input)
+	return &out, nil
+}
+
 type OperatingSystemTypes string
 
 const (
@@ -508,6 +740,47 @@ func parseOperatingSystemTypes(input string) (*OperatingSystemTypes, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := OperatingSystemTypes(input)
+	return &out, nil
+}
+
+type Priority string
+
+const (
+	PriorityRegular Priority = "Regular"
+	PrioritySpot    Priority = "Spot"
+)
+
+func PossibleValuesForPriority() []string {
+	return []string{
+		string(PriorityRegular),
+		string(PrioritySpot),
+	}
+}
+
+func (s *Priority) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parsePriority(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parsePriority(input string) (*Priority, error) {
+	vals := map[string]Priority{
+		"regular": PriorityRegular,
+		"spot":    PrioritySpot,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := Priority(input)
 	return &out, nil
 }
 

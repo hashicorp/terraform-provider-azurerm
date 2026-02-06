@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance` Documentation
 
-The `containerinstance` SDK allows for interaction with Azure Resource Manager `containerinstance` (API Version `2023-05-01`).
+The `containerinstance` SDK allows for interaction with Azure Resource Manager `containerinstance` (API Version `2025-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
 ```
 
 
@@ -18,6 +18,147 @@ import "github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/202
 ```go
 client := containerinstance.NewContainerInstanceClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfileCreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewContainerGroupProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupProfileName")
+
+payload := containerinstance.ContainerGroupProfile{
+	// ...
+}
+
+
+read, err := client.CGProfileCreateOrUpdate(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfileDelete`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewContainerGroupProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupProfileName")
+
+read, err := client.CGProfileDelete(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfileGet`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewContainerGroupProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupProfileName")
+
+read, err := client.CGProfileGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfileGetByRevisionNumber`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewRevisionID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupProfileName", "revisionName")
+
+read, err := client.CGProfileGetByRevisionNumber(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfileListAllRevisions`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewContainerGroupProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupProfileName")
+
+// alternatively `client.CGProfileListAllRevisions(ctx, id)` can be used to do batched pagination
+items, err := client.CGProfileListAllRevisionsComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfileUpdate`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewContainerGroupProfileID("12345678-1234-9876-4563-123456789012", "example-resource-group", "containerGroupProfileName")
+
+payload := containerinstance.ContainerGroupProfilePatch{
+	// ...
+}
+
+
+read, err := client.CGProfileUpdate(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfilesListByResourceGroup`
+
+```go
+ctx := context.TODO()
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+
+// alternatively `client.CGProfilesListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.CGProfilesListByResourceGroupComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.CGProfilesListBySubscription`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+// alternatively `client.CGProfilesListBySubscription(ctx, id)` can be used to do batched pagination
+items, err := client.CGProfilesListBySubscriptionComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
 ```
 
 
@@ -276,6 +417,142 @@ if err != nil {
 }
 if model := read.Model; model != nil {
 	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsCreateOrUpdate`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewNgroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ngroupName")
+
+payload := containerinstance.NGroup{
+	// ...
+}
+
+
+if err := client.NGroupsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsDelete`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewNgroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ngroupName")
+
+if err := client.NGroupsDeleteThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsGet`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewNgroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ngroupName")
+
+read, err := client.NGroupsGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsList`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+// alternatively `client.NGroupsList(ctx, id)` can be used to do batched pagination
+items, err := client.NGroupsListComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsListByResourceGroup`
+
+```go
+ctx := context.TODO()
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+
+// alternatively `client.NGroupsListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.NGroupsListByResourceGroupComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsRestart`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewNgroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ngroupName")
+
+if err := client.NGroupsRestartThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsStart`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewNgroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ngroupName")
+
+if err := client.NGroupsStartThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsStop`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewNgroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ngroupName")
+
+read, err := client.NGroupsStop(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `ContainerInstanceClient.NGroupsUpdate`
+
+```go
+ctx := context.TODO()
+id := containerinstance.NewNgroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "ngroupName")
+
+payload := containerinstance.NGroupPatch{
+	// ...
+}
+
+
+if err := client.NGroupsUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
 }
 ```
 
