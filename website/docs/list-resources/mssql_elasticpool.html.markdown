@@ -1,24 +1,24 @@
 ---
-subcategory: "MsSql"
+subcategory: "mssql"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_elasticpool"
 description: |-
-    Lists MSSQL Elastic Pool resources.
+    Lists mssql elasticpool resources.
 ---
 
 # List resource: azurerm_mssql_elasticpool
 
-Lists MSSQL Elastic Pool resources.
+Lists mssql elasticpool resources.
 
 ## Example Usage
 
-### List all MSSQL Elastic Pools in a server
+### List mssql elasticpools in a mssql server
 
 ```hcl
 list "azurerm_mssql_elasticpool" "example" {
   provider = azurerm
   config {
-    server_id = "example-server_id"
+    server_id = "example"
   }
 }
 ```

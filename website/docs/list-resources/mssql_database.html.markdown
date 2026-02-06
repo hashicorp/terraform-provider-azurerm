@@ -1,24 +1,35 @@
 ---
-subcategory: "MsSql"
+subcategory: "mssql"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_database"
 description: |-
-    Lists MSSQL Server resources.
+    Lists mssql database resources.
 ---
 
 # List resource: azurerm_mssql_database
 
-Lists MSSQL Database resources.
+Lists mssql database resources.
 
 ## Example Usage
 
-### List all MSSQL Databases in a server
+### List mssql databases in a mssql server
 
 ```hcl
 list "azurerm_mssql_database" "example" {
   provider = azurerm
   config {
-    server_id = "example-server_id"
+    server_id = "example"
+  }
+}
+```
+
+### List mssql databases in a mssql elastic pool
+
+```hcl
+list "azurerm_mssql_database" "example" {
+  provider = azurerm
+  config {
+    elastic_pool_id = "example"
   }
 }
 ```
@@ -28,3 +39,6 @@ list "azurerm_mssql_database" "example" {
 This list resource supports the following arguments:
 
 * `server_id` - (Optional) The id of the mssql server to query.
+
+* `elastic_pool_id` - (Optional) The id of the mssql elastic pool to query.
+
