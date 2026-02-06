@@ -341,9 +341,9 @@ resource "azurerm_key_vault_access_policy" "managed" {
 }
 
 resource "azurerm_databricks_serverless_workspace" "test" {
-  name                = "acctest-dbsw-%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                                  = "acctest-dbsw-%[2]d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
   managed_services_cmk_key_vault_id     = azurerm_key_vault.test.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
   public_network_access_enabled         = false
@@ -426,9 +426,9 @@ resource "azurerm_resource_group" "keyVault" {
 }
 
 resource "azurerm_databricks_serverless_workspace" "test" {
-  name                        = "acctest-databricks-pri-sub-%[1]d"
-  resource_group_name         = azurerm_resource_group.test.name
-  location                    = azurerm_resource_group.test.location
+  name                                  = "acctest-databricks-pri-sub-%[1]d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
   managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
 
@@ -454,7 +454,7 @@ resource "azurerm_key_vault" "keyVault" {
 }
 
 resource "azurerm_key_vault_key" "services" {
-  provider   = azurerm-alt
+  provider = azurerm-alt
 
   name         = "acctest-services-certificate"
   key_vault_id = azurerm_key_vault.keyVault.id
