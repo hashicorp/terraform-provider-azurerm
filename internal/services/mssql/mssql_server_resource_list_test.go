@@ -153,5 +153,5 @@ list "azurerm_mssql_server" "list" {
     resource_group_name = "{azurerm_resource_group.test.id}"
   }
 }
-`, data.Subscriptions.Primary, data.RandomInteger)
+`)
 }
