@@ -6,6 +6,7 @@ package custompollers
 import (
 	"context"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -45,7 +46,7 @@ func TestGeoReplicationPoller_Success(t *testing.T) {
 	pollerType := &geoReplicationPoller{
 		client: mockClient,
 		id:     id,
-		toIds: []string{
+		expectedLinkedDbIds: []string{
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1/databases/default",
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr2/databases/default",
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr3/databases/default",
@@ -92,7 +93,7 @@ func TestGeoReplicationPoller_InProgress(t *testing.T) {
 	pollerType := &geoReplicationPoller{
 		client: mockClient,
 		id:     id,
-		toIds: []string{
+		expectedLinkedDbIds: []string{
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1/databases/default",
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr2/databases/default",
 			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr3/databases/default",
@@ -108,5 +109,40 @@ func TestGeoReplicationPoller_InProgress(t *testing.T) {
 	}
 	if result.Status != pollers.PollingStatusInProgress {
 		t.Fatalf("expected status %s, got %s", pollers.PollingStatusInProgress, result.Status)
+	}
+}
+
+func TestGeoReplicationPoller_GeoReplicationNil(t *testing.T) {
+	id := databases.NewDatabaseID("00000000-0000-0000-0000-000000000000", "my-rg", "amr1", "default")
+
+	mockClient := &mockDatabasesClient{
+		getResponse: &databases.GetOperationResponse{
+			HttpResponse: &http.Response{StatusCode: 200},
+			Model: &databases.Database{
+				Properties: &databases.DatabaseCreateProperties{
+					GeoReplication: nil,
+				},
+			},
+		},
+	}
+
+	pollerType := &geoReplicationPoller{
+		client: mockClient,
+		id:     id,
+		expectedLinkedDbIds: []string{
+			"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1/databases/default",
+		},
+	}
+
+	result, err := pollerType.Poll(context.Background())
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if result != nil {
+		t.Fatal("expected nil result when error occurs, got result")
+	}
+	expectedError := regexp.MustCompile("properties.geoReplication were empty")
+	if !expectedError.MatchString(err.Error()) {
+		t.Fatalf("expected error message to match %q, got %q", expectedError, err.Error())
 	}
 }

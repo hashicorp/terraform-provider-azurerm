@@ -15,16 +15,16 @@ import (
 var _ pollers.PollerType = &geoReplicationPoller{}
 
 type geoReplicationPoller struct {
-	client DatabasesClientInterface
-	id     databases.DatabaseId
-	toIds  []string
+	client              DatabasesClientInterface
+	id                  databases.DatabaseId
+	expectedLinkedDbIds []string
 }
 
 func NewGeoReplicationPoller(client DatabasesClientInterface, id databases.DatabaseId, toIds []string) *geoReplicationPoller {
 	return &geoReplicationPoller{
-		client: client,
-		id:     id,
-		toIds:  toIds,
+		client:              client,
+		id:                  id,
+		expectedLinkedDbIds: toIds,
 	}
 }
 
@@ -38,22 +38,20 @@ func (p geoReplicationPoller) Poll(ctx context.Context) (*pollers.PollResult, er
 		return nil, fmt.Errorf("polling for %s: properties were empty", p.id)
 	}
 
-	idFound := make(map[string]bool, len(p.toIds))
-	for _, toId := range p.toIds {
-		idFound[toId] = false
+	if resp.Model.Properties.GeoReplication == nil {
+		return nil, fmt.Errorf("polling for %s: properties.geoReplication were empty", p.id)
 	}
+
+	linkedDatabaseIds := make(map[string]struct{}, len(p.expectedLinkedDbIds))
 
 	for _, ldb := range pointer.From(resp.Model.Properties.GeoReplication.LinkedDatabases) {
 		if pointer.From(ldb.State) == databases.LinkStateLinked {
-			id := pointer.From(ldb.Id)
-			if _, ok := idFound[id]; ok {
-				idFound[id] = true
-			}
+			linkedDatabaseIds[pointer.From(ldb.Id)] = struct{}{}
 		}
 	}
 
-	for _, found := range idFound {
-		if !found {
+	for _, ldb := range p.expectedLinkedDbIds {
+		if _, ok := linkedDatabaseIds[ldb]; !ok {
 			return &pollingInProgress, nil
 		}
 	}
