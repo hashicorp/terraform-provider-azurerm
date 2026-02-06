@@ -569,7 +569,7 @@ func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 		if isPrimary && d.HasChange(s) {
 			o, _ := d.GetChange(s)
 			if o != "" {
-				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q `primary subnet_id` once assigned cannot be changed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q `subnet_id` once assigned cannot be changed", name, resourceGroup, in)
 			}
 		}
 	}
