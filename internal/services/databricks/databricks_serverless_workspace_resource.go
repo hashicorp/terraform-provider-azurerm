@@ -239,7 +239,9 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 			model := *existing.Model
 			props := model.Properties
 			var config DatabricksServerlessWorkspaceModel
-			metadata.Decode(&config)
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
 			if metadata.ResourceData.HasChange("sku") {
 				if model.Sku == nil {
