@@ -23,6 +23,7 @@ BUG FIXES:
 
 * `azurerm_kubernetes_cluster` -  the`network_policy` property now allows updating from `calico` to `cilium` ([#31627](https://github.com/hashicorp/terraform-provider-azurerm/issues/31627))
 * `azurerm_logic_app_trigger_http_request` - fix an issue that prevented importing existing resources due to empty trigger inputs ([#31433](https://github.com/hashicorp/terraform-provider-azurerm/issues/31433))
+* `azurerm_mssql_database` - fix validation for `min_capacity` and `auto_pause_delay_in_minutes` ([#31690](https://github.com/hashicorp/terraform-provider-azurerm/issues/31690))
 
 ## 4.58.0 (January 22, 2026)
 
