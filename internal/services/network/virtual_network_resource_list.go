@@ -73,7 +73,6 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, vnet := range listResults {
-			// TODO - Do we need to handle limiting the results to ListRequest.Limit?
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(vnet.Name)
 
@@ -95,25 +94,9 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "setting Identity data", err)
-				return
-			}
-
-			tfTypeResource, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "converting Resource State data", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "setting Resource data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 
