@@ -938,6 +938,10 @@ resource "azurerm_resource_group_example" "test" {
 }
 ```
 
+Things worth noting here:
+
+- The `name` argument for each resource definition should start with `acctest`, unless the API backend imposes naming restrictions preventing this.
+
 There's a more detailed breakdown of how this works [in the Acceptance Testing reference](reference-acceptance-testing.md) - but to summarize what's going on here:
 
 1. Test Terraform Configurations are defined as methods on the struct `ResourceGroupExampleResource` so that they're easily accessible (this helps to avoid them being unintentionally used in other resources).

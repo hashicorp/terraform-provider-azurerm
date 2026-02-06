@@ -336,6 +336,8 @@ String arguments must be validated. Use `StringNotEmpty` at a minimum but ideall
 
 Numeric arguments should specify a valid range.
 
+Properties which are purely `Computed` (and not `Optional`) do not require a `ValidateFunc`.
+
 ```go
 "name": {
 	Type:     pluginsdk.TypeString,
@@ -396,3 +398,18 @@ Numeric arguments should specify a valid range.
 	ValidateFunc: validation.IntBetween(32, 16384),
 },
 ```
+
+## Validating Enums
+
+When defining validation for a field where all Enumeration values defined in the SDK are valid options, use the built-in `PossibleValuesFor...` helper functions to define the allowed values instead of manually enumerating them. This approach reduces the risk of drift between the provider and the SDK.
+
+For example:
+
+```go
+"sku_name": {
+	Type:         pluginsdk.TypeString,
+	Required:     true,
+	ValidateFunc: validation.StringInSlice(healthbots.PossibleValuesForSkuName(), false),
+},
+```
+
