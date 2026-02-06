@@ -286,7 +286,7 @@ func TestAccPrivateLinkService_changePrimarySubnet(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.changePrimarySubnet(data),
-			ExpectError: regexp.MustCompile("primary subnet_id once assigned can not be changed"),
+			ExpectError: regexp.MustCompile("`primary subnet_id` once assigned cannot be changed"),
 		},
 	})
 }
