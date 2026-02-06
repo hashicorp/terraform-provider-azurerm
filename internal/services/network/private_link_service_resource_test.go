@@ -267,7 +267,7 @@ func TestAccPrivateLinkService_removePrivateIPAddress(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.removePrivateIPAddress(data),
-			ExpectError: regexp.MustCompile("private_ip_address once assigned can not be removed"),
+			ExpectError: regexp.MustCompile("`private_ip_address` once assigned cannot be removed"),
 		},
 	})
 }
