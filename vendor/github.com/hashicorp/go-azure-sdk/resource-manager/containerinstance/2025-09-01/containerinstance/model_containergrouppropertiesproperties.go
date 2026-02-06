@@ -5,20 +5,25 @@ package containerinstance
 
 type ContainerGroupPropertiesProperties struct {
 	ConfidentialComputeProperties *ConfidentialComputeProperties                  `json:"confidentialComputeProperties,omitempty"`
+	ContainerGroupProfile         *ContainerGroupProfileReferenceDefinition       `json:"containerGroupProfile,omitempty"`
 	Containers                    []Container                                     `json:"containers"`
 	Diagnostics                   *ContainerGroupDiagnostics                      `json:"diagnostics,omitempty"`
 	DnsConfig                     *DnsConfiguration                               `json:"dnsConfig,omitempty"`
 	EncryptionProperties          *EncryptionProperties                           `json:"encryptionProperties,omitempty"`
 	Extensions                    *[]DeploymentExtensionSpec                      `json:"extensions,omitempty"`
 	IPAddress                     *IPAddress                                      `json:"ipAddress,omitempty"`
+	IdentityAcls                  *IdentityAcls                                   `json:"identityAcls,omitempty"`
 	ImageRegistryCredentials      *[]ImageRegistryCredential                      `json:"imageRegistryCredentials,omitempty"`
 	InitContainers                *[]InitContainerDefinition                      `json:"initContainers,omitempty"`
 	InstanceView                  *ContainerGroupPropertiesPropertiesInstanceView `json:"instanceView,omitempty"`
-	OsType                        OperatingSystemTypes                            `json:"osType"`
-	Priority                      *ContainerGroupPriority                         `json:"priority,omitempty"`
+	IsCreatedFromStandbyPool      *bool                                           `json:"isCreatedFromStandbyPool,omitempty"`
+	OsType                        *OperatingSystemTypes                           `json:"osType,omitempty"`
+	Priority                      *Priority                                       `json:"priority,omitempty"`
 	ProvisioningState             *string                                         `json:"provisioningState,omitempty"`
 	RestartPolicy                 *ContainerGroupRestartPolicy                    `json:"restartPolicy,omitempty"`
+	SecretReferences              *[]SecretReference                              `json:"secretReferences,omitempty"`
 	Sku                           *ContainerGroupSku                              `json:"sku,omitempty"`
+	StandbyPoolProfile            *StandbyPoolProfileDefinition                   `json:"standbyPoolProfile,omitempty"`
 	SubnetIds                     *[]ContainerGroupSubnetId                       `json:"subnetIds,omitempty"`
 	Volumes                       *[]Volume                                       `json:"volumes,omitempty"`
 }
