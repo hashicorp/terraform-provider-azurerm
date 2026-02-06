@@ -114,6 +114,20 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_servicePrincipal(t *testi
 			),
 		},
 		data.ImportStep("service_principal_key"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.servicePrincipal(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("service_principal_key"),
 	})
 }
 
@@ -122,6 +136,20 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultPassword(t *testi
 	r := LinkedServiceSQLManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultPassword(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.keyVaultPassword(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -144,6 +172,20 @@ func TestAccDataFactoryLinkedServiceSQLManagedInstance_keyVaultConnectionString(
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.keyVaultRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultConnectionString(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -155,7 +197,7 @@ func (r LinkedServiceSQLManagedInstanceResource) Exists(ctx context.Context, cli
 
 	resp, err := clients.DataFactory.LinkedServiceClient.Get(ctx, id.ResourceGroupName, id.FactoryName, id.LinkedServiceName, "")
 	if err != nil {
-		return nil, fmt.Errorf("reading %s): %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.ID != nil), nil
@@ -228,7 +270,7 @@ resource "azurerm_key_vault" "test" {
   name                = "acctestkv%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = "%[4]s"
+  tenant_id           = "%[5]s"
   sku_name            = "standard"
 }
 
@@ -239,7 +281,7 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
-  name              = "acctestlssqlmi%[2]d"
+  name              = "acctestlssqlmi%[3]d"
   data_factory_id   = azurerm_data_factory.test.id
   connection_string = "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser"
 
@@ -248,7 +290,7 @@ resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
     secret_name         = "secret"
   }
 }
-`, r.template(data), data.RandomIntOfLength(10), data.Locations.Primary, data.Client().TenantID)
+`, r.template(data), data.RandomIntOfLength(10), data.RandomInteger, data.Locations.Primary, data.Client().TenantID)
 }
 
 func (r LinkedServiceSQLManagedInstanceResource) keyVaultConnectionString(data acceptance.TestData) string {
@@ -260,7 +302,7 @@ resource "azurerm_key_vault" "test" {
   name                = "acctestkv%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = "%[4]s"
+  tenant_id           = "%[5]s"
   sku_name            = "standard"
 }
 
@@ -271,16 +313,43 @@ resource "azurerm_data_factory_linked_service_key_vault" "test" {
 }
 
 resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
-  name            = "acctestlssqlmi%[2]d"
+  name            = "acctestlssqlmi%[3]d"
   data_factory_id = azurerm_data_factory.test.id
 
   key_vault_connection_string {
     linked_service_name = azurerm_data_factory_linked_service_key_vault.test.name
     secret_name         = "connection_string"
   }
-
 }
-`, r.template(data), data.RandomIntOfLength(10), data.Locations.Primary, data.Client().TenantID)
+`, r.template(data), data.RandomIntOfLength(10), data.RandomInteger, data.Locations.Primary, data.Client().TenantID)
+}
+
+func (r LinkedServiceSQLManagedInstanceResource) keyVaultRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestkv%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = "%[5]s"
+  sku_name            = "standard"
+}
+
+resource "azurerm_data_factory_linked_service_key_vault" "test" {
+  name            = "acctestlinkkv"
+  data_factory_id = azurerm_data_factory.test.id
+  key_vault_id    = azurerm_key_vault.test.id
+}
+
+resource "azurerm_data_factory_linked_service_sql_managed_instance" "test" {
+  name              = "acctestlssqlmi%[3]d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser;Password=mypassword"
+}
+`, r.template(data), data.RandomIntOfLength(10), data.RandomInteger, data.Locations.Primary, data.Client().TenantID)
 }
 
 func (r LinkedServiceSQLManagedInstanceResource) complete(data acceptance.TestData) string {

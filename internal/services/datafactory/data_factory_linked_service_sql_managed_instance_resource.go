@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/linkedservices"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -57,12 +58,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Arguments() map[string]*plugins
 			ValidateFunc: validate.LinkedServiceDatasetName,
 		},
 
-		"data_factory_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: factories.ValidateFactoryID,
-		},
+		"data_factory_id": commonschema.ResourceIDReferenceRequiredForceNew(&factories.FactoryId{}),
 
 		"annotations": {
 			Type:     pluginsdk.TypeList,
@@ -78,6 +74,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Arguments() map[string]*plugins
 			Optional:         true,
 			ExactlyOneOf:     []string{"connection_string", "key_vault_connection_string"},
 			DiffSuppressFunc: azureRmDataFactoryLinkedServiceConnectionStringDiff,
+			Sensitive:        true,
 			ValidateFunc:     validation.StringIsNotEmpty,
 		},
 
@@ -148,7 +145,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Arguments() map[string]*plugins
 		"service_principal_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IsUUID,
 			RequiredWith: []string{"service_principal_key", "tenant"},
 		},
 
@@ -163,7 +160,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Arguments() map[string]*plugins
 		"tenant": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IsUUID,
 			RequiredWith: []string{"service_principal_id", "service_principal_key"},
 		},
 	}
@@ -211,6 +208,8 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			sqlMILinkedService := &linkedservices.AzureSqlMILinkedService{
 				Description: pointer.To(config.Description),
+				Parameters:  expandLinkedServiceSqlManagedInstanceParameters(config.Parameters),
+				Annotations: expandLinkedServiceSqlManagedInstanceAnnotations(config.Annotations),
 				TypeProperties: linkedservices.AzureSqlMILinkedServiceTypeProperties{
 					Password: expandLinkedServiceSqlManagedInstanceKeyVaultPassword(config.KeyVaultPassword),
 				},
@@ -229,9 +228,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 			}
 
 			if config.ServicePrincipalKey != "" {
-				secureString := linkedservices.SecureString{
-					Value: config.ServicePrincipalKey,
-				}
+				secureString := expandLinkedServiceSqlManagedInstanceServicePrincipalKey(config.ServicePrincipalKey)
 				sqlMILinkedService.TypeProperties.ServicePrincipalKey = secureString
 				sqlMILinkedService.TypeProperties.ServicePrincipalCredential = secureString
 			}
@@ -240,20 +237,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 				sqlMILinkedService.TypeProperties.Tenant = pointer.To(interface{}(config.Tenant))
 			}
 
-			if len(config.Parameters) > 0 {
-				sqlMILinkedService.Parameters = expandLinkedServiceSqlManagedInstanceParameters(config.Parameters)
-			}
-
-			if config.IntegrationRuntimeName != "" {
-				sqlMILinkedService.ConnectVia = &linkedservices.IntegrationRuntimeReference{
-					Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
-					ReferenceName: config.IntegrationRuntimeName,
-				}
-			}
-
-			if len(config.Annotations) > 0 {
-				sqlMILinkedService.Annotations = expandLinkedServiceSqlManagedInstanceAnnotations(config.Annotations)
-			}
+			sqlMILinkedService.ConnectVia = expandLinkedServiceSqlManagedInstanceIntegrationRuntimeName(config.IntegrationRuntimeName)
 
 			linkedService := linkedservices.LinkedServiceResource{
 				Properties: sqlMILinkedService,
@@ -306,45 +290,38 @@ func (r LinkedServiceSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("classifying %s: Expected: %q Received: %q", id, "AzureSqlMI", sqlMILinkedService.Type)
 			}
 
-			state := LinkedServiceSqlManagedInstanceModel{
-				Name:          id.LinkedServiceName,
-				DataFactoryID: factories.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID(),
-			}
-
-			state.Description = pointer.From(sqlMILinkedService.Description)
-
 			props := sqlMILinkedService.TypeProperties
 
-			state.ConnectionString = ""
+			state := LinkedServiceSqlManagedInstanceModel{
+				Name:                id.LinkedServiceName,
+				DataFactoryID:       factories.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName).ID(),
+				Annotations:         flattenLinkedServiceSqlManagedInstanceAnnotations(sqlMILinkedService.Annotations),
+				Description:         pointer.From(sqlMILinkedService.Description),
+				KeyVaultPassword:    flattenLinkedServiceSqlManagedInstanceKeyVaultPassword(props.Password),
+				Parameters:          flattenLinkedServiceSqlManagedInstanceParameters(sqlMILinkedService.Parameters),
+				ServicePrincipalKey: metadata.ResourceData.Get("service_principal_key").(string),
+			}
+
 			if props.ConnectionString != nil {
-				if val, ok := pointer.From(props.ConnectionString).(map[string]interface{}); ok {
-					state.KeyVaultConnectionString = flattenLinkedServiceSqlManagedInstanceKeyVaultConnectionString(val)
-				} else {
-					state.ConnectionString = pointer.From(props.ConnectionString).(string)
+				val := pointer.From(props.ConnectionString)
+				switch v := val.(type) {
+				case map[string]interface{}:
+					state.KeyVaultConnectionString = flattenLinkedServiceSqlManagedInstanceKeyVaultConnectionString(v)
+				case string:
+					state.ConnectionString = v
+				default:
+					return fmt.Errorf("classifying %s: expected a map or a string but received: %q", id, v)
 				}
 			}
 
-			state.ServicePrincipalID = ""
-			if v := pointer.From(props.ServicePrincipalId); v != nil {
-				state.ServicePrincipalID = v.(string)
+			if str, ok := pointer.From(props.ServicePrincipalId).(string); ok {
+				state.ServicePrincipalID = str
 			}
 
-			state.Tenant = ""
-			if v := pointer.From(props.Tenant); v != nil {
-				state.Tenant = v.(string)
+			if str, ok := pointer.From(props.Tenant).(string); ok {
+				state.Tenant = str
 			}
 
-			// not returned from API
-			state.ServicePrincipalKey = ""
-			if v, exists := metadata.ResourceData.GetOk("service_principal_key"); exists {
-				state.ServicePrincipalKey = v.(string)
-			}
-
-			state.KeyVaultPassword = flattenLinkedServiceSqlManagedInstanceKeyVaultPassword(props.Password)
-			state.Annotations = flattenLinkedServiceSqlManagedInstanceAnnotations(sqlMILinkedService.Annotations)
-			state.Parameters = flattenLinkedServiceSqlManagedInstanceParameters(sqlMILinkedService.Parameters)
-
-			state.IntegrationRuntimeName = ""
 			if connectVia := sqlMILinkedService.ConnectVia; connectVia != nil {
 				state.IntegrationRuntimeName = connectVia.ReferenceName
 			}
@@ -402,13 +379,11 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				typeProps.ServicePrincipalId = pointer.To(interface{}(config.ServicePrincipalID))
 			}
 
-			if metadata.ResourceData.HasChange("service_principal_key") && config.ServicePrincipalKey != "" {
-				secureString := linkedservices.SecureString{
-					Value: config.ServicePrincipalKey,
-				}
+			if metadata.ResourceData.HasChange("service_principal_key") {
+				secureString := expandLinkedServiceSqlManagedInstanceServicePrincipalKey(config.ServicePrincipalKey)
 				typeProps.ServicePrincipalKey = secureString
 				typeProps.ServicePrincipalCredential = secureString
-			} else {
+			} else if config.ServicePrincipalKey == "" {
 				typeProps.ServicePrincipalKey = nil
 				typeProps.ServicePrincipalCredential = nil
 			}
@@ -422,14 +397,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("integration_runtime_name") {
-				if config.IntegrationRuntimeName != "" {
-					props.ConnectVia = &linkedservices.IntegrationRuntimeReference{
-						Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
-						ReferenceName: config.IntegrationRuntimeName,
-					}
-				} else {
-					props.ConnectVia = nil
-				}
+				props.ConnectVia = expandLinkedServiceSqlManagedInstanceIntegrationRuntimeName(config.IntegrationRuntimeName)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -554,7 +522,6 @@ func expandLinkedServiceSqlManagedInstanceParameters(input map[string]interface{
 			DefaultValue: pointer.To(value),
 		}
 	}
-
 	return &parameterSpec
 }
 
@@ -571,7 +538,6 @@ func flattenLinkedServiceSqlManagedInstanceParameters(input *map[string]linkedse
 			}
 		}
 	}
-
 	return output
 }
 
@@ -584,7 +550,6 @@ func expandLinkedServiceSqlManagedInstanceAnnotations(input []string) *[]interfa
 	for i, v := range input {
 		annotations[i] = v
 	}
-
 	return &annotations
 }
 
@@ -599,6 +564,26 @@ func flattenLinkedServiceSqlManagedInstanceAnnotations(input *[]interface{}) []s
 			annotations = append(annotations, str)
 		}
 	}
-
 	return annotations
+}
+
+func expandLinkedServiceSqlManagedInstanceServicePrincipalKey(input string) *linkedservices.SecureString {
+	if input == "" {
+		return nil
+	}
+
+	return &linkedservices.SecureString{
+		Value: input,
+	}
+}
+
+func expandLinkedServiceSqlManagedInstanceIntegrationRuntimeName(input string) *linkedservices.IntegrationRuntimeReference {
+	if input == "" {
+		return nil
+	}
+
+	return &linkedservices.IntegrationRuntimeReference{
+		Type:          linkedservices.IntegrationRuntimeReferenceTypeIntegrationRuntimeReference,
+		ReferenceName: input,
+	}
 }
