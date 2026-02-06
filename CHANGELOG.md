@@ -1,6 +1,7 @@
 ## 4.60.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `containerinstance` - update to API version `2025-09-01` [GH-31640]
 
 FEATURES:
 
