@@ -1207,9 +1207,9 @@ resource "azurerm_container_group" "test" {
       port     = 80
       protocol = "TCP"
     }
-	config_map = {
-	  key = "%s"
-	}
+    config_map = {
+      key = "%s"
+    }
   }
 
   tags = {
