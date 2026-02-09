@@ -72,7 +72,7 @@ func (r MysqlFlexibleServerListResource) List(ctx context.Context, request list.
 
 			id, err := servers.ParseFlexibleServerID(pointer.From(server.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mysql Server ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mysql Server ID", err)
 				return
 			}
 
@@ -80,11 +80,19 @@ func (r MysqlFlexibleServerListResource) List(ctx context.Context, request list.
 			rd.SetId(id.ID())
 
 			if err := resourceMysqlFlexibleServerFlatten(rd, id, &server, metadata); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerResourceName), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+
+			if !push(result) {
+				return
+			}
 		}
 	}
 }
