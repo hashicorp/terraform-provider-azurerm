@@ -53,14 +53,15 @@ func parseCopyMode(input string) (*CopyMode, error) {
 type JobRunStatus string
 
 const (
-	JobRunStatusCancelRequested JobRunStatus = "CancelRequested"
-	JobRunStatusCanceled        JobRunStatus = "Canceled"
-	JobRunStatusCanceling       JobRunStatus = "Canceling"
-	JobRunStatusFailed          JobRunStatus = "Failed"
-	JobRunStatusQueued          JobRunStatus = "Queued"
-	JobRunStatusRunning         JobRunStatus = "Running"
-	JobRunStatusStarted         JobRunStatus = "Started"
-	JobRunStatusSucceeded       JobRunStatus = "Succeeded"
+	JobRunStatusCancelRequested             JobRunStatus = "CancelRequested"
+	JobRunStatusCanceled                    JobRunStatus = "Canceled"
+	JobRunStatusCanceling                   JobRunStatus = "Canceling"
+	JobRunStatusFailed                      JobRunStatus = "Failed"
+	JobRunStatusPausedByBandwidthManagement JobRunStatus = "PausedByBandwidthManagement"
+	JobRunStatusQueued                      JobRunStatus = "Queued"
+	JobRunStatusRunning                     JobRunStatus = "Running"
+	JobRunStatusStarted                     JobRunStatus = "Started"
+	JobRunStatusSucceeded                   JobRunStatus = "Succeeded"
 )
 
 func PossibleValuesForJobRunStatus() []string {
@@ -69,6 +70,7 @@ func PossibleValuesForJobRunStatus() []string {
 		string(JobRunStatusCanceled),
 		string(JobRunStatusCanceling),
 		string(JobRunStatusFailed),
+		string(JobRunStatusPausedByBandwidthManagement),
 		string(JobRunStatusQueued),
 		string(JobRunStatusRunning),
 		string(JobRunStatusStarted),
@@ -91,14 +93,15 @@ func (s *JobRunStatus) UnmarshalJSON(bytes []byte) error {
 
 func parseJobRunStatus(input string) (*JobRunStatus, error) {
 	vals := map[string]JobRunStatus{
-		"cancelrequested": JobRunStatusCancelRequested,
-		"canceled":        JobRunStatusCanceled,
-		"canceling":       JobRunStatusCanceling,
-		"failed":          JobRunStatusFailed,
-		"queued":          JobRunStatusQueued,
-		"running":         JobRunStatusRunning,
-		"started":         JobRunStatusStarted,
-		"succeeded":       JobRunStatusSucceeded,
+		"cancelrequested":             JobRunStatusCancelRequested,
+		"canceled":                    JobRunStatusCanceled,
+		"canceling":                   JobRunStatusCanceling,
+		"failed":                      JobRunStatusFailed,
+		"pausedbybandwidthmanagement": JobRunStatusPausedByBandwidthManagement,
+		"queued":                      JobRunStatusQueued,
+		"running":                     JobRunStatusRunning,
+		"started":                     JobRunStatusStarted,
+		"succeeded":                   JobRunStatusSucceeded,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -109,14 +112,61 @@ func parseJobRunStatus(input string) (*JobRunStatus, error) {
 	return &out, nil
 }
 
+type JobType string
+
+const (
+	JobTypeCloudToCloud  JobType = "CloudToCloud"
+	JobTypeOnPremToCloud JobType = "OnPremToCloud"
+)
+
+func PossibleValuesForJobType() []string {
+	return []string{
+		string(JobTypeCloudToCloud),
+		string(JobTypeOnPremToCloud),
+	}
+}
+
+func (s *JobType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseJobType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseJobType(input string) (*JobType, error) {
+	vals := map[string]JobType{
+		"cloudtocloud":  JobTypeCloudToCloud,
+		"onpremtocloud": JobTypeOnPremToCloud,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := JobType(input)
+	return &out, nil
+}
+
 type ProvisioningState string
 
 const (
+	ProvisioningStateCanceled  ProvisioningState = "Canceled"
+	ProvisioningStateDeleting  ProvisioningState = "Deleting"
+	ProvisioningStateFailed    ProvisioningState = "Failed"
 	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
 )
 
 func PossibleValuesForProvisioningState() []string {
 	return []string{
+		string(ProvisioningStateCanceled),
+		string(ProvisioningStateDeleting),
+		string(ProvisioningStateFailed),
 		string(ProvisioningStateSucceeded),
 	}
 }
@@ -136,6 +186,9 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
+		"canceled":  ProvisioningStateCanceled,
+		"deleting":  ProvisioningStateDeleting,
+		"failed":    ProvisioningStateFailed,
 		"succeeded": ProvisioningStateSucceeded,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
