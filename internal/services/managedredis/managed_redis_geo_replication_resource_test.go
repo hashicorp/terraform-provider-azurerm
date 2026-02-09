@@ -288,10 +288,10 @@ resource "azurerm_managed_redis" "amr2" {
 }
 
 resource "azurerm_managed_redis_geo_replication" "test" {
-  managed_redis_id = "/subscriptions/000000000-0000-000-000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1"
+  managed_redis_id = azurerm_managed_redis.amr1.id
   linked_managed_redis_ids = [
-    "/subscriptions/000000000-0000-000-000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr1",
-    "/subscriptions/000000000-0000-000-000-000000000000/resourceGroups/my-rg/providers/Microsoft.Cache/redisEnterprise/amr2",
+    azurerm_managed_redis.amr1.id,
+    azurerm_managed_redis.amr2.id,
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)

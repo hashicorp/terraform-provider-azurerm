@@ -89,10 +89,6 @@ func (r ManagedRedisGeoReplicationResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			if slices.Contains(model.LinkedManagedRedisIds, model.ManagedRedisId) {
-				return fmt.Errorf("linked_managed_redis_ids cannot contain the same value as managed_redis_id: %s", model.ManagedRedisId)
-			}
-
 			id, err := redisenterprise.ParseRedisEnterpriseID(model.ManagedRedisId)
 			if err != nil {
 				return err
@@ -169,10 +165,6 @@ func (r ManagedRedisGeoReplicationResource) Update() sdk.ResourceFunc {
 			var model ManagedRedisGeoReplicationResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			if slices.Contains(model.LinkedManagedRedisIds, model.ManagedRedisId) {
-				return fmt.Errorf("linked_managed_redis_ids cannot contain the same value as managed_redis_id: %s", model.ManagedRedisId)
 			}
 
 			if err := linkUnlinkGeoReplication(ctx, client, model, clusterId); err != nil {
