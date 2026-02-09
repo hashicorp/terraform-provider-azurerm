@@ -4972,8 +4972,13 @@ func applicationGatewayProbeHash(v interface{}) int {
 		if match, ok := m["match"]; ok {
 			if attrs := match.([]interface{}); len(attrs) == 1 {
 				attr := attrs[0].(map[string]interface{})
-				if attr["body"].(string) != "" || len(attr["status_code"].([]interface{})) != 0 {
-					buf.WriteString(fmt.Sprintf("%s-%+v", attr["body"].(string), attr["status_code"].([]interface{})))
+				body := attr["body"].(string)
+				statusCodes := attr["status_code"].([]interface{})
+
+				// Only include in hash if it's not the default
+				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
+				if !defaultMatch {
+					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
 				}
 			}
 		}

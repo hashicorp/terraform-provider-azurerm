@@ -240,6 +240,254 @@ resource "azurerm_netapp_volume_group_sap_hana" "example" {
 }
 ```
 
+### Example with Availability Zone and Customer-Managed Keys
+
+This example demonstrates using availability zones instead of proximity placement groups, with customer-managed key encryption and Standard network features.
+
+```hcl
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    netapp {
+      prevent_volume_destruction = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "example" {
+  name     = "${var.prefix}-resources"
+  location = var.location
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "${var.prefix}-vnet"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  address_space       = ["10.88.0.0/16"]
+}
+
+resource "azurerm_subnet" "example_delegated" {
+  name                 = "${var.prefix}-delegated-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.88.1.0/24"]
+
+  delegation {
+    name = "netapp"
+
+    service_delegation {
+      name    = "Microsoft.Netapp/volumes"
+      actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+}
+
+resource "azurerm_subnet" "example_private_endpoint" {
+  name                 = "${var.prefix}-pe-subnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.88.2.0/24"]
+}
+
+resource "azurerm_netapp_account" "example" {
+  name                = "${var.prefix}-netapp-account"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_key_vault" "example" {
+  name                            = "${var.prefix}kv"
+  location                        = azurerm_resource_group.example.location
+  resource_group_name             = azurerm_resource_group.example.name
+  tenant_id                       = data.azurerm_client_config.current.tenant_id
+  sku_name                        = "standard"
+  purge_protection_enabled        = true
+  soft_delete_retention_days      = 7
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "WrapKey",
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_netapp_account.example.identity[0].tenant_id
+    object_id = azurerm_netapp_account.example.identity[0].principal_id
+
+    key_permissions = [
+      "Get",
+      "Encrypt",
+      "Decrypt",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "example" {
+  name         = "${var.prefix}-key"
+  key_vault_id = azurerm_key_vault.example.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_netapp_account_encryption" "example" {
+  netapp_account_id                     = azurerm_netapp_account.example.id
+  system_assigned_identity_principal_id = azurerm_netapp_account.example.identity[0].principal_id
+  encryption_key                        = azurerm_key_vault_key.example.versionless_id
+}
+
+resource "azurerm_private_endpoint" "example" {
+  name                = "${var.prefix}-pe-kv"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  subnet_id           = azurerm_subnet.example_private_endpoint.id
+
+  private_service_connection {
+    name                           = "${var.prefix}-pe-sc-kv"
+    private_connection_resource_id = azurerm_key_vault.example.id
+    is_manual_connection           = false
+    subresource_names              = ["Vault"]
+  }
+}
+
+resource "azurerm_netapp_pool" "example" {
+  name                = "${var.prefix}-netapp-pool"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  account_name        = azurerm_netapp_account.example.name
+  service_level       = "Standard"
+  size_in_tb          = 8
+  qos_type            = "Manual"
+
+  depends_on = [azurerm_netapp_account_encryption.example]
+}
+
+resource "azurerm_netapp_volume_group_sap_hana" "example" {
+  name                   = "${var.prefix}-netapp-volumegroup"
+  location               = azurerm_resource_group.example.location
+  resource_group_name    = azurerm_resource_group.example.name
+  account_name           = azurerm_netapp_account.example.name
+  group_description      = "Test volume group with zone and CMK"
+  application_identifier = "TST"
+
+  volume {
+    name                          = "${var.prefix}-netapp-volume-data"
+    volume_path                   = "my-unique-file-path-data"
+    service_level                 = "Standard"
+    capacity_pool_id              = azurerm_netapp_pool.example.id
+    subnet_id                     = azurerm_subnet.example_delegated.id
+    zone                          = "1"
+    volume_spec_name              = "data"
+    storage_quota_in_gb           = 1024
+    throughput_in_mibps           = 24
+    protocols                     = ["NFSv4.1"]
+    security_style                = "unix"
+    snapshot_directory_visible    = false
+    network_features              = "Standard"
+    encryption_key_source         = "Microsoft.KeyVault"
+    key_vault_private_endpoint_id = azurerm_private_endpoint.example.id
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+  }
+
+  volume {
+    name                          = "${var.prefix}-netapp-volume-log"
+    volume_path                   = "my-unique-file-path-log"
+    service_level                 = "Standard"
+    capacity_pool_id              = azurerm_netapp_pool.example.id
+    subnet_id                     = azurerm_subnet.example_delegated.id
+    zone                          = "1"
+    volume_spec_name              = "log"
+    storage_quota_in_gb           = 1024
+    throughput_in_mibps           = 24
+    protocols                     = ["NFSv4.1"]
+    security_style                = "unix"
+    snapshot_directory_visible    = false
+    network_features              = "Standard"
+    encryption_key_source         = "Microsoft.KeyVault"
+    key_vault_private_endpoint_id = azurerm_private_endpoint.example.id
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+  }
+
+  volume {
+    name                          = "${var.prefix}-netapp-volume-shared"
+    volume_path                   = "my-unique-file-path-shared"
+    service_level                 = "Standard"
+    capacity_pool_id              = azurerm_netapp_pool.example.id
+    subnet_id                     = azurerm_subnet.example_delegated.id
+    zone                          = "1"
+    volume_spec_name              = "shared"
+    storage_quota_in_gb           = 1024
+    throughput_in_mibps           = 24
+    protocols                     = ["NFSv4.1"]
+    security_style                = "unix"
+    snapshot_directory_visible    = false
+    network_features              = "Standard"
+    encryption_key_source         = "Microsoft.KeyVault"
+    key_vault_private_endpoint_id = azurerm_private_endpoint.example.id
+
+    export_policy_rule {
+      rule_index          = 1
+      allowed_clients     = "0.0.0.0/0"
+      nfsv3_enabled       = false
+      nfsv41_enabled      = true
+      unix_read_only      = false
+      unix_read_write     = true
+      root_access_enabled = false
+    }
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -275,7 +523,7 @@ A `volume` block supports the following:
 
 * `security_style` - (Required) Volume security style. Possible values are `ntfs` and `unix`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard` and `Ultra`. Changing this forces a new Application Volume Group to be created and data will be lost.
+* `service_level` - (Required) Volume security style. Possible values are `Premium`, `Standard`, `Ultra` and `Flexible`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `snapshot_directory_visible` - (Required) Specifies whether the .snapshot (NFS clients) path of a volume is visible. Changing this forces a new Application Volume Group to be created and data will be lost.
 
@@ -296,6 +544,14 @@ A `volume` block supports the following:
 * `data_protection_replication` - (Optional) A `data_protection_replication` block as defined below. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 * `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
+
+* `encryption_key_source` - (Optional) The encryption key source, it can be `Microsoft.NetApp` for platform managed keys or `Microsoft.KeyVault` for customer-managed keys. This is required with `key_vault_private_endpoint_id`. Changing this forces a new Application Volume Group to be created and data will be lost.
+
+* `key_vault_private_endpoint_id` - (Optional) The Private Endpoint ID for Key Vault, which is required when using customer-managed keys. This is required with `encryption_key_source`. Changing this forces a new Application Volume Group to be created and data will be lost.
+
+* `network_features` - (Optional) Network features of the volume. Possible values are `Basic` or `Standard`. Default value is `Basic`. Changing this forces a new Application Volume Group to be created and data will be lost.
+
+* `zone` - (Optional) Specifies the Availability Zone in which the Volume should be located. Possible values are `1`, `2` and `3`. This feature is currently in preview, for more information on how to enable it, please refer to [Manage availability zone volume placement for Azure NetApp Files](https://learn.microsoft.com/en-us/azure/azure-netapp-files/manage-availability-zone-volume-placement). Changing this forces a new Application Volume Group to be created and data will be lost.
 
 ---
 
