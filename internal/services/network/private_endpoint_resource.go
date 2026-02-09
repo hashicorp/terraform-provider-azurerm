@@ -295,6 +295,24 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+		CustomizeDiff: func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+			privateServiceConnections := d.Get("private_service_connection").([]interface{})
+			for _, psc := range privateServiceConnections {
+				privateServiceConnection := psc.(map[string]interface{})
+				name := privateServiceConnection["name"].(string)
+
+				// If this is not a manual connection and the message is set return an error since this does not make sense.
+				if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
+					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
+				}
+
+				// If this is a manual connection and the message isn't set return an error.
+				if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
+					return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -306,10 +324,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	defer cancel()
 
 	id := privateendpoints.NewPrivateEndpointID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	if err := validatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
-	}
 
 	existing, err := client.Get(ctx, id, privateendpoints.DefaultGetOperationOptions())
 	if err != nil {
@@ -481,10 +495,6 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	id, err := privateendpoints.ParsePrivateEndpointID(d.Id())
 	if err != nil {
 		return err
-	}
-
-	if err := validatePrivateEndpointSettings(d); err != nil {
-		return fmt.Errorf("validating the configuration for %s: %+v", id, err)
 	}
 
 	// Ensure we don't overwrite the existing ApplicationSecurityGroups
