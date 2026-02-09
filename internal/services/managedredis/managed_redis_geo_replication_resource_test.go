@@ -59,6 +59,29 @@ func TestAccManagedRedisGeoReplication_update(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedisGeoReplication_fourClustersLinkUnlink(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_geo_replication", "test")
+	r := ManagedRedisGeoReplicationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fourClustersAllLinked(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("linked_managed_redis_ids.#").HasValue("3"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fourClustersOneAndTwoLinked(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("linked_managed_redis_ids.0").MatchesRegex(regexp.MustCompile(`redisEnterprise/acctest-amr2`)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccManagedRedisGeoReplication_linkedManagedRedisIdsCannotContainSelf(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_geo_replication", "test")
 	r := ManagedRedisGeoReplicationResource{}
@@ -94,7 +117,7 @@ func (r ManagedRedisGeoReplicationResource) Exists(ctx context.Context, client *
 	return pointer.To(false), nil
 }
 
-func (r ManagedRedisGeoReplicationResource) basic(data acceptance.TestData) string {
+func (r ManagedRedisGeoReplicationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -137,6 +160,12 @@ resource "azurerm_managed_redis" "amr3" {
     geo_replication_group_name = "acctest-georep-%[1]d"
   }
 }
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
+}
+
+func (r ManagedRedisGeoReplicationResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_managed_redis_geo_replication" "test" {
   managed_redis_id = azurerm_managed_redis.amr1.id
@@ -145,50 +174,73 @@ resource "azurerm_managed_redis_geo_replication" "test" {
     azurerm_managed_redis.amr3.id,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
+`, r.template(data))
 }
 
 func (r ManagedRedisGeoReplicationResource) threeClustersOneAndTwoLinked(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
+%[1]s
+
+resource "azurerm_managed_redis_geo_replication" "test" {
+  managed_redis_id = azurerm_managed_redis.amr1.id
+  linked_managed_redis_ids = [
+    azurerm_managed_redis.amr2.id,
+  ]
+}
+`, r.template(data))
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-managedRedis-%[1]d"
-  location = "%[2]s"
+func (r ManagedRedisGeoReplicationResource) threeClustersOneAndThreeLinked(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_managed_redis_geo_replication" "test" {
+  managed_redis_id = azurerm_managed_redis.amr1.id
+  linked_managed_redis_ids = [
+    azurerm_managed_redis.amr3.id,
+  ]
+}
+`, r.template(data))
 }
 
-resource "azurerm_managed_redis" "amr1" {
-  name                = "acctest-amr1-%[1]d"
+func (r ManagedRedisGeoReplicationResource) fourClustersAllLinked(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_managed_redis" "amr4" {
+  name                = "acctest-amr4-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
+  location            = "westeurope"
   sku_name            = "Balanced_B3"
 
   default_database {
-    geo_replication_group_name = "acctest-georep-%[1]d"
+    geo_replication_group_name = "acctest-georep-%[2]d"
   }
 }
 
-resource "azurerm_managed_redis" "amr2" {
-  name                = "acctest-amr2-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  sku_name            = "Balanced_B3"
-
-  default_database {
-    geo_replication_group_name = "acctest-georep-%[1]d"
-  }
+resource "azurerm_managed_redis_geo_replication" "test" {
+  managed_redis_id = azurerm_managed_redis.amr1.id
+  linked_managed_redis_ids = [
+    azurerm_managed_redis.amr2.id,
+    azurerm_managed_redis.amr3.id,
+    azurerm_managed_redis.amr4.id,
+  ]
+}
+`, r.template(data), data.RandomInteger)
 }
 
-resource "azurerm_managed_redis" "amr3" {
-  name                = "acctest-amr3-%[1]d"
+func (r ManagedRedisGeoReplicationResource) fourClustersOneAndTwoLinked(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_managed_redis" "amr4" {
+  name                = "acctest-amr4-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = "%[4]s"
+  location            = "westeurope"
   sku_name            = "Balanced_B3"
 
   default_database {
-    geo_replication_group_name = "acctest-georep-%[1]d"
+    geo_replication_group_name = "acctest-georep-%[2]d"
   }
 }
 
@@ -198,60 +250,7 @@ resource "azurerm_managed_redis_geo_replication" "test" {
     azurerm_managed_redis.amr2.id,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
-}
-
-func (r ManagedRedisGeoReplicationResource) threeClustersOneAndThreeLinked(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-managedRedis-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_managed_redis" "amr1" {
-  name                = "acctest-amr1-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[2]s"
-  sku_name            = "Balanced_B3"
-
-  default_database {
-    geo_replication_group_name = "acctest-georep-%[1]d"
-  }
-}
-
-resource "azurerm_managed_redis" "amr2" {
-  name                = "acctest-amr2-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[3]s"
-  sku_name            = "Balanced_B3"
-
-  default_database {
-    geo_replication_group_name = "acctest-georep-%[1]d"
-  }
-}
-
-resource "azurerm_managed_redis" "amr3" {
-  name                = "acctest-amr3-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = "%[4]s"
-  sku_name            = "Balanced_B3"
-
-  default_database {
-    geo_replication_group_name = "acctest-georep-%[1]d"
-  }
-}
-
-resource "azurerm_managed_redis_geo_replication" "test" {
-  managed_redis_id = azurerm_managed_redis.amr1.id
-  linked_managed_redis_ids = [
-    azurerm_managed_redis.amr3.id,
-  ]
-}
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.Locations.Ternary)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagedRedisGeoReplicationResource) linkedManagedRedisIdsContainSelf(data acceptance.TestData) string {
