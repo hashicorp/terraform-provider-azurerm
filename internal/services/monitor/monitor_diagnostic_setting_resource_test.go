@@ -760,7 +760,7 @@ resource "azurerm_elastic_cloud_elasticsearch" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   sku_name                    = "ess-consumption-2024_Monthly"
-  elastic_cloud_email_address = "user@example.com"
+  elastic_cloud_email_address = "user-%[1]d@example.com"
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
