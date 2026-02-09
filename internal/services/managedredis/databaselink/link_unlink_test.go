@@ -4,9 +4,9 @@
 package databaselink_test
 
 import (
-	"slices"
 	"testing"
 
+	"github.com/hashicorp/go-set/v3"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/databaselink"
 )
 
@@ -64,13 +64,13 @@ func TestLinkUnlink(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			actualIdsToUnlink, actualIntermediateIds, actualIdsToLink := databaselink.LinkUnlink(tc.fromIds, tc.toIds)
-			if !slices.Equal(tc.expectedIdsToUnlink, actualIdsToUnlink) {
+			if !set.From(actualIdsToUnlink).Equal(set.From(tc.expectedIdsToUnlink)) {
 				t.Errorf("\nexpected idsToUnlink: %v\nactual: %v", tc.expectedIdsToUnlink, actualIdsToUnlink)
 			}
-			if !slices.Equal(tc.expectedIntermediateIds, actualIntermediateIds) {
+			if !set.From(actualIntermediateIds).Equal(set.From(tc.expectedIntermediateIds)) {
 				t.Errorf("\nexpected intermediateIds: %v\nactual: %v", tc.expectedIntermediateIds, actualIntermediateIds)
 			}
-			if !slices.Equal(tc.expectedIdsToLink, actualIdsToLink) {
+			if !set.From(actualIdsToLink).Equal(set.From(tc.expectedIdsToLink)) {
 				t.Errorf("\nexpected idsToLink: %v\nactual: %v", tc.expectedIdsToLink, actualIdsToLink)
 			}
 		})

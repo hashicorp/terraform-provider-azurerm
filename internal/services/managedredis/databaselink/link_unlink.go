@@ -3,6 +3,10 @@
 
 package databaselink
 
+import (
+	set "github.com/hashicorp/go-set/v3"
+)
+
 // Given current state of geoReplication database ids (fromIds) and intended state (toIds), compute the idsToUnlink,
 // intermediateIds (ids after unlinking is done), and idsToLink.
 //
@@ -24,27 +28,10 @@ package databaselink
 //
 // Returns (['a'], ['b', 'c'], ['d'])
 func LinkUnlink(fromIds, toIds []string) (idsToUnlink, intermediateIds, idsToLink []string) {
-	fromMap, toMap := make(map[string]bool, len(fromIds)), make(map[string]bool, len(toIds))
-	for _, id := range fromIds {
-		fromMap[id] = true
-	}
-	for _, id := range toIds {
-		toMap[id] = true
-	}
+	fromSet := set.From(fromIds)
+	toSet := set.From(toIds)
 
-	for _, id := range fromIds {
-		if !toMap[id] {
-			idsToUnlink = append(idsToUnlink, id)
-		} else {
-			intermediateIds = append(intermediateIds, id)
-		}
-	}
-
-	for _, id := range toIds {
-		if !fromMap[id] {
-			idsToLink = append(idsToLink, id)
-		}
-	}
-
-	return
+	return fromSet.Difference(toSet).Slice(),
+		fromSet.Intersect(toSet).Slice(),
+		toSet.Difference(fromSet).Slice()
 }
