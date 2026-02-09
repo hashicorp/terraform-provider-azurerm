@@ -297,6 +297,12 @@ func TestAccPublicIpStatic_update(t *testing.T) {
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(fmt.Sprintf("acctest-%d", data.RandomInteger)),
 			),
 		},
+		{
+			Config: r.static_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
