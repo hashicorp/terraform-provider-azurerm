@@ -27,18 +27,26 @@ func TestAccMySqlFlexibleServerConfiguration_list_by_resource_group(t *testing.T
 			},
 			{
 				Query:  true,
-				Config: r.basicListQueryByResourceGroupName(data),
+				Config: r.basicListQueryByResourceGroupName(data, 50),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					// mysql config properties always exist, even if not set in terraform, and they are all returned in the list
-					// no need to check anything specific here, the list is always the entire set of available properties
-					querycheck.ExpectLengthAtLeast("azurerm_mysql_flexible_server_configuration.list", 1),
+					// since we limit to 50, should have exact 50 here (over 300 configs get returned)
+					querycheck.ExpectLength("azurerm_mysql_flexible_server_configuration.list", 50),
+				},
+			},
+			{
+				Query:  true,
+				Config: r.basicListQueryByResourceGroupName(data, 500),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					// limit set high so all configs returned, around 390 normally so check at least 300
+					querycheck.ExpectLengthAtLeast("azurerm_mysql_flexible_server_configuration.list", 300),
 				},
 			},
 		},
 	})
 }
 
-func (r MysqlFlexibleServerConfigurationResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
+func (r MysqlFlexibleServerConfigurationResource) basicListQueryByResourceGroupName(data acceptance.TestData, limit int16) string {
 	return fmt.Sprintf(`
 list "azurerm_mysql_flexible_server" "list" {
   provider         = azurerm
@@ -51,9 +59,10 @@ list "azurerm_mysql_flexible_server" "list" {
 
 list "azurerm_mysql_flexible_server_configuration" "list" {
   provider = azurerm
+  limit    = %d
   config {
     flexible_server_id = list.azurerm_mysql_flexible_server.list.data[0].state.id
   }
 }
-`, data.Subscriptions.Primary, data.RandomInteger)
+`, data.Subscriptions.Primary, data.RandomInteger, limit)
 }
