@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ---
 
-* `excluded_namespaces` - (Optional) A set of Kubernetes namespace names that should be excluded from Deployment Safeguards enforcement. This allows certain namespaces to bypass the configured policies.
+* `excluded_namespaces` - (Optional) A list of Kubernetes namespace names that should be excluded from Deployment Safeguards enforcement. This allows certain namespaces to bypass the configured policies.
 
 * `pod_security_standards_level` - (Optional) The Pod Security Standards level to enforce. Possible values are `Baseline`, `Privileged`, and `Restricted`. Defaults to `Privileged` if not specified.
 
