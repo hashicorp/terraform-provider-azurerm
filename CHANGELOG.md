@@ -11,6 +11,7 @@ FEATURES:
 * **New Data Source**: `azurerm_oracle_database_system_versions` [GH-31001]
 
 BUG FIXES:
+* `azurerm_monitor_aad_diagnostic_setting` - add polling as a workaround to an eventual consistency issue [GH-31123]
 
 ## 4.59.0 (February 06, 2026)
 
