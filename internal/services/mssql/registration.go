@@ -108,8 +108,8 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		MssqlServerListResource{},
 		MssqlDatabaseListResource{},
-		MssqlElasticPoolListResource{},
 		MssqlJobAgentListResource{},
+		MssqlElasticPoolListResource{},
 		MssqlVirtualMachineListResource{},
 	}
 }
