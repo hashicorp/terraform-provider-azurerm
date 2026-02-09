@@ -23,5 +23,6 @@ jobs:
           go-version-file: ./.go-version
       - run: go run internal/tools/preview-api-version-linter/main.go
   comment-on-fail:
+    needs: preview-api-version-linter
     if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
