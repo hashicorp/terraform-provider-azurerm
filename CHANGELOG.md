@@ -5,6 +5,10 @@ ENHANCEMENTS:
 * dependencies: `storagemover`  - update to API version `2025-07-01` [GH-31587]
 `azurerm_postgresql_flexible_server` - add support for `cluster` [GH-31315]
 * dependencies: `containerinstance` - update to API version `2025-09-01` [GH-31640]
+* `azurerm_web_application_firewall_policy` - add support for `2.2` to `managed_rules.managed_rule_set.version` and `managed_rules.exclusion.excluded_rule_set.version` [GH-31674]
+* `azurerm_web_application_firewall_policy` - add support for `MS-ThreatIntel-XSS` to  `managed_rules.managed_rule_set.rule_group_override.rule_group_name` and `managed_rules.exclusion.excluded_rule_set.rule_group.rule_group_name` [GH-31674]
+* `azurerm_application_gateway` - add support for `2.2` to `waf_configuration.rule_set_version` [GH-31674]
+* `azurerm_application_gateway` - add support for `MS-ThreatIntel-XSS` to `waf_configuration.disabled_rule_group.rule_group_name` [GH-31674]
 
 FEATURES:
 * **New Data Source**: `azurerm_cognitive_account_project` [GH-31605]
