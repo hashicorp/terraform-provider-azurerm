@@ -158,8 +158,6 @@ func (r *ResourceMetadata) DecodeDelete(ctx context.Context, req resource.Delete
 
 // SetResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
 // type detail can be specified as an error, from which error.Error() will be used or as a string
-// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
-// Do not use this for error diagnostics raised inside the iterator (stream.Results)
 func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 	var errorMsg string
 	switch e := detail.(type) {
@@ -185,6 +183,8 @@ func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 		v.Diagnostics.AddError(summary, errorMsg)
 	case *action.InvokeResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
+	case *list.ListResult:
+		v.Diagnostics.AddError(summary, errorMsg)
 	case *list.ListResultsStream:
 		diags := diag.Diagnostics{}
 		diags.Append(diag.NewErrorDiagnostic(summary, errorMsg))
@@ -194,8 +194,6 @@ func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 
 // SetResponseWarningDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
 // type detail can be specified as an error, from which error.Error() will be used or as a string
-// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
-// Do not use this for warning diagnostics raised inside the iterator (stream.Results)
 func SetResponseWarningDiagnostic(resp any, summary string, detail any) {
 	var errorMsg string
 	switch e := detail.(type) {
@@ -218,6 +216,8 @@ func SetResponseWarningDiagnostic(resp any, summary string, detail any) {
 	case *ephemeral.RenewResponse:
 		v.Diagnostics.AddWarning(summary, errorMsg)
 	case *ephemeral.CloseResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *list.ListResult:
 		v.Diagnostics.AddWarning(summary, errorMsg)
 	case *list.ListResultsStream:
 		diags := diag.Diagnostics{}
@@ -248,11 +248,14 @@ func AppendResponseErrorDiagnostic(resp any, d diag.Diagnostics) {
 		v.Diagnostics.Append(d...)
 	case *datasource.ReadResponse:
 		v.Diagnostics.Append(d...)
+	case *list.ListResult:
+		v.Diagnostics.Append(d...)
 	}
 }
 
-// SetListIteratorErrorDiagnostic is a helper function to write an Error Diagnostic to a List Result
-func SetListIteratorErrorDiagnostic(result list.ListResult, push func(list.ListResult) bool, summary string, detail any) {
+// SetErrorDiagnosticAndPushListResult is a helper function to write an Error Diagnostic to a List Result and push that result to Terraform
+// Note: after calling this function, the List Resource must return
+func SetErrorDiagnosticAndPushListResult(result list.ListResult, push func(list.ListResult) bool, summary string, detail any) {
 	result.Diagnostics.Append(NewErrorDiagnostic(summary, detail))
 	push(result)
 }

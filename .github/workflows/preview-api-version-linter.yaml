@@ -3,7 +3,7 @@ name: Preview ARM API Version Linter
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -23,5 +23,6 @@ jobs:
           go-version-file: ./.go-version
       - run: go run internal/tools/preview-api-version-linter/main.go
   comment-on-fail:
-    if: ${{ needs.depscheck.result }} == 'failure'
+    needs: preview-api-version-linter
+    if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
