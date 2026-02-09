@@ -80,7 +80,7 @@ func (r MysqlFlexibleServerFirewallRuleListResource) List(ctx context.Context, r
 
 			id, err := firewallrules.ParseFirewallRuleID(pointer.From(rule.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mysql Firewall Rule ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mysql Firewall Rule ID", err)
 				return
 			}
 
@@ -88,11 +88,19 @@ func (r MysqlFlexibleServerFirewallRuleListResource) List(ctx context.Context, r
 			rd.SetId(id.ID())
 
 			if err := resourceMySqlFlexibleServerFirewallRuleFlatten(rd, id, &rule); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerFirewallResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerFirewallResourceName), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+
+			if !push(result) {
+				return
+			}
 		}
 	}
 }

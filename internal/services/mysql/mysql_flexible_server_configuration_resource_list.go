@@ -80,7 +80,7 @@ func (r MysqlFlexibleServerConfigurationListResource) List(ctx context.Context, 
 
 			id, err := configurations.ParseConfigurationID(pointer.From(dbConfig.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mysql Configuration ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mysql Configuration ID", err)
 				return
 			}
 
@@ -88,11 +88,19 @@ func (r MysqlFlexibleServerConfigurationListResource) List(ctx context.Context, 
 			rd.SetId(id.ID())
 
 			if err := resourceMySQLFlexibleServerConfigurationFlatten(rd, id, &dbConfig); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerConfigurationResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", mysqlFlexibleServerConfigurationResourceName), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+
+			if !push(result) {
+				return
+			}
 		}
 	}
 }
