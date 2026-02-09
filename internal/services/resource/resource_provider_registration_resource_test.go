@@ -75,7 +75,7 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
-				if err := r.unRegisterProviders("Microsoft.DevCenter"); err != nil {
+				if err := r.unRegisterProviders("Microsoft.Databox"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
 				}
 			},
@@ -217,13 +217,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.DevCenter"
+  name = "Microsoft.Databox"
   feature {
-    name       = "ServerlessGpuPreview"
+    name       = "TestingManualFeatureRegistration"
     registered = %t
   }
   feature {
-    name       = "DevTunnelsPreview"
+    name       = "TestingManualFeatureRegistrationNonPortal"
     registered = %t
   }
 }
