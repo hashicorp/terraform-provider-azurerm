@@ -83,6 +83,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		"zones": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			// NOTE: O+C Azure may return availability zones from the API when not specified by the user
 			Computed: true,
 			ForceNew: true,
 			Elem: &schema.Schema{
