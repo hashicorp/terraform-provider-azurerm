@@ -1,6 +1,7 @@
 ## 4.60.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `storagemover`  - update to API version `2025-07-01` [GH-31587]
 `azurerm_postgresql_flexible_server` - add support for `cluster` [GH-31315]
 * dependencies: `containerinstance` - update to API version `2025-09-01` [GH-31640]
 
