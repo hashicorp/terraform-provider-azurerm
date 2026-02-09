@@ -413,7 +413,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/dapr
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages
-github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance
+github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/registries
