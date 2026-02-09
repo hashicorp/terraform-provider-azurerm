@@ -114,7 +114,7 @@ func (r DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk
 			Optional:     true,
 			ValidateFunc: keyVaultValidate.KeyVaultChildID,
 			RequiredWith: []string{
-				"managed_service_cmk_key_vault_id",
+				"managed_services_cmk_key_vault_id",
 			},
 		},
 
