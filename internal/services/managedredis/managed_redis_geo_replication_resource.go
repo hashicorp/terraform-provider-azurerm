@@ -300,7 +300,7 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 		params := databases.ForceLinkParameters{
 			GeoReplication: databases.ForceLinkParametersGeoReplication{
 				GroupNickname:   existing.Model.Properties.GeoReplication.GroupNickname,
-				LinkedDatabases: expandLinkedDatabases(inv.LinkedDatabaseIds),
+				LinkedDatabases: expandLinkedDatabases(inv.Ids),
 			},
 		}
 
@@ -311,7 +311,7 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 
 		// Workaround for race-condition bug after force-linking
 		// The API bug will be fixed in https://github.com/Azure/azure-rest-api-specs/issues/39598
-		pollerType := custompollers.NewGeoReplicationPoller(client, primaryId, inv.LinkedDatabaseIds)
+		pollerType := custompollers.NewGeoReplicationPoller(client, primaryId, inv.Ids)
 		poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 		if err := poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent for %s: %+v", primaryId, err)
