@@ -1153,27 +1153,6 @@ func flattenPrivateDnsZoneGroupRecordSets(input *[]privatednszonegroups.RecordSe
 	return output
 }
 
-func validatePrivateEndpointSettings(d *pluginsdk.ResourceData) error {
-	privateServiceConnections := d.Get("private_service_connection").([]interface{})
-
-	for _, psc := range privateServiceConnections {
-		privateServiceConnection := psc.(map[string]interface{})
-		name := privateServiceConnection["name"].(string)
-
-		// If this is not a manual connection and the message is set return an error since this does not make sense.
-		if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
-			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
-		}
-
-		// If this is a manual connection and the message isn't set return an error.
-		if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
-			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
-		}
-	}
-
-	return nil
-}
-
 // normalize the PrivateConnectionId due to the casing change at service side
 func normalizePrivateConnectionId(privateConnectionId string) string {
 	// intentionally including the extra segment to handle Redis vs Redis Enterprise (which is within the same RP)
