@@ -23,7 +23,7 @@ func TestForceLinkInvocations(t *testing.T) {
 			to:   []string{"b"},
 			expected: []databaselink.LinkUnlinkInvocation{
 				{
-					Id:                "b",
+					Id:  "b",
 					Ids: []string{"a", "b"},
 				},
 			},
@@ -34,11 +34,11 @@ func TestForceLinkInvocations(t *testing.T) {
 			to:   []string{"b", "c"},
 			expected: []databaselink.LinkUnlinkInvocation{
 				{
-					Id:                "b",
+					Id:  "b",
 					Ids: []string{"a", "b"},
 				},
 				{
-					Id:                "c",
+					Id:  "c",
 					Ids: []string{"a", "b", "c"},
 				},
 			},
@@ -49,7 +49,7 @@ func TestForceLinkInvocations(t *testing.T) {
 			to:   []string{"c"},
 			expected: []databaselink.LinkUnlinkInvocation{
 				{
-					Id:                "c",
+					Id:  "c",
 					Ids: []string{"a", "b", "c"},
 				},
 			},
@@ -60,11 +60,11 @@ func TestForceLinkInvocations(t *testing.T) {
 			to:   []string{"d", "e"},
 			expected: []databaselink.LinkUnlinkInvocation{
 				{
-					Id:                "d",
+					Id:  "d",
 					Ids: []string{"a", "b", "c", "d"},
 				},
 				{
-					Id:                "e",
+					Id:  "e",
 					Ids: []string{"a", "b", "c", "d", "e"},
 				},
 			},
