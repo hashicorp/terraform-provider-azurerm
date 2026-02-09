@@ -113,12 +113,15 @@ func (r DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: keyVaultValidate.KeyVaultChildID,
+			RequiredWith: []string{
+				"managed_service_cmk_key_vault_id",
+			},
 		},
 
 		"public_network_access_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Default:  true, // check if default is correct!
+			Default:  true,
 		},
 
 		"tags": commonschema.Tags(),
@@ -294,7 +297,6 @@ func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 			defer cancel()
 
 			client := metadata.Client.DataBricks.WorkspacesClient
-			keyVaultClient := metadata.Client.KeyVault
 			id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -330,17 +332,6 @@ func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 								key, err := keyVaultParse.NewNestedItemID(keyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, keyVaultProperties.KeyName, keyVaultProperties.KeyVersion)
 								if err == nil {
 									state.ManagedServicesCmkKeyVaultKeyId = key.ID()
-									state.ManagedServicesCmkKeyVaultId = config.ManagedServicesCmkKeyVaultId
-
-									// If existing state key vault ID is empty particularly during import, search the key vault under the current subscription
-									// That say, key vault ID cannot be imported when key vault is under different subscription than the current one
-									if state.ManagedServicesCmkKeyVaultId == "" {
-										servicesResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
-										rawManagedServicesCmkKeyVaultId, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl)
-										if err == nil {
-											state.ManagedServicesCmkKeyVaultId = pointer.From(rawManagedServicesCmkKeyVaultId)
-										}
-									}
 								}
 							}
 						}
@@ -361,6 +352,9 @@ func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 
 				state.Tags = pointer.From(model.Tags)
 			}
+
+			// Always set `ManagedServicesCmkKeyVaultId` to keep the state file consistent with the configuration file
+			state.ManagedServicesCmkKeyVaultId = config.ManagedServicesCmkKeyVaultId
 
 			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 				return err
