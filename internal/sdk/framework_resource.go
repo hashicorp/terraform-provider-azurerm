@@ -253,11 +253,11 @@ func AppendResponseErrorDiagnostic(resp any, d diag.Diagnostics) {
 	}
 }
 
-// SetErrorDiagnosticAndYieldListResult is a helper function to write an Error Diagnostic to a List Result and yield that result to Terraform
+// SetErrorDiagnosticAndPushListResult is a helper function to write an Error Diagnostic to a List Result and push that result to Terraform
 // Note: after calling this function, the List Resource must return
-func SetErrorDiagnosticAndYieldListResult(result list.ListResult, yield func(list.ListResult) bool, summary string, detail any) {
+func SetErrorDiagnosticAndPushListResult(result list.ListResult, push func(list.ListResult) bool, summary string, detail any) {
 	result.Diagnostics.Append(NewErrorDiagnostic(summary, detail))
-	yield(result)
+	push(result)
 }
 
 // NewErrorDiagnostic is a helper function to create a new ErrorDiagnostic that accepts any input for detail

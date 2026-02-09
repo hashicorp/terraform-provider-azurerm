@@ -73,7 +73,7 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 
 			id, err := automationaccount.ParseAutomationAccountID(pointer.From(account.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Automation Account ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Automation Account ID", err)
 				return
 			}
 
@@ -85,7 +85,7 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 			if request.IncludeResource {
 				infoId := agentregistrationinformation.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
 				if keysResp, err := metadata.Client.Automation.AgentRegistrationInfoClient.Get(ctx, infoId); err != nil {
-					sdk.SetErrorDiagnosticAndYieldListResult(result, push, "retrieving Automation Account Agent Registration Information", err)
+					sdk.SetErrorDiagnosticAndPushListResult(result, push, "retrieving Automation Account Agent Registration Information", err)
 					return
 				} else {
 					registration = keysResp.Model
@@ -93,7 +93,7 @@ func (r AutomationAccountListResource) List(ctx context.Context, request list.Li
 			}
 
 			if err := resourceAutomationAccountFlatten(rd, id, &account, registration); err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_automation_account"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_automation_account"), err)
 				return
 			}
 

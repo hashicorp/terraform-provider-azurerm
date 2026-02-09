@@ -143,14 +143,14 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                 // Set the ID of the resource for the ResourceData object
                 id, err := networkprofiles.ParseNetworkProfileID(pointer.From(profile.Id))
                 if err != nil {
-                    sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Network Profile ID", err)
+                    sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Network Profile ID", err)
                     return
                 }
                 rd.SetId(id.ID())
     
                 // Use the resource flatten function to set the attributes into the resource state
                 if err := resourceNetworkProfileFlatten(rd, id, &profile); err != nil {
-                    sdk.SetErrorDiagnosticAndYieldListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureNetworkProfileResourceName), err)
+                    sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureNetworkProfileResourceName), err)
                     return
                 }
     

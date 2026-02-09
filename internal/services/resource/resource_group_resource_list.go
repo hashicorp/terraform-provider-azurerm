@@ -100,7 +100,7 @@ func (r ResourceGroupListResource) List(ctx context.Context, request list.ListRe
 
 			id, err := commonids.ParseResourceGroupID(pointer.From(group.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Resource Group ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Resource Group ID", err)
 				return
 			}
 
@@ -108,7 +108,7 @@ func (r ResourceGroupListResource) List(ctx context.Context, request list.ListRe
 			rd.SetId(id.ID())
 
 			if err := resourceResourceGroupFlatten(rd, id, &group); err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, fmt.Sprintf("encoding `%s` Resource Data", resourceGroupResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` Resource Data", resourceGroupResourceName), err)
 				return
 			}
 

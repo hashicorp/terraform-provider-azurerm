@@ -73,12 +73,13 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, vnet := range listResults {
+			// TODO - Do we need to handle limiting the results to ListRequest.Limit?
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(vnet.Name)
 
 			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
 			if err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "parsing Virtual Network ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Virtual Network ID", err)
 				return
 			}
 
@@ -90,13 +91,29 @@ func (r VirtualNetworkListResource) List(ctx context.Context, request list.ListR
 
 			err = resourceVirtualNetworkFlatten(rd, *id, &vnet)
 			if err != nil {
-				sdk.SetErrorDiagnosticAndYieldListResult(result, push, "encoding Resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding Resource data", err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, &result)
-			if result.Diagnostics.HasError() {
-				push(result)
+			tfTypeIdentity, err := rd.TfTypeIdentityState()
+			if err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Identity State", err)
+				return
+			}
+
+			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Identity data", err)
+				return
+			}
+
+			tfTypeResource, err := rd.TfTypeResourceState()
+			if err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Resource State data", err)
+				return
+			}
+
+			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Resource data", err)
 				return
 			}
 
