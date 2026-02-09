@@ -75,7 +75,7 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
-				if err := r.unRegisterProviders("Microsoft.Databox"); err != nil {
+				if err := r.unRegisterProviders("Microsoft.WindowsPushNotificationServices"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
 				}
 			},
@@ -217,13 +217,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.Databox"
+  name = "Microsoft.WindowsPushNotificationServices"
   feature {
-    name       = "TestingManualFeatureRegistration"
+    name       = "CanaryAccess"
     registered = %t
   }
   feature {
-    name       = "TestingManualFeatureRegistrationNonPortal"
+    name       = "ProductionAccess"
     registered = %t
   }
 }
