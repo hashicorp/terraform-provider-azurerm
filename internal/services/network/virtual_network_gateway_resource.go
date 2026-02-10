@@ -49,9 +49,31 @@ func resourceVirtualNetworkGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
 
-		Schema:        resourceVirtualNetworkGatewaySchema(),
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(virtualNetworkGatewayCustomizeDiff),
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceVirtualNetworkGatewayCustomizeDiff),
+
+		Schema: resourceVirtualNetworkGatewaySchema(),
 	}
+}
+
+func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	gatewayType := d.Get("type").(string)
+
+	// Validate that public_ip_address_id is not set for ExpressRoute gateways
+	if gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("edge_zone").(string) == "" {
+		ipConfigs := d.Get("ip_configuration").([]interface{})
+		for i, ipConfigRaw := range ipConfigs {
+			ipConfig := ipConfigRaw.(map[string]interface{})
+			if publicIPID, ok := ipConfig["public_ip_address_id"].(string); ok && publicIPID != "" {
+				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` cannot be set when `type` is set to `ExpressRoute` except when using `edge_zone`", i)
+			}
+		}
+	}
+
+	if d.HasChanges("type", "sku") && gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("sku").(string) == string(virtualnetworkgateways.VirtualNetworkGatewaySkuTierBasic) {
+		return errors.New("creation or update of `azurerm_virtual_network_gateway` resource with `Basic` `sku` when `type` is `ExpressRoute` is no longer supported. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration")
+	}
+
+	return nil
 }
 
 func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
@@ -1698,24 +1720,4 @@ func flattenVirtualNetworkGatewayPolicyGroupNames(input []virtualnetworkgateways
 	}
 
 	return results, nil
-}
-
-func virtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-	if d.HasChanges("type", "sku") && d.Get("type").(string) == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("sku").(string) == string(virtualnetworkgateways.VirtualNetworkGatewaySkuTierBasic) {
-		return errors.New("creation or update of `azurerm_virtual_network_gateway` resource with `Basic` `sku` when `type` is `ExpressRoute` is no longer supported. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration")
-	}
-
-	newResourceCreated := d.HasChanges("name", "resource_group_name", "location", "type", "vpn_type", "edge_zone", "private_ip_address_enabled", "generation", "ip_configuration")
-
-	if newResourceCreated && d.Get("type").(string) == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("edge_zone").(string) == "" {
-		ipConfigurations := d.Get("ip_configuration")
-
-		for i := range ipConfigurations.([]interface{}) {
-			if d.Get(fmt.Sprintf("ip_configuration.%d.public_ip_address_id", i)).(string) != "" {
-				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` property should be omitted when creating `azurerm_virtual_network_gateway` resource without using `edge_zone` property as public IP will be created automatically. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration", i)
-			}
-		}
-	}
-
-	return nil
 }
