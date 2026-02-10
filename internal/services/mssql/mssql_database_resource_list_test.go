@@ -16,7 +16,7 @@ import (
 
 func TestAccMssqlDatabase_listByServerID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "testlist1")
-	r := MsSqlDatabaseResource{}
+	r := MssqlDatabaseResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -49,7 +49,7 @@ func TestAccMssqlDatabase_listByServerID(t *testing.T) {
 
 func TestAccMssqlDatabase_listByElasticPoolID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "testlist1")
-	r := MsSqlDatabaseResource{}
+	r := MssqlDatabaseResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -80,7 +80,7 @@ func TestAccMssqlDatabase_listByElasticPoolID(t *testing.T) {
 	})
 }
 
-func (r MsSqlDatabaseResource) basicQuery(data acceptance.TestData) string {
+func (r MssqlDatabaseResource) basicQuery(data acceptance.TestData) string {
 	return `
 list "azurerm_mssql_database" "list" {
   provider = azurerm
@@ -91,7 +91,7 @@ list "azurerm_mssql_database" "list" {
 `
 }
 
-func (r MsSqlDatabaseResource) basicQueryElasticPool(data acceptance.TestData) string {
+func (r MssqlDatabaseResource) basicQueryElasticPool(data acceptance.TestData) string {
 	return `
 list "azurerm_mssql_database" "list" {
   provider = azurerm

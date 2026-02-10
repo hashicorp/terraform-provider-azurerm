@@ -16,7 +16,7 @@ import (
 
 func TestAccMssqlJobAgent_listByServerID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_agent", "testlist1")
-	r := MsSqlJobAgentResource{}
+	r := MssqlJobAgentResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -47,7 +47,7 @@ func TestAccMssqlJobAgent_listByServerID(t *testing.T) {
 	})
 }
 
-func (r MsSqlJobAgentResource) basicQuery(data acceptance.TestData) string {
+func (r MssqlJobAgentResource) basicQuery(data acceptance.TestData) string {
 	return `
 list "azurerm_mssql_job_agent" "list" {
   provider = azurerm

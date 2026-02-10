@@ -32,6 +32,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_virtual_machine -service-package-name mssql -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceMsSqlVirtualMachineCreateUpdate,

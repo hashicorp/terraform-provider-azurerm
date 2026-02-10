@@ -15,9 +15,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccMssqlVirtualMachine_listByServerID(t *testing.T) {
+func TestAccMssqlVirtualMachine_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "testlist1")
-	r := MsSqlVirtualMachineResource{}
+	r := MssqlVirtualMachineResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -43,28 +43,11 @@ func TestAccMssqlVirtualMachine_listByServerID(t *testing.T) {
 					),
 				},
 			},
-		},
-	})
-}
-
-func TestAccMssqlVirtualMachine_listByResourceGroupID(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_VirtualMachine", "testlist1")
-	r := MsSqlVirtualMachineResource{}
-
-	resource.Test(t, resource.TestCase{
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_14_0),
-		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		Steps: []resource.TestStep{
-			{
-				Config: r.basic(data),
-			},
 			{
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("azurerm_mssql_virtual_machine.list", 1), // expect at least the 1 we created
+					querycheck.ExpectLength("azurerm_mssql_virtual_machine.list", 1), // expect at least the 1 we created
 					querycheck.ExpectIdentity(
 						"azurerm_mssql_virtual_machine.list",
 						map[string]knownvalue.Check{
@@ -79,18 +62,18 @@ func TestAccMssqlVirtualMachine_listByResourceGroupID(t *testing.T) {
 	})
 }
 
-func (r MsSqlVirtualMachineResource) basicQuery() string {
+func (r MssqlVirtualMachineResource) basicQuery() string {
 	return `
-list "azurerm_mssql_server" "list" {
+list "azurerm_mssql_virtual_machine" "list" {
   provider = azurerm
   config {}
 }
 `
 }
 
-func (r MsSqlVirtualMachineResource) basicQueryByResourceGroupName() string {
+func (r MssqlVirtualMachineResource) basicQueryByResourceGroupName() string {
 	return fmt.Sprintf(`
-list "azurerm_mssql_server" "list" {
+list "azurerm_mssql_virtual_machine" "list" {
   provider = azurerm
   config {
     resource_group_name = "{azurerm_resource_group.test.id}"
