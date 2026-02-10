@@ -1,6 +1,7 @@
 ## 4.60.0 (Unreleased)
 
 ENHANCEMENTS:
+* provider: the `subscription_id` property can now be populated based on the `az` CLI [GH-30251]
 * Data Source: `azurerm_container_app` - add support for the `read_secrets` property allowing users to skip secret retrieval that may trigger authorization errors [GH-31199]
 * dependencies: `storagemover`  - update to API version `2025-07-01` [GH-31587]
 `azurerm_postgresql_flexible_server` - add support for `cluster` [GH-31315]
