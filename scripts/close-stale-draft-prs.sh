@@ -30,12 +30,10 @@ fi
 
 API_BASE="https://api.github.com/repos/${owner}/${repo}"
 # Handle both GNU date (Linux) and BSD date (macOS)
-THIRTY_DAYS_AGO=$(date -u -d "30 days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-30d +%Y-%m-%dT%H:%M:%SZ)
 SIXTY_DAYS_AGO=$(date -u -d "60 days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -v-60d +%Y-%m-%dT%H:%M:%SZ)
 
-echo "=== Stale Draft PR Processor ==="
+echo "=== Close Inactive Draft PRs ==="
 echo "Repository: ${owner}/${repo}"
-echo "Stale threshold: 30 days (before ${THIRTY_DAYS_AGO})"
 echo "Close threshold: 60 days (before ${SIXTY_DAYS_AGO})"
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "Mode: DRY RUN (no changes will be made)"
@@ -44,7 +42,7 @@ else
 fi
 echo ""
 
-# First, collect all open PRs to get total count
+# Collect all open PRs
 echo "Fetching open PRs..."
 all_prs=()
 page=1
@@ -72,30 +70,24 @@ echo "Found ${total_prs} open PR(s)"
 echo ""
 
 # Process each PR
-current=0
 drafts_found=0
-stale_count=0
 close_count=0
 
 for pr in "${all_prs[@]}"; do
-  current=$((current + 1))
-  
-  pr_number=$(echo "$pr" | jq -r '.number')
-  pr_title=$(echo "$pr" | jq -r '.title' | head -c 60)
   draft=$(echo "$pr" | jq -r '.draft')
-  updated_at=$(echo "$pr" | jq -r '.updated_at')
-  labels=$(echo "$pr" | jq -r '.labels[].name' 2>/dev/null || echo "")
   
-  echo "PR ${current}/${total_prs} - #${pr_number} \"${pr_title}\""
-  
-  # Check if draft
+  # Skip non-draft PRs silently
   if [[ "$draft" != "true" ]]; then
-    echo "  ↳ Not a draft, skipping"
     continue
   fi
   
+  pr_number=$(echo "$pr" | jq -r '.number')
+  pr_title=$(echo "$pr" | jq -r '.title')
+  updated_at=$(echo "$pr" | jq -r '.updated_at')
+  labels=$(echo "$pr" | jq -r '.labels[].name' 2>/dev/null || echo "")
+  
   drafts_found=$((drafts_found + 1))
-  echo "  ↳ Is draft, last updated: ${updated_at}"
+  echo "Draft PR #${pr_number} \"${pr_title}\" (updated: ${updated_at})"
   
   # Check for keep-draft label
   if echo "$labels" | grep -q "^keep-draft$"; then
@@ -103,14 +95,7 @@ for pr in "${all_prs[@]}"; do
     continue
   fi
   
-  # Check for existing stale-draft label
-  has_stale_label=false
-  if echo "$labels" | grep -q "^stale-draft$"; then
-    has_stale_label=true
-    echo "  ↳ Already has 'stale-draft' label"
-  fi
-  
-  # Close if 60+ days stale
+  # Close if 60+ days inactive
   if [[ "$updated_at" < "$SIXTY_DAYS_AGO" ]]; then
     close_count=$((close_count + 1))
     echo "  ↳ Inactive for 60+ days → CLOSING"
@@ -133,35 +118,6 @@ for pr in "${all_prs[@]}"; do
     else
       echo "  ↳ (dry run - would close and comment)"
     fi
-  
-  # Comment and label if 30+ days stale without stale-draft label
-  elif [[ "$updated_at" < "$THIRTY_DAYS_AGO" && "$has_stale_label" == "false" ]]; then
-    stale_count=$((stale_count + 1))
-    echo "  ↳ Inactive for 30+ days → MARKING STALE"
-    
-    if [[ "$DRY_RUN" == "false" ]]; then
-      curl -s -L -X POST \
-        -H "Accept: application/vnd.github+json" \
-        -H "Authorization: Bearer $token" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        "${API_BASE}/issues/${pr_number}/labels" \
-        -d '{"labels":["stale-draft"]}' > /dev/null
-      
-      curl -s -L -X POST \
-        -H "Accept: application/vnd.github+json" \
-        -H "Authorization: Bearer $token" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        "${API_BASE}/issues/${pr_number}/comments" \
-        -d '{"body":"This draft pull request is being labeled as \"stale-draft\" because it has not been updated for _30 days_ ⏳.\n\nIf this draft is still valid, please remove the \"stale-draft\" label. To prevent automatic closure after 60 days, add the `keep-draft` label or mark it as ready for review.\n\nIf you need some help completing this draft, please leave a comment letting us know. Thank you!"}' > /dev/null
-      echo "  ↳ Labeled and commented"
-    else
-      echo "  ↳ (dry run - would label and comment)"
-    fi
-  
-  elif [[ "$has_stale_label" == "true" ]]; then
-    echo "  ↳ Already stale, not yet 60 days old"
-  else
-    echo "  ↳ Not stale yet (updated within 30 days)"
   fi
 done
 
@@ -169,7 +125,6 @@ echo ""
 echo "=== Summary ==="
 echo "Total PRs checked: ${total_prs}"
 echo "Draft PRs found: ${drafts_found}"
-echo "Newly marked stale: ${stale_count}"
 echo "Closed: ${close_count}"
 if [[ "$DRY_RUN" == "true" ]]; then
   echo "(dry run - no actual changes made)"
