@@ -118,11 +118,20 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			},
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
-					if d.Get("min_capacity").(float64) > 0 {
-						return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+					rawConfig := d.GetRawConfig().AsValueMap()
+					minCapacityVal := rawConfig["min_capacity"]
+					if minCapacityVal.IsKnown() && !minCapacityVal.IsNull() {
+						minCapacityValFloat, _ := minCapacityVal.AsBigFloat().Float64()
+						if minCapacityValFloat > 0 {
+							return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+						}
 					}
-					if d.Get("auto_pause_delay_in_minutes").(int) > 0 {
-						return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+					autoPauseDelayVal := rawConfig["auto_pause_delay_in_minutes"]
+					if autoPauseDelayVal.IsKnown() && !autoPauseDelayVal.IsNull() {
+						autoPauseDelayValInt, _ := autoPauseDelayVal.AsBigFloat().Int64()
+						if autoPauseDelayValInt > 0 {
+							return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+						}
 					}
 				}
 				return nil

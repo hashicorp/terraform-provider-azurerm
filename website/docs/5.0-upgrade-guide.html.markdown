@@ -339,6 +339,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
 
+### `azurerm_log_analytics_storage_insights`
+
+* The `storage_account_id` property is marked as `ForceNew`.
+
 ### `azurerm_log_analytics_workspace`
 
 * The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
@@ -444,6 +448,7 @@ Please follow the format in the example below for listing breaking changes in re
 * The property `min_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
 * The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
+* The property `allow_nested_items_to_be_public` now defaults to `false`.
 
 ### `azurerm_storage_account_customer_managed_key`
 

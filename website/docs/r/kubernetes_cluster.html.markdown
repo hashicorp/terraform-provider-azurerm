@@ -674,7 +674,7 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `network_policy` is set to `cilium`, the `network_data_plane` field must be set to `cilium`.
 
--> **Note:** Upgrading `network_policy` from `azure` to `cilium` is supported and will perform an in-place upgrade. Changing from other values will force a new resource to be created.
+-> **Note:** Upgrading `network_policy` from `azure` or `calico` to `cilium` is supported and will perform an in-place upgrade. Changing from other values will force a new resource to be created.
 
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
