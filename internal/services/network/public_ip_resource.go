@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -27,7 +27,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourcePublicIp() *pluginsdk.Resource {
@@ -356,14 +355,14 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("idle_timeout_in_minutes") {
-		payload.Properties.IdleTimeoutInMinutes = utils.Int64(int64(d.Get("idle_timeout_in_minutes").(int)))
+		payload.Properties.IdleTimeoutInMinutes = pointer.To(int64(d.Get("idle_timeout_in_minutes").(int)))
 	}
 
 	if d.HasChange("domain_name_label") {
 		if payload.Properties.DnsSettings == nil {
 			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
 		}
-		payload.Properties.DnsSettings.DomainNameLabel = utils.String(d.Get("domain_name_label").(string))
+		payload.Properties.DnsSettings.DomainNameLabel = pointer.To(d.Get("domain_name_label").(string))
 	}
 
 	if d.HasChange("domain_name_label_scope") {
@@ -377,7 +376,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if payload.Properties.DnsSettings == nil {
 			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
 		}
-		payload.Properties.DnsSettings.ReverseFqdn = utils.String(d.Get("reverse_fqdn").(string))
+		payload.Properties.DnsSettings.ReverseFqdn = pointer.To(d.Get("reverse_fqdn").(string))
 	}
 
 	if d.HasChanges("tags") {
@@ -452,7 +451,9 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("ip_address", props.IPAddress)
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

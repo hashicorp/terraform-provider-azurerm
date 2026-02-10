@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -667,17 +668,17 @@ func (r FunctionAppSlotResource) Exists(ctx context.Context, clients *clients.Cl
 	resp, err := clients.Web.AppServicesClient.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Function App Slot %q (Function App %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
 	}
 
 	// The SDK defines 404 as an "ok" status code..
 	if utils.ResponseWasNotFound(resp.Response) {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r FunctionAppSlotResource) basic(data acceptance.TestData) string {

@@ -57,7 +57,7 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_nginx_deployment" "example" {
   name                      = "example-nginx"
   resource_group_name       = azurerm_resource_group.example.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.example.location
   diagnose_support_enabled  = true
   automatic_upgrade_channel = "stable"
@@ -85,7 +85,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the NGINX Deployment should exist. Changing this forces a new NGINX Deployment to be created.
 
-* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standardv2_Monthly`, `basic_Monthly`.
+* `sku` - (Required) Specifies the NGINX Deployment SKU.
+
+-> **Note:** For a list of available SKUs, please reference the [NGINXaaS for Azure documentation](https://docs.nginx.com/nginxaas/azure/billing/overview)
 
 -> **Note:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to the `capacity` field.
 
@@ -161,7 +163,7 @@ An `auto_scale_profile` block supports the following:
 
 ---
 
-A `web_application_firewall` - block supports the following:
+A `web_application_firewall` block supports the following:
 
 * `activation_state_enabled` - (Required) Whether WAF is enabled/disabled for this NGINX Deployment.
 
@@ -177,19 +179,57 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
 
-* `web_application_firewall.status` - A `web_application_firewall.status` block as defined below:
+* `web_application_firewall` - A `web_application_firewall` blocks as defined below.
 
 ---
 
-A `web_application_firewall.status` - block supports the following:
+A `web_application_firewall` block exports the following:
 
-* `attack_signatures_package` - Indicates the version of the attack signatures package used by NGINX App Protect.
+* `status` - A `status` block as defined below.
 
-* `bot_signatures_package` - Indicates the version of the bot signatures package used by NGINX App Protect.
+---
 
-* `threat_campaigns_package` - Indicates the version of the threat campaigns package used by NGINX App Protect.
+A `status` block exports the following:
 
-* `component_versions` - Indicates the version of the WAF Engine and Nginx WAF Module used by NGINX App Protect.
+* `attack_signatures_package` - One or more `attack_signatures_package` blocks as defined below.
+
+* `bot_signatures_package` - One or more `bot_signatures_package` blocks as defined below.
+
+* `component_versions` - One or more `component_versions` blocks as defined below.
+
+* `threat_campaigns_package` - One or more `threat_campaigns_package` blocks as defined below.
+
+---
+
+An `attack_signatures_package` block exports the following:
+
+* `revision_datetime` - The revision date and time of the attack signatures package.
+
+* `version` - The version of the attack signatures package.
+
+---
+
+A `bot_signatures_package` block exports the following:
+
+* `revision_datetime` - The revision date and time of the bot signatures package.
+
+* `version` - The version of the bot signatures package.
+
+---
+
+A `component_versions` block exports the following:
+
+* `waf_engine_version` - The version of the WAF Engine.
+
+* `waf_nginx_version` - The version of the WAF Nginx module.
+
+---
+
+A `threat_campaigns_package` block exports the following:
+
+* `revision_datetime` - The revision date and time of the threat campaigns package.
+
+* `version` - The version of the threat campaigns package.
 
 ## Timeouts
 

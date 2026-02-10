@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,24 +6,24 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/grafanaresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2023-09-01/managedprivateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedgrafanas"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	GrafanaResourceClient         *grafanaresource.GrafanaResourceClient
-	ManagedPrivateEndpointsClient *managedprivateendpoints.ManagedPrivateEndpointsClient
+	GrafanaResourceClient         *managedgrafanas.ManagedGrafanasClient
+	ManagedPrivateEndpointsClient *managedprivateendpointmodels.ManagedPrivateEndpointModelsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	grafanaResourceClient, err := grafanaresource.NewGrafanaResourceClientWithBaseURI(o.Environment.ResourceManager)
+	grafanaResourceClient, err := managedgrafanas.NewManagedGrafanasClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building GrafanaResource client: %+v", err)
 	}
 	o.Configure(grafanaResourceClient.Client, o.Authorizers.ResourceManager)
 
-	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
+	managedPrivateEndpointsClient, err := managedprivateendpointmodels.NewManagedPrivateEndpointModelsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ManagedPrivateEndpoints client: %+v", err)
 	}

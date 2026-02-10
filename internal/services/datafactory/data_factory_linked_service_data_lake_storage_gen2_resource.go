@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -170,32 +171,32 @@ func resourceDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *pluginsd
 
 	if d.Get("use_managed_identity").(bool) {
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-			URL: utils.String(d.Get("url").(string)),
+			URL: pointer.To(d.Get("url").(string)),
 		}
 	} else if v, ok := d.GetOk("storage_account_key"); ok {
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-			URL: utils.String(d.Get("url").(string)),
+			URL: pointer.To(d.Get("url").(string)),
 			AccountKey: datafactory.SecureString{
-				Value: utils.String(v.(string)),
+				Value: pointer.To(v.(string)),
 				Type:  datafactory.TypeSecureString,
 			},
 		}
 	} else {
 		secureString := datafactory.SecureString{
-			Value: utils.String(d.Get("service_principal_key").(string)),
+			Value: pointer.To(d.Get("service_principal_key").(string)),
 			Type:  datafactory.TypeSecureString,
 		}
 
 		datalakeStorageGen2Properties = &datafactory.AzureBlobFSLinkedServiceTypeProperties{
-			URL:                 utils.String(d.Get("url").(string)),
-			ServicePrincipalID:  utils.String(d.Get("service_principal_id").(string)),
-			Tenant:              utils.String(d.Get("tenant").(string)),
+			URL:                 pointer.To(d.Get("url").(string)),
+			ServicePrincipalID:  pointer.To(d.Get("service_principal_id").(string)),
+			Tenant:              pointer.To(d.Get("tenant").(string)),
 			ServicePrincipalKey: &secureString,
 		}
 	}
 
 	datalakeStorageGen2LinkedService := &datafactory.AzureBlobFSLinkedService{
-		Description:                            utils.String(d.Get("description").(string)),
+		Description:                            pointer.To(d.Get("description").(string)),
 		AzureBlobFSLinkedServiceTypeProperties: datalakeStorageGen2Properties,
 		Type:                                   datafactory.TypeBasicLinkedServiceTypeAzureBlobFS,
 	}
