@@ -6,6 +6,7 @@ package network
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
