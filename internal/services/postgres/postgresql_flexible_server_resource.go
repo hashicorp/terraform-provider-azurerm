@@ -5,6 +5,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -358,6 +359,29 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				},
 			},
 
+			"cluster": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				ForceNew: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"size": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20),
+						},
+						"default_database_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							Default:      "postgres",
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -464,6 +488,51 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
 				diff.ForceNew("identity.0.type")
+			}
+
+			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// only pg 17+ support cluster, and cluster does not support major version upgrade
+			if _, ok := diff.GetOk("cluster"); !ok {
+				return nil
+			}
+
+			// can't downgrade cluster size
+			if diff.HasChange("cluster") {
+				oldCluster, newCluster := diff.GetChange("cluster")
+				oldClusterObj := oldCluster.([]interface{})
+				newClusterObj := newCluster.([]interface{})
+				if len(oldClusterObj) > 0 && len(newClusterObj) > 0 {
+					var oldClusterSize, newClusterSize int
+					if tmpObj, ok := oldClusterObj[0].(map[string]interface{}); ok {
+						oldClusterSize, _ = tmpObj["size"].(int)
+					}
+					if tempObj, ok := newClusterObj[0].(map[string]interface{}); ok {
+						newClusterSize, _ = tempObj["size"].(int)
+					}
+
+					if newClusterSize < oldClusterSize {
+						diff.ForceNew("cluster.0.size")
+					}
+				}
+			}
+
+			create_mode := servers.CreateMode(diff.Get("create_mode").(string))
+			if string(create_mode) != "" && create_mode != servers.CreateModeDefault {
+				return errors.New("`cluster` is only supported when `create_mode` is Default")
+			}
+
+			versionOld, versionNew := diff.GetChange("version")
+			// version should be set since cluster only support pg17+
+			if version, err := strconv.ParseInt(versionNew.(string), 10, 32); err != nil {
+				return fmt.Errorf("parsing `version` %q: %v", versionNew.(string), err)
+			} else if version < 17 {
+				return errors.New("`cluster` is only supported for PostgreSQL major version 17 or above")
+			}
+
+			// major version upgrade is not allowed when cluster is enabled
+			if versionOld.(string) != "" && versionOld.(string) != versionNew.(string) {
+				return errors.New("major version upgrade not supported when `cluster` is set")
 			}
 
 			return nil
@@ -607,6 +676,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 			HighAvailability: expandFlexibleServerHighAvailability(d.Get("high_availability").([]interface{}), true),
 			Backup:           expandArmServerBackup(d),
 			DataEncryption:   expandFlexibleServerDataEncryption(d.Get("customer_managed_key").([]interface{})),
+			Cluster:          expandFlexibleServerCluster(d.Get("cluster").([]interface{})),
 		},
 		Sku:  sku,
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -785,6 +855,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `high_availability`: %+v", err)
 			}
 
+			if err := d.Set("cluster", flattenFlexibleServerCluster(props.Cluster)); err != nil {
+				return fmt.Errorf("setting `cluster`: %+v", err)
+			}
+
 			if props.AuthConfig != nil {
 				d.Set("authentication", flattenFlexibleServerAuthConfig(props.AuthConfig))
 			}
@@ -813,7 +887,9 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 		d.Set("sku_name", sku)
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -905,7 +981,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		} else if d.HasChange("high_availability.0.standby_availability_zone") {
 			if props != nil && props.HighAvailability != nil && props.HighAvailability.Mode != nil {
 				// if HA Mode is currently "ZoneRedundant" and is still set to "ZoneRedundant", high_availability.0.standby_availability_zone cannot be changed
-				if *props.HighAvailability.Mode == servers.HighAvailabilityModeZoneRedundant && !d.HasChange("high_availability.0.mode") {
+				if *props.HighAvailability.Mode == servers.PostgreSqlFlexibleServerHighAvailabilityModeZoneRedundant && !d.HasChange("high_availability.0.mode") {
 					return fmt.Errorf("an existing `high_availability.0.standby_availability_zone` can only be changed when exchanged with the zone specified in `zone`")
 				}
 				// if high_availability.0.mode changes from "ZoneRedundant", an existing high_availability block has been removed as this is a required field
@@ -1001,6 +1077,10 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	if d.HasChange("create_mode") {
 		createMode := servers.CreateModeForPatch(d.Get("create_mode").(string))
 		parameters.Properties.CreateMode = &createMode
+	}
+
+	if d.HasChange("cluster") {
+		parameters.Properties.Cluster = expandFlexibleServerCluster(d.Get("cluster").([]interface{}))
 	}
 
 	if d.HasChange("version") {
@@ -1254,7 +1334,7 @@ func flattenArmServerMaintenanceWindow(input *servers.MaintenanceWindow) []inter
 
 func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *servers.HighAvailability {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.HighAvailabilityModeDisabled
+		highAvailability := servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled
 		return &servers.HighAvailability{
 			Mode: &highAvailability,
 		}
@@ -1262,7 +1342,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 
 	input := inputs[0].(map[string]interface{})
 
-	mode := servers.HighAvailabilityMode(input["mode"].(string))
+	mode := servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))
 	result := servers.HighAvailability{
 		Mode: &mode,
 	}
@@ -1279,7 +1359,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 
 func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate bool) *servers.HighAvailabilityForPatch {
 	if len(inputs) == 0 || inputs[0] == nil {
-		highAvailability := servers.HighAvailabilityModeDisabled
+		highAvailability := servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled
 		return &servers.HighAvailabilityForPatch{
 			Mode: &highAvailability,
 		}
@@ -1287,7 +1367,7 @@ func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate
 
 	input := inputs[0].(map[string]interface{})
 
-	mode := servers.HighAvailabilityMode(input["mode"].(string))
+	mode := servers.PostgreSqlFlexibleServerHighAvailabilityMode(input["mode"].(string))
 	result := servers.HighAvailabilityForPatch{
 		Mode: &mode,
 	}
@@ -1303,7 +1383,7 @@ func expandFlexibleServerHighAvailabilityForPatch(inputs []interface{}, isCreate
 }
 
 func flattenFlexibleServerHighAvailability(ha *servers.HighAvailability) []interface{} {
-	if ha == nil || ha.Mode == nil || *ha.Mode == servers.HighAvailabilityModeDisabled {
+	if ha == nil || ha.Mode == nil || *ha.Mode == servers.PostgreSqlFlexibleServerHighAvailabilityModeDisabled {
 		return []interface{}{}
 	}
 
@@ -1462,4 +1542,36 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption) ([]interfac
 	}
 
 	return []interface{}{item}, nil
+}
+
+func expandFlexibleServerCluster(input []interface{}) *servers.Cluster {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	v := input[0].(map[string]interface{})
+
+	cluster := servers.Cluster{}
+
+	if size := v["size"].(int); size != 0 {
+		cluster.ClusterSize = pointer.To(int64(size))
+	}
+
+	if databaseName := v["default_database_name"].(string); databaseName != "" {
+		cluster.DefaultDatabaseName = pointer.To(databaseName)
+	}
+
+	return &cluster
+}
+
+func flattenFlexibleServerCluster(cluster *servers.Cluster) []interface{} {
+	if cluster == nil {
+		return []interface{}{}
+	}
+
+	item := map[string]interface{}{
+		"size":                  pointer.From(cluster.ClusterSize),
+		"default_database_name": pointer.From(cluster.DefaultDatabaseName),
+	}
+
+	return []interface{}{item}
 }

@@ -165,7 +165,9 @@ func resourcePrivateDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("record", record.Cname)
 			}
 
-			return tags.FlattenAndSet(d, props.Metadata)
+			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
+				return err
+			}
 		}
 	}
 

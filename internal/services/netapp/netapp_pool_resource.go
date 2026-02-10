@@ -301,7 +301,9 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("cool_access_enabled", pointer.From(poolProperties.CoolAccess))
 		d.Set("custom_throughput_mibps", int(pointer.From(poolProperties.CustomThroughputMibps)))
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
