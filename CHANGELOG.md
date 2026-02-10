@@ -1,3 +1,20 @@
+## 4.59.0 (February 06, 2026)
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20260129.1200123` ([#31621](https://github.com/hashicorp/terraform-provider-azurerm/issues/31621))
+* `azurerm_automation_runbook` - add support for the `runtime_environment_name` property ([#30992](https://github.com/hashicorp/terraform-provider-azurerm/issues/30992))
+* `azurerm_kusto_eventgrid_data_connection` - update validation for `eventhub_consumer_group_name` to allow `$Default` as input ([#31551](https://github.com/hashicorp/terraform-provider-azurerm/issues/31551))
+* `azurerm_linux_function_app` - add support for `3.14` to `site_config.application_stack.python_version` ([#31195](https://github.com/hashicorp/terraform-provider-azurerm/issues/31195))
+* `azurerm_linux_function_app_slot` - add support for `3.14` to `site_config.application_stack.python_version` ([#31195](https://github.com/hashicorp/terraform-provider-azurerm/issues/31195))
+* `azurerm_netapp_volume_group_sap_hana_resource` - add support for `zone`, `encryption_key_source`, `key_vault_private_endpoint_id`, and `network_features` ([#31603](https://github.com/hashicorp/terraform-provider-azurerm/issues/31603))
+* `azurerm_user_assigned_identity` - add support for the `isolation_scope` property ([#31216](https://github.com/hashicorp/terraform-provider-azurerm/issues/31216))
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` -  the`network_policy` property now allows updating from `calico` to `cilium` ([#31627](https://github.com/hashicorp/terraform-provider-azurerm/issues/31627))
+* `azurerm_logic_app_trigger_http_request` - fix an issue that prevented importing existing resources due to empty trigger inputs ([#31433](https://github.com/hashicorp/terraform-provider-azurerm/issues/31433))
+
 ## 4.58.0 (January 22, 2026)
 
 FEATURES:
