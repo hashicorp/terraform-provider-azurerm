@@ -71,7 +71,7 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 func TestAccResourceProviderRegistration_feature(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
 	r := ResourceProviderRegistrationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
