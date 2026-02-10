@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -17,10 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = KubernetesClusterDeploymentSafeguardResource{}
-	_ sdk.ResourceWithUpdate = KubernetesClusterDeploymentSafeguardResource{}
-)
+var _ sdk.ResourceWithUpdate = KubernetesClusterDeploymentSafeguardResource{}
 
 type KubernetesClusterDeploymentSafeguardResource struct{}
 
