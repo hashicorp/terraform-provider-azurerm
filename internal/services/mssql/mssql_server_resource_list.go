@@ -46,7 +46,6 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	// Make the request based on which list parameters have been set in the config
 	switch {
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()), servers.DefaultListByResourceGroupOperationOptions())
@@ -66,20 +65,15 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 		results = resp.Items
 	}
 
-	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, server := range results {
 
-			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
 
-			// Set the display name of the item as the resource name
 			result.DisplayName = pointer.From(server.Name)
 
-			// Create a new ResourceData object to hold the state of the resource
 			rd := resourceMsSqlServer().Data(&terraform.InstanceState{})
 
-			// Set the ID of the resource for the ResourceData object
 			id, err := commonids.ParseSqlServerID(pointer.From(server.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql Server ID", err)
@@ -87,7 +81,6 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 			}
 			rd.SetId(id.ID())
 
-			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceMssqlServerSetFlatten(rd, id, &server, metadata.Client); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_server`), err)
 				return

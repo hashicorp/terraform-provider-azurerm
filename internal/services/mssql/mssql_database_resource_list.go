@@ -107,23 +107,18 @@ func (r MssqlDatabaseListResource) List(ctx context.Context, request list.ListRe
 		results = resp.Items
 	}
 
-	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, database := range results {
 			// the default master database is special and will fail in the list function
 			if *database.Name == "master" {
 				continue
 			}
-			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
 
-			// Set the display name of the item as the resource name
 			result.DisplayName = pointer.From(database.Name)
 
-			// Create a new ResourceData object to hold the state of the resource
 			rd := resourceMsSqlDatabase().Data(&terraform.InstanceState{})
 
-			// Set the ID of the resource for the ResourceData object
 			id, err := commonids.ParseSqlDatabaseID(pointer.From(database.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql Database ID", err)
@@ -131,7 +126,6 @@ func (r MssqlDatabaseListResource) List(ctx context.Context, request list.ListRe
 			}
 			rd.SetId(id.ID())
 
-			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceMssqlDatabaseSetFlatten(rd, id, &database, metadata.Client); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_database`), err)
 				return

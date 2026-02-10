@@ -67,20 +67,15 @@ func (r MssqlVirtualMachineListResource) List(ctx context.Context, request list.
 		results = resp.Items
 	}
 
-	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, virtualMachine := range results {
 
-			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
 
-			// Set the display name of the item as the resource name
 			result.DisplayName = pointer.From(virtualMachine.Name)
 
-			// Create a new ResourceData object to hold the state of the resource
 			rd := resourceMsSqlVirtualMachine().Data(&terraform.InstanceState{})
 
-			// Set the ID of the resource for the ResourceData object
 			id, err := sqlvirtualmachines.ParseSqlVirtualMachineID(pointer.From(virtualMachine.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql virtual machine ID", err)
@@ -88,7 +83,6 @@ func (r MssqlVirtualMachineListResource) List(ctx context.Context, request list.
 			}
 			rd.SetId(id.ID())
 
-			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceMssqlVirtualMachineSetFlatten(rd, id, &virtualMachine); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_virtual_machine`), err)
 				return
