@@ -114,8 +114,8 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
 				Optional:   true,
 				// NOTE: O+C - `encryption_settings` is populated when the properties are configured via `azurerm_data_protection_backup_vault_customer_managed_key` resource
-				Computed:   true,
-				MaxItems:   1,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"identity_id": {
