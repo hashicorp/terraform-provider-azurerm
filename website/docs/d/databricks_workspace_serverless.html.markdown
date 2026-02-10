@@ -1,25 +1,25 @@
 ---
 subcategory: "Databricks"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_databricks_serverless_workspace"
+page_title: "Azure Resource Manager: Data Source: azurerm_databricks_workspace_serverless"
 description: |-
   Gets information about an existing Databricks Serverless Workspace.
 ---
 
-# Data Source: azurerm_databricks_serverless_workspace
+# Data Source: azurerm_databricks_workspace_serverless
 
 Use this data source to access information about an existing Databricks Serverless Workspace.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_databricks_serverless_workspace" "example" {
+data "azurerm_databricks_workspace_serverless" "example" {
   name                = "existing"
   resource_group_name = "existing"
 }
 
 output "id" {
-  value = data.azurerm_databricks_serverless_workspace.example.id
+  value = data.azurerm_databricks_workspace_serverless.example.id
 }
 ```
 

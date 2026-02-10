@@ -1,12 +1,12 @@
 ---
 subcategory: "Databricks"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_databricks_serverless_workspace"
+page_title: "Azure Resource Manager: azurerm_databricks_workspace_serverless"
 description: |-
   Manages a Databricks Serverless Workspace.
 ---
 
-# azurerm_databricks_serverless_workspace
+# azurerm_databricks_workspace_serverless
 
 Manages a Databricks Workspace with `serverless` `compute_mode`. It is only supported with premium SKU. To create Databricks Workspace with `hybrid` `compute_mode`, please use `azurerm_databricks_workspace` instead.
 
@@ -18,7 +18,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_databricks_serverless_workspace" "example" {
+resource "azurerm_databricks_workspace_serverless" "example" {
   name                = "databricks-test"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -101,7 +101,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Databricks Serverless Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databricks_serverless_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
+terraform import azurerm_databricks_workspace_serverless.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
 
 ## API Providers

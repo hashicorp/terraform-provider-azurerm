@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DatabricksServerlessWorkspaceResource struct{}
+type DatabricksWorkspaceServerlessResource struct{}
 
-func TestAccDatabricksServerlessWorkspace_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+func TestAccDatabricksWorkspaceServerless_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -34,9 +34,9 @@ func TestAccDatabricksServerlessWorkspace_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksServerlessWorkspace_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+func TestAccDatabricksWorkspaceServerless_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,9 +49,9 @@ func TestAccDatabricksServerlessWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksServerlessWorkspace_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+func TestAccDatabricksWorkspaceServerless_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,9 +64,9 @@ func TestAccDatabricksServerlessWorkspace_complete(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksServerlessWorkspace_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+func TestAccDatabricksWorkspaceServerless_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
@@ -86,15 +86,15 @@ func TestAccDatabricksServerlessWorkspace_update(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksServerlessWorkspace_altSubscriptionCmkServicesOnly(t *testing.T) {
+func TestAccDatabricksWorkspaceServerless_altSubscriptionCmkServicesOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
 		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
 	}
 
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -107,9 +107,9 @@ func TestAccDatabricksServerlessWorkspace_altSubscriptionCmkServicesOnly(t *test
 	})
 }
 
-func TestAccDatabricksServerlessWorkspace_enhancedSecurityComplianceWithoutAutomaticClusterUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+func TestAccDatabricksWorkspaceServerless_enhancedSecurityComplianceWithoutAutomaticClusterUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -119,9 +119,9 @@ func TestAccDatabricksServerlessWorkspace_enhancedSecurityComplianceWithoutAutom
 	})
 }
 
-func TestAccDatabricksServerlessWorkspace_enhancedSecurityComplianceWithoutEnhancedSecurityMonitoring(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+func TestAccDatabricksWorkspaceServerless_enhancedSecurityComplianceWithoutEnhancedSecurityMonitoring(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -131,9 +131,9 @@ func TestAccDatabricksServerlessWorkspace_enhancedSecurityComplianceWithoutEnhan
 	})
 }
 
-func TestAccDatabricksServerlessWorkspace_enhancedSecurityComplianceStandardsWithoutProfileEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceResource{}
+func TestAccDatabricksWorkspaceServerless_enhancedSecurityComplianceStandardsWithoutProfileEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -143,7 +143,7 @@ func TestAccDatabricksServerlessWorkspace_enhancedSecurityComplianceStandardsWit
 	})
 }
 
-func (DatabricksServerlessWorkspaceResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (DatabricksWorkspaceServerlessResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func (DatabricksServerlessWorkspaceResource) Exists(ctx context.Context, client 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (DatabricksServerlessWorkspaceResource) template(data acceptance.TestData) string {
+func (DatabricksWorkspaceServerlessResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -170,11 +170,11 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r DatabricksServerlessWorkspaceResource) basic(data acceptance.TestData) string {
+func (r DatabricksWorkspaceServerlessResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_databricks_serverless_workspace" "test" {
+resource "azurerm_databricks_workspace_serverless" "test" {
   name                = "acctest-dbsw-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -182,19 +182,19 @@ resource "azurerm_databricks_serverless_workspace" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DatabricksServerlessWorkspaceResource) requiresImport(data acceptance.TestData) string {
+func (r DatabricksWorkspaceServerlessResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_databricks_serverless_workspace" "import" {
-  name                = azurerm_databricks_serverless_workspace.test.name
-  resource_group_name = azurerm_databricks_serverless_workspace.test.resource_group_name
-  location            = azurerm_databricks_serverless_workspace.test.location
+resource "azurerm_databricks_workspace_serverless" "import" {
+  name                = azurerm_databricks_workspace_serverless.test.name
+  resource_group_name = azurerm_databricks_workspace_serverless.test.resource_group_name
+  location            = azurerm_databricks_workspace_serverless.test.location
 }
 `, r.basic(data))
 }
 
-func (r DatabricksServerlessWorkspaceResource) complete(data acceptance.TestData) string {
+func (r DatabricksWorkspaceServerlessResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -340,7 +340,7 @@ resource "azurerm_key_vault_access_policy" "managed" {
   ]
 }
 
-resource "azurerm_databricks_serverless_workspace" "test" {
+resource "azurerm_databricks_workspace_serverless" "test" {
   name                                  = "acctest-dbsw-%[2]d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = azurerm_resource_group.test.location
@@ -371,7 +371,7 @@ resource "azurerm_private_endpoint" "databricks" {
   private_service_connection {
     name                           = "acctest-psc-%[2]d"
     is_manual_connection           = false
-    private_connection_resource_id = azurerm_databricks_serverless_workspace.test.id
+    private_connection_resource_id = azurerm_databricks_workspace_serverless.test.id
     subresource_names              = ["databricks_ui_api"]
   }
 }
@@ -384,7 +384,7 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_cname_record" "test" {
-  name                = azurerm_databricks_serverless_workspace.test.workspace_url
+  name                = azurerm_databricks_workspace_serverless.test.workspace_url
   zone_name           = azurerm_private_dns_zone.test.name
   resource_group_name = azurerm_resource_group.test.name
   ttl                 = 300
@@ -393,7 +393,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString, getDatabricksPrincipalId(data.Client().SubscriptionID))
 }
 
-func (DatabricksServerlessWorkspaceResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, alt *DatabricksWorkspaceAlternateSubscription) string {
+func (DatabricksWorkspaceServerlessResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, alt *DatabricksWorkspaceAlternateSubscription) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -424,7 +424,7 @@ resource "azurerm_resource_group" "keyVault" {
   location = "%[2]s"
 }
 
-resource "azurerm_databricks_serverless_workspace" "test" {
+resource "azurerm_databricks_workspace_serverless" "test" {
   name                                  = "acctest-databricks-pri-sub-%[1]d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = azurerm_resource_group.test.location
@@ -517,11 +517,11 @@ resource "azurerm_key_vault_access_policy" "managed" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, getDatabricksPrincipalId(data.Client().SubscriptionID), alt.tenantID, alt.subscriptionID)
 }
 
-func (r DatabricksServerlessWorkspaceResource) enhancedSecurityCompliance(data acceptance.TestData, automaticClusterUpdateEnabled bool, complianceSecurityProfileEnabled bool, enhancedSecurityMonitoringEnabled bool) string {
+func (r DatabricksWorkspaceServerlessResource) enhancedSecurityCompliance(data acceptance.TestData, automaticClusterUpdateEnabled bool, complianceSecurityProfileEnabled bool, enhancedSecurityMonitoringEnabled bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_databricks_serverless_workspace" "test" {
+resource "azurerm_databricks_workspace_serverless" "test" {
   name                = "acctest-dbsw-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

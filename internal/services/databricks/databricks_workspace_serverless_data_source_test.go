@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type DatabricksServerlessWorkspaceDataSource struct{}
+type DatabricksWorkspaceServerlessDataSource struct{}
 
-func TestAccDatabricksServerlessWorkspaceDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceDataSource{}
+func TestAccDatabricksWorkspaceServerlessDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccDatabricksServerlessWorkspaceDataSource_basic(t *testing.T) {
 	})
 }
 
-func TestAccDatabricksServerlessWorkspaceDataSource_enhancedComplianceSecurity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_databricks_serverless_workspace", "test")
-	r := DatabricksServerlessWorkspaceDataSource{}
+func TestAccDatabricksWorkspaceServerlessDataSource_enhancedComplianceSecurity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccDatabricksServerlessWorkspaceDataSource_enhancedComplianceSecurity(t
 	})
 }
 
-func (DatabricksServerlessWorkspaceDataSource) template(data acceptance.TestData) string {
+func (DatabricksWorkspaceServerlessDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -67,11 +67,11 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r DatabricksServerlessWorkspaceDataSource) basic(data acceptance.TestData) string {
+func (r DatabricksWorkspaceServerlessDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_databricks_serverless_workspace" "test" {
+resource "azurerm_databricks_workspace_serverless" "test" {
   name                = "acctest-dbsw-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -82,18 +82,18 @@ resource "azurerm_databricks_serverless_workspace" "test" {
   }
 }
 
-data "azurerm_databricks_serverless_workspace" "test" {
-  name                = azurerm_databricks_serverless_workspace.test.name
-  resource_group_name = azurerm_databricks_serverless_workspace.test.resource_group_name
+data "azurerm_databricks_workspace_serverless" "test" {
+  name                = azurerm_databricks_workspace_serverless.test.name
+  resource_group_name = azurerm_databricks_workspace_serverless.test.resource_group_name
 }
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DatabricksServerlessWorkspaceDataSource) enhancedSecurityCompliance(data acceptance.TestData) string {
+func (r DatabricksWorkspaceServerlessDataSource) enhancedSecurityCompliance(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_databricks_serverless_workspace" "test" {
+resource "azurerm_databricks_workspace_serverless" "test" {
   name                = "acctest-dbsw-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -106,9 +106,9 @@ resource "azurerm_databricks_serverless_workspace" "test" {
   }
 }
 
-data "azurerm_databricks_serverless_workspace" "test" {
-  name                = azurerm_databricks_serverless_workspace.test.name
-  resource_group_name = azurerm_databricks_serverless_workspace.test.resource_group_name
+data "azurerm_databricks_workspace_serverless" "test" {
+  name                = azurerm_databricks_workspace_serverless.test.name
+  resource_group_name = azurerm_databricks_workspace_serverless.test.resource_group_name
 }
 `, r.template(data), data.RandomInteger)
 }

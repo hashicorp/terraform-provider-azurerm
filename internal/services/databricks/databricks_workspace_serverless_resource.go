@@ -26,15 +26,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_serverless_workspace -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name databricks_workspace_serverless -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
-type DatabricksServerlessWorkspaceResource struct{}
+type DatabricksWorkspaceServerlessResource struct{}
 
-var _ sdk.ResourceWithCustomizeDiff = DatabricksServerlessWorkspaceResource{}
+var _ sdk.ResourceWithCustomizeDiff = DatabricksWorkspaceServerlessResource{}
 
-var _ sdk.ResourceWithIdentity = DatabricksServerlessWorkspaceResource{}
+var _ sdk.ResourceWithIdentity = DatabricksWorkspaceServerlessResource{}
 
-type DatabricksServerlessWorkspaceModel struct {
+type DatabricksWorkspaceServerlessModel struct {
 	Name                            string                            `tfschema:"name"`
 	ResourceGroupName               string                            `tfschema:"resource_group_name"`
 	Location                        string                            `tfschema:"location"`
@@ -54,7 +54,7 @@ type EnhancedSecurityComplianceModel struct {
 	EnhancedSecurityMonitoringEnabled  bool     `tfschema:"enhanced_security_monitoring_enabled"`
 }
 
-func (r DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
+func (r DatabricksWorkspaceServerlessResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -77,13 +77,13 @@ func (r DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      false,
-						AtLeastOneOf: r.databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint(),
+						AtLeastOneOf: r.databricksWorkspaceServerlessEnhancedSecurityComplianceConstraint(),
 					},
 					"compliance_security_profile_enabled": {
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      false,
-						AtLeastOneOf: r.databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint(),
+						AtLeastOneOf: r.databricksWorkspaceServerlessEnhancedSecurityComplianceConstraint(),
 					},
 					"compliance_security_profile_standards": {
 						Type:     pluginsdk.TypeSet,
@@ -99,7 +99,7 @@ func (r DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk
 						Type:         pluginsdk.TypeBool,
 						Optional:     true,
 						Default:      false,
-						AtLeastOneOf: r.databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint(),
+						AtLeastOneOf: r.databricksWorkspaceServerlessEnhancedSecurityComplianceConstraint(),
 					},
 				},
 			},
@@ -130,7 +130,7 @@ func (r DatabricksServerlessWorkspaceResource) Arguments() map[string]*pluginsdk
 	}
 }
 
-func (r DatabricksServerlessWorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
+func (r DatabricksWorkspaceServerlessResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"workspace_id": {
 			Type:     pluginsdk.TypeString,
@@ -144,15 +144,15 @@ func (r DatabricksServerlessWorkspaceResource) Attributes() map[string]*pluginsd
 	}
 }
 
-func (DatabricksServerlessWorkspaceResource) ModelObject() interface{} {
-	return &DatabricksServerlessWorkspaceResource{}
+func (DatabricksWorkspaceServerlessResource) ModelObject() interface{} {
+	return &DatabricksWorkspaceServerlessResource{}
 }
 
-func (DatabricksServerlessWorkspaceResource) ResourceType() string {
-	return "azurerm_databricks_serverless_workspace"
+func (DatabricksWorkspaceServerlessResource) ResourceType() string {
+	return "azurerm_databricks_workspace_serverless"
 }
 
-func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
+func (r DatabricksWorkspaceServerlessResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -163,7 +163,7 @@ func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
 			keyVaultClient := metadata.Client.KeyVault
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var config DatabricksServerlessWorkspaceModel
+			var config DatabricksWorkspaceServerlessModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -179,7 +179,7 @@ func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
 			}
 
 			location := location.Normalize(config.Location)
-			encryption, err := r.expandDatabricksServerlessWorkspaceEncryption(config, id, keyVaultClient, ctx)
+			encryption, err := r.expandDatabricksWorkspaceServerlessEncryption(config, id, keyVaultClient, ctx)
 			if err != nil {
 				return err
 			}
@@ -197,7 +197,7 @@ func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
 				Properties: workspaces.WorkspaceProperties{
 					ComputeMode:                workspaces.ComputeModeServerless,
 					Encryption:                 encryption,
-					EnhancedSecurityCompliance: r.expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance),
+					EnhancedSecurityCompliance: r.expandDatabricksWorkspaceServerlessEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance),
 					PublicNetworkAccess:        &publicNetworkAccess,
 				},
 				Tags: pointer.To(config.Tags),
@@ -217,7 +217,7 @@ func (r DatabricksServerlessWorkspaceResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
+func (r DatabricksWorkspaceServerlessResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -243,7 +243,7 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 
 			model := *existing.Model
 			props := model.Properties
-			var config DatabricksServerlessWorkspaceModel
+			var config DatabricksWorkspaceServerlessModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -264,7 +264,7 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChanges("managed_services_cmk_key_vault_id", "managed_services_cmk_key_vault_key_id") {
-				encryption, err := r.expandDatabricksServerlessWorkspaceEncryption(config, *id, keyVaultClient, ctx)
+				encryption, err := r.expandDatabricksWorkspaceServerlessEncryption(config, *id, keyVaultClient, ctx)
 				if err != nil {
 					return err
 				}
@@ -273,7 +273,7 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("enhanced_security_compliance") {
-				props.EnhancedSecurityCompliance = r.expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance)
+				props.EnhancedSecurityCompliance = r.expandDatabricksWorkspaceServerlessEnhancedSecurityComplianceDefinition(config.EnhancedSecurityCompliance)
 			}
 
 			model.Properties = props
@@ -291,7 +291,7 @@ func (r DatabricksServerlessWorkspaceResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
+func (r DatabricksWorkspaceServerlessResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -313,19 +313,19 @@ func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var config DatabricksServerlessWorkspaceModel
+			var config DatabricksWorkspaceServerlessModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			state := DatabricksServerlessWorkspaceModel{
+			state := DatabricksWorkspaceServerlessModel{
 				Name:              id.WorkspaceName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.EnhancedSecurityCompliance = r.flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
+				state.EnhancedSecurityCompliance = r.flattenDatabricksWorkspaceServerlessEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
 
 				if encryption := model.Properties.Encryption; encryption != nil {
 					if managedServices := encryption.Entities.ManagedServices; managedServices != nil {
@@ -367,7 +367,7 @@ func (r DatabricksServerlessWorkspaceResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (DatabricksServerlessWorkspaceResource) Delete() sdk.ResourceFunc {
+func (DatabricksWorkspaceServerlessResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -394,15 +394,15 @@ func (DatabricksServerlessWorkspaceResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (DatabricksServerlessWorkspaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (DatabricksWorkspaceServerlessResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workspaces.ValidateWorkspaceID
 }
 
-func (DatabricksServerlessWorkspaceResource) Identity() resourceids.ResourceId {
+func (DatabricksWorkspaceServerlessResource) Identity() resourceids.ResourceId {
 	return &workspaces.WorkspaceId{}
 }
 
-func (DatabricksServerlessWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
+func (DatabricksWorkspaceServerlessResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -436,7 +436,7 @@ func (DatabricksServerlessWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (DatabricksServerlessWorkspaceResource) expandDatabricksServerlessWorkspaceEncryption(input DatabricksServerlessWorkspaceModel, id workspaces.WorkspaceId, keyVaultClient *keyvault.Client, ctx context.Context) (*workspaces.WorkspacePropertiesEncryption, error) {
+func (DatabricksWorkspaceServerlessResource) expandDatabricksWorkspaceServerlessEncryption(input DatabricksWorkspaceServerlessModel, id workspaces.WorkspaceId, keyVaultClient *keyvault.Client, ctx context.Context) (*workspaces.WorkspacePropertiesEncryption, error) {
 	if input.ManagedServicesCmkKeyVaultKeyId == "" {
 		return nil, nil
 	}
@@ -482,7 +482,7 @@ func (DatabricksServerlessWorkspaceResource) expandDatabricksServerlessWorkspace
 	return encryption, nil
 }
 
-func (DatabricksServerlessWorkspaceResource) expandDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(input []EnhancedSecurityComplianceModel) *workspaces.EnhancedSecurityComplianceDefinition {
+func (DatabricksWorkspaceServerlessResource) expandDatabricksWorkspaceServerlessEnhancedSecurityComplianceDefinition(input []EnhancedSecurityComplianceModel) *workspaces.EnhancedSecurityComplianceDefinition {
 	if len(input) == 0 {
 		return nil
 	}
@@ -521,7 +521,7 @@ func (DatabricksServerlessWorkspaceResource) expandDatabricksServerlessWorkspace
 	}
 }
 
-func (DatabricksServerlessWorkspaceResource) flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(input *workspaces.EnhancedSecurityComplianceDefinition) []EnhancedSecurityComplianceModel {
+func (DatabricksWorkspaceServerlessResource) flattenDatabricksWorkspaceServerlessEnhancedSecurityComplianceDefinition(input *workspaces.EnhancedSecurityComplianceDefinition) []EnhancedSecurityComplianceModel {
 	if input == nil {
 		return []EnhancedSecurityComplianceModel{}
 	}
@@ -560,7 +560,7 @@ func (DatabricksServerlessWorkspaceResource) flattenDatabricksServerlessWorkspac
 	return enhancedSecurityCompliance
 }
 
-func (DatabricksServerlessWorkspaceResource) databricksServerlessWorkspaceEnhancedSecurityComplianceConstraint() []string {
+func (DatabricksWorkspaceServerlessResource) databricksWorkspaceServerlessEnhancedSecurityComplianceConstraint() []string {
 	return []string{
 		"enhanced_security_compliance.0.automatic_cluster_update_enabled",
 		"enhanced_security_compliance.0.compliance_security_profile_enabled",

@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type DatabricksServerlessWorkspaceDataSource struct{}
+type DatabricksWorkspaceServerlessDataSource struct{}
 
-var _ sdk.DataSource = DatabricksServerlessWorkspaceDataSource{}
+var _ sdk.DataSource = DatabricksWorkspaceServerlessDataSource{}
 
-type DatabricksServerlessWorkspaceDataSourceModel struct {
+type DatabricksWorkspaceServerlessDataSourceModel struct {
 	Name                       string                            `tfschema:"name"`
 	ResourceGroupName          string                            `tfschema:"resource_group_name"`
 	Location                   string                            `tfschema:"location"`
@@ -33,7 +33,7 @@ type DatabricksServerlessWorkspaceDataSourceModel struct {
 	Tags                       map[string]string                 `tfschema:"tags"`
 }
 
-func (DatabricksServerlessWorkspaceDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (DatabricksWorkspaceServerlessDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -45,7 +45,7 @@ func (DatabricksServerlessWorkspaceDataSource) Arguments() map[string]*pluginsdk
 	}
 }
 
-func (DatabricksServerlessWorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (DatabricksWorkspaceServerlessDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
@@ -91,15 +91,15 @@ func (DatabricksServerlessWorkspaceDataSource) Attributes() map[string]*pluginsd
 	}
 }
 
-func (DatabricksServerlessWorkspaceDataSource) ModelObject() interface{} {
+func (DatabricksWorkspaceServerlessDataSource) ModelObject() interface{} {
 	return nil
 }
 
-func (DatabricksServerlessWorkspaceDataSource) ResourceType() string {
-	return "azurerm_databricks_serverless_workspace"
+func (DatabricksWorkspaceServerlessDataSource) ResourceType() string {
+	return "azurerm_databricks_workspace_serverless"
 }
 
-func (DatabricksServerlessWorkspaceDataSource) Read() sdk.ResourceFunc {
+func (DatabricksWorkspaceServerlessDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -109,7 +109,7 @@ func (DatabricksServerlessWorkspaceDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.DataBricks.WorkspacesClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var state DatabricksServerlessWorkspaceDataSourceModel
+			var state DatabricksWorkspaceServerlessDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -128,7 +128,7 @@ func (DatabricksServerlessWorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-				state.EnhancedSecurityCompliance = DatabricksServerlessWorkspaceResource{}.flattenDatabricksServerlessWorkspaceEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
+				state.EnhancedSecurityCompliance = DatabricksWorkspaceServerlessResource{}.flattenDatabricksWorkspaceServerlessEnhancedSecurityComplianceDefinition(model.Properties.EnhancedSecurityCompliance)
 
 				if model.Properties.WorkspaceId != nil {
 					state.WorkspaceId = *model.Properties.WorkspaceId

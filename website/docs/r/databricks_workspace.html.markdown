@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_databricks_workspace
 
-Manages a Databricks Workspace with `hybrid` `compute_mode`. To create Databricks Workspace with `serverless` `compute_mode`, please use `azurerm_databricks_serverless_workspace` instead.
+Manages a Databricks Workspace with `hybrid` `compute_mode`. To create Databricks Workspace with `serverless` `compute_mode`, please use `azurerm_databricks_workspace_serverless` instead.
 
 ## Example Usage
 
