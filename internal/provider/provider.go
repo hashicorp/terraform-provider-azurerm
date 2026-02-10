@@ -338,14 +338,9 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 
 			// Advanced feature flags
 			"resource_provider_registrations": {
-				Type:     schema.TypeString,
-				Optional: true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", func() string {
-					if features.FivePointOh() {
-						return resourceproviders.ProviderRegistrationsNone
-					}
-					return resourceproviders.ProviderRegistrationsLegacy
-				}()),
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone),
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
 					resourceproviders.ProviderRegistrationsCore,
@@ -388,6 +383,10 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	}
 
 	p.ConfigureContextFunc = providerConfigure(p)
+
+	if !features.FivePointOh() {
+		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
+	}
 
 	return p
 }
