@@ -93,19 +93,25 @@ func (r MssqlElasticPoolListResource) List(ctx context.Context, request list.Lis
 			// Set the ID of the resource for the ResourceData object
 			id, err := commonids.ParseSqlElasticPoolID(pointer.From(elasticPool.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mssql ElasticPool ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql ElasticPool ID", err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceMssqlElasticPoolSetFlatten(rd, id, &elasticPool); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_elasticpool`), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_elasticpool`), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+			if !push(result) {
+				return
+			}
 		}
-		return
 	}
 }

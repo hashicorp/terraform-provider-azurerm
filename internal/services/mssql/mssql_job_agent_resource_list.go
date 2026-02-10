@@ -90,18 +90,25 @@ func (r MssqlJobAgentListResource) List(ctx context.Context, request list.ListRe
 
 			id, err := jobagents.ParseJobAgentID(pointer.From(jobagent.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mssql JobAgent ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql JobAgent ID", err)
 				return
 			}
 
 			rd.SetId(id.ID())
 
 			if err := resourceMssqlJobAgentSetFlatten(rd, id, &jobagent); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_mssql_job_agent"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_mssql_job_agent"), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+			if !push(result) {
+				return
+			}
 		}
 	}
 }

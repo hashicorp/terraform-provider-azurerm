@@ -83,18 +83,18 @@ func (r MssqlVirtualMachineListResource) List(ctx context.Context, request list.
 			// Set the ID of the resource for the ResourceData object
 			id, err := sqlvirtualmachines.ParseSqlVirtualMachineID(pointer.From(virtualMachine.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mssql virtual machine ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql virtual machine ID", err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceMssqlVirtualMachineSetFlatten(rd, id, &virtualMachine); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_virtual_machine`), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_virtual_machine`), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
 		}
 		return
 	}
