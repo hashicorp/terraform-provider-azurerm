@@ -43,23 +43,6 @@ func TestAccMssqlServer_listBySubscription(t *testing.T) {
 					),
 				},
 			},
-		},
-	})
-}
-
-func TestAccMssqlServer_listByResourceGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "testlist")
-	r := MssqlServerResource{}
-
-	resource.Test(t, resource.TestCase{
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_14_0),
-		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		Steps: []resource.TestStep{
-			{
-				Config: r.basicList(data),
-			},
 			{
 				Query:  true,
 				Config: r.basicQueryByResourceGroupName(data),
