@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_application_gateway` - add support for `MS-ThreatIntel-XSS` to `waf_configuration.disabled_rule_group.rule_group_name` [GH-31674]
 
 FEATURES:
+* **New Resource**: `azurerm_api_management_workspace_named_value` [GH-31299]
 * **New Data Source**: `azurerm_cognitive_account_project` [GH-31605]
 * **New Data Source**: `azurerm_oracle_database_system_versions` [GH-31001]
 
