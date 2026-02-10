@@ -86,8 +86,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-name     = "acctestRG-mssql-%[1]d"
-location = "%[2]s"
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "test2" {
