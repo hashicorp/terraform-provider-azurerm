@@ -437,12 +437,21 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				d.Set("public_ip_prefix_id", publicIpPrefix.Id)
 			}
 
+			fqdn := ""
+			reverseFqdn := ""
+			domainNameLabel := ""
+			domainNameLabelScope := ""
 			if settings := props.DnsSettings; settings != nil {
-				d.Set("fqdn", settings.Fqdn)
-				d.Set("reverse_fqdn", settings.ReverseFqdn)
-				d.Set("domain_name_label", settings.DomainNameLabel)
-				d.Set("domain_name_label_scope", string(pointer.From(settings.DomainNameLabelScope)))
+				fqdn = pointer.From(settings.Fqdn)
+				reverseFqdn = pointer.From(settings.ReverseFqdn)
+				domainNameLabel = pointer.From(settings.DomainNameLabel)
+				domainNameLabelScope = pointer.FromEnum(settings.DomainNameLabelScope)
 			}
+
+			d.Set("fqdn", fqdn)
+			d.Set("reverse_fqdn", reverseFqdn)
+			d.Set("domain_name_label", domainNameLabel)
+			d.Set("domain_name_label_scope", domainNameLabelScope)
 
 			ddosProtectionMode := string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited)
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {
