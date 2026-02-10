@@ -121,7 +121,8 @@ func (r CosmosDbFleetResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_cosmosdb_fleet" "test" {
-  name                = "acctest-cosfleets-%d"
+  # name                = "acctest-cosfleets-%d"
+  name                = "acctest-te*"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }

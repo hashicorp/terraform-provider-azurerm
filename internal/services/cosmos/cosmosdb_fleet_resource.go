@@ -6,7 +6,6 @@ package cosmos
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,8 +17,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-10-15/fleets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_fleet -service-package-name cosmos -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
@@ -38,13 +37,10 @@ type CosmosDbFleetModel struct {
 func (CosmosDbFleetResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile("^(?=.{3,50}$)[a-z0-9]+(?:-[a-z0-9]+)*$"),
-				"CosmosDB Fleet name must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.FleetName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
