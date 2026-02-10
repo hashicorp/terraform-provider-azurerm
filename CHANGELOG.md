@@ -10,6 +10,7 @@ ENHANCEMENTS:
 * `azurerm_web_application_firewall_policy` - add support for `MS-ThreatIntel-XSS` to  `managed_rules.managed_rule_set.rule_group_override.rule_group_name` and `managed_rules.exclusion.excluded_rule_set.rule_group.rule_group_name` [GH-31674]
 * `azurerm_application_gateway` - add support for `2.2` to `waf_configuration.rule_set_version` [GH-31674]
 * `azurerm_application_gateway` - add support for `MS-ThreatIntel-XSS` to `waf_configuration.disabled_rule_group.rule_group_name` [GH-31674]
+* `azurerm_express_route_port` - add support for `GcmAesXpn128` and `GcmAesXpn256` ciphers to `link*.macsec_cipher` [GH-30240]
 
 FEATURES:
 * **New Resource**: `azurerm_api_management_workspace_named_value` [GH-31299]
@@ -17,6 +18,7 @@ FEATURES:
 * **New Data Source**: `azurerm_oracle_database_system_versions` [GH-31001]
 
 BUG FIXES:
+* `azurerm_express_route_port` - fix an issue that caused `identity` to be removed when updating unrelated properties [GH-30240]
 * `azurerm_federated_identity_credential` - the `id` is now built using the resource group name segment from the `parent_id` preventing unexpected 404 statuses [GH-30860]
 * `azurerm_monitor_aad_diagnostic_setting` - add polling as a workaround to an eventual consistency issue [GH-31123]
 
