@@ -79,10 +79,10 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-A Deployment Safeguard for a Kubernetes Cluster can be imported using the Kubernetes Cluster `resource id`, e.g.
+Deployment Safeguards can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kubernetes_cluster_deployment_safeguard.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1
+terraform import azurerm_kubernetes_cluster_deployment_safeguard.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1
 ```
 
 ## API Providers

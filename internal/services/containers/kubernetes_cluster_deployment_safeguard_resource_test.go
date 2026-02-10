@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -19,7 +18,7 @@ import (
 
 type KubernetesClusterDeploymentSafeguardResource struct{}
 
-func TestAccKubernetesClusterDeploymentSafeguards_basic(t *testing.T) {
+func TestAccKubernetesClusterDeploymentSafeguard_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_deployment_safeguard", "test")
 	r := KubernetesClusterDeploymentSafeguardResource{}
 
@@ -34,7 +33,7 @@ func TestAccKubernetesClusterDeploymentSafeguards_basic(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterDeploymentSafeguards_requiresImport(t *testing.T) {
+func TestAccKubernetesClusterDeploymentSafeguard_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_deployment_safeguard", "test")
 	r := KubernetesClusterDeploymentSafeguardResource{}
 
@@ -49,7 +48,7 @@ func TestAccKubernetesClusterDeploymentSafeguards_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterDeploymentSafeguards_complete(t *testing.T) {
+func TestAccKubernetesClusterDeploymentSafeguard_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_deployment_safeguard", "test")
 	r := KubernetesClusterDeploymentSafeguardResource{}
 
@@ -64,7 +63,7 @@ func TestAccKubernetesClusterDeploymentSafeguards_complete(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterDeploymentSafeguards_update(t *testing.T) {
+func TestAccKubernetesClusterDeploymentSafeguard_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_deployment_safeguard", "test")
 	r := KubernetesClusterDeploymentSafeguardResource{}
 
@@ -103,10 +102,7 @@ func (r KubernetesClusterDeploymentSafeguardResource) Exists(ctx context.Context
 
 	resp, err := clients.Containers.DeploymentSafeguardsClient.Get(ctx, scopeId)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("reading Deployment Safeguards for %s: %+v", kubernetesClusterId, err)
+		return nil, fmt.Errorf("retrieving Deployment Safeguards for %s: %+v", kubernetesClusterId, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
@@ -114,6 +110,10 @@ func (r KubernetesClusterDeploymentSafeguardResource) Exists(ctx context.Context
 
 func (r KubernetesClusterDeploymentSafeguardResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_kubernetes_cluster_deployment_safeguard" "test" {
@@ -136,6 +136,10 @@ resource "azurerm_kubernetes_cluster_deployment_safeguard" "import" {
 
 func (r KubernetesClusterDeploymentSafeguardResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_kubernetes_cluster_deployment_safeguard" "test" {
@@ -149,10 +153,6 @@ resource "azurerm_kubernetes_cluster_deployment_safeguard" "test" {
 
 func (r KubernetesClusterDeploymentSafeguardResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestrg-%[2]d"
   location = "%[1]s"
