@@ -146,12 +146,12 @@ list "azurerm_mssql_server" "list" {
 }
 
 func (r MssqlServerResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
-	return `
+	return fmt.Sprintf(`
 list "azurerm_mssql_server" "list" {
   provider = azurerm
   config {
-    resource_group_name = "{azurerm_resource_group.test.id}"
+	resource_group_name = "acctestRG-mssql-%d"
   }
 }
-`
+`, data.RandomInteger)
 }

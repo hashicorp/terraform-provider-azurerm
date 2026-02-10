@@ -81,18 +81,18 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 			// Set the ID of the resource for the ResourceData object
 			id, err := commonids.ParseSqlServerID(pointer.From(server.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Mssql Server ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql Server ID", err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceMssqlServerSetFlatten(rd, id, &server, metadata.Client); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_server`), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_server`), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
 		}
 	}
 }
