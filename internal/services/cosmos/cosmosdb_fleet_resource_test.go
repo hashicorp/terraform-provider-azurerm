@@ -15,11 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CosmosDbFleetsResource struct{}
+type CosmosDbFleetResource struct{}
 
-func TestAccCosmosDbFleets_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleets", "test")
-	r := CosmosDbFleetsResource{}
+func TestAccCosmosDbFleet_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
+	r := CosmosDbFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,9 +32,9 @@ func TestAccCosmosDbFleets_basic(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbFleets_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleets", "test")
-	r := CosmosDbFleetsResource{}
+func TestAccCosmosDbFleet_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
+	r := CosmosDbFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -47,9 +47,9 @@ func TestAccCosmosDbFleets_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbFleets_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleets", "test")
-	r := CosmosDbFleetsResource{}
+func TestAccCosmosDbFleet_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
+	r := CosmosDbFleetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -62,9 +62,9 @@ func TestAccCosmosDbFleets_complete(t *testing.T) {
 	})
 }
 
-func TestAccCosmosDbFleets_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleets", "test")
-	r := CosmosDbFleetsResource{}
+func TestAccCosmosDbFleet_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_fleet", "test")
+	r := CosmosDbFleetResource{}
 
 	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
@@ -89,7 +89,7 @@ func TestAccCosmosDbFleets_update(t *testing.T) {
 	})
 }
 
-func (CosmosDbFleetsResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (CosmosDbFleetResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -103,7 +103,7 @@ func (CosmosDbFleetsResource) Exists(ctx context.Context, client *clients.Client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (CosmosDbFleetsResource) template(data acceptance.TestData) string {
+func (CosmosDbFleetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -116,11 +116,11 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r CosmosDbFleetsResource) basic(data acceptance.TestData) string {
+func (r CosmosDbFleetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cosmosdb_fleets" "test" {
+resource "azurerm_cosmosdb_fleet" "test" {
   name                = "acctest-cosfleets-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -128,23 +128,23 @@ resource "azurerm_cosmosdb_fleets" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CosmosDbFleetsResource) requiresImport(data acceptance.TestData) string {
+func (r CosmosDbFleetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cosmosdb_fleets" "import" {
-  name                = azurerm_cosmosdb_fleets.test.name
-  resource_group_name = azurerm_cosmosdb_fleets.test.resource_group_name
-  location            = azurerm_cosmosdb_fleets.test.location
+resource "azurerm_cosmosdb_fleet" "import" {
+  name                = azurerm_cosmosdb_fleet.test.name
+  resource_group_name = azurerm_cosmosdb_fleet.test.resource_group_name
+  location            = azurerm_cosmosdb_fleet.test.location
 }
 `, r.basic(data))
 }
 
-func (r CosmosDbFleetsResource) complete(data acceptance.TestData) string {
+func (r CosmosDbFleetResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_cosmosdb_fleets" "test" {
+resource "azurerm_cosmosdb_fleet" "test" {
   name                = "acctest-cosfleets-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

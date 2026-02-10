@@ -6,6 +6,7 @@ package cosmos
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -21,26 +22,29 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_fleets -service-package-name cosmos -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cosmosdb_fleet -service-package-name cosmos -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
-type CosmosDbFleetsResource struct{}
+type CosmosDbFleetResource struct{}
 
-var _ sdk.ResourceWithIdentity = CosmosDbFleetsResource{}
+var _ sdk.ResourceWithIdentity = CosmosDbFleetResource{}
 
-type CosmosDbFleetsModel struct {
+type CosmosDbFleetModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
 	Tags              map[string]string `tfschema:"tags"`
 }
 
-func (CosmosDbFleetsResource) Arguments() map[string]*pluginsdk.Schema {
+func (CosmosDbFleetResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^(?=.{3,50}$)[a-z0-9]+(?:-[a-z0-9]+)*$"),
+				"CosmosDB Fleet name must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -60,26 +64,26 @@ func (CosmosDbFleetsResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (CosmosDbFleetsResource) Attributes() map[string]*pluginsdk.Schema {
+func (CosmosDbFleetResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (CosmosDbFleetsResource) ModelObject() interface{} {
-	return &CosmosDbFleetsResource{}
+func (CosmosDbFleetResource) ModelObject() interface{} {
+	return &CosmosDbFleetResource{}
 }
 
-func (CosmosDbFleetsResource) ResourceType() string {
-	return "azurerm_cosmosdb_fleets"
+func (CosmosDbFleetResource) ResourceType() string {
+	return "azurerm_cosmosdb_fleet"
 }
 
-func (r CosmosDbFleetsResource) Create() sdk.ResourceFunc {
+func (r CosmosDbFleetResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cosmos.FleetsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var config CosmosDbFleetsModel
+			var config CosmosDbFleetModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -111,7 +115,7 @@ func (r CosmosDbFleetsResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r CosmosDbFleetsResource) Read() sdk.ResourceFunc {
+func (r CosmosDbFleetResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -130,7 +134,7 @@ func (r CosmosDbFleetsResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := CosmosDbFleetsModel{
+			state := CosmosDbFleetModel{
 				Name:              id.FleetName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -149,7 +153,7 @@ func (r CosmosDbFleetsResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (CosmosDbFleetsResource) Delete() sdk.ResourceFunc {
+func (CosmosDbFleetResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -168,10 +172,10 @@ func (CosmosDbFleetsResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (CosmosDbFleetsResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (CosmosDbFleetResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return fleets.ValidateFleetID
 }
 
-func (CosmosDbFleetsResource) Identity() resourceids.ResourceId {
+func (CosmosDbFleetResource) Identity() resourceids.ResourceId {
 	return &fleets.FleetId{}
 }
