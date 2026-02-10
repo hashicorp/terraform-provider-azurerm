@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `features` - (Required) A `features` block as defined below which can be used to customize the behaviour of certain Azure Provider resources.
 
-* `subscription_id` - (Required) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable.
+* `subscription_id` - (Optional) The Subscription ID which should be used. This can also be sourced from the `ARM_SUBSCRIPTION_ID` Environment Variable or the `az` CLI (the default subscription will be selected).
 
 -> **Note:** The `subscription_id` property is required when performing a plan or apply operation, but is not required to run `terraform validate`.
 
