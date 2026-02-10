@@ -45,7 +45,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
+			Config: r.imagesDisableAutomaticUpdate(data, "ubuntu-24_04-lts", "24_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
