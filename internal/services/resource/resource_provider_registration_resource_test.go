@@ -104,6 +104,7 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			Destroy: false,
 		},
 		data.ImportStep(),
 	})
@@ -217,13 +218,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.HealthDataAIServices"
+  name = "Microsoft.DevCenter"
   feature {
-    name       = "betaAccess"
+    name       = "ServerlessGpuPreview"
     registered = %t
   }
   feature {
-    name       = "cny001wus2"
+    name       = "DevTunnelsPreview"
     registered = %t
   }
 }
