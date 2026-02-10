@@ -128,6 +128,13 @@ func TestAccApiManagementWorkspaceNamedValue_keyVaultUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep("value"),
+		{
+			Config: r.keyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
