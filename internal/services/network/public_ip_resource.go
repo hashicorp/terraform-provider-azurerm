@@ -139,7 +139,6 @@ func resourcePublicIp() *pluginsdk.Resource {
 			"domain_name_label_scope": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				RequiredWith: []string{"domain_name_label"},
 				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForPublicIPAddressDnsSettingsDomainNameLabelScope(), false),
 			},
 
@@ -149,9 +148,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 			},
 
 			"reverse_fqdn": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				RequiredWith: []string{"domain_name_label"},
+				Type:     pluginsdk.TypeString,
+				Optional: true,
 			},
 
 			"ip_address": {
