@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccMssqlServer_listBySubscription(t *testing.T) {
+func TestAccMssqlServer_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "testlist1")
 	r := MssqlServerResource{}
 
