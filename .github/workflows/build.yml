@@ -15,10 +15,21 @@ name: build
 #
 #   https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onpushbranchestagsbranches-ignoretags-ignore
 #
-on: [workflow_dispatch, push]
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '**.yaml'
+      - '**.yml'
 
 env:
   PKG_NAME: "terraform-provider-azurerm"
+
+concurrency:
+  # Some events do not have a `head_ref`. Fall back to `run_id`.
+  # Reference: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#example-using-a-fallback-value-1
+  group: '${{ github.workflow }}-${{ github.head_ref || github.run_id }}'
+  cancel-in-progress: true
 
 jobs:
   # Detects the Go toolchain version to use for product builds.
