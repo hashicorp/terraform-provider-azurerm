@@ -17,15 +17,15 @@ type ServicePlanResourceList struct{}
 
 var _ sdk.FrameworkListWrappedResource = new(ServicePlanResourceList)
 
-func (s *ServicePlanResourceList) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+func (ServicePlanResourceList) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = ServicePlanResource{}.ResourceType()
 }
 
-func (s *ServicePlanResourceList) ResourceFunc() *pluginsdk.Resource {
+func (ServicePlanResourceList) ResourceFunc() *pluginsdk.Resource {
 	return sdk.WrappedResource(ServicePlanResource{})
 }
 
-func (s *ServicePlanResourceList) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
+func (ServicePlanResourceList) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.AppService.ServicePlanClient
 
 	var data sdk.DefaultListModel
@@ -42,12 +42,13 @@ func (s *ServicePlanResourceList) List(ctx context.Context, request list.ListReq
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
+	r := ServicePlanResource{}
+
 	switch {
 	case !data.ResourceGroupName.IsNull():
-		resourceGroupId := commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString())
-		resp, err := client.ListByResourceGroupComplete(ctx, resourceGroupId)
+		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "listing `azurerm_app_service_plan`", err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", r.ResourceType()), err)
 			return
 		}
 
@@ -55,7 +56,7 @@ func (s *ServicePlanResourceList) List(ctx context.Context, request list.ListReq
 	default:
 		resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID), appserviceplans.DefaultListOperationOptions())
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, "listing `azurerm_app_service_plan`", err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", r.ResourceType()), err)
 			return
 		}
 
@@ -74,9 +75,10 @@ func (s *ServicePlanResourceList) List(ctx context.Context, request list.ListReq
 				return
 			}
 
-			meta := sdk.NewResourceMetaData(metadata.Client, ServicePlanResource{})
+			meta := sdk.NewResourceMetaData(metadata.Client, r)
 			meta.SetID(id)
-			if err := resourceServicePlanFlatten(meta, id, &plan); err != nil {
+
+			if err := r.flatten(meta, id, &plan); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(plan.Name)), err)
 				return
 			}
