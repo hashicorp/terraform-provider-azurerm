@@ -10,7 +10,7 @@ description: |-
 
 Manages a Trusted Signing Account (Artifact Signing Account).
 
-~> **Note:** The resource provider is named [Artifact Signing](https://learn.microsoft.com/en-us/azure/artifact-signing/overview).
+~> **Note:** The resource provider is also named [Artifact Signing](https://learn.microsoft.com/en-us/azure/artifact-signing/overview).
 
 ## Example Usage
 
