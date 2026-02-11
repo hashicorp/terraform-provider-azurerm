@@ -16,7 +16,7 @@ func TestAccServicePlan_list_basic(t *testing.T) {
 	r := ServicePlanResource{}
 	listResourceAddress := "azurerm_service_plan.list"
 
-	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -56,24 +56,10 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_service_plan" "test1" {
-  name                = "acctest-1-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "B1"
-  os_type             = "Windows"
-}
+resource "azurerm_service_plan" "test" {
+  count = 3
 
-resource "azurerm_service_plan" "test2" {
-  name                = "acctest-2-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "B1"
-  os_type             = "Windows"
-}
-
-resource "azurerm_service_plan" "test3" {
-  name                = "acctest-3-%[1]d"
+  name                = "acctest-${count.index}-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "B1"
