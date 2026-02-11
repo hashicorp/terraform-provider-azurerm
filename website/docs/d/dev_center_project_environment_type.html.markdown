@@ -41,11 +41,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `deployment_target_id` - The ID of the subscription that the Environment Type is mapped to.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `creator_role_assignment_roles` - A list of roles assigned to the environment creator.
 
-* `user_role_assignment` - A `user_role_assignment` block as defined below.
+* `user_role_assignment` - A list of `user_role_assignment` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the Dev Center Project Environment Type.
 

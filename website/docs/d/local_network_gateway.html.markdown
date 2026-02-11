@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `address_space` - The list of string CIDRs representing the address spaces the gateway exposes.
 
-* `bgp_settings` - A `bgp_settings` block as defined below containing the Local Network Gateway's BGP speaker settings.
+* `bgp_settings` - A list of `bgp_settings` blocks as defined below containing the Local Network Gateway's BGP speaker settings.
 
 * `gateway_address` - The gateway IP address the Local Network Gateway uses.
 

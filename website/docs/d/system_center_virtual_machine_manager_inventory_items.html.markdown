@@ -29,7 +29,7 @@ data "azurerm_system_center_virtual_machine_manager_inventory_items" "example" {
 
 * `id` - The ID of the System Center Virtual Machine Manager Inventory Items.
 
-* `inventory_items` - One or more `inventory_items` blocks as defined below.
+* `inventory_items` - A list of `inventory_items` blocks as defined below.
 
 ---
 

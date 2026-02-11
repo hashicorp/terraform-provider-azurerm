@@ -40,13 +40,13 @@ output "databricks_workspace_id" {
 
 * `workspace_url` - URL this Databricks Workspace is accessible on.
 
-* `managed_disk_identity` - A `managed_disk_identity` block as documented below.
+* `managed_disk_identity` - A list of `managed_disk_identity` blocks as defined below.
 
-* `storage_account_identity` - A `storage_account_identity` block as documented below.
+* `storage_account_identity` - A list of `storage_account_identity` blocks as defined below.
 
-* `enhanced_security_compliance` - An `enhanced_security_compliance` block as documented below.
+* `enhanced_security_compliance` - A list of `enhanced_security_compliance` blocks as defined below.
 
-* `custom_parameters` - A `custom_parameters` block as documented below.
+* `custom_parameters` - A list of `custom_parameters` blocks as defined below.
 * 
 * `tags` - A mapping of tags to assign to the Databricks Workspace.
 

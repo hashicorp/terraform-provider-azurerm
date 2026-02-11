@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Databox Edge Device.
 
-* `device_properties` - A `device_properties` block as defined below.
+* `device_properties` - A list of `device_properties` blocks as defined below.
 
 ---
 

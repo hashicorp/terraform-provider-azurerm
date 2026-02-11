@@ -34,13 +34,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Azure SQL Managed Database ID.
 
-* `long_term_retention_policy` - A `long_term_retention_policy` block as defined below.
+* `long_term_retention_policy` - A list of `long_term_retention_policy` blocks as defined below.
 
 * `resource_group_name` - The name of the Resource Group where the Azure SQL Azure Managed Instance exists.
 
 * `managed_instance_name` - The name of the Managed Instance.
 
-* `point_in_time_restore` - A `point_in_time_restore` block as defined below.
+* `point_in_time_restore` - A list of `point_in_time_restore` blocks as defined below.
 
 * `short_term_retention_days` -  The backup retention period in days. This is how many days Point-in-Time Restore will be supported.
 

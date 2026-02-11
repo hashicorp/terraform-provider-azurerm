@@ -38,13 +38,13 @@ The following attributes are exported:
 
 * `api_server_authorized_ip_ranges` - The IP ranges to whitelist for incoming traffic to the primaries.
 
-* `aci_connector_linux` - An `aci_connector_linux` block as documented below.
+* `aci_connector_linux` - A list of `aci_connector_linux` blocks as defined below.
 
-* `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
+* `azure_active_directory_role_based_access_control` - A list of `azure_active_directory_role_based_access_control` blocks as defined below.
 
 * `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
 
-* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
+* `agent_pool_profile` - A list of `agent_pool_profile` blocks as defined below.
 
 * `current_kubernetes_version` - Contains the current version of Kubernetes running on the Cluster.
 
@@ -56,21 +56,21 @@ The following attributes are exported:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
 
-* `ingress_application_gateway` - An `ingress_application_gateway` block as documented below.
+* `ingress_application_gateway` - A list of `ingress_application_gateway` blocks as defined below.
 
-* `key_management_service` - A `key_management_service` block as documented below.
+* `key_management_service` - A list of `key_management_service` blocks as defined below.
 
-* `key_vault_secrets_provider` - A `key_vault_secrets_provider` block as documented below.
+* `key_vault_secrets_provider` - A list of `key_vault_secrets_provider` blocks as defined below.
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
 -> **Note:** At this time Private Link is in Public Preview.
 
-* `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are not disabled.
+* `kube_admin_config` - A list of `kube_admin_config` blocks as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are not disabled.
 
 * `kube_admin_config_raw` - Raw Kubernetes config for the admin account to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are not disabled.
 
-* `kube_config` - A `kube_config` block as defined below.
+* `kube_config` - A list of `kube_config` blocks as defined below.
 
 * `kube_config_raw` - Base64 encoded Kubernetes configuration.
 
@@ -80,23 +80,23 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the managed Kubernetes Cluster exists.
 
-* `microsoft_defender` - A `microsoft_defender` block as defined below.
+* `microsoft_defender` - A list of `microsoft_defender` blocks as defined below.
 
 * `oidc_issuer_enabled` - Whether or not the OIDC feature is enabled or disabled.
 
 * `oidc_issuer_url` - The OIDC issuer URL that is associated with the cluster.
 
-* `oms_agent` - An `oms_agent` block as documented below.
+* `oms_agent` - A list of `oms_agent` blocks as defined below.
 
 * `open_service_mesh_enabled` - Is Open Service Mesh enabled for this managed Kubernetes Cluster?
 
 * `disk_encryption_set_id` - The ID of the Disk Encryption Set used for the Nodes and Volumes.
 
-* `linux_profile` - A `linux_profile` block as documented below.
+* `linux_profile` - A list of `linux_profile` blocks as defined below.
 
-* `windows_profile` - A `windows_profile` block as documented below.
+* `windows_profile` - A list of `windows_profile` blocks as defined below.
 
-* `network_profile` - A `network_profile` block as documented below.
+* `network_profile` - A list of `network_profile` blocks as defined below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
@@ -104,13 +104,13 @@ The following attributes are exported:
 
 * `role_based_access_control_enabled` - Is Role Based Access Control enabled for this managed Kubernetes Cluster?
 
-* `service_principal` - A `service_principal` block as documented below.
+* `service_principal` - A list of `service_principal` blocks as defined below.
 
-* `storage_profile` - A `storage_profile` block as documented below.
+* `storage_profile` - A list of `storage_profile` blocks as defined below.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - A list of `identity` blocks as defined below.
 
-* `kubelet_identity` - A `kubelet_identity` block as documented below.
+* `kubelet_identity` - A list of `kubelet_identity` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to this resource.
 
@@ -152,7 +152,7 @@ An `agent_pool_profile` block exports the following:
 
 * `orchestrator_version` - Kubernetes version used for the Agents.
 
-* `upgrade_settings` - A `upgrade_settings` block as documented below.
+* `upgrade_settings` - An `upgrade_settings` block as defined below.
 
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
@@ -198,7 +198,7 @@ A `key_vault_secrets_provider` block exports the following:
 
 * `secret_rotation_interval` - The interval to poll for secret rotation.
 
-* `secret_identity` - A `secret_identity` block as documented below.
+* `secret_identity` - A `secret_identity` block as defined below.
 
 ---
 
@@ -235,7 +235,7 @@ A `linux_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the managed Kubernetes Cluster.
 
-* `ssh_key` - An `ssh_key` block as defined below.
+* `ssh_key` - A `ssh_key` block as defined below.
 
 ---
 
@@ -380,7 +380,7 @@ A `service_mesh_profile` block exports the following:
 
 * `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
 
-* `certificate_authority` - A `certificate_authority` block as documented below.
+* `certificate_authority` - A `certificate_authority` block as defined below.
 
 ---
 

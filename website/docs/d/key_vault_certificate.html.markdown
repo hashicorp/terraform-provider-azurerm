@@ -65,7 +65,7 @@ The following attributes are exported:
 
 * `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 
-* `certificate_policy` - A `certificate_policy` block as defined below.
+* `certificate_policy` - A list of `certificate_policy` blocks as defined below.
 
 * `expires` - Expiry date of certificate in RFC3339 format.
 
@@ -81,11 +81,11 @@ The following attributes are exported:
 
 `certificate_policy` exports the following:
 
-* `issuer_parameters` - A `issuer_parameters` block as defined below.
+* `issuer_parameters` - An `issuer_parameters` block as defined below.
 * `key_properties` - A `key_properties` block as defined below.
 * `lifetime_action` - A `lifetime_action` block as defined below.
 * `secret_properties` - A `secret_properties` block as defined below.
-* `x509_certificate_properties` - An `x509_certificate_properties` block as defined below.
+* `x509_certificate_properties` - A `x509_certificate_properties` block as defined below.
 
 ---
 
@@ -106,7 +106,7 @@ The following attributes are exported:
 
 `lifetime_action` exports the following:
 
-* `action` - A `action` block as defined below.
+* `action` - An `action` block as defined below.
 * `trigger` - A `trigger` block as defined below.
 
 ---

@@ -44,7 +44,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `secondary_key` - The Secondary Key used for Search Service Administration.
 
-* `query_keys` - A `query_keys` block as defined below.
+* `query_keys` - A list of `query_keys` blocks as defined below.
 
 * `public_network_access_enabled` - Whether or not public network access is enabled for this resource.
 
@@ -54,7 +54,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the resource.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 ---
 

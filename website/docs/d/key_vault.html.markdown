@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `sku_name` - The Name of the SKU used for this Key Vault.
 
-* `access_policy` - One or more `access_policy` blocks as defined below.
+* `access_policy` - A list of `access_policy` blocks as defined below.
 
 * `enabled_for_deployment` - Can Azure Virtual Machines retrieve certificates stored as secrets from the Key Vault?
 

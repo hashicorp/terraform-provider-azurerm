@@ -46,7 +46,7 @@ The following attributes are exported:
 
 * `internet_security_enabled` - Whether Internet Security is enabled to secure internet traffic on this connection
 
-* `routing` - A `routing` block as defined below.
+* `routing` - A list of `routing` blocks as defined below.
 
 ---
 

@@ -39,11 +39,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `app_settings` - A map of key-value pairs of App Settings.
 
-* `auth_settings` - A `auth_settings` block as defined below.
+* `auth_settings` - A list of `auth_settings` blocks as defined below.
 
-* `auth_settings_v2` - An `auth_settings_v2` block as defined below.
+* `auth_settings_v2` - A list of `auth_settings_v2` blocks as defined below.
 
-* `backup` - A `backup` block as defined below.
+* `backup` - A list of `backup` blocks as defined below.
 
 * `client_affinity_enabled` - Is Client Affinity enabled?
 
@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
-* `connection_string` - A `connection_string` block as defined below.
+* `connection_string` - A list of `connection_string` blocks as defined below.
 
 * `custom_domain_verification_id` - The identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
@@ -67,13 +67,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `https_only` - Does the Windows Web App require HTTPS connections.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `kind` - The string representation of the Windows Web App Kind.
 
 * `location` - The Azure Region where the Windows Web App exists.
 
-* `logs` - A `logs` block as defined below.
+* `logs` - A list of `logs` blocks as defined below.
 
 * `outbound_ip_address_list` - The list of Outbound IP Addresses for this Windows Web App.
 
@@ -87,13 +87,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `service_plan_id` - The ID of the Service Plan in which this Windows Web App resides.
 
-* `site_config` - A `site_config` block as defined below.
+* `site_config` - A list of `site_config` blocks as defined below.
 
-* `site_credential` - A `site_credential` block as defined below.
+* `site_credential` - A list of `site_credential` blocks as defined below.
 
-* `sticky_settings` - A `sticky_settings` block as defined below.
+* `sticky_settings` - A list of `sticky_settings` blocks as defined below.
 
-* `storage_account` - A `storage_account` block as defined below.
+* `storage_account` - A list of `storage_account` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the Windows Web App.
 
@@ -163,11 +163,11 @@ An `application_stack` block exports the following:
 
 A `auth_settings` block exports the following:
 
-* `active_directory` - A `active_directory` block as defined above.
+* `active_directory` - An `active_directory` block as defined above.
 
-* `additional_login_parameters` - A `additional_login_parameters` block as defined above.
+* `additional_login_parameters` - An `additional_login_parameters` block as defined above.
 
-* `allowed_external_redirect_urls` - A `allowed_external_redirect_urls` block as defined above.
+* `allowed_external_redirect_urls` - An `allowed_external_redirect_urls` block as defined above.
 
 * `default_provider` - The default authentication provider in use when multiple providers are configured.
 
@@ -395,7 +395,7 @@ A `login` block supports the following:
 
 A `auto_heal_setting` block exports the following:
 
-* `action` - A `action` block as defined above.
+* `action` - An `action` block as defined above.
 
 * `trigger` - A `trigger` block as defined below.
 
@@ -435,7 +435,7 @@ A `connection_string` block exports the following:
 
 A `cors` block exports the following:
 
-* `allowed_origins` - A `allowed_origins` block as defined above.
+* `allowed_origins` - An `allowed_origins` block as defined above.
 
 * `support_credentials` - Whether CORS requests with credentials are allowed.
 
@@ -495,7 +495,7 @@ A `google` block exports the following:
 
 A `http_logs` block exports the following:
 
-* `azure_blob_storage` - A `azure_blob_storage` block as defined above.
+* `azure_blob_storage` - An `azure_blob_storage` block as defined above.
 
 * `file_system` - A `file_system` block as defined above.
 
@@ -503,7 +503,7 @@ A `http_logs` block exports the following:
 
 A `identity` block exports the following:
 
-* `identity_ids` - A `identity_ids` block as defined below.
+* `identity_ids` - An `identity_ids` block as defined below.
 
 * `principal_id` - The Principal ID Managed Service Identity.
 
@@ -515,13 +515,13 @@ A `identity` block exports the following:
 
 A `logs` block exports the following:
 
-* `application_logs` - A `application_logs` block as defined above.
+* `application_logs` - An `application_logs` block as defined above.
 
 * `detailed_error_messages` - Is Detailed Error Messaging enabled.
 
 * `failed_request_tracing` - Is Failed Request Tracing enabled.
 
-* `http_logs` - An `http_logs` block as defined above.
+* `http_logs` - A `http_logs` block as defined above.
 
 ---
 
@@ -571,9 +571,9 @@ A `site_config` block exports the following:
 
 * `app_command_line` - The command line used to launch this app.
 
-* `application_stack` - A `application_stack` block as defined above.
+* `application_stack` - An `application_stack` block as defined above.
 
-* `auto_heal_setting` - A `auto_heal_setting` block as defined above.
+* `auto_heal_setting` - An `auto_heal_setting` block as defined above.
 
 * `auto_swap_slot_name` - The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
 
@@ -595,7 +595,7 @@ A `site_config` block exports the following:
 
 * `http2_enabled` - Is HTTP2.0 enabled.
 
-* `ip_restriction` - A `ip_restriction` block as defined above.
+* `ip_restriction` - An `ip_restriction` block as defined above.
 
 * `ip_restriction_default_action` - The Default action for traffic that does not match any `ip_restriction` rule.
 

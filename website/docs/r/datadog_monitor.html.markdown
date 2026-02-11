@@ -100,7 +100,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Datadog Monitor.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
 
 * `marketplace_subscription_status` - Flag specifying the Marketplace Subscription Status of the resource. If payment is not made in time, the resource will go in Suspended state.
 

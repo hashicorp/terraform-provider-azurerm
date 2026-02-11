@@ -48,7 +48,7 @@ output "job_id" {
 
 * `location` - The Azure location where the Stream Analytics Job exists.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `last_output_time` - The time at which the Stream Analytics job last produced an output.
 

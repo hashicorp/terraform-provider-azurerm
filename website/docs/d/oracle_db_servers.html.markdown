@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the DB Server.
 
-* `db_servers` - A `db_servers` block as defined below.
+* `db_servers` - A list of `db_servers` blocks as defined below.
 
 ---
 

@@ -39,7 +39,7 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Logic App Standard exists.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `app_service_plan_id` - The ID of the App Service Plan.
 
@@ -53,7 +53,7 @@ The following attributes are exported:
 
 * `client_certificate_mode` - The mode of the Logic App's client certificates requirement for incoming requests.
 
-* `connection_string` - A `connection_string` block as defined below.
+* `connection_string` - A list of `connection_string` blocks as defined below.
 
 * `custom_domain_verification_id` - The custom domain verification of the Logic App.
 
@@ -77,7 +77,7 @@ The following attributes are exported:
 
 * `site_config` - A `site_config` object as defined below.
 
-* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this Logic App.
+* `site_credential` - A list of `site_credential` blocks as defined below, which contains the site-level credentials used to publish to this Logic App.
 
 * `storage_account_name` - The backend storage account name which will be used by this Logic App (e.g. for Stateful workflows data).
 

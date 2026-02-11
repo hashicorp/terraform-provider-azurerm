@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Container Group instance exists.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `subnet_ids` - The subnet resource IDs for a container group.
 

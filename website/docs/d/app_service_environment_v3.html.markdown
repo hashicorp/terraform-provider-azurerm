@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `allow_new_private_endpoint_connections` - Are new Private Endpoint Connections allowed.
 
-* `cluster_setting` - A `cluster_setting` block as defined below.
+* `cluster_setting` - A list of `cluster_setting` blocks as defined below.
 
 * `dedicated_host_count` - The number of Dedicated Hosts used by this ASEv3.
 

@@ -37,7 +37,7 @@ The following attributes are exported:
 
 * `data_ingestion_uri` - The Kusto Cluster URI to be used for data ingestion.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 ---
 

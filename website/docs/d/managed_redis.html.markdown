@@ -57,11 +57,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `high_availability_enabled` - Whether high availability is enabled for the Managed Redis instance.
 
-* `customer_managed_key` - A `customer_managed_key` block as defined below.
+* `customer_managed_key` - A list of `customer_managed_key` blocks as defined below.
 
-* `default_database` - A `default_database` block as defined below.
+* `default_database` - A list of `default_database` blocks as defined below.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `public_network_access` - The public network access setting for the Managed Redis instance.
 

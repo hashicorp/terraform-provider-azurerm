@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `display_name` - The user-friendly name for the Cloud Exadata Infrastructure resource. The name does not need to be unique.
 
-* `estimated_patching_time` - A `estimated_patching_time` block as defined below.
+* `estimated_patching_time` - A list of `estimated_patching_time` blocks as defined below.
 
 * `last_maintenance_run_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the last maintenance run.
 
@@ -73,7 +73,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Cloud Exadata Infrastructure exists.
 
-* `maintenance_window` - A `maintenance_window` block as defined below.
+* `maintenance_window` - A list of `maintenance_window` blocks as defined below.
 
 * `max_cpu_count` -  The total number of CPU cores available.
 
@@ -113,7 +113,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `zones` - The Cloud Exadata Infrastructure Azure zones.
 
-* `defined_file_system_configuration` - A `defined_file_system_configuration` block as defined below.
+* `defined_file_system_configuration` - A list of `defined_file_system_configuration` blocks as defined below.
 
 ---
 

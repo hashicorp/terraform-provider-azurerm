@@ -138,7 +138,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_key` - The Primary Key used for Search Service Administration.
 
-* `query_keys` - A `query_keys` block as defined below.
+* `query_keys` - A list of `query_keys` blocks as defined below.
 
 * `secondary_key` - The Secondary Key used for Search Service Administration.
 

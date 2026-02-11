@@ -37,7 +37,7 @@ output "id" {
 
 * `visibility` - The visibility of the Maintenance Configuration.
 
-* `window` - A `window` block as defined below.
+* `window` - A list of `window` blocks as defined below.
 
 * `install_patches` -  An `install_patches` block as defined below.
 

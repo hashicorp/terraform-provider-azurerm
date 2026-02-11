@@ -47,7 +47,7 @@ The following attributes are exported:
 
 ~> **Note:** Only one of `key_vault_key_url` and `managed_hsm_key_id` will be set, depending on where the encryption key is stored.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the Disk Encryption Set.
 

@@ -86,11 +86,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Express Route Port.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
   
-* `link1` - A list of `link` blocks as defined below.
+* `link1` - A `link` block as defined below.
 
-* `link2` - A list of `link` blocks as defined below.
+* `link2` - A `link` block as defined below.
 
 * `guid` - The resource GUID of the Express Route Port.
   

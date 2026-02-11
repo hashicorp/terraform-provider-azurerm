@@ -336,7 +336,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Function App Slot.
 
-* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this Function App Slot.
+* `site_credential` - A list of `site_credential` blocks as defined below, which contains the site-level credentials used to publish to this Function App Slot.
 
 * `kind` - The Function App kind - such as `functionapp,linux,container`
 

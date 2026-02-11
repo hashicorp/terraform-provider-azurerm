@@ -611,7 +611,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Windows Virtual Machine Scale Set.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
 
 * `unique_id` - The Unique ID for this Windows Virtual Machine Scale Set.
 

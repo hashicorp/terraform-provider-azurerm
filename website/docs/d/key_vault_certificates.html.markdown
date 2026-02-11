@@ -43,7 +43,7 @@ In addition to the arguments above, the following attributes are exported:
 
 * `key_vault_id` - The Key Vault ID.
  
-* `certificates` - One or more `certificates` blocks as defined below.
+* `certificates` - A list of `certificates` blocks as defined below.
 
 ---
 

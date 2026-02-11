@@ -37,7 +37,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `db_system_shapes` - A `db_system_shapes` block as defined below.
+* `db_system_shapes` - A list of `db_system_shapes` blocks as defined below.
 
 ---
 

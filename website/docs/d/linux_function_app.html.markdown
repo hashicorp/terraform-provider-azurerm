@@ -41,13 +41,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `app_settings` - A map of key-value pairs for [App Settings](https://docs.microsoft.com/azure/azure-functions/functions-app-settings) and custom values.
 
-* `auth_settings` - A `auth_settings` block as defined below.
+* `auth_settings` - A list of `auth_settings` blocks as defined below.
 
-* `auth_settings_v2` - A `auth_settings_v2` block as defined below.
+* `auth_settings_v2` - A list of `auth_settings_v2` blocks as defined below.
 
 * `availability` - The current availability state. Possible values are `Normal`, `Limited`, and `DisasterRecoveryMode`.
 
-* `backup` - A `backup` block as defined below.
+* `backup` - A list of `backup` blocks as defined below.
 
 * `builtin_logging_enabled` - Is built in logging enabled?
 
@@ -77,7 +77,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `https_only` - Can the Function App only be accessed via HTTPS?
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `kind` - The Kind value for this Linux Function App.
 
@@ -95,9 +95,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `site_config` -  A `site_config` block as defined below.
 
-* `site_credential` - A `site_credential` block as defined below.
+* `site_credential` - A list of `site_credential` blocks as defined below.
 
-* `sticky_settings` - A `sticky_settings` block as defined below.
+* `sticky_settings` - A list of `sticky_settings` blocks as defined below.
 
 * `storage_account_name` - The backend storage account name used by this Function App.
 

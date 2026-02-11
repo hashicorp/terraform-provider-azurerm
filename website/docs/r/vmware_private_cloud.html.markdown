@@ -80,7 +80,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Azure VMware Solution Private Cloud.
 
-* `circuit` - A `circuit` block as defined below.
+* `circuit` - A list of `circuit` blocks as defined below.
 
 * `hcx_cloud_manager_endpoint` - The endpoint for the VMware HCX Cloud Manager.
 

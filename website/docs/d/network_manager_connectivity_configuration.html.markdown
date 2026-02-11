@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Network Manager Connectivity Configuration.
 
-* `applies_to_group` - An `applies_to_group` block as defined below.
+* `applies_to_group` - A list of `applies_to_group` blocks as defined below.
 
 * `connectivity_topology` - The connectivity topology type.
 
@@ -47,7 +47,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `global_mesh_enabled` - Whether global mesh is supported.
 
-* `hub` - A `hub` block as defined below.
+* `hub` - A list of `hub` blocks as defined below.
 
 ---
 

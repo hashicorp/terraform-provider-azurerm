@@ -43,13 +43,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `enforce` - Whether this Policy is enforced or not?
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `location` - The Azure Region where the Policy Assignment exists.
 
 * `metadata` - A JSON mapping of any Metadata for this Policy.
 
-* `non_compliance_message` - A `non_compliance_message` block as defined below.
+* `non_compliance_message` - A list of `non_compliance_message` blocks as defined below.
 
 * `not_scopes` - A `not_scopes` block as defined below.
 
@@ -61,7 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `identity` block exports the following:
 
-* `identity_ids` - A `identity_ids` block as defined below.
+* `identity_ids` - An `identity_ids` block as defined below.
 
 * `principal_id` - The Principal ID of the Policy Assignment for this Resource.
 

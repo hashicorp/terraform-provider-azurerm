@@ -60,10 +60,10 @@ In addition to all arguments above, the following attributes are exported:
 * `id` (String) The ID of this policy.
 * `name` (String) The name of this policy, which is typically a UUID and may change over time.
 * `description` (String) The description of this policy.
-* `activation_rules` - An `activation_rules` block as defined below.
-* `active_assignment_rules` - An `active_assignment_rules` block as defined below.
-* `eligible_assignment_rules` - An `eligible_assignment_rules` block as defined below.
-* `notification_rules` - A `notification_rules` block as defined below.
+* `activation_rules` - A list of `activation_rules` blocks as defined below.
+* `active_assignment_rules` - A list of `active_assignment_rules` blocks as defined below.
+* `eligible_assignment_rules` - A list of `eligible_assignment_rules` blocks as defined below.
+* `notification_rules` - A list of `notification_rules` blocks as defined below.
 
 ---
 

@@ -70,7 +70,7 @@ output "hostname" {
 
 * `access_keys_authentication_enabled` - Specifies if access key authentication is enabled.
 
-* `redis_configuration` - A `redis_configuration` block as defined below.
+* `redis_configuration` - A list of `redis_configuration` blocks as defined below.
 
 * `zones` - A list of Availability Zones in which this Redis Cache is located.
 

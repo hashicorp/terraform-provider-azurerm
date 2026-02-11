@@ -96,7 +96,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Elastic Job Target Groups.
 
-* `job_target` - One or more `job_target` blocks as defined below.
+* `job_target` - A list of `job_target` blocks as defined below.
 
 ---
 

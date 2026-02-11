@@ -39,7 +39,7 @@ data "azurerm_web_pubsub_private_link_resource" "test" {
 
 * `id` - The ID of an existing Web Pubsub Resource which supports the retrieved Private Link Resource list.
 
-* `shared_private_link_resource_types` - A `shared_private_link_resource_types` block as defined below.
+* `shared_private_link_resource_types` - A list of `shared_private_link_resource_types` blocks as defined below.
 
 ---
 

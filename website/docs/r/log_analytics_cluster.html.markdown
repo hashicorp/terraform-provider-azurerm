@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Log Analytics Cluster.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - An `identity` block as defined below.
 
 * `cluster_id` - The GUID of the cluster.
 

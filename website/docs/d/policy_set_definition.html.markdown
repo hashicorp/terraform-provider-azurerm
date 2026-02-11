@@ -42,9 +42,9 @@ output "id" {
 
 * `policy_definitions` - The policy definitions contained within the policy set definition.
 
-* `policy_definition_reference` - One or more `policy_definition_reference` blocks as defined below.
+* `policy_definition_reference` - A list of `policy_definition_reference` blocks as defined below.
 
-* `policy_definition_group` - One or more `policy_definition_group` blocks as defined below.
+* `policy_definition_group` - A list of `policy_definition_group` blocks as defined below.
 
 * `parameters` - Any Parameters defined in the Policy Set Definition.
 

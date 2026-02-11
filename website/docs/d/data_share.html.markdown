@@ -50,7 +50,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `description` - The description of the Data Share.
 
-* `snapshot_schedule` - A `snapshot_schedule` block as defined below.
+* `snapshot_schedule` - A list of `snapshot_schedule` blocks as defined below.
 
 * `terms` - The terms of the Data Share.
 

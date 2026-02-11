@@ -163,7 +163,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `disk_encryption_set_id` - The ID of Managed Disk Encryption Set created by the Databricks Workspace.
 
-* `managed_disk_identity` - A `managed_disk_identity` block as documented below.
+* `managed_disk_identity` - A list of `managed_disk_identity` blocks as defined below.
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
 
@@ -171,7 +171,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
 
-* `storage_account_identity` - A `storage_account_identity` block as documented below.
+* `storage_account_identity` - A list of `storage_account_identity` blocks as defined below.
 
 ---
 

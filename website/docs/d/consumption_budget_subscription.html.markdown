@@ -39,13 +39,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `amount` - The total amount of cost to track with the budget.
 
-* `filter` - A `filter` block as defined below.
+* `filter` - A list of `filter` blocks as defined below.
 
-* `notification` - A `notification` block as defined below.
+* `notification` - A list of `notification` blocks as defined below.
 
 * `time_grain` - The time covered by a budget.
 
-* `time_period` - A `time_period` block as defined below.
+* `time_period` - A list of `time_period` blocks as defined below.
 
 ---
 

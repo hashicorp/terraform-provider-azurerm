@@ -67,7 +67,7 @@ output "database_id" {
 
 * `zone_redundant` - Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `transparent_data_encryption_enabled` - Whether or not Transparent Data Encryption is enabled.
 

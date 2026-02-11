@@ -41,11 +41,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Azure VMware Solution Private Cloud exists.
 
-* `circuit` - A `circuit` block as defined below.
+* `circuit` - A list of `circuit` blocks as defined below.
 
 * `internet_connection_enabled` - Is the Azure VMware Solution Private Cloud connected to the internet?
 
-* `management_cluster` - A `management_cluster` block as defined below.
+* `management_cluster` - A list of `management_cluster` blocks as defined below.
 
 * `network_subnet_cidr` - The subnet CIDR of the Azure VMware Solution Private Cloud.
 

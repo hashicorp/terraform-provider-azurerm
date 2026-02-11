@@ -44,11 +44,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `encryption_type` - The type of the key used to encrypt the data of the disk.
 
-* `encryption` - An `encryption` block as defined below.
+* `encryption` - A list of `encryption` blocks as defined below.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
-* `network_rule` - One or more `network_rule` blocks as defined below.
+* `network_rule` - A list of `network_rule` blocks as defined below.
 
 * `protocol_type` - The type of the storage target.
 

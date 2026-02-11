@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cosmos DB Restorable Database Accounts.
 
-* `accounts` - One or more `accounts` blocks as defined below.
+* `accounts` - A list of `accounts` blocks as defined below.
 
 ---
 

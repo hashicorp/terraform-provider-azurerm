@@ -39,15 +39,15 @@ data "azurerm_active_directory_domain_service" "example" {
 
 * `filtered_sync_enabled` - Whether group-based filtered sync (also called scoped synchronisation) is enabled.
 
-* `secure_ldap` - A `secure_ldap` block as defined below.
+* `secure_ldap` - A list of `secure_ldap` blocks as defined below.
 
 * `location` - The Azure location where the Domain Service exists.
 
-* `notifications` - A `notifications` block as defined below.
+* `notifications` - A list of `notifications` blocks as defined below.
 
-* `replica_sets` - One or more `replica_set` blocks as defined below.
+* `replica_sets` - A list of `replica_set` blocks as defined below.
 
-* `security` - A `security` block as defined below.
+* `security` - A list of `security` blocks as defined below.
 
 * `sku` - The SKU of the Domain Service resource. One of `Standard`, `Enterprise` or `Premium`.
 

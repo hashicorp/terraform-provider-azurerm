@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `display_name` - The user-friendly name for the Exadata Database Storage Vault.
 
-* `high_capacity_database_storage` - A `high_capacity_database_storage` block as defined below.
+* `high_capacity_database_storage` - A list of `high_capacity_database_storage` blocks as defined below.
 
 * `lifecycle_details` - Additional information about the current lifecycle state.
 

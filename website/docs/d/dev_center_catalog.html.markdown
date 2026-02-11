@@ -37,9 +37,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Dev Center Catalog.
 
-* `catalog_github` - A `catalog_github` block as defined below.
+* `catalog_github` - A list of `catalog_github` blocks as defined below.
 
-* `catalog_adogit` - A `catalog_adogit` block as defined below.
+* `catalog_adogit` - A list of `catalog_adogit` blocks as defined below.
 
 ---
 

@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `container_name` - The name of the storage account container to be shared with the receiver.
 
-* `storage_account` - A `storage_account` block as defined below.
+* `storage_account` - A list of `storage_account` blocks as defined below.
 
 * `file_path` - The path of the file in the storage container to be shared with the receiver.
 

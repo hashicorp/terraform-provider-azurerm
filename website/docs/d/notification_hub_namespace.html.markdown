@@ -37,7 +37,7 @@ output "servicebus_endpoint" {
 
 * `namespace_type` - The Type of Namespace, such as `Messaging` or `NotificationHub`.
 
-* `sku` - A `sku` block as defined below.
+* `sku` - A list of `sku` blocks as defined below.
 
 * `enabled` - Is this Notification Hub Namespace enabled?
 

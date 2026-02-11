@@ -39,11 +39,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `app_settings` - A `map of key-value pairs for App Settings and custom values.
 
-* `auth_settings` - A `auth_settings` block as defined below.
+* `auth_settings` - A list of `auth_settings` blocks as defined below.
 
-* `auth_settings_v2` - A `auth_settings_v2` block as defined below.
+* `auth_settings_v2` - A list of `auth_settings_v2` blocks as defined below.
 
-* `backup` - A `backup` block as defined below.
+* `backup` - A list of `backup` blocks as defined below.
 
 * `builtin_logging_enabled` - Is the built-in logging enabled?
 
@@ -53,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `client_certificate_exclusion_paths` - Paths to exclude when using client certificates, separated by ;
 
-* `connection_string` - One or more `connection_string` blocks as defined below.
+* `connection_string` - A list of `connection_string` blocks as defined below.
 
 * `content_share_force_disabled` - Are Content Share Settings disabled?
 
@@ -73,7 +73,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `https_only` - Is the Function App only accessible via HTTPS?
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `kind` - The Kind value for this Windows Function App.
 
@@ -91,11 +91,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `service_plan_id` - The ID of the App Service Plan.
 
-* `site_config` - A `site_config` block as defined below.
+* `site_config` - A list of `site_config` blocks as defined below.
 
-* `site_credential` - A `site_credential` block as defined below.
+* `site_credential` - A list of `site_credential` blocks as defined below.
 
-* `sticky_settings` - A `sticky_settings` block as defined below.
+* `sticky_settings` - A list of `sticky_settings` blocks as defined below.
 
 * `storage_account_access_key` - The access key which is used to access the backend storage account for the Function App.
 
@@ -151,7 +151,7 @@ An `application_stack` block exports the following:
 
 A `auth_settings` block exports the following:
 
-* `active_directory` - A `active_directory` block as defined above.
+* `active_directory` - An `active_directory` block as defined above.
 
 * `additional_login_parameters` - A map of Login Parameters to send to the OpenID Connect authorization endpoint when a user logs in.
 
@@ -497,13 +497,13 @@ A `site_config` block exports the following:
 
 * `app_scale_limit` - The number of workers this function app can scale out to.
 
-* `app_service_logs` - A `app_service_logs` block as defined above.
+* `app_service_logs` - An `app_service_logs` block as defined above.
 
 * `application_insights_connection_string` - The Connection String for linking the Windows Function App to Application Insights.
 
 * `application_insights_key` - The Instrumentation Key for connecting the Windows Function App to Application Insights.
 
-* `application_stack` - A `application_stack` block as defined above.
+* `application_stack` - An `application_stack` block as defined above.
 
 * `cors` - A `cors` block as defined above.
 

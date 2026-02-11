@@ -32,7 +32,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `db_nodes` - A `db_nodes` block as defined below.
+* `db_nodes` - A list of `db_nodes` blocks as defined below.
 
 ---
 

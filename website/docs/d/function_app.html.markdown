@@ -40,7 +40,7 @@ The following attributes are exported:
 
 * `app_settings` - A key-value pair of App Settings.
 
-* `connection_string` - An `connection_string` block as defined below.
+* `connection_string` - A list of `connection_string` blocks as defined below.
 
 * `custom_domain_verification_id` - An identifier used by App Service to perform domain ownership verification via DNS TXT record.
 
@@ -48,9 +48,9 @@ The following attributes are exported:
 
 * `enabled` - Is the Function App enabled?
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
-* `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
+* `site_credential` - A list of `site_credential` blocks as defined below, which contains the site-level credentials used to publish to this App Service.
 
 * `client_cert_mode` - The mode of the Function App's client certificates requirement for incoming requests.
 
@@ -62,7 +62,7 @@ The following attributes are exported:
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses, not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
-* `source_control` - A `source_control` block as defined below.
+* `source_control` - A list of `source_control` blocks as defined below.
 
 ---
 

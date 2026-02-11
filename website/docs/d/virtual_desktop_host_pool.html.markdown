@@ -56,7 +56,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `preferred_app_group_type` - The preferred Application Group type for the Virtual Desktop Host Pool.
 
-* `scheduled_agent_updates` - A `scheduled_agent_updates` block as defined below.
+* `scheduled_agent_updates` - A list of `scheduled_agent_updates` blocks as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
 

@@ -37,13 +37,13 @@ The following arguments are supported:
 
 * `app_settings` - The map of key-value pairs of App Settings for the Static Web App.
 
-* `basic_auth` - A `basic_auth` block as defined below.
+* `basic_auth` - A list of `basic_auth` blocks as defined below.
 
 * `configuration_file_changes_enabled` - Are changes to the configuration file permitted.
 
 * `default_host_name` - The default host name of the Static Web App.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `location` - The Azure region in which this Static Web App exists.
 

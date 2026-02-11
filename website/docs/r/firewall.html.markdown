@@ -140,7 +140,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Azure Firewall.
 
-* `ip_configuration` - A `ip_configuration` block as defined below.
+* `ip_configuration` - A list of `ip_configuration` blocks as defined below.
 
 * `virtual_hub` - A `virtual_hub` block as defined below.
 

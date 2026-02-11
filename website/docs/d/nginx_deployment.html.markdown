@@ -39,23 +39,23 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `capacity` - The number of NGINX capacity units for this NGINX Deployment.
 
-* `auto_scale_profile` - An `auto_scale_profile` block as defined below.
+* `auto_scale_profile` - A list of `auto_scale_profile` blocks as defined below.
 
 * `diagnose_support_enabled` - Whether metrics are exported to Azure Monitor.
 
 * `email` - Preferred email associated with the NGINX Deployment.
 
-* `frontend_private` - A `frontend_private` block as defined below.
+* `frontend_private` - A list of `frontend_private` blocks as defined below.
 
-* `frontend_public` - A `frontend_public` block as defined below.
+* `frontend_public` - A list of `frontend_public` blocks as defined below.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `ip_address` - The IP address of the NGINX Deployment.
 
 * `location` - The Azure Region where the NGINX Deployment exists.
 
-* `network_interface` - A `network_interface` block as defined below.
+* `network_interface` - A list of `network_interface` blocks as defined below.
 
 * `nginx_version` - NGINX version of the Deployment.
 
@@ -63,7 +63,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `automatic_upgrade_channel` - The automatic upgrade channel for this NGINX deployment.
 
-* `web_application_firewall` - A `web_application_firewall` block as defined below.
+* `web_application_firewall` - A list of `web_application_firewall` blocks as defined below.
 
 * `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
 

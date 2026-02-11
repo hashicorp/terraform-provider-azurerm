@@ -46,7 +46,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku` - The SKU of the Bastion Host.
 
-* `ip_configuration` - A `ip_configuration` block as defined below.
+* `ip_configuration` - A list of `ip_configuration` blocks as defined below.
 
 * `ip_connect_enabled` - Is IP Connect feature enabled for the Bastion Host.
 

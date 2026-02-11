@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_address_pool_id` - The ID of the Backend Address Pool. Outbound traffic is randomly load balanced across IPs in the backend IPs.
 
-* `frontend_ip_configuration` - A `frontend_ip_configuration` block as defined below.
+* `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
 
 * `idle_timeout_in_minutes` - The timeout for the TCP idle connection.
 

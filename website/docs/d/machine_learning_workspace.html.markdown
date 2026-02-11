@@ -43,7 +43,7 @@ The following attributes are exported:
 
 * `location` - The location where the Machine Learning Workspace exists.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the Machine Learning Workspace.
 

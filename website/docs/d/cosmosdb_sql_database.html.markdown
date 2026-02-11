@@ -39,7 +39,7 @@ The following attributes are exported:
 
 * `throughput` -The throughput of SQL database (RU/s).
 
-* `autoscale_settings` - An `autoscale_settings` block as defined below.
+* `autoscale_settings` - A list of `autoscale_settings` blocks as defined below.
 
 ---
 

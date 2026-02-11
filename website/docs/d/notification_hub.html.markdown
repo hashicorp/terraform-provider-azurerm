@@ -38,9 +38,9 @@ output "id" {
 
 * `location` - The Azure Region in which this Notification Hub exists.
 
-* `apns_credential` - A `apns_credential` block as defined below.
+* `apns_credential` - A list of `apns_credential` blocks as defined below.
 
-* `gcm_credential` - A `gcm_credential` block as defined below.
+* `gcm_credential` - A list of `gcm_credential` blocks as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
 

@@ -41,7 +41,7 @@ The following attributes are exported:
 
 * `custom_subdomain_name` - The subdomain name used for Entra ID token-based authentication.
 
-* `customer_managed_key` - A `customer_managed_key` block as defined below.
+* `customer_managed_key` - A list of `customer_managed_key` blocks as defined below.
 
 * `dynamic_throttling_enabled` - Whether dynamic throttling is enabled for this Cognitive Services Account.
 
@@ -49,7 +49,7 @@ The following attributes are exported:
 
 * `fqdns` - List of FQDNs allowed for the Cognitive Services Account.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `kind` - The type of the Cognitive Services Account.
 
@@ -79,7 +79,7 @@ The following attributes are exported:
 
 * `sku_name` - The SKU name of the Cognitive Services Account.
 
-* `storage` - A `storage` block as defined below.
+* `storage` - A list of `storage` blocks as defined below.
 
 * `primary_access_key` - The primary access key of the Cognitive Services Account.
 

@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Elastic SAN exists.
 
-* `sku` - A `sku` block as defined below.
+* `sku` - A list of `sku` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the Elastic SAN.
 

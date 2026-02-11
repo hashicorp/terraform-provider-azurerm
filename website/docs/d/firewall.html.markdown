@@ -44,17 +44,17 @@ The following attributes are exported:
 
 * `firewall_policy_id` - The ID of the Firewall Policy applied to the Azure Firewall.
 
-* `ip_configuration` - A `ip_configuration` block as defined below.
+* `ip_configuration` - A list of `ip_configuration` blocks as defined below.
 
 * `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.
 
 * `dns_proxy_enabled` - Whether DNS proxy is enabled. It will forward DNS requests to the DNS servers when it is `true`.
 
-* `management_ip_configuration` - A `management_ip_configuration` block as defined below, which allows force-tunnelling of traffic to be performed by the firewall.
+* `management_ip_configuration` - A list of `management_ip_configuration` blocks as defined below, which allows force-tunnelling of traffic to be performed by the firewall.
 
 * `threat_intel_mode` - The operation mode for threat intelligence-based filtering.
 
-* `virtual_hub` - A `virtual_hub` block as defined below.
+* `virtual_hub` - A list of `virtual_hub` blocks as defined below.
 
 * `zones` - A list of Availability Zones in which this Azure Firewall is located.
 

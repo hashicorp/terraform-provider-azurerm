@@ -858,7 +858,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `possible_outbound_ip_addresses` - A comma-separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
-* `site_credential` - A `site_credential` block as defined below.
+* `site_credential` - A list of `site_credential` blocks as defined below.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
 

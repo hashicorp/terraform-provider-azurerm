@@ -34,7 +34,7 @@ The following attributes are exported:
 
 * `id` - The Event Grid System Topic ID.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid System Topic.
+* `identity` - A list of `identity` blocks as defined below, which contains the Managed Service Identity information for this Event Grid System Topic.
 
 * `metric_resource_id` - The Metric Resource ID of the Event Grid System Topic.
 

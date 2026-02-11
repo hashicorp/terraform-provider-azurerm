@@ -43,7 +43,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fully_qualified_domain_name` - The fully qualified domain name of the Microsoft SQL Server.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `location` - The Azure Region where the Microsoft SQL Server exists.
 

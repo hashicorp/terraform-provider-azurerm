@@ -223,15 +223,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
-* `primary_read_key` - A `primary_read_key` block as defined below containing the primary read access key.
+* `primary_read_key` - A list of `primary_read_key` blocks as defined below containing the primary read access key.
 
-* `primary_write_key` - A `primary_write_key` block as defined below containing the primary write access key.
+* `primary_write_key` - A list of `primary_write_key` blocks as defined below containing the primary write access key.
 
-* `replica` - A `replica` block as defined below.
+* `replica` - One or more `replica` blocks as defined below.
 
-* `secondary_read_key` - A `secondary_read_key` block as defined below containing the secondary read access key.
+* `secondary_read_key` - A list of `secondary_read_key` blocks as defined below containing the secondary read access key.
 
-* `secondary_write_key` - A `secondary_write_key` block as defined below containing the secondary write access key.
+* `secondary_write_key` - A list of `secondary_write_key` blocks as defined below containing the secondary write access key.
 
 ---
 

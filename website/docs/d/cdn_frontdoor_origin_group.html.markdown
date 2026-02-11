@@ -38,9 +38,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cdn_frontdoor_profile_id` - Specifies the ID of the Front Door Profile within which this Front Door Origin Group exists.
 
-* `health_probe` - A `health_probe` block as defined below.
+* `health_probe` - A list of `health_probe` blocks as defined below.
 
-* `load_balancing` - A `load_balancing` block as defined below.
+* `load_balancing` - A list of `load_balancing` blocks as defined below.
 
 * `session_affinity_enabled` - Specifies whether session affinity is enabled on this host.
 

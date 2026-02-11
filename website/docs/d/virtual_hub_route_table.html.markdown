@@ -43,7 +43,7 @@ The following attributes are exported:
 
 * `labels` - List of labels associated with this route table.
 
-* `route` - A `route` block as defined below.
+* `route` - A list of `route` blocks as defined below.
 
 ---
 

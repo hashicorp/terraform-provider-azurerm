@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region in which this Orchestrated Virtual Machine Scale Set exists.
 
-* `identity` - A `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
 * `network_interface` - A list of `network_interface` blocks as defined below.
 
@@ -63,7 +63,7 @@ An `identity` block exports the following:
 
 * `primary` - Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 
-* `ip_configuration` - An `ip_configuration` block as documented below.
+* `ip_configuration` - An `ip_configuration` block as defined below.
 
 * `accelerated_networking_enabled` - Is accelerated networking enabled?
 

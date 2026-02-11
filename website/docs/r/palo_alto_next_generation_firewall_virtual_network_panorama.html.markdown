@@ -201,7 +201,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Palo Alto Next Generation Firewall Virtual Network Panorama.
 
-* `panorama` - A `panorama` block as defined below.
+* `panorama` - A list of `panorama` blocks as defined below.
 
 ---
 

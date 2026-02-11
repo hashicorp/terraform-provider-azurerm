@@ -187,9 +187,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `guid` - The GUID of the Virtual Network.
 
-* `ip_address_pool` - One or more `ip_address_pool` blocks as defined below.
+* `ip_address_pool` - A list of `ip_address_pool` blocks as defined below.
 
-* `subnet` - One or more `subnet` blocks as defined below.
+* `subnet` - A list of `subnet` blocks as defined below.
 
 ---
 

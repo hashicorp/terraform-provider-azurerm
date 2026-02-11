@@ -51,7 +51,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cpu_core_count` - The number of CPU cores enabled on the Cloud VM Cluster.
 
-* `data_collection_options` - A `data_collection_options` block as defined below.
+* `data_collection_options` - A list of `data_collection_options` blocks as defined below.
 
 * `data_storage_percentage` - The percentage assigned to DATA storage (user data and database files). The remaining percentage is assigned to RECO storage (database redo logs, archive logs, and recovery manager backups). Accepted values are `35`, `40`, `60`, and 80. The default is `80` percent assigned to DATA storage. See [Storage Configuration](https://docs.oracle.com/en-us/iaas/exadatacloud/index.html#Exadata) in the Exadata documentation for details on the impact of the configuration settings on storage.
 
@@ -67,7 +67,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `domain` - The domain name for the Cloud VM Cluster.
 
-* `file_system_configuration` - A `file_system_configuration` block as defined below.
+* `file_system_configuration` - A list of `file_system_configuration` blocks as defined below.
 
 * `gi_version` - A valid Oracle Grid Infrastructure (GI) software version.
 
@@ -75,7 +75,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname_actual` - The hostname for the Cloud VM Cluster with suffix.
 
-* `iorm_config_cache` - A `iorm_config_cache` block as defined below.
+* `iorm_config_cache` - A list of `iorm_config_cache` blocks as defined below.
 
 * `local_backup_enabled` - If true, database backup on local Exadata storage is configured for the Cloud VM Cluster. If false, database backup on local Exadata storage is not available in the Cloud VM Cluster.
 

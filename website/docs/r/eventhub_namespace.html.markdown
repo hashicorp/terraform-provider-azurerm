@@ -115,7 +115,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The EventHub Namespace ID.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 The following attributes are exported only if there is an authorization rule named
 `RootManageSharedAccessKey` which is created automatically by Azure.

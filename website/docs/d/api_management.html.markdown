@@ -43,9 +43,9 @@ output "api_management_id" {
 
 * `gateway_regional_url` - The URL for the Gateway in the Default Region.
 
-* `identity` - An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
 
-* `hostname_configuration` - A `hostname_configuration` block as defined below.
+* `hostname_configuration` - A list of `hostname_configuration` blocks as defined below.
 
 * `management_api_url` - The URL for the Management API.
 
@@ -69,7 +69,7 @@ output "api_management_id" {
 
 * `sku_name` - The SKU of the API Management Service consisting of the name and capacity, separated by an underscore.
 
-* `tenant_access` - A `tenant_access` block as defined below.
+* `tenant_access` - A list of `tenant_access` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -107,15 +107,15 @@ An `identity` block exports the following:
 
 A `hostname_configuration` block exports the following:
 
-* `management` - One or more `management` blocks as documented below.
+* `management` - One or more `management` blocks as defined below.
 
-* `portal` - One or more `portal` blocks as documented below.
+* `portal` - One or more `portal` blocks as defined below.
 
-* `developer_portal` - One or more `developer_portal` blocks as documented below.
+* `developer_portal` - One or more `developer_portal` blocks as defined below.
 
-* `proxy` - One or more `proxy` blocks as documented below.
+* `proxy` - One or more `proxy` blocks as defined below.
 
-* `scm` - One or more `scm` blocks as documented below.
+* `scm` - One or more `scm` blocks as defined below.
 
 ---
 

@@ -48,17 +48,17 @@ The following attributes are exported:
 
 * `input_schema` - The schema in which incoming events will be published to this domain. Possible values are `CloudEventSchemaV1_0`, `CustomEventSchema`, or `EventGridSchema`.
 
-* `input_mapping_fields` - A `input_mapping_fields` block as defined below.
+* `input_mapping_fields` - A list of `input_mapping_fields` blocks as defined below.
 
-* `input_mapping_default_values` - A `input_mapping_default_values` block as defined below.
+* `input_mapping_default_values` - A list of `input_mapping_default_values` blocks as defined below.
 
 * `public_network_access_enabled` - Whether or not public network access is allowed for this server.
 
-* `inbound_ip_rule` - One or more `inbound_ip_rule` blocks as defined below.
+* `inbound_ip_rule` - A list of `inbound_ip_rule` blocks as defined below.
 
 * `tags` - A mapping of tags assigned to the EventGrid Domain.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - A list of `identity` blocks as defined below.
 
 ---
 

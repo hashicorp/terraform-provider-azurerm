@@ -32,7 +32,7 @@ output "query_rule_id" {
 
 * `id` - The ID of the scheduled query rule.
 * `location` - Specifies the Azure Region where the resource should exist.
-* `action` - An `action` block as defined below.
+* `action` - A list of `action` blocks as defined below.
 * `authorized_resource_ids` - The list of Resource IDs referred into query.
 * `data_source_id` - The resource URI over which log search query is to be run.
 * `description` - The description of the scheduled query rule.
@@ -43,7 +43,7 @@ output "query_rule_id" {
 * `time_window` - Time window for which data needs to be fetched for query.
 * `severity` - Severity of the alert.
 * `throttling` - Time for which alerts should be throttled or suppressed.
-* `trigger` - A `trigger` block as defined below.
+* `trigger` - A list of `trigger` blocks as defined below.
 
 ---
 

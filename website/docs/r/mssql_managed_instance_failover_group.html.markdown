@@ -256,7 +256,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Managed Instance Failover Group.
 
-* `partner_region` - A `partner_region` block as defined below.
+* `partner_region` - A list of `partner_region` blocks as defined below.
 
 * `role` - The local replication role of the Managed Instance Failover Group.
 

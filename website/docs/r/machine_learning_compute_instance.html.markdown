@@ -158,7 +158,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Machine Learning Compute Instance.
 
-* `ssh` - An `ssh` block as defined below, which specifies policy and settings for SSH access for this Machine Learning Compute Instance.
+* `ssh` - A `ssh` block as defined below, which specifies policy and settings for SSH access for this Machine Learning Compute Instance.
 
 ---
 

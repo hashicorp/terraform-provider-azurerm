@@ -61,7 +61,7 @@ The following attributes are exported:
 
 * `serverless_connection_timeout_in_seconds` - The serverless connection timeout of this SignalR service.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 ---
 
