@@ -5,9 +5,13 @@ description: Performance optimization patterns and efficiency guidelines for the
 
 # Performance Optimization Guide
 
+<a id="performance-optimization-guide"></a>
+
 Performance optimization patterns and efficiency guidelines for the Terraform AzureRM provider including Azure API optimization, resource management, and scalability considerations.
 
-**Quick navigation:** [⚡ Azure API Efficiency](#⚡-azure-api-efficiency-patterns) | [🔄 Resource Management](#🔄-resource-management-optimization) | [📊 Monitoring](#📊-monitoring--observability-patterns) | [🚀 Scalability](#🚀-scalability-patterns)
+**Quick navigation:** <a href="#⚡-azure-api-efficiency-patterns">⚡ Azure API Efficiency</a> | <a href="#🔄-resource-management-optimization">🔄 Resource Management</a> | <a href="#📊-monitoring--observability-patterns">📊 Monitoring</a> | <a href="#🚀-scalability-patterns">🚀 Scalability</a>
+
+<a id="⚡-azure-api-efficiency-patterns"></a>
 
 ## ⚡ Azure API Efficiency Patterns
 
@@ -93,6 +97,8 @@ func processResourcesInParallel(ctx context.Context, resources []Resource) error
     return nil
 }
 ```
+
+<a id="🔄-resource-management-optimization"></a>
 
 ## 🔄 Resource Management Optimization
 
@@ -186,6 +192,8 @@ func (c *CachedClient) GetWithCache(ctx context.Context, id string) (interface{}
 }
 ```
 
+<a id="📊-monitoring--observability-patterns"></a>
+
 ## 📊 Monitoring & Observability Patterns
 
 ### Structured Logging with Performance Metrics
@@ -239,6 +247,8 @@ func collectMetrics(operation string, duration time.Duration, success bool) {
     recordCounter("terraform_azure_operations_total", labels)
 }
 ```
+
+<a id="🚀-scalability-patterns"></a>
 
 ## 🚀 Scalability Patterns
 
@@ -327,4 +337,4 @@ func processLargeDataset(ctx context.Context, dataSource DataSource) error {
 }
 ```
 ---
-[⬆️ Back to top](#performance-optimization-guide)
+<a href="#performance-optimization-guide">⬆️ Back to top</a>

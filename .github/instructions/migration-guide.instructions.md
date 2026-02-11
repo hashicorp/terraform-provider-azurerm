@@ -5,9 +5,13 @@ description: Migration patterns and upgrade procedures for the Terraform AzureRM
 
 # Migration Guide
 
+<a id="migration-guide"></a>
+
 Migration patterns and upgrade procedures for the Terraform AzureRM provider including implementation approach transitions, breaking changes, and version compatibility.
 
-**Quick navigation:** [🔄 Implementation Migration](#🔄-implementation-approach-migration) | [💔 Breaking Changes](#💔-breaking-change-patterns) | [📦 Version Compatibility](#📦-version-compatibility) | [🚧 Upgrade Procedures](#🚧-upgrade-procedures)
+**Quick navigation:** <a href="#🔄-implementation-approach-migration">🔄 Implementation Migration</a> | <a href="#💔-breaking-change-patterns">💔 Breaking Changes</a> | <a href="#📦-version-compatibility">📦 Version Compatibility</a> | <a href="#🚧-upgrade-procedures">🚧 Upgrade Procedures</a>
+
+<a id="🔄-implementation-approach-migration"></a>
 
 ## 🔄 Implementation Approach Migration
 
@@ -308,7 +312,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 - [ ] Attribute descriptions remain accurate
 
 ---
-[⬆️ Back to top](#migration-guide)
+<a href="#migration-guide">⬆️ Back to top</a>
+
+<a id="💔-breaking-change-patterns"></a>
 
 ## 💔 Breaking Change Patterns
 
@@ -395,7 +401,9 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 - **SDK Updates**: Migration to newer Azure SDK patterns
 
 ---
-[⬆️ Back to top](#migration-guide)
+<a href="#migration-guide">⬆️ Back to top</a>
+
+<a id="📦-version-compatibility"></a>
 
 ## 📦 Version Compatibility
 
@@ -458,7 +466,9 @@ func planMigration(providerVersion string) MigrationStrategy {
 ```
 
 ---
-[⬆️ Back to top](#migration-guide)
+<a href="#migration-guide">⬆️ Back to top</a>
+
+<a id="🚧-upgrade-procedures"></a>
 
 ## 🚧 Upgrade Procedures
 
@@ -642,4 +652,4 @@ return metadata.Encode(&state) // Correct pattern
 - Test rollback path before merging
 
 ---
-[⬆️ Back to top](#migration-guide)
+<a href="#migration-guide">⬆️ Back to top</a>

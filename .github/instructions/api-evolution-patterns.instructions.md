@@ -5,9 +5,13 @@ description: API evolution and versioning patterns for the Terraform AzureRM pro
 
 # API Evolution Patterns
 
+<a id="api-evolution-patterns"></a>
+
 API evolution and versioning patterns for the Terraform AzureRM provider including handling Azure API changes, backward compatibility, and migration strategies.
 
-**Quick navigation:** [🔄 Version Management](#🔄-azure-api-version-management) | [⬆️ Backward Compatibility](#⬆️-backward-compatibility-patterns) | [🚀 Migration Strategies](#🚀-migration-strategies) | [📊 Deprecation](#📊-deprecation-management)
+**Quick navigation:** <a href="#azure-api-version-management">🔄 Version Management</a> | <a href="#backward-compatibility-patterns">⬆️ Backward Compatibility</a> | <a href="#migration-strategies">🚀 Migration Strategies</a> | <a href="#deprecation-management">📊 Deprecation</a>
+
+<a id="azure-api-version-management"></a>
 
 ## 🔄 Azure API Version Management
 
@@ -118,6 +122,8 @@ func getFeatureFlags(metadata sdk.ResourceMetaData) FeatureFlags {
     }
 }
 ```
+
+<a id="backward-compatibility-patterns"></a>
 
 ## ⬆️ Backward Compatibility Patterns
 
@@ -243,6 +249,8 @@ func migrateLegacyConfiguration(model ServiceResourceModel) ServiceResourceModel
 }
 ```
 
+<a id="migration-strategies"></a>
+
 ## 🚀 Migration Strategies
 
 ### Phased Migration Approach
@@ -351,6 +359,8 @@ func analyzeConfigurationChanges(old, new interface{}) ConfigurationDiff {
 }
 ```
 
+<a id="deprecation-management"></a>
+
 ## 📊 Deprecation Management
 
 ### Deprecation Timeline
@@ -457,4 +467,4 @@ type BreakingChange struct {
 ```
 
 ---
-[⬆️ Back to top](#api-evolution-patterns)
+<a href="#api-evolution-patterns">⬆️ Back to top</a>

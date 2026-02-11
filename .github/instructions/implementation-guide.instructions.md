@@ -5,9 +5,11 @@ description: Complete implementation guide for Go files in the Terraform AzureRM
 
 # Terraform AzureRM Provider Implementation Guide
 
+<a id="terraform-azurerm-provider-implementation-guide"></a>
+
 This comprehensive guide covers all implementation requirements for the Terraform AzureRM provider.
 
-**Quick navigation:** [🏗️ Implementation Patterns](#🏗️-implementation-patterns) | [📏 Coding Standards](#📏-coding-standards) | [🎨 Coding Style](#🎨-coding-style) | [🔧 Azure SDK Integration](#🔧-azure-sdk-integration) | [💡 AI Coding Guidance](#💡-ai-coding-guidance) | [📚 Specialized Guidance](#📚-specialized-guidance-on-demand)
+**Quick navigation:** <a href="#🏗️-implementation-patterns">🏗️ Implementation Patterns</a> | <a href="#📏-coding-standards">📏 Coding Standards</a> | <a href="#🎨-coding-style">🎨 Coding Style</a> | <a href="#🔧-azure-sdk-integration">🔧 Azure SDK Integration</a> | <a href="#💡-ai-coding-guidance">💡 AI Coding Guidance</a> | <a href="#📚-specialized-guidance-on-demand">📚 Specialized Guidance</a>
 
 **🧠 SMART MEMORY MANAGEMENT:**
 - **Pattern Cache**: Keep these templates in active memory during implementation sessions
@@ -39,6 +41,8 @@ func ExpandFeature(input []interface{}) *azuretype.Feature {
 // Error Pattern
 return fmt.Errorf("creating %s: %+v", id, err)
 ```
+
+<a id="🏗️-implementation-patterns"></a>
 
 ## 🏗️ Implementation Patterns
 
@@ -356,7 +360,9 @@ CustomizeDiff: pluginsdk.CustomDiffWithAll(
 - **Check the function signature**: If you see `*pluginsdk.ResourceDiff` or `pluginsdk.CustomDiffWithAll`, single import is sufficient
 
 ---
-[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+<a href="#terraform-azurerm-provider-implementation-guide">⬆️ Back to top</a>
+
+<a id="📏-coding-standards"></a>
 
 ## 📏 Coding Standards
 
@@ -452,7 +458,9 @@ if response.WasNotFound(resp.HttpResponse) {
 - Separate complex logic into utility functions
 
 ---
-[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+<a href="#terraform-azurerm-provider-implementation-guide">⬆️ Back to top</a>
+
+<a id="🎨-coding-style"></a>
 
 ## 🎨 Coding Style
 
@@ -515,7 +523,9 @@ name := nameFromConfig
 **🔍 MANDATORY JUSTIFICATION:** Every comment requires explicit justification documented in review response explaining which exception case applies and why code cannot be self-explanatory through refactoring.
 
 ---
-[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+<a href="#terraform-azurerm-provider-implementation-guide">⬆️ Back to top</a>
+
+<a id="🔧-azure-sdk-integration"></a>
 
 ## 🔧 Azure SDK Integration
 
@@ -741,7 +751,9 @@ d.SetId(id.ID())
 ```
 
 ---
-[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+<a href="#terraform-azurerm-provider-implementation-guide">⬆️ Back to top</a>
+
+<a id="💡-ai-coding-guidance"></a>
 
 ## 💡 AI Coding Guidance
 
@@ -1048,6 +1060,8 @@ Use `diff.ForceNew()` within CustomizeDiffShim when:
 3. Azure API constraints require recreation for specific state transitions
 4. Static ForceNew: true or ForceNewIfChange cannot express the logic
 
+<a id="📚-specialized-guidance-on-demand"></a>
+
 ## 📚 Specialized Guidance (On-Demand)
 
 ### **Schema & Validation**
@@ -1065,4 +1079,4 @@ Use `diff.ForceNew()` within CustomizeDiffShim when:
 - 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md) - Input validation, compliance
 
 ---
-[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+<a href="#terraform-azurerm-provider-implementation-guide">⬆️ Back to top</a>

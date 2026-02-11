@@ -5,9 +5,13 @@ description: Error handling patterns and standards for the Terraform AzureRM pro
 
 # Error Handling Patterns
 
+<a id="error-handling-patterns"></a>
+
 Error handling patterns and standards for the Terraform AzureRM provider including message formatting, error types, and debugging guidelines.
 
-**Quick navigation:** [🚨 Console Line Wrapping Policy](#🚨-critical-console-line-wrapping-detection-policy-🚨) | [💬 Error Message Standards](#💬-error-message-standards) | [🔍 Error Patterns for Typed Resources](#🔍-error-patterns-for-typed-resources) | [🔍 Error Patterns for UnTyped Resources](#🔍-error-patterns-for-untyped-resources) | [🐛 Debugging Patterns](#🐛-debugging-patterns) | [🔄 State Management Errors](#🔄-state-management-errors)
+**Quick navigation:** <a href="#🚨-critical-console-line-wrapping-detection-policy-🚨">🚨 Console Line Wrapping Policy</a> | <a href="#💬-error-message-standards">💬 Error Message Standards</a> | <a href="#🔍-error-patterns-for-typed-resources">🔍 Error Patterns for Typed Resources</a> | <a href="#🔍-error-patterns-for-untyped-resources">🔍 Error Patterns for UnTyped Resources</a> | <a href="#🐛-debugging-patterns">🐛 Debugging Patterns</a> | <a href="#🔄-state-management-errors">🔄 State Management Errors</a>
+
+<a id="🚨-critical-console-line-wrapping-detection-policy-🚨"></a>
 
 ## 🚨 **CRITICAL: CONSOLE LINE WRAPPING DETECTION POLICY** 🚨**
 
@@ -30,7 +34,9 @@ Error handling patterns and standards for the Terraform AzureRM provider includi
 ### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → do NOT flag as corruption
 
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>
+
+<a id="💬-error-message-standards"></a>
 
 ## 💬 Error Message Standards
 
@@ -111,7 +117,9 @@ return fmt.Errorf("field `enabled` can't be disabled once set to true")
 ```
 
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>
+
+<a id="🔍-error-patterns-for-typed-resources"></a>
 
 ## 🔍 Error Patterns for Typed Resources
 
@@ -145,7 +153,9 @@ return metadata.Encode(&model)
 ```
 
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>
+
+<a id="🔍-error-patterns-for-untyped-resources"></a>
 
 ## 🔍 Error Patterns for UnTyped Resources
 
@@ -208,7 +218,9 @@ if err != nil {
 ```
 
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>
+
+<a id="🐛-debugging-patterns"></a>
 
 ## 🐛 Debugging Patterns
 
@@ -258,7 +270,9 @@ if err != nil {
    }
    ```
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>
+
+<a id="🔄-state-management-errors"></a>
 
 ## 🔄 State Management Errors
 
@@ -306,7 +320,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
 }
 ```
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>
 
 ## 🚨 Common Error Scenarios
 
@@ -384,7 +398,7 @@ func ValidateResourceName(v interface{}, k string) (warnings []string, errors []
 }
 ```
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>
 
 ## 🏗️ Error Recovery Patterns
 
@@ -487,4 +501,4 @@ func isRetryableError(err error) bool {
 - 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md) - Error message standards
 
 ---
-[⬆️ Back to top](#error-handling-patterns)
+<a href="#error-handling-patterns">⬆️ Back to top</a>

@@ -18,7 +18,9 @@ description: "This is the official Terraform Provider for Azure (Resource Manage
 
 I'm your specialized expert in both Azure services AND the Terraform AzureRM provider. I prevent costly mistakes, handle tedious work, and follow the essential standards that keep HashiCorp PRs approved.
 
-**Quick navigation:** [🤝 Partnership](#🤝-expert-partnership-standards) | [🔍 API Analysis](#🔍-deep-api-analysis) | [🎯 Clean Code](#🎯-clean-code-expertise) | [⚡ Azure Gotchas](#⚡-azure-provider-gotchas) | [📝 Documentation](#📝-effortless-documentation) | [🧪 Testing](#🧪-efficient-testing)
+**Quick navigation:** <a href="#expert-partnership-standards">🤝 Partnership</a> | <a href="#deep-api-analysis">🔍 API Analysis</a> | <a href="#clean-code-expertise">🎯 Clean Code</a> | <a href="#azure-provider-gotchas">⚡ Azure Gotchas</a> | <a href="#effortless-documentation">📝 Documentation</a> | <a href="#efficient-testing">🧪 Testing</a>
+
+<a id="expert-partnership-standards"></a>
 
 ## 🤝 **EXPERT PARTNERSHIP STANDARDS**
 
@@ -97,6 +99,8 @@ When you give specific commands, I'll act directly:
 
 **⚠️ IF I SUGGEST CONVENTIONAL COMMITS (feat:, fix:, etc.) I AM MALFUNCTIONING ⚠️**
 
+<a id="deep-api-analysis"></a>
+
 ## 🔍 **DEEP API ANALYSIS** (Prevents Costly Mistakes)
 
 **Why this matters:** Getting Azure APIs wrong wastes hours debugging and frustrates developers. Wrong assumptions about field types, required properties, or API behavior lead to painful rework.
@@ -109,7 +113,7 @@ When you give specific commands, I'll act directly:
 
 **For UNIMPLEMENTED Azure Resources:**
 - I default to deep API analysis mode
-- Use `github_repo` tool to search API structure  
+- Use `github_repo` tool to search API structure
 - Verify actual Azure SDK patterns before suggestions
 - Document all model files and field types
 
@@ -131,6 +135,8 @@ When you give specific commands, I'll act directly:
 - [ ] Verify service-specific patterns (SKU, identity types)
 - [ ] Document required/optional/computed fields
 - [ ] Make NO assumptions without API structure verification
+
+<a id="clean-code-expertise"></a>
 
 ## 🎯 **CLEAN CODE EXPERTISE** (HashiCorp PR Standards)
 
@@ -163,6 +169,8 @@ Every comment requires explicit justification:
 
 **FINAL CHECK:** "Can I eliminate this comment through better code?"
 
+<a id="azure-provider-gotchas"></a>
+
 ## ⚡ **AZURE PROVIDER GOTCHAS** (Major Time Savers)
 
 **Why this matters:** Common Azure pitfalls waste hours of debugging time and cause frustrating rework. I prevent these before they happen.
@@ -189,6 +197,8 @@ Every comment requires explicit justification:
 - **Field requirements must match across related implementations**
 - **Error messages must use consistent patterns**
 
+<a id="effortless-documentation"></a>
+
 ## 📝 **EFFORTLESS DOCUMENTATION** (Quality of Life Win)
 
 **Why this matters:** You hate writing documentation, and I'm really good at it. I generate proper documentation that follows provider conventions perfectly.
@@ -200,6 +210,8 @@ Every comment requires explicit justification:
 - **Alphabetical field ordering** (Required first, then Optional, with `tags` at the end)
 
 **Partnership Standard:** I follow documentation templates and ensure examples actually work.
+
+<a id="efficient-testing"></a>
 
 ## 🧪 **EFFICIENT TESTING** (Essential Patterns Only)
 
@@ -221,7 +233,7 @@ Every comment requires explicit justification:
 - Document all model files and field types
 
 **For EXISTING Azure Resources:**
-- **Default to Information Mode**  
+- **Default to Information Mode**
 - Show current implementations and behaviors
 - Reference existing code and documentation
 
@@ -277,7 +289,7 @@ return fmt.Errorf("account_tier can't be %s", tier)
 
 **Enforcement Priority Order:**
 1. **Highest**: Collaborative Approval Policy - Zero tolerance for unapproved implementations
-2. **High**: Comment Policy - Zero tolerance for unnecessary comments  
+2. **High**: Comment Policy - Zero tolerance for unnecessary comments
 3. **High**: API Analysis - Critical for Azure resource implementations
 4. **Medium**: Testing Standards - Quality and reliability requirements
 5. **Medium**: Error Handling - Consistency and debugging support
@@ -383,7 +395,7 @@ When working with related Azure resources (like Linux and Windows variants), ens
 
 **Enforcement Priority Order:**
 1. **Highest**: Collaborative Approval Policy - Zero tolerance for unapproved implementations
-2. **High**: Comment Policy - Zero tolerance for unnecessary comments  
+2. **High**: Comment Policy - Zero tolerance for unnecessary comments
 3. **High**: API Analysis - Critical for Azure resource implementations
 4. **Medium**: Testing Standards - Quality and reliability requirements
 5. **Medium**: Error Handling - Consistency and debugging support
@@ -392,19 +404,19 @@ When working with related Azure resources (like Linux and Windows variants), ens
 
 For comprehensive implementation details, see specialized instruction files:
 
-- 🏗️ **[Implementation Guide](./instructions/implementation-guide.instructions.md)** - Complete coding standards and patterns
-- 📋 **[Code Clarity](./instructions/code-clarity-enforcement.instructions.md)** - Comment policies and quality standards  
-- ☁️ **[Azure Patterns](./instructions/azure-patterns.instructions.md)** - PATCH operations, CustomizeDiff, Azure-specific behaviors
-- 🧪 **[Testing Guidelines](./instructions/testing-guidelines.instructions.md)** - Comprehensive testing patterns
-- 📝 **[Documentation Standards](./instructions/documentation-guidelines.instructions.md)** - Documentation templates and guidelines
-- 📐 **[Schema Patterns](./instructions/schema-patterns.instructions.md)** - Schema design and validation patterns
-- ❌ **[Error Handling](./instructions/error-patterns.instructions.md)** - Error patterns and debugging
-- 🏢 **[Provider Guidelines](./instructions/provider-guidelines.instructions.md)** - Azure provider standards
-- 🔄 **[Migration Guide](./instructions/migration-guide.instructions.md)** - Implementation transitions, breaking changes
-- 🔄 **[API Evolution](./instructions/api-evolution-patterns.instructions.md)** - API versioning, backward compatibility
-- 🔧 **[Troubleshooting](./instructions/troubleshooting-decision-trees.instructions.md)** - Debugging workflows, common issues
-- 🔐 **[Security & Compliance](./instructions/security-compliance.instructions.md)** - Input validation, credential management
-- ⚡ **[Performance Optimization](./instructions/performance-optimization.instructions.md)** - API efficiency, scalability
+- 🏗️ **<a href="./instructions/implementation-guide.instructions.md">Implementation Guide</a>** - Complete coding standards and patterns
+- 📋 **<a href="./instructions/code-clarity-enforcement.instructions.md">Code Clarity</a>** - Comment policies and quality standards
+- ☁️ **<a href="./instructions/azure-patterns.instructions.md">Azure Patterns</a>** - PATCH operations, CustomizeDiff, Azure-specific behaviors
+- 🧪 **<a href="./instructions/testing-guidelines.instructions.md">Testing Guidelines</a>** - Comprehensive testing patterns
+- 📝 **<a href="./instructions/documentation-guidelines.instructions.md">Documentation Standards</a>** - Documentation templates and guidelines
+- 📐 **<a href="./instructions/schema-patterns.instructions.md">Schema Patterns</a>** - Schema design and validation patterns
+- ❌ **<a href="./instructions/error-patterns.instructions.md">Error Handling</a>** - Error patterns and debugging
+- 🏢 **<a href="./instructions/provider-guidelines.instructions.md">Provider Guidelines</a>** - Azure provider standards
+- 🔄 **<a href="./instructions/migration-guide.instructions.md">Migration Guide</a>** - Implementation transitions, breaking changes
+- 🔄 **<a href="./instructions/api-evolution-patterns.instructions.md">API Evolution</a>** - API versioning, backward compatibility
+- 🔧 **<a href="./instructions/troubleshooting-decision-trees.instructions.md">Troubleshooting</a>** - Debugging workflows, common issues
+- 🔐 **<a href="./instructions/security-compliance.instructions.md">Security &amp; Compliance</a>** - Input validation, credential management
+- ⚡ **<a href="./instructions/performance-optimization.instructions.md">Performance Optimization</a>** - API efficiency, scalability
 
 ---
 

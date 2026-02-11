@@ -5,9 +5,13 @@ description: Schema design patterns and validation standards for the Terraform A
 
 # Schema Design Patterns
 
+<a id="schema-design-patterns"></a>
+
 Schema design patterns and validation standards for the Terraform AzureRM provider including field types, validation patterns, and Azure-specific schema considerations.
 
-**Quick navigation:** [📋 Schema Types](#📋-schema-type-patterns) | [✅ Validation](#✅-validation-patterns) | [⚙️ Azure Specific](#⚙️-azure-specific-schema-patterns) | [🚀 Breaking Changes](#🚀-fivepointoh-feature-flag-patterns) | [🏗️ Complex Schemas](#🏗️-complex-schema-patterns) | [🔍 Field Naming](#🔍-field-naming-standards) | [🧪 Testing](#🧪-testing-schema-patterns) | [🔧 Test Helpers](#🔧-test-configuration-helpers)
+**Quick navigation:** <a href="#📋-schema-type-patterns">📋 Schema Types</a> | <a href="#✅-validation-patterns">✅ Validation</a> | <a href="#⚙️-azure-specific-schema-patterns">⚙️ Azure Specific</a> | <a href="#🚀-fivepointoh-feature-flag-patterns">🚀 Breaking Changes</a> | <a href="#🏗️-complex-schema-patterns">🏗️ Complex Schemas</a> | <a href="#🔍-field-naming-standards">🔍 Field Naming</a> | <a href="#🧪-testing-schema-patterns">🧪 Testing</a> | <a href="#🔧-test-configuration-helpers">🔧 Test Helpers</a>
+
+<a id="📋-schema-type-patterns"></a>
 
 ## 📋 Schema Type Patterns
 
@@ -125,7 +129,9 @@ Schema design patterns and validation standards for the Terraform AzureRM provid
 ```
 
 ---
-[⬆️ Back to top](#schema-design-patterns)
+<a href="#schema-design-patterns">⬆️ Back to top</a>
+
+<a id="✅-validation-patterns"></a>
 
 ## ✅ Validation Patterns
 
@@ -158,7 +164,7 @@ Before suggesting any empty/exists checks or validation logic for fields, the AI
    }
    // Use model.FieldName directly - Required fields guaranteed to have values
 
-   // Untyped Resource Implementation  
+   // Untyped Resource Implementation
    value := diff.Get("field_name").(string)
    // Use value directly - Required fields guaranteed to have values
    ```
@@ -339,7 +345,9 @@ func ValidateSQLResourceName(v interface{}, k string) (warnings []string, errors
 ```
 
 ---
-[⬆️ Back to top](#schema-design-patterns)
+<a href="#schema-design-patterns">⬆️ Back to top</a>
+
+<a id="⚙️-azure-specific-schema-patterns"></a>
 
 ## ⚙️ Azure-Specific Schema Patterns
 
@@ -656,6 +664,8 @@ func ExpandMonitoringConfiguration(input []interface{}) *azureapi.MonitoringConf
 }
 ```
 
+<a id="🚀-fivepointoh-feature-flag-patterns"></a>
+
 ### FivePointOh Feature Flag Patterns
 
 **Breaking Changes and Deprecation Management:**
@@ -902,7 +912,9 @@ func validateAdvancedConfiguration(ctx context.Context, diff *pluginsdk.Resource
 }
 ```
 ---
-[⬆️ Back to top](#schema-design-patterns)
+<a href="#schema-design-patterns">⬆️ Back to top</a>
+
+<a id="🏗️-complex-schema-patterns"></a>
 
 ## 🏗️ Complex Schema Patterns
 
@@ -998,7 +1010,9 @@ func validateAdvancedConfiguration(ctx context.Context, diff *pluginsdk.Resource
 },
 ```
 ---
-[⬆️ Back to top](#schema-design-patterns)
+<a href="#schema-design-patterns">⬆️ Back to top</a>
+
+<a id="🔍-field-naming-standards"></a>
 
 ## 🔍 Field Naming Standards
 
@@ -1090,7 +1104,9 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 ```
 
 ---
-[⬆️ Back to top](#schema-design-patterns)
+<a href="#schema-design-patterns">⬆️ Back to top</a>
+
+<a id="🧪-testing-schema-patterns"></a>
 
 ## 🧪 Testing Schema Patterns
 
@@ -1191,6 +1207,8 @@ func TestAccResource_optionalComputedDefaultRestoration(t *testing.T) {
     })
 }
 ```
+
+<a id="🔧-test-configuration-helpers"></a>
 
 ## 🔧 Test Configuration Helpers
 
@@ -1309,4 +1327,4 @@ resource "azurerm_resource" "test" {
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md) - Azure provider schema standards
 
 ---
-[⬆️ Back to top](#schema-design-patterns)
+<a href="#schema-design-patterns">⬆️ Back to top</a>

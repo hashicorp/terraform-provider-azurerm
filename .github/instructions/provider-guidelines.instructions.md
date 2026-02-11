@@ -5,9 +5,13 @@ description: Azure-specific guidelines for Go files in the Terraform Azure Provi
 
 # 🏢 Provider Guidelines
 
+<a id="🏢-provider-guidelines"></a>
+
 Azure-specific guidelines for Go files in the Terraform Azure Provider repository. It includes best practices for Azure Resource Manager integration, Terraform provider patterns, and resource implementation.
 
-**Quick navigation:** [☁️ ARM Integration](#☁️-azure-resource-manager-arm-integration) | [⚙️ CustomizeDiff](#⚙️-customizediff-implementation-for-azure-resources) | [📐 Schema Design](#📐-azure-schema-design-and-flattening-guidelines) | [✅ API Validation](#✅-azure-api-value-validation)
+**Quick navigation:** <a href="#☁️-azure-resource-manager-arm-integration">☁️ ARM Integration</a> | <a href="#⚙️-customizediff-implementation-for-azure-resources">⚙️ CustomizeDiff</a> | <a href="#📐-azure-schema-design-and-flattening-guidelines">📐 Schema Design</a> | <a href="#✅-azure-api-value-validation">✅ API Validation</a>
+
+<a id="☁️-azure-resource-manager-arm-integration"></a>
 
 ## ☁️ Azure Resource Manager (ARM) Integration
 - Use the HashiCorp Go Azure SDK as the primary SDK for Azure integrations
@@ -44,7 +48,9 @@ Azure-specific guidelines for Go files in the Terraform Azure Provider repositor
 - Handle nested Azure resource configurations properly using `TypeSet`, `TypeList`, and `TypeMap`
 
 ---
-[⬆️ Back to top](#🏢-provider-guidelines)
+<a href="#🏢-provider-guidelines">⬆️ Back to top</a>
+
+<a id="⚙️-customizediff-implementation-for-azure-resources"></a>
 
 ## ⚙️ CustomizeDiff Implementation for Azure Resources
 
@@ -172,7 +178,9 @@ return fieldExists && old.(bool) == true && new.(bool) == false
 For comprehensive `CustomizeDiff` testing examples, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
 
 ---
-[⬆️ Back to top](#🏢-provider-guidelines)
+<a href="#🏢-provider-guidelines">⬆️ Back to top</a>
+
+<a id="📐-azure-schema-design-and-flattening-guidelines"></a>
 
 ## 📐 Azure Schema Design and Flattening Guidelines
 
@@ -300,7 +308,9 @@ func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing)
 - **Breaking change risk**: When existing users would be significantly impacted
 
 ---
-[⬆️ Back to top](#🏢-provider-guidelines)
+<a href="#🏢-provider-guidelines">⬆️ Back to top</a>
+
+<a id="✅-azure-api-value-validation"></a>
 
 ## ✅ Azure API Value Validation
 
@@ -368,4 +378,4 @@ Example of proper Azure value validation:
 - ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md) - Azure provider optimization
 
 ---
-[⬆️ Back to top](#🏢-provider-guidelines)
+<a href="#🏢-provider-guidelines">⬆️ Back to top</a>

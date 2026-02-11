@@ -1,13 +1,17 @@
 ﻿---
-applyTo: "internal/website/docs/**/*.html.markdown"
+applyTo: "website/docs/**/*.html.markdown"
 description: This document outlines the standards and guidelines for writing documentation for Terraform resources and data sources in the AzureRM provider.
 ---
 
 # Documentation Guidelines
 
+<a id="documentation-guidelines"></a>
+
 This document outlines the standards and guidelines for writing documentation for Terraform resources and data sources in the AzureRM provider.
 
-**Quick navigation:** [🚨 Pre-Implementation Requirements](#🚨-critical-pre-implementation-requirements-🚨) | [📚 Key Differences](#📚-key-differences-resources-vs-data-sources) | [🏗️ Documentation Structure](#🏗️-documentation-structure) | [📄 Resource Template](#📄-resource-documentation-template) | [📊 Data Source Template](#📊-data-source-documentation-template) | [✍️ Writing Guidelines](#✍️-writing-guidelines) | [💡 Example Configuration](#💡-example-configuration-guidelines) | [📁 Import Documentation](#📁-import-documentation) | [⏱️ Timeout Documentation](#⏱️-timeout-documentation) | [☁️ Azure-Specific Patterns](#☁️-azure-specific-documentation-patterns) | [📋 Attributes Reference](#📋-attributes-reference-differences) | [📝 Field Documentation](#📝-field-documentation-rules) | [📋 Provider Standards](#📋-provider-documentation-standards-note-formatting)
+**Quick navigation:** <a href="#🚨-critical-pre-implementation-requirements-🚨">🚨 Pre-Implementation Requirements</a> | <a href="#📚-key-differences-resources-vs-data-sources">📚 Key Differences</a> | <a href="#🏗️-documentation-structure">🏗️ Documentation Structure</a> | <a href="#📄-resource-documentation-template">📄 Resource Template</a> | <a href="#📊-data-source-documentation-template">📊 Data Source Template</a> | <a href="#✍️-writing-guidelines">✍️ Writing Guidelines</a> | <a href="#💡-example-configuration-guidelines">💡 Example Configuration</a> | <a href="#📁-import-documentation">📁 Import Documentation</a> | <a href="#⏱️-timeout-documentation">⏱️ Timeout Documentation</a> | <a href="#☁️-azure-specific-documentation-patterns">☁️ Azure-Specific Patterns</a> | <a href="#📋-attributes-reference-differences">📋 Attributes Reference</a> | <a href="#📝-field-documentation-rules">📝 Field Documentation</a> | <a href="#📋-provider-documentation-standards-note-formatting">📋 Provider Standards</a>
+
+<a id="🚨-critical-pre-implementation-requirements-🚨"></a>
 
 ## 🚨 **CRITICAL: PRE-IMPLEMENTATION REQUIREMENTS** 🚨
 
@@ -16,7 +20,7 @@ This document outlines the standards and guidelines for writing documentation fo
 **BEFORE making ANY documentation changes, you MUST:**
 
 1. **📋 READ NOTE FORMATTING GUIDELINES FIRST**
-   - Scroll to [Provider Documentation Standards (Note Formatting)](#📋-provider-documentation-standards-note-formatting)
+  - Scroll to <a href="#📋-provider-documentation-standards-note-formatting">Provider Documentation Standards (Note Formatting)</a>
    - Review the three note types: Informational (`->`), Warning (`~>`), Caution (`!>`)
    - Understand the categorization criteria for each type
 
@@ -44,7 +48,9 @@ This document outlines the standards and guidelines for writing documentation fo
 - [ ] Verified the format matches the content type (warning for ForceNew, etc.)
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="📚-key-differences-resources-vs-data-sources"></a>
 
 ## 📚 Key Differences: Resources vs Data Sources
 
@@ -80,7 +86,9 @@ description: |-
 - **Data Sources**: Omit import section (data sources don't support import)
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="🏗️-documentation-structure"></a>
 
 ## 🏗️ Documentation Structure
 
@@ -101,7 +109,9 @@ website/docs/
 - Use lowercase with underscores, match Terraform resource name exactly
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="📄-resource-documentation-template"></a>
 
 ## 📄 Resource Documentation Template
 
@@ -206,7 +216,9 @@ terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0
 - Tag variations or simple property changes
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="📊-data-source-documentation-template"></a>
 
 ## 📊 Data Source Documentation Template
 
@@ -266,7 +278,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 ````
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="✍️-writing-guidelines"></a>
 
 ## ✍️ Writing Guidelines
 
@@ -306,7 +320,9 @@ A `configuration` block supports the following:
 ```
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="💡-example-configuration-guidelines"></a>
 
 ## 💡 Example Configuration Guidelines
 
@@ -355,7 +371,9 @@ When adding new fields to existing resources, follow this guidance for documenta
 - **New example needed**: Advanced `custom_domain` setup requiring certificates and DNS validation
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="📁-import-documentation"></a>
 
 ## 📁 Import Documentation
 
@@ -374,7 +392,9 @@ terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0
 Data sources do not support import operations, so this section should be omitted from data source documentation.
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="⏱️-timeout-documentation"></a>
 
 ## ⏱️ Timeout Documentation
 
@@ -400,7 +420,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 ```
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="☁️-azure-specific-documentation-patterns"></a>
 
 ## ☁️ Azure-Specific Documentation Patterns
 
@@ -442,7 +464,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 ```
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="📋-attributes-reference-differences"></a>
 
 ## 📋 Attributes Reference Differences
 
@@ -487,7 +511,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 ```
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="📝-field-documentation-rules"></a>
 
 ## 📝 Field Documentation Rules
 
@@ -610,7 +636,9 @@ When documenting related Azure resources (like Linux and Windows VMSS), ensure c
 - [ ] Examples demonstrate the same patterns for equivalent functionality
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>
+
+<a id="📋-provider-documentation-standards-note-formatting"></a>
 
 ## 📋 Provider Documentation Standards (Note Formatting)
 
@@ -669,4 +697,4 @@ Use caution note blocks when providing critical information on potential irrever
 - 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md) - Comment and code quality standards
 
 ---
-[⬆️ Back to top](#documentation-guidelines)
+<a href="#documentation-guidelines">⬆️ Back to top</a>

@@ -5,9 +5,13 @@ description: Testing guidelines for Terraform AzureRM provider Go files - test e
 
 # 🧪 Testing Guidelines
 
+<a id="🧪-testing-guidelines"></a>
+
 Testing guidelines for Terraform AzureRM provider Go files - test execution protocols, patterns, and Azure-specific considerations.
 
-**Quick navigation:** [🚨 Test Execution Awareness](#🚨-test-execution-awareness) | [🧪 Efficient Testing](#🧪-efficient-testing-with-importstep) | [🧪 Test Types](#🧪-test-types) | [⚡ Essential Patterns](#⚡-essential-test-patterns) | [✅ CustomizeDiff Testing](#✅-customizediff-testing) | [📊 Data Source Testing](#📊-data-source-testing-patterns) | [🏗️ Test Organization](#🏗️-test-organization-and-structure) | [☁️ Azure-Specific Testing](#☁️-azure-specific-testing-guidelines) | [🔧 Environment Setup](#🔧-environment-setup)
+**Quick navigation:** <a href="#🚨-test-execution-awareness">🚨 Test Execution Awareness</a> | <a href="#🧪-efficient-testing-with-importstep">🧪 Efficient Testing</a> | <a href="#🧪-test-types">🧪 Test Types</a> | <a href="#⚡-essential-test-patterns">⚡ Essential Patterns</a> | <a href="#✅-customizediff-testing">✅ CustomizeDiff Testing</a> | <a href="#📊-data-source-testing-patterns">📊 Data Source Testing</a> | <a href="#🏗️-test-organization-and-structure">🏗️ Test Organization</a> | <a href="#☁️-azure-specific-testing-guidelines">☁️ Azure-Specific Testing</a> | <a href="#🔧-environment-setup">🔧 Environment Setup</a>
+
+<a id="🚨-test-execution-awareness"></a>
 
 ## 🚨 Test Execution Awareness
 
@@ -29,7 +33,9 @@ make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtual
 ```
 
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="🧪-efficient-testing-with-importstep"></a>
 
 ## 🧪 Efficient Testing with ImportStep
 
@@ -61,7 +67,9 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
 - **Document rationale**: Explain when additional checks add value beyond ImportStep
 
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="🧪-test-types"></a>
 
 ## 🧪 Test Types
 
@@ -165,7 +173,9 @@ func TestResourceValidation(t *testing.T) {
 ```
 
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="⚡-essential-test-patterns"></a>
 
 ## ⚡ Essential Test Patterns
 
@@ -213,7 +223,9 @@ func TestAccResourceName_requiresImport(t *testing.T) {
 **These practices help maintain awareness of Azure resource implications while enabling effective testing workflows.**
 
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="✅-customizediff-testing"></a>
 
 ## ✅ CustomizeDiff Testing
 
@@ -309,7 +321,7 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
 **For Azure-specific CustomizeDiff behaviors and validation patterns, see:** [Azure Patterns - CustomizeDiff Validation](./azure-patterns.instructions.md#customizediff-validation)
 
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
 
 ## Acceptance Testing Patterns
 
@@ -373,7 +385,9 @@ func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) {
 }
 ```
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="📊-data-source-testing-patterns"></a>
 
 ## 📊 Data Source Testing Patterns
 
@@ -435,7 +449,9 @@ check.That(data.ResourceName).Key("log_scrubbing_rule.#").HasValue("2"),
 check.That(data.ResourceName).Key("log_scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
 ```
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="🏗️-test-organization-and-structure"></a>
 
 ## 🏗️ Test Organization and Structure
 
@@ -470,7 +486,9 @@ When working with related Azure resources that have both Linux and Windows varia
 - **Default behavior**: Ensure both implementations handle defaults and omitted fields consistently
 
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="☁️-azure-specific-testing-guidelines"></a>
 
 ## ☁️ Azure-Specific Testing Guidelines
 
@@ -537,7 +555,9 @@ provider "azurerm" {
 - Any resource blocking normal cleanup
 
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>
+
+<a id="🔧-environment-setup"></a>
 
 ## 🔧 Environment Setup
 
@@ -582,4 +602,4 @@ For comprehensive acceptance testing guidelines, see: [Acceptance Testing Refere
 - 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md) - Test migration patterns, breaking change testing
 - 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md) - Testing API changes, version compatibility
 ---
-[⬆️ Back to top](#🧪-testing-guidelines)
+<a href="#🧪-testing-guidelines">⬆️ Back to top</a>

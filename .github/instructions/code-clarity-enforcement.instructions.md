@@ -5,15 +5,19 @@ description: Code clarity and policy enforcement guidelines for Terraform AzureR
 
 # Code Clarity and Policy Enforcement Guidelines
 
+<a id="code-clarity-and-policy-enforcement-guidelines"></a>
+
 This document provides detailed enforcement guidelines for maintaining code clarity and quality standards in the Terraform AzureRM provider.
 
-**Quick Navigation:** [🚫 Comment Policy](#🚫-zero-tolerance-for-unnecessary-comments-policy) | [🎯 Strategic Decision-Making](#🎯-strategic-decision-making-guidance) | [🔄 CustomizeDiff](#customizediff-import-requirements) | [🏗️ Resource Standards](#resource-implementation-standards) | [☁️ Azure Integration](#azure-api-integration-standards) | [🔄 State Management](#state-management-requirements) | [🧪 Testing Standards](#testing-standards) | [📝 Documentation](#documentation-quality) | [🎯 Enforcement Priority](#enforcement-priority) | [⚡ Decision Trees](#⚡-quick-decision-trees) | [📊 Performance Metrics](#📊-performance-metrics--success-indicators) | [🎯 AI Optimization](#🎯-context-aware-ai-optimization)
+**Quick Navigation:** <a href="#🚫-zero-tolerance-for-unnecessary-comments-policy">🚫 Comment Policy</a> | <a href="#🎯-strategic-decision-making-guidance">🎯 Strategic Decision-Making</a> | <a href="#customizediff-import-requirements">🔄 CustomizeDiff</a> | <a href="#resource-implementation-standards">🏗️ Resource Standards</a> | <a href="#azure-api-integration-standards">☁️ Azure Integration</a> | <a href="#state-management-requirements">🔄 State Management</a> | <a href="#testing-standards">🧪 Testing Standards</a> | <a href="#documentation-quality">📝 Documentation</a> | <a href="#enforcement-priority">🎯 Enforcement Priority</a> | <a href="#⚡-quick-decision-trees">⚡ Decision Trees</a> | <a href="#📊-performance-metrics--success-indicators">📊 Performance Metrics</a> | <a href="#🎯-context-aware-ai-optimization">🎯 AI Optimization</a>
 
 **Related Guidelines:**
 - 🏗️ **Core Implementation**: [implementation-guide.instructions.md](./implementation-guide.instructions.md) - Main coding standards and patterns
 - ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md) - PATCH operations, CustomizeDiff validation, Azure-specific behaviors
 - 🧪 **Testing Standards**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md) - Comprehensive test requirements and patterns
 
+
+<a id="🚫-zero-tolerance-for-unnecessary-comments-policy"></a>
 
 ## 🚫 **ZERO TOLERANCE FOR UNNECESSARY COMMENTS POLICY**
 
@@ -80,7 +84,9 @@ Before allowing any comment, ask:
 3. "Is this documenting an Azure API quirk?" → Comment may be acceptable
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="🎯-strategic-decision-making-guidance"></a>
 
 ## 🎯 Strategic Decision-Making Guidance
 
@@ -107,7 +113,9 @@ Before allowing any comment, ask:
 - **Azure API alignment**: Comments must reflect actual Azure service behavior, not implementation assumptions
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="customizediff-import-requirements"></a>
 
 ## CustomizeDiff Import Requirements
 
@@ -116,7 +124,9 @@ Before allowing any comment, ask:
 **For complete import patterns, examples, and decision criteria, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="resource-implementation-standards"></a>
 
 ## Resource Implementation Standards
 
@@ -129,7 +139,9 @@ Before allowing any comment, ask:
 **Timeouts**: Ensure appropriate timeout values for Azure operations (often long-running)
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="azure-api-integration-standards"></a>
 
 ## Azure API Integration Standards
 
@@ -142,7 +154,9 @@ Before allowing any comment, ask:
 **Authentication**: Verify proper use of Azure client authentication patterns
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="state-management-requirements"></a>
 
 ## State Management Requirements
 
@@ -155,7 +169,9 @@ Before allowing any comment, ask:
 **Resource IDs**: Ensure consistent Azure resource ID parsing and formatting
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="testing-standards"></a>
 
 ## Testing Standards
 
@@ -168,7 +184,9 @@ Before allowing any comment, ask:
 **Test Configuration**: Verify test fixtures use appropriate Azure resource configurations
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="documentation-quality"></a>
 
 ## Documentation Quality
 
@@ -179,7 +197,9 @@ Before allowing any comment, ask:
 **Import Documentation**: Check that import syntax and requirements are clearly documented
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="enforcement-priority"></a>
 
 ## Enforcement Priority
 
@@ -194,7 +214,9 @@ Before allowing any comment, ask:
 **Performance Decision Framework**: Use strategic guidance above to make rapid, correct decisions during active development work.
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="⚡-quick-decision-trees"></a>
 
 ## ⚡ Quick Decision Trees
 
@@ -260,7 +282,9 @@ Adding field validation logic?
 ```
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="📊-performance-metrics--success-indicators"></a>
 
 ## 📊 Performance Metrics & Success Indicators
 
@@ -283,7 +307,9 @@ Adding field validation logic?
 - **Refactoring Suggestions**: Increasing ratio of refactoring suggestions vs comment acceptance
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>
+
+<a id="🎯-context-aware-ai-optimization"></a>
 
 ## 🎯 Context-Aware AI Optimization
 
@@ -305,4 +331,4 @@ Adding field validation logic?
 - **Low Intensity**: Documentation updates, minor configuration changes
 
 ---
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+<a href="#code-clarity-and-policy-enforcement-guidelines">⬆️ Back to top</a>

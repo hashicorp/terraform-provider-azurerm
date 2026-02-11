@@ -5,9 +5,13 @@ description: Azure-specific implementation patterns for the Terraform AzureRM pr
 
 # Azure-Specific Implementation Patterns
 
+<a id="azure-specific-implementation-patterns"></a>
+
 Azure-specific implementation patterns for the Terraform AzureRM provider including PATCH operations, CustomizeDiff patterns, and Azure SDK integration patterns.
 
-**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🚫 "None" Value Pattern](#🚫-none-value-pattern) | [🔐 Security](#🔐-security-patterns) | [🔄 State Management](#🔄-state-management-with-dgetrawconfig) | [🏗️ Progressive Code Simplification](#🏗️-progressive-code-simplification)
+**Quick navigation:** <a href="#🔄-patch-operations">🔄 PATCH Operations</a> | <a href="#✅-customizediff-validation">✅ CustomizeDiff</a> | <a href="#🎯-schema-flattening">🎯 Schema Flattening</a> | <a href="#🚫-none-value-pattern">🚫 "None" Value Pattern</a> | <a href="#🔐-security-patterns">🔐 Security</a> | <a href="#🔄-state-management-with-dgetrawconfig">🔄 State Management</a> | <a href="#🏗️-progressive-code-simplification">🏗️ Progressive Code Simplification</a>
+
+<a id="🔄-patch-operations"></a>
 
 ## 🔄 PATCH Operations
 
@@ -78,7 +82,9 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 ```
 
 ---
-[⬆️ Back to top](#azure-specific-implementation-patterns)
+<a href="#azure-specific-implementation-patterns">⬆️ Back to top</a>
+
+<a id="✅-customizediff-validation"></a>
 
 ## ✅ CustomizeDiff Validation
 
@@ -228,7 +234,7 @@ When validating optional fields in CustomizeDiff functions, Go's zero value beha
 - **Simple field access**: When you need the value regardless of how it was set
 - **Performance-critical paths**: Raw config access has overhead, use sparingly
 
-**For comprehensive `GetRawConfig()` usage guidance, see:** [State Management with d.GetRawConfig()](#🔄-state-management-with-dgetrawconfig)
+**For comprehensive `GetRawConfig()` usage guidance, see:** <a href="#🔄-state-management-with-dgetrawconfig">State Management with d.GetRawConfig()</a>
 
 ### Field Removal ForceNew Pattern
 
@@ -306,10 +312,12 @@ pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDi
 - **Wrong Field Detection**: Use `GetRawConfig().AsValueMap()[field].IsNull()` to detect field removal, not `diff.Get()`
 - **Creation vs Update**: Apply logic only during updates (`diff.Id() != ""`), not during initial resource creation
 
-**For comprehensive `GetRawConfig()` usage guidance, see:** [State Management with d.GetRawConfig()](#🔄-state-management-with-dgetrawconfig)
+**For comprehensive `GetRawConfig()` usage guidance, see:** <a href="#🔄-state-management-with-dgetrawconfig">State Management with d.GetRawConfig()</a>
 
 ---
-[⬆️ Back to top](#azure-specific-implementation-patterns)
+<a href="#azure-specific-implementation-patterns">⬆️ Back to top</a>
+
+<a id="🎯-schema-flattening"></a>
 
 ## 🎯 Schema Flattening
 
@@ -400,7 +408,9 @@ func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing)
 }
 ```
 ---
-[⬆️ Back to top](#azure-specific-implementation-patterns)
+<a href="#azure-specific-implementation-patterns">⬆️ Back to top</a>
+
+<a id="🚫-none-value-pattern"></a>
 
 ## 🚫 "None" Value Pattern
 
@@ -469,7 +479,9 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
 ```
 
 ---
-[⬆️ Back to top](#azure-specific-implementation-patterns)
+<a href="#azure-specific-implementation-patterns">⬆️ Back to top</a>
+
+<a id="🔐-security-patterns"></a>
 
 ## 🔐 Security Patterns
 
@@ -539,7 +551,9 @@ func ValidateAzureResourceName(v interface{}, k string) (warnings []string, erro
 }
 ```
 ---
-[⬆️ Back to top](#azure-specific-implementation-patterns)
+<a href="#azure-specific-implementation-patterns">⬆️ Back to top</a>
+
+<a id="🔄-state-management-with-dgetrawconfig"></a>
 
 ## 🔄 State Management with d.GetRawConfig()
 
@@ -600,7 +614,9 @@ func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, m
 ```
 
 ---
-[⬆️ Back to top](#azure-specific-implementation-patterns)
+<a href="#azure-specific-implementation-patterns">⬆️ Back to top</a>
+
+<a id="🏗️-progressive-code-simplification"></a>
 
 ## 🏗️ Progressive Code Simplification
 
@@ -664,4 +680,4 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 - 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md) - Azure API evolution patterns
 
 ---
-[⬆️ Back to top](#azure-specific-implementation-patterns)
+<a href="#azure-specific-implementation-patterns">⬆️ Back to top</a>

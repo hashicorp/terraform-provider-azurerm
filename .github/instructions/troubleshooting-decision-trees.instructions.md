@@ -5,9 +5,13 @@ description: Troubleshooting decision trees and diagnostic patterns for the Terr
 
 # 🔧 Troubleshooting Decision Trees
 
+<a id="🔧-troubleshooting-decision-trees"></a>
+
 Troubleshooting decision trees and diagnostic patterns for the Terraform AzureRM provider including common issues, debugging workflows, and resolution strategies.
 
-**Quick navigation:** [🚨 Common Issues](#🚨-common-issues) | [🔍 Debugging Workflows](#🔍-debugging-workflows) | [⚡ Quick Fixes](#⚡-quick-fixes) | [🏗️ Development Troubleshooting](#🏗️-development-troubleshooting)
+**Quick navigation:** <a href="#🚨-common-issues">🚨 Common Issues</a> | <a href="#🔍-debugging-workflows">🔍 Debugging Workflows</a> | <a href="#⚡-quick-fixes">⚡ Quick Fixes</a> | <a href="#🏗️-development-troubleshooting">🏗️ Development Troubleshooting</a>
+
+<a id="🚨-common-issues"></a>
 
 ## 🚨 Common Issues
 
@@ -117,6 +121,8 @@ Authentication Issue
    └─ Check for conditional access policies
 ```
 
+<a id="🔍-debugging-workflows"></a>
+
 ## 🔍 Debugging Workflows
 
 ### Step-by-Step Resource Debugging
@@ -171,6 +177,8 @@ Connectivity Issue
    └─ Test with reduced concurrency
 ```
 
+<a id="⚡-quick-fixes"></a>
+
 ## ⚡ Quick Fixes
 
 ### Common Error Resolution
@@ -213,6 +221,8 @@ terraform plan -target=azurerm_resource.example
 # Use partial configuration
 terraform plan -var-file=minimal.tfvars
 ```
+
+<a id="🏗️-development-troubleshooting"></a>
 
 ## 🏗️ Development Troubleshooting
 
@@ -314,4 +324,4 @@ if err != nil {
 log.Printf("[DEBUG] Parsed ID: %+v", id)
 ```
 ---
-[⬆️ Back to top](#🔧-troubleshooting-decision-trees)
+<a href="#🔧-troubleshooting-decision-trees">⬆️ Back to top</a>

@@ -5,9 +5,13 @@ description: Security and compliance patterns for the Terraform AzureRM provider
 
 # Security & Compliance Patterns
 
+<a id="security--compliance-patterns"></a>
+
 Security and compliance patterns for the Terraform AzureRM provider including input validation, credential management, and security best practices.
 
-**Quick navigation:** [🔐 Input Validation](#🔐-input-validation-and-sanitization) | [🔑 Credential Management](#🔑-credential-management) | [🛡️ Security Patterns](#🛡️-security-patterns) | [📋 Compliance](#📋-compliance-requirements)
+**Quick navigation:** <a href="#🔐-input-validation-and-sanitization">🔐 Input Validation</a> | <a href="#🔑-credential-management">🔑 Credential Management</a> | <a href="#🛡️-security-patterns">🛡️ Security Patterns</a> | <a href="#📋-compliance-requirements">📋 Compliance</a>
+
+<a id="🔐-input-validation-and-sanitization"></a>
 
 ## 🔐 Input Validation and Sanitization
 
@@ -89,6 +93,8 @@ func ValidateFilePath(v interface{}, k string) (warnings []string, errors []erro
 }
 ```
 
+<a id="🔑-credential-management"></a>
+
 ## 🔑 Credential Management
 
 ### Secure Environment Variable Handling
@@ -162,6 +168,8 @@ func isSensitiveField(fieldName string) bool {
     return false
 }
 ```
+
+<a id="🛡️-security-patterns"></a>
 
 ## 🛡️ Security Patterns
 
@@ -284,6 +292,8 @@ func validateFirewallRule(rule azureapi.FirewallRule) error {
 }
 ```
 
+<a id="📋-compliance-requirements"></a>
+
 ## 📋 Compliance Requirements
 
 ### Audit Logging
@@ -401,4 +411,4 @@ func validateGDPRCompliance(resource interface{}) error {
 }
 ```
 ---
-[⬆️ Back to top](#security--compliance-patterns)
+<a href="#security--compliance-patterns">⬆️ Back to top</a>
