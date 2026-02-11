@@ -50,6 +50,8 @@ The following arguments are supported:
 
 * `description` - (Optional) The description of the Network Manager Routing Configuration.
 
+* `route_table_usage_mode` - (Optional) The route table usage mode for the Network Manager Routing Configuration. Possible values are `ManagedOnly` and `UseExisting`. Defaults to `ManagedOnly`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -77,4 +79,4 @@ terraform import azurerm_network_manager_routing_configuration.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

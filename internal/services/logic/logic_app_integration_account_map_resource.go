@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/logic/2019-05-01/integrationaccountmaps"
@@ -17,7 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogicAppIntegrationAccountMap() *pluginsdk.Resource {
@@ -103,14 +103,14 @@ func resourceLogicAppIntegrationAccountMapCreateUpdate(d *pluginsdk.ResourceData
 	parameters := integrationaccountmaps.IntegrationAccountMap{
 		Properties: integrationaccountmaps.IntegrationAccountMapProperties{
 			MapType: integrationaccountmaps.MapType(d.Get("map_type").(string)),
-			Content: utils.String(d.Get("content").(string)),
+			Content: pointer.To(d.Get("content").(string)),
 		},
 	}
 
 	if parameters.Properties.MapType == integrationaccountmaps.MapTypeLiquid {
-		parameters.Properties.ContentType = utils.String("text/plain")
+		parameters.Properties.ContentType = pointer.To("text/plain")
 	} else {
-		parameters.Properties.ContentType = utils.String("application/xml")
+		parameters.Properties.ContentType = pointer.To("application/xml")
 	}
 
 	if v, ok := d.GetOk("metadata"); ok {

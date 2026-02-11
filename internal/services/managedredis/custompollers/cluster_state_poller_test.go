@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
@@ -22,7 +22,7 @@ func TestClusterStatePoller_Success(t *testing.T) {
 		getResponse: &redisenterprise.GetOperationResponse{
 			HttpResponse: &http.Response{StatusCode: 200},
 			Model: &redisenterprise.Cluster{
-				Properties: &redisenterprise.ClusterProperties{
+				Properties: &redisenterprise.ClusterCreateProperties{
 					ResourceState: pointer.To(redisenterprise.ResourceStateRunning),
 				},
 			},
@@ -66,7 +66,7 @@ func TestClusterStatePoller_InProgress(t *testing.T) {
 				getResponse: &redisenterprise.GetOperationResponse{
 					HttpResponse: &http.Response{StatusCode: 200},
 					Model: &redisenterprise.Cluster{
-						Properties: &redisenterprise.ClusterProperties{
+						Properties: &redisenterprise.ClusterCreateProperties{
 							ResourceState: pointer.To(tc.state),
 						},
 					},
@@ -102,7 +102,7 @@ func TestClusterStatePoller_UnexpectedState(t *testing.T) {
 		getResponse: &redisenterprise.GetOperationResponse{
 			HttpResponse: &http.Response{StatusCode: 200},
 			Model: &redisenterprise.Cluster{
-				Properties: &redisenterprise.ClusterProperties{
+				Properties: &redisenterprise.ClusterCreateProperties{
 					ResourceState: pointer.To(redisenterprise.ResourceState("UnexpectedState")),
 				},
 			},
@@ -233,7 +233,7 @@ func (m *statefulMockClient) Get(ctx context.Context, id redisenterprise.RedisEn
 	return redisenterprise.GetOperationResponse{
 		HttpResponse: &http.Response{StatusCode: 200},
 		Model: &redisenterprise.Cluster{
-			Properties: &redisenterprise.ClusterProperties{
+			Properties: &redisenterprise.ClusterCreateProperties{
 				ResourceState: pointer.To(state),
 			},
 		},
