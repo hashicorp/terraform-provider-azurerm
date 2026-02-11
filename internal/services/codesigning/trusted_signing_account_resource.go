@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -47,9 +47,9 @@ func (m TrustedSigningAccountResource) Arguments() map[string]*pluginsdk.Schema 
 			),
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
@@ -136,6 +136,10 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 
 			result, err := client.Get(ctx, *id)
 			if err != nil {
+				if response.WasNotFound(result.HttpResponse) {
+					meta.MarkAsGone(id)
+					return nil
+				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -179,7 +183,7 @@ func (m TrustedSigningAccountResource) Update() sdk.ResourceFunc {
 			if meta.ResourceData.HasChange("sku_name") {
 				patch.Properties = pointer.To(codesigningaccounts.CodeSigningAccountPatchProperties{
 					Sku: pointer.To(codesigningaccounts.AccountSkuPatch{
-						Name: pointer.To(codesigningaccounts.SkuName(model.SkuName)),
+						Name: pointer.ToEnum[codesigningaccounts.SkuName](model.SkuName),
 					}),
 				})
 			}
@@ -209,7 +213,7 @@ func (m TrustedSigningAccountResource) Delete() sdk.ResourceFunc {
 
 			meta.Logger.Infof("deleting %s", id)
 
-			if _, err = client.Delete(ctx, *id); err != nil {
+			if err = client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %v", id, err)
 			}
 			return nil

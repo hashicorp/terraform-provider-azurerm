@@ -3,12 +3,14 @@ subcategory: "Trusted Signing"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_trusted_signing_account"
 description: |-
-  Gets information about an existing Trusted Signing Account.
+  Gets information about an existing Trusted Signing Account (Artifact Signing Account).
 ---
 
 # Data Source: azurerm_trusted_signing_account
 
-Use this data source to access information about an existing Trusted Signing Account.
+Use this data source to access information about an existing Trusted Signing Account (Artifact Signing Account).
+
+~> **Note:** The resource provider is named [Artifact Signing](https://learn.microsoft.com/en-us/azure/artifact-signing/overview).
 
 ## Example Usage
 

@@ -3,12 +3,14 @@ subcategory: "Trusted Signing"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_trusted_signing_account"
 description: |-
-  Manages a Trusted Signing Account.
+  Manages a Trusted Signing Account (Artifact Signing Account).
 ---
 
 # azurerm_trusted_signing_account
 
-Manages a Trusted Signing Account.
+Manages a Trusted Signing Account (Artifact Signing Account).
+
+~> **Note:** The resource provider is named [Artifact Signing](https://learn.microsoft.com/en-us/azure/artifact-signing/overview).
 
 ## Example Usage
 
@@ -32,9 +34,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Trusted Signing Account. Changing this forces a new Trusted Signing Account to be created.
 
-* `location` - (Required) The Azure Region where the Trusted Signing Account should exist. Changing this forces a new Trusted Signing Account to be created.
-
 * `resource_group_name` - (Required) The name of the Resource Group where the Trusted Signing Account should exist. Changing this forces a new Trusted Signing Account to be created.
+
+* `location` - (Required) The Azure Region where the Trusted Signing Account should exist. Changing this forces a new Trusted Signing Account to be created.
 
 * `sku_name` - (Required) The sku name of this Trusted Signing Account. Possible values are `Basic` and `Premium`.
 
