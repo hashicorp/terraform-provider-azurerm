@@ -88,13 +88,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `scan_ips` - The list of Single Client Access Name (SCAN) IP addresses associated with the Database system. SCAN IP addresses are typically used for load balancing and are not assigned to any interface. Oracle Clusterware directs the requests to the appropriate nodes in the cluster.
 -> **Note:** For a single-node Database system, this list is empty.
 
-* `shape` - The shape of the Database system. The shape determines resources to allocate to the Database system. For virtual machine shapes, the number of CPU cores and memory. For bare metal and Exadata shapes, the number of CPU cores, storage, and memory.
+* `shape` - The shape of the Database system.
 
 * `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Database system.
 
-* `storage_volume_performance_mode` - The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](https://docs.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeperformance.htm) for more information.
+* `storage_volume_performance_mode` - The block storage volume performance level.
 
-* `time_zone_in_utc` - The time zone of the Database system, e.g., UTC, to set the timeZone as UTC.
+* `time_zone_in_utc` - The time zone of the Database system. 
 
 * `version` - The Oracle Database version of the Database system.
 
@@ -102,7 +102,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `database_system_options` block supports the following:
+A `database_system_options` block exports the following:
 
 * `storage_management` - The storage option used in the Database system. ASM - Automatic storage management, LVM - Logical Volume management.
 
