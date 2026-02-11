@@ -30,6 +30,7 @@ More granular documentation covers how these fit together - and the most common 
 
 * [Adding a new Service Package](topics/guide-new-service-package.md)
 * [Adding a new Resource](topics/guide-new-resource.md)
+* [Adding a new List Resource](topics/guide-list-resource.md)
 * [Adding a new Data Source](topics/guide-new-data-source.md)
 * [When to create a new Resource vs Inline Block](topics/guide-new-resource-vs-inline.md)
 
