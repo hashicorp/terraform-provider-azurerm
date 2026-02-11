@@ -42,10 +42,6 @@
   version: 2018-11-01-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: codesigning
-  version: 2025-10-13
-
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: containerregistry
   version: 2019-06-01-preview
 
