@@ -2,6 +2,7 @@ package appservice
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -16,17 +17,14 @@ type ServicePlanResourceList struct{}
 
 var _ sdk.FrameworkListWrappedResource = new(ServicePlanResourceList)
 
-// Metadata implements [sdk.FrameworkListWrappedResource].
 func (s *ServicePlanResourceList) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = ServicePlanResource{}.ResourceType()
 }
 
-// ResourceFunc implements [sdk.FrameworkListWrappedResource].
 func (s *ServicePlanResourceList) ResourceFunc() *pluginsdk.Resource {
 	return sdk.WrappedResource(ServicePlanResource{})
 }
 
-// List implements [sdk.FrameworkListWrappedResource].
 func (s *ServicePlanResourceList) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.AppService.ServicePlanClient
 
@@ -72,18 +70,26 @@ func (s *ServicePlanResourceList) List(ctx context.Context, request list.ListReq
 			// use case insensitive parsing as the API may return `serverfarms` instead of literal `serverFarms`
 			id, err := commonids.ParseAppServicePlanIDInsensitively(pointer.From(plan.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing App Service Plan ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing App Service Plan ID", err)
 				return
 			}
 
 			meta := sdk.NewResourceMetaData(metadata.Client, ServicePlanResource{})
 			meta.SetID(id)
 			if err := resourceServicePlanFlatten(meta, id, &plan); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "flattening App Service Plan data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", pointer.From(plan.Name)), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, meta.ResourceData, result, push)
+			sdk.EncodeListResult(ctx, meta.ResourceData, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+
+			if !push(result) {
+				return
+			}
 		}
 	}
 }
