@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_express_route_port` - add support for `GcmAesXpn128` and `GcmAesXpn256` ciphers to `link*.macsec_cipher` [GH-30240]
 
 FEATURES:
+* **New List Resource**: `azurerm_cognitive_account` [GH-31624]
 * **New List Resource**: `azurerm_service_plan` [GH-31610]
 * **New Resource**: `azurerm_managed_redis_access_policy_assignment` [GH-30980]
 * **New Resource**: `azurerm_api_management_workspace_named_value` [GH-31299]
