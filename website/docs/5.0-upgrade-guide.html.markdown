@@ -385,9 +385,13 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
 
+### `azurerm_mssql_server_transparent_data_encryption`
+
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
+
 ### `azurerm_mysql_flexible_server`
 
-* The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The deprecated `public_network_access_enabled` property has been removed in favour of the `public_network_access` property.
 
 ### `azurerm_netapp_volume`
 
