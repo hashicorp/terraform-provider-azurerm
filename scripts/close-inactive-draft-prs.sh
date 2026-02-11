@@ -113,7 +113,7 @@ for pr in "${all_prs[@]}"; do
         -H "Authorization: Bearer $token" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         "${API_BASE}/issues/${pr_number}/comments" \
-        -d '{"body":"I'\''m going to close this draft pull request because it has been inactive for _60 days_ ⏳. This helps our maintainers find and focus on the active contributions.\n\nIf you would like to continue working on this, please reopen the pull request and mark it as ready for review when complete. Thank you!"}' > /dev/null
+        -d '{"body":"This draft pull request is being closed because it has been inactive for _60 days_ ⏳. This helps our maintainers find and focus on the active contributions.\n\nIf you would like to continue working on this, please reopen the pull request and mark it as ready for review when complete. Thank you!"}' > /dev/null
       echo "  ↳ Closed and commented"
     else
       echo "  ↳ (dry run - would close and comment)"
