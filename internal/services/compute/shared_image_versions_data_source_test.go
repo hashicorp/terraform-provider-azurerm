@@ -169,5 +169,5 @@ resource "azurerm_shared_image_version" "test2" {
     regional_replica_count = 1
   }
 }
-`, SharedImageVersionResource{}.provision(data))
+`, SharedImageVersionResource{}.provision(data, "", "", ""))
 }
