@@ -249,7 +249,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			return resourceServicePlanFlatten(metadata, id, servicePlan.Model)
+			return r.flatten(metadata, id, servicePlan.Model)
 		},
 	}
 }
@@ -390,7 +390,7 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func resourceServicePlanFlatten(metadata sdk.ResourceMetaData, id *commonids.AppServicePlanId, model *appserviceplans.AppServicePlan) error {
+func (ServicePlanResource) flatten(metadata sdk.ResourceMetaData, id *commonids.AppServicePlanId, model *appserviceplans.AppServicePlan) error {
 	state := ServicePlanModel{
 		Name:          id.ServerFarmName,
 		ResourceGroup: id.ResourceGroupName,
