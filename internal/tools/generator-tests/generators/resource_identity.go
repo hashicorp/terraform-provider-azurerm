@@ -15,7 +15,10 @@ import (
 	"github.com/mitchellh/cli"
 )
 
-var riOutputFileFmt = "../../services/%s/%s_resource_identity_gen_test.go"
+var (
+	cwd, _          = os.Getwd()
+	riOutputFileFmt = "/%s_resource_identity_gen_test.go"
+)
 
 type ResourceIdentityCommand struct {
 	Ui cli.Ui
@@ -32,6 +35,7 @@ type resourceIdentityData struct {
 	KnownValueMap          map[string]string
 	CompareValues          string
 	CompareValueMap        map[string]string
+	NoSubscriptionID       bool
 	TestName               string
 	TestExpectNonEmptyPlan bool
 	TestSequential         bool
@@ -48,10 +52,10 @@ Required args:
 	- properties [string]
 		the schema exposed properties that make up the Resource Identity values. e.g. -properties "resource_group_name, site_name". ID properties that are not part of the schema, such as 'subscription_id', should not be included here.
 		If the schema property name does not match the corresponding value in the ID, these should be specified together as [id_name]:[schema_name]
-	- service-package-name [string]
-		the name of the Service Package the resource belongs to. This forms part of the output path for the generated file.
 
 Optional args:
+	- service-package-name [string]
+		the name of the Service Package the resource belongs to. This forms part of the output path for the generated file. For Go Generate this will be picked up from the current working directory.
 	- test-params [string]
 		'test-params' specifies any additional parameters that need to be passed to the 'basic' config for the resource type. e.g. '-test-params blah' == r.basic(data, "blah")
 	- known-values [string]
@@ -59,6 +63,8 @@ Optional args:
 		If the value for a 'known-value' is a CSV, replace the comma with a semi-colon to allow the parser to replace it for you. (see below for a full example)
 	- compare-values [string]
 		'compare-values' specifies resource identity values that do not have a one to one relationship with any values in the schema or state (i.e. the schema references a parent resource id but the resource identity includes the pieces of that parent resource id).
+	- no-subscription-id [bool]
+		- 'no-subscription-id' can be passed to omit the default subscription ID known value in the test if the resource's ID doesn't contain subscription ID. Defaults to 'false'.
 	- test-name [string]
 		'test-name' specifies the test config name that will be used to test Resource Identity. Defaults to 'basic'.
 	- test-expect-non-empty [bool]
@@ -68,10 +74,15 @@ Optional args:
 		This is used for resources that need to run in a sequential test suite.
 
 Example:
-generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "subscription_id:data.Subscriptions.Primary,kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
+generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
 
 Caveats and TODOs:
 Expects that the test resource type is already declared in the test package for the service. (e.g. type LinuxFunctionAppResource struct{})
+
+CAUTION: Do not implement Resource Identity for resources with numbers in their ID segment names (e.g., 'ServerGroupsv2Name')
+until the strcase.ToSnake() issue is resolved. The current implementation splits on number boundaries,
+converting 'ServerGroupsv2Name' to 'server_groupsv_2_name' (not 'server_groupsv2_name').
+This causes test failures and incorrect identity schema field names.
 `
 }
 
@@ -105,10 +116,11 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 
 	argSet.StringVar(&d.ResourceName, "resource-name", "", "(Required) the name of the resource to generate the resource identity test for.")
 	argSet.StringVar(&d.IdentityProperties, "properties", "", "(Required) a comma separated list of schema property names that make up the resource identity for this resource. Do not include 'known' values here, only schema comparisons are supported.")
-	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Required) the path to the directory containing the service package to write the generated test to.")
+	argSet.StringVar(&d.ServicePackageName, "service-package-name", "", "(Optional) the path to the directory containing the service package to write the generated test to. For Go generate this will be picked up from the current working directory.")
 	argSet.StringVar(&d.BasicTestParams, "test-params", "", "(Optional) comma separated list of additional properties that need to be passed to the basic test config for this resource.")
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
+	argSet.BoolVar(&d.NoSubscriptionID, "no-subscription-id", false, "(Optional) 'no-subscription-id' can be passed to omit the default subscription ID known value in the test if the resource's ID doesn't contain subscription ID. Defaults to 'false'.")
 	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 	argSet.BoolVar(&d.TestExpectNonEmptyPlan, "test-expect-non-empty", false, "(Optional) Whether to expect (and ignore) a non-empty plan, to be used when the API does not return certain values during import. Defaults to `false`.")
 	argSet.BoolVar(&d.TestSequential, "test-sequential", false, "(Optional) generates a lowercase test function name for use in sequential test suites. Defaults to `false`.")
@@ -119,12 +131,12 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	}
 
 	// check we have the essentials
-	switch {
-	case d.ResourceName == "":
-		errors = append(errors, fmt.Errorf("resource name is required"))
-	case d.ServicePackageName == "":
-		errors = append(errors, fmt.Errorf("service-package-path is required"))
+	if d.ResourceName == "" {
+		errors = append(errors, fmt.Errorf("`resource-name` is required"))
 	}
+
+	// remove accidental provider prefix
+	d.ResourceName = strings.TrimPrefix(d.ResourceName, "azurerm_")
 
 	// d.PropertyNameMap = strings.Split(d.IdentityProperties, ",")
 	if len(d.IdentityProperties) > 0 {
@@ -161,7 +173,13 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
 				return
 			}
-			d.KnownValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
+
+			name := vParts[0]
+			if name == "subscription_id" {
+				// prevent duplicate `subscription_id` check
+				d.NoSubscriptionID = true
+			}
+			d.KnownValueMap[name] = strings.ReplaceAll(vParts[1], ";", ",")
 		}
 	}
 
@@ -175,6 +193,12 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 				errors = append(errors, fmt.Errorf("invalid property format in known-values: '%s'", v))
 				return
 			}
+
+			name := vParts[0]
+			if name == "subscription_id" {
+				// prevent duplicate `subscription_id` check
+				d.NoSubscriptionID = true
+			}
 			d.CompareValueMap[vParts[0]] = strings.ReplaceAll(vParts[1], ";", ",")
 		}
 	}
@@ -185,7 +209,13 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 func (d *resourceIdentityData) exec() error {
 	tpl := template.Must(template.New("identity_test.gotpl").Funcs(templatehelpers.TplFuncMap).ParseFS(Templatedir, "templates/identity_test.gotpl"))
 
-	outputPath := fmt.Sprintf(riOutputFileFmt, d.ServicePackageName, d.ResourceName)
+	outputPath := cwd + fmt.Sprintf(riOutputFileFmt, d.ResourceName)
+	cwdParts := strings.Split(cwd, "internal/services/")
+
+	// Allow service package name override if needed (unlikely)
+	if d.ServicePackageName == "" {
+		d.ServicePackageName = cwdParts[len(cwdParts)-1]
+	}
 
 	f, err := os.Create(outputPath)
 	if err != nil {
@@ -204,7 +234,7 @@ func (d *resourceIdentityData) exec() error {
 	}
 
 	if err := templatehelpers.GoImports(outputPath); err != nil {
-		return err
+		return fmt.Errorf("failed to run goimports: %w", err)
 	}
 
 	return nil
