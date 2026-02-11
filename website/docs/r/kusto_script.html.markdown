@@ -87,6 +87,8 @@ resource "azurerm_kusto_script" "example" {
   sas_token                          = data.azurerm_storage_account_blob_container_sas.example.sas
   continue_on_errors_enabled         = true
   force_an_update_when_value_changed = "first"
+  script_level                       = "Database"
+  principal_permissions_action       = "RemovePermissionOnScriptCompletion"
 }
 ```
 
@@ -110,6 +112,10 @@ The following arguments are supported:
 
 * `url` - (Optional) The url to the KQL script blob file. Must not be used together with scriptContent property. Please reference [this documentation](https://docs.microsoft.com/azure/data-explorer/database-script) that describes the commands that are allowed in the script.
 
+* `script_level` - (Optional) The type of script commands. Possible values are `Database` or `Cluster`. Defaults to `Database`. Changing this forces a new resource to be created.
+
+* `principal_permissions_action` - (Optional) Whether the script caller’s permissions remain in effect after the script has finished running? Possible values are `RemovePermissionOnScriptCompletion` and `RetainPermissionOnScriptCompletion`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -118,7 +124,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kusto Script.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Script.

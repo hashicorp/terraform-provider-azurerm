@@ -1,10 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package search
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -16,13 +16,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -46,6 +47,11 @@ func resourceSearchService() *pluginsdk.Resource {
 			return err
 		}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(validateSearchServiceSKUUpdate),
+			pluginsdk.CustomizeDiffShim(validateSearchServiceApiAccessControlRbac),
+		),
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,
@@ -60,7 +66,6 @@ func resourceSearchService() *pluginsdk.Resource {
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.SkuNameFree),
 					string(services.SkuNameBasic),
@@ -116,7 +121,9 @@ func resourceSearchService() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(services.HostingModeDefault),
 					string(services.HostingModeHighDensity),
-				}, false),
+				}, true),
+				DiffSuppressFunc:      suppress.CaseDifference, // Breaking change introduced in https://github.com/Azure/azure-rest-api-specs/pull/37579 that changed the case of the Enum value
+				DiffSuppressOnRefresh: true,
 			},
 
 			"customer_managed_key_enforcement_enabled": {
@@ -246,7 +253,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	// NOTE: hosting mode is only valid if the SKU is 'standard3'
-	if skuName != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+	if skuName != services.SkuNameStandardThree && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the %q SKU, got %q", string(services.SkuNameStandardThree), skuName)
 	}
 
@@ -265,7 +272,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
 	// 'partition_count' must be between 1 and 3.
-	if skuName == services.SkuNameStandardThree && partitionCount > 3 && hostingMode == services.HostingModeHighDensity {
+	if skuName == services.SkuNameStandardThree && partitionCount > 3 && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 		return fmt.Errorf("%q SKUs in %q mode can have a maximum of 3 partitions, got %d", string(services.SkuNameStandardThree), string(services.HostingModeHighDensity), partitionCount)
 	}
 
@@ -279,10 +286,6 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	replicaCount, err := validateSearchServiceReplicaCount(int64(d.Get("replica_count").(int)), skuName)
 	if err != nil {
 		return err
-	}
-
-	if !localAuthenticationEnabled && authenticationFailureMode != "" {
-		return errors.New("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'true'")
 	}
 
 	// API Only Mode (Default) (e.g. localAuthenticationEnabled = true)...
@@ -385,6 +388,12 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	model.Properties.Status = nil
 	model.Properties.StatusDetails = nil
 
+	if d.HasChange("sku") {
+		model.Sku = &services.Sku{
+			Name: pointer.ToEnum[services.SkuName](d.Get("sku").(string)),
+		}
+	}
+
 	if d.HasChange("customer_managed_key_enforcement_enabled") {
 		cmkEnforcement := services.SearchEncryptionWithCmkDisabled
 		if enabled := d.Get("customer_managed_key_enforcement_enabled").(bool); enabled {
@@ -402,7 +411,7 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 			return fmt.Errorf("updating `hosting_mode` for %s: unable to validate the hosting_mode since `model.Sku` was nil", *id)
 		}
 
-		if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && hostingMode == services.HostingModeHighDensity {
+		if pointer.From(model.Sku.Name) != services.SkuNameStandardThree && strings.EqualFold(string(hostingMode), string(services.HostingModeHighDensity)) {
 			return fmt.Errorf("'hosting_mode' can only be set to %q if the 'sku' is %q, got %q", services.HostingModeHighDensity, services.SkuNameStandardThree, pointer.From(model.Sku.Name))
 		}
 
@@ -430,9 +439,6 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("authentication_failure_mode", "local_authentication_enabled") {
 		authenticationFailureMode := d.Get("authentication_failure_mode").(string)
 		localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
-		if !localAuthenticationEnabled && authenticationFailureMode != "" {
-			return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
-		}
 
 		var apiKeyOnly interface{} = make(map[string]interface{}, 0)
 
@@ -692,6 +698,40 @@ func resourceSearchServiceDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	return nil
 }
 
+func validateSearchServiceSKUUpdate(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	// only validate if the resource already exists
+	if diff.Id() == "" {
+		return nil
+	}
+
+	old, new := diff.GetChange("sku")
+	if old == new {
+		return nil
+	}
+
+	oldSku := old.(string)
+	newSku := new.(string)
+
+	// Define SKU hierarchy for validation - excludes Free tier
+	skuHierarchy := map[string]int{
+		string(services.SkuNameBasic):         1, // basic
+		string(services.SkuNameStandard):      2, // standard (S1)
+		string(services.SkuNameStandardTwo):   3, // standard2 (S2)
+		string(services.SkuNameStandardThree): 4, // standard3 (S3)
+		// Free and Storage optimized SKUs are not included as they're not part of the Basic->Standard upgrade path
+	}
+
+	oldLevel, oldExists := skuHierarchy[oldSku]
+	newLevel, newExists := skuHierarchy[newSku]
+
+	// If it's not a valid upgrade, force recreation instead of blocking the change
+	if !oldExists || !newExists || newLevel <= oldLevel {
+		return diff.ForceNew("sku")
+	}
+
+	return nil
+}
+
 func flattenSearchQueryKeys(input *[]querykeys.QueryKey) []interface{} {
 	results := make([]interface{}, 0)
 
@@ -723,7 +763,7 @@ func expandSearchServiceIPRules(input []interface{}) *[]services.IPRule {
 
 func flattenSearchServiceIPRules(input *services.NetworkRuleSet) []interface{} {
 	result := make([]interface{}, 0)
-	if input != nil || input.IPRules != nil {
+	if input != nil && input.IPRules != nil {
 		for _, rule := range *input.IPRules {
 			result = append(result, rule.Value)
 		}
@@ -744,4 +784,15 @@ func validateSearchServiceReplicaCount(replicaCount int64, skuName services.SkuN
 	}
 
 	return replicaCount, nil
+}
+
+func validateSearchServiceApiAccessControlRbac(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+	auth := diff.Get("local_authentication_enabled").(bool)
+	failureMode := diff.Get("authentication_failure_mode").(string)
+
+	if !auth && failureMode != "" {
+		return fmt.Errorf("'authentication_failure_mode' cannot be defined if 'local_authentication_enabled' has been set to 'false'")
+	}
+
+	return nil
 }

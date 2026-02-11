@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr
@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceWebPubSub() *pluginsdk.Resource {
@@ -239,11 +238,11 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Identity: identity,
 		Properties: &webpubsub.WebPubSubProperties{
 			LiveTraceConfiguration: expandLiveTraceConfig(liveTraceConfig),
-			PublicNetworkAccess:    utils.String(publicNetworkAcc),
-			DisableAadAuth:         utils.Bool(!d.Get("aad_auth_enabled").(bool)),
-			DisableLocalAuth:       utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			PublicNetworkAccess:    pointer.To(publicNetworkAcc),
+			DisableAadAuth:         pointer.To(!d.Get("aad_auth_enabled").(bool)),
+			DisableLocalAuth:       pointer.To(!d.Get("local_auth_enabled").(bool)),
 			Tls: &webpubsub.WebPubSubTlsSettings{
-				ClientCertEnabled: utils.Bool(d.Get("tls_client_cert_enabled").(bool)),
+				ClientCertEnabled: pointer.To(d.Get("tls_client_cert_enabled").(bool)),
 			},
 		},
 		Sku: &webpubsub.ResourceSku{
@@ -420,8 +419,8 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		messageLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("MessagingLogs"),
-		Enabled: utils.String(messageLogEnabled),
+		Name:    pointer.To("MessagingLogs"),
+		Enabled: pointer.To(messageLogEnabled),
 	})
 
 	connectivityLogEnabled := "false"
@@ -429,8 +428,8 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		connectivityLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("ConnectivityLogs"),
-		Enabled: utils.String(connectivityLogEnabled),
+		Name:    pointer.To("ConnectivityLogs"),
+		Enabled: pointer.To(connectivityLogEnabled),
 	})
 
 	httpLogEnabled := "false"
@@ -438,8 +437,8 @@ func expandLiveTraceConfig(input []interface{}) *webpubsub.LiveTraceConfiguratio
 		httpLogEnabled = "true"
 	}
 	resourceCategories = append(resourceCategories, webpubsub.LiveTraceCategory{
-		Name:    utils.String("HttpRequestLogs"),
-		Enabled: utils.String(httpLogEnabled),
+		Name:    pointer.To("HttpRequestLogs"),
+		Enabled: pointer.To(httpLogEnabled),
 	})
 
 	return &webpubsub.LiveTraceConfiguration{

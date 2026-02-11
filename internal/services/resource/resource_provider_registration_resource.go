@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -372,7 +372,8 @@ func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFu
 func (r ResourceProviderRegistrationResource) checkIfManagedByTerraform(name string, account *clients.ResourceManagerAccount) error {
 	for resourceProvider := range account.RegisteredResourceProviders {
 		if resourceProvider == name {
-			fmtStr := `The Resource Provider %[1]q is automatically registered by Terraform.
+			fmtStr := `
+The Resource Provider %[1]q is automatically registered by Terraform.
 
 To manage this Resource Provider registration with the "azurerm_resource_provider_registration" resource, you need to
 prevent Terraform from managing this Resource Provider automatically by one of these methods:
@@ -384,8 +385,7 @@ prevent Terraform from managing this Resource Provider automatically by one of t
 2. Choose a set of Provider Registrations to automatically register, that do not include %[1]q. Refer to the
    provider documentation for more information:
 
-   https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#resource_provider_registrations
-`
+   https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#resource_provider_registrations`
 			return fmt.Errorf(fmtStr, name)
 		}
 	}

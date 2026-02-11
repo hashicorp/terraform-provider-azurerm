@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -94,7 +94,7 @@ func expandStreamAnalyticsStreamInputSerialization(input []interface{}) (inputs.
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Input Type %q", inputType)
+	return nil, fmt.Errorf("unsupported Input Type %q", inputType)
 }
 
 func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serialization) (inputs.Serialization, error) {
@@ -138,7 +138,7 @@ func expandStreamAnalyticsStreamInputSerializationTyped(serialization []Serializ
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Input Type %q", inputType)
+	return nil, fmt.Errorf("unsupported Input Type %q", inputType)
 }
 
 func flattenStreamAnalyticsStreamInputSerialization(input inputs.Serialization) []interface{} {

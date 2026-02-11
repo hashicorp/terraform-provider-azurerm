@@ -483,7 +483,7 @@ A `virtual_machine` block supports the following:
 
 A `data_disk` block supports the following:
 
-* `volume_name` - (Required) The name of the Volume. Changing this forces a new resource to be created.
+* `volume_name` - (Required) The name of the Volume. Possible values are `default`, `hanaData`, `hanaLog`, `hanaShared` and `usrSap`. Changing this forces a new resource to be created.
 
 ~> **Note:** Possible value for Application Server and Central Server is `default`.
 
@@ -547,7 +547,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the SAP Three Tier Virtual Instance with new SAP System.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SAP Three Tier Virtual Instance with new SAP System.

@@ -24,7 +24,7 @@ output "storage_account_tier" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Storage Account
 * `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.
@@ -262,7 +262,7 @@ output "storage_account_tier" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
 

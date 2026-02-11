@@ -14,6 +14,7 @@ type SalesforceV2Source struct {
 	AdditionalColumns     *interface{} `json:"additionalColumns,omitempty"`
 	IncludeDeletedObjects *bool        `json:"includeDeletedObjects,omitempty"`
 	PageSize              *int64       `json:"pageSize,omitempty"`
+	PartitionOption       *interface{} `json:"partitionOption,omitempty"`
 	Query                 *interface{} `json:"query,omitempty"`
 	QueryTimeout          *interface{} `json:"queryTimeout,omitempty"`
 	SOQLQuery             *interface{} `json:"SOQLQuery,omitempty"`

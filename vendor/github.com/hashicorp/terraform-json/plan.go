@@ -92,6 +92,8 @@ type Plan struct {
 	// Timestamp contains the static timestamp that Terraform considers to be
 	// the time this plan executed, in UTC.
 	Timestamp string `json:"timestamp,omitempty"`
+
+	ActionInvocations []*ActionInvocation `json:"action_invocations,omitempty"`
 }
 
 // ResourceAttribute describes a full path to a resource attribute
@@ -138,15 +140,6 @@ func (p *Plan) Validate() error {
 	}
 
 	return nil
-}
-
-func isStringInSlice(slice []string, s string) bool {
-	for _, el := range slice {
-		if el == s {
-			return true
-		}
-	}
-	return false
 }
 
 func (p *Plan) UnmarshalJSON(b []byte) error {
@@ -305,3 +298,35 @@ type DeferredResourceChange struct {
 	// Change contains any information we have about the deferred change.
 	ResourceChange *ResourceChange `json:"resource_change,omitempty"`
 }
+
+type ActionInvocation struct {
+	// Address is the absolute action address
+	Address string `json:"address,omitempty"`
+	// Type is the type of the action
+	Type string `json:"type,omitempty"`
+	// Name is the name of the action
+	Name string `json:"name,omitempty"`
+
+	// ConfigValues is the JSON representation of the values in the config block of the action
+	ConfigValues    interface{} `json:"config_values,omitempty"`
+	ConfigSensitive interface{} `json:"config_sensitive,omitempty"`
+	ConfigUnknown   interface{} `json:"config_unknown,omitempty"`
+
+	// ProviderName allows the property "type" to be interpreted unambiguously
+	// in the unusual situation where a provider offers a type whose
+	// name does not start with its own name, such as the "googlebeta" provider
+	// offering "google_compute_instance".
+	ProviderName string `json:"provider_name,omitempty"`
+
+	LifecycleActionTrigger *LifecycleActionTrigger `json:"lifecycle_action_trigger,omitempty"`
+	InvokeActionTrigger    *InvokeActionTrigger    `json:"invoke_action_trigger,omitempty"`
+}
+
+type LifecycleActionTrigger struct {
+	TriggeringResourceAddress string `json:"triggering_resource_address,omitempty"`
+	ActionTriggerEvent        string `json:"action_trigger_event,omitempty"`
+	ActionTriggerBlockIndex   int    `json:"action_trigger_block_index"`
+	ActionsListIndex          int    `json:"actions_list_index"`
+}
+
+type InvokeActionTrigger struct{}

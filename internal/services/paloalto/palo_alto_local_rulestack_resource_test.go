@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto_test
@@ -90,7 +90,7 @@ func (r LocalRulestackResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, err
 	}
 
-	resp, err := client.PaloAlto.Client.LocalRulestacks.Get(ctx, *id)
+	resp, err := client.PaloAlto.LocalRulestacks.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

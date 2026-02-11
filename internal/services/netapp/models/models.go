@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package models
@@ -12,6 +12,8 @@ type NetAppAccountEncryption struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppAccountEncryptionDataSourceModel struct {
@@ -19,6 +21,8 @@ type NetAppAccountEncryptionDataSourceModel struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppVolumeGroupSAPHanaVolume struct {
@@ -40,6 +44,10 @@ type NetAppVolumeGroupSAPHanaVolume struct {
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
 	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
+	Zone                         string                         `tfschema:"zone"`
+	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`
+	KeyVaultPrivateEndpointId    string                         `tfschema:"key_vault_private_endpoint_id"`
+	NetworkFeatures              string                         `tfschema:"network_features"`
 }
 
 type NetAppVolumeGroupSAPHanaModel struct {

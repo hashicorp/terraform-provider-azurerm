@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routingrulecollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routingrulecollections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -112,7 +115,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_rule_collection" "test" {
-  name                     = "acctest-nmrc-%[2]d"
+  name                     = "acctest-nmrrc-%[2]d"
   routing_configuration_id = azurerm_network_manager_routing_configuration.test.id
   network_group_ids        = [azurerm_network_manager_network_group.test.id]
 }
@@ -140,7 +143,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_rule_collection" "test" {
-  name                          = "acctest-nmrc-%[2]d"
+  name                          = "acctest-nmrrc-%[2]d"
   routing_configuration_id      = azurerm_network_manager_routing_configuration.test.id
   bgp_route_propagation_enabled = true
   network_group_ids             = [azurerm_network_manager_network_group.test.id, azurerm_network_manager_network_group.test2.id]

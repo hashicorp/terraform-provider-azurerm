@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -14,16 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type NetAppVolumeGroupSAPHanaResource struct{}
@@ -109,6 +108,8 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 						ValidateFunc: azure.ValidateResourceID,
 					},
 
+					"zone": commonschema.ZoneSingleOptionalForceNew(),
+
 					"volume_spec_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -131,6 +132,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 							string(volumegroups.ServiceLevelPremium),
 							string(volumegroups.ServiceLevelStandard),
 							string(volumegroups.ServiceLevelUltra),
+							string(volumegroups.ServiceLevelFlexible),
 						}, false),
 					},
 
@@ -143,7 +145,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 
 					"protocols": {
 						Type:     pluginsdk.TypeList,
-						ForceNew: true,
 						Required: true,
 						MinItems: 1,
 						MaxItems: 1,
@@ -230,6 +231,13 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 						ForceNew: true,
 					},
 
+					"network_features": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true, // O+C - This is Optional/Computed because the service team is changing network features on the backend to upgrade everyone from Basic to Standard and there is a feature that allows customers to change network features from portal but not the API. This could cause drift that forces data loss that we want to avoid
+						ValidateFunc: validation.StringInSlice(volumegroups.PossibleValuesForNetworkFeatures(), false),
+					},
+
 					"mount_ip_addresses": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
@@ -287,6 +295,22 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 							},
 						},
 					},
+
+					"encryption_key_source": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API. This could cause drift if configuration is not updated
+						ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForEncryptionKeySource(), false),
+					},
+
+					"key_vault_private_endpoint_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						Computed:     true, // O+C - This is computed/optional since there is a feature coming up that will allow customers to change the encryption key source from portal but not the API (tied to encryption_key_source). This could cause drift if configuration is not updated
+						ValidateFunc: azure.ValidateResourceID,
+					},
 				},
 			},
 		},
@@ -297,12 +321,75 @@ func (r NetAppVolumeGroupSAPHanaResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
+func (r NetAppVolumeGroupSAPHanaResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			// Validate NFSv3 usage restrictions for SAP HANA volume groups
+			volumes := rd.Get("volume").([]interface{})
+			for i, vol := range volumes {
+				volumeMap := vol.(map[string]interface{})
+				protocols := volumeMap["protocols"].([]interface{})
+				volumeSpecName := volumeMap["volume_spec_name"].(string)
+
+				// Check if NFSv3 is being used on critical SAP HANA volumes
+				for _, protocolInterface := range protocols {
+					protocol := protocolInterface.(string)
+					if protocol == "NFSv3" {
+						// NFSv3 is not allowed on data, log, and shared volumes for SAP HANA
+						if volumeSpecName == "data" || volumeSpecName == "log" || volumeSpecName == "shared" {
+							return fmt.Errorf("NFSv3 protocol is not supported on '%s' volumes for SAP HANA. Only NFSv4.1 is supported for critical SAP HANA volumes (data, log, shared). NFSv3 can only be used for backup volumes (data-backup, log-backup)", volumeSpecName)
+						}
+					}
+				}
+
+				// Validate NFSv3 to NFSv4.1 protocol conversion restrictions for volume groups
+				protocolsKey := fmt.Sprintf("volume.%d.protocols", i)
+
+				if rd.HasChange(protocolsKey) {
+					old, new := rd.GetChange(protocolsKey)
+					oldProtocols := old.([]interface{})
+					newProtocols := new.([]interface{})
+
+					// Convert to string slices for validation
+					oldProtocolsStr := make([]string, len(oldProtocols))
+					newProtocolsStr := make([]string, len(newProtocols))
+
+					for j, v := range oldProtocols {
+						oldProtocolsStr[j] = v.(string)
+					}
+					for j, v := range newProtocols {
+						newProtocolsStr[j] = v.(string)
+					}
+
+					// Get the export policy rules configuration for this volume
+					exportPolicyRulesKey := fmt.Sprintf("volume.%d.export_policy_rule", i)
+					exportPolicyRules := rd.Get(exportPolicyRulesKey).([]interface{})
+
+					// For volume groups, kerberos and data replication are not directly supported, so we pass empty values
+					var kerberosEnabled bool
+					var dataReplication []interface{}
+
+					validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+					for _, err := range validationErrors {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.NetApp.VolumeGroupClient
-			replicationClient := metadata.Client.NetApp.VolumeReplicationClient
+			volumeClient := metadata.Client.NetApp.VolumeClient
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
@@ -334,12 +421,12 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := volumegroups.VolumeGroupDetails{
-				Location: utils.String(location.Normalize(model.Location)),
+				Location: pointer.To(location.Normalize(model.Location)),
 				Properties: &volumegroups.VolumeGroupProperties{
 					GroupMetaData: &volumegroups.VolumeGroupMetaData{
-						GroupDescription:      utils.String(model.GroupDescription),
+						GroupDescription:      pointer.To(model.GroupDescription),
 						ApplicationType:       pointer.To(volumegroups.ApplicationTypeSAPNegativeHANA),
-						ApplicationIdentifier: utils.String(model.ApplicationIdentifier),
+						ApplicationIdentifier: pointer.To(model.ApplicationIdentifier),
 					},
 					Volumes: volumeList,
 				},
@@ -355,7 +442,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 			}
 
 			// CRR - Authorizing secondaries from primary volumes
-			if err := authorizeVolumeReplication(ctx, volumeList, replicationClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
+			if err := authorizeVolumeReplication(ctx, volumeList, volumeClient, subscriptionId, model.ResourceGroupName, model.AccountName); err != nil {
 				return err
 			}
 
@@ -409,7 +496,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.storage_quota_in_gb", volumeItem)) {
 							storageQuotaInBytes := int64(metadata.ResourceData.Get(fmt.Sprintf("%v.storage_quota_in_gb", volumeItem)).(int) * 1073741824)
-							update.Properties.UsageThreshold = utils.Int64(storageQuotaInBytes)
+							update.Properties.UsageThreshold = pointer.To(storageQuotaInBytes)
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.export_policy_rule", volumeItem)) {
@@ -425,8 +512,8 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 									rule := volumegroups.ExportPolicyRule{}
 
 									v := ruleRaw.(map[string]interface{})
-									rule.Nfsv3 = utils.Bool(v["nfsv3_enabled"].(bool))
-									rule.Nfsv41 = utils.Bool(v["nfsv41_enabled"].(bool))
+									rule.Nfsv3 = pointer.To(v["nfsv3_enabled"].(bool))
+									rule.Nfsv41 = pointer.To(v["nfsv41_enabled"].(bool))
 
 									errors = append(errors, netAppValidate.ValidateNetAppVolumeGroupExportPolicyRule(rule, volumeProtocol)...)
 								}
@@ -436,8 +523,27 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 								return fmt.Errorf("one or more issues found while performing export policies validations for %s:\n%+v", id, errors)
 							}
 
-							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+							var protocolOverride []string
+							// Only override export policy protocols if we're also changing volume protocols
+							if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {
+								protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})
+								protocolOverride = make([]string, len(protocolsRaw))
+								for i, p := range protocolsRaw {
+									protocolOverride[i] = p.(string)
+								}
+							}
+
+							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
 							update.Properties.ExportPolicy = exportPolicyRule
+						}
+
+						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {
+							protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})
+							protocols := make([]string, len(protocolsRaw))
+							for i, p := range protocolsRaw {
+								protocols[i] = p.(string)
+							}
+							update.Properties.ProtocolTypes = pointer.To(protocols)
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)) {
@@ -459,7 +565,7 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.throughput_in_mibps", volumeItem)) {
 							throughputMibps := metadata.ResourceData.Get(fmt.Sprintf("%v.throughput_in_mibps", volumeItem))
-							update.Properties.ThroughputMibps = utils.Float(throughputMibps.(float64))
+							update.Properties.ThroughputMibps = pointer.To(throughputMibps.(float64))
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.tags", volumeItem)) {

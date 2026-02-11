@@ -10,6 +10,8 @@ description: |-
 
 Manages a Backup Policy to back up PostgreSQL.
 
+~> **Note:** The `azurerm_data_protection_backup_policy_postgresql` resource has been deprecated because Azure Database for PostgreSQL Single Server has been retired as of 2025-03-28 and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl
@@ -121,7 +123,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Policy PostgreSQL.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Policy PostgreSQL.

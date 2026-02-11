@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -74,7 +74,7 @@ func resourceAppServiceActiveSlotCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	if _, err = client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName); err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s was not found.", id)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("making Read request on %s: %+v", id, err)
 	}
@@ -115,12 +115,12 @@ func resourceAppServiceActiveSlotRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("making Read request on AzureRM App Service %q: %+v", id.SiteName, err)
 	}
 
-	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil {
-		return fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus is nil", id.SiteName)
+	if resp.SiteProperties == nil || resp.SlotSwapStatus == nil {
+		return fmt.Errorf("app Service Slot %q: SiteProperties or SlotSwapStatus is nil", id.SiteName)
 	}
 	d.Set("app_service_name", resp.Name)
 	d.Set("resource_group_name", resp.ResourceGroup)
-	d.Set("app_service_slot_name", resp.SiteProperties.SlotSwapStatus.SourceSlotName)
+	d.Set("app_service_slot_name", resp.SlotSwapStatus.SourceSlotName)
 	return nil
 }
 

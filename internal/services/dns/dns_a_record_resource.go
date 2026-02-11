@@ -1,12 +1,14 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dns
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -17,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDnsARecord() *pluginsdk.Resource {
@@ -136,12 +137,12 @@ func resourceDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if targetResourceId != "" {
-		parameters.Properties.TargetResource.Id = utils.String(targetResourceId)
+		parameters.Properties.TargetResource.Id = pointer.To(targetResourceId)
 	}
 
 	// TODO: this can be removed when the provider SDK is upgraded
 	if targetResourceId == "" && len(recordsRaw) == 0 {
-		return fmt.Errorf("One of either `records` or `target_resource_id` must be specified")
+		return errors.New("one of either `records` or `target_resource_id` must be specified")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -30,7 +30,7 @@ func StaticWebAppPassword(v interface{}, k string) (warnings []string, errs []er
 	}
 
 	if len(value) < 8 {
-		errs = append(errs, errors.New("the password should be at least eight characters long."))
+		errs = append(errs, errors.New("the password should be at least eight characters long"))
 	}
 
 	if matched := regexp.MustCompile(`[!@#$%^&*(),.?":{}|<>]`).Match([]byte(value)); !matched {

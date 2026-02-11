@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -155,11 +156,11 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 	}
 
 	azureFunctionLinkedService := &datafactory.AzureFunctionLinkedService{
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		AzureFunctionLinkedServiceTypeProperties: &datafactory.AzureFunctionLinkedServiceTypeProperties{
 			FunctionAppURL: d.Get("url").(string),
 			FunctionKey: &datafactory.SecureString{
-				Value: utils.String(d.Get("key").(string)),
+				Value: pointer.To(d.Get("key").(string)),
 				Type:  datafactory.TypeSecureString,
 			},
 		},
@@ -167,7 +168,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 	}
 
 	if v, ok := d.GetOk("key_vault_key"); ok {
-		azureFunctionLinkedService.AzureFunctionLinkedServiceTypeProperties.FunctionKey = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		azureFunctionLinkedService.FunctionKey = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -230,12 +231,12 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("classifying Data Factory Linked Service Azure Function %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
 	}
 
-	d.Set("url", azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionAppURL)
+	d.Set("url", azureFunction.FunctionAppURL)
 
 	d.Set("additional_properties", azureFunction.AdditionalProperties)
 	d.Set("description", azureFunction.Description)
 
-	if functionKey := azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionKey; functionKey != nil {
+	if functionKey := azureFunction.FunctionKey; functionKey != nil {
 		if keyVaultKey, ok := functionKey.AsAzureKeyVaultSecretReference(); !ok {
 			return fmt.Errorf("classifying Data Factory Azure Key Vault Secret %s: Expected: %q Received: %q", id, datafactory.TypeAzureKeyVaultSecret, keyVaultKey.Type)
 		} else if err := d.Set("key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultKey)); err != nil {

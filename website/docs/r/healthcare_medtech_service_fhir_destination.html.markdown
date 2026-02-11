@@ -6,7 +6,7 @@ description: |-
   Manages a Healthcare Med Tech (Internet of Medical Things) Service Fhir Destination.
 ---
 
-# azurerm_healthcare_medtech_service_fhir_Destination
+# azurerm_healthcare_medtech_service_fhir_destination
 
 Manages a Healthcare Med Tech Service Fhir Destination.
 
@@ -112,7 +112,7 @@ resource "azurerm_healthcare_medtech_service_fhir_destination" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -136,7 +136,7 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Healthcare Med Tech Service Fhir Destination.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service Fhir Destination.
