@@ -74,6 +74,12 @@ Validate:
 #### B) Arguments Reference parity and ordering
 - All schema required args must be documented
 - Documented args must exist in schema
+- **Schema shape parity (block vs inline):** docs must match the schema's structural shape.
+  - If schema defines an argument as a **nested block** (typically `TypeList`/`TypeSet` with `Elem: &Resource{Schema: ...}` and `MaxItems: 1` for single blocks), docs must describe it as a `... block` and include a section like: "A `${block}` block supports the following:" listing the nested fields.
+  - If schema defines an argument as a **scalar/inline field** (`TypeString`/`TypeBool`/`TypeInt`/etc.), docs must not describe it as a block and must not document nested subfields under it.
+  - If schema defines an argument as a **collection of primitives** (`TypeList`/`TypeSet` with `Elem: &Schema{Type: ...}`), docs should describe it as a list/set of values (not as a block with named subfields).
+  - If schema defines an argument as a **map** (`TypeMap`), docs must describe it as a map and not as a block.
+  - If docs describe `${arg}` as a block but schema indicates `${arg}` is an inline field (common when blocks have been flattened), mark as a parity failure and suggest updating the docs to reflect the flattened field shape.
 - Argument ordering must follow `contributing/topics/reference-documentation-standards.md`:
   1. ID arguments first, with the last user-specified segment (usually `name`) first
   2. `location` (if present)
@@ -144,6 +150,7 @@ Output must be **rendered Markdown**.
 - **Frontmatter**: pass/fail + missing keys (if any)
 - **Section Order**: pass/fail + missing sections (if any)
 - **Argument Ordering**: pass/fail (ID args first, `location` next, then required alpha, then optional alpha, `tags` last)
+- **Schema Shape**: pass/fail (docs describe blocks vs inline fields consistently with schema)
 - **Attributes Coverage**: pass/fail (`id` first, computed attrs present, alphabetical)
 - **ForceNew Wording**: pass/fail (resources only, missing “Changing this forces…” sentence)
 - **Note Notation**: pass/fail (->/~>/!> exact format + marker meaning matches note content)
