@@ -6,7 +6,6 @@ package mssql_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -18,9 +17,9 @@ func TestAccMssqlVirtualMachine_resourceIdentity(t *testing.T) {
 	r := MssqlVirtualMachineResource{}
 
 	checkedFields := map[string]struct{}{
-		"subscription_id":     {},
 		"name":                {},
 		"resource_group_name": {},
+		"subscription_id":     {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -28,9 +27,9 @@ func TestAccMssqlVirtualMachine_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_mssql_virtual_machine.test", checkedFields),
-				statecheck.ExpectIdentityValue("azurerm_mssql_virtual_machine.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_mssql_virtual_machine.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
-				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_mssql_virtual_machine.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_mssql_virtual_machine.test", tfjsonpath.New("name"), tfjsonpath.New("virtual_machine_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_mssql_virtual_machine.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("virtual_machine_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_mssql_virtual_machine.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("virtual_machine_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),
