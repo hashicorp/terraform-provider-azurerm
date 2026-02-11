@@ -1,4 +1,4 @@
-name: 'Mark Stale/Close Inactive Draft PRs'
+name: 'Close Inactive Draft PRs'
 on:
   workflow_dispatch:
   schedule:
