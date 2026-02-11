@@ -572,15 +572,13 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
-	return resourceMssqlServerSetFlatten(d, id, resp.Model, meta.(*clients.Client))
+	return resourceMssqlServerSetFlatten(ctx, d, id, resp.Model, meta.(*clients.Client))
 }
 
-func resourceMssqlServerSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
+func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
 	connectionClient := metaClient.MSSQL.ServerConnectionPoliciesClient
 	restorableDroppedDatabasesClient := metaClient.MSSQL.RestorableDroppedDatabasesClient
 	vaClient := metaClient.MSSQL.SqlVulnerabilityAssessmentSettingsClient
-	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
-	defer cancel()
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)

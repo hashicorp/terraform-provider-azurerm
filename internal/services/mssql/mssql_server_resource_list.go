@@ -65,7 +65,16 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 		results = resp.Items
 	}
 
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
+		return
+	}
+
 	stream.Results = func(push func(list.ListResult) bool) {
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
+		defer cancel()
+
 		for _, server := range results {
 			result := request.NewListResult(ctx)
 
@@ -80,7 +89,7 @@ func (r MssqlServerListResource) List(ctx context.Context, request list.ListRequ
 			}
 			rd.SetId(id.ID())
 
-			if err := resourceMssqlServerSetFlatten(rd, id, &server, metadata.Client); err != nil {
+			if err := resourceMssqlServerSetFlatten(ctx, rd, id, &server, metadata.Client); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_server`), err)
 				return
 			}
