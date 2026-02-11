@@ -64,13 +64,13 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 
 		results = resp.Items
 	}
-	ctxDeadline, ok := ctx.Deadline()
+	deadline, ok := ctx.Deadline()
 	if !ok {
-		sdk.SetResponseErrorDiagnostic(stream, "obtaining ctxDeadline", "no deadline set on the context")
+		sdk.SetResponseErrorDiagnostic(stream, "internal-error", "context had no deadline")
 		return
 	}
 	stream.Results = func(push func(list.ListResult) bool) {
-		ctx, cancel := context.WithDeadline(context.Background(), ctxDeadline)
+		ctx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
 		for _, account := range results {
@@ -81,17 +81,25 @@ func (r CognitiveAccountListResource) List(ctx context.Context, request list.Lis
 
 			id, err := cognitiveservicesaccounts.ParseAccountID(pointer.From(account.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Cognitive Account ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Cognitive Account ID", err)
 				return
 			}
 			rd.SetId(id.ID())
 
 			if err := resourceCognitiveAccountFlatten(ctx, client, rd, id, &account, request.IncludeResource); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureCognitiveAccountResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureCognitiveAccountResourceName), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+
+			if !push(result) {
+				return
+			}
 		}
 	}
 }
