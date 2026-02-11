@@ -10,7 +10,7 @@ description: |-
 
 Lists MySQL Flexible Server configuration properties.
 
--> **Note:** This will return all available configuration properties available in the version of the deployed server, including those properties not being managed with Terraform.
+-> **Note:** This will return all available configuration properties available in the version of the deployed server, including those properties not being managed with Terraform. The count of configuration items will surpass the default `limit` of Terraform List (100), so you will need to increase the `limit` to include all configuration items.
 
 ## Example Usage
 
@@ -22,6 +22,8 @@ list "azurerm_mysql_flexible_server_configuration" "example" {
   config {
     flexible_server_id = "some-mysql-flexible-serverid"
   }
+  # increase limit to include all 300+ configurations
+  limit = 400
 }
 ```
 
