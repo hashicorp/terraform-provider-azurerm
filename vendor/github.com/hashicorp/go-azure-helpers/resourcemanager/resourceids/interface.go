@@ -4,7 +4,6 @@
 package resourceids
 
 type ResourceId interface {
-
 	// FromParseResult populates the Resource ID using the ParseResult provided in `input`
 	FromParseResult(input ParseResult) error
 

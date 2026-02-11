@@ -61,7 +61,7 @@ resource "azurerm_backup_policy_file_share" "policy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,6 +84,12 @@ The following arguments are supported:
 * `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
+
+* `snapshot_retention_in_days` - (Optional) The number of days to retain the snapshots. Defaults to `0`.
+
+* `backup_tier` - (Optional) The backup tier to use. Possible values are `vault-standard` and `snapshot`. Defaults to `snapshot`.
+
+-> **Note:** When `backup_tier` is set to `vault-standard`, the `snapshot_retention_in_days` value must be less than the `retention_daily` count.
 
 ---
 
@@ -165,7 +171,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the File Share Backup Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the File Share Backup Policy.

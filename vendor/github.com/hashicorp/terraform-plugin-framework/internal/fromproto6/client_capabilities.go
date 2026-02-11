@@ -6,6 +6,7 @@ package fromproto6
 import (
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -86,6 +87,32 @@ func OpenEphemeralResourceClientCapabilities(in *tfprotov6.OpenEphemeralResource
 	}
 
 	return ephemeral.OpenClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+}
+
+func ValidateResourceConfigClientCapabilities(in *tfprotov6.ValidateResourceConfigClientCapabilities) resource.ValidateConfigClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return resource.ValidateConfigClientCapabilities{
+			WriteOnlyAttributesAllowed: false,
+		}
+	}
+
+	return resource.ValidateConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+}
+
+func ModifyPlanActionClientCapabilities(in *tfprotov6.PlanActionClientCapabilities) action.ModifyPlanClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return action.ModifyPlanClientCapabilities{
+			DeferralAllowed: false,
+		}
+	}
+
+	return action.ModifyPlanClientCapabilities{
 		DeferralAllowed: in.DeferralAllowed,
 	}
 }

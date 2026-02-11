@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package migration
@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -76,7 +75,7 @@ func componentSchemaForV1AndV2() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"daily_data_cap_in_gb": {
 			Type:     pluginsdk.TypeFloat,

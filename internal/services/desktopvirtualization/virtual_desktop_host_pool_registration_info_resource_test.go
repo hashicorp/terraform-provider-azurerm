@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization_test
@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualDesktopHostPoolRegistrationInfoResource struct{}
@@ -87,7 +87,7 @@ func (VirtualDesktopHostPoolRegistrationInfoResource) Exists(ctx context.Context
 			exists = info.Token != nil && len(*info.Token) > 0
 		}
 	}
-	return utils.Bool(exists), nil
+	return pointer.To(exists), nil
 }
 
 func (VirtualDesktopHostPoolRegistrationInfoResource) basic(data acceptance.TestData, expirationDate string) string {

@@ -62,7 +62,6 @@ func ParseCompositeResourceIDInsensitively[T1 resourceids.ResourceId, T2 resourc
 }
 
 func parseCompositeResourceID[T1 resourceids.ResourceId, T2 resourceids.ResourceId](input string, first T1, second T2, insensitively bool) (*CompositeResourceID[T1, T2], error) {
-
 	components := strings.Split(input, "|")
 	if len(components) != 2 {
 		return nil, fmt.Errorf("expected 2 resourceids but got %d", len(components))

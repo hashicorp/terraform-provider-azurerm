@@ -4,7 +4,7 @@ import (
 	"github.com/zclconf/go-cty/cty"
 )
 
-func conversionToCapsule(inTy, outTy cty.Type, fn func(inTy cty.Type) func(cty.Value, cty.Path) (interface{}, error)) conversion {
+func conversionToCapsule(inTy, outTy cty.Type, fn func(inTy cty.Type) func(cty.Value, cty.Path) (any, error)) conversion {
 	rawConv := fn(inTy)
 	if rawConv == nil {
 		return nil
@@ -19,7 +19,7 @@ func conversionToCapsule(inTy, outTy cty.Type, fn func(inTy cty.Type) func(cty.V
 	}
 }
 
-func conversionFromCapsule(inTy, outTy cty.Type, fn func(outTy cty.Type) func(interface{}, cty.Path) (cty.Value, error)) conversion {
+func conversionFromCapsule(inTy, outTy cty.Type, fn func(outTy cty.Type) func(any, cty.Path) (cty.Value, error)) conversion {
 	rawConv := fn(outTy)
 	if rawConv == nil {
 		return nil

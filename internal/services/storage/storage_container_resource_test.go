@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -627,7 +627,7 @@ resource "azurerm_storage_container" "import" {
   storage_account_id    = azurerm_storage_container.test.storage_account_id
   container_access_type = azurerm_storage_container.test.container_access_type
 }
-`, r.template(data))
+`, r.basic(data))
 }
 
 func (r StorageContainerResource) updateDeprecated(data acceptance.TestData, accessType, metadataVal string) string {

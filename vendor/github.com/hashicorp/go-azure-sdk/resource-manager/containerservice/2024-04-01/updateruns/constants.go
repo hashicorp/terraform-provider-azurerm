@@ -191,6 +191,7 @@ const (
 	UpdateStateCompleted  UpdateState = "Completed"
 	UpdateStateFailed     UpdateState = "Failed"
 	UpdateStateNotStarted UpdateState = "NotStarted"
+	UpdateStatePending    UpdateState = "Pending"
 	UpdateStateRunning    UpdateState = "Running"
 	UpdateStateSkipped    UpdateState = "Skipped"
 	UpdateStateStopped    UpdateState = "Stopped"
@@ -202,6 +203,7 @@ func PossibleValuesForUpdateState() []string {
 		string(UpdateStateCompleted),
 		string(UpdateStateFailed),
 		string(UpdateStateNotStarted),
+		string(UpdateStatePending),
 		string(UpdateStateRunning),
 		string(UpdateStateSkipped),
 		string(UpdateStateStopped),
@@ -227,6 +229,7 @@ func parseUpdateState(input string) (*UpdateState, error) {
 		"completed":  UpdateStateCompleted,
 		"failed":     UpdateStateFailed,
 		"notstarted": UpdateStateNotStarted,
+		"pending":    UpdateStatePending,
 		"running":    UpdateStateRunning,
 		"skipped":    UpdateStateSkipped,
 		"stopped":    UpdateStateStopped,

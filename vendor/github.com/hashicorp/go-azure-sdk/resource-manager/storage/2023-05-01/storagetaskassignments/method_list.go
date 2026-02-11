@@ -25,7 +25,7 @@ type ListCompleteResult struct {
 }
 
 type ListOperationOptions struct {
-	Maxpagesize *int64
+	Top *int64
 }
 
 func DefaultListOperationOptions() ListOperationOptions {
@@ -46,8 +46,8 @@ func (o ListOperationOptions) ToOData() *odata.Query {
 
 func (o ListOperationOptions) ToQuery() *client.QueryParams {
 	out := client.QueryParams{}
-	if o.Maxpagesize != nil {
-		out.Append("$maxpagesize", fmt.Sprintf("%v", *o.Maxpagesize))
+	if o.Top != nil {
+		out.Append("$top", fmt.Sprintf("%v", *o.Top))
 	}
 	return &out
 }

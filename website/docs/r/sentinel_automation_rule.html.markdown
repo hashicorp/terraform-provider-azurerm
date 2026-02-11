@@ -61,6 +61,8 @@ The following arguments are supported:
 
 * `action_incident` - (Optional) One or more `action_incident` blocks as defined below.
 
+* `action_incident_task` - (Optional) One or more `action_incident_task` blocks as defined below.
+
 * `action_playbook` - (Optional) One or more `action_playbook` blocks as defined below.
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
@@ -77,7 +79,7 @@ The following arguments are supported:
 
 ---
 
-A `action_incident` block supports the following:
+An `action_incident` block supports the following:
 
 * `order` - (Required) The execution order of this action.
 
@@ -101,7 +103,17 @@ A `action_incident` block supports the following:
 
 ---
 
-A `action_playbook` block supports the following:
+An `action_incident_task` block supports the following:
+
+* `order` - (Required) The execution order of this action.
+
+* `title` - (Required) The title of the incident task.
+
+* `description` - (Optional) The description of the incident task.
+
+---
+
+An `action_playbook` block supports the following:
 
 * `logic_app_id` - (Required) The ID of the Logic App that defines the playbook's logic.
 
@@ -117,7 +129,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Sentinel Automation Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Sentinel Automation Rule.
@@ -136,4 +148,4 @@ terraform import azurerm_sentinel_automation_rule.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2024-09-01
+* `Microsoft.OperationalInsights` - 2024-09-01

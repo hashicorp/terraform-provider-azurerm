@@ -1,0 +1,158 @@
+# Exceptions for historical uses of preview API before the linter tool is setup
+# DO NOT ADD NEW ENTRY
+
+- module: github.com/Azure/azure-sdk-for-go
+  service: resources
+  version: 2021-06-01-preview
+
+- module: github.com/Azure/azure-sdk-for-go
+  service: security
+  version: v3.0
+
+- module: github.com/Azure/azure-sdk-for-go
+  service: securityinsight
+  version: 2021-09-01-preview
+
+- module: github.com/Azure/azure-sdk-for-go
+  service: sql
+  version: v5.0
+
+- module: github.com/Azure/azure-sdk-for-go
+  service: synapse
+  version: v2.0
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: aadb2c
+  version: 2021-04-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: appplatform
+  version: 2024-01-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: authorization
+  version: 2022-05-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: automation
+  version: 2020-01-13-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: blueprints
+  version: 2018-11-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: codesigning
+  version: 2024-09-30-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: containerregistry
+  version: 2019-06-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: customproviders
+  version: 2018-09-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: databricks
+  version: 2022-04-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: databricks
+  version: 2022-10-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: eventgrid
+  version: 2023-12-15-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: eventhub
+  version: 2022-01-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: insights
+  version: 2019-10-17-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: insights
+  version: 2021-05-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: insights
+  version: 2021-07-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: insights
+  version: 2023-03-15-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: iotcentral
+  version: 2021-11-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: nginx
+  version: 2024-11-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: operationsmanagement
+  version: 2015-11-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: portal
+  version: 2019-01-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: security
+  version: 2019-01-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: security
+  version: 2022-12-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: securityinsights
+  version: 2022-10-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: securityinsights
+  version: 2023-12-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: sql
+  version: 2023-08-01-preview
+
+- module: github.com/hashicorp/go-azure-sdk/resource-manager
+  service: streamanalytics
+  version: 2021-10-01-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: appplatform
+  version: 2023-05-01-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: botservice
+  version: 2021-05-01-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: iotcentral
+  version: 2022-10-31-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: iothub
+  version: 2022-04-30-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: securityinsights
+  version: 2022-10-01-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: synapse
+  version: 2019-06-01-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: synapse
+  version: 2020-08-01-preview
+
+- module: github.com/jackofallops/kermit/sdk
+  service: synapse
+  version: 2021-06-01-preview

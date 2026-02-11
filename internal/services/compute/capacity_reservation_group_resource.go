@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation_group -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceCapacityReservationGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceCapacityReservationGroupCreate,
@@ -37,10 +39,11 @@ func resourceCapacityReservationGroup() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := capacityreservationgroups.ParseCapacityReservationGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&capacityreservationgroups.CapacityReservationGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&capacityreservationgroups.CapacityReservationGroupId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -93,6 +96,10 @@ func resourceCapacityReservationGroupCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCapacityReservationGroupRead(d, meta)
 }
 
@@ -127,7 +134,7 @@ func resourceCapacityReservationGroupRead(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCapacityReservationGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

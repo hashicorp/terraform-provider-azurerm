@@ -206,7 +206,7 @@ func FlattenLegacySystemAndUserAssignedMapToModel(input *LegacySystemAndUserAssi
 	}
 
 	identityIds := make([]string, 0)
-	for raw, _ := range input.IdentityIds {
+	for raw := range input.IdentityIds {
 		id, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
 		if err != nil {
 			return nil, fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", raw, err)

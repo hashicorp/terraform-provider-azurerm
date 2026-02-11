@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,23 +13,27 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_security_group -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceApplicationSecurityGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationSecurityGroupCreate,
-		Read:   resourceApplicationSecurityGroupRead,
-		Update: resourceApplicationSecurityGroupUpdate,
-		Delete: resourceApplicationSecurityGroupDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := applicationsecuritygroups.ParseApplicationSecurityGroupID(id)
-			return err
-		}),
+		Create:   resourceApplicationSecurityGroupCreate,
+		Read:     resourceApplicationSecurityGroupRead,
+		Update:   resourceApplicationSecurityGroupUpdate,
+		Delete:   resourceApplicationSecurityGroupDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&applicationsecuritygroups.ApplicationSecurityGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&applicationsecuritygroups.ApplicationSecurityGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -82,6 +86,10 @@ func resourceApplicationSecurityGroupCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceApplicationSecurityGroupRead(d, meta)
 }
 
@@ -112,7 +120,6 @@ func resourceApplicationSecurityGroupUpdate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceApplicationSecurityGroupRead(d, meta)
 }
 
@@ -141,10 +148,12 @@ func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApplicationSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {

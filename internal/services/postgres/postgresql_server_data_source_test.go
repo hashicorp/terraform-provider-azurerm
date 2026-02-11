@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres_test
@@ -9,11 +9,16 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type PostgreSQLServerDataSource struct{}
 
 func TestAccDataSourcePostgreSqlServer_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "data.azurerm_postgresql_server", "test")
 	r := PostgreSQLServerDataSource{}
 	version := "9.5"

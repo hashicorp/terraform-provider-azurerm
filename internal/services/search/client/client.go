@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,10 +6,10 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/adminkeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/querykeys"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/sharedprivatelinkresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/adminkeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/querykeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/sharedprivatelinkresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

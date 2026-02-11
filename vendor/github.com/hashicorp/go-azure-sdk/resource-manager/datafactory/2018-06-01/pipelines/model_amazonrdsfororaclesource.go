@@ -12,6 +12,8 @@ var _ CopySource = AmazonRdsForOracleSource{}
 
 type AmazonRdsForOracleSource struct {
 	AdditionalColumns *interface{}                         `json:"additionalColumns,omitempty"`
+	NumberPrecision   *int64                               `json:"numberPrecision,omitempty"`
+	NumberScale       *int64                               `json:"numberScale,omitempty"`
 	OracleReaderQuery *interface{}                         `json:"oracleReaderQuery,omitempty"`
 	PartitionOption   *interface{}                         `json:"partitionOption,omitempty"`
 	PartitionSettings *AmazonRdsForOraclePartitionSettings `json:"partitionSettings,omitempty"`

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -383,7 +382,7 @@ func resourceMonitorMetricAlert() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -443,19 +442,19 @@ func resourceMonitorMetricAlertCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	parameters := metricalerts.MetricAlertResource{
-		Location: azure.NormalizeLocation("Global"),
+		Location: location.Normalize("Global"),
 		Properties: metricalerts.MetricAlertProperties{
 			Enabled:              enabled,
-			AutoMitigate:         utils.Bool(autoMitigate),
-			Description:          utils.String(description),
+			AutoMitigate:         pointer.To(autoMitigate),
+			Description:          pointer.To(description),
 			Severity:             int64(severity),
 			EvaluationFrequency:  frequency,
 			WindowSize:           windowSize,
 			Scopes:               expandStringValues(scopesRaw),
 			Criteria:             criteria,
 			Actions:              expandMonitorMetricAlertAction(actionRaw),
-			TargetResourceType:   utils.String(targetResourceType),
-			TargetResourceRegion: utils.String(targetResourceLocation),
+			TargetResourceType:   pointer.To(targetResourceType),
+			TargetResourceRegion: pointer.To(targetResourceLocation),
 		},
 		Tags: utils.ExpandPtrMapStringString(t),
 	}
@@ -610,13 +609,13 @@ func expandMonitorMetricAlertSingleResourceMultiMetricCriteria(input []interface
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
 		criteria = append(criteria, metricalerts.MetricCriteria{
 			Name:                 fmt.Sprintf("Metric%d", i+1),
-			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
+			MetricNamespace:      pointer.To(v["metric_namespace"].(string)),
 			MetricName:           v["metric_name"].(string),
 			TimeAggregation:      metricalerts.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
 			Operator:             metricalerts.Operator(v["operator"].(string)),
 			Threshold:            v["threshold"].(float64),
-			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
+			SkipMetricValidation: pointer.To(v["skip_metric_validation"].(bool)),
 		})
 	}
 	return &metricalerts.MetricAlertSingleResourceMultipleMetricCriteria{
@@ -631,13 +630,13 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForStaticMetricCriteria(inp
 		dimensions := expandMonitorMetricDimension(v["dimension"].([]interface{}))
 		criteria = append(criteria, metricalerts.MetricCriteria{
 			Name:                 fmt.Sprintf("Metric%d", i+1),
-			MetricNamespace:      utils.String(v["metric_namespace"].(string)),
+			MetricNamespace:      pointer.To(v["metric_namespace"].(string)),
 			MetricName:           v["metric_name"].(string),
 			TimeAggregation:      metricalerts.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:           &dimensions,
 			Operator:             metricalerts.Operator(v["operator"].(string)),
 			Threshold:            v["threshold"].(float64),
-			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
+			SkipMetricValidation: pointer.To(v["skip_metric_validation"].(bool)),
 		})
 	}
 	return &metricalerts.MetricAlertMultipleResourceMultipleMetricCriteria{
@@ -653,7 +652,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 
 		dynamicMetricCriteria := metricalerts.DynamicMetricCriteria{
 			Name:             fmt.Sprintf("Metric%d", i+1),
-			MetricNamespace:  utils.String(v["metric_namespace"].(string)),
+			MetricNamespace:  pointer.To(v["metric_namespace"].(string)),
 			MetricName:       v["metric_name"].(string),
 			TimeAggregation:  metricalerts.AggregationTypeEnum(v["aggregation"].(string)),
 			Dimensions:       &dimensions,
@@ -663,7 +662,7 @@ func expandMonitorMetricAlertMultiResourceMultiMetricForDynamicMetricCriteria(in
 				NumberOfEvaluationPeriods: float64(v["evaluation_total_count"].(int)),
 				MinFailingPeriodsToAlert:  float64(v["evaluation_failure_count"].(int)),
 			},
-			SkipMetricValidation: utils.Bool(v["skip_metric_validation"].(bool)),
+			SkipMetricValidation: pointer.To(v["skip_metric_validation"].(bool)),
 		}
 
 		if datetime := v["ignore_data_before"].(string); datetime != "" {
@@ -718,7 +717,7 @@ func expandMonitorMetricAlertAction(input []interface{}) *[]metricalerts.MetricA
 			}
 
 			actions = append(actions, metricalerts.MetricAlertAction{
-				ActionGroupId:     utils.String(agID),
+				ActionGroupId:     pointer.To(agID),
 				WebHookProperties: &props,
 			})
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,7 +56,7 @@ func TestAccSynapseSparkPool_complete(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, "3.4"),
+			Config: r.complete(data, "3.5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -78,7 +79,7 @@ func TestAccSynapseSparkPool_update(t *testing.T) {
 		},
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
-			Config: r.complete(data, "3.4"),
+			Config: r.complete(data, "3.5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -100,7 +101,7 @@ func TestAccSynapseSparkPool_sparkVersion(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sparkVersion(data, "3.3"),
+			Config: r.sparkVersion(data, "3.4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -108,7 +109,7 @@ func TestAccSynapseSparkPool_sparkVersion(t *testing.T) {
 		// not returned by service
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 		{
-			Config: r.sparkVersion(data, "3.4"),
+			Config: r.sparkVersion(data, "3.5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -130,51 +131,6 @@ func TestAccSynapseSparkPool_isolation(t *testing.T) {
 			),
 		},
 		// not returned by service
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-	})
-}
-
-func TestAccSynapseSpark3Pool_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	r := SynapseSparkPoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data, "3.4"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		// not returned by service
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-	})
-}
-
-func TestAccSynapseSpark3Pool_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_synapse_spark_pool", "test")
-	r := SynapseSparkPoolResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-		{
-			Config: r.complete(data, "3.3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("spark_events_folder", "spark_log_folder"),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 		data.ImportStep("spark_events_folder", "spark_log_folder"),
 	})
 }
@@ -204,12 +160,12 @@ func (r SynapseSparkPoolResource) Exists(ctx context.Context, client *clients.Cl
 	resp, err := client.Synapse.SparkPoolClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.BigDataPoolName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Synapse Spark Pool %q (Workspace %q / Resource Group %q): %+v", id.BigDataPoolName, id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SynapseSparkPoolResource) basic(data acceptance.TestData) string {
@@ -223,7 +179,7 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size_family     = "MemoryOptimized"
   node_size            = "Small"
   node_count           = 3
-  spark_version        = "3.4"
+  spark_version        = "3.5"
 }
 `, template, data.RandomString)
 }
@@ -322,7 +278,7 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size                 = "XXXLarge"
   node_count                = 3
   compute_isolation_enabled = true
-  spark_version             = "3.4"
+  spark_version             = "3.5"
 }
 `, template, data.RandomString)
 }

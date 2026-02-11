@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package acceptance
@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
@@ -40,6 +42,23 @@ func (td TestData) DataSourceTestInSequence(t *testing.T, steps []TestStep) {
 	}
 
 	td.runAcceptanceSequentialTest(t, testCase)
+}
+
+func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequential bool) {
+	testCase := resource.TestCase{
+		PreCheck: func() { PreCheck(t) },
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.12.0"))),
+		},
+		Steps: steps,
+	}
+
+	if sequential {
+		td.runAcceptanceSequentialTest(t, testCase)
+		return
+	}
+
+	td.runAcceptanceTest(t, testCase)
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
@@ -183,19 +202,19 @@ func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.T
 func (td TestData) externalProviders() map[string]resource.ExternalProvider {
 	return map[string]resource.ExternalProvider{
 		"azuread": {
-			VersionConstraint: "=2.47.0",
+			VersionConstraint: "=3.4.0",
 			Source:            "registry.terraform.io/hashicorp/azuread",
 		},
 		"random": {
-			VersionConstraint: "=3.6.3",
+			VersionConstraint: "=3.7.2",
 			Source:            "registry.terraform.io/hashicorp/random",
 		},
 		"time": {
-			VersionConstraint: "=0.9.1",
+			VersionConstraint: "=0.13.1",
 			Source:            "registry.terraform.io/hashicorp/time",
 		},
 		"tls": {
-			VersionConstraint: "=4.0.4",
+			VersionConstraint: "=4.1.0",
 			Source:            "registry.terraform.io/hashicorp/tls",
 		},
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/serviceendpointpolicies"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,6 +26,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name subnet_service_endpoint_storage_policy -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceSubnetServiceEndpointStoragePolicyCreate,
@@ -32,10 +35,11 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 		Update: resourceSubnetServiceEndpointStoragePolicyUpdate,
 		Delete: resourceSubnetServiceEndpointStoragePolicyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := serviceendpointpolicies.ParseServiceEndpointPolicyID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&serviceendpointpolicies.ServiceEndpointPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&serviceendpointpolicies.ServiceEndpointPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -80,6 +84,7 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 									validation.StringInSlice([]string{
 										"/services/Azure",
 										"/services/Azure/Batch",
+										"/services/Azure/Databricks",
 										"/services/Azure/DataFactory",
 										"/services/Azure/MachineLearning",
 										"/services/Azure/ManagedInstance",
@@ -145,6 +150,9 @@ func resourceSubnetServiceEndpointStoragePolicyCreate(d *pluginsdk.ResourceData,
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceSubnetServiceEndpointStoragePolicyRead(d, meta)
 }
@@ -222,9 +230,12 @@ func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, m
 				return fmt.Errorf("setting `definition`: %v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceSubnetServiceEndpointStoragePolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {

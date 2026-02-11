@@ -17,6 +17,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 )
 
+// ImportBeforeReadKey is an internal private field used to indicate that the current resource state and identity
+// were provided most recently by the ImportResourceState RPC. This indicates that the state is an import stub and identity
+// has not been stored in state yet.
+//
+// When detected, this key should be cleared before returning from the ReadResource RPC.
+var ImportBeforeReadKey = ".import_before_read"
+
 // Data contains private state data for the framework and providers.
 type Data struct {
 	// Potential future usage:

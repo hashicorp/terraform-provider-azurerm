@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -226,7 +226,7 @@ func resourceBackupProtectionContainerStorageAccountCheckOperation(ctx context.C
 			if opErr.Message != nil {
 				errMsg = *opErr.Message
 			}
-			err = fmt.Errorf("Recovery Service Protection Container operation status failed with status %q (Vault %q Resource Group %q Operation ID %q): %+v", resp.Status, vaultName, resourceGroup, operationID, errMsg)
+			err = fmt.Errorf("'Recovery Service Protection Container' operation status failed with status %q (Vault %q Resource Group %q Operation ID %q): %+v", resp.Status, vaultName, resourceGroup, operationID, errMsg)
 		}
 
 		return resp, string(resp.Status), err

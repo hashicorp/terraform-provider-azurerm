@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationfabrics"
@@ -224,15 +223,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						},
 
 						"target_disk_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(disks.DiskStorageAccountTypesStandardLRS),
-								string(disks.DiskStorageAccountTypesPremiumLRS),
-								string(disks.DiskStorageAccountTypesStandardSSDLRS),
-								string(disks.DiskStorageAccountTypesUltraSSDLRS),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
 						"target_replica_disk_type": {
@@ -240,10 +234,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 							Required: true,
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(disks.DiskStorageAccountTypesStandardLRS),
-								string(disks.DiskStorageAccountTypesPremiumLRS),
-								string(disks.DiskStorageAccountTypesStandardSSDLRS),
-								string(disks.DiskStorageAccountTypesUltraSSDLRS),
+								string(replicationprotecteditems.DiskAccountTypeStandardLRS),
+								string(replicationprotecteditems.DiskAccountTypePremiumLRS),
+								string(replicationprotecteditems.DiskAccountTypeStandardSSDLRS),
+								string(replicationprotecteditems.DiskAccountTypeUltraSSDLRS),
+								string(replicationprotecteditems.DiskAccountTypeStandardSSDZRS),
+								string(replicationprotecteditems.DiskAccountTypePremiumZRS),
 							}, false),
 						},
 
@@ -435,14 +431,14 @@ func resourceSiteRecoveryReplicatedItemCreate(d *pluginsdk.ResourceData, meta in
 
 	var targetAvailabilitySetID *string
 	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
-		targetAvailabilitySetID = utils.String(id.(string))
+		targetAvailabilitySetID = pointer.To(id.(string))
 	} else {
 		targetAvailabilitySetID = nil
 	}
 
 	var targetAvailabilityZone *string
 	if zone, isSet := d.GetOk("target_zone"); isSet {
-		targetAvailabilityZone = utils.String(zone.(string))
+		targetAvailabilityZone = pointer.To(zone.(string))
 	} else {
 		targetAvailabilityZone = nil
 	}
@@ -588,7 +584,7 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 				TfoStaticIPAddress:              &testStaticIp,
 				TfoPublicIPAddressId:            &testPublicIpAddressID,
 				TfoSubnetName:                   &testSubNetName,
-				IsPrimary:                       utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
+				IsPrimary:                       pointer.To(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
 			},
 		}
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
@@ -1035,15 +1031,15 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 		}
 
 		if resp.Model == nil {
-			return nil, "", fmt.Errorf("Missing Model in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Model in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
 		}
 
 		if resp.Model.Properties == nil {
-			return nil, "", fmt.Errorf("Missing Properties in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Properties in response when making Read request on site recovery replicated vm %s  %+v", id.String(), err)
 		}
 
 		if resp.Model.Properties.ProviderSpecificDetails == nil {
-			return nil, "", fmt.Errorf("Missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
+			return nil, "", fmt.Errorf("missing Properties.ProviderSpecificDetails in response when making Read request on site recovery replicated vm %s : %+v", id.String(), err)
 		}
 
 		// Find first disk that is not fully replicated yet
@@ -1072,16 +1068,16 @@ func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprot
 	dek := diskEncryptionInfoMap["disk_encryption_key"].([]interface{})[0].(map[string]interface{})
 	diskEncryptionInfo := &replicationprotecteditems.DiskEncryptionInfo{
 		DiskEncryptionKeyInfo: &replicationprotecteditems.DiskEncryptionKeyInfo{
-			SecretIdentifier:      utils.String(dek["secret_url"].(string)),
-			KeyVaultResourceArmId: utils.String(dek["vault_id"].(string)),
+			SecretIdentifier:      pointer.To(dek["secret_url"].(string)),
+			KeyVaultResourceArmId: pointer.To(dek["vault_id"].(string)),
 		},
 	}
 
 	if keyEncryptionKey := diskEncryptionInfoMap["key_encryption_key"].([]interface{}); len(keyEncryptionKey) > 0 {
 		kek := keyEncryptionKey[0].(map[string]interface{})
 		diskEncryptionInfo.KeyEncryptionKeyInfo = &replicationprotecteditems.KeyEncryptionKeyInfo{
-			KeyIdentifier:         utils.String(kek["key_url"].(string)),
-			KeyVaultResourceArmId: utils.String(kek["vault_id"].(string)),
+			KeyIdentifier:         pointer.To(kek["key_url"].(string)),
+			KeyVaultResourceArmId: pointer.To(kek["vault_id"].(string)),
 		}
 	}
 

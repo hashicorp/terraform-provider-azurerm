@@ -16,7 +16,24 @@ import (
 type ListByResourceGroupOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DedicatedCapacities
+	Model        *[]DedicatedCapacity
+}
+
+type ListByResourceGroupCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []DedicatedCapacity
+}
+
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // ListByResourceGroup ...
@@ -27,6 +44,7 @@ func (c CapacitiesClient) ListByResourceGroup(ctx context.Context, id commonids.
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.PowerBIDedicated/capacities", id.ID()),
 	}
 
@@ -36,7 +54,7 @@ func (c CapacitiesClient) ListByResourceGroup(ctx context.Context, id commonids.
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -45,11 +63,44 @@ func (c CapacitiesClient) ListByResourceGroup(ctx context.Context, id commonids.
 		return
 	}
 
-	var model DedicatedCapacities
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]DedicatedCapacity `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListByResourceGroupComplete retrieves all the results into a single object
+func (c CapacitiesClient) ListByResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (ListByResourceGroupCompleteResult, error) {
+	return c.ListByResourceGroupCompleteMatchingPredicate(ctx, id, DedicatedCapacityOperationPredicate{})
+}
+
+// ListByResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c CapacitiesClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate DedicatedCapacityOperationPredicate) (result ListByResourceGroupCompleteResult, err error) {
+	items := make([]DedicatedCapacity, 0)
+
+	resp, err := c.ListByResourceGroup(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListByResourceGroupCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

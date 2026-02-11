@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
@@ -33,8 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -114,7 +114,28 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 				}
 
 				return nil
-			}),
+			},
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
+					rawConfig := d.GetRawConfig().AsValueMap()
+					minCapacityVal := rawConfig["min_capacity"]
+					if minCapacityVal.IsKnown() && !minCapacityVal.IsNull() {
+						minCapacityValFloat, _ := minCapacityVal.AsBigFloat().Float64()
+						if minCapacityValFloat > 0 {
+							return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+						}
+					}
+					autoPauseDelayVal := rawConfig["auto_pause_delay_in_minutes"]
+					if autoPauseDelayVal.IsKnown() && !autoPauseDelayVal.IsNull() {
+						autoPauseDelayValInt, _ := autoPauseDelayVal.AsBigFloat().Int64()
+						if autoPauseDelayValInt > 0 {
+							return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+						}
+					}
+				}
+				return nil
+			},
+		),
 	}
 }
 
@@ -390,8 +411,13 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
 		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
-			input.Properties.MaxSizeBytes = pointer.To(int64(v.(int)) * 1073741824)
+			v, err := calculateMaxSizeBytes(v.(float64))
+			if err != nil {
+				return err
+			}
+			input.Properties.MaxSizeBytes = v
 		}
+
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
@@ -449,9 +475,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
 		keyVaultKeyId := v.(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
 
 		input.Properties.EncryptionProtector = pointer.To(keyId.ID())
@@ -785,9 +811,12 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if v, ok := d.GetOk("max_size_gb"); ok {
 		// `max_size_gb` is Computed, so has a value after the first run
-		if createMode != string(databases.CreateModeOnlineSecondary) && createMode != string(databases.CreateModeSecondary) {
-			props.MaxSizeBytes = pointer.To(int64(v.(int)) * 1073741824)
+		v, err := calculateMaxSizeBytes(v.(float64))
+		if err != nil {
+			return err
 		}
+		props.MaxSizeBytes = v
+
 		// `max_size_gb` only has change if it is configured
 		if d.HasChange("max_size_gb") && (createMode == string(databases.CreateModeOnlineSecondary) || createMode == string(databases.CreateModeSecondary)) {
 			return fmt.Errorf("it is not possible to change maximum size nor advised to configure maximum size in secondary create mode for %s", id)
@@ -909,7 +938,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("transparent_data_encryption_key_vault_key_id") {
 		keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
@@ -1188,9 +1217,16 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 				d.Set("license_type", d.Get("license_type").(string))
 			}
 
-			if props.MaxSizeBytes != nil {
-				d.Set("max_size_gb", int32((*props.MaxSizeBytes)/int64(1073741824)))
+			// when `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
+			// directly set `max_size_gb` when API returns `104857600` or `524288000`.
+			size := float64((pointer.From(props.MaxSizeBytes)) / int64(1073741824))
+			switch pointer.From(props.MaxSizeBytes) {
+			case 104857600:
+				size = 0.1
+			case 524288000:
+				size = 0.5
 			}
+			d.Set("max_size_gb", size)
 
 			if props.CurrentServiceObjectiveName != nil {
 				skuName = *props.CurrentServiceObjectiveName
@@ -1607,10 +1643,10 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"short_term_retention_policy": helper.ShortTermRetentionPolicySchema(),
 
 		"max_size_gb": {
-			Type:         pluginsdk.TypeInt,
+			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: validation.IntBetween(1, 4096),
+			ValidateFunc: validation.FloatBetween(0.1, 4096),
 		},
 
 		"min_capacity": {
@@ -1810,7 +1846,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"transparent_data_encryption_key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: keyVaultValidate.NestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 
 		"transparent_data_encryption_key_automatic_rotation_enabled": {
@@ -1891,4 +1927,28 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 	}
 
 	return resource
+}
+
+func calculateMaxSizeBytes(v float64) (*int64, error) {
+	var maxSizeBytes int64
+	if isPositiveInteger(v) {
+		maxSizeBytes = int64(math.Round(v)) * 1073741824
+	} else {
+		// When `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
+		// Since 100MB != 0.1 * 1073741824 and 500MB != 0.5 * 1073741824, directly specify the Bytes when `max_size_gb` is specified `0.1` or `0.5`.
+		switch int64(math.Round(v * 10)) {
+		case 1:
+			maxSizeBytes = 104857600
+		case 5:
+			maxSizeBytes = 524288000
+		default:
+			return nil, fmt.Errorf("`max_size_gb` allows `0.1`, `0.5` and positive integers greater than or equal to 1")
+		}
+	}
+	return pointer.To(maxSizeBytes), nil
+}
+
+func isPositiveInteger(num float64) bool {
+	// Determine whether `num` is a positive integer and >= 1
+	return num >= 1 && num == math.Floor(num)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -80,6 +80,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		},
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			fn := rw.resource.IDValidationFunc()
+
 			warnings, errs := fn(id, "id")
 			if len(warnings) > 0 {
 				for _, warning := range warnings {
@@ -175,6 +176,35 @@ and we recommend using the %[2]q resource instead.
 	}
 	// TODO: State Migrations
 
+	if v, ok := rw.resource.(ResourceWithIdentity); ok {
+		var idType pluginsdk.ResourceTypeForIdentity = pluginsdk.ResourceTypeForIdentityDefault
+		if v, ok := rw.resource.(ResourceWithIdentityTypeOverride); ok {
+			idType = v.IdentityType()
+		}
+
+		resourceId := v.Identity()
+		resource.Identity = &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(resourceId, idType),
+		}
+
+		resource.Importer = pluginsdk.ImporterValidatingIdentityThen(resourceId, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
+				metaData := runArgs(d, meta, rw.logger)
+
+				ctx, cancel := context.WithTimeout(ctx, rw.resource.Read().Timeout)
+				defer cancel()
+				err := v.CustomImporter()(ctx, metaData)
+				if err != nil {
+					return nil, err
+				}
+
+				return []*pluginsdk.ResourceData{metaData.ResourceData}, nil
+			}
+
+			return schema.ImportStatePassthroughContext(ctx, d, meta)
+		}, idType)
+	}
+
 	return &resource, nil
 }
 
@@ -200,4 +230,14 @@ func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, met
 
 		return out
 	}
+}
+
+func WrappedResource(resource Resource) *pluginsdk.Resource {
+	wrapper := NewResourceWrapper(resource)
+	wrappedResource, err := wrapper.Resource()
+	if err != nil {
+		panic(err)
+	}
+
+	return wrappedResource
 }

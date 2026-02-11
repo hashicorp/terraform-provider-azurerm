@@ -27,6 +27,11 @@ func ApplyResourceChangeResponse(ctx context.Context, fw *fwserver.ApplyResource
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
 	proto6.NewState = newState
 
+	newIdentity, diags := ResourceIdentity(ctx, fw.NewIdentity)
+
+	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)
+	proto6.NewIdentity = newIdentity
+
 	newPrivate, diags := fw.Private.Bytes(ctx)
 
 	proto6.Diagnostics = append(proto6.Diagnostics, Diagnostics(ctx, diags)...)

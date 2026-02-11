@@ -37,7 +37,7 @@ func (f *File) Body() *Body {
 // The tokens first have a simple formatting pass applied that adjusts only
 // the spaces between them.
 func (f *File) WriteTo(wr io.Writer) (int64, error) {
-	tokens := f.inTree.children.BuildTokens(nil)
+	tokens := f.children.BuildTokens(nil)
 	format(tokens)
 	return tokens.WriteTo(wr)
 }
@@ -47,6 +47,7 @@ func (f *File) WriteTo(wr io.Writer) (int64, error) {
 // the AST API, these will be reflected in the result.
 func (f *File) Bytes() []byte {
 	buf := &bytes.Buffer{}
+	//nolint:errcheck // FIXME: Propogate errors upward.
 	f.WriteTo(buf)
 	return buf.Bytes()
 }
@@ -54,7 +55,6 @@ func (f *File) Bytes() []byte {
 type comments struct {
 	leafNode
 
-	parent *node
 	tokens Tokens
 }
 
@@ -71,8 +71,7 @@ func (c *comments) BuildTokens(to Tokens) Tokens {
 type identifier struct {
 	leafNode
 
-	parent *node
-	token  *Token
+	token *Token
 }
 
 func newIdentifier(token *Token) *identifier {
@@ -92,8 +91,7 @@ func (i *identifier) hasName(name string) bool {
 type number struct {
 	leafNode
 
-	parent *node
-	token  *Token
+	token *Token
 }
 
 func newNumber(token *Token) *number {
@@ -109,7 +107,6 @@ func (n *number) BuildTokens(to Tokens) Tokens {
 type quoted struct {
 	leafNode
 
-	parent *node
 	tokens Tokens
 }
 

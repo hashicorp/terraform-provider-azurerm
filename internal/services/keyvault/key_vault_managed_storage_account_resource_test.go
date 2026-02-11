@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultManagedStorageAccountResource struct{}
@@ -181,7 +181,7 @@ data "azuread_service_principal" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Account Key Operator Service Role"
-  principal_id         = data.azuread_service_principal.test.id
+  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_key_vault_managed_storage_account" "test" {
@@ -300,5 +300,5 @@ func (KeyVaultManagedStorageAccountResource) Exists(ctx context.Context, client 
 		return nil, fmt.Errorf("retrieving Key Vault Managed Storage Account %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }

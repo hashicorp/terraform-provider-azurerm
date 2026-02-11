@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package network_test
 
 import (
@@ -6,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagerroutingconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkmanagerroutingconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -138,9 +141,10 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_configuration" "test" {
-  name               = "acctest-nmrc-%[2]d"
-  network_manager_id = azurerm_network_manager.test.id
-  description        = "This is a test Routing Configuration"
+  name                   = "acctest-nmrc-%[2]d"
+  network_manager_id     = azurerm_network_manager.test.id
+  description            = "This is a test Routing Configuration"
+  route_table_usage_mode = "UseExisting"
 }
 `, r.template(data), data.RandomInteger)
 }

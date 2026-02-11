@@ -7,9 +7,10 @@ import (
 	"context"
 	"sort"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 )
 
 // SchemaAttribute returns the *tfprotov6.SchemaAttribute equivalent of an
@@ -27,6 +28,7 @@ func SchemaAttribute(ctx context.Context, name string, path *tftypes.AttributePa
 		Computed:  a.IsComputed(),
 		Sensitive: a.IsSensitive(),
 		Type:      a.GetType().TerraformType(ctx),
+		WriteOnly: a.IsWriteOnly(),
 	}
 
 	if a.GetDeprecationMessage() != "" {

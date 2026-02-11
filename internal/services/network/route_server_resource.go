@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -16,7 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -26,16 +27,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_server -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceRouteServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteServerCreate,
-		Read:   resourceRouteServerRead,
-		Update: resourceRouteServerUpdate,
-		Delete: resourceRouteServerDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualwans.ParseVirtualHubID(id)
-			return err
-		}),
+		Create:   resourceRouteServerCreate,
+		Read:     resourceRouteServerRead,
+		Update:   resourceRouteServerUpdate,
+		Delete:   resourceRouteServerDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualwans.VirtualHubId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualwans.VirtualHubId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -186,6 +190,9 @@ func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceRouteServerRead(d, meta)
 }
@@ -318,7 +325,7 @@ func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {

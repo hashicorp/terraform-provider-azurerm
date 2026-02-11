@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,7 +85,7 @@ func TestAccVPNServerConfiguration_radius(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
@@ -100,21 +100,21 @@ func TestAccVPNServerConfiguration_multipleRadius(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 		{
 			Config: r.multipleRadius(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret", "radius.0.server.1.secret"),
 		{
 			Config: r.singleRadius(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 		{
 			Config: r.azureAD(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -150,7 +150,7 @@ func TestAccVPNServerConfiguration_multipleAuth(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
@@ -195,7 +195,7 @@ func TestAccVPNServerConfiguration_withoutRadiusServerRootCertificate(t *testing
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 

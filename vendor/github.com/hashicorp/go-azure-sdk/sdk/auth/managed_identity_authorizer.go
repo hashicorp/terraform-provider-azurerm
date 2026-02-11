@@ -28,6 +28,10 @@ type ManagedIdentityAuthorizerOptions struct {
 	// CustomManagedIdentityEndpoint is an optional endpoint from which to obtain an access
 	// token. When blank, the default is used.
 	CustomManagedIdentityEndpoint string
+
+	// CustomManagedIdentityAPIVersion is an optional API version to use when requesting a token.
+	// This is required when using an endpoint that does not support the default API version such as Azure Container Apps.
+	CustomManagedIdentityAPIVersion string
 }
 
 // NewManagedIdentityAuthorizer returns an authorizer using a Managed Identity for authentication.
@@ -36,7 +40,7 @@ func NewManagedIdentityAuthorizer(ctx context.Context, options ManagedIdentityAu
 	if err != nil {
 		return nil, fmt.Errorf("determining resource for api %q: %+v", options.Api.Name(), err)
 	}
-	conf, err := newManagedIdentityConfig(*resource, options.ClientId, options.CustomManagedIdentityEndpoint)
+	conf, err := newManagedIdentityConfig(*resource, options.ClientId, options.CustomManagedIdentityEndpoint, options.CustomManagedIdentityAPIVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +74,9 @@ func (a *ManagedIdentityAuthorizer) Token(ctx context.Context, _ *http.Request) 
 		query["client_id"] = []string{a.conf.ClientID}
 	}
 
-	url := fmt.Sprintf("%s?%s", a.conf.MsiEndpoint, query.Encode())
+	u := fmt.Sprintf("%s?%s", a.conf.MsiEndpoint, query.Encode())
 
-	body, err := azureMetadata(ctx, url)
+	body, err := azureMetadata(ctx, u)
 	if err != nil {
 		return nil, fmt.Errorf("ManagedIdentityAuthorizer: failed to request token from metadata endpoint: %v", err)
 	}
@@ -135,16 +139,21 @@ type managedIdentityConfig struct {
 
 // newManagedIdentityConfig returns a new managedIdentityConfig with a configured metadata endpoint and resource.
 // clientId and objectId can be left blank when a single managed identity is available
-func newManagedIdentityConfig(resource, clientId, customManagedIdentityEndpoint string) (*managedIdentityConfig, error) {
+func newManagedIdentityConfig(resource, clientId, customManagedIdentityEndpoint string, customManagedIdentityAPIVersion string) (*managedIdentityConfig, error) {
 	endpoint := msiDefaultEndpoint
 	if customManagedIdentityEndpoint != "" {
 		endpoint = customManagedIdentityEndpoint
 	}
 
+	apiVersion := msiDefaultApiVersion
+	if customManagedIdentityAPIVersion != "" {
+		apiVersion = customManagedIdentityAPIVersion
+	}
+
 	return &managedIdentityConfig{
 		ClientID:      clientId,
 		Resource:      resource,
-		MsiApiVersion: msiDefaultApiVersion,
+		MsiApiVersion: apiVersion,
 		MsiEndpoint:   endpoint,
 	}, nil
 }

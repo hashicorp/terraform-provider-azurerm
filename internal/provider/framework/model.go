@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -29,6 +29,7 @@ type ProviderModel struct {
 	UseOIDC                        types.Bool   `tfsdk:"use_oidc"`
 	UseMSI                         types.Bool   `tfsdk:"use_msi"`
 	MSIEndpoint                    types.String `tfsdk:"msi_endpoint"`
+	MSIAPIVersion                  types.String `tfsdk:"msi_api_version"`
 	UseCLI                         types.Bool   `tfsdk:"use_cli"`
 	UseAKSWorkloadIdentity         types.Bool   `tfsdk:"use_aks_workload_identity"`
 	PartnerId                      types.String `tfsdk:"partner_id"`

@@ -58,7 +58,6 @@ func ParseBillingEnrollmentAccountIDInsensitively(input string) (*BillingEnrollm
 }
 
 func (id *BillingEnrollmentAccountId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 
 	if id.EnrollmentAccountName, ok = input.Parsed["enrollmentAccountName"]; !ok {

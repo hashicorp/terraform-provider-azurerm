@@ -48,7 +48,7 @@ resource "azurerm_log_analytics_solution" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -76,9 +76,15 @@ A `plan` block includes:
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution. Changing this forces a new resource to be created.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Log Analytics Solution.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Solution.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Solution.
@@ -97,4 +103,4 @@ terraform import azurerm_log_analytics_solution.solution1 /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationsManagement`: 2015-11-01-preview
+* `Microsoft.OperationsManagement` - 2015-11-01-preview

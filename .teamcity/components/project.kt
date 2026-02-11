@@ -30,7 +30,7 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
         var runNightly = runNightly.getOrDefault(environment, false)
 
         var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout)
+        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
 
         buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)
 
@@ -48,7 +48,7 @@ fun pullRequestBuildConfiguration(environment: String, config: ClientConfigurati
     return buildConfiguration
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion) {
+class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion, disableTriggers: Boolean = false) {
     var parallelism = parallelism
     var startHour = startHour
     var daysOfWeek = daysOfWeek
@@ -58,4 +58,5 @@ class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = 
     var useDevTestSubscription = useDevTestSubscription
     var locationOverride = locationOverride
     var terraformCoreOverride = terraformCoreOverride
+    var disableTriggers = disableTriggers
 }

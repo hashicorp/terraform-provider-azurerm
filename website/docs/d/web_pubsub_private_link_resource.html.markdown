@@ -31,7 +31,7 @@ data "azurerm_web_pubsub_private_link_resource" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `web_pubsub_id` - The ID of an existing Web Pubsub Resource which Private Link Resource should be retrieved for.
 
@@ -51,7 +51,7 @@ A `shared_private_link_resource_types` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Resource.
 
@@ -59,4 +59,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.SignalRService`: 2024-03-01
+* `Microsoft.SignalRService` - 2024-03-01

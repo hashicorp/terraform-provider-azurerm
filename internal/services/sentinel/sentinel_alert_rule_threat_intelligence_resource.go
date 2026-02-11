@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -237,9 +237,6 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("enabled") {
 				rule.Properties.Enabled = metaModel.Enabled
-			}
-			if metadata.ResourceData.HasChange("template_name") {
-				rule.Properties.AlertRuleTemplateName = metaModel.TemplateName
 			}
 
 			param := alertrules.ThreatIntelligenceAlertRule{

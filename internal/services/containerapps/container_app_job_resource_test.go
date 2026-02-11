@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -10,12 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppJobResource struct{}
@@ -33,7 +32,7 @@ func (r ContainerAppJobResource) Exists(ctx context.Context, client *clients.Cli
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func TestAccContainerAppJob_basic(t *testing.T) {
@@ -1217,6 +1216,7 @@ resource "azurerm_container_app_job" "test" {
 func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -1290,8 +1290,9 @@ resource "azurerm_container_app_job" "test" {
       cpu    = 0.5
       memory = "1Gi"
       volume_mounts {
-        path = "/appsettings"
-        name = azurerm_container_app_environment_storage.test.name
+        path     = "/appsettings"
+        name     = azurerm_container_app_environment_storage.test.name
+        sub_path = "subdirectory"
       }
     }
 
@@ -1301,8 +1302,9 @@ resource "azurerm_container_app_job" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/appsettings"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/appsettings"
+        sub_path = "subdirectory"
       }
     }
   }
