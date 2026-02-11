@@ -44,7 +44,6 @@ type DatabaseSystemResourceModel struct {
 	NetworkAnchorId  string   `tfschema:"network_anchor_id"`
 	ResourceAnchorId string   `tfschema:"resource_anchor_id"`
 	Shape            string   `tfschema:"shape"`
-	Source           string   `tfschema:"source"`
 	SshPublicKeys    []string `tfschema:"ssh_public_keys"`
 
 	// Optional
@@ -212,6 +211,9 @@ func (DatabaseSystemResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.PluggableDatabaseName,
+			DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+				return old == "" && new != ""
+			},
 		},
 		"storage_volume_performance_mode": {
 			Type:     pluginsdk.TypeString,
@@ -402,11 +404,10 @@ func (DatabaseSystemResource) Read() sdk.ResourceFunc {
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 					state.DatabaseEdition = string(props.DatabaseEdition)
-					state.DatabaseVersion = props.DbVersion
+					state.DatabaseVersion = metadata.ResourceData.Get("database_version").(string)
 					state.Hostname = props.Hostname
 					state.NetworkAnchorId = props.NetworkAnchorId
 					state.ResourceAnchorId = metadata.ResourceData.Get("resource_anchor_id").(string)
-					state.Source = string(props.Source)
 					state.Shape = props.Shape
 					state.Zones = pointer.From(model.Zones)
 

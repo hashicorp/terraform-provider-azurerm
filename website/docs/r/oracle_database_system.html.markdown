@@ -46,12 +46,12 @@ resource "azurerm_subnet" "example" {
 }
 
 resource "azurerm_oracle_resource_anchor" "example" {
-  name                = "example"
+  name                = "example-ra"
   resource_group_name = azurerm_resource_group.example.name
 }
 
 resource "azurerm_oracle_network_anchor" "example" {
-  name                = "example"
+  name                = "example-na"
   resource_group_name = azurerm_resource_group.example.name
   location            = "eastus"
   resource_anchor_id  = azurerm_oracle_resource_anchor.example.id
@@ -60,14 +60,14 @@ resource "azurerm_oracle_network_anchor" "example" {
 }
 
 resource "azurerm_oracle_database_system" "example" {
-  name                = "example"
+  name                = "example-dbSystems"
   resource_group_name = azurerm_resource_group.example.name
   location            = "eastus"
   zones               = ["1"]
-  admin_password                   = "BEstrO0ng_#11"
+  admin_password      = "BEstrO0ng_#11"
   cpu_core_count      = 4
-  compute_count                    = 2.0
-  compute_model                    = "ECPU"
+  compute_count       = 2.0
+  compute_model       = "ECPU"
   database_edition    = "StandardEdition"
   database_version    = "19.27.0.0"
   hostname            = "hostname"
@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `database_edition` - (Required) The Oracle Database Edition that applies to all the databases on the Database system. Exadata Database systems and 2-node RAC Database systems require EnterpriseEditionExtremePerformance. Possible values are `EnterpriseEdition`, `EnterpriseEditionDeveloper`, `EnterpriseEditionExtreme`, `EnterpriseEditionHighPerformance` and `StandardEdition`. Changing this forces a new Database System to be created.
 
+* `database_system_options` - (Required) One or more `database_system_options` blocks as defined below. Changing this forces a new resource to be created.
+
 * `database_version` - (Required) A valid Oracle Database version. For a list of supported versions, use the ListDbVersions operation. Changing this forces a new Database System to be created.
 
 * `hostname` - (Required) The hostname for the Database system. Changing this forces a new Database system to be created.
@@ -116,8 +118,6 @@ The following arguments are supported:
 ---
 
 * `cluster_name` - (Optional) The cluster name for Exadata and 2-node RAC virtual machine Database systems. The cluster name must begin with an alphabetic character, and may contain hyphens (-). Underscores (_) are not permitted. The cluster name can be no longer than 11 characters and is not case sensitive. Changing this forces a new Database system to be created.
-
-* `database_system_options` - (Optional) One or more `database_system_options` blocks as defined below. Changing this forces a new resource to be created.
 
 * `disk_redundancy` - (Optional) The type of redundancy configured for the Database system.  Possible values are `High` and `Normal`. NORMAL is 2-way redundancy. HIGH is 3-way redundancy. Changing this forces a new Database system to be created.
 

@@ -50,7 +50,6 @@ type DatabaseSystemDataModel struct {
 	ScanDnsName                  string                       `tfschema:"scan_dns_name"`
 	ScanIPs                      []string                     `tfschema:"scan_ips"`
 	Shape                        string                       `tfschema:"shape"`
-	Source                       string                       `tfschema:"source"`
 	SshPublicKeys                []string                     `tfschema:"ssh_public_keys"`
 	StorageVolumePerformanceMode string                       `tfschema:"storage_volume_performance_mode"`
 	TimeZoneInUtc                string                       `tfschema:"time_zone_in_utc"`
@@ -312,7 +311,6 @@ func (d DatabaseSystemDataSource) Read() sdk.ResourceFunc {
 					state.ScanDnsName = pointer.From(databaseSystemProps.ScanDnsName)
 					state.ScanIPs = pointer.From(databaseSystemProps.ScanIPs)
 					state.Shape = databaseSystemProps.Shape
-					state.Source = string(databaseSystemProps.Source)
 					state.SshPublicKeys = databaseSystemProps.SshPublicKeys
 					state.StorageVolumePerformanceMode = pointer.FromEnum(databaseSystemProps.StorageVolumePerformanceMode)
 					state.TimeZoneInUtc = pointer.From(databaseSystemProps.TimeZone)

@@ -90,8 +90,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `shape` - The shape of the Database system. The shape determines resources to allocate to the Database system. For virtual machine shapes, the number of CPU cores and memory. For bare metal and Exadata shapes, the number of CPU cores, storage, and memory.
 
-* `source` - The source of the database for creating a new database.
-
 * `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Database system.
 
 * `storage_volume_performance_mode` - The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information.

@@ -38,7 +38,7 @@ func TestDatabaseSystemResource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id", "database_version"),
 	})
 }
 
@@ -52,7 +52,7 @@ func TestDatabaseSystemResource_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id", "database_version"),
 	})
 }
 
@@ -66,14 +66,14 @@ func TestDatabaseSystemResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id", "database_version"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id"),
+		data.ImportStep("admin_password", "initial_data_storage_size_in_gb", "pluggable_database_name", "resource_anchor_id", "database_version"),
 	})
 }
 
@@ -101,7 +101,7 @@ provider "azurerm" {
 
 resource "azurerm_oracle_database_system" "test" {
   name                = "acctest%[2]d"
-  resource_group_name = "trfmRg1"
+  resource_group_name = "terraform2"
   location            = "%[3]s"
   zones               = ["2"]
   admin_password      = "testAdminPassword123##"
@@ -111,13 +111,13 @@ resource "azurerm_oracle_database_system" "test" {
   database_system_options {
     storage_management = "LVM"
   }
-  database_version    = "19.27.0.0"
-  hostname            = "hosttst"
-  license_model       = "LicenseIncluded"
-  network_anchor_id   = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/trfmRg1/providers/Oracle.Database/networkAnchors/trfmNA1"
-  resource_anchor_id  = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/trfmRg1/providers/Oracle.Database/resourceAnchors/terraformRA1"
-  shape               = "VM.Standard.x86"
-  ssh_public_keys     = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
+  database_version   = "19.27.0.0"
+  hostname           = "hosttst"
+  license_model      = "LicenseIncluded"
+  network_anchor_id  = "/subscriptions/1660e939-7a86-4810-b122-3117c8796199/resourceGroups/terraform2/providers/Oracle.Database/networkAnchors/teraformRA"
+  resource_anchor_id = "/subscriptions/1660e939-7a86-4810-b122-3117c8796199/resourceGroups/terraform2/providers/Oracle.Database/resourceAnchors/TfRa2"
+  shape              = "VM.Standard.x86"
+  ssh_public_keys    = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -131,7 +131,7 @@ provider "azurerm" {
 
 resource "azurerm_oracle_database_system" "test" {
   name                = "acctest%[2]d"
-  resource_group_name = "trfmRg2"
+  resource_group_name = "terraform2"
   location            = "%[3]s"
   zones               = ["2"]
   admin_password      = "testAdminPassword123##"
@@ -145,8 +145,8 @@ resource "azurerm_oracle_database_system" "test" {
   disk_redundancy                 = "Normal"
   hostname                        = "hosttst"
   license_model                   = "LicenseIncluded"
-  network_anchor_id               = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/trfmRg2/providers/Oracle.Database/networkAnchors/trfmNA22"
-  resource_anchor_id              = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/trfmRg2/providers/Oracle.Database/resourceAnchors/trfmRA2"
+  network_anchor_id               = "/subscriptions/1660e939-7a86-4810-b122-3117c8796199/resourceGroups/terraform2/providers/Oracle.Database/networkAnchors/teraformRA"
+  resource_anchor_id              = "/subscriptions/1660e939-7a86-4810-b122-3117c8796199/resourceGroups/terraform2/providers/Oracle.Database/resourceAnchors/TfRa2"
   shape                           = "VM.Standard.x86"
   ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
   pluggable_database_name         = "testPdbName"
@@ -172,7 +172,7 @@ provider "azurerm" {
 
 resource "azurerm_oracle_database_system" "test" {
   name                = "acctest%[2]d"
-  resource_group_name = "trfmRg1"
+  resource_group_name = "terraform2"
   location            = "%[3]s"
   zones               = ["2"]
   admin_password      = "testAdminPassword123##"
@@ -182,24 +182,16 @@ resource "azurerm_oracle_database_system" "test" {
   database_system_options {
     storage_management = "LVM"
   }
-  database_version                = "19.27.0.0"
-  disk_redundancy                 = "Normal"
-  hostname                        = "hosttst"
-  license_model                   = "LicenseIncluded"
-  network_anchor_id   = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/trfmRg1/providers/Oracle.Database/networkAnchors/trfmNA1"
-  resource_anchor_id  = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/trfmRg1/providers/Oracle.Database/resourceAnchors/terraformRA1"
-  shape                           = "VM.Standard.x86"
-  ssh_public_keys                 = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
-  pluggable_database_name         = "testPdbName"
-  storage_volume_performance_mode = "HighPerformance"
-  display_name                    = "acctest%[2]d"
-  initial_data_storage_size_in_gb = 256
-  node_count                      = 1
+  database_version   = "19.27.0.0"
+  hostname           = "hosttst"
+  license_model      = "LicenseIncluded"
+  network_anchor_id  = "/subscriptions/1660e939-7a86-4810-b122-3117c8796199/resourceGroups/terraform2/providers/Oracle.Database/networkAnchors/teraformRA"
+  resource_anchor_id = "/subscriptions/1660e939-7a86-4810-b122-3117c8796199/resourceGroups/terraform2/providers/Oracle.Database/resourceAnchors/TfRa2"
+  shape              = "VM.Standard.x86"
+  ssh_public_keys    = ["ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC+wWK73dCr+jgQOAxNsHAnNNNMEMWOHYEccp6wJm2gotpr9katuF/ZAdou5AaW1C61slRkHRkpRRX9FA9CYBiitZgvCCz+3nWNN7l/Up54Zps/pHWGZLHNJZRYyAB6j5yVLMVHIHriY49d/GZTZVNB8GoJv9Gakwc/fuEZYYl4YDFiGMBP///TzlI4jhiJzjKnEvqPFki5p2ZRJqcbCiF4pJrxUQR/RXqVFQdbRLZgYfJ8xGB878RENq3yQ39d8dVOkq4edbkzwcUmwwwkYVPIoDGsYLaRHnG+To7FvMeyO7xDVQkMKzopTQV8AuKpyvpqu0a9pWOMaiCyDytO7GGN you@me.com"]
   tags = {
-    testUpdate = "testUpdate"
+    test = "testTag1"
   }
-  time_zone_in_utc = "UTC"
-
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
