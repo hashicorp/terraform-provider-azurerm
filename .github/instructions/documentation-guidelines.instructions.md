@@ -9,6 +9,14 @@ description: This document outlines the standards and guidelines for writing doc
 
 This document outlines the standards and guidelines for writing documentation for Terraform resources and data sources in the AzureRM provider.
 
+## Optional AI schema audit (recommended)
+
+To run a complete standards + schema parity review for the currently-open docs page, run:
+
+- <a href="../prompts/docs-schema-audit.prompt.md">.github/prompts/docs-schema-audit.prompt.md</a>
+
+This audit is optional and user-invoked (no CI enforcement).
+
 **Quick navigation:** <a href="#🚨-critical-pre-implementation-requirements-🚨">🚨 Pre-Implementation Requirements</a> | <a href="#📚-key-differences-resources-vs-data-sources">📚 Key Differences</a> | <a href="#🏗️-documentation-structure">🏗️ Documentation Structure</a> | <a href="#📄-resource-documentation-template">📄 Resource Template</a> | <a href="#📊-data-source-documentation-template">📊 Data Source Template</a> | <a href="#✍️-writing-guidelines">✍️ Writing Guidelines</a> | <a href="#💡-example-configuration-guidelines">💡 Example Configuration</a> | <a href="#📁-import-documentation">📁 Import Documentation</a> | <a href="#⏱️-timeout-documentation">⏱️ Timeout Documentation</a> | <a href="#☁️-azure-specific-documentation-patterns">☁️ Azure-Specific Patterns</a> | <a href="#📋-attributes-reference-differences">📋 Attributes Reference</a> | <a href="#📝-field-documentation-rules">📝 Field Documentation</a> | <a href="#📋-provider-documentation-standards-note-formatting">📋 Provider Standards</a>
 
 <a id="🚨-critical-pre-implementation-requirements-🚨"></a>
