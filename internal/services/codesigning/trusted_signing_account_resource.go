@@ -137,8 +137,7 @@ func (m TrustedSigningAccountResource) Read() sdk.ResourceFunc {
 			result, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(result.HttpResponse) {
-					meta.MarkAsGone(id)
-					return nil
+					return meta.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
