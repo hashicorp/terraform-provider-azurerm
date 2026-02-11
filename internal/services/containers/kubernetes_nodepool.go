@@ -364,19 +364,17 @@ func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 
 	if !features.FivePointOh() {
 		s.Elem.(*pluginsdk.Resource).Schema["container_log_max_line"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"kubelet_config.0.container_log_max_files"},
-			Deprecated:    "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
-			ValidateFunc:  validation.IntAtLeast(2),
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			Deprecated:   "`container_log_max_line` has been renamed to `container_log_max_files` to align with the API property name and will be removed in v5.0 of the AzureRM Provider",
+			ValidateFunc: validation.IntAtLeast(2),
 		}
 		s.Elem.(*pluginsdk.Resource).Schema["container_log_max_files"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeInt,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"kubelet_config.0.container_log_max_line"},
-			ValidateFunc:  validation.IntAtLeast(2),
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.IntAtLeast(2),
 		}
 	}
 
