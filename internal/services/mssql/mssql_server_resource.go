@@ -537,9 +537,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.ServersClient
-	connectionClient := meta.(*clients.Client).MSSQL.ServerConnectionPoliciesClient
-	restorableDroppedDatabasesClient := meta.(*clients.Client).MSSQL.RestorableDroppedDatabasesClient
-	vaClient := meta.(*clients.Client).MSSQL.SqlVulnerabilityAssessmentSettingsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -558,11 +556,18 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
+	return resourceMssqlServerSetFlatten(ctx, d, id, resp.Model, meta.(*clients.Client))
+}
+
+func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
+	connectionClient := metaClient.MSSQL.ServerConnectionPoliciesClient
+	restorableDroppedDatabasesClient := metaClient.MSSQL.RestorableDroppedDatabasesClient
+	vaClient := metaClient.MSSQL.SqlVulnerabilityAssessmentSettingsClient
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
