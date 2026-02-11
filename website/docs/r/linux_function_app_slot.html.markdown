@@ -644,11 +644,11 @@ An `application_stack` block supports the following:
 
 * `java_version` - (Optional) The version of Java to use. Possible values are `8`, `11`, `17` and `21`.
 
-* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20` and `22`.
+* `node_version` - (Optional) The version of Node to use. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to use. Possibles values are `7` , `7.2`, and `7.4`.
 
-* `python_version` - (Optional) The version of Python to use. Possible values are `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
+* `python_version` - (Optional) The version of Python to use. Possible values are `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `use_custom_runtime` - (Optional) Should the Linux Function App use a custom runtime?
 

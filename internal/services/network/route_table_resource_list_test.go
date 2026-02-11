@@ -14,6 +14,7 @@ import (
 
 func TestAccRouteTable_list_basic(t *testing.T) {
 	r := RouteTableResource{}
+	listResourceAddress := "azurerm_route_table.list"
 
 	data := acceptance.BuildTestData(t, "azurerm_route_table", "test1")
 
@@ -27,14 +28,18 @@ func TestAccRouteTable_list_basic(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:             true,
-				Config:            r.basicQuery(),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQuery(),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+				},
 			},
 			{
-				Query:             true,
-				Config:            r.basicQueryByResourceGroupName(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQueryByResourceGroupName(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength(listResourceAddress, 3),
+				},
 			},
 		},
 	})

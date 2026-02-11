@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -11,13 +11,15 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_customer_managed_key -service-package-name dataprotection -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,name:data_protection_backup_vault_id" -test-name complete
 
 type DataProtectionBackupVaultCustomerManagedKeyResource struct{}
 
@@ -26,7 +28,14 @@ type DataProtectionBackupVaultCustomerManagedKeyModel struct {
 	KeyVaultKeyID               string `tfschema:"key_vault_key_id"`
 }
 
-var _ sdk.ResourceWithUpdate = DataProtectionBackupVaultCustomerManagedKeyResource{}
+var (
+	_ sdk.ResourceWithUpdate   = DataProtectionBackupVaultCustomerManagedKeyResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupVaultCustomerManagedKeyResource{}
+)
+
+func (r DataProtectionBackupVaultCustomerManagedKeyResource) Identity() resourceids.ResourceId {
+	return &backupvaults.BackupVaultId{}
+}
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) ModelObject() interface{} {
 	return &DataProtectionBackupVaultCustomerManagedKeyResource{}
@@ -52,7 +61,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Arguments() map[str
 		"key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 	}
 }
@@ -98,7 +107,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 
 			payload := resp.Model
 
-			keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
+			keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 			if err != nil {
 				return err
 			}
@@ -120,6 +129,9 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -155,6 +167,9 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Read() sdk.Resource
 						state.KeyVaultKeyID = pointer.From(props.SecuritySettings.EncryptionSettings.KeyVaultProperties.KeyUri)
 					}
 				}
+			}
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 			return metadata.Encode(&state)
 		},
@@ -209,7 +224,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 			payload := resp.Model
 
 			if metadata.ResourceData.HasChange("key_vault_key_id") {
-				keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(cmk.KeyVaultKeyID)
+				keyId, err := keyvault.ParseNestedItemID(cmk.KeyVaultKeyID, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 				if err != nil {
 					return err
 				}

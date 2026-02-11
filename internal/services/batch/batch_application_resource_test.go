@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch_test
@@ -17,6 +17,10 @@ import (
 )
 
 type BatchApplicationResource struct{}
+
+func (r BatchApplicationResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.template(data, "")
+}
 
 func TestAccBatchApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")

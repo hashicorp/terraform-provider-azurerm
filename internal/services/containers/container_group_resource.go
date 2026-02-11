@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -699,7 +699,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Containers:               containers,
 			Diagnostics:              diagnostics,
 			RestartPolicy:            &restartPolicy,
-			OsType:                   containerinstance.OperatingSystemTypes(OSType),
+			OsType:                   pointer.To(containerinstance.OperatingSystemTypes(OSType)),
 			Volumes:                  &containerGroupVolumes,
 			ImageRegistryCredentials: expandContainerImageRegistryCredentials(d),
 			DnsConfig:                expandContainerGroupDnsConfig(dnsConfig),
@@ -745,7 +745,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if priority := d.Get("priority").(string); priority != "" {
-		containerGroup.Properties.Priority = pointer.To(containerinstance.ContainerGroupPriority(priority))
+		containerGroup.Properties.Priority = pointer.To(containerinstance.Priority(priority))
 	}
 
 	// Avoid parallel provisioning if "subnet_ids" are given.
@@ -932,7 +932,11 @@ func resourceContainerGroupRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("restart_policy", restartPolicy)
 
-		d.Set("os_type", string(props.OsType))
+		osType := ""
+		if props.OsType != nil {
+			osType = string(*props.OsType)
+		}
+		d.Set("os_type", osType)
 		d.Set("dns_config", flattenContainerGroupDnsConfig(props.DnsConfig))
 
 		if err := d.Set("diagnostics", flattenContainerGroupDiagnostics(d, props.Diagnostics)); err != nil {
@@ -1160,8 +1164,8 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 		container := containerinstance.Container{
 			Name: name,
 			Properties: containerinstance.ContainerProperties{
-				Image: image,
-				Resources: containerinstance.ResourceRequirements{
+				Image: &image,
+				Resources: &containerinstance.ResourceRequirements{
 					Requests: containerinstance.ResourceRequests{
 						MemoryInGB: memory,
 						Cpu:        cpu,
