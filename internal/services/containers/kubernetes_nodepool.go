@@ -1500,7 +1500,7 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
 	var cpuCfsQuotaEnabled bool
-	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxLines, podMaxPids int
+	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxFiles, podMaxPids int
 
 	if input.CpuManagerPolicy != nil {
 		cpuManagerPolicy = *input.CpuManagerPolicy
@@ -1524,7 +1524,7 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 		containerLogMaxSizeMB = int(*input.ContainerLogMaxSizeMB)
 	}
 	if input.ContainerLogMaxFiles != nil {
-		containerLogMaxLines = int(*input.ContainerLogMaxFiles)
+		containerLogMaxFiles = int(*input.ContainerLogMaxFiles)
 	}
 	if input.PodMaxPids != nil {
 		podMaxPids = int(*input.PodMaxPids)
@@ -1540,13 +1540,13 @@ func flattenClusterNodePoolKubeletConfig(input *managedclusters.KubeletConfig) [
 			"topology_manager_policy":   topologyManagerPolicy,
 			"allowed_unsafe_sysctls":    utils.FlattenStringSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
-			"container_log_max_files":   containerLogMaxLines,
+			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
 		},
 	}
 
 	if !features.FivePointOh() {
-		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxLines
+		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxFiles
 	}
 
 	return result
@@ -1559,7 +1559,7 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 
 	var cpuManagerPolicy, cpuCfsQuotaPeriod, topologyManagerPolicy string
 	var cpuCfsQuotaEnabled bool
-	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxLines, podMaxPids int
+	var imageGcHighThreshold, imageGcLowThreshold, containerLogMaxSizeMB, containerLogMaxFiles, podMaxPids int
 
 	if input.CpuManagerPolicy != nil {
 		cpuManagerPolicy = *input.CpuManagerPolicy
@@ -1583,7 +1583,7 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 		containerLogMaxSizeMB = int(*input.ContainerLogMaxSizeMB)
 	}
 	if input.ContainerLogMaxFiles != nil {
-		containerLogMaxLines = int(*input.ContainerLogMaxFiles)
+		containerLogMaxFiles = int(*input.ContainerLogMaxFiles)
 	}
 	if input.PodMaxPids != nil {
 		podMaxPids = int(*input.PodMaxPids)
@@ -1599,13 +1599,13 @@ func flattenAgentPoolKubeletConfig(input *agentpools.KubeletConfig) []interface{
 			"topology_manager_policy":   topologyManagerPolicy,
 			"allowed_unsafe_sysctls":    utils.FlattenStringSlice(input.AllowedUnsafeSysctls),
 			"container_log_max_size_mb": containerLogMaxSizeMB,
-			"container_log_max_files":   containerLogMaxLines,
+			"container_log_max_files":   containerLogMaxFiles,
 			"pod_max_pid":               podMaxPids,
 		},
 	}
 
 	if !features.FivePointOh() {
-		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxLines
+		result[0].(map[string]interface{})["container_log_max_line"] = containerLogMaxFiles
 	}
 
 	return result
