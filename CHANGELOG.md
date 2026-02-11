@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_express_route_port` - add support for `GcmAesXpn128` and `GcmAesXpn256` ciphers to `link*.macsec_cipher` [GH-30240]
 
 FEATURES:
+* **New List Resource**: `azurerm_mysql_flexible_database`, `azurerm_mysql_flexible_server_firewall_rule`, `azurerm_mysql_flexible_server_configuration` - includes addition of Identity [GH-31646] [GH-31646]
 * **New List Resource**: `azurerm_cognitive_account` [GH-31624]
 * **New List Resource**: `azurerm_service_plan` [GH-31610]
 * **New Resource**: `azurerm_managed_redis_access_policy_assignment` [GH-30980]
