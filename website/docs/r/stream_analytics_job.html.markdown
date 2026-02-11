@@ -92,6 +92,8 @@ The following arguments are supported:
 
 ~> **Note:** This block should be added to `ignore_changes` if the Stream Analytics' Job Storage Account is being managed by the `azurerm_stream_analytics_job_storage_account` resource.
 
+---
+
 A `job_storage_account` block supports the following:
 
 * `authentication_mode` - (Optional) The authentication mode of the storage account. Possible values are `ConnectionString` and `Msi`. Defaults to `ConnectionString`.

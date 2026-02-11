@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -285,6 +285,9 @@ func resourceNetworkSecurityRuleCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNetworkSecurityRuleRead(d, meta)
 }

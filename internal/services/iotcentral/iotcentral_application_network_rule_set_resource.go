@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iotcentral
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/iotcentral/2021-11-01-preview/apps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -17,7 +18,6 @@ import (
 	iothubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IotCentralApplicationNetworkRuleSetResource struct{}
@@ -137,9 +137,9 @@ func (r IotCentralApplicationNetworkRuleSetResource) Create() sdk.ResourceFunc {
 			}
 
 			model.Properties.NetworkRuleSets = &apps.NetworkRuleSets{
-				ApplyToDevices: utils.Bool(state.ApplyToDevice),
+				ApplyToDevices: pointer.To(state.ApplyToDevice),
 				// ApplyToIoTCentral must be set to false explicitly
-				ApplyToIoTCentral: utils.Bool(false),
+				ApplyToIoTCentral: pointer.To(false),
 				DefaultAction:     &state.DefaultAction,
 				IPRules:           expandIotCentralApplicationNetworkRuleSetIPRule(state.IPRule),
 			}
@@ -229,10 +229,10 @@ func (r IotCentralApplicationNetworkRuleSetResource) Update() sdk.ResourceFunc {
 			}
 
 			// ApplyToIoTCentral must be set to false explicitly
-			existing.Model.Properties.NetworkRuleSets.ApplyToIoTCentral = utils.Bool(false)
+			existing.Model.Properties.NetworkRuleSets.ApplyToIoTCentral = pointer.To(false)
 
 			if metadata.ResourceData.HasChange("apply_to_device") {
-				existing.Model.Properties.NetworkRuleSets.ApplyToDevices = utils.Bool(state.ApplyToDevice)
+				existing.Model.Properties.NetworkRuleSets.ApplyToDevices = pointer.To(state.ApplyToDevice)
 			}
 
 			if metadata.ResourceData.HasChange("default_action") {
@@ -287,8 +287,8 @@ func expandIotCentralApplicationNetworkRuleSetIPRule(input []IPRule) *[]apps.Net
 	results := make([]apps.NetworkRuleSetIPRule, 0)
 	for _, item := range input {
 		results = append(results, apps.NetworkRuleSetIPRule{
-			FilterName: utils.String(item.Name),
-			IPMask:     utils.String(item.IPMask),
+			FilterName: pointer.To(item.Name),
+			IPMask:     pointer.To(item.IPMask),
 		})
 	}
 	return &results

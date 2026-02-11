@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 
 SERVICES=$(ls internal/services/)
 
 TOTAL=0
-TOTAL_RESOURCES=$(find internal/services | egrep "_resource.go$" | wc -l | tr -d '[:space:]')
+TOTAL_RESOURCES=$(find internal/services -name "*_resource.go" | grep -c .)
 DONE=0
 DONE_RESOURCES=0
 PARTIAL=0
@@ -16,8 +16,8 @@ echo
 for s in $SERVICES; do
   (( TOTAL++ ))
 
-  RESOURCES=$(find internal/services/$s | egrep "_resource.go" | wc -l | tr -d '[:space:]')
-  RESOURCES_DONE=$(grep -rnw "internal/services/$s" -e 'go-azure-sdk' | egrep "_resource.go" | wc -l | tr -d '[:space:]')
+  RESOURCES=$(find "internal/services/$s" -name "*_resource.go" | grep -c .)
+  RESOURCES_DONE=$(grep -rnw "internal/services/$s" -e 'go-azure-sdk' | grep -c "_resource.go" || true)
   DONE_RESOURCES=$((DONE_RESOURCES + RESOURCES_DONE))
 
   if grep -rnw "internal/services/$s" -e 'azure-sdk-for-go' > /dev/null; then

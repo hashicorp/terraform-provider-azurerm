@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql
@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/firewallrules"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,6 +19,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mysql_flexible_server_firewall_rule -service-package-name mysql -properties "name,resource_group_name,flexible_server_name:server_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+var mysqlFlexibleServerFirewallResourceName = "azurerm_mysql_flexible_server_firewall_rule"
+
 func resourceMySqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMySqlFlexibleServerFirewallRuleCreateUpdate,
@@ -25,16 +30,17 @@ func resourceMySqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 		Update: resourceMySqlFlexibleServerFirewallRuleCreateUpdate,
 		Delete: resourceMySqlFlexibleServerFirewallRuleDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := firewallrules.ParseFirewallRuleID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&firewallrules.FirewallRuleId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&firewallrules.FirewallRuleId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -84,7 +90,7 @@ func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceDa
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_mysql_flexible_server_firewall_rule", id.ID())
+			return tf.ImportAsExistsError(mysqlFlexibleServerFirewallResourceName, id.ID())
 		}
 	}
 
@@ -100,6 +106,10 @@ func resourceMySqlFlexibleServerFirewallRuleCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceMySqlFlexibleServerFirewallRuleRead(d, meta)
 }
 
@@ -122,16 +132,20 @@ func resourceMySqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceMySqlFlexibleServerFirewallRuleFlatten(d, id, resp.Model)
+}
+
+func resourceMySqlFlexibleServerFirewallRuleFlatten(d *pluginsdk.ResourceData, id *firewallrules.FirewallRuleId, rule *firewallrules.FirewallRule) error {
 	d.Set("name", id.FirewallRuleName)
 	d.Set("server_name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("start_ip_address", model.Properties.StartIPAddress)
-		d.Set("end_ip_address", model.Properties.EndIPAddress)
+	if rule != nil {
+		d.Set("start_ip_address", rule.Properties.StartIPAddress)
+		d.Set("end_ip_address", rule.Properties.EndIPAddress)
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMySqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {

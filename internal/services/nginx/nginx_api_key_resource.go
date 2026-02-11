@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -213,8 +213,8 @@ func (m APIKeyResource) Read() sdk.ResourceFunc {
 			output.SecretText = state.SecretText
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					output.EndDateTime = pointer.ToString(props.EndDateTime)
-					output.Hint = pointer.ToString(props.Hint)
+					output.EndDateTime = pointer.From(props.EndDateTime)
+					output.Hint = pointer.From(props.Hint)
 				}
 			}
 			return meta.Encode(&output)

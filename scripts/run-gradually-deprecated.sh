@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 
@@ -90,7 +90,7 @@ function runGraduallyDeprecatedFunctions {
       deleteFuncName=$(grep -o "Delete: .*," "$f" -m1 | grep -o " .*Delete"| tr -d " ")
       if [ "$deleteFuncName" != "" ];
       then
-        deleteMethod=$(cat -n $f | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
+        deleteMethod=$(cat -n "$f" | sed -n -e "/func $deleteFuncName.*$/,/[[:digit:]]*\treturn nil/{ /func $deleteFuncName$/d; /[[:digit:]]*\treturn nil/d; p; }")
         foundGet=$(echo "$deleteMethod" | grep "d\.Get(.*)" -m1)
         if [ "$foundGet" != "" ];
         then
@@ -101,7 +101,7 @@ function runGraduallyDeprecatedFunctions {
       else
         # check for Get in typed resource
         deleteFuncName=" Delete() sdk.ResourceFunc "
-        deleteMethod=$(cat -n $f | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
+        deleteMethod=$(cat -n "$f" | sed -n -e "/$deleteFuncName.*$/,/[[:digit:]]*\t\t\treturn nil/{ /$deleteFuncName.*$/d; /[[:digit:]]*\t\t\treturn nil/d; p; }")
         foundGet=$(echo "$deleteMethod" | grep "metadata.ResourceData.Get" -m1)
         if [ "$foundGet" != "" ];
         then

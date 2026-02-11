@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_local_user -service-package-name storage -properties "name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "passwordOnly"
@@ -265,7 +264,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			}
 
 			if plan.HomeDirectory != "" {
-				params.Properties.HomeDirectory = utils.String(plan.HomeDirectory)
+				params.Properties.HomeDirectory = pointer.To(plan.HomeDirectory)
 			}
 
 			if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
@@ -290,7 +289,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }

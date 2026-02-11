@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -163,12 +164,12 @@ func (r AppServiceSlotVirtualNetworkSwiftConnectionResource) Exists(ctx context.
 	resp, err := clients.Web.AppServicesClient.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.SwiftVirtualNetworkProperties != nil), nil
+	return pointer.To(resp.SwiftVirtualNetworkProperties != nil), nil
 }
 
 func (t AppServiceSlotVirtualNetworkSwiftConnectionResource) disappears(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
