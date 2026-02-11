@@ -27,6 +27,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Container App exists.
 
+* `read_secrets` - (Optional) Should the data source read the secrets from the Container App? Defaults to `true`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
