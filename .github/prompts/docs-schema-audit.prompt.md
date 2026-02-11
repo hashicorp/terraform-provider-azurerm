@@ -22,6 +22,10 @@ Audit the **currently-open** documentation page under `website/docs/**` for:
 - AzureRM documentation standards, and
 - parity with the provider schema under `internal/**`.
 
+When reviewing documentation standards, treat these as authoritative:
+- `contributing/topics/reference-documentation-standards.md`
+- `.github/instructions/documentation-guidelines.instructions.md`
+
 This audit is **optional** and **user-invoked** (no CI enforcement).
 
 ## ⚡ Mandatory procedure
@@ -70,23 +74,48 @@ Validate:
 #### B) Arguments Reference parity and ordering
 - All schema required args must be documented
 - Documented args must exist in schema
-- Required args listed first, then optional
-- Alphabetical within each group
-- `tags` last (if present)
-- **Resources only:** for every ForceNew field in schema, docs must include: "Changing this forces a new resource."
-- **Data sources:** do not use "Changing this forces a new resource" wording (data sources do not create resources)
+- Argument ordering must follow `contributing/topics/reference-documentation-standards.md`:
+  1. ID arguments first, with the last user-specified segment (usually `name`) first
+  2. `location` (if present)
+  3. remaining required arguments (alphabetical)
+  4. optional arguments (alphabetical), with `tags` last (if present)
+- **Resources only:** for every ForceNew field in schema, the argument description must end with a sentence of the form: "Changing this forces a new … to be created."
+- **Data sources:** do not use "Changing this forces a new … to be created" wording (data sources do not create resources)
+- If schema validations constrain values (e.g. `validation.StringInSlice`, `validation.IntBetween`), docs must include "Possible values …" using the standard phrasing.
+- If schema defines a default value, docs must include "Defaults to `...`."
 
 #### C) Attributes Reference parity
 - All schema computed attributes must be present in Attributes Reference
-- Alphabetical unless a clear provider convention requires otherwise
+- Ordering must follow `contributing/topics/reference-documentation-standards.md`: `id` first, then remaining attributes alphabetical
+- Attribute descriptions must be concise and must not include possible/default values
 
-#### D) Example Usage correctness
+#### D) Notes / note notation
+- All note blocks must use the exact standard format: `(->|~>|!>) **Note:** ...`
+- Flag invalid/legacy note styles (e.g. `Important:`, `NOTE:`, missing marker, wrong casing)
+- **Semantic validation (marker must match meaning):** validate that the chosen marker is appropriate for what the note says.
+  - `->` (informational): tips, extra context, recommendations, external links, clarifications that do not prevent errors or warn about irreversible impact.
+  - `~>` (warning): guidance to avoid configuration errors or surprising behavior that is *reversible* (e.g. conditional requirements, conflicts, exactly-one-of, ForceNew behavior, API limitations that block create/update, deprecation/retirement where a configuration will error).
+  - `!>` (caution): irreversible or high-impact guidance (e.g. data loss, permanent deletion, cannot be undone/disabled, security exposure with serious consequences).
+  - **ForceNew-related guidance** should generally be `~> **Note:**` (do not use `->` for ForceNew warnings).
+  - If a note’s content indicates one marker but another is used, mark **Note Notation** as fail and add an Issue suggesting the correct marker.
+- Breaking changes should not be documented as notes (they belong in the changelog/upgrade guide)
+
+#### E) Example Usage correctness
 - Example must include all schema required args
+- Example must not include a `terraform` or `provider` block
+- Example should be functional and self-contained (no undefined references)
+- Resource/data source instance name should generally be `example`
+- Names in the example should generally be prefixed with `example-` (subject to service naming constraints)
 - No hard-coded secrets (passwords/tokens/keys). Use `variable` with `sensitive = true` or a generator pattern.
 - Example references must be internally consistent
 
-#### E) Language
+#### F) Language
 - Fix obvious grammar/spelling and consistency issues
+
+#### G) Link hygiene
+- Documentation links should be locale-neutral.
+- Flag links containing locale path segments such as `/en-us/`, `/en-gb/`, `/de-de/`, etc.
+- Suggested fix is to remove the locale segment (e.g. prefer `https://learn.microsoft.com/azure/...` over `https://learn.microsoft.com/en-us/azure/...`) unless there is a strong reason the localized link is required.
 
 ## ✅ Review output format (use this exact structure)
 
@@ -114,10 +143,12 @@ Output must be **rendered Markdown**.
 ## 📊 **DOC STANDARDS CHECK**
 - **Frontmatter**: pass/fail + missing keys (if any)
 - **Section Order**: pass/fail + missing sections (if any)
-- **Argument Ordering**: pass/fail (required first, alphabetical within groups, `tags` last)
-- **Attributes Coverage**: pass/fail (computed attrs present)
-- **ForceNew Notes**: pass/fail (missing “Changing this forces…” notes)
-- **Examples**: pass/fail (required args present, no hard-coded secrets)
+- **Argument Ordering**: pass/fail (ID args first, `location` next, then required alpha, then optional alpha, `tags` last)
+- **Attributes Coverage**: pass/fail (`id` first, computed attrs present, alphabetical)
+- **ForceNew Wording**: pass/fail (resources only, missing “Changing this forces…” sentence)
+- **Note Notation**: pass/fail (->/~>/!> exact format + marker meaning matches note content)
+- **Link Locales**: pass/fail (no locale segments like `/en-us/` in URLs)
+- **Examples**: pass/fail (functional/self-contained, no hard-coded secrets)
 
 ## 🟢 **STRENGTHS**
 - ...
