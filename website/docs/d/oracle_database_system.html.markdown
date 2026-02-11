@@ -33,19 +33,19 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Database System.
 
-* `cluster_name` - The cluster name for Exadata and 2-node RAC virtual machine Database systems. The cluster name must begin with an alphabetic character, and may contain hyphens (-). Underscores (_) are not permitted. The cluster name can be no longer than 11 characters and is not case sensitive.
+* `cluster_name` - The cluster name for Exadata and 2-node RAC virtual machine Database systems.
 
 * `compute_count` - The number of compute servers for the Database system.
 
-* `compute_model` - The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy.
+* `compute_model` - The compute model for Base Database Service.
 
 * `data_storage_size_in_gb` - The data storage size, in gigabytes, that is currently available to the Database system. Applies only for virtual machine Database systems.
 
-* `database_edition` - The Oracle Database Edition that applies to all the databases on the Database system. Exadata Database systems and 2-node RAC Database systems require EnterpriseEditionExtremePerformance.
+* `database_edition` - The Oracle Database Edition that applies to all the databases on the Database system.
 
 * `database_system_options` - A `database_system_options` block as defined below.
 
@@ -61,7 +61,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname` - The hostname for the Database system.
 
-* `license_model` - The Oracle license model that applies to all the databases on the Database system. The default is LicenseIncluded.
+* `license_model` - The Oracle license model that applies to all the databases on the Database system.
 
 * `lifecycle_details` - Additional information about the current lifecycle state.
 
@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the Database System exists.
 
-* `memory_size_in_gb` - Memory allocated to the Database system, in gigabytes.
+* `memory_size_in_gb` - Memory allocated to the Database system in gigabytes.
 
 * `network_anchor_id` - The ID of the Azure Network Anchor.
 
@@ -92,7 +92,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `ssh_public_keys` - The public key portion of one or more key pairs used for SSH access to the Database system.
 
-* `storage_volume_performance_mode` - The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information.
+* `storage_volume_performance_mode` - The block storage volume performance level. Valid values are Balanced and HighPerformance. See [Block Volume Performance](https://docs.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeperformance.htm) for more information.
 
 * `time_zone_in_utc` - The time zone of the Database system, e.g., UTC, to set the timeZone as UTC.
 
@@ -104,7 +104,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `database_system_options` block supports the following:
 
-* `storage_management` - (Optional) The storage option used in the Database system. ASM - Automatic storage management, LVM - Logical Volume management.
+* `storage_management` - The storage option used in the Database system. ASM - Automatic storage management, LVM - Logical Volume management.
 
 
 ## Timeouts

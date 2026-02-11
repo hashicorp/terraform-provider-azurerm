@@ -131,7 +131,7 @@ The following arguments are supported:
 
 * `pluggable_database_name` - (Optional) The name of the pluggable database. The name must begin with an alphabetic character and can contain a maximum of thirty alphanumeric characters. Special characters are not permitted. The pluggable database name should not be the same as the database name. Changing this forces a new Database system to be created.
 
-* `storage_volume_performance_mode` - (Optional) The block storage volume performance level. Possible values are `Balanced` and `HighPerformance`. See [Block Volume Performance](/Content/Block/Concepts/blockvolumeperformance.htm) for more information. Changing this forces a new Database system to be created.
+* `storage_volume_performance_mode` - (Optional) The block storage volume performance level. Possible values are `Balanced` and `HighPerformance`. See [Block Volume Performance](https://docs.oracle.com/en-us/iaas/Content/Block/Concepts/blockvolumeperformance.htm) for more information. Changing this forces a new Database system to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Database System.
 
