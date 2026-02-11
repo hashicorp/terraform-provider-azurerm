@@ -1,5 +1,5 @@
 ---
-subcategory: "Mssql"
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_server"
 description: |-
