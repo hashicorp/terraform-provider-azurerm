@@ -26,6 +26,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{},
 		AutonomousDatabaseRegularDataSource{},
 		CloudVmClusterDataSource{},
+		DatabaseVersionsDataSource{},
 		DBNodesDataSource{},
 		DBServersDataSource{},
 		DbSystemShapesDataSource{},
