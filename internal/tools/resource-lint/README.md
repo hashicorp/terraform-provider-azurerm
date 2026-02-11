@@ -22,7 +22,6 @@ For additional information about each check, see the documentation in the passes
 |-------|-------------|----------|
 | AZNR001 | check for Schema field ordering | When git filter is on, this analyzer only runs on newly created resources/data sources |
 | AZNR002 | check for top-level updatable arguments are included in Update func | This analyzer currently only runs on typed resources |
-| AZNR003 | check that `expand*`/`flatten*` functions are defined as receiver methods | This analyzer currently only runs on typed resources/data sources |
 
 ### Azure Naming Rule Checks
 
