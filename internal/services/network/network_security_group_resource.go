@@ -4,6 +4,8 @@
 package network
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"strings"
 	"time"
@@ -185,6 +187,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 						},
 					},
 				},
+				Set: hashNSR,
 			},
 
 			"tags": commonschema.Tags(),
@@ -547,4 +550,52 @@ func validateSecurityRule(sgRule map[string]interface{}) error {
 // HashCaseInsensitiveStringNSG provides case-insensitive hashing for TypeSet elements in NSG
 func HashCaseInsensitiveStringNSG(v interface{}) int {
 	return pluginsdk.HashString(strings.ToLower(v.(string)))
+}
+
+// hashNSR implements a hash function for the `security_rule` property,
+// mainly to normalize the casing for `source_application_security_group_ids` and `destination_application_security_group_ids`.
+func hashNSR(input any) int {
+	var buf bytes.Buffer
+	if m, ok := input.(map[string]any); ok {
+		buf.WriteString(m["name"].(string))
+		buf.WriteString(m["description"].(string))
+		buf.WriteString(m["protocol"].(string))
+
+		buf.WriteString(m["source_port_range"].(string))
+		if set := m["source_port_ranges"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["destination_port_range"].(string))
+		if set := m["destination_port_ranges"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["source_address_prefix"].(string))
+		if set := m["source_address_prefixes"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		buf.WriteString(m["destination_address_prefix"].(string))
+		if set := m["destination_address_prefixes"].(*pluginsdk.Set); set != nil {
+			buf.WriteString(set.GoString())
+		}
+
+		if set := m["source_application_security_group_ids"].(*pluginsdk.Set); set != nil {
+			for _, elem := range set.List() {
+				buf.WriteString(strings.ToLower(elem.(string)))
+			}
+		}
+
+		if set := m["destination_application_security_group_ids"].(*pluginsdk.Set); set != nil {
+			for _, elem := range set.List() {
+				buf.WriteString(strings.ToLower(elem.(string)))
+			}
+		}
+
+		buf.WriteString(m["access"].(string))
+		buf.WriteString(m["direction"].(string))
+		binary.Write(&buf, binary.BigEndian, m["priority"].(int))
+	}
+	return pluginsdk.HashString(buf.String())
 }
