@@ -1,4 +1,4 @@
-package resourceguards
+package resourceguardresources
 
 import (
 	"context"
@@ -11,25 +11,29 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetDefaultDeleteProtectedItemRequestsObjectOperationResponse struct {
+type ResourceGuardsPatchOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DppBaseResource
+	Model        *ResourceGuardResource
 }
 
-// GetDefaultDeleteProtectedItemRequestsObject ...
-func (c ResourceGuardsClient) GetDefaultDeleteProtectedItemRequestsObject(ctx context.Context, id DeleteProtectedItemRequestId) (result GetDefaultDeleteProtectedItemRequestsObjectOperationResponse, err error) {
+// ResourceGuardsPatch ...
+func (c ResourceGuardResourcesClient) ResourceGuardsPatch(ctx context.Context, id ResourceGuardId, input PatchResourceGuardInput) (result ResourceGuardsPatchOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
+		HttpMethod: http.MethodPatch,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -43,7 +47,7 @@ func (c ResourceGuardsClient) GetDefaultDeleteProtectedItemRequestsObject(ctx co
 		return
 	}
 
-	var model DppBaseResource
+	var model ResourceGuardResource
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

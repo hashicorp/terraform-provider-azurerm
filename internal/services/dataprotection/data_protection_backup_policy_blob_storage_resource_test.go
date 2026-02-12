@@ -66,7 +66,7 @@ func (r DataProtectionBackupPolicyBlobStorageResource) Exists(ctx context.Contex
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

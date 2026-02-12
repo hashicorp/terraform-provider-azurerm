@@ -1,4 +1,4 @@
-package resourceguards
+package resourceguardresources
 
 import (
 	"context"
@@ -11,13 +11,13 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DeleteOperationResponse struct {
+type ResourceGuardsDeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 }
 
-// Delete ...
-func (c ResourceGuardsClient) Delete(ctx context.Context, id ResourceGuardId) (result DeleteOperationResponse, err error) {
+// ResourceGuardsDelete ...
+func (c ResourceGuardResourcesClient) ResourceGuardsDelete(ctx context.Context, id ResourceGuardId) (result ResourceGuardsDeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{

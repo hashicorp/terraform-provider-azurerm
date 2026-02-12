@@ -1,4 +1,4 @@
-package resourceguards
+package resourceguardresources
 
 import (
 	"encoding/json"

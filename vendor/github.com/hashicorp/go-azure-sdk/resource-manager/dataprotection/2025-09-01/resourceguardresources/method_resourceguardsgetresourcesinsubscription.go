@@ -1,4 +1,4 @@
-package resourceguards
+package resourceguardresources
 
 import (
 	"context"
@@ -13,22 +13,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetResourcesInResourceGroupOperationResponse struct {
+type ResourceGuardsGetResourcesInSubscriptionOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]ResourceGuardResource
 }
 
-type GetResourcesInResourceGroupCompleteResult struct {
+type ResourceGuardsGetResourcesInSubscriptionCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []ResourceGuardResource
 }
 
-type GetResourcesInResourceGroupCustomPager struct {
+type ResourceGuardsGetResourcesInSubscriptionCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *GetResourcesInResourceGroupCustomPager) NextPageLink() *odata.Link {
+func (p *ResourceGuardsGetResourcesInSubscriptionCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -36,15 +36,15 @@ func (p *GetResourcesInResourceGroupCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// GetResourcesInResourceGroup ...
-func (c ResourceGuardsClient) GetResourcesInResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result GetResourcesInResourceGroupOperationResponse, err error) {
+// ResourceGuardsGetResourcesInSubscription ...
+func (c ResourceGuardResourcesClient) ResourceGuardsGetResourcesInSubscription(ctx context.Context, id commonids.SubscriptionId) (result ResourceGuardsGetResourcesInSubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
-		Pager:      &GetResourcesInResourceGroupCustomPager{},
+		Pager:      &ResourceGuardsGetResourcesInSubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.DataProtection/resourceGuards", id.ID()),
 	}
 
@@ -75,16 +75,16 @@ func (c ResourceGuardsClient) GetResourcesInResourceGroup(ctx context.Context, i
 	return
 }
 
-// GetResourcesInResourceGroupComplete retrieves all the results into a single object
-func (c ResourceGuardsClient) GetResourcesInResourceGroupComplete(ctx context.Context, id commonids.ResourceGroupId) (GetResourcesInResourceGroupCompleteResult, error) {
-	return c.GetResourcesInResourceGroupCompleteMatchingPredicate(ctx, id, ResourceGuardResourceOperationPredicate{})
+// ResourceGuardsGetResourcesInSubscriptionComplete retrieves all the results into a single object
+func (c ResourceGuardResourcesClient) ResourceGuardsGetResourcesInSubscriptionComplete(ctx context.Context, id commonids.SubscriptionId) (ResourceGuardsGetResourcesInSubscriptionCompleteResult, error) {
+	return c.ResourceGuardsGetResourcesInSubscriptionCompleteMatchingPredicate(ctx, id, ResourceGuardResourceOperationPredicate{})
 }
 
-// GetResourcesInResourceGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c ResourceGuardsClient) GetResourcesInResourceGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ResourceGroupId, predicate ResourceGuardResourceOperationPredicate) (result GetResourcesInResourceGroupCompleteResult, err error) {
+// ResourceGuardsGetResourcesInSubscriptionCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c ResourceGuardResourcesClient) ResourceGuardsGetResourcesInSubscriptionCompleteMatchingPredicate(ctx context.Context, id commonids.SubscriptionId, predicate ResourceGuardResourceOperationPredicate) (result ResourceGuardsGetResourcesInSubscriptionCompleteResult, err error) {
 	items := make([]ResourceGuardResource, 0)
 
-	resp, err := c.GetResourcesInResourceGroup(ctx, id)
+	resp, err := c.ResourceGuardsGetResourcesInSubscription(ctx, id)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -98,7 +98,7 @@ func (c ResourceGuardsClient) GetResourcesInResourceGroupCompleteMatchingPredica
 		}
 	}
 
-	result = GetResourcesInResourceGroupCompleteResult{
+	result = ResourceGuardsGetResourcesInSubscriptionCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}

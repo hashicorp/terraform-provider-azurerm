@@ -44,7 +44,7 @@ func (r DataProtectionBackupVaultDataSource) Exists(ctx context.Context, client 
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupVaultClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupVaultClient.BackupVaultsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

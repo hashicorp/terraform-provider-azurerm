@@ -108,7 +108,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Exists(ctx context.
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupVaultClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupVaultClient.BackupVaultsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

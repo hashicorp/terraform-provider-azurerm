@@ -1,4 +1,4 @@
-package resourceguards
+package resourceguardresources
 
 import (
 	"context"
@@ -11,29 +11,25 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type PatchOperationResponse struct {
+type ResourceGuardsGetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *ResourceGuardResource
 }
 
-// Patch ...
-func (c ResourceGuardsClient) Patch(ctx context.Context, id ResourceGuardId, input PatchResourceGuardInput) (result PatchOperationResponse, err error) {
+// ResourceGuardsGet ...
+func (c ResourceGuardResourcesClient) ResourceGuardsGet(ctx context.Context, id ResourceGuardId) (result ResourceGuardsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPatch,
+		HttpMethod: http.MethodGet,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 

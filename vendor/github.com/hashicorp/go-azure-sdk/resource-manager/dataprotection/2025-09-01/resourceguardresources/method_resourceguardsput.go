@@ -1,4 +1,4 @@
-package resourceguards
+package resourceguardresources
 
 import (
 	"context"
@@ -11,25 +11,30 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type GetDefaultUpdateProtectedItemRequestsObjectOperationResponse struct {
+type ResourceGuardsPutOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DppBaseResource
+	Model        *ResourceGuardResource
 }
 
-// GetDefaultUpdateProtectedItemRequestsObject ...
-func (c ResourceGuardsClient) GetDefaultUpdateProtectedItemRequestsObject(ctx context.Context, id UpdateProtectedItemRequestId) (result GetDefaultUpdateProtectedItemRequestsObjectOperationResponse, err error) {
+// ResourceGuardsPut ...
+func (c ResourceGuardResourcesClient) ResourceGuardsPut(ctx context.Context, id ResourceGuardId, input ResourceGuardResource) (result ResourceGuardsPutOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
+		HttpMethod: http.MethodPut,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -43,7 +48,7 @@ func (c ResourceGuardsClient) GetDefaultUpdateProtectedItemRequestsObject(ctx co
 		return
 	}
 
-	var model DppBaseResource
+	var model ResourceGuardResource
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
