@@ -130,7 +130,7 @@ The following arguments are supported:
 
 ~> **Note:** `Enterprise_` and `EnterpriseFlash_` prefixed SKUs were previously used by Redis Enterprise, and [not supported by Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
 
-* `default_database` - (Optional) A `default_database` block as defined below. Required for new Managed Redis creation. Can be recreated for troubleshooting purposes. Updating some properties will force database recreation. Data will be lost and Managed Redis will be unavailable during recreation.
+* `default_database` - (Optional) A `default_database` block as defined below. Required for new Managed Redis creation. Can be removed and added again for troubleshooting purposes. Updating some properties will force database recreation. Data will be lost and Managed Redis will be unavailable during recreation.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 

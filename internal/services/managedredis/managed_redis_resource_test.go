@@ -674,6 +674,8 @@ resource "azurerm_managed_redis" "test" {
   location              = "%[2]s"
   sku_name              = "Balanced_B0"
   public_network_access = "%[3]s"
+
+  default_database {}
 }
 `, data.RandomInteger, data.Locations.Primary, enabled)
 }
