@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
@@ -23,7 +24,8 @@ var StorageDomainSuffix *string
 type Client struct {
 	StorageDomainSuffix string
 
-	ResourceManager *storage_v2023_01_01.Client
+	ResourceManager                  *storage_v2023_01_01.Client
+	StorageDiscoveryWorkspacesClient *storagediscoveryworkspaces.StorageDiscoveryWorkspacesClient
 	// TODO: import the Storage Sync Meta Client and use that
 	SyncCloudEndpointsClient   *cloudendpointresource.CloudEndpointResourceClient
 	SyncGroupsClient           *syncgroupresource.SyncGroupResourceClient
@@ -80,15 +82,22 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(syncGroupsClient.Client, o.Authorizers.ResourceManager)
 
+	storageDiscoveryWorkspacesClient, err := storagediscoveryworkspaces.NewStorageDiscoveryWorkspacesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building StorageDiscoveryWorkspaces client: %+v", err)
+	}
+	o.Configure(storageDiscoveryWorkspacesClient.Client, o.Authorizers.ResourceManager)
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	client := Client{
-		ResourceManager:            resourceManager,
-		SyncCloudEndpointsClient:   syncCloudEndpointsClient,
-		SyncRegisteredServerClient: syncRegisteredServersClient,
-		SyncServerEndpointsClient:  syncServerEndpointClient,
-		SyncServiceClient:          syncServiceClient,
-		SyncGroupsClient:           syncGroupsClient,
+		ResourceManager:                  resourceManager,
+		StorageDiscoveryWorkspacesClient: storageDiscoveryWorkspacesClient,
+		SyncCloudEndpointsClient:         syncCloudEndpointsClient,
+		SyncRegisteredServerClient:       syncRegisteredServersClient,
+		SyncServerEndpointsClient:        syncServerEndpointClient,
+		SyncServiceClient:                syncServiceClient,
+		SyncGroupsClient:                 syncGroupsClient,
 
 		StorageDomainSuffix: *storageSuffix,
 	}
