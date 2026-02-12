@@ -143,10 +143,14 @@ func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interf
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceApplicationSecurityGroupFlatten(d, id, resp.Model)
+}
+
+func resourceApplicationSecurityGroupFlatten(d *pluginsdk.ResourceData, id *applicationsecuritygroups.ApplicationSecurityGroupId, model *applicationsecuritygroups.ApplicationSecurityGroup) error {
 
 	d.Set("name", id.ApplicationSecurityGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
