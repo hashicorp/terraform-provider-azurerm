@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/credentials"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/datasets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/managedprivateendpoints"
@@ -21,6 +22,7 @@ type Client struct {
 	Factories                 *factories.FactoriesClient
 	Credentials               *credentials.CredentialsClient
 	DataFlowClient            *dataflows.DataFlowsClient
+	DatasetClientGoAzureSDK   *datasets.DatasetsClient
 	IntegrationRuntimesClient *integrationruntimes.IntegrationRuntimesClient
 	ManagedPrivateEndpoints   *managedprivateendpoints.ManagedPrivateEndpointsClient
 	ManagedVirtualNetworks    *managedvirtualnetworks.ManagedVirtualNetworksClient
@@ -57,6 +59,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(integrationRuntimesClient.Client, o.Authorizers.ResourceManager)
 
+	datasetClientGoAzureSDK, err := datasets.NewDatasetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Datasets client: %+v", err)
+	}
+	o.Configure(datasetClientGoAzureSDK.Client, o.Authorizers.ResourceManager)
+
 	managedPrivateEndpointsClient, err := managedprivateendpoints.NewManagedPrivateEndpointsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ManagedPrivateEndpoints client: %+v", err)
@@ -89,6 +97,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		Factories:                 factoriesClient,
 		Credentials:               credentialsClient,
 		DataFlowClient:            dataFlowClient,
+		DatasetClientGoAzureSDK:   datasetClientGoAzureSDK,
 		IntegrationRuntimesClient: integrationRuntimesClient,
 		ManagedPrivateEndpoints:   managedPrivateEndpointsClient,
 		ManagedVirtualNetworks:    managedVirtualNetworksClient,

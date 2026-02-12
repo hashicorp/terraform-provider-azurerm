@@ -44,6 +44,7 @@ func (Registration) DataSources() []sdk.DataSource {
 func (Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DataFactoryDatasetAzureSQLTableResource{},
+		DataFactoryDatasetCosmosDbMongoDbApiResource{},
 		DataFactoryCredentialServicePrincipalResource{},
 		DataFactoryCredentialUserAssignedManagedIdentityResource{},
 		DataFactoryCustomerManagedKeyResource{},
