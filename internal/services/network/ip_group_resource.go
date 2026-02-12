@@ -176,7 +176,6 @@ func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceIpGroupFlatten(d *pluginsdk.ResourceData, id *ipgroups.IPGroupId, model *ipgroups.IPGroup) error {
-
 	d.Set("name", id.IpGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 

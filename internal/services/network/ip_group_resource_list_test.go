@@ -60,6 +60,7 @@ func TestAccNetworkIpGroup_listBySubscriptionAndRG(t *testing.T) {
 		},
 	})
 }
+
 func (r IpGroupResource) basicQuery() string {
 	return `
 list "azurerm_ip_group" "list" {
