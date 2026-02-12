@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/amlfilesystems"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -128,7 +129,7 @@ func (r ManagedLustreFileSystemResource) IDValidationFunc() pluginsdk.SchemaVali
 }
 
 func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -260,7 +261,7 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 					"key_url": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemId,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 
 					"source_vault_id": {
@@ -274,6 +275,12 @@ func (r ManagedLustreFileSystemResource) Arguments() map[string]*pluginsdk.Schem
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["encryption_key"].Elem.(*pluginsdk.Resource).Schema["key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (r ManagedLustreFileSystemResource) Attributes() map[string]*pluginsdk.Schema {

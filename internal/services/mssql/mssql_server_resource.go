@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/restorabledroppeddatabases"
@@ -28,8 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -167,7 +166,7 @@ func resourceMsSqlServer() *pluginsdk.Resource {
 			"transparent_data_encryption_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"primary_user_assigned_identity_id": {
@@ -310,19 +309,11 @@ func resourceMsSqlServerCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
-		keyVaultKeyId := v.(string)
-
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(v.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
-
-		if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-			// NOTE: msSql requires the versioned key URL...
-			props.Properties.KeyId = pointer.To(keyId.ID())
-		} else {
-			return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
-		}
+		props.Properties.KeyId = pointer.To(keyId.ID())
 	}
 
 	if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
@@ -412,18 +403,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
-			keyVaultKeyId := d.Get(("transparent_data_encryption_key_vault_key_id")).(string)
-
-			keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+			keyId, err := keyvault.ParseNestedItemID(d.Get("transparent_data_encryption_key_vault_key_id").(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 			if err != nil {
-				return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+				return err
 			}
-
-			if keyId.NestedItemType == keyVaultParser.NestedItemTypeKey {
-				payload.Properties.KeyId = pointer.To(keyId.ID())
-			} else {
-				return fmt.Errorf("key vault key id must be a reference to a key, got %s", keyId.NestedItemType)
-			}
+			payload.Properties.KeyId = pointer.To(keyId.ID())
 		}
 
 		if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
@@ -572,15 +556,13 @@ func resourceMsSqlServerRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		return fmt.Errorf("retrieving SQL Server %s: %v", id, err)
 	}
-	return resourceMssqlServerSetFlatten(d, id, resp.Model, meta.(*clients.Client))
+	return resourceMssqlServerSetFlatten(ctx, d, id, resp.Model, meta.(*clients.Client))
 }
 
-func resourceMssqlServerSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
+func resourceMssqlServerSetFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *commonids.SqlServerId, model *servers.Server, metaClient *clients.Client) error {
 	connectionClient := metaClient.MSSQL.ServerConnectionPoliciesClient
 	restorableDroppedDatabasesClient := metaClient.MSSQL.RestorableDroppedDatabasesClient
 	vaClient := metaClient.MSSQL.SqlVulnerabilityAssessmentSettingsClient
-	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
-	defer cancel()
 
 	d.Set("name", id.ServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)

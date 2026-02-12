@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccMssqlServer_list_no_config(t *testing.T) {
+func TestAccMssqlServer_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "testlist1")
 	r := MssqlServerResource{}
 
@@ -42,23 +42,6 @@ func TestAccMssqlServer_list_no_config(t *testing.T) {
 						},
 					),
 				},
-			},
-		},
-	})
-}
-
-func TestAccMssqlServer_list_by_resource_group(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "testlist")
-	r := MssqlServerResource{}
-
-	resource.Test(t, resource.TestCase{
-		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
-			tfversion.SkipBelow(tfversion.Version1_14_0),
-		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
-		Steps: []resource.TestStep{
-			{
-				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
@@ -150,9 +133,8 @@ func (r MssqlServerResource) basicQueryByResourceGroupName(data acceptance.TestD
 list "azurerm_mssql_server" "list" {
   provider = azurerm
   config {
-	subscription_id     = "%s"
-	resource_group_name = "acctestRG-mssql-%d"
+    resource_group_name = "acctestRG-mssql-%d"
   }
 }
-`, data.Subscriptions.Primary, data.RandomInteger)
+`, data.RandomInteger)
 }
