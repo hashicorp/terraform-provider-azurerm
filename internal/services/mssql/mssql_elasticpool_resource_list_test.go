@@ -16,7 +16,7 @@ import (
 
 func TestAccMssqlServerElasticPool_listByServerID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "testlist1")
-	r := MssqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -47,7 +47,7 @@ func TestAccMssqlServerElasticPool_listByServerID(t *testing.T) {
 	})
 }
 
-func (r MssqlElasticPoolResource) basicQuery(data acceptance.TestData) string {
+func (r MssqlElasticpoolResource) basicQuery(data acceptance.TestData) string {
 	return `
 list "azurerm_mssql_elasticpool" "list" {
   provider = azurerm

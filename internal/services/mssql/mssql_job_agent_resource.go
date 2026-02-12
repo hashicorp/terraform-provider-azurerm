@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_job_agent -service-package-name mssql -properties "name,resource_group_name,database_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_job_agent -service-package-name mssql -properties "name" -compare-values "resource_group_name:database_id,server_name:database_id"
 
 func resourceMsSqlJobAgent() *pluginsdk.Resource {
 	return &pluginsdk.Resource{

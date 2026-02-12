@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,7 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_elasticPool -service-package-name mssql -properties "name,resource_group_name,server_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_elasticpool -service-package-name mssql -properties "resource_group_name,server_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceMsSqlElasticPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -281,6 +280,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		if v, ok := d.GetOk("max_size_gb"); ok {
 			maxSizeBytes := v.(float64) * 1073741824
 			elasticPool.Properties.MaxSizeBytes = pointer.To(int64(maxSizeBytes))
+
 		}
 	} else if v, ok := d.GetOk("max_size_bytes"); ok {
 		elasticPool.Properties.MaxSizeBytes = pointer.To(int64(v.(int)))
@@ -337,16 +337,8 @@ func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids
 				enclaveType = string(pointer.From(v))
 			}
 			d.Set("enclave_type", enclaveType)
-
-			// Basic tier does not return max_size_bytes, so we need to skip setting this
-			// value if the pricing tier is equal to Basic
-			if tier, ok := d.GetOk("sku.0.tier"); ok {
-				if !strings.EqualFold(tier.(string), "Basic") {
-					d.Set("max_size_gb", pointer.To(*props.MaxSizeBytes/int64(1073741824)))
-					d.Set("max_size_bytes", pointer.To(props.MaxSizeBytes))
-				}
-			}
-
+			d.Set("max_size_gb", pointer.To(float64(*props.MaxSizeBytes)/1073741824))
+			d.Set("max_size_bytes", pointer.To(props.MaxSizeBytes))
 			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
 
 			licenseType := string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded)

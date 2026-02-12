@@ -44,7 +44,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_database -service-package-name mssql -properties "server_name,resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_database -service-package-name mssql -properties "name" -compare-values "resource_group_name:server_id,server_name:server_id"
 
 func resourceMsSqlDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -53,7 +53,7 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Update: resourceMsSqlDatabaseUpdate,
 		Delete: resourceMsSqlDatabaseDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SqlDatabaseId{}),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&commonids.SqlDatabaseId{}, resourceMsSqlDatabaseImporter),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SqlDatabaseId{}),
