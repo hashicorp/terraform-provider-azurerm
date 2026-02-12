@@ -35,9 +35,10 @@ func TestAccFirewallPolicyRuleCollectionGroup_listByFirewallID(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_firewall_policy_rule_collection_group.list",
 						map[string]knownvalue.Check{
-							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+							"name":                 knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name":  knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"firewall_policy_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"subscription_id":      knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
 				},
