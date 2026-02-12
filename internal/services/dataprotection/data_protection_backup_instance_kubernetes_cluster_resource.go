@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
@@ -83,14 +83,14 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: backupvaults.ValidateBackupVaultID,
+			ValidateFunc: backupvaultresources.ValidateBackupVaultID,
 		},
 
 		"backup_policy_id": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: backuppolicies.ValidateBackupPolicyID,
+			ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 		},
 
 		"kubernetes_cluster_id": {
@@ -187,7 +187,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			vaultId, err := backupvaults.ParseBackupVaultID(model.VaultId)
+			vaultId, err := backupvaultresources.ParseBackupVaultID(model.VaultId)
 			if err != nil {
 				return err
 			}
@@ -204,7 +204,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
+			policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 			if err != nil {
 				return err
 			}
@@ -285,7 +285,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			vaultId := backupvaults.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+			vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 
 			state := BackupInstanceKubernatesClusterModel{
 				Name:    id.BackupInstanceName,

@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -67,9 +67,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments(
 
 		"location": commonschema.Location(),
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&backuppolicies.BackupVaultId{}),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&basebackuppolicyresources.BackupVaultId{}),
 
-		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&backuppolicies.BackupPolicyId{}),
+		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
 
 		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&servers.FlexibleServerId{}),
 	}
@@ -95,7 +95,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			vaultId, err := backupvaults.ParseBackupVaultID(model.VaultId)
+			vaultId, err := backupvaultresources.ParseBackupVaultID(model.VaultId)
 			if err != nil {
 				return err
 			}
@@ -118,7 +118,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 				return err
 			}
 
-			policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
+			policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 			if err != nil {
 				return err
 			}
@@ -202,7 +202,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			vaultId := backupvaults.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+			vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 
 			state := BackupInstancePostgreSQLFlexibleServerModel{
 				Name:    id.BackupInstanceName,
@@ -219,7 +219,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 					}
 					state.ServerId = serverId.ID()
 
-					backupPolicyId, err := backuppolicies.ParseBackupPolicyID(props.PolicyInfo.PolicyId)
+					backupPolicyId, err := basebackuppolicyresources.ParseBackupPolicyID(props.PolicyInfo.PolicyId)
 					if err != nil {
 						return err
 					}
@@ -265,7 +265,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 			parameters := *existing.Model
 
 			if metadata.ResourceData.HasChange("backup_policy_id") {
-				policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
+				policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 				if err != nil {
 					return err
 				}

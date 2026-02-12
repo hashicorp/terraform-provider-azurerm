@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -60,7 +60,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: backupvaults.ValidateBackupVaultID,
+				ValidateFunc: backupvaultresources.ValidateBackupVaultID,
 			},
 
 			"disk_id": {
@@ -75,7 +75,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
+				ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 			},
 
 			"snapshot_subscription_id": {
@@ -87,7 +87,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 					// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
 					// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
 					_, planVaultId := d.GetChange("vault_id")
-					vaultId, err := backupvaults.ParseBackupVaultID(planVaultId.(string))
+					vaultId, err := backupvaultresources.ParseBackupVaultID(planVaultId.(string))
 					if err != nil {
 						return false
 					}
@@ -117,7 +117,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := backupvaults.ParseBackupVaultID(d.Get("vault_id").(string))
+	vaultId, _ := backupvaultresources.ParseBackupVaultID(d.Get("vault_id").(string))
 	id := backupinstanceresources.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
@@ -137,7 +137,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		return err
 	}
 	location := location.Normalize(d.Get("location").(string))
-	policyId, err := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	policyId, err := basebackuppolicyresources.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
-	vaultId := backupvaults.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+	vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupInstanceName)
 	d.Set("vault_id", vaultId.ID())
 

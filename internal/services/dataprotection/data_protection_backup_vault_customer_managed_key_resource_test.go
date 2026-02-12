@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -104,7 +104,7 @@ func TestAccDataProtectionBackupVaultCustomerManagedKey_managedHSM(t *testing.T)
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backupvaults.ParseBackupVaultID(state.ID)
+	id, err := backupvaultresources.ParseBackupVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}

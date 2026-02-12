@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -62,7 +62,7 @@ func TestAccDataProtectionBackupPolicyBlobStorage_requiresImport(t *testing.T) {
 }
 
 func (r DataProtectionBackupPolicyBlobStorageResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}

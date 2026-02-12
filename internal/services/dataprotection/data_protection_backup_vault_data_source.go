@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -69,9 +69,9 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := backupvaults.NewBackupVaultID(subscriptionId, resourceGroup, name)
+	id := backupvaultresources.NewBackupVaultID(subscriptionId, resourceGroup, name)
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.BackupVaultsGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -84,7 +84,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 
 		props := model.Properties
 		if len(props.StorageSettings) > 0 {
@@ -105,7 +105,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) (*[]interface{}, error) {
+func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentityDetails) (*[]interface{}, error) {
 	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
 		config = &identity.SystemAndUserAssignedMap{
