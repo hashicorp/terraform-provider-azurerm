@@ -37,7 +37,6 @@ func TestAccFirewallPolicyRuleCollectionGroup_listByFirewallID(t *testing.T) {
 						map[string]knownvalue.Check{
 							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"server_name":         knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
