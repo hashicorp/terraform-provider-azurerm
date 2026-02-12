@@ -36,7 +36,7 @@ This instruction system enables **AI-powered "Vibe Coding"** for generating Reso
 
 **Advantages:**
 - Always up-to-date with latest changes
-- No sync issues between branches  
+- No sync issues between branches
 - Instructions evolve with codebase
 - Easier collaboration
 - Works directly from repository
@@ -62,7 +62,7 @@ This instruction system enables **AI-powered "Vibe Coding"** for generating Reso
 
 **📋 Key Benefits:**
 - **🔍 Branch-aware**: Automatically pulls instructions from the correct source branch
-- **🛡️ Safe setup**: Smart file copying with verification  
+- **🛡️ Safe setup**: Smart file copying with verification
 - **🔀 Works everywhere**: Bootstrap once, works across all projects
 - **🧹 Easy cleanup**: Complete removal and restoration
 - **🚀 Ready now**: Available immediately without waiting for PR merge
@@ -77,7 +77,7 @@ This instruction system enables **AI-powered "Vibe Coding"** for generating Reso
 ✅ **Automatic Setup**: The installation script automatically copies the repository's optimized VS Code settings which include:
 
 - **Auto-loading instruction files** during code review
-- **Optimized AI response settings** (temperature, length)  
+- **Optimized AI response settings** (temperature, length)
 - **Copilot enabled** for Go, Terraform, Markdown files
 - **Smart commit message generation** following provider conventions
 
@@ -153,7 +153,7 @@ The repository includes specialized prompt files for common development tasks:
 ---
 
 1. **First Time Setup**: Run the automated installer script (Method 2) for your platform
-2. **Understand the Provider**: Ask AI "Summarize the terraform-provider-azurerm repository structure"  
+2. **Understand the Provider**: Ask AI "Summarize the terraform-provider-azurerm repository structure"
 3. **Learn Patterns**: Start with `/code-review-local-changes` on existing code to see standards
 4. **Practice**: Try "Generate a simple Azure resource following typed implementation patterns"
 
@@ -166,6 +166,9 @@ The repository includes specialized prompt files for common development tasks:
 
 # Review committed code and PRs for standards
 /code-review-committed-changes
+
+# Audit the currently-open docs page for standards + schema parity
+/docs-schema-audit
 ```
 
 ## 🤖 **AI Prompts & Workflows**
@@ -177,6 +180,7 @@ The repository includes specialized prompt files for common development tasks:
 |--------|---------|-------|
 | `/code-review-local-changes` | Review uncommitted changes for compliance | Type in Copilot Chat |
 | `/code-review-committed-changes` | Review commits and PRs for standards | Type in Copilot Chat |
+| `/docs-schema-audit` | Audit the currently-open docs page under `website/docs/**` for documentation standards and schema parity | Open a docs page, then run in Copilot Chat (Agent mode) |
 
 ---
 
