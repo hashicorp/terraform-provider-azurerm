@@ -12,17 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/firewallpolicies"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type FirewallPolicyListResource struct{}
-
-type firewallPolicyListModel struct {
-	ServerId types.String `tfsdk:"server_id"`
-}
 
 var _ sdk.FrameworkListWrappedResource = new(FirewallPolicyListResource)
 
