@@ -280,7 +280,6 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		if v, ok := d.GetOk("max_size_gb"); ok {
 			maxSizeBytes := v.(float64) * 1073741824
 			elasticPool.Properties.MaxSizeBytes = pointer.To(int64(maxSizeBytes))
-
 		}
 	} else if v, ok := d.GetOk("max_size_bytes"); ok {
 		elasticPool.Properties.MaxSizeBytes = pointer.To(int64(v.(int)))

@@ -77,20 +77,14 @@ func (r MssqlElasticPoolListResource) List(ctx context.Context, request list.Lis
 		results = resp.Items
 	}
 
-	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, elasticPool := range results {
-
-			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
 
-			// Set the display name of the item as the resource name
 			result.DisplayName = pointer.From(elasticPool.Name)
 
-			// Create a new ResourceData object to hold the state of the resource
 			rd := resourceMsSqlElasticPool().Data(&terraform.InstanceState{})
 
-			// Set the ID of the resource for the ResourceData object
 			id, err := commonids.ParseSqlElasticPoolID(pointer.From(elasticPool.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Mssql ElasticPool ID", err)
@@ -98,7 +92,6 @@ func (r MssqlElasticPoolListResource) List(ctx context.Context, request list.Lis
 			}
 			rd.SetId(id.ID())
 
-			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceMssqlElasticPoolSetFlatten(rd, id, &elasticPool); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", `azurerm_mssql_elasticpool`), err)
 				return
