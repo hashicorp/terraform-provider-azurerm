@@ -326,7 +326,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		d.Set("node_public_ip_enabled", props.Properties.ConnectivityEndpoints != nil && props.Properties.ConnectivityEndpoints.PublicIPAddress != nil)
+		d.Set("node_public_ip_enabled", pointer.From(props.Properties.EnableNodePublicIP))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
