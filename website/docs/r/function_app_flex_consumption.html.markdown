@@ -85,7 +85,9 @@ The following arguments are supported:
 
 * `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
 
-* `runtime_version` - (Required) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` `3.12`, `3.13`, `3.14` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
+* `runtime_version` - (Required) The Runtime version of the Linux Function App. Accepted values varies with the value of `runtime_name`.
+
+~> **Note:** To get the most up-to-date list of supported versions, use command `az functionapp list-runtimes` or vist [Supported languages in Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/supported-languages)
 
 ---
 
