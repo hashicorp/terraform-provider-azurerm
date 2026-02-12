@@ -289,13 +289,13 @@ func (r SynapseSparkPoolResource) customLibrary(data acceptance.TestData, sparkV
 %s
 
 resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
+  name                  = "prep"
   storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_blob" "test" {
-  name                   = "spark-mssql-connector.jar"
+  name                   = "${azurerm_synapse_workspace.test.name}/libraries/spark-mssql-connector.jar"
   storage_account_name   = azurerm_storage_account.test.name
   storage_container_name = azurerm_storage_container.test.name
   type                   = "Block"
@@ -330,7 +330,7 @@ EOF
   }
 
   custom_library {
-    name           = "mssql-connector"
+    name           = "spark-mssql-connector.jar"
     path           = azurerm_storage_blob.test.name
     container_name = azurerm_storage_container.test.name
     type           = "jar"
