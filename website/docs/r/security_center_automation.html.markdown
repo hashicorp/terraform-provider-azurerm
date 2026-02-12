@@ -103,7 +103,7 @@ The following arguments are supported:
 
 A `action` block defines where the data will be exported and sent to, it supports the following:
 
-* `type` - (Required) Type of Azure resource to send data to. Possible values are `EventHub`, `LogicApp` and `Workspace`.
+* `type` - (Optional) Type of Azure resource to send data to. Possible values are `EventHub`, `LogicApp` and `Workspace`.
 
 * `resource_id` - (Required) The resource id of the target Logic App, Event Hub namespace or Log Analytics workspace.
 

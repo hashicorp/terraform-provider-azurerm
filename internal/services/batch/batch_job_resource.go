@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -126,9 +127,9 @@ func (r BatchJobResource) Create() sdk.ResourceFunc {
 			params := batchDataplane.JobAddParameter{
 				ID:          &model.Name,
 				DisplayName: &model.DisplayName,
-				Priority:    utils.Int32(int32(model.Priority)),
+				Priority:    pointer.To(int32(model.Priority)),
 				Constraints: &batchDataplane.JobConstraints{
-					MaxTaskRetryCount: utils.Int32(int32(model.TaskRetryMaximum)),
+					MaxTaskRetryCount: pointer.To(int32(model.TaskRetryMaximum)),
 				},
 				CommonEnvironmentSettings: r.expandEnvironmentSettings(model.CommonEnvironmentProperties),
 				PoolInfo: &batchDataplane.PoolInformation{
@@ -207,14 +208,14 @@ func (r BatchJobResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("priority") {
-				patch.Priority = utils.Int32(int32(model.Priority))
+				patch.Priority = pointer.To(int32(model.Priority))
 			}
 
 			if metadata.ResourceData.HasChange("task_retry_maximum") {
 				if patch.Constraints == nil {
 					patch.Constraints = new(batchDataplane.JobConstraints)
 				}
-				patch.Constraints.MaxTaskRetryCount = utils.Int32(int32(model.TaskRetryMaximum))
+				patch.Constraints.MaxTaskRetryCount = pointer.To(int32(model.TaskRetryMaximum))
 			}
 
 			id, err := parse.JobID(metadata.ResourceData.Id())
@@ -260,7 +261,7 @@ func (r BatchJobResource) addJob(ctx context.Context, client *batchDataplane.Job
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	_, err := client.Add(ctx, job, utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now})
+	_, err := client.Add(ctx, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now})
 	if err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
@@ -271,14 +272,14 @@ func (r BatchJobResource) getJob(ctx context.Context, client *batchDataplane.Job
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	return client.Get(ctx, id.Name, "", "", utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
+	return client.Get(ctx, id.Name, "", "", pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
 }
 
 func (r BatchJobResource) patchJob(ctx context.Context, client *batchDataplane.JobClient, id parse.JobId, job batchDataplane.JobPatchParameter) error {
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	_, err := client.Patch(ctx, id.Name, job, utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
+	_, err := client.Patch(ctx, id.Name, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
 	return err
 }
 
@@ -286,7 +287,7 @@ func (r BatchJobResource) deleteJob(ctx context.Context, client *batchDataplane.
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	_, err := client.Delete(ctx, id.Name, utils.Int32(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
+	_, err := client.Delete(ctx, id.Name, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}, "", "", nil, nil)
 	return err
 }
 
@@ -297,8 +298,8 @@ func (r BatchJobResource) expandEnvironmentSettings(input map[string]string) *[]
 	m := make([]batchDataplane.EnvironmentSetting, 0, len(input))
 	for k, v := range input {
 		m = append(m, batchDataplane.EnvironmentSetting{
-			Name:  utils.String(k),
-			Value: utils.String(v),
+			Name:  pointer.To(k),
+			Value: pointer.To(v),
 		})
 	}
 	return &m

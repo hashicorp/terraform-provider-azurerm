@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -156,8 +156,7 @@ func (a AccountStaticWebsiteResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(accountID)
-
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, accountID, pluginsdk.ResourceTypeForIdentityVirtual)
 		},
 	}
 }
@@ -219,7 +218,8 @@ func (a AccountStaticWebsiteResource) Delete() sdk.ResourceFunc {
 
 			accountDetails, err := storageClient.GetAccount(ctx, *id)
 			if err != nil {
-				return nil // lint:ignore nilerr If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
+				// nolint:nilerr // If we don't find the account we can safely assume we don't need to remove the website since it must already be deleted
+				return nil
 			}
 
 			properties := accounts.StorageServiceProperties{

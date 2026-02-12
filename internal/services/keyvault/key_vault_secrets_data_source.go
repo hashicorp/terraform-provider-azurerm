@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -83,7 +83,7 @@ func dataSourceKeyVaultSecretsRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("fetching base vault url from id %q: %+v", *keyVaultId, err)
 	}
 
-	secretList, err := client.GetSecretsComplete(ctx, *keyVaultBaseUri, utils.Int32(25))
+	secretList, err := client.GetSecretsComplete(ctx, *keyVaultBaseUri, pointer.To(int32(25)))
 	if err != nil {
 		return fmt.Errorf("making Read request on Azure KeyVault %q: %+v", *keyVaultId, err)
 	}

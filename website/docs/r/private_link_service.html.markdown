@@ -116,13 +116,13 @@ The following arguments are supported:
 
 The `nat_ip_configuration` block supports the following:
 
-* `name` - (Required) Specifies the name which should be used for the NAT IP Configuration. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name which should be used for the NAT IP Configuration.
 
 * `subnet_id` - (Required) Specifies the ID of the Subnet which should be used for the Private Link Service.
 
 -> **Note:** Verify that the Subnet's `enforce_private_link_service_network_policies` attribute is set to `true`.
 
-* `primary` - (Required) Is this is the Primary IP Configuration? Changing this forces a new resource to be created.
+* `primary` - (Required) Is this is the Primary IP Configuration?
 
 * `private_ip_address` - (Optional) Specifies a Private Static IP Address for this IP Configuration.
 
@@ -155,4 +155,4 @@ terraform import azurerm_private_link_service.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

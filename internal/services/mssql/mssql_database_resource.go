@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/backupshorttermretentionpolicies"
@@ -34,8 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParser "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
@@ -118,11 +117,20 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			},
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
-					if d.Get("min_capacity").(float64) != 0 {
-						return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+					rawConfig := d.GetRawConfig().AsValueMap()
+					minCapacityVal := rawConfig["min_capacity"]
+					if minCapacityVal.IsKnown() && !minCapacityVal.IsNull() {
+						minCapacityValFloat, _ := minCapacityVal.AsBigFloat().Float64()
+						if minCapacityValFloat > 0 {
+							return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+						}
 					}
-					if d.Get("auto_pause_delay_in_minutes").(int) != 0 {
-						return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+					autoPauseDelayVal := rawConfig["auto_pause_delay_in_minutes"]
+					if autoPauseDelayVal.IsKnown() && !autoPauseDelayVal.IsNull() {
+						autoPauseDelayValInt, _ := autoPauseDelayVal.AsBigFloat().Int64()
+						if autoPauseDelayValInt > 0 {
+							return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+						}
 					}
 				}
 				return nil
@@ -467,9 +475,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	if v, ok := d.GetOk("transparent_data_encryption_key_vault_key_id"); ok {
 		keyVaultKeyId := v.(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
-			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
+			return err
 		}
 
 		input.Properties.EncryptionProtector = pointer.To(keyId.ID())
@@ -930,7 +938,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("transparent_data_encryption_key_vault_key_id") {
 		keyVaultKeyId := d.Get("transparent_data_encryption_key_vault_key_id").(string)
 
-		keyId, err := keyVaultParser.ParseNestedItemID(keyVaultKeyId)
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return fmt.Errorf("unable to parse key: %q: %+v", keyVaultKeyId, err)
 		}
@@ -1838,7 +1846,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 		"transparent_data_encryption_key_vault_key_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: keyVaultValidate.NestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 		},
 
 		"transparent_data_encryption_key_automatic_rotation_enabled": {
