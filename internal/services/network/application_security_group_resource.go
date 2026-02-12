@@ -147,7 +147,6 @@ func resourceApplicationSecurityGroupRead(d *pluginsdk.ResourceData, meta interf
 }
 
 func resourceApplicationSecurityGroupFlatten(d *pluginsdk.ResourceData, id *applicationsecuritygroups.ApplicationSecurityGroupId, model *applicationsecuritygroups.ApplicationSecurityGroup) error {
-
 	d.Set("name", id.ApplicationSecurityGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	if model != nil {

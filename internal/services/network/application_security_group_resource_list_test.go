@@ -60,6 +60,7 @@ func TestAccNetworkApplicationSecurityGroup_listBySubscriptionAndRG(t *testing.T
 		},
 	})
 }
+
 func (r ApplicationSecurityGroupResource) basicQuery() string {
 	return `
 list "azurerm_application_security_group" "list" {
