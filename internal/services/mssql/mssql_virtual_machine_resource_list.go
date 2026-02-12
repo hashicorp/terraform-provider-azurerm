@@ -69,7 +69,6 @@ func (r MssqlVirtualMachineListResource) List(ctx context.Context, request list.
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, virtualMachine := range results {
-
 			result := request.NewListResult(ctx)
 
 			result.DisplayName = pointer.From(virtualMachine.Name)
@@ -89,7 +88,13 @@ func (r MssqlVirtualMachineListResource) List(ctx context.Context, request list.
 			}
 
 			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+			if !push(result) {
+				return
+			}
 		}
-		return
 	}
 }

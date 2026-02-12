@@ -2,7 +2,6 @@ package mssql_test
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -72,12 +71,12 @@ list "azurerm_mssql_virtual_machine" "list" {
 }
 
 func (r MssqlVirtualMachineResource) basicQueryByResourceGroupName() string {
-	return fmt.Sprintf(`
+	return `
 list "azurerm_mssql_virtual_machine" "list" {
   provider = azurerm
   config {
     resource_group_name = "{azurerm_resource_group.test.id}"
   }
 }
-`)
+`
 }
