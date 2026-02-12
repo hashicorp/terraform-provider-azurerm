@@ -5,8 +5,8 @@ package network
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -606,7 +606,7 @@ func hashNSR(input any) int {
 
 		buf.WriteString(m["access"].(string))
 		buf.WriteString(m["direction"].(string))
-		binary.Write(&buf, binary.BigEndian, m["priority"].(int)) //nolint:errcheck
+		buf.WriteString(strconv.Itoa(m["priority"].(int)))
 	}
 	return pluginsdk.HashString(buf.String())
 }
