@@ -18,13 +18,14 @@ FEATURES:
 * **New List Resource**: `azurerm_cognitive_account` [GH-31624]
 * **New List Resource**: `azurerm_service_plan` [GH-31610]
 * **New Resource**: `azurerm_managed_redis_access_policy_assignment` [GH-30980]
+* **New Data Source**: `azurerm_managed_redis_access_policy_assignment` [GH-30980]
 * **New Resource**: `azurerm_api_management_workspace_named_value` [GH-31299]
 * **New Data Source**: `azurerm_cognitive_account_project` [GH-31605]
 * **New Data Source**: `azurerm_oracle_database_system_versions` [GH-31001]
 
 BUG FIXES:
 * `list.azurerm_private_dns_zone` - fix context handling resolving an issue where this list resources never returned results [GH-31719]
-`azurerm_kubernetes_cluster` - fixed `capacity_reservation_group_id` loss during node pool cycling [GH-30654]
+* `azurerm_kubernetes_cluster` - fixed `capacity_reservation_group_id` loss during node pool cycling [GH-30654]
 * `azurerm_express_route_port` - fix an issue that caused `identity` to be removed when updating unrelated properties [GH-30240]
 * `azurerm_federated_identity_credential` - the `id` is now built using the resource group name segment from the `parent_id` preventing unexpected 404 statuses [GH-30860]
 * `azurerm_monitor_aad_diagnostic_setting` - add polling as a workaround to an eventual consistency issue [GH-31123]
