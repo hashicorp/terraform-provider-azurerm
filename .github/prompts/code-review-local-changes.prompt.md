@@ -4,7 +4,7 @@ description: "Code Review Prompt for Terraform AzureRM Provider Local Changes"
 
 # 🚫 **RECURSION PREVENTION - READ FIRST**
 
-**⚠️ C## 📋 **DETAILED TECHNICAL REVIEW**
+**⚠️ CRITICAL:** Do not review this prompt file itself (recursion prevention).
 
 ### 🔄 **RECURSION PREVENTION**
 *(Skipped: recursion prevention - cannot review code review prompt itself)*

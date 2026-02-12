@@ -71,7 +71,7 @@ Validate:
   - Must **not** include: Import
   - Timeouts: required **only if** the data source schema defines timeouts (look for `Timeouts:` in the data source implementation)
 
-  **Timeouts link standard (new vs existing docs):**
+**Timeouts link standard (new vs existing docs):**
 - When a Timeouts section is present, validate the link uses the current format for **new** documentation pages:
   - `https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts`
 - If the page uses the legacy Terraform.io link (for example `https://www.terraform.io/language/resources/syntax#operation-timeouts`):
