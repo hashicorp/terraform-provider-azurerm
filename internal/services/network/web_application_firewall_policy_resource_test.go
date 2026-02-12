@@ -368,18 +368,18 @@ func TestAccWebApplicationFirewallPolicy_ManagedRuleSetDRS(t *testing.T) {
 }
 
 func TestAccWebApplicationFirewallPolicy_ManagedRuleSetHTTPDDoS(t *testing.T) {
-  data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
-  r := WebApplicationFirewallResource{}
+	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+	r := WebApplicationFirewallResource{}
 
-  data.ResourceTest(t, r, []acceptance.TestStep{
-    {
-      Config: r.withManagedRuleSetHTTPDDoS(data),
-      Check: acceptance.ComposeTestCheckFunc(
-        check.That(data.ResourceName).ExistsInAzure(r),
-      ),
-    },
-    data.ImportStep(),
-  })
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withManagedRuleSetHTTPDDoS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccWebApplicationFirewallPolicy_updateCustomRules(t *testing.T) {
