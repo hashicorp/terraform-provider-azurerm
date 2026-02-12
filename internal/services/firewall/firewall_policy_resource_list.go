@@ -80,18 +80,25 @@ func (r FirewallPolicyListResource) List(ctx context.Context, request list.ListR
 
 			id, err := firewallpolicies.ParseFirewallPolicyID(pointer.From(firewallpolicy.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing firewall Policy ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing firewall Policy ID", err)
 				return
 			}
 
 			rd.SetId(id.ID())
 
 			if err := resourceFirewallPolicySetFlatten(rd, id, &firewallpolicy); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_firewall_policy"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_firewall_policy"), err)
 				return
 			}
 
-			sdk.EncodeListResult(ctx, rd, result, push)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
+				return
+			}
+			if !push(result) {
+				return
+			}
 		}
 	}
 }
