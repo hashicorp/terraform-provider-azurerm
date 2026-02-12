@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `runtime_version` - (Required) The Runtime version of the Linux Function App. Accepted values varies with the value of `runtime_name`.
 
-~> **Note:** To get the most up-to-date list of supported versions, use command `az functionapp list-runtimes` or vist [Supported languages in Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/supported-languages)
+~> **Note:** To get the most up-to-date list of supported versions, use command `az functionapp list-runtimes` or visit [Supported languages in Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/supported-languages)
 
 ---
 
