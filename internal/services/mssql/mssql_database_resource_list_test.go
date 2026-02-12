@@ -85,7 +85,7 @@ func (r MssqlDatabaseResource) basicQuery(data acceptance.TestData) string {
 list "azurerm_mssql_database" "list" {
   provider = azurerm
   config {
-	server_id = "${azurerm_mssql_server.test.id}"
+    server_id = "${azurerm_mssql_server.test.id}"
   }
 }
 `
@@ -96,7 +96,7 @@ func (r MssqlDatabaseResource) basicQueryElasticPool(data acceptance.TestData) s
 list "azurerm_mssql_database" "list" {
   provider = azurerm
   config {
-	elastic_pool_id = "${azurerm_mssql_elasticpool.test.id}"
+    elastic_pool_id = "${azurerm_mssql_elasticpool.test.id}"
   }
 }
 `
