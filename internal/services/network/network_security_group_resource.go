@@ -606,7 +606,7 @@ func hashNSR(input any) int {
 
 		buf.WriteString(m["access"].(string))
 		buf.WriteString(m["direction"].(string))
-		binary.Write(&buf, binary.BigEndian, m["priority"].(int))
+		binary.Write(&buf, binary.BigEndian, m["priority"].(int)) //nolint:errcheck
 	}
 	return pluginsdk.HashString(buf.String())
 }
