@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccFirewall_listByResourceGroupID(t *testing.T) {
+func TestAccFirewall_listBySubscriptionAndRG(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "testlist1")
 	r := FirewallResource{}
 
@@ -76,7 +76,7 @@ func (r FirewallResource) basicQueryByResourceGroupName() string {
 list "azurerm_firewall" "list" {
   provider = azurerm
   config {
-    resource_group_id = "${azurerm_resource_group.test.id}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
   }
 }
 `
