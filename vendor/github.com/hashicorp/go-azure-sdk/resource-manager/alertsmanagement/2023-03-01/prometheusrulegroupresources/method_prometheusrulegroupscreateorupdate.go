@@ -1,4 +1,4 @@
-package prometheusrulegroups
+package prometheusrulegroupresources
 
 import (
 	"context"
@@ -11,25 +11,30 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DeleteOperationResponse struct {
+type PrometheusRuleGroupsCreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *PrometheusRuleGroupResource
 }
 
-// Delete ...
-func (c PrometheusRuleGroupsClient) Delete(ctx context.Context, id PrometheusRuleGroupId) (result DeleteOperationResponse, err error) {
+// PrometheusRuleGroupsCreateOrUpdate ...
+func (c PrometheusRuleGroupResourcesClient) PrometheusRuleGroupsCreateOrUpdate(ctx context.Context, id PrometheusRuleGroupId, input PrometheusRuleGroupResource) (result PrometheusRuleGroupsCreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusNoContent,
+			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
+		HttpMethod: http.MethodPut,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -40,6 +45,12 @@ func (c PrometheusRuleGroupsClient) Delete(ctx context.Context, id PrometheusRul
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	var model PrometheusRuleGroupResource
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
