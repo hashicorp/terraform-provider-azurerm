@@ -110,7 +110,7 @@ func (r MssqlDatabaseListResource) List(ctx context.Context, request list.ListRe
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, database := range results {
 			// the default master database is special and will fail in the list function
-			if *database.Name == "master" {
+			if pointer.From(database.Name) == "master" {
 				continue
 			}
 			result := request.NewListResult(ctx)
