@@ -2,6 +2,7 @@ package mssql_test
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -44,7 +45,7 @@ func TestAccMssqlVirtualMachine_listBySubscriptionAndRG(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQueryByResourceGroupName(),
+				Config: r.basicQueryByResourceGroupName(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_mssql_virtual_machine.list", 1), // expect at least the 1 we created
 					querycheck.ExpectIdentity(
@@ -70,13 +71,13 @@ list "azurerm_mssql_virtual_machine" "list" {
 `
 }
 
-func (r MssqlVirtualMachineResource) basicQueryByResourceGroupName() string {
-	return `
+func (r MssqlVirtualMachineResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 list "azurerm_mssql_virtual_machine" "list" {
   provider = azurerm
   config {
-    resource_group_name = "${azurerm_resource_group.test.name}"
+    resource_group_name = "acctestRG-mssql-%d"
   }
 }
-`
+`, data.RandomInteger)
 }
