@@ -12,9 +12,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -23,7 +24,7 @@ import (
 )
 
 func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceSynapseWorkspaceKeysCreateUpdate,
 		Read:   resourceSynapseWorkspaceKeyRead,
 		Update: resourceSynapseWorkspaceKeysCreateUpdate,
@@ -56,7 +57,7 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			"customer_managed_key_versionless_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 			},
 
 			"active": {
@@ -65,6 +66,12 @@ func resourceSynapseWorkspaceKey() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["customer_managed_key_versionless_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceSynapseWorkspaceKeysCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
