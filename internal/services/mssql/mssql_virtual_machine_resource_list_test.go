@@ -75,7 +75,7 @@ func (r MssqlVirtualMachineResource) basicQueryByResourceGroupName() string {
 list "azurerm_mssql_virtual_machine" "list" {
   provider = azurerm
   config {
-    resource_group_name = "{azurerm_resource_group.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
   }
 }
 `
