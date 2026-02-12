@@ -52,7 +52,7 @@ func (r MssqlElasticpoolResource) basicQuery(data acceptance.TestData) string {
 list "azurerm_mssql_elasticpool" "list" {
   provider = azurerm
   config {
-	server_id = "${azurerm_mssql_server.test.id}"
+    server_id = "${azurerm_mssql_server.test.id}"
   }
 }
 `
