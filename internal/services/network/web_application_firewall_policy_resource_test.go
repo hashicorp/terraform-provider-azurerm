@@ -367,6 +367,21 @@ func TestAccWebApplicationFirewallPolicy_ManagedRuleSetDRS(t *testing.T) {
 	})
 }
 
+func TestAccWebApplicationFirewallPolicy_ManagedRuleSetHTTPDDoS(t *testing.T) {
+  data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
+  r := WebApplicationFirewallResource{}
+
+  data.ResourceTest(t, r, []acceptance.TestStep{
+    {
+      Config: r.withManagedRuleSetHTTPDDoS(data),
+      Check: acceptance.ComposeTestCheckFunc(
+        check.That(data.ResourceName).ExistsInAzure(r),
+      ),
+    },
+    data.ImportStep(),
+  })
+}
+
 func TestAccWebApplicationFirewallPolicy_updateCustomRules(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_application_firewall_policy", "test")
 	r := WebApplicationFirewallResource{}
@@ -1788,6 +1803,37 @@ resource "azurerm_web_application_firewall_policy" "test" {
           action  = "Log"
         }
       }
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (WebApplicationFirewallResource) withManagedRuleSetHTTPDDoS(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_web_application_firewall_policy" "test" {
+  name                = "acctestwafpolicy-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  policy_settings {
+    enabled = true
+    mode    = "Detection"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "Microsoft_HTTPDDoSRuleSet"
+      version = "1.0"
     }
   }
 }
