@@ -70,6 +70,13 @@ Validate:
   - Must include: Example Usage, Arguments Reference, Attributes Reference
   - Must **not** include: Import
   - Timeouts: required **only if** the data source schema defines timeouts (look for `Timeouts:` in the data source implementation)
+  **Timeouts link standard (new vs existing docs):**
+- When a Timeouts section is present, validate the link uses the current format for **new** documentation pages:
+  - `https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts`
+- If the page uses the legacy Terraform.io link (for example `https://www.terraform.io/language/resources/syntax#operation-timeouts`):
+  - If the docs file appears to be **newly added** in git (e.g. `git status` shows it as untracked/added), mark this as an **Issue** and fail the relevant standards check.
+  - If the docs file already existed (modified but not newly added), record this as an **Observation** (existing pages may keep the older link for consistency).
+  - If you cannot determine whether the file is new vs existing from the available context, default to **Observation**.
 
 #### B) Arguments Reference parity and ordering
 - All schema required args must be documented
