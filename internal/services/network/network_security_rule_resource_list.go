@@ -20,10 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkSecurityRuleListResource struct{}
-type NetworkSecurityRuleListModel struct {
-	NetworkSecurityGroupId types.String `tfsdk:"network_security_group_id"`
-}
+type (
+	NetworkSecurityRuleListResource struct{}
+	NetworkSecurityRuleListModel    struct {
+		NetworkSecurityGroupId types.String `tfsdk:"network_security_group_id"`
+	}
+)
 
 var _ sdk.FrameworkListWrappedResource = new(NetworkSecurityRuleListResource)
 
@@ -34,6 +36,7 @@ func (r NetworkSecurityRuleListResource) ResourceFunc() *pluginsdk.Resource {
 func (r NetworkSecurityRuleListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = "azurerm_network_security_rule"
 }
+
 func (r NetworkSecurityRuleListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
