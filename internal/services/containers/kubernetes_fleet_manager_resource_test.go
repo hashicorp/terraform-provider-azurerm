@@ -59,7 +59,7 @@ func TestAccKubernetesFleetManager_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
+		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version", "hub_profile.0.portal_fqdn"),
 	})
 }
 
@@ -81,7 +81,7 @@ func TestAccKubernetesFleetManager_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version"),
+		data.ImportStep("hub_profile.#", "hub_profile.0.%", "hub_profile.0.dns_prefix", "hub_profile.0.fqdn", "hub_profile.0.kubernetes_version", "hub_profile.0.portal_fqdn"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
