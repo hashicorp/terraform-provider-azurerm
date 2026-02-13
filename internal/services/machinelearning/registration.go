@@ -53,7 +53,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		MachineLearningRegistryDataSource{},
+	}
 }
 
 // Resources returns the typed Resources supported by this service
@@ -64,6 +66,7 @@ func (r Registration) Resources() []sdk.Resource {
 		MachineLearningDataStoreBlobStorage{},
 		MachineLearningDataStoreDataLakeGen2{},
 		MachineLearningDataStoreFileShare{},
+		MachineLearningRegistry{},
 		WorkspaceNetworkOutboundRuleFqdn{},
 		WorkspaceNetworkOutboundRulePrivateEndpoint{},
 		WorkspaceNetworkOutboundRuleServiceTag{},
