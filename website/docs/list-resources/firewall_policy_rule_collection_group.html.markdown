@@ -27,4 +27,4 @@ list "azurerm_firewall_policy_rule_collection_group" "example" {
 
 This list resource supports the following arguments:
 
-* `firewall_policy_id` - (Required) The id of the firewall firewall policy to query.
+* `firewall_policy_id` - (Required) The ID of the firewall policy to query.
