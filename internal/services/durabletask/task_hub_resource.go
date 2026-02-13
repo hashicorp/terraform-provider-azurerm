@@ -142,7 +142,7 @@ func (r TaskHubResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := model.Properties; props != nil {
-				state.DashboardUrl = pointer.From(props.DashboardUrl)
+				state.DashboardUrl = pointer.From(props.DashboardURL)
 			}
 
 			return metadata.Encode(&state)

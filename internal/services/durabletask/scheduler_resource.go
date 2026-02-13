@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -67,8 +66,8 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(schedulers.SkuNameConsumption),
-				string(schedulers.SkuNameDedicated),
+				string(schedulers.SchedulerSkuNameConsumption),
+				string(schedulers.SchedulerSkuNameDedicated),
 			}, false),
 		},
 
@@ -135,11 +134,11 @@ func (r SchedulerResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &schedulers.SchedulerProperties{
 					Sku: schedulers.SchedulerSku{
-						Name: schedulers.SkuName(model.SkuName),
+						Name: schedulers.SchedulerSkuName(model.SkuName),
 					},
-					IPAllowList: &model.IpAllowList,
+					IPAllowlist: model.IpAllowList,
 				},
-				Tags: tags.Expand(model.Tags),
+				Tags: &model.Tags,
 			}
 
 			if model.Capacity != 0 {
@@ -185,7 +184,10 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 				Name:              id.SchedulerName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
-				Tags:              tags.Flatten(model.Tags),
+			}
+
+			if model.Tags != nil {
+				state.Tags = *model.Tags
 			}
 
 			if props := model.Properties; props != nil {
@@ -195,12 +197,10 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 					state.Capacity = *props.Sku.Capacity
 				}
 
-				if props.IPAllowList != nil {
-					state.IpAllowList = *props.IPAllowList
-				}
+				state.IpAllowList = props.IPAllowlist
 
 				state.Endpoint = pointer.From(props.Endpoint)
-				
+
 				if props.Sku.RedundancyState != nil {
 					state.RedundancyState = string(*props.Sku.RedundancyState)
 				}
@@ -229,14 +229,15 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Updating %s", id)
 
+			skuName := schedulers.SchedulerSkuName(model.SkuName)
 			properties := schedulers.SchedulerUpdate{
-				Properties: &schedulers.SchedulerProperties{
-					Sku: schedulers.SchedulerSku{
-						Name: schedulers.SkuName(model.SkuName),
+				Properties: &schedulers.SchedulerPropertiesUpdate{
+					Sku: &schedulers.SchedulerSkuUpdate{
+						Name: &skuName,
 					},
-					IPAllowList: &model.IpAllowList,
+					IPAllowlist: &model.IpAllowList,
 				},
-				Tags: tags.Expand(model.Tags),
+				Tags: &model.Tags,
 			}
 
 			if model.Capacity != 0 {
