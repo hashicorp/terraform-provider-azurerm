@@ -18,7 +18,7 @@ Lists Mssql Elasticpool resources.
 list "azurerm_mssql_elasticpool" "example" {
   provider = azurerm
   config {
-    server_id = /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver
+    server_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver"
   }
 }
 ```
