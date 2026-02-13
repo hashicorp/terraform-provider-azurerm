@@ -83,7 +83,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_managed_disk_sas_token":                 resourceManagedDiskSasToken(),
 	}
 
-	if features.FivePointOh() {
+	if !features.FivePointOh() {
 		resources["azurerm_linux_virtual_machine"] = resourceLinuxVirtualMachine()
 	}
 
