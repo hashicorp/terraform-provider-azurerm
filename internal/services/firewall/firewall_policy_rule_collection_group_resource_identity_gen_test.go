@@ -17,8 +17,8 @@ func TestAccFirewallPolicyRuleCollectionGroup_resourceIdentity(t *testing.T) {
 	r := FirewallPolicyRuleCollectionGroupResource{}
 
 	checkedFields := map[string]struct{}{
-		"firewall_policy_name": {},
 		"name":                 {},
+		"firewall_policy_name": {},
 		"resource_group_name":  {},
 		"subscription_id":      {},
 	}
@@ -28,8 +28,8 @@ func TestAccFirewallPolicyRuleCollectionGroup_resourceIdentity(t *testing.T) {
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_firewall_policy_rule_collection_group.test", checkedFields),
+				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_firewall_policy_rule_collection_group.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_firewall_policy_rule_collection_group.test", tfjsonpath.New("firewall_policy_name"), tfjsonpath.New("firewall_policy_id")),
-				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_firewall_policy_rule_collection_group.test", tfjsonpath.New("name"), tfjsonpath.New("firewall_policy_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_firewall_policy_rule_collection_group.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("firewall_policy_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_firewall_policy_rule_collection_group.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("firewall_policy_id")),
 			},
