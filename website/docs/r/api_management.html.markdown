@@ -135,6 +135,13 @@ A `certificate` block supports the following:
 
 * `certificate_password` - (Optional) The password for the certificate.
 
+~> **Note:** `certificate` cannot be set when V2 SKU is used (`sku_name` contains `V2`). Please use `azurerm_api_management_certificate` resource instead.
+
+---
+
+A `delegation` block supports the following:
+
+
 ---
 
 A `delegation` block supports the following:
