@@ -11,7 +11,7 @@ import (
 
 type sshKeyPlanModifier struct{}
 
-func SSHKey() sshKeyPlanModifier {
+func SSHKeyStringPlanModifier() sshKeyPlanModifier {
 	return sshKeyPlanModifier{}
 }
 

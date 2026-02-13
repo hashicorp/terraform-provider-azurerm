@@ -17,7 +17,7 @@ func NormaliseLocationStringPlanModifier() planmodifier.String {
 }
 
 func (i normaliseLocationStringPlanModifier) Description(_ context.Context) string {
-	return "TODO"
+	return "Normalises Azure locations to their lowercase, zero white-space versions."
 }
 
 func (i normaliseLocationStringPlanModifier) MarkdownDescription(ctx context.Context) string {

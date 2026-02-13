@@ -800,7 +800,7 @@ func (l *linuxVirtualMachineResource) Schema(ctx context.Context, _ resource.Sch
 						"public_key": schema.StringAttribute{
 							Required: true,
 							PlanModifiers: []planmodifier.String{
-								planmodifiers.SSHKey(),
+								planmodifiers.SSHKeyStringPlanModifier(),
 							},
 							Validators: []validator.String{
 								typehelpers.WrappedStringValidator{

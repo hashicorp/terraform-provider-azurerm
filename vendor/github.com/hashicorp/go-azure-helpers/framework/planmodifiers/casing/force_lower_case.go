@@ -17,7 +17,7 @@ func ForceLowerCaseStringPlanModifier() planmodifier.String {
 }
 
 func (i forceLowerCaseStringPlanModifier) Description(_ context.Context) string {
-	return "TODO"
+	return "Forces supplied value into lower case."
 }
 
 func (i forceLowerCaseStringPlanModifier) MarkdownDescription(ctx context.Context) string {
