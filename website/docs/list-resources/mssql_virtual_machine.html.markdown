@@ -3,16 +3,16 @@ subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_virtual_machine"
 description: |-
-    Lists mssql virtual machine resources.
+    Lists Mssql Virtual Machine resources.
 ---
 
 # List resource: azurerm_mssql_virtual_machine
 
-Lists mssql virtual machine resources.
+Lists Mssql Virtual Machine resources.
 
 ## Example Usage
 
-### List all mssql virtual machines 
+### List all Mssql Virtual Machines
 
 ```hcl
 list "azurerm_mssql_virtual_machine" "example" {
@@ -22,13 +22,13 @@ list "azurerm_mssql_virtual_machine" "example" {
 }
 ```
 
-### List all mssql virtual machines in a resource group
+### List all Mssql Virtual Machines in a Resource Group
 
 ```hcl
 list "azurerm_mssql_virtual_machine" "example" {
   provider = azurerm
   config {
-    resource_group_name = "example"
+    resource_group_name = "resource_group_name-example"
   }
 }
 ```
@@ -37,7 +37,6 @@ list "azurerm_mssql_virtual_machine" "example" {
 
 This list resource supports the following arguments:
 
-* `subscription_id` - (Optional) The id of the mssql subscription to query.
+* `subscription_id` - (Optional) The ID of the Subscription to query.
 
-* `resource_group_name` - (Optional) The name of the mssql resource group to query.
-
+* `resource_group_name` - (Optional) The name of the Resource Group to query.
