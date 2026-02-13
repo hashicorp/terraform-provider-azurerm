@@ -1,6 +1,7 @@
 ## 4.61.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_managed_redis` - `default_database` must be specified when creating a new resource [GH-31724]
 
 FEATURES:
 
