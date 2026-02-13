@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/retentionpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/durabletask/2025-11-01/schedulers"
@@ -97,15 +96,18 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			schedulerId, err := schedulers.ParseSchedulerID(model.SchedulerId)
+			// Parse using schedulers package for validation, then create retentionpolicies.SchedulerId
+			parsedId, err := schedulers.ParseSchedulerID(model.SchedulerId)
 			if err != nil {
 				return fmt.Errorf("parsing scheduler ID: %+v", err)
 			}
 
-			id := NewRetentionPolicyID(schedulerId.SubscriptionId, schedulerId.ResourceGroupName, schedulerId.SchedulerName)
+			// Create the retentionpolicies-specific SchedulerId
+			schedulerId := retentionpolicies.NewSchedulerID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
+			id := NewRetentionPolicyID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
 
 			metadata.Logger.Infof("Import check for retention policy on %s", schedulerId.ID())
-			existing, err := client.Get(ctx, *schedulerId)
+			existing, err := client.Get(ctx, schedulerId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing retention policy on %s: %+v", schedulerId.ID(), err)
 			}
@@ -116,26 +118,27 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Creating retention policy on %s", schedulerId.ID())
 
-			policies := make([]retentionpolicies.RetentionPolicy, 0)
+			policies := make([]retentionpolicies.RetentionPolicyDetails, 0)
 			for _, item := range model.RetentionPolicy {
-				policy := retentionpolicies.RetentionPolicy{
-					RetentionPeriodInDays: pointer.To(item.RetentionPeriodInDays),
+				policy := retentionpolicies.RetentionPolicyDetails{
+					RetentionPeriodInDays: item.RetentionPeriodInDays,
 				}
 
 				if item.OrchestrationState != "" {
-					policy.OrchestrationState = pointer.To(item.OrchestrationState)
+					state := retentionpolicies.PurgeableOrchestrationState(item.OrchestrationState)
+					policy.OrchestrationState = &state
 				}
 
 				policies = append(policies, policy)
 			}
 
-			properties := retentionpolicies.RetentionPolicyResource{
-				Properties: &retentionpolicies.RetentionPolicyResourceProperties{
-					Policies: &policies,
+			properties := retentionpolicies.RetentionPolicy{
+				Properties: &retentionpolicies.RetentionPolicyProperties{
+					RetentionPolicies: &policies,
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *schedulerId, properties); err != nil {
+			if err := client.CreateOrReplaceThenPoll(ctx, schedulerId, properties); err != nil {
 				return fmt.Errorf("creating retention policy on %s: %+v", schedulerId.ID(), err)
 			}
 
@@ -156,7 +159,7 @@ func (r RetentionPolicyResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			schedulerId := schedulers.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
+			schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
 
 			metadata.Logger.Infof("Reading retention policy on %s", schedulerId.ID())
 			resp, err := client.Get(ctx, schedulerId)
@@ -177,11 +180,13 @@ func (r RetentionPolicyResource) Read() sdk.ResourceFunc {
 				RetentionPolicy: make([]RetentionPolicyItemModel, 0),
 			}
 
-			if props := model.Properties; props != nil && props.Policies != nil {
-				for _, policy := range *props.Policies {
+			if props := model.Properties; props != nil && props.RetentionPolicies != nil {
+				for _, policy := range *props.RetentionPolicies {
 					item := RetentionPolicyItemModel{
-						RetentionPeriodInDays: pointer.From(policy.RetentionPeriodInDays),
-						OrchestrationState:    pointer.From(policy.OrchestrationState),
+						RetentionPeriodInDays: policy.RetentionPeriodInDays,
+					}
+					if policy.OrchestrationState != nil {
+						item.OrchestrationState = string(*policy.OrchestrationState)
 					}
 					state.RetentionPolicy = append(state.RetentionPolicy, item)
 				}
@@ -208,26 +213,27 @@ func (r RetentionPolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			schedulerId := schedulers.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
+			schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
 
 			metadata.Logger.Infof("Updating retention policy on %s", schedulerId.ID())
 
-			policies := make([]retentionpolicies.RetentionPolicy, 0)
+			policies := make([]retentionpolicies.RetentionPolicyDetails, 0)
 			for _, item := range model.RetentionPolicy {
-				policy := retentionpolicies.RetentionPolicy{
-					RetentionPeriodInDays: pointer.To(item.RetentionPeriodInDays),
+				policy := retentionpolicies.RetentionPolicyDetails{
+					RetentionPeriodInDays: item.RetentionPeriodInDays,
 				}
 
 				if item.OrchestrationState != "" {
-					policy.OrchestrationState = pointer.To(item.OrchestrationState)
+					state := retentionpolicies.PurgeableOrchestrationState(item.OrchestrationState)
+					policy.OrchestrationState = &state
 				}
 
 				policies = append(policies, policy)
 			}
 
 			properties := retentionpolicies.RetentionPolicyUpdate{
-				Properties: &retentionpolicies.RetentionPolicyResourceProperties{
-					Policies: &policies,
+				Properties: &retentionpolicies.RetentionPolicyProperties{
+					RetentionPolicies: &policies,
 				},
 			}
 
@@ -251,7 +257,7 @@ func (r RetentionPolicyResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			schedulerId := schedulers.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
+			schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
 
 			metadata.Logger.Infof("Deleting retention policy on %s", schedulerId.ID())
 
