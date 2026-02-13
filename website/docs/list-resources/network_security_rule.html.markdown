@@ -18,7 +18,7 @@ Lists Network Security Rule resources.
 list "azurerm_network_security_rule" "example" {
   provider = azurerm
   config {
-    network_security_group_id = /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkSecurityGroups/mySecurityGroup
+    network_security_group_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkSecurityGroups/mySecurityGroup"
   }
 }
 ```
