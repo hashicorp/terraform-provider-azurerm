@@ -141,11 +141,6 @@ A `certificate` block supports the following:
 
 A `delegation` block supports the following:
 
-
----
-
-A `delegation` block supports the following:
-
 * `subscriptions_enabled` - (Optional) Should subscription requests be delegated to an external url? Defaults to `false`.
 
 * `user_registration_enabled` - (Optional) Should user registration requests be delegated to an external url? Defaults to `false`.
