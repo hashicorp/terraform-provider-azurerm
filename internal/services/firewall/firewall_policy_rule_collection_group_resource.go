@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall_policy_rule_collection_group -compare-values "subscription_id:firewall_policy_id,resource_group_name:firewall_policy_id,firewall_policy_name:firewall_policy_id,name:firewall_policy_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name firewall_policy_rule_collection_group -properties "name" -compare-values "subscription_id:firewall_policy_id,resource_group_name:firewall_policy_id,firewall_policy_name:firewall_policy_id"
 
 func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
