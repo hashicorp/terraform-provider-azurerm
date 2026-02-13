@@ -275,7 +275,7 @@ An `oms_agent` block exports the following:
 
 * `msi_auth_for_monitoring_enabled` - Is managed identity authentication for monitoring enabled?
 
-* `retina_flow_logs_enabled` - Is Container Network Logs collection enabled? Defaults to `false`.
+* `retina_flow_logs_enabled` - Is Retina Flow Logs collection enabled? Defaults to `false`.
 
 * `oms_agent_identity` - An `oms_agent_identity` block as defined below.
 
