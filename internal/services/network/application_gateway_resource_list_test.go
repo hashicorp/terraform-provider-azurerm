@@ -60,6 +60,7 @@ func TestAccApplicationGateway_listBySubscriptionAndRG(t *testing.T) {
 		},
 	})
 }
+
 func (r ApplicationGatewayResource) basicQuery() string {
 	return `
 list "azurerm_application_gateway" "list" {
