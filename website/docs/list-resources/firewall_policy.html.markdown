@@ -3,16 +3,16 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall_policy"
 description: |-
-    Lists firewall policy resources.
+    Lists Firewall Policy resources.
 ---
 
 # List resource: azurerm_firewall_policy
 
-Lists firewall policy resources.
+Lists Firewall Policy resources.
 
 ## Example Usage
 
-### List all firewall policys
+### List all Firewall Policys
 
 ```hcl
 list "azurerm_firewall_policy" "example" {
@@ -22,13 +22,13 @@ list "azurerm_firewall_policy" "example" {
 }
 ```
 
-### List all firewall policys in a resource group
+### List all Firewall Policys in a Resource Group
 
 ```hcl
 list "azurerm_firewall_policy" "example" {
   provider = azurerm
   config {
-    resource_group_name = "example"
+    resource_group_name = "resource_group_name-example"
   }
 }
 ```
@@ -37,6 +37,6 @@ list "azurerm_firewall_policy" "example" {
 
 This list resource supports the following arguments:
 
-* `subscription_id` - (Optional) The id of the firewall subscription to query.
+* `subscription_id` - (Optional) The ID of the Subscription to query.
 
-* `resource_group_name` - (Optional) The name of the firewall resource group to query.
+* `resource_group_name` - (Optional) The name of the Resource Group to query.
