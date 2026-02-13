@@ -3,16 +3,16 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_security_group"
 description: |-
-    Lists application security group resources.
+    Lists Application Security Group resources.
 ---
 
 # List resource: azurerm_application_security_group
 
-Lists application security group resources.
+Lists Application Security Group resources.
 
 ## Example Usage
 
-### List all application security groups
+### List all Application Security Groups
 
 ```hcl
 list "azurerm_application_security_group" "example" {
@@ -22,13 +22,13 @@ list "azurerm_application_security_group" "example" {
 }
 ```
 
-### List all application security groups in a resource group
+### List all Application Security Groups in a Resource Group
 
 ```hcl
 list "azurerm_application_security_group" "example" {
   provider = azurerm
   config {
-    resource_group_name = "example"
+    resource_group_name = "resource_group_name-example"
   }
 }
 ```
@@ -37,6 +37,6 @@ list "azurerm_application_security_group" "example" {
 
 This list resource supports the following arguments:
 
-* `subscription_id` - (Optional) The id of the application subscription to query.
+* `subscription_id` - (Optional) The ID of the Subscription to query.
 
-* `resource_group_name` - (Optional) The name of the application resource group to query.
+* `resource_group_name` - (Optional) The name of the Resource Group to query.
