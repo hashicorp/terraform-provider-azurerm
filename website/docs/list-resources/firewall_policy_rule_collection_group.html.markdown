@@ -18,7 +18,7 @@ Lists Firewall Policy Rule Collection Group resources.
 list "azurerm_firewall_policy_rule_collection_group" "example" {
   provider = azurerm
   config {
-    firewall_policy_id = /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/firewallPolicies/policy1
+    firewall_policy_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/firewallPolicies/policy1"
   }
 }
 ```
