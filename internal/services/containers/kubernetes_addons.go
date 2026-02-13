@@ -521,7 +521,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 			useAADAuth = true
 		}
 
-		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "enableRetinaNetworkFlags"); v != "false" && v != "" {
+		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "enableRetinaNetworkFlags"); v == "true" {
 			retinaFlowLogsEnabled = true
 		}
 
