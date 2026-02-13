@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity_test
@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/federatedidentitycredentials"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type FederatedIdentityCredentialTestResource struct{}
@@ -71,19 +71,18 @@ func (r FederatedIdentityCredentialTestResource) Exists(ctx context.Context, cli
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r FederatedIdentityCredentialTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience            = ["foo"]
-  issuer              = "https://foo"
-  name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
-  parent_id           = azurerm_user_assigned_identity.test.id
-  subject             = "foo"
+  audience  = ["foo"]
+  issuer    = "https://foo"
+  name      = "acctest-${local.random_integer}"
+  parent_id = azurerm_user_assigned_identity.test.id
+  subject   = "foo"
 }
 `, r.template(data))
 }
@@ -92,12 +91,11 @@ func (r FederatedIdentityCredentialTestResource) update(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience            = ["foo-updated"]
-  issuer              = "https://foo-updated"
-  name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
-  parent_id           = azurerm_user_assigned_identity.test.id
-  subject             = "foo-updated"
+  audience  = ["foo-updated"]
+  issuer    = "https://foo-updated"
+  name      = "acctest-${local.random_integer}"
+  parent_id = azurerm_user_assigned_identity.test.id
+  subject   = "foo-updated"
 }
 `, r.template(data))
 }
@@ -106,12 +104,11 @@ func (r FederatedIdentityCredentialTestResource) requiresImport(data acceptance.
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "import" {
-  audience            = ["foo"]
-  issuer              = "https://foo"
-  name                = "acctest-${local.random_integer}"
-  resource_group_name = azurerm_resource_group.test.name
-  parent_id           = azurerm_user_assigned_identity.test.id
-  subject             = "foo"
+  audience  = ["foo"]
+  issuer    = "https://foo"
+  name      = "acctest-${local.random_integer}"
+  parent_id = azurerm_user_assigned_identity.test.id
+  subject   = "foo"
 }
 `, r.basic(data))
 }

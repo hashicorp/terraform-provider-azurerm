@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis
@@ -648,6 +648,10 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 			var model ManagedRedisResourceModel
 			if err := metadata.DecodeDiff(&model); err != nil {
 				return err
+			}
+
+			if metadata.ResourceDiff.Id() == "" && len(model.DefaultDatabase) == 0 {
+				return fmt.Errorf("`default_database` must be provided when creating a new resource")
 			}
 
 			if len(model.DefaultDatabase) > 0 {

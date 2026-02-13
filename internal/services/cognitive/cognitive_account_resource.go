@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive
@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -21,7 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -34,6 +35,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name cognitive_account -properties "name,resource_group_name"
+
+const azureCognitiveAccountResourceName = "azurerm_cognitive_account"
 
 func resourceCognitiveAccount() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -49,10 +54,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := cognitiveservicesaccounts.ParseAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&cognitiveservicesaccounts.AccountId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&cognitiveservicesaccounts.AccountId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -69,7 +75,6 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"kind": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"AIServices",
 					"Academic",
@@ -374,17 +379,17 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						return err
 					}
 				}
-			} else if d.HasChange("project_management_enabled") {
+			} else if d.HasChange("project_management_enabled") && kind != "OpenAI" {
 				if err := d.ForceNew("project_management_enabled"); err != nil {
 					return err
 				}
 			}
 
-			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
+			if d.Get("dynamic_throttling_enabled").(bool) && slices.Contains([]string{"OpenAI", "AIServices"}, kind) {
 				return errors.New("`dynamic_throttling_enabled` is currently not supported when `kind` is set to `OpenAI` or `AIServices`")
 			}
 
-			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices", "TextAnalytics"}, kind) {
+			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !slices.Contains([]string{"OpenAI", "AIServices", "TextAnalytics"}, kind) {
 				return fmt.Errorf("`network_acls.bypass` cannot be set when `kind` is set to `%s`", kind)
 			}
 
@@ -403,6 +408,18 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					}
 				}
 			}
+
+			if d.HasChange("kind") {
+				old, new := d.GetChange("kind")
+
+				// Only allow changing `kind` from/to `OpenAI` or `AIServices`, force new for all others
+				if !slices.Contains([]string{"OpenAI", "AIServices"}, new.(string)) || !slices.Contains([]string{"OpenAI", "AIServices"}, old.(string)) {
+					if err := d.ForceNew("kind"); err != nil {
+						return err
+					}
+				}
+			}
+
 			return nil
 		},
 	}
@@ -414,8 +431,6 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	kind := d.Get("kind").(string)
-
 	id := cognitiveservicesaccounts.NewAccountID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.AccountsGet(ctx, id)
@@ -426,7 +441,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_cognitive_account", id.ID())
+			return tf.ImportAsExistsError(azureCognitiveAccountResourceName, id.ID())
 		}
 	}
 
@@ -443,7 +458,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -467,8 +482,8 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Kind:     pointer.To(kind),
-		Location: pointer.To(azure.NormalizeLocation(d.Get("location").(string))),
+		Kind:     pointer.To(d.Get("kind").(string)),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Sku:      &sku,
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
@@ -493,6 +508,10 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCognitiveAccountRead(d, meta)
 }
 
@@ -519,7 +538,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if err != nil {
 			return err
 		}
-		if !utils.SliceContainsValue(virtualNetworkNames, id.VirtualNetworkName) {
+		if !slices.Contains(virtualNetworkNames, id.VirtualNetworkName) {
 			virtualNetworkNames = append(virtualNetworkNames, id.VirtualNetworkName)
 		}
 	}
@@ -538,7 +557,8 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	props := cognitiveservicesaccounts.Account{
-		Sku: &sku,
+		Sku:  &sku,
+		Kind: pointer.To(d.Get("kind").(string)),
 		Properties: &cognitiveservicesaccounts.AccountProperties{
 			ApiProperties:                 apiProps,
 			NetworkAcls:                   networkAcls,
@@ -601,25 +621,28 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceCognitiveAccountFlatten(ctx, client, d, id, resp.Model, true)
+}
 
+func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, d *pluginsdk.ResourceData, id *cognitiveservicesaccounts.AccountId, account *cognitiveservicesaccounts.Account, fetchAccessKeys bool) error {
 	d.Set("name", id.AccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("kind", model.Kind)
+	if account != nil {
+		d.Set("kind", account.Kind)
 
-		d.Set("location", location.NormalizeNilable(model.Location))
-		if sku := model.Sku; sku != nil {
+		d.Set("location", location.NormalizeNilable(account.Location))
+		if sku := account.Sku; sku != nil {
 			d.Set("sku_name", sku.Name)
 		}
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		identity, err := identity.FlattenSystemAndUserAssignedMap(account.Identity)
 		if err != nil {
 			return err
 		}
 		d.Set("identity", identity)
 
-		if props := model.Properties; props != nil {
+		if props := account.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {
 				d.Set("qna_runtime_endpoint", apiProps.QnaRuntimeEndpoint)
 				d.Set("custom_question_answering_search_service_id", apiProps.QnaAzureSearchEndpointId)
@@ -643,19 +666,20 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `network_injection`: %+v", err)
 			}
 
-			dynamicThrottlingEnabled := false
-			if props.DynamicThrottlingEnabled != nil {
-				dynamicThrottlingEnabled = *props.DynamicThrottlingEnabled
+			d.Set("dynamic_throttling_enabled", pointer.From(props.DynamicThrottlingEnabled))
+
+			d.Set("fqdns", pointer.From(props.AllowedFqdnList))
+
+			// Azure API issue: `AllowProjectManagement` not reset during the rollback, see: https://github.com/Azure/azure-rest-api-specs/issues/38678
+			allowProjectManagement := pointer.From(props.AllowProjectManagement)
+			if pointer.From(account.Kind) == "OpenAI" {
+				allowProjectManagement = false
 			}
-			d.Set("dynamic_throttling_enabled", dynamicThrottlingEnabled)
-
-			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
-
-			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
+			d.Set("project_management_enabled", allowProjectManagement)
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {
-				publicNetworkAccess = *props.PublicNetworkAccess == cognitiveservicesaccounts.PublicNetworkAccessEnabled
+				publicNetworkAccess = pointer.From(props.PublicNetworkAccess) == cognitiveservicesaccounts.PublicNetworkAccessEnabled
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccess)
 
@@ -669,16 +693,12 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			// lintignore:R001
 			d.Set("outbound_network_access_restricted", outboundNetworkAccessRestricted)
 
-			localAuthEnabled := true
-			if props.DisableLocalAuth != nil {
-				localAuthEnabled = !*props.DisableLocalAuth
-			}
+			localAuthEnabled := !pointer.From(props.DisableLocalAuth)
 			d.Set("local_auth_enabled", localAuthEnabled)
 
-			if localAuthEnabled {
+			if localAuthEnabled && fetchAccessKeys {
 				keys, err := client.AccountsListKeys(ctx, *id)
 				if err != nil {
-					// note for the resource we shouldn't gracefully fail since we have permission to CRUD it
 					return fmt.Errorf("listing the Keys for %s: %+v", *id, err)
 				}
 
@@ -698,9 +718,11 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, account.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {

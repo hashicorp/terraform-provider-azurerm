@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databasemigration
@@ -8,20 +8,22 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databasemigration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name database_migration_project -service-package-name databasemigration -properties "name,resource_group_name,service_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
 
 func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -30,10 +32,10 @@ func resourceDatabaseMigrationProject() *pluginsdk.Resource {
 		Update: resourceDatabaseMigrationProjectCreateUpdate,
 		Delete: resourceDatabaseMigrationProjectDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := projectresource.ParseProjectID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&projectresource.ProjectId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&projectresource.ProjectId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -112,7 +114,7 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	sourcePlatform := d.Get("source_platform").(string)
 	targetPlatform := d.Get("target_platform").(string)
 	t := d.Get("tags").(map[string]interface{})
@@ -131,6 +133,9 @@ func resourceDatabaseMigrationProjectCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDatabaseMigrationProjectRead(d, meta)
 }
 
@@ -164,9 +169,11 @@ func resourceDatabaseMigrationProjectRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("source_platform", string(props.SourcePlatform))
 			d.Set("target_platform", string(props.TargetPlatform))
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -180,7 +187,7 @@ func resourceDatabaseMigrationProjectDelete(d *pluginsdk.ResourceData, meta inte
 	}
 
 	opts := projectresource.ProjectsDeleteOperationOptions{
-		DeleteRunningTasks: utils.Bool(false),
+		DeleteRunningTasks: pointer.To(false),
 	}
 	if _, err := client.ProjectsDelete(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

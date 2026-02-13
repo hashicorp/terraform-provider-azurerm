@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -36,7 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -properties "name,resource_group_name"
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
@@ -405,6 +405,10 @@ func resourceVirtualNetworkCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceVirtualNetworkRead(d, meta)
 }
 
@@ -584,7 +588,7 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("flow_timeout_in_minutes") {
 		payload.Properties.FlowTimeoutInMinutes = nil
 		if v := d.Get("flow_timeout_in_minutes"); v.(int) != 0 {
-			payload.Properties.FlowTimeoutInMinutes = utils.Int64(int64(v.(int)))
+			payload.Properties.FlowTimeoutInMinutes = pointer.To(int64(v.(int)))
 		}
 	}
 

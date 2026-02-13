@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -182,11 +183,11 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 
 	blobEventProps := &datafactory.BlobEventsTrigger{
 		BlobEventsTriggerTypeProperties: &datafactory.BlobEventsTriggerTypeProperties{
-			IgnoreEmptyBlobs: utils.Bool(d.Get("ignore_empty_blobs").(bool)),
+			IgnoreEmptyBlobs: pointer.To(d.Get("ignore_empty_blobs").(bool)),
 			Events:           expandDataFactoryTriggerBlobEvents(d.Get("events").(*pluginsdk.Set).List()),
-			Scope:            utils.String(d.Get("storage_account_id").(string)),
+			Scope:            pointer.To(d.Get("storage_account_id").(string)),
 		},
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		Pipelines:   expandDataFactoryTriggerPipeline(d.Get("pipeline").(*pluginsdk.Set).List()),
 		Type:        datafactory.TypeBasicTriggerTypeBlobEventsTrigger,
 	}
@@ -201,11 +202,11 @@ func resourceDataFactoryTriggerBlobEventCreateUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if v, ok := d.GetOk("blob_path_begins_with"); ok {
-		blobEventProps.BlobPathBeginsWith = utils.String(v.(string))
+		blobEventProps.BlobPathBeginsWith = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("blob_path_ends_with"); ok {
-		blobEventProps.BlobPathEndsWith = utils.String(v.(string))
+		blobEventProps.BlobPathEndsWith = pointer.To(v.(string))
 	}
 
 	trigger := datafactory.TriggerResource{
@@ -336,8 +337,8 @@ func expandDataFactoryTriggerPipeline(input []interface{}) *[]datafactory.Trigge
 
 		result = append(result, datafactory.TriggerPipelineReference{
 			PipelineReference: &datafactory.PipelineReference{
-				ReferenceName: utils.String(raw["name"].(string)),
-				Type:          utils.String("PipelineReference"),
+				ReferenceName: pointer.To(raw["name"].(string)),
+				Type:          pointer.To("PipelineReference"),
 			},
 			Parameters: raw["parameters"].(map[string]interface{}),
 		})
