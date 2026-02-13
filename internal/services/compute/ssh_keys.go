@@ -10,6 +10,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -131,4 +132,81 @@ func SSHKeySchemaHash(v interface{}) int {
 	}
 
 	return pluginsdk.HashString(buf.String())
+}
+
+// SSHKeysSchemaVM is a legacy requirement that can be removed after the `azurerm_linux_virtual_machine` resource
+// is migrated to Framework (maybe post-5.0?)
+func SSHKeysSchemaVM() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeSet,
+		Optional: true,
+		ForceNew: true,
+		Set:      SSHKeySchemaHash,
+		ConflictsWith: []string{
+			"os_managed_disk_id",
+		},
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"public_key": {
+					Type:             pluginsdk.TypeString,
+					Required:         true,
+					ForceNew:         true,
+					ValidateFunc:     validate.SSHKey,
+					DiffSuppressFunc: suppress.SSHKey,
+				},
+
+				"username": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+			},
+		},
+	}
+}
+
+// expandSSHKeys is a legacy requirement that can be removed after the `azurerm_linux_virtual_machine` resource
+// is migrated to Framework (maybe post-5.0?)
+func expandSSHKeys(input []interface{}) []virtualmachines.SshPublicKey {
+	output := make([]virtualmachines.SshPublicKey, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		username := raw["username"].(string)
+		output = append(output, virtualmachines.SshPublicKey{
+			KeyData: pointer.To(raw["public_key"].(string)),
+			Path:    pointer.To(formatUsernameForAuthorizedKeysPath(username)),
+		})
+	}
+
+	return output
+}
+
+// flattenSSHKeys is a legacy requirement that can be removed after the `azurerm_linux_virtual_machine` resource
+// is migrated to Framework (maybe post-5.0?)
+func flattenSSHKeys(input *virtualmachines.SshConfiguration) (*[]interface{}, error) {
+	if input == nil || input.PublicKeys == nil {
+		return &[]interface{}{}, nil
+	}
+
+	output := make([]interface{}, 0)
+	for _, v := range *input.PublicKeys {
+		if v.KeyData == nil || v.Path == nil {
+			continue
+		}
+
+		username := parseUsernameFromAuthorizedKeysPath(*v.Path)
+		if username == nil {
+			return nil, fmt.Errorf("parsing username from %q", *v.Path)
+		}
+
+		output = append(output, map[string]interface{}{
+			"public_key": *v.KeyData,
+			"username":   *username,
+		})
+	}
+
+	return &output, nil
 }

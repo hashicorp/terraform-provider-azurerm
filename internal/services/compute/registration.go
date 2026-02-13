@@ -6,6 +6,7 @@ package compute
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -74,13 +75,16 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_virtual_machine_data_disk_attachment":   resourceVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":              resourceVirtualMachineExtension(),
 		"azurerm_orchestrated_virtual_machine_scale_set": resourceOrchestratedVirtualMachineScaleSet(),
-		// "azurerm_linux_virtual_machine":                  resourceLinuxVirtualMachine(),
-		"azurerm_linux_virtual_machine_scale_set":     resourceLinuxVirtualMachineScaleSet(),
-		"azurerm_virtual_machine_scale_set_extension": resourceVirtualMachineScaleSetExtension(),
-		"azurerm_windows_virtual_machine":             resourceWindowsVirtualMachine(),
-		"azurerm_windows_virtual_machine_scale_set":   resourceWindowsVirtualMachineScaleSet(),
-		"azurerm_ssh_public_key":                      resourceSshPublicKey(),
-		"azurerm_managed_disk_sas_token":              resourceManagedDiskSasToken(),
+		"azurerm_linux_virtual_machine_scale_set":        resourceLinuxVirtualMachineScaleSet(),
+		"azurerm_virtual_machine_scale_set_extension":    resourceVirtualMachineScaleSetExtension(),
+		"azurerm_windows_virtual_machine":                resourceWindowsVirtualMachine(),
+		"azurerm_windows_virtual_machine_scale_set":      resourceWindowsVirtualMachineScaleSet(),
+		"azurerm_ssh_public_key":                         resourceSshPublicKey(),
+		"azurerm_managed_disk_sas_token":                 resourceManagedDiskSasToken(),
+	}
+
+	if features.FivePointOh() {
+		resources["azurerm_linux_virtual_machine"] = resourceLinuxVirtualMachine()
 	}
 
 	return resources
@@ -114,6 +118,10 @@ func (r Registration) Actions() []func() action.Action {
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	if !features.FivePointOh() {
+		return []sdk.FrameworkWrappedResource{}
+	}
+
 	return []sdk.FrameworkWrappedResource{
 		&linuxVirtualMachineResource{},
 	}
