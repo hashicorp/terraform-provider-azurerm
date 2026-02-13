@@ -72,8 +72,6 @@ func (a WatcherResource) Exists(ctx context.Context, client *clients.Client, sta
 
 func (a WatcherResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "azurerm_automation_watcher" "test" {
@@ -86,22 +84,24 @@ resource "azurerm_automation_watcher" "test" {
   }
 
   script_parameters = {
-    param_foo = "arg_bar"
+    foo = "bar"
   }
 
   script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
   description                    = "example-watcher desc"
   etag                           = "etag example"
-  script_name                    = azurerm_automation_runbook.test.name
+  script_name                    = azurerm_automation_runbook.test_watcher.name
   execution_frequency_in_seconds = 2
+
+  depends_on = [
+    azurerm_automation_hybrid_runbook_worker.test
+  ]
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a WatcherResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
 %s
 
 resource "azurerm_automation_watcher" "test" {
@@ -119,9 +119,13 @@ resource "azurerm_automation_watcher" "test" {
 
   etag                           = "etag example"
   execution_frequency_in_seconds = 20
-  script_name                    = azurerm_automation_runbook.test.name
+  script_name                    = azurerm_automation_runbook.test_watcher.name
   script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
   description                    = "example-watcher desc"
+
+  depends_on = [
+    azurerm_automation_hybrid_runbook_worker.test
+  ]
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -217,8 +221,16 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 }
 
-resource "azurerm_automation_runbook" "test" {
-  name                    = "acc-runbook-%[1]d"
+resource "azurerm_automation_hybrid_runbook_worker" "test" {
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  worker_group_name       = azurerm_automation_hybrid_runbook_worker_group.test.name
+  worker_id               = "%[3]s"
+  vm_resource_id          = azurerm_linux_virtual_machine.test.id
+}
+
+resource "azurerm_automation_runbook" "test_action" {
+  name                    = "acc-runbook-action-%[1]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
@@ -231,6 +243,27 @@ resource "azurerm_automation_runbook" "test" {
   content = <<CONTENT
 # Some test content
 # for Terraform acceptance test
+CONTENT
+  tags = {
+    ENV = "runbook_test"
+  }
+}
+
+resource "azurerm_automation_runbook" "test_watcher" {
+  name                    = "acc-runbook-watcher-%[1]d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is a test runbook for terraform acceptance test"
+  runbook_type = "PowerShell"
+
+  content = <<CONTENT
+# Some test content
+# for Terraform acceptance test
+Invoke-AutomationWatcherAction -RunbookName '${azurerm_automation_runbook.test_action.name}'
 CONTENT
   tags = {
     ENV = "runbook_test"
