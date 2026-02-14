@@ -1,0 +1,52 @@
+---
+name: Resource Linting
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    types: ["opened", "synchronize"]
+    paths:
+      - ".github/workflows/resource-lint.yaml"
+      - "internal/services/**"
+
+jobs:
+  resource-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+            fetch-depth: 2
+
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: ./.go-version
+
+      - run: bash scripts/gogetcookie.sh
+
+      - name: Generate git diff
+        run: |
+          git diff HEAD^1 HEAD > /tmp/changes.diff
+          echo "Generated diff file with $(wc -l < /tmp/changes.diff) lines"
+
+      - name: Check for internal/services changes
+        id: check_changes
+        run: |
+          if git diff --name-only HEAD^1 HEAD | grep -q "^internal/services/"; then
+            echo "has_service_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in internal/services/"
+          else
+            echo "has_service_changes=false" >> $GITHUB_OUTPUT
+            echo "::notice::No changes in internal/services/, skipping lint"
+          fi
+
+      - name: Run resource lint checker
+        if: steps.check_changes.outputs.has_service_changes == 'true'
+        run: |
+          if make resource-lint RESOURCE_LINT_ARGS="-diff=/tmp/changes.diff"; then
+            echo "::notice::Resource lint passed."
+          else
+            echo "::warning::Resource lint found issues. Please review the output above."
+          fi
