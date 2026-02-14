@@ -327,6 +327,7 @@ func TestAccDataSourceKubernetesCluster_addOnProfileOMS(t *testing.T) {
 				check.That(data.ResourceName).Key("oms_agent.0.oms_agent_identity.0.client_id").Exists(),
 				check.That(data.ResourceName).Key("oms_agent.0.oms_agent_identity.0.object_id").Exists(),
 				check.That(data.ResourceName).Key("oms_agent.0.oms_agent_identity.0.user_assigned_identity_id").Exists(),
+				check.That(data.ResourceName).Key("oms_agent.0.retina_flow_logs_enabled").HasValue("false"),
 			),
 		},
 	})
