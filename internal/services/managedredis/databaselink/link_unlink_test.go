@@ -59,6 +59,22 @@ func TestLinkUnlink(t *testing.T) {
 			expectedIntermediateIds: []string{"a"},
 			expectedIdsToLink:       []string{},
 		},
+		{
+			name:                    "fromIds: [a], toIds: [a, b, c, d], expected: ([], [a], [b, c, d])",
+			fromIds:                 []string{"a"},
+			toIds:                   []string{"a", "b", "c", "d"},
+			expectedIdsToUnlink:     []string{},
+			expectedIntermediateIds: []string{"a"},
+			expectedIdsToLink:       []string{"b", "c", "d"},
+		},
+		{
+			name:                    "fromIds: [a, b, c, d], toIds: [a, b], expected: ([c, d], [a, b], [])",
+			fromIds:                 []string{"a", "b", "c", "d"},
+			toIds:                   []string{"a", "b"},
+			expectedIdsToUnlink:     []string{"c", "d"},
+			expectedIntermediateIds: []string{"a", "b"},
+			expectedIdsToLink:       []string{},
+		},
 	}
 
 	for _, tc := range tests {

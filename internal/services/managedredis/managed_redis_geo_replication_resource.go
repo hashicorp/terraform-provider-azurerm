@@ -6,6 +6,7 @@ package managedredis
 import (
 	"context"
 	"fmt"
+	"log"
 	"slices"
 	"time"
 
@@ -82,6 +83,7 @@ func (r ManagedRedisGeoReplicationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			log.Printf("[INFO] Create")
 			client := metadata.Client.ManagedRedis.DatabaseClient
 
 			var model ManagedRedisGeoReplicationResourceModel
@@ -155,6 +157,7 @@ func (r ManagedRedisGeoReplicationResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			log.Printf("[INFO] Update")
 			client := metadata.Client.ManagedRedis.DatabaseClient
 
 			clusterId, err := redisenterprise.ParseRedisEnterpriseID(metadata.ResourceData.Id())
@@ -268,6 +271,9 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 
 	dbIdsToUnlink, intermediateDbIds, dbIdsToLink := databaselink.LinkUnlink(fromDbIds, toDbIds)
 
+	log.Printf("[INFO] fromDbIds: %v, toDbIds: %v", fromDbIds, toDbIds)
+	log.Printf("[INFO] dbIdsToUnlink: %v, intermediateDbIds: %v, dbIdsToLink: %v", dbIdsToUnlink, intermediateDbIds, dbIdsToLink)
+
 	for _, inv := range databaselink.ForceUnlinkInvocations(intermediateDbIds, dbIdsToUnlink) {
 		id, err := databases.ParseDatabaseID(inv.Id)
 		if err != nil {
@@ -280,6 +286,14 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 
 		if err := client.ForceUnlinkThenPoll(ctx, *id, params); err != nil {
 			return fmt.Errorf("force unlink %s: %+v", *id, err)
+		}
+
+		// Workaround for race-condition bug after force-unlinking
+		// The API bug will be fixed in https://github.com/Azure/azure-rest-api-specs/issues/39598
+		pollerType := custompollers.NewGeoReplicationUnlinkingPoller(client, primaryId, inv.Ids)
+		poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent after unlinking for %s: %+v", primaryId, err)
 		}
 	}
 
@@ -303,10 +317,10 @@ func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesCl
 
 		// Workaround for race-condition bug after force-linking
 		// The API bug will be fixed in https://github.com/Azure/azure-rest-api-specs/issues/39598
-		pollerType := custompollers.NewGeoReplicationPoller(client, primaryId, inv.Ids)
+		pollerType := custompollers.NewGeoReplicationLinkingPoller(client, primaryId, inv.Ids)
 		poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 		if err := poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent for %s: %+v", primaryId, err)
+			return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent after linking for %s: %+v", primaryId, err)
 		}
 	}
 

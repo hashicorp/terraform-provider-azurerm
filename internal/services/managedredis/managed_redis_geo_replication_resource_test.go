@@ -63,6 +63,7 @@ func TestAccManagedRedisGeoReplication_fourClustersLinkUnlink(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis_geo_replication", "test")
 	r := ManagedRedisGeoReplicationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		// refresh step
 		{
 			Config: r.fourClustersAllLinked(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -71,6 +72,7 @@ func TestAccManagedRedisGeoReplication_fourClustersLinkUnlink(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		// refresh step
 		{
 			Config: r.fourClustersOneAndTwoLinked(data),
 			Check: acceptance.ComposeTestCheckFunc(

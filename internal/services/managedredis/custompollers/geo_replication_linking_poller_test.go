@@ -43,7 +43,7 @@ func TestGeoReplicationPoller_Success(t *testing.T) {
 		},
 	}
 
-	pollerType := &geoReplicationPoller{
+	pollerType := &geoReplicationLinkingPoller{
 		client: mockClient,
 		id:     id,
 		expectedLinkedDbIds: []string{
@@ -90,7 +90,7 @@ func TestGeoReplicationPoller_InProgress(t *testing.T) {
 		},
 	}
 
-	pollerType := &geoReplicationPoller{
+	pollerType := &geoReplicationLinkingPoller{
 		client: mockClient,
 		id:     id,
 		expectedLinkedDbIds: []string{
@@ -126,7 +126,7 @@ func TestGeoReplicationPoller_GeoReplicationNil(t *testing.T) {
 		},
 	}
 
-	pollerType := &geoReplicationPoller{
+	pollerType := &geoReplicationLinkingPoller{
 		client: mockClient,
 		id:     id,
 		expectedLinkedDbIds: []string{
