@@ -13,9 +13,9 @@ import (
 type Registration struct{}
 
 var (
-	_ sdk.FrameworkServiceRegistration               = Registration{}
 	_ sdk.TypedServiceRegistration                   = Registration{}
 	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkServiceRegistration               = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -65,22 +65,29 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	return resources
 }
 
+// Actions implements [sdk.FrameworkServiceRegistration].
 func (r Registration) Actions() []func() action.Action {
 	return []func() action.Action{}
 }
 
-func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
-	return []sdk.FrameworkWrappedResource{}
-}
-
-func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
-	return []sdk.FrameworkWrappedDataSource{}
-}
-
+// EphemeralResources implements [sdk.FrameworkServiceRegistration].
 func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource {
 	return []func() ephemeral.EphemeralResource{}
 }
 
+// FrameworkDataSources implements [sdk.FrameworkServiceRegistration].
+func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
+	return []sdk.FrameworkWrappedDataSource{}
+}
+
+// FrameworkResources implements [sdk.FrameworkServiceRegistration].
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{}
+}
+
+// Resources returns a list of List Resources supported by this Service
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{}
+	return []sdk.FrameworkListWrappedResource{
+		MysqlFlexibleServerListResource{},
+	}
 }

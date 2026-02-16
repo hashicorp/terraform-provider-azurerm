@@ -442,6 +442,28 @@ func TestAccKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testin
 	})
 }
 
+func TestAccKubernetesCluster_upgradeNetworkDataPlaneAndPolicyCalicoToCilium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeNetworkDataPlaneAndPolicyConfig(data, "azure", "calico"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeNetworkDataPlaneAndPolicyConfig(data, "cilium", "cilium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_upgradeNetworkDataPlaneAndPolicyAzureToCilium(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}

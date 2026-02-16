@@ -69,7 +69,7 @@ func (r NetworkProfileListResource) List(ctx context.Context, request list.ListR
 
 			id, err := networkprofiles.ParseNetworkProfileID(pointer.From(profile.Id))
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Network Profile ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Network Profile ID", err)
 				return
 			}
 
@@ -77,29 +77,29 @@ func (r NetworkProfileListResource) List(ctx context.Context, request list.ListR
 			rd.SetId(id.ID())
 
 			if err := resourceNetworkProfileFlatten(rd, id, &profile); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, fmt.Sprintf("encoding `%s` resource data", azureNetworkProfileResourceName), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azureNetworkProfileResourceName), err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity Data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Identity Data", err)
 				return
 			}
 
 			tfTypeResourceState, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Resource State", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResourceState); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource Data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Resource Data", err)
 				return
 			}
 
