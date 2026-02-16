@@ -1,6 +1,8 @@
 ## 4.61.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go` update to `1.25.5`
+* dependencies: `go-azure-sdk` - update to `v0.20260212.1143955`
 * `azurerm_point_to_site_vpn_gateway` - `connection_configuration.x.internet_security_enabled` can now be updated [GH-31733]
 * `azurerm_managed_redis` - `default_database` must be specified when creating a new resource [GH-31724]
 
