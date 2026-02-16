@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -58,6 +60,34 @@ func TestAccWatcher_update(t *testing.T) {
 	})
 }
 
+func TestAccWatcher_updateWithReplace(t *testing.T) {
+	data := acceptance.BuildTestData(t, automation.WatcherResource{}.ResourceType(), "test")
+	r := WatcherResource{}
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("2"),
+			),
+		},
+		data.ImportStep("tags", "etag", "location"),
+		{
+			Config: r.updateWithReplace(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("execution_frequency_in_seconds").HasValue("20"),
+			),
+		},
+		data.ImportStep("tags", "etag", "location"),
+	})
+}
+
 func (a WatcherResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := watcher.ParseWatcherID(state.ID)
 	if err != nil {
@@ -84,7 +114,7 @@ resource "azurerm_automation_watcher" "test" {
   }
 
   script_parameters = {
-    foo = "bar"
+    param_foo = "arg_bar"
   }
 
   script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
@@ -101,6 +131,36 @@ resource "azurerm_automation_watcher" "test" {
 }
 
 func (a WatcherResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_watcher" "test" {
+  automation_account_id = azurerm_automation_account.test.id
+  name                  = "acctest-watcher-%[2]d"
+  location              = "%[3]s"
+
+  tags = {
+    "foo" = "bar"
+  }
+
+  script_parameters = {
+    param_foo = "arg_bar"
+  }
+
+  etag                           = "etag example"
+  execution_frequency_in_seconds = 20
+  script_name                    = azurerm_automation_runbook.test_watcher.name
+  script_run_on                  = azurerm_automation_hybrid_runbook_worker_group.test.name
+  description                    = "example-watcher desc"
+
+  depends_on = [
+    azurerm_automation_hybrid_runbook_worker.test
+  ]
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a WatcherResource) updateWithReplace(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
