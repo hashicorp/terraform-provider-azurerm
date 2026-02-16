@@ -265,7 +265,10 @@ func (m WatcherResource) Update() sdk.ResourceFunc {
 			if _, err = client.Update(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", *id, err)
 			}
-			client.Start(ctx, *id)
+
+			if _, err = client.Start(ctx, *id); err != nil {
+				return fmt.Errorf("starting %s: %v", *id, err)
+			}
 
 			return nil
 		},
