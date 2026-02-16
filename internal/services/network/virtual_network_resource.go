@@ -86,16 +86,22 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
-				// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
-				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
-				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
-				rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
-				if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+				rawIpAddressPool, ok := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+				if !ok {
+					return false
+				}
+			
+				if rawIpAddressPool.IsNull() {
+					return false
+				}
+			
+				if !rawIpAddressPool.IsKnown() {
 					return true
 				}
-
-				return false
+			
+				return len(rawIpAddressPool.AsValueSlice()) > 0
 			},
+			
 		},
 
 		"bgp_community": {
