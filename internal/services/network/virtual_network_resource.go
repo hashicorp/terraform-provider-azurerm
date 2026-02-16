@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworks"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,6 +64,23 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 	}
 }
 
+func shouldSuppressVnetAddressSpaceDiff(rawConfig cty.Value) bool {
+	if rawConfig.IsNull() || !rawConfig.IsKnown() {
+		return false
+	}
+
+	rawIpAddressPool, ok := rawConfig.AsValueMap()["ip_address_pool"]
+	if !ok || rawIpAddressPool.IsNull() {
+		return false
+	}
+
+	if !rawIpAddressPool.IsKnown() {
+		return true
+	}
+
+	return len(rawIpAddressPool.AsValueSlice()) > 0
+}
+
 func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -86,32 +104,10 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
-				// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
-				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
-				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
-				rawConfig := d.GetRawConfig()
-				if rawConfig.IsNull() {
-					return false
-				}
-
-				if !rawConfig.IsKnown() {
-					return false
-				}
-
-				rawIpAddressPool, ok := rawConfig.AsValueMap()["ip_address_pool"]
-				if !ok {
-					return false
-				}
-
-				if rawIpAddressPool.IsNull() {
-					return false
-				}
-
-				if !rawIpAddressPool.IsKnown() {
-					return true
-				}
-
-				return len(rawIpAddressPool.AsValueSlice()) > 0
+				// If `ip_address_pool` is used instead of `address_space` there can be a perpetual diff,
+				// since the API returns the provisioned CIDR range from the IP Address Management Pool.
+				// Use RawConfig so we only suppress when `ip_address_pool` is present in config.
+				return shouldSuppressVnetAddressSpaceDiff(d.GetRawConfig())
 			},
 		},
 
