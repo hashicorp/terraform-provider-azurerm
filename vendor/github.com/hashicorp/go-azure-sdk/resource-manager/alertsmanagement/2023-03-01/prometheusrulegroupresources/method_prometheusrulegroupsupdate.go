@@ -1,11 +1,9 @@
-package prometheusrulegroups
+package prometheusrulegroupresources
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -13,25 +11,29 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListByResourceGroupOperationResponse struct {
+type PrometheusRuleGroupsUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *PrometheusRuleGroupResourceCollection
+	Model        *PrometheusRuleGroupResource
 }
 
-// ListByResourceGroup ...
-func (c PrometheusRuleGroupsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
+// PrometheusRuleGroupsUpdate ...
+func (c PrometheusRuleGroupResourcesClient) PrometheusRuleGroupsUpdate(ctx context.Context, id PrometheusRuleGroupId, input PrometheusRuleGroupResourcePatchParameters) (result PrometheusRuleGroupsUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.AlertsManagement/prometheusRuleGroups", id.ID()),
+		HttpMethod: http.MethodPatch,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -45,7 +47,7 @@ func (c PrometheusRuleGroupsClient) ListByResourceGroup(ctx context.Context, id 
 		return
 	}
 
-	var model PrometheusRuleGroupResourceCollection
+	var model PrometheusRuleGroupResource
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
