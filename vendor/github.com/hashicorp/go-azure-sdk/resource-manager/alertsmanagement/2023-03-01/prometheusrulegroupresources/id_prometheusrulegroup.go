@@ -1,4 +1,4 @@
-package prometheusrulegroups
+package prometheusrulegroupresources
 
 import (
 	"fmt"
