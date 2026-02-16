@@ -37,6 +37,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name azurerm_redis_cache -service-package-name redis -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicWithSSL
+
 var skuWeight = map[string]int8{
 	"Basic":    1,
 	"Standard": 2,
@@ -45,14 +47,15 @@ var skuWeight = map[string]int8{
 
 func resourceRedisCache() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceRedisCacheCreate,
-		Read:   resourceRedisCacheRead,
-		Update: resourceRedisCacheUpdate,
-		Delete: resourceRedisCacheDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := redisresources.ParseRediID(id)
-			return err
-		}),
+		Create:   resourceRedisCacheCreate,
+		Read:     resourceRedisCacheRead,
+		Update:   resourceRedisCacheUpdate,
+		Delete:   resourceRedisCacheDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&redisresources.RediId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&redisresources.RediId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
@@ -553,6 +556,9 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	if patchSchedule != nil {
 		patchScheduleRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
@@ -797,7 +803,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
