@@ -52,7 +52,7 @@ func (r RouteResource) basicQuery(data acceptance.TestData) string {
 list "azurerm_route" "list" {
   provider = azurerm
   config {
-    route_table_id = "${azurerm_route_table.test.id}"
+    route_table_id = azurerm_route_table.test.id
   }
 }
 `
