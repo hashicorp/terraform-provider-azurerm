@@ -28,8 +28,8 @@ var _ sdk.FrameworkServiceRegistration = Registration{}
 type MssqlDatabaseListResource struct{}
 
 type MssqlDatabaseListModel struct {
-	ServerId      types.String `tfsdk:"server_id"`
-	ElasticPoolId types.String `tfsdk:"elastic_pool_id"`
+	MssqlServerId      types.String `tfsdk:"mssql_server_id"`
+	MssqlElasticPoolId types.String `tfsdk:"mssql_elastic_pool_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(MssqlDatabaseListResource)
@@ -80,26 +80,26 @@ func (r MssqlDatabaseListResource) List(ctx context.Context, request list.ListRe
 	results := make([]databases.Database, 0)
 
 	switch {
-	case !data.ServerId.IsNull():
-		serverId, err := commonids.ParseSqlServerID(data.ServerId.ValueString())
+	case !data.MssqlServerId.IsNull():
+		mssqlServerId, err := commonids.ParseSqlServerID(data.MssqlServerId.ValueString())
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Mssql Server ID for `%s`", "azurerm_mssql_database"), err)
 			return
 		}
-		resp, err := client.ListByServerComplete(ctx, *serverId)
+		resp, err := client.ListByServerComplete(ctx, *mssqlServerId)
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_mssql_database`), err)
 			return
 		}
 		results = resp.Items
 
-	case !data.ElasticPoolId.IsNull():
-		elasticPoolId, err := commonids.ParseSqlElasticPoolID(data.ElasticPoolId.ValueString())
+	case !data.MssqlElasticPoolId.IsNull():
+		mssqlElasticPoolId, err := commonids.ParseSqlElasticPoolID(data.MssqlElasticPoolId.ValueString())
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Mssql Elastic Pool ID for `%s`", "azurerm_mssql_database"), err)
 			return
 		}
-		resp, err := client.ListByElasticPoolComplete(ctx, *elasticPoolId)
+		resp, err := client.ListByElasticPoolComplete(ctx, *mssqlElasticPoolId)
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_mssql_database`), err)
 			return
