@@ -79,3 +79,9 @@ Durable Task Retention Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_durable_task_retention_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DurableTask/schedulers/scheduler1/retentionPolicies/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DurableTask` - 2025-11-01
