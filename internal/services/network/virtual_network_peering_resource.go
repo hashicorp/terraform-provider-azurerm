@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkpeerings"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network_peering -service-package-name network -properties "name" -compare-values "resource_group_name:id,virtual_network_name:id"
+
 const virtualNetworkPeeringResourceType = "azurerm_virtual_network_peering"
 
 func resourceVirtualNetworkPeering() *pluginsdk.Resource {
@@ -30,11 +33,13 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 		Read:   resourceVirtualNetworkPeeringRead,
 		Update: resourceVirtualNetworkPeeringUpdate,
 		Delete: resourceVirtualNetworkPeeringDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualnetworkpeerings.ParseVirtualNetworkPeeringID(id)
-			return err
-		}),
 
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
+
+		// We will be including the new `Identity` field
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
+		},
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -212,6 +217,9 @@ func resourceVirtualNetworkPeeringCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceVirtualNetworkPeeringRead(d, meta)
 }
@@ -287,12 +295,15 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceVirtualNetworkPeeringFlatten(d, id, resp.Model)
+}
 
+func resourceVirtualNetworkPeeringFlatten(d *pluginsdk.ResourceData, id *virtualnetworkpeerings.VirtualNetworkPeeringId, model *virtualnetworkpeerings.VirtualNetworkPeering) error {
 	d.Set("name", id.VirtualNetworkPeeringName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("virtual_network_name", id.VirtualNetworkName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if peer := model.Properties; peer != nil {
 			d.Set("allow_virtual_network_access", peer.AllowVirtualNetworkAccess)
 			d.Set("allow_forwarded_traffic", peer.AllowForwardedTraffic)
@@ -315,7 +326,7 @@ func resourceVirtualNetworkPeeringRead(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualNetworkPeeringDelete(d *pluginsdk.ResourceData, meta interface{}) error {

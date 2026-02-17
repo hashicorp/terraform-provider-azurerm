@@ -171,7 +171,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_virtual_network_peering" "test1" {
+resource "azurerm_virtual_network_peering" "test" {
   name                         = "acctestpeer-1-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test1.name
@@ -227,11 +227,11 @@ func (r VirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_virtual_network_peering" "import" {
-  name                         = azurerm_virtual_network_peering.test1.name
-  resource_group_name          = azurerm_virtual_network_peering.test1.resource_group_name
-  virtual_network_name         = azurerm_virtual_network_peering.test1.virtual_network_name
-  remote_virtual_network_id    = azurerm_virtual_network_peering.test1.remote_virtual_network_id
-  allow_virtual_network_access = azurerm_virtual_network_peering.test1.allow_virtual_network_access
+  name                         = azurerm_virtual_network_peering.test.name
+  resource_group_name          = azurerm_virtual_network_peering.test.resource_group_name
+  virtual_network_name         = azurerm_virtual_network_peering.test.virtual_network_name
+  remote_virtual_network_id    = azurerm_virtual_network_peering.test.remote_virtual_network_id
+  allow_virtual_network_access = azurerm_virtual_network_peering.test.allow_virtual_network_access
 }
 `, r.basic(data))
 }
