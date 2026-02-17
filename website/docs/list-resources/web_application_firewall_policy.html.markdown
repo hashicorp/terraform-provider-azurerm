@@ -1,5 +1,5 @@
 ---
-subcategory: "Web"
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_application_firewall_policy"
 description: |-
@@ -12,7 +12,7 @@ Lists Web Application Firewall Policy resources.
 
 ## Example Usage
 
-### List all Web Application Firewall Policys
+### List all Web Application Firewall Policies
 
 ```hcl
 list "azurerm_web_application_firewall_policy" "example" {
