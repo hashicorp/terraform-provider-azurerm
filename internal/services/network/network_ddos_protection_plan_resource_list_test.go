@@ -60,6 +60,7 @@ func TestAccNetworkDDoSProtectionPlan_listBySubscriptionAndRG(t *testing.T) {
 		},
 	})
 }
+
 func (r NetworkDdosProtectionPlanResource) basicQuery() string {
 	return `
 list "azurerm_network_ddos_protection_plan" "list" {
