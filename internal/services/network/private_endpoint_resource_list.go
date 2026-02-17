@@ -76,7 +76,6 @@ func (r PrivateEndpointListResource) List(ctx context.Context, request list.List
 		defer cancel()
 
 		for _, privateendpoint := range results {
-
 			result := request.NewListResult(ctx)
 
 			result.DisplayName = pointer.From(privateendpoint.Name)
