@@ -170,7 +170,7 @@ The `ip_configuration` block supports:
 
 * `public_ip_address_id` - (Optional) The ID of the public IP address to associate with the Virtual Network Gateway.
 
-~> **Note:** `public_ip_address_id` should not be specified when `type` is set to `ExpressRoute`.
+~> **Note:** For `ExpressRoute` gateways, Azure may use auto-assigned public IPs (HOBO) for newer deployments. Existing gateways can still expose a `public_ip_address_id`.
 
 ---
 

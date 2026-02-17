@@ -789,8 +789,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("sku", string(pointer.From(props.Sku.Name)))
 		}
 
-		gatewayType := pointer.From(props.GatewayType)
-		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayIPConfigurations(props.IPConfigurations, gatewayType)); err != nil {
+		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
@@ -1427,7 +1426,7 @@ func flattenVirtualNetworkGatewayBgpPeeringAddresses(input *[]virtualnetworkgate
 	return output, nil
 }
 
-func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration, gatewayType virtualnetworkgateways.VirtualNetworkGatewayType) []interface{} {
+func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration) []interface{} {
 	flat := make([]interface{}, 0)
 
 	if ipConfigs != nil {
@@ -1446,12 +1445,9 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 				}
 			}
 
-			// Do not include public_ip_address_id for ExpressRoute gateways
-			if gatewayType != virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute {
-				if pip := props.PublicIPAddress; pip != nil {
-					if id := pip.Id; id != nil {
-						v["public_ip_address_id"] = *id
-					}
+			if pip := props.PublicIPAddress; pip != nil {
+				if id := pip.Id; id != nil {
+					v["public_ip_address_id"] = *id
 				}
 			}
 
