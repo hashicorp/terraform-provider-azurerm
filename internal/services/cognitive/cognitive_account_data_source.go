@@ -12,11 +12,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -383,7 +383,7 @@ func flattenCognitiveAccountDataSourceCustomerManagedKey(input *cognitiveservice
 	var keyId string
 	var identityClientId string
 	if props := input.KeyVaultProperties; props != nil {
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(pointer.From(props.KeyVaultUri), keyvault.NestedItemTypeKey, pointer.From(props.KeyName), pointer.From(props.KeyVersion))
 		if err != nil {
 			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 		}
