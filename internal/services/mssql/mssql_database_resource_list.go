@@ -45,7 +45,7 @@ func (r MssqlDatabaseListResource) Metadata(_ context.Context, _ resource.Metada
 func (r MssqlDatabaseListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"server_id": schema.StringAttribute{
+			"mssql_server_id": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -54,7 +54,7 @@ func (r MssqlDatabaseListResource) ListResourceConfigSchema(_ context.Context, _
 					stringvalidator.ExactlyOneOf(path.MatchRoot("server_id"), path.MatchRoot("elastic_pool_id")),
 				},
 			},
-			"elastic_pool_id": schema.StringAttribute{
+			"mssql_elastic_pool_id": schema.StringAttribute{
 				Optional: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
