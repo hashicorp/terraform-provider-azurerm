@@ -50,7 +50,7 @@ func (r FirewallListResource) List(ctx context.Context, request list.ListRequest
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_mssql_server`), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_firewall`), err)
 			return
 		}
 
@@ -58,7 +58,7 @@ func (r FirewallListResource) List(ctx context.Context, request list.ListRequest
 	default:
 		resp, err := client.ListAllComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_mssql_server`), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", `azurerm_firewall`), err)
 			return
 		}
 
