@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ddosprotectionplans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_ddos_protection_plan -service-package-name network -properties "name,resource_group_name"
 
 const ddosProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
 
@@ -32,10 +35,11 @@ func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 		Update: resourceNetworkDDoSProtectionPlanUpdate,
 		Delete: resourceNetworkDDoSProtectionPlanDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := ddosprotectionplans.ParseDdosProtectionPlanID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&ddosprotectionplans.DdosProtectionPlanId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&ddosprotectionplans.DdosProtectionPlanId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -107,6 +111,9 @@ func resourceNetworkDDoSProtectionPlanCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNetworkDDoSProtectionPlanRead(d, meta)
 }
@@ -178,11 +185,14 @@ func resourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta inter
 
 		return fmt.Errorf("making Read request on %s: %+v", *id, err)
 	}
+	return resourceNetworkDDoSProtectionPlanFlatten(d, id, resp.Model)
+}
 
+func resourceNetworkDDoSProtectionPlanFlatten(d *pluginsdk.ResourceData, id *ddosprotectionplans.DdosProtectionPlanId, model *ddosprotectionplans.DdosProtectionPlan) error {
 	d.Set("name", id.DdosProtectionPlanName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -197,7 +207,7 @@ func resourceNetworkDDoSProtectionPlanRead(d *pluginsdk.ResourceData, meta inter
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkDDoSProtectionPlanDelete(d *pluginsdk.ResourceData, meta interface{}) error {

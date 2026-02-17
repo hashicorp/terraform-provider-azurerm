@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type NetworkDDoSProtectionPlanResource struct{}
+type NetworkDdosProtectionPlanResource struct{}
 
 // NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
 // Plan per region.
@@ -45,7 +45,7 @@ func TestAccNetworkDDoSProtectionPlan(t *testing.T) {
 
 func testAccNetworkDDoSProtectionPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
-	r := NetworkDDoSProtectionPlanResource{}
+	r := NetworkDdosProtectionPlanResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -61,7 +61,7 @@ func testAccNetworkDDoSProtectionPlan_basic(t *testing.T) {
 
 func testAccNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
-	r := NetworkDDoSProtectionPlanResource{}
+	r := NetworkDdosProtectionPlanResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -79,7 +79,7 @@ func testAccNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
 
 func testAccNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_network_ddos_protection_plan", "test")
-	r := NetworkDDoSProtectionPlanResource{}
+	r := NetworkDdosProtectionPlanResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -103,7 +103,7 @@ func testAccNetworkDDoSProtectionPlan_withTags(t *testing.T) {
 	})
 }
 
-func (t NetworkDDoSProtectionPlanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t NetworkDdosProtectionPlanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := ddosprotectionplans.ParseDdosProtectionPlanID(state.ID)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (t NetworkDDoSProtectionPlanResource) Exists(ctx context.Context, clients *
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (NetworkDDoSProtectionPlanResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (NetworkDdosProtectionPlanResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := ddosprotectionplans.ParseDdosProtectionPlanID(state.ID)
 	if err != nil {
 		return nil, err
@@ -130,7 +130,11 @@ func (NetworkDDoSProtectionPlanResource) Destroy(ctx context.Context, client *cl
 	return pointer.To(true), nil
 }
 
-func (NetworkDDoSProtectionPlanResource) basicConfig(data acceptance.TestData) string {
+func (r NetworkDdosProtectionPlanResource) basic(data acceptance.TestData) string {
+	return r.basicConfig(data)
+}
+
+func (NetworkDdosProtectionPlanResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -149,7 +153,7 @@ resource "azurerm_network_ddos_protection_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r NetworkDDoSProtectionPlanResource) requiresImportConfig(data acceptance.TestData) string {
+func (r NetworkDdosProtectionPlanResource) requiresImportConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -161,7 +165,7 @@ resource "azurerm_network_ddos_protection_plan" "import" {
 `, r.basicConfig(data))
 }
 
-func (NetworkDDoSProtectionPlanResource) withTagsConfig(data acceptance.TestData) string {
+func (NetworkDdosProtectionPlanResource) withTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -185,7 +189,7 @@ resource "azurerm_network_ddos_protection_plan" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (NetworkDDoSProtectionPlanResource) withUpdatedTagsConfig(data acceptance.TestData) string {
+func (NetworkDdosProtectionPlanResource) withUpdatedTagsConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
