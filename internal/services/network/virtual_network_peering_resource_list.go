@@ -21,10 +21,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VirtualNetworkPeeringListResource struct{}
-type VirtualNetworkPeeringListModel struct {
-	VirtualNetworkId types.String `tfsdk:"virtual_network_id"`
-}
+type (
+	VirtualNetworkPeeringListResource struct{}
+	VirtualNetworkPeeringListModel    struct {
+		VirtualNetworkId types.String `tfsdk:"virtual_network_id"`
+	}
+)
 
 var _ sdk.FrameworkListWrappedResource = new(VirtualNetworkPeeringListResource)
 
@@ -35,6 +37,7 @@ func (r VirtualNetworkPeeringListResource) ResourceFunc() *pluginsdk.Resource {
 func (r VirtualNetworkPeeringListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = "azurerm_virtual_network_peering"
 }
+
 func (r VirtualNetworkPeeringListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
