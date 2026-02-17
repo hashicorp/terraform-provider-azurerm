@@ -51,7 +51,7 @@ func (r MssqlDatabaseListResource) ListResourceConfigSchema(_ context.Context, _
 					typehelpers.WrappedStringValidator{
 						Func: commonids.ValidateSqlServerID,
 					},
-					stringvalidator.ExactlyOneOf(path.MatchRoot("server_id"), path.MatchRoot("elastic_pool_id")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("mssql_server_id"), path.MatchRoot("mssql_elastic_pool_id")),
 				},
 			},
 			"mssql_elastic_pool_id": schema.StringAttribute{
@@ -60,7 +60,7 @@ func (r MssqlDatabaseListResource) ListResourceConfigSchema(_ context.Context, _
 					typehelpers.WrappedStringValidator{
 						Func: commonids.ValidateSqlElasticPoolID,
 					},
-					stringvalidator.ExactlyOneOf(path.MatchRoot("server_id"), path.MatchRoot("elastic_pool_id")),
+					stringvalidator.ExactlyOneOf(path.MatchRoot("mssql_server_id"), path.MatchRoot("mssql_elastic_pool_id")),
 				},
 			},
 		},
