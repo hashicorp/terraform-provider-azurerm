@@ -52,7 +52,7 @@ func (r NetworkSecurityRuleResource) basicQuery(data acceptance.TestData) string
 list "azurerm_network_security_rule" "list" {
   provider = azurerm
   config {
-    network_security_group_id = "${azurerm_network_security_group.test.id}"
+    network_security_group_id = azurerm_network_security_group.test.id
   }
 }
 `

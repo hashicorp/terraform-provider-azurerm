@@ -66,7 +66,7 @@ func (r NetworkSecurityRuleListResource) List(ctx context.Context, request list.
 	if !data.NetworkSecurityGroupId.IsNull() {
 		networksecuritygroupId, err := securityrules.ParseNetworkSecurityGroupID(data.NetworkSecurityGroupId.ValueString())
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing network NetworkSecurityGroup ID for `%s`", "azurerm_network_security_rule"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Network Security Group ID for `%s`", "azurerm_network_security_rule"), err)
 			return
 		}
 
@@ -89,7 +89,7 @@ func (r NetworkSecurityRuleListResource) List(ctx context.Context, request list.
 
 			id, err := securityrules.ParseSecurityRuleID(pointer.From(securityrule.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Network SecurityRule ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Network Security Rule ID", err)
 				return
 			}
 
