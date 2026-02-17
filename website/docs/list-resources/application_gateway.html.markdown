@@ -28,7 +28,7 @@ list "azurerm_application_gateway" "example" {
 list "azurerm_application_gateway" "example" {
   provider = azurerm
   config {
-    resource_group_name = "resource_group_name-example"
+    resource_group_name = "example-rg"
   }
 }
 ```
