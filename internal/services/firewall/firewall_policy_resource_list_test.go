@@ -76,7 +76,7 @@ func (r FirewallPolicyResource) basicQueryByResourceGroupName() string {
 list "azurerm_firewall_policy" "list" {
   provider = azurerm
   config {
-    resource_group_name = "${azurerm_resource_group.test.name}"
+    resource_group_name = azurerm_resource_group.test.name
   }
 }
 `

@@ -75,7 +75,7 @@ func (r FirewallPolicyListResource) List(ctx context.Context, request list.ListR
 
 			id, err := firewallpolicies.ParseFirewallPolicyID(pointer.From(firewallpolicy.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing firewall Policy ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Firewall Policy ID", err)
 				return
 			}
 
