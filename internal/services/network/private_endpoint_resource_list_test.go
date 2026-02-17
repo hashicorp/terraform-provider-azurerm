@@ -60,6 +60,7 @@ func TestAccVirtualPrivateEndpoint_listBySubscriptionAndRG(t *testing.T) {
 		},
 	})
 }
+
 func (r PrivateEndpointResource) basicQuery() string {
 	return `
 list "azurerm_private_endpoint" "list" {
