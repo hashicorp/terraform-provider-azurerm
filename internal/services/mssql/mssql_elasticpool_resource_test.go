@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -422,6 +423,28 @@ func TestAccMsSqlElasticPool_dcFamilyVCoreEnclaveTypeError(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlElasticPool_replicaCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MsSqlElasticPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.highAvailabilityReplicaCount(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+		{
+			Config: r.highAvailabilityReplicaCount(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
 func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlElasticPoolID(state.ID)
 	if err != nil {
@@ -437,7 +460,7 @@ func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, fmt.Errorf("reading SQL Elastic Pool %s: %v", id, err)
 	}
 
-	return utils.Bool(existing.Model.Id != nil), nil
+	return pointer.To(existing.Model.Id != nil), nil
 }
 
 func (r MsSqlElasticPoolResource) basicDTU(data acceptance.TestData, enclaveType string) string {
@@ -819,7 +842,6 @@ resource "azurerm_mssql_elasticpool" "test" {
   max_size_gb                     = 50
   zone_redundant                  = false
   license_type                    = "%[3]s"
-  high_availability_replica_count = 0
   %[4]s
 
   sku {
@@ -843,4 +865,46 @@ func (r MsSqlElasticPoolResource) hyperScale(data acceptance.TestData, enclaveTy
 
 func (r MsSqlElasticPoolResource) hyperScaleUpdate(data acceptance.TestData, enclaveType string) string {
 	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0, 4, enclaveType)
+}
+
+func (MsSqlElasticPoolResource) highAvailabilityReplicaCount(data acceptance.TestData, replicaCount int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                            = "acctest-pool-vcore-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  server_name                     = azurerm_mssql_server.test.name
+  high_availability_replica_count = %[3]d
+
+  sku {
+    name     = "HS_Gen5"
+    tier     = "Hyperscale"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, replicaCount)
 }
