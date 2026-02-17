@@ -12,7 +12,7 @@ Lists Application Gateway resources.
 
 ## Example Usage
 
-### List all Application Gateways
+### List all Application Gateways in the subscription
 
 ```hcl
 list "azurerm_application_gateway" "example" {
