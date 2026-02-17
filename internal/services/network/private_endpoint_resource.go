@@ -622,8 +622,6 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PrivateEndpoints
-	nicsClient := meta.(*clients.Client).Network.NetworkInterfaces
-	dnsClient := meta.(*clients.Client).Network.PrivateDnsZoneGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -642,6 +640,13 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
+	return resourcePrivateEndpointFlatten(ctx, meta.(*clients.Client), d, id, resp.Model)
+}
+
+func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *privateendpoints.PrivateEndpointId, model *privateendpoints.PrivateEndpoint) error {
+	nicsClient := metaClient.Network.NetworkInterfaces
+	dnsClient := metaClient.Network.PrivateDnsZoneGroups
+
 	privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
 	if err != nil {
 		return err
@@ -650,7 +655,7 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 	d.Set("name", id.PrivateEndpointName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
