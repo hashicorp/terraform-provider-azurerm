@@ -73,7 +73,7 @@ func (r WebApplicationFirewallPolicyListResource) List(ctx context.Context, requ
 
 			id, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(pointer.From(webapplicationfirewallpolicy.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing ApplicationGateway WebApplicationFirewallPolicy ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Web Application Firewall Policy ID", err)
 				return
 			}
 
