@@ -5,6 +5,7 @@ ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20260212.1143955`
 * `azurerm_point_to_site_vpn_gateway` - `connection_configuration.x.internet_security_enabled` can now be updated [GH-31733]
 * `azurerm_managed_redis` - `default_database` must be specified when creating a new resource [GH-31724]
+* `datafactory` - deprecate `key_vault_sas_token` in favour of `sas_token_linked_key_vault_key` and `msi_work_space_resource_id` in favour of `msi_workspace_id` [GH-31581]
 
 FEATURES:
 
