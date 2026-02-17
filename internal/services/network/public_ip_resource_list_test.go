@@ -60,6 +60,7 @@ func TestAccPublicIp_listBySubscriptionAndRG(t *testing.T) {
 		},
 	})
 }
+
 func (r PublicIpResource) basicQuery() string {
 	return `
 list "azurerm_public_ip" "list" {
