@@ -49,7 +49,6 @@ func (r RedisFirewallRuleListResource) ListResourceConfigSchema(_ context.Contex
 }
 
 func (RedisFirewallRuleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-
 	client := metadata.Client.Redis.FirewallRulesClient
 
 	// Read the list config data into the model
@@ -79,7 +78,6 @@ func (RedisFirewallRuleListResource) List(ctx context.Context, request list.List
 	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, rules := range results {
-
 			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
 

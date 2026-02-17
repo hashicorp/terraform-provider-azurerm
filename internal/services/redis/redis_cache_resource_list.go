@@ -27,7 +27,6 @@ func (r RedisCacheListResource) Metadata(_ context.Context, _ resource.MetadataR
 }
 
 func (RedisCacheListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-
 	client := metadata.Client.Redis.RedisResourcesClient
 
 	// retrieve the deadline from the supplied context
@@ -76,13 +75,11 @@ func (RedisCacheListResource) List(ctx context.Context, request list.ListRequest
 
 	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
-
 		// Instantiate a new context based on the deadline retrieved earlier
 		deadlineCtx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
 		for _, redis := range results {
-
 			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(deadlineCtx)
 
