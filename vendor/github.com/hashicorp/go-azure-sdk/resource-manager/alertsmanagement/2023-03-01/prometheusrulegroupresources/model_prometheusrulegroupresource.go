@@ -1,4 +1,4 @@
-package prometheusrulegroups
+package prometheusrulegroupresources
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
