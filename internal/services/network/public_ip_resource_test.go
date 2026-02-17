@@ -110,6 +110,36 @@ func TestAccPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(dnl),
 			),
 		},
+		{
+			Config: r.static_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_withReverseFqdn(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIPResource{}
+	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withReverseFqdn(data, dnl),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("domain_name_label").HasValue(dnl),
+				check.That(data.ResourceName).Key("reverse_fqdn").HasValue(fmt.Sprintf("%s.%s.cloudapp.azure.com.", dnl, data.Locations.Primary)),
+			),
+		},
+		{
+			Config: r.static_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 		data.ImportStep(),
 	})
 }
@@ -523,6 +553,29 @@ resource "azurerm_public_ip" "test" {
   domain_name_label   = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, dnsNameLabel)
+}
+
+func (PublicIPResource) withReverseFqdn(data acceptance.TestData, dnsNameLabel string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Basic"
+  domain_name_label   = "%s"
+  reverse_fqdn        = "%s.%s.cloudapp.azure.com."
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, dnsNameLabel, dnsNameLabel, data.Locations.Primary)
 }
 
 func (PublicIPResource) static_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {

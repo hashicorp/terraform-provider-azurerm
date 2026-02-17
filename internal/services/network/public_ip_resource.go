@@ -358,25 +358,30 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		payload.Properties.IdleTimeoutInMinutes = pointer.To(int64(d.Get("idle_timeout_in_minutes").(int)))
 	}
 
-	if d.HasChange("domain_name_label") {
-		if payload.Properties.DnsSettings == nil {
-			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
-		}
-		payload.Properties.DnsSettings.DomainNameLabel = pointer.To(d.Get("domain_name_label").(string))
-	}
+	if d.HasChanges("domain_name_label", "domain_name_label_scope", "reverse_fqdn") {
+		dnl, dnlOk := d.GetOk("domain_name_label")
+		rfqdn, rfqdnOk := d.GetOk("reverse_fqdn")
+		dnlc, dnlcOk := d.GetOk("domain_name_label_scope")
 
-	if d.HasChange("domain_name_label_scope") {
-		if payload.Properties.DnsSettings == nil {
-			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
-		}
-		payload.Properties.DnsSettings.DomainNameLabelScope = pointer.To(publicipaddresses.PublicIPAddressDnsSettingsDomainNameLabelScope(d.Get("domain_name_label_scope").(string)))
-	}
+		if dnlOk || rfqdnOk || dnlcOk {
+			dnsSettings := publicipaddresses.PublicIPAddressDnsSettings{}
 
-	if d.HasChange("reverse_fqdn") {
-		if payload.Properties.DnsSettings == nil {
-			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
+			if rfqdnOk {
+				dnsSettings.ReverseFqdn = pointer.To(rfqdn.(string))
+			}
+
+			if dnlOk {
+				dnsSettings.DomainNameLabel = pointer.To(dnl.(string))
+			}
+
+			if dnlcOk {
+				dnsSettings.DomainNameLabelScope = pointer.ToEnum[publicipaddresses.PublicIPAddressDnsSettingsDomainNameLabelScope](dnlc.(string))
+			}
+
+			payload.Properties.DnsSettings = &dnsSettings
+		} else {
+			payload.Properties.DnsSettings = nil
 		}
-		payload.Properties.DnsSettings.ReverseFqdn = pointer.To(d.Get("reverse_fqdn").(string))
 	}
 
 	if d.HasChanges("tags") {
@@ -430,12 +435,21 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				d.Set("public_ip_prefix_id", publicIpPrefix.Id)
 			}
 
+			fqdn := ""
+			reverseFqdn := ""
+			domainNameLabel := ""
+			domainNameLabelScope := ""
 			if settings := props.DnsSettings; settings != nil {
-				d.Set("fqdn", settings.Fqdn)
-				d.Set("reverse_fqdn", settings.ReverseFqdn)
-				d.Set("domain_name_label", settings.DomainNameLabel)
-				d.Set("domain_name_label_scope", string(pointer.From(settings.DomainNameLabelScope)))
+				fqdn = pointer.From(settings.Fqdn)
+				reverseFqdn = pointer.From(settings.ReverseFqdn)
+				domainNameLabel = pointer.From(settings.DomainNameLabel)
+				domainNameLabelScope = pointer.FromEnum(settings.DomainNameLabelScope)
 			}
+
+			d.Set("fqdn", fqdn)
+			d.Set("reverse_fqdn", reverseFqdn)
+			d.Set("domain_name_label", domainNameLabel)
+			d.Set("domain_name_label_scope", domainNameLabelScope)
 
 			ddosProtectionMode := string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited)
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {
