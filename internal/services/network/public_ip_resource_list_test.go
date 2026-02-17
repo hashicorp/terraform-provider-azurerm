@@ -76,7 +76,7 @@ func (r PublicIpResource) basicQueryByResourceGroupName() string {
 list "azurerm_public_ip" "list" {
   provider = azurerm
   config {
-    resource_group_name = "${azurerm_resource_group.test.name}"
+    resource_group_name = azurerm_resource_group.test.name
   }
 }
 `
