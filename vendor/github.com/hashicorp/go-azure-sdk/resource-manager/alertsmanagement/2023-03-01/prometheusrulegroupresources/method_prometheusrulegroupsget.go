@@ -1,4 +1,4 @@
-package prometheusrulegroups
+package prometheusrulegroupresources
 
 import (
 	"context"
@@ -11,30 +11,25 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type CreateOrUpdateOperationResponse struct {
+type PrometheusRuleGroupsGetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *PrometheusRuleGroupResource
 }
 
-// CreateOrUpdate ...
-func (c PrometheusRuleGroupsClient) CreateOrUpdate(ctx context.Context, id PrometheusRuleGroupId, input PrometheusRuleGroupResource) (result CreateOrUpdateOperationResponse, err error) {
+// PrometheusRuleGroupsGet ...
+func (c PrometheusRuleGroupResourcesClient) PrometheusRuleGroupsGet(ctx context.Context, id PrometheusRuleGroupId) (result PrometheusRuleGroupsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPut,
+		HttpMethod: http.MethodGet,
 		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
-		return
-	}
-
-	if err = req.Marshal(input); err != nil {
 		return
 	}
 
