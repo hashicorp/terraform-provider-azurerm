@@ -18,7 +18,7 @@ Lists Mssql Database resources.
 list "azurerm_mssql_database" "example" {
   provider = azurerm
   config {
-    server_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver"
+    mssql_server_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver"
   }
 }
 ```
@@ -29,7 +29,7 @@ list "azurerm_mssql_database" "example" {
 list "azurerm_mssql_database" "example" {
   provider = azurerm
   config {
-    elastic_pool_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/myelasticpoolname"
+    mssql_elastic_pool_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/myelasticpoolname"
   }
 }
 ```
@@ -38,6 +38,6 @@ list "azurerm_mssql_database" "example" {
 
 This list resource supports the following arguments:
 
-* `server_id` - (Optional) The ID of the Mssql Server to query.
+* `mssql_server_id` - (Optional) The ID of the Mssql Server to query.
 
-* `elastic_pool_id` - (Optional) The ID of the Mssql Elastic Pool to query.
+* `mssql_elastic_pool_id` - (Optional) The ID of the Mssql Elastic Pool to query.
