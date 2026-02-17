@@ -24,7 +24,7 @@ import (
 type MssqlJobAgentListResource struct{}
 
 type MssqlJobAgentListModel struct {
-	ServerId types.String `tfsdk:"server_id"`
+	MssqlServerId types.String `tfsdk:"mssql_server_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(MssqlJobAgentListResource)
@@ -40,7 +40,7 @@ func (r MssqlJobAgentListResource) Metadata(_ context.Context, _ resource.Metada
 func (r MssqlJobAgentListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"server_id": schema.StringAttribute{
+			"mssql_server_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -64,14 +64,14 @@ func (r MssqlJobAgentListResource) List(ctx context.Context, request list.ListRe
 
 	results := make([]jobagents.JobAgent, 0)
 
-	if !data.ServerId.IsNull() {
-		serverId, err := commonids.ParseSqlServerID(data.ServerId.ValueString())
+	if !data.MssqlServerId.IsNull() {
+		mssqlServerId, err := commonids.ParseSqlServerID(data.MssqlServerId.ValueString())
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing mssql Server ID for `%s`", "azurerm_mssql_job_agent"), err)
 			return
 		}
 
-		resp, err := client.ListByServerComplete(ctx, *serverId)
+		resp, err := client.ListByServerComplete(ctx, *mssqlServerId)
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_mssql_job_agent"), err)
 			return

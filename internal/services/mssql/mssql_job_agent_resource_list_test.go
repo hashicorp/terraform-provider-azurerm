@@ -52,7 +52,7 @@ func (r MssqlJobAgentResource) basicQuery(data acceptance.TestData) string {
 list "azurerm_mssql_job_agent" "list" {
   provider = azurerm
   config {
-    server_id = "${azurerm_mssql_server.test.id}"
+    mssql_server_id = azurerm_mssql_server.test.id
   }
 }
 `
