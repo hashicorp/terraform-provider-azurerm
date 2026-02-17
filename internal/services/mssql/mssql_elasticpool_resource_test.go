@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlElasticPoolResource struct{}
@@ -835,13 +834,13 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_mssql_elasticpool" "test" {
-  name                            = "acctest-pool-dtu-%[1]d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  server_name                     = azurerm_mssql_server.test.name
-  max_size_gb                     = 50
-  zone_redundant                  = false
-  license_type                    = "%[3]s"
+  name                = "acctest-pool-dtu-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  server_name         = azurerm_mssql_server.test.name
+  max_size_gb         = 50
+  zone_redundant      = false
+  license_type        = "%[3]s"
   %[4]s
 
   sku {
