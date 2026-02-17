@@ -20,10 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RouteListResource struct{}
-type RouteListModel struct {
-	RouteTableId types.String `tfsdk:"route_table_id"`
-}
+type (
+	RouteListResource struct{}
+	RouteListModel    struct {
+		RouteTableId types.String `tfsdk:"route_table_id"`
+	}
+)
 
 var _ sdk.FrameworkListWrappedResource = new(RouteListResource)
 
@@ -34,6 +36,7 @@ func (r RouteListResource) ResourceFunc() *pluginsdk.Resource {
 func (r RouteListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = "azurerm_route"
 }
+
 func (r RouteListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
