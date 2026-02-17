@@ -73,7 +73,7 @@ func (r NatGatewayListResource) List(ctx context.Context, request list.ListReque
 
 			id, err := natgateways.ParseNatGatewayID(pointer.From(natgateway.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing NatGateway ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Nat Gateway ID", err)
 				return
 			}
 
