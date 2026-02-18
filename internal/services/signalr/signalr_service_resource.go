@@ -852,19 +852,19 @@ func resourceArmSignalRServiceSchema() map[string]*pluginsdk.Schema {
 		"connectivity_logs_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Default:  false,
 		},
 
 		"messaging_logs_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Default:  false,
 		},
 
 		"http_request_logs_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Default:  false,
 		},
 
 		"live_trace_enabled": {
