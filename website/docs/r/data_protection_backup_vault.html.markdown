@@ -47,6 +47,10 @@ The following arguments are supported:
  
 -> **Note:** The `cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`. Once `cross_region_restore_enabled` is enabled, it cannot be disabled.
 
+* `cross_subscription_restore_enabled` - (Optional) Whether to enable cross-subscription restore for the Backup Vault.
+
+-> **Note:** Once `cross_subscription_restore_enabled` is enabled, it cannot be disabled.
+
 ---
 
 * `identity` - (Optional) An `identity` block as defined below.
