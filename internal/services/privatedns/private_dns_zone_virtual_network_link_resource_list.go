@@ -20,10 +20,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateDnsZoneVirtualNetworkLinkListResource struct{}
-type PrivateDnsZoneVirtualNetworkLinkListModel struct {
-	PrivateDnsZoneId types.String `tfsdk:"private_dns_zone_id"`
-}
+type (
+	PrivateDnsZoneVirtualNetworkLinkListResource struct{}
+	PrivateDnsZoneVirtualNetworkLinkListModel    struct {
+		PrivateDnsZoneId types.String `tfsdk:"private_dns_zone_id"`
+	}
+)
 
 var _ sdk.FrameworkListWrappedResource = new(PrivateDnsZoneVirtualNetworkLinkListResource)
 
@@ -34,6 +36,7 @@ func (r PrivateDnsZoneVirtualNetworkLinkListResource) ResourceFunc() *pluginsdk.
 func (r PrivateDnsZoneVirtualNetworkLinkListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = "azurerm_private_dns_zone_virtual_network_link"
 }
+
 func (r PrivateDnsZoneVirtualNetworkLinkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
