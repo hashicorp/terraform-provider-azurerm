@@ -122,7 +122,11 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 			},
-
+			"ignore_delete": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -299,9 +303,10 @@ func resourceVirtualMachineExtensionsDelete(d *pluginsdk.ResourceData, meta inte
 	if err != nil {
 		return err
 	}
-
-	if err := client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+	if !d.Get("ignore_delete").(bool) {
+		if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("deleting %s: %+v", id, err)
+		}
 	}
 
 	return nil
