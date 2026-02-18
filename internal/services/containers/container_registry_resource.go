@@ -14,7 +14,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -382,24 +381,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_container_registry", id.ID())
 		}
-	}
-
-	sId := commonids.NewSubscriptionID(subscriptionId)
-	availabilityRequest := registries.RegistryNameCheckRequest{
-		Name: id.RegistryName,
-		Type: "Microsoft.ContainerRegistry/registries",
-	}
-	resp, err := client.CheckNameAvailability(ctx, sId, availabilityRequest)
-	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", id.RegistryName, err)
-	}
-
-	if resp.Model == nil && resp.Model.NameAvailable == nil {
-		return fmt.Errorf("checking name availability for %s: model was nil", id)
-	}
-
-	if available := *resp.Model.NameAvailable; !available {
-		return fmt.Errorf("the name %q used for the Container Registry needs to be globally unique and isn't available: %s", id.RegistryName, *resp.Model.Message)
 	}
 
 	sku := d.Get("sku").(string)
