@@ -24,7 +24,7 @@ import (
 type MssqlElasticPoolListResource struct{}
 
 type MssqlElasticPoolListModel struct {
-	ServerId types.String `tfsdk:"server_id"`
+	MssqlServerId types.String `tfsdk:"mssql_server_id"`
 }
 
 var _ sdk.FrameworkListWrappedResource = new(MssqlElasticPoolListResource)
@@ -40,7 +40,7 @@ func (r MssqlElasticPoolListResource) Metadata(_ context.Context, _ resource.Met
 func (r MssqlElasticPoolListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"server_id": schema.StringAttribute{
+			"mssql_server_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -63,8 +63,8 @@ func (r MssqlElasticPoolListResource) List(ctx context.Context, request list.Lis
 	}
 
 	results := make([]elasticpools.ElasticPool, 0)
-	if !data.ServerId.IsNull() {
-		serverId, err := commonids.ParseSqlServerID(data.ServerId.ValueString())
+	if !data.MssqlServerId.IsNull() {
+		serverId, err := commonids.ParseSqlServerID(data.MssqlServerId.ValueString())
 		if err != nil {
 			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Mssql Server ID for `%s`", "azurerm_mssql_elasticpool"), err)
 			return
