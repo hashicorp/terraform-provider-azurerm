@@ -323,11 +323,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				}
 			}
 
-			// aadAuthAsArmPolicyEnabled := d.Get("azuread_authentication_as_arm_policy_enabled").(bool)
-			// if aadAuthAsArmPolicyEnabled && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-			// 	return errors.New("an ACR AzureAD Authentication As ARM policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset azuread_authentication_as_arm_policy_enabled")
-			// }
-
 			encryptionEnabled, ok := d.GetOk("encryption")
 			if ok && len(encryptionEnabled.([]interface{})) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
 				return errors.New("an ACR encryption can only be applied when using the Premium Sku")
@@ -369,7 +364,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
-	registriesClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -395,7 +389,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		Name: id.RegistryName,
 		Type: "Microsoft.ContainerRegistry/registries",
 	}
-	resp, err := registriesClient.CheckNameAvailability(ctx, sId, availabilityRequest)
+	resp, err := client.CheckNameAvailability(ctx, sId, availabilityRequest)
 	if err != nil {
 		return fmt.Errorf("checking if the name %q was available: %+v", id.RegistryName, err)
 	}
@@ -412,7 +406,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
+		return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -529,7 +523,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 	if d.HasChange("network_rule_set") {
 		networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 		if networkRuleSet != nil && isBasicSku {
-			return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+			return fmt.Errorf("`network_rule_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
 		}
 
 		payload.Properties.NetworkRuleSet = networkRuleSet
