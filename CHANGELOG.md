@@ -10,6 +10,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_managed_redis_geo_replication` - fix an issue that prevented linking 3 or more clusters [GH-31385]
 
 ## 4.60.0 (February 12, 2026)
 
