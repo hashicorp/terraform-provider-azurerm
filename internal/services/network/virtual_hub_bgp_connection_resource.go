@@ -52,9 +52,9 @@ func resourceVirtualHubBgpConnection() *pluginsdk.Resource {
 			},
 
 			"virtual_hub_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				// ForceNew:     true,
 				ValidateFunc: virtualwans.ValidateVirtualHubID,
 			},
 
@@ -66,9 +66,9 @@ func resourceVirtualHubBgpConnection() *pluginsdk.Resource {
 			},
 
 			"peer_ip": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				// ForceNew:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
 

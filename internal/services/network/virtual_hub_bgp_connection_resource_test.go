@@ -230,11 +230,6 @@ func (r VirtualHubBgpConnectionResource) update(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_virtual_hub_connection" "test" {
-  name                      = "acctestbasicvhubconn-%[2]d"
-  virtual_hub_id            = azurerm_virtual_hub.test.id
-  remote_virtual_network_id = azurerm_virtual_network.test.id
-}
 
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvirtnet2%[2]d"
