@@ -265,6 +265,12 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default: string(registries.NetworkRuleBypassOptionsAzureServices),
 			},
 
+			"network_rule_bypass_for_tasks_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"role_assignment_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -438,12 +444,13 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				ExportPolicy:                     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
 				AzureADAuthenticationAsArmPolicy: expandAadAuthAsArmPolicy(d.Get("azuread_authentication_as_arm_policy_enabled").(bool)),
 			},
-			PublicNetworkAccess:      &publicNetworkAccess,
-			ZoneRedundancy:           &zoneRedundancy,
-			AnonymousPullEnabled:     pointer.To(d.Get("anonymous_pull_enabled").(bool)),
-			DataEndpointEnabled:      pointer.To(d.Get("data_endpoint_enabled").(bool)),
-			NetworkRuleBypassOptions: pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
-			RoleAssignmentMode:       pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string)),
+			PublicNetworkAccess:              &publicNetworkAccess,
+			ZoneRedundancy:                   &zoneRedundancy,
+			AnonymousPullEnabled:             pointer.To(d.Get("anonymous_pull_enabled").(bool)),
+			DataEndpointEnabled:              pointer.To(d.Get("data_endpoint_enabled").(bool)),
+			NetworkRuleBypassOptions:         pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
+			RoleAssignmentMode:               pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string)),
+			NetworkRuleBypassAllowedForTasks: pointer.To(d.Get("network_rule_bypass_for_tasks_enabled").(bool)),
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -619,6 +626,10 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	if d.HasChange("role_assignment_mode") {
 		payload.Properties.RoleAssignmentMode = pointer.ToEnum[registries.RoleAssignmentMode](d.Get("role_assignment_mode").(string))
+	}
+
+	if d.HasChange("network_rule_bypass_for_tasks_enabled") {
+		payload.Properties.NetworkRuleBypassAllowedForTasks = pointer.To(d.Get("network_rule_bypass_for_tasks_enabled").(bool))
 	}
 
 	if d.HasChange("tags") {
@@ -862,6 +873,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
 			d.Set("role_assignment_mode", string(pointer.From(props.RoleAssignmentMode)))
+			d.Set("network_rule_bypass_for_tasks_enabled", pointer.From(props.NetworkRuleBypassAllowedForTasks))
 
 			if policies := props.Policies; policies != nil {
 				var retentionInDays int64

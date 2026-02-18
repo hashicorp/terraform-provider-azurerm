@@ -500,6 +500,7 @@ resource "azurerm_container_registry" "test" {
   anonymous_pull_enabled                       = true
   data_endpoint_enabled                        = true
   network_rule_bypass_option                   = "None"
+  network_rule_bypass_for_tasks_enabled        = true
   role_assignment_mode                         = "AbacRepositoryPermissions"
 
   tags = {
@@ -550,6 +551,7 @@ resource "azurerm_container_registry" "test" {
   anonymous_pull_enabled                       = false
   data_endpoint_enabled                        = false
   network_rule_bypass_option                   = "AzureServices"
+  network_rule_bypass_for_tasks_enabled        = false
   role_assignment_mode                         = "LegacyRegistryPermissions"
 
   tags = {

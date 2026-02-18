@@ -182,6 +182,8 @@ The following arguments are supported:
 
 * `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network-restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
+* `network_rule_bypass_for_tasks_enabled` - (Optional) Whether to allow Container Registry Tasks to access a network-restricted Container Registry? Defaults to `false`.
+
 * `role_assignment_mode` - (Optional) The role assignment mode of this Container Registry. Possible values are `AbacRepositoryPermissions` and `LegacyRegistryPermissions`. Defaults to `LegacyRegistryPermissions`.
 
 ---
