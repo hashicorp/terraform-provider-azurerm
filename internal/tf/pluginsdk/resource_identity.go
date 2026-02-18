@@ -93,7 +93,7 @@ func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) m
 
 // ValidateResourceIdentityData validates the resource identity data provided by the user when performing a plannable
 // import using resource identity
-func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
+func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, constant string, idType ...ResourceTypeForIdentity) error {
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
@@ -103,9 +103,17 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 	segments := id.Segments()
 	numSegments := len(segments)
 	for idx, segment := range segments {
-		if segment.Type == resourceids.StaticSegmentType || segment.Type == resourceids.ResourceProviderSegmentType {
+		switch segment.Type {
+		case resourceids.StaticSegmentType, resourceids.ResourceProviderSegmentType:
 			identityString += pointer.From(segment.FixedValue) + "/"
+		case resourceids.ConstantSegmentType:
+			if constant == "" {
+				return fmt.Errorf("resource ID contains constant segment this must be provide, got \"\"")
+			}
+
+			identityString += constant + "/"
 		}
+
 		if segmentTypeSupported(segment.Type) {
 			name := segmentName(segment, identityType(idType), numSegments, idx)
 
@@ -134,7 +142,10 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 
 	identityString = strings.TrimRight(identityString, "/")
 
-	// TODO it might be good practice then parse constructed ID string to ensure validity?
+	parser := resourceids.NewParserFromResourceIdType(id)
+	if _, err := parser.Parse(identityString, true); err != nil {
+		return fmt.Errorf("parsing after building Resource ID: %s", err)
+	}
 
 	d.SetId(identityString)
 
