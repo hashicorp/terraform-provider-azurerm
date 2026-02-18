@@ -51,7 +51,6 @@ func (r RedisFirewallRuleListResource) ListResourceConfigSchema(_ context.Contex
 func (RedisFirewallRuleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
 	client := metadata.Client.Redis.FirewallRulesClient
 
-	// Read the list config data into the model
 	var data RedisFirewallRuleListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
@@ -59,7 +58,6 @@ func (RedisFirewallRuleListResource) List(ctx context.Context, request list.List
 		return
 	}
 
-	// Initialize a list for the results of the API request
 	results := make([]redisfirewallrules.RedisFirewallRule, 0)
 
 	cacheId, err := redisfirewallrules.ParseRediIDInsensitively(data.RedisCacheId.ValueString())
@@ -75,19 +73,13 @@ func (RedisFirewallRuleListResource) List(ctx context.Context, request list.List
 	}
 	results = resp.Items
 
-	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, rules := range results {
-			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(ctx)
-
-			// Set the display name of the item as the resource name
 			result.DisplayName = pointer.From(rules.Name)
 
-			// Create a new ResourceData object to hold the state of the resource
 			rd := resourceRedisFirewallRule().Data(&terraform.InstanceState{})
 
-			// Set the ID of the resource for the ResourceData object
 			// API is returning /Redis/ with capital "R", so need to parse insensitive
 			id, err := redisfirewallrules.ParseFirewallRuleIDInsensitively(pointer.From(rules.Id))
 			if err != nil {
@@ -96,13 +88,11 @@ func (RedisFirewallRuleListResource) List(ctx context.Context, request list.List
 			}
 			rd.SetId(id.ID())
 
-			// Use the resource flatten function to set the attributes into the resource state
 			if err := resourceRedisFirewallRuleFlatten(rd, id, &rules); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", redisFirewallRuleResourceName), err)
 				return
 			}
-
-			// Convert and set the identity and resource state into the result
+			
 			sdk.EncodeListResult(ctx, rd, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
