@@ -247,6 +247,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
 
+### `azurerm_data_factory_linked_service_azure_blob_storage`
+
+* The deprecated `key_vault_sas_token` block has been removed in favour of the `sas_token_linked_key_vault_key` block.
+
+### `azurerm_data_factory_linked_service_azure_databricks`
+
+* The deprecated `msi_work_space_resource_id` property has been removed in favour of the `msi_workspace_id` property.
+
 ### `azurerm_data_factory_integration_runtime_self_hosted`
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
