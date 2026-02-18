@@ -100,6 +100,7 @@ func resourceDataProtectionBackupInstanceBlobStorage() *schema.Resource {
 func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).DataProtection.BackupInstanceClient
+	policyClient := meta.(*clients.Client).DataProtection.BackupPolicyClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -128,6 +129,26 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	if err != nil {
 		return err
 	}
+	// need to know if the backup policy is hybrid or vault type; see https://github.com/hashicorp/terraform-provider-azurerm/issues/15844 for partial discussion
+	policyInfoResp, err := policyClient.Get(ctx, *policyId)
+	if err != nil {
+		if response.WasNotFound(policyInfoResp.HttpResponse) {
+			log.Printf("[DEBUG] %s does not exist", policyId)
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", policyId, err)
+	}
+	vaultDefaultRetentionDurationSet := false
+	if policyInfoResp.Model != nil {
+		if policyInfoResp.Model.Properties != nil {
+			if props, ok := policyInfoResp.Model.Properties.(backuppolicies.BackupPolicy); ok {
+				vaultDefaultRetentionDuration := flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesVaultStore)
+				if vaultDefaultRetentionDuration != nil {
+					vaultDefaultRetentionDurationSet = true
+				}
+			}
+		}
+	}
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
@@ -155,6 +176,8 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 				},
 			},
 		}
+	} else if vaultDefaultRetentionDurationSet && len(v.([]interface{})) == 0 {
+		return fmt.Errorf("backup policy has a vault default retention set; storage_account_container_names cannot be empty")
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -168,7 +191,7 @@ func resourceDataProtectionBackupInstanceBlobStorageCreateUpdate(d *schema.Resou
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:    []string{string(backupinstances.StatusConfiguringProtection), "UpdatingProtection"},
 		Target:     []string{string(backupinstances.StatusProtectionConfigured)},
-		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
+		Refresh:    resourceDataProtectionBackupInstanceProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
 	}
@@ -242,4 +265,22 @@ func resourceDataProtectionBackupInstanceBlobStorageDelete(d *schema.ResourceDat
 	}
 
 	return nil
+}
+
+func resourceDataProtectionBackupInstanceProtectionStateRefreshFunc(ctx context.Context, client *backupinstances.BackupInstancesClient, id backupinstances.BackupInstanceId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
+		}
+		if res.Model == nil || res.Model.Properties == nil || res.Model.Properties.ProtectionStatus == nil || res.Model.Properties.ProtectionStatus.Status == nil {
+			return nil, "", fmt.Errorf("reading DataProtection BackupInstance (%q) protection status: %+v", id, err)
+		}
+
+		if *res.Model.Properties.ProtectionStatus.Status == "ProtectionError" {
+			return nil, "", fmt.Errorf("DataProtection BackupInstance (%q) encountered a protection error: %s Recommended action: %s", id, *res.Model.Properties.ProtectionErrorDetails.Message, *res.Model.Properties.ProtectionErrorDetails.RecommendedAction)
+		}
+
+		return res, string(*res.Model.Properties.ProtectionStatus.Status), nil
+	}
 }
