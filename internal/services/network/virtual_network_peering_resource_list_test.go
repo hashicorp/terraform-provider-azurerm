@@ -52,7 +52,7 @@ func (r VirtualNetworkPeeringResource) basicQuery(data acceptance.TestData) stri
 list "azurerm_virtual_network_peering" "list" {
   provider = azurerm
   config {
-    virtual_network_id = azurerm_virtual_network.test1.id
+    virtual_network_id = azurerm_virtual_network.test.id
   }
 }
 `
