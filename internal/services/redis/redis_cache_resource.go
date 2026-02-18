@@ -713,27 +713,12 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return resourceRedisCacheFlatten(d, id, resp.Model, ctx, meta.(*clients.Client))
+	return resourceRedisCacheFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
 }
 
-func resourceRedisCacheFlatten(d *pluginsdk.ResourceData, id *redisresources.RediId, redis *redisresources.RedisResource, ctx context.Context, metaClient *clients.Client) error {
+func resourceRedisCacheFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *redisresources.RediId, redis *redisresources.RedisResource, fetchCompleteData bool) error {
 	client := metaClient.Redis.RedisResourcesClient
 	patchSchedulesClient := metaClient.Redis.PatchSchedulesClient
-
-	keysResp, err := client.RedisListKeys(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", *id, err)
-	}
-
-	patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
-	schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchSchedulesRedisId)
-	var patchSchedule []interface{}
-	if err == nil {
-		patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
-	}
-	if err = d.Set("patch_schedule", patchSchedule); err != nil {
-		return fmt.Errorf("setting `patch_schedule`: %+v", err)
-	}
 
 	d.Set("name", id.RedisName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -800,11 +785,28 @@ func resourceRedisCacheFlatten(d *pluginsdk.ResourceData, id *redisresources.Red
 			return fmt.Errorf("setting `redis_configuration`: %+v", err)
 		}
 
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, true))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
-		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
-		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
-		d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
+		if fetchCompleteData {
+			keysResp, err := client.RedisListKeys(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing keys for %s: %+v", *id, err)
+			}
+
+			d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, true))
+			d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
+			d.Set("primary_access_key", keysResp.Model.PrimaryKey)
+			d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
+			d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
+
+			patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+			schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchSchedulesRedisId)
+			var patchSchedule []interface{}
+			if err == nil {
+				patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
+			}
+			if err = d.Set("patch_schedule", patchSchedule); err != nil {
+				return fmt.Errorf("setting `patch_schedule`: %+v", err)
+			}
+		}
 
 		if err := tags.FlattenAndSet(d, redis.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)

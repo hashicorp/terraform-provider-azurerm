@@ -37,7 +37,6 @@ func (RedisCacheListResource) List(ctx context.Context, request list.ListRequest
 		return
 	}
 
-	// Read the list config data into the model
 	var data sdk.DefaultListModel
 	diags := request.Config.Get(ctx, &data)
 	if diags.HasError() {
@@ -45,7 +44,6 @@ func (RedisCacheListResource) List(ctx context.Context, request list.ListRequest
 		return
 	}
 
-	// Initialize a list for the results of the API request
 	results := make([]redisresources.RedisResource, 0)
 
 	subscriptionID := metadata.SubscriptionId
@@ -53,7 +51,6 @@ func (RedisCacheListResource) List(ctx context.Context, request list.ListRequest
 		subscriptionID = data.SubscriptionId.ValueString()
 	}
 
-	// Make the request based on which list parameters have been set in the config
 	switch {
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.RedisListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
@@ -73,23 +70,16 @@ func (RedisCacheListResource) List(ctx context.Context, request list.ListRequest
 		results = resp.Items
 	}
 
-	// Define the function that will push results into the stream
 	stream.Results = func(push func(list.ListResult) bool) {
-		// Instantiate a new context based on the deadline retrieved earlier
 		deadlineCtx, cancel := context.WithDeadline(context.Background(), deadline)
 		defer cancel()
 
 		for _, redis := range results {
-			// Initialize a new result object for each resource in the list
 			result := request.NewListResult(deadlineCtx)
-
-			// Set the display name of the item as the resource name
 			result.DisplayName = pointer.From(redis.Name)
 
-			// Create a new ResourceData object to hold the state of the resource
 			rd := resourceRedisCache().Data(&terraform.InstanceState{})
 
-			// Set the ID of the resource for the ResourceData object
 			// API is returning /Redis/ with capital "R", so need to parse insensitive
 			id, err := redisresources.ParseRediIDInsensitively(pointer.From(redis.Id))
 			if err != nil {
@@ -98,13 +88,11 @@ func (RedisCacheListResource) List(ctx context.Context, request list.ListRequest
 			}
 			rd.SetId(id.ID())
 
-			// Use the resource flatten function to set the attributes into the resource state
-			if err := resourceRedisCacheFlatten(rd, id, &redis, deadlineCtx, metadata.Client); err != nil {
+			if err := resourceRedisCacheFlatten(deadlineCtx, metadata.Client, rd, id, &redis, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", redisCacheResourceName), err)
 				return
 			}
 
-			// Convert and set the identity and resource state into the result
 			sdk.EncodeListResult(deadlineCtx, rd, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
