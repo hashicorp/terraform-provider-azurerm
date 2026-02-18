@@ -25,7 +25,7 @@ func TestAccNetworkDdosProtectionPlan_resourceIdentity(t *testing.T) {
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicConfigIdentity(data),
 			ConfigStateChecks: []statecheck.StateCheck{
 				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_network_ddos_protection_plan.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_network_ddos_protection_plan.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),

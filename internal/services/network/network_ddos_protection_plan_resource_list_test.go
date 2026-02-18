@@ -25,7 +25,7 @@ func TestAccNetworkDDoSProtectionPlan_listBySubscriptionAndRG(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.basic(data),
+				Config: r.basicConfigList(data),
 			},
 			{
 				Query:  true,

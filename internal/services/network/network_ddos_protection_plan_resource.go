@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_ddos_protection_plan -service-package-name network -properties "name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_ddos_protection_plan -test-name basicConfigIdentity -service-package-name network -properties "name,resource_group_name"
 
 const ddosProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
 

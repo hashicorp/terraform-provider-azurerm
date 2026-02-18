@@ -130,8 +130,42 @@ func (NetworkDdosProtectionPlanResource) Destroy(ctx context.Context, client *cl
 	return pointer.To(true), nil
 }
 
-func (r NetworkDdosProtectionPlanResource) basic(data acceptance.TestData) string {
-	return r.basicConfig(data)
+func (NetworkDdosProtectionPlanResource) basicConfigIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_ddos_protection_plan" "test" {
+  name                = "acctestddospplan-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+}
+
+func (NetworkDdosProtectionPlanResource) basicConfigList(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_network_ddos_protection_plan" "test" {
+  name                = "acctestddospplan-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, data.RandomInteger, data.Locations.Ternary, data.RandomInteger)
 }
 
 func (NetworkDdosProtectionPlanResource) basicConfig(data acceptance.TestData) string {
