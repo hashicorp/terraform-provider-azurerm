@@ -129,6 +129,8 @@ az vm extension image list --location westus -o table
 
 -> **Note:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
 
+* `ignore_delete` - (Optional) Delete extension only from state. Possibke values are `true` or `false`. Defaults to `false`.
+
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 
 ~> **Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
