@@ -92,7 +92,7 @@ func (RedisFirewallRuleListResource) List(ctx context.Context, request list.List
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", redisFirewallRuleResourceName), err)
 				return
 			}
-			
+
 			sdk.EncodeListResult(ctx, rd, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
