@@ -318,6 +318,8 @@ type Client struct {
 
 	// ResponseMiddlewares is a slice of functions that are called in order before a response is parsed and returned
 	ResponseMiddlewares *[]ResponseMiddleware
+
+	HttpClient *http.Client
 }
 
 // NewClient returns a new Client configured with sensible defaults
@@ -345,6 +347,14 @@ func (c *Client) SetUserAgent(userAgent string) {
 // GetUserAgent retrieves the configured user agent for the client
 func (c *Client) GetUserAgent() string {
 	return c.UserAgent
+}
+
+func (c *Client) SetHTTPClient(httpClient *http.Client) {
+	c.HttpClient = httpClient
+}
+
+func (c *Client) GetHTTPClient() *http.Client {
+	return c.HttpClient
 }
 
 // AppendRequestMiddleware appends a request middleware function for the client
@@ -742,7 +752,10 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
 		},
 	}
-
+	// overrides httpClient with provided one
+	if c.HttpClient != nil{
+		r.HTTPClient = c.HttpClient
+	}
 	return
 }
 
