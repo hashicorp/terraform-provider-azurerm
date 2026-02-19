@@ -6,6 +6,18 @@ ENHANCEMENTS:
 * `azurerm_point_to_site_vpn_gateway` - `connection_configuration.x.internet_security_enabled` can now be updated [GH-31733]
 * `azurerm_managed_redis` - `default_database` must be specified when creating a new resource [GH-31724]
 * `datafactory` - deprecate `key_vault_sas_token` in favour of `sas_token_linked_key_vault_key` and `msi_work_space_resource_id` in favour of `msi_workspace_id` [GH-31581]
+* `azurerm_nat_gatway` -  implement list support for search [GH-31764]
+* `azurerm_public_ip` -  Add resource identity and list support for search [GH-31762]
+* `azurerm_web_application_firewall_policy` -  implement list and identity support for search [GH-31758]
+* `azurerm_application_gateway` -  implement list support for search [GH-31749]
+* `azurerm_network_security_rule` -  implement list support for search [GH-31748]
+* `azurerm_application_security_group` -  implement list support for search [GH-31742]
+* `azurerm_firewall_policy_rule_collection_group` -  implement list and identity support for search [GH-31741]
+* `azurerm_ip_group` -  implement list and identity support for search [GH-31740]
+* `azurerm_mssql_job_agent` -  implement list and identity support for search [GH-31738]
+* `azurerm_mssql_database` -  implement list and identity support for search [GH-31735]
+* `azurerm_firewall` and `azurerm_firewall_policy` - implement list support for search [GH-31734]
+* `azurerm_mssql_server` -  implement list for resource support for search [GH-31650]
 
 FEATURES:
 
