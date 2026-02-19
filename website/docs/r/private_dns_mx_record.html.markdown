@@ -24,10 +24,9 @@ resource "azurerm_private_dns_zone" "example" {
 }
 
 resource "azurerm_private_dns_mx_record" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  zone_name           = azurerm_private_dns_zone.example.name
-  ttl                 = 300
+  name            = "example"
+  private_zone_id = azurerm_private_dns_zone.example.id
+  ttl             = 300
 
   record {
     preference = 10
@@ -51,9 +50,7 @@ The following arguments are supported:
 
 * `name` - (Optional) The name of the DNS MX Record. Changing this forces a new resource to be created. Default to '@' for root zone entry.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
-
-* `zone_name` - (Required) Specifies the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `private_zone_id` - (Required) Specifies the Private DNS ID where the resource exists. Changing this forces a new resource to be created.
 
 * `record` - (Required) One or more `record` blocks as defined below.
 

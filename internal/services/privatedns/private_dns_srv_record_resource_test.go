@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -105,7 +106,8 @@ func (r PrivateDnsSrvRecordResource) Exists(ctx context.Context, clients *client
 }
 
 func (r PrivateDnsSrvRecordResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_private_dns_srv_record" "test" {
@@ -128,6 +130,29 @@ resource "azurerm_private_dns_srv_record" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_dns_srv_record" "test" {
+  name            = "acctestsrv%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
+  record {
+    priority = 1
+    weight   = 5
+    port     = 8080
+    target   = "target1.contoso.com"
+  }
+
+  record {
+    priority = 10
+    weight   = 10
+    port     = 8080
+    target   = "target2.contoso.com"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r PrivateDnsSrvRecordResource) requiresImport(data acceptance.TestData) string {
@@ -135,10 +160,9 @@ func (r PrivateDnsSrvRecordResource) requiresImport(data acceptance.TestData) st
 %s
 
 resource "azurerm_private_dns_srv_record" "import" {
-  name                = azurerm_private_dns_srv_record.test.name
-  resource_group_name = azurerm_private_dns_srv_record.test.resource_group_name
-  zone_name           = azurerm_private_dns_srv_record.test.zone_name
-  ttl                 = 300
+  name            = azurerm_private_dns_srv_record.test.name
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     priority = 1
     weight   = 5
@@ -160,10 +184,9 @@ func (r PrivateDnsSrvRecordResource) updateRecords(data acceptance.TestData) str
 %s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "acctestsrv%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "acctestsrv%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     priority = 1
     weight   = 5
@@ -191,10 +214,9 @@ func (r PrivateDnsSrvRecordResource) withTags(data acceptance.TestData) string {
 %s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "acctestsrv%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "acctestsrv%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     priority = 1
     weight   = 5
@@ -221,10 +243,9 @@ func (r PrivateDnsSrvRecordResource) withTagsUpdate(data acceptance.TestData) st
 %s
 
 resource "azurerm_private_dns_srv_record" "test" {
-  name                = "acctestsrv%d"
-  resource_group_name = azurerm_resource_group.test.name
-  zone_name           = azurerm_private_dns_zone.test.name
-  ttl                 = 300
+  name            = "acctestsrv%d"
+  private_zone_id = azurerm_private_dns_zone.test.id
+  ttl             = 300
   record {
     priority = 1
     weight   = 5
