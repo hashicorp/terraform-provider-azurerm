@@ -236,7 +236,7 @@ The following arguments are supported:
 
 * `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
 
-* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` block which is documented below.
+* `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` block which is defined below.
     The block can only be used on `IPSec` / `activeactive` connections,
     For details about see [the relevant section in the Azure documentation](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-aws-bgp).
 
@@ -250,11 +250,11 @@ The following arguments are supported:
 
 * `use_policy_based_traffic_selectors` - (Optional) If `true`, policy-based traffic selectors are enabled for this connection. Enabling policy-based traffic selectors requires an `ipsec_policy` block. Defaults to `false`.
 
-* `ipsec_policy` - (Optional) A `ipsec_policy` block which is documented below.
+* `ipsec_policy` - (Optional) A `ipsec_policy` block which is defined below.
     Only a single policy can be defined for a connection. For details on
     custom policies refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-ipsecikepolicy-rm-powershell).
 
-* `traffic_selector_policy` - (Optional) One or more `traffic_selector_policy` blocks which are documented below.
+* `traffic_selector_policy` - (Optional) One or more `traffic_selector_policy` blocks which are defined below.
     A `traffic_selector_policy` allows to specify a traffic selector policy proposal to be used in a virtual network gateway connection.
     For details about traffic selectors refer to [the relevant section in the Azure documentation](https://docs.microsoft.com/azure/vpn-gateway/vpn-gateway-connect-multiple-policybased-rm-ps).
 

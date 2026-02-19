@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `workspace_name` - (Required) The full name of the Log Analytics workspace with which the solution will be linked. Changing this forces a new resource to be created.
 
-* `plan` - (Required) A `plan` block as documented below.
+* `plan` - (Required) A `plan` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

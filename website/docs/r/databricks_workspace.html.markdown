@@ -84,9 +84,9 @@ The following arguments are supported:
 
 * `network_security_group_rules_required` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`.
 
-* `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
+* `custom_parameters` - (Optional) A `custom_parameters` block as defined below.
 
-* `enhanced_security_compliance` - (Optional) An `enhanced_security_compliance` block as documented below. This feature is only valid if `sku` is set to `premium`.
+* `enhanced_security_compliance` - (Optional) An `enhanced_security_compliance` block as defined below. This feature is only valid if `sku` is set to `premium`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -163,7 +163,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `disk_encryption_set_id` - The ID of Managed Disk Encryption Set created by the Databricks Workspace.
 
-* `managed_disk_identity` - A `managed_disk_identity` block as documented below.
+* `managed_disk_identity` - A `managed_disk_identity` block as defined below.
 
 * `managed_resource_group_id` - The ID of the Managed Resource Group created by the Databricks Workspace.
 
@@ -171,7 +171,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `workspace_id` - The unique identifier of the databricks workspace in Databricks control plane.
 
-* `storage_account_identity` - A `storage_account_identity` block as documented below.
+* `storage_account_identity` - A `storage_account_identity` block as defined below.
 
 ---
 
