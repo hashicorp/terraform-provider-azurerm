@@ -316,8 +316,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.hybrid.location
   resource_group_name = azurerm_resource_group.hybrid.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
