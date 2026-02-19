@@ -23,6 +23,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_signalr_service` - fix setting default values into state, preventing diffs on import for `connectivity_logs_enabled`, `http_request_logs_enabled`, and `messaging_logs_enabled` [GH-31566]
 * `azurerm_managed_redis_geo_replication` - fix an issue that prevented linking 3 or more clusters [GH-31385]
 
 ## 4.60.0 (February 12, 2026)
