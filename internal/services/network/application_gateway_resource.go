@@ -2012,11 +2012,14 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceApplicationGatewaySetFlatten(d, id, resp.Model)
+}
 
+func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applicationgateways.ApplicationGatewayId, model *applicationgateways.ApplicationGateway) error {
 	d.Set("name", id.ApplicationGatewayName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 

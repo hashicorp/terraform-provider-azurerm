@@ -15,15 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_job_agent -service-package-name mssql -properties "name" -compare-values "resource_group_name:database_id,server_name:database_id"
 
 func resourceMsSqlJobAgent() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,10 +34,11 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 		Update: resourceMsSqlJobAgentUpdate,
 		Delete: resourceMsSqlJobAgentDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.JobAgentID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&jobagents.JobAgentId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&jobagents.JobAgentId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -126,6 +129,9 @@ func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMsSqlJobAgentRead(d, meta)
 }
@@ -198,10 +204,13 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		return fmt.Errorf("retrieving %s: %s", *id, err)
 	}
+	return resourceMssqlJobAgentSetFlatten(d, id, resp.Model)
+}
 
+func resourceMssqlJobAgentSetFlatten(d *pluginsdk.ResourceData, id *jobagents.JobAgentId, model *jobagents.JobAgent) error {
 	d.Set("name", id.JobAgentName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
@@ -222,7 +231,7 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) error {

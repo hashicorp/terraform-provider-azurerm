@@ -205,11 +205,18 @@ func (r Registration) Actions() []func() action.Action {
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		ApplicationGatewayListResource{},
+		ApplicationSecurityGroupListResource{},
+		IpGroupListResource{},
+		NatGatewayListResource{},
 		NetworkInterfaceListResource{},
 		NetworkProfileListResource{},
 		NetworkSecurityGroupListResource{},
+		NetworkSecurityRuleListResource{},
+		PublicIpListResource{},
 		RouteTableListResource{},
 		VirtualNetworkListResource{},
+		WebApplicationFirewallPolicyListResource{},
 	}
 }
 

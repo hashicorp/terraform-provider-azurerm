@@ -247,6 +247,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
 
+### `azurerm_data_factory_linked_service_azure_blob_storage`
+
+* The deprecated `key_vault_sas_token` block has been removed in favour of the `sas_token_linked_key_vault_key` block.
+
+### `azurerm_data_factory_linked_service_azure_databricks`
+
+* The deprecated `msi_work_space_resource_id` property has been removed in favour of the `msi_workspace_id` property.
+
 ### `azurerm_data_factory_integration_runtime_self_hosted`
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
@@ -377,13 +385,21 @@ Please follow the format in the example below for listing breaking changes in re
 * The property `proxy_override` now defaults to `Redirect`.
 * The property `proxy_override` no longer accepts `Default` as a value.
 
+### `azurerm_mssql_managed_instance_transparent_data_encryption`
+
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
+
 ### `azurerm_mssql_server`
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
 
+### `azurerm_mssql_server_transparent_data_encryption`
+
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
+
 ### `azurerm_mysql_flexible_server`
 
-* The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The deprecated `public_network_access_enabled` property has been removed in favour of the `public_network_access` property.
 
 ### `azurerm_netapp_volume`
 
