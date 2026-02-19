@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_mssql_database` -  implement list and identity support for search [GH-31735]
 * `azurerm_firewall` and `azurerm_firewall_policy` - implement list support for search [GH-31734]
 * `azurerm_mssql_server` -  implement list for resource support for search [GH-31650]
+* `azurerm_managed_redis` - `sku_name` can now be updated [GH-31203]
 
 FEATURES:
 
