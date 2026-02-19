@@ -87,7 +87,9 @@ The following arguments are supported:
 
 * `license_type` - (Optional) Specifies the license type applied to this database. Possible values are `LicenseIncluded` and `BasePrice`.
 
-* `high_availability_replica_count` - (Optional) Specifies the number of high availability replicas for the elastic pool. Defaults to `0`.
+* `high_availability_replica_count` - (Optional) Specifies the number of high availability replicas for the elastic pool. Defaults to `1`.
+
+-> **Note:** The `high_availability_replica_count` property is only supported for `HyperScale` tier elastic pools.
 
 ---
 

@@ -203,10 +203,11 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"high_availability_replica_count": {
-				Type:         pluginsdk.TypeInt,
+				Type: pluginsdk.TypeInt,
+				// NOTE: O+C can only be set for Hyperscale skus, which have a default value of 1
 				Optional:     true,
-				Default:      0,
-				ValidateFunc: validation.IntAtLeast(0),
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(0, 4),
 			},
 
 			"tags": commonschema.Tags(),
@@ -216,6 +217,17 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
 					return err
+				}
+
+				if v, ok := diff.GetOk("high_availability_replica_count"); ok && v.(int) > 0 {
+					skuRaw := diff.Get("sku").([]interface{})
+					if len(skuRaw) > 0 {
+						sku := skuRaw[0].(map[string]interface{})
+						tier := sku["tier"].(string)
+						if !strings.EqualFold(tier, "Hyperscale") {
+							return fmt.Errorf("`high_availability_replica_count` can only be set when `sku.tier` is `Hyperscale`, got %q", tier)
+						}
+					}
 				}
 
 				return nil
@@ -269,13 +281,16 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		Sku:      sku,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &elasticpools.ElasticPoolProperties{
-			LicenseType:                  pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
-			PerDatabaseSettings:          expandMsSqlElasticPoolPerDatabaseSettings(d),
-			ZoneRedundant:                pointer.To(d.Get("zone_redundant").(bool)),
-			MaintenanceConfigurationId:   pointer.To(maintenanceConfigId.ID()),
-			PreferredEnclaveType:         nil,
-			HighAvailabilityReplicaCount: pointer.To(int64(d.Get("high_availability_replica_count").(int))),
+			LicenseType:                pointer.To(elasticpools.ElasticPoolLicenseType(d.Get("license_type").(string))),
+			PerDatabaseSettings:        expandMsSqlElasticPoolPerDatabaseSettings(d),
+			ZoneRedundant:              pointer.To(d.Get("zone_redundant").(bool)),
+			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
+			PreferredEnclaveType:       nil,
 		},
+	}
+
+	if !d.GetRawConfig().AsValueMap()["high_availability_replica_count"].IsNull() {
+		elasticPool.Properties.HighAvailabilityReplicaCount = pointer.To(int64(d.Get("high_availability_replica_count").(int)))
 	}
 
 	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
