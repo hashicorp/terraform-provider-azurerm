@@ -4,6 +4,7 @@ package defenderforstorage
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type OnUploadProperties struct {
-	CapGBPerMonth *int64 `json:"capGBPerMonth,omitempty"`
-	IsEnabled     *bool  `json:"isEnabled,omitempty"`
+	CapGBPerMonth *int64           `json:"capGBPerMonth,omitempty"`
+	Filters       *OnUploadFilters `json:"filters,omitempty"`
+	IsEnabled     *bool            `json:"isEnabled,omitempty"`
 }
