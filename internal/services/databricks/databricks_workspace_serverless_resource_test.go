@@ -86,6 +86,21 @@ func TestAccDatabricksWorkspaceServerless_update(t *testing.T) {
 	})
 }
 
+func TestAccDatabricksWorkspaceServerless_privateLink(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace_serverless", "test")
+	r := DatabricksWorkspaceServerlessResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateLink(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDatabricksWorkspaceServerless_altSubscriptionCmkServicesOnly(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
@@ -175,7 +190,7 @@ func (r DatabricksWorkspaceServerlessResource) basic(data acceptance.TestData) s
 %s
 
 resource "azurerm_databricks_workspace_serverless" "test" {
-  name                = "acctest-dbsw-%d"
+  name                = "acctest-dbws-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 }
@@ -195,6 +210,101 @@ resource "azurerm_databricks_workspace_serverless" "import" {
 }
 
 func (r DatabricksWorkspaceServerlessResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctest-kv-%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "premium"
+
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-certificate"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault_access_policy.terraform]
+}
+
+resource "azurerm_key_vault_access_policy" "terraform" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = [
+    "Get",
+    "List",
+    "Create",
+    "Decrypt",
+    "Encrypt",
+    "GetRotationPolicy",
+    "Sign",
+    "UnwrapKey",
+    "Verify",
+    "WrapKey",
+    "Delete",
+    "Restore",
+    "Recover",
+    "Update",
+    "Purge",
+  ]
+}
+
+resource "azurerm_key_vault_access_policy" "managed" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_key_vault.test.tenant_id
+  object_id    = "%s"
+
+  key_permissions = [
+    "Get",
+    "GetRotationPolicy",
+    "UnwrapKey",
+    "WrapKey",
+  ]
+}
+
+resource "azurerm_databricks_workspace_serverless" "test" {
+  name                                  = "acctest-dbws-%d"
+  resource_group_name                   = azurerm_resource_group.test.name
+  location                              = azurerm_resource_group.test.location
+  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
+
+  enhanced_security_compliance {
+    automatic_cluster_update_enabled      = true
+    compliance_security_profile_enabled   = true
+    compliance_security_profile_standards = ["HIPAA"]
+    enhanced_security_monitoring_enabled  = true
+  }
+
+  tags = {
+    Environment = "Sandbox"
+    Label       = "Test"
+  }
+
+  depends_on = [azurerm_key_vault_access_policy.managed]
+}
+`, r.template(data), data.RandomString, getDatabricksPrincipalId(data.Client().SubscriptionID), data.RandomInteger)
+}
+
+func (r DatabricksWorkspaceServerlessResource) privateLink(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -272,94 +382,16 @@ resource "azurerm_subnet_network_security_group_association" "private" {
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_key_vault" "test" {
-  name                = "acctest-kv-%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  sku_name            = "premium"
-
-  purge_protection_enabled   = true
-  soft_delete_retention_days = 7
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "acctest-certificate"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-
-  depends_on = [azurerm_key_vault_access_policy.terraform]
-}
-
-resource "azurerm_key_vault_access_policy" "terraform" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Get",
-    "List",
-    "Create",
-    "Decrypt",
-    "Encrypt",
-    "GetRotationPolicy",
-    "Sign",
-    "UnwrapKey",
-    "Verify",
-    "WrapKey",
-    "Delete",
-    "Restore",
-    "Recover",
-    "Update",
-    "Purge",
-  ]
-}
-
-resource "azurerm_key_vault_access_policy" "managed" {
-  key_vault_id = azurerm_key_vault.test.id
-  tenant_id    = azurerm_key_vault.test.tenant_id
-  object_id    = "%[4]s"
-
-  key_permissions = [
-    "Get",
-    "GetRotationPolicy",
-    "UnwrapKey",
-    "WrapKey",
-  ]
-}
-
 resource "azurerm_databricks_workspace_serverless" "test" {
-  name                                  = "acctest-dbsw-%[2]d"
-  resource_group_name                   = azurerm_resource_group.test.name
-  location                              = azurerm_resource_group.test.location
-  managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.test.id
-  public_network_access_enabled         = false
-
-  enhanced_security_compliance {
-    automatic_cluster_update_enabled      = true
-    compliance_security_profile_enabled   = true
-    compliance_security_profile_standards = ["HIPAA"]
-    enhanced_security_monitoring_enabled  = true
-  }
+  name                          = "acctest-dbws-%[2]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  public_network_access_enabled = false
 
   tags = {
     Environment = "Sandbox"
     Label       = "Test"
   }
-
-  depends_on = [azurerm_key_vault_access_policy.managed]
 }
 
 resource "azurerm_private_endpoint" "databricks" {
@@ -390,7 +422,7 @@ resource "azurerm_private_dns_cname_record" "test" {
   ttl                 = 300
   record              = "eastus2-c2.azuredatabricks.net"
 }
-`, r.template(data), data.RandomInteger, data.RandomString, getDatabricksPrincipalId(data.Client().SubscriptionID))
+`, r.template(data), data.RandomInteger)
 }
 
 func (DatabricksWorkspaceServerlessResource) altSubscriptionCmkServicesOnly(data acceptance.TestData, alt *DatabricksWorkspaceAlternateSubscription) string {
@@ -522,7 +554,7 @@ func (r DatabricksWorkspaceServerlessResource) enhancedSecurityCompliance(data a
 %[1]s
 
 resource "azurerm_databricks_workspace_serverless" "test" {
-  name                = "acctest-dbsw-%[2]d"
+  name                = "acctest-dbws-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 

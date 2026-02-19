@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -156,9 +155,6 @@ func (r DatabricksWorkspaceServerlessResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			ctx, cancel := context.WithTimeout(ctx, metadata.ResourceData.Timeout(schema.TimeoutCreate))
-			defer cancel()
-
 			client := metadata.Client.DataBricks.WorkspacesClient
 			keyVaultClient := metadata.Client.KeyVault
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -221,9 +217,6 @@ func (r DatabricksWorkspaceServerlessResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			ctx, cancel := context.WithTimeout(ctx, metadata.ResourceData.Timeout(schema.TimeoutUpdate))
-			defer cancel()
-
 			client := metadata.Client.DataBricks.WorkspacesClient
 			keyVaultClient := metadata.Client.KeyVault
 
@@ -295,9 +288,6 @@ func (r DatabricksWorkspaceServerlessResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			ctx, cancel := context.WithTimeout(ctx, metadata.ResourceData.Timeout(schema.TimeoutRead))
-			defer cancel()
-
 			client := metadata.Client.DataBricks.WorkspacesClient
 			id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -371,9 +361,6 @@ func (DatabricksWorkspaceServerlessResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			ctx, cancel := context.WithTimeout(ctx, metadata.ResourceData.Timeout(schema.TimeoutDelete))
-			defer cancel()
-
 			client := metadata.Client.DataBricks.WorkspacesClient
 			id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 			if err != nil {
