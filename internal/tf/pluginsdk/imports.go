@@ -57,16 +57,6 @@ func ImporterValidatingIdentity(id resourceids.ResourceId, idType ...ResourceTyp
 	return importerValidatingIdentityThen(id, thenFunc, "", idType...)
 }
 
-// ImporterValidatingIdentityWithConstant validates the ID provided at import time is valid or that the resource identity data provided in the import block is valid
-// based on the expected resource ID type, when the ID type has a constant segment.
-func ImporterValidatingIdentityWithConstant(id resourceids.ResourceId, constant string, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
-	thenFunc := func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
-		return []*ResourceData{d}, nil
-	}
-
-	return importerValidatingIdentityThen(id, thenFunc, constant, idType...)
-}
-
 // ImporterValidatingIdentityWithConstantThen validates the ID provided at import time is valid or that the resource identity data provided in the import block is valid
 // based on the expected resource ID type, when the ID type has a constant segment, then runs the 'thenFunc', allowing the import to be customised.
 func ImporterValidatingIdentityWithConstantThen(id resourceids.ResourceId, thenFunc ImporterFunc, constant string, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
