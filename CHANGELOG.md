@@ -1,6 +1,7 @@
 ## 4.61.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_security_center_storage_defender` - update to API version `2025-06-01` [GH-31759]
 * dependencies: `go` update to `1.25.5`
 * dependencies: `go-azure-sdk` - update to `v0.20260212.1143955`
 * `azurerm_point_to_site_vpn_gateway` - `connection_configuration.x.internet_security_enabled` can now be updated [GH-31733]
