@@ -1,6 +1,7 @@
 ## 4.62.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
 
 FEATURES:
 
