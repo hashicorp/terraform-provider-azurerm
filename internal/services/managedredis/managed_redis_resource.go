@@ -105,7 +105,6 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSkuName(), false),
 		},
 
@@ -506,6 +505,11 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 				clusterUpdateRequired = true
 			}
 
+			if metadata.ResourceData.HasChange("sku_name") {
+				clusterParams.Sku.Name = redisenterprise.SkuName(state.SkuName)
+				clusterUpdateRequired = true
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				clusterParams.Tags = pointer.To(state.Tags)
 				clusterUpdateRequired = true
@@ -680,6 +684,19 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 								return fmt.Errorf("invalid clustering_policy %q, when using RediSearch module, clustering_policy must be set to EnterpriseCluster", dbModel.ClusteringPolicy)
 							}
 						}
+					}
+				}
+			}
+
+			if metadata.ResourceDiff.HasChanges("sku_name") {
+				if resId := metadata.ResourceDiff.Id(); resId != "" {
+					clusterId, err := redisenterprise.ParseRedisEnterpriseID(resId)
+					if err != nil {
+						return err
+					}
+					clusterClient := metadata.Client.ManagedRedis.Client
+					if !isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName) {
+						metadata.ResourceDiff.ForceNew("sku_name")
 					}
 				}
 			}
@@ -862,4 +879,20 @@ func flattenPersistenceRDB(input *databases.Persistence) string {
 	}
 
 	return ""
+}
+
+func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId *redisenterprise.RedisEnterpriseId, targetSkuName string) bool {
+	skusForScaling, err := clusterClient.ListSkusForScaling(ctx, *clusterId)
+	if err != nil {
+		log.Printf("[WARN] SKU scaling cannot be validated due to an error whilst retrieving the list. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale: %+v", err)
+		return true
+	}
+	if skusForScaling.Model == nil || skusForScaling.Model.Skus == nil {
+		log.Printf("[WARN] SKU scaling cannot be validated due to Azure returning no information. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale.")
+		return true
+	}
+
+	return slices.ContainsFunc(pointer.From(skusForScaling.Model.Skus), func(sku redisenterprise.SkuDetails) bool {
+		return pointer.From(sku.Name) == targetSkuName
+	})
 }
