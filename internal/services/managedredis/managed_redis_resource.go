@@ -887,7 +887,7 @@ func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.
 		log.Printf("[WARN] SKU scaling cannot be validated due to an error whilst retrieving the list. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale: %+v", err)
 		return true
 	}
-	if skusForScaling.Model.Skus == nil {
+	if skusForScaling.Model == nil || skusForScaling.Model.Skus == nil {
 		log.Printf("[WARN] SKU scaling cannot be validated due to Azure returning no information. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale.")
 		return true
 	}
