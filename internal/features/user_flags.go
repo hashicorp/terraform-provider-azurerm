@@ -44,6 +44,7 @@ type VirtualMachineScaleSetFeatures struct {
 }
 
 type KeyVaultFeatures struct {
+	CheckPublicAvailability          bool
 	PurgeSoftDeleteOnDestroy         bool
 	PurgeSoftDeletedKeysOnDestroy    bool
 	PurgeSoftDeletedCertsOnDestroy   bool

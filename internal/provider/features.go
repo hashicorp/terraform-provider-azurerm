@@ -94,6 +94,12 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"check_public_availability": {
+						Description: "When enabled the provider will check for the public availability of `azurerm_key_vault` after creation when `public_network_access_enabled` is set to `true`.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
 					"purge_soft_delete_on_destroy": {
 						Description: "When enabled soft-deleted `azurerm_key_vault` resources will be permanently deleted (e.g purged), when destroyed",
 						Type:        pluginsdk.TypeBool,
@@ -523,6 +529,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 && items[0] != nil {
 			keyVaultRaw := items[0].(map[string]interface{})
+			if v, ok := keyVaultRaw["check_public_availability"]; ok {
+				featuresMap.KeyVault.CheckPublicAvailability = v.(bool)
+			}
 			if v, ok := keyVaultRaw["purge_soft_delete_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeleteOnDestroy = v.(bool)
 			}
