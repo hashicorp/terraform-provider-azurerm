@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
+	prometheusrulegroups "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -270,7 +270,7 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			client := metadata.Client.Monitor.AlertPrometheusRuleGroupClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			id := prometheusrulegroups.NewPrometheusRuleGroupID(subscriptionId, model.ResourceGroupName, model.Name)
-			existing, err := client.Get(ctx, id)
+			existing, err := client.PrometheusRuleGroupsGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing %s: %+v", id, err)
 			}
@@ -295,7 +295,7 @@ func (r AlertPrometheusRuleGroupResource) Create() sdk.ResourceFunc {
 			}
 			properties.Properties.Rules = expandPrometheusRuleModel(model.Rule, metadata.ResourceData)
 
-			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
+			if _, err := client.PrometheusRuleGroupsCreateOrUpdate(ctx, id, properties); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -321,7 +321,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.PrometheusRuleGroupsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -353,7 +353,7 @@ func (r AlertPrometheusRuleGroupResource) Update() sdk.ResourceFunc {
 				properties.Tags = pointer.To(model.Tags)
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, *properties); err != nil {
+			if _, err := client.PrometheusRuleGroupsCreateOrUpdate(ctx, *id, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -373,7 +373,7 @@ func (r AlertPrometheusRuleGroupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.PrometheusRuleGroupsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -413,7 +413,7 @@ func (r AlertPrometheusRuleGroupResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if _, err := client.PrometheusRuleGroupsDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
