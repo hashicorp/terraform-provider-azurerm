@@ -1223,7 +1223,6 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Workloads.SAPVirtualInstances
-			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := sapvirtualinstances.ParseSapVirtualInstanceID(metadata.ResourceData.Id())
 			if err != nil {
@@ -1239,57 +1238,65 @@ func (r WorkloadsSAPThreeTierVirtualInstanceResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := WorkloadsSAPThreeTierVirtualInstanceModel{}
-			if model := resp.Model; model != nil {
-				state.Name = id.SapVirtualInstanceName
-				state.ResourceGroupName = id.ResourceGroupName
-				state.Location = location.Normalize(model.Location)
-
-				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				state.Identity = pointer.From(identity)
-
-				if props := model.Properties; props != nil {
-					state.Environment = string(props.Environment)
-					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
-					state.SapProduct = string(props.SapProduct)
-					state.Tags = pointer.From(model.Tags)
-
-					if config := props.Configuration; config != nil {
-						if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-							state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
-
-							if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
-								state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
-							}
-
-							if configuration := v.InfrastructureConfiguration; configuration != nil {
-								if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
-									threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
-									if err != nil {
-										return err
-									}
-									state.ThreeTierConfiguration = threeTierConfig
-								}
-							}
-						}
-					}
-
-					if v := props.ManagedResourceGroupConfiguration; v != nil {
-						state.ManagedResourceGroupName = pointer.From(v.Name)
-					}
-				}
-			}
-
-			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
-				return err
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (WorkloadsSAPThreeTierVirtualInstanceResource) flatten(metadata sdk.ResourceMetaData, id *sapvirtualinstances.SapVirtualInstanceId, model *sapvirtualinstances.SAPVirtualInstance) error {
+	subscriptionId := metadata.Client.Account.SubscriptionId
+
+	state := WorkloadsSAPThreeTierVirtualInstanceModel{
+		Name:              id.SapVirtualInstanceName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+
+		identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		state.Identity = pointer.From(identity)
+
+		if props := model.Properties; props != nil {
+			state.Environment = string(props.Environment)
+			state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+			state.SapProduct = string(props.SapProduct)
+			state.Tags = pointer.From(model.Tags)
+
+			if config := props.Configuration; config != nil {
+				if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+					state.AppLocation = location.Normalize(pointer.From(v.AppLocation))
+
+					if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+						state.SapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+					}
+
+					if configuration := v.InfrastructureConfiguration; configuration != nil {
+						if threeTierConfiguration, threeTierConfigurationExists := configuration.(sapvirtualinstances.ThreeTierConfiguration); threeTierConfigurationExists {
+							threeTierConfig, err := flattenThreeTierConfiguration(threeTierConfiguration, metadata.ResourceData, subscriptionId)
+							if err != nil {
+								return err
+							}
+							state.ThreeTierConfiguration = threeTierConfig
+						}
+					}
+				}
+			}
+
+			if v := props.ManagedResourceGroupConfiguration; v != nil {
+				state.ManagedResourceGroupName = pointer.From(v.Name)
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r WorkloadsSAPThreeTierVirtualInstanceResource) Delete() sdk.ResourceFunc {

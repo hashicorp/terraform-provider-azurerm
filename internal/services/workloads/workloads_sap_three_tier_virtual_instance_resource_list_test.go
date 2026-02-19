@@ -16,12 +16,9 @@ import (
 )
 
 func TestAccWorkloadsSAPThreeTierVirtualInstance_list_basic(t *testing.T) {
-	r := WorkloadsSAPThreeTierVirtualInstanceResource{}
+	r := WorkloadsSapThreeTierVirtualInstanceResource{}
 	listResourceAddress := "azurerm_workloads_sap_three_tier_virtual_instance.list"
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test1")
-	sapVISNameSuffix1 := RandomInt()
-	sapVISNameSuffix2 := RandomInt()
-	sapVISNameSuffix3 := RandomInt()
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -36,7 +33,7 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_list_basic(t *testing.T) {
 		},
 		Steps: []resource.TestStep{
 			{
-				Config: r.basicList(data, sapVISNameSuffix1, sapVISNameSuffix2, sapVISNameSuffix3),
+				Config: r.basicList(data),
 			},
 			{
 				Query:  true,
@@ -56,8 +53,8 @@ func TestAccWorkloadsSAPThreeTierVirtualInstance_list_basic(t *testing.T) {
 	})
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) basicList(data acceptance.TestData, sapVISNameSuffix1, sapVISNameSuffix2, sapVISNameSuffix3 int) string {
-	template := r.template(data)
+func (r WorkloadsSapThreeTierVirtualInstanceResource) basicList(data acceptance.TestData) string {
+	sapVISNameSuffix := 10 + (data.RandomInteger % 90)
 	return fmt.Sprintf(`
 %s
 
@@ -70,12 +67,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_workloads_sap_three_tier_virtual_instance" "test1" {
-  name                        = "X%d"
+  name                        = "X%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
-  managed_resource_group_name = "acctestManagedRG1%d"
+  managed_resource_group_name = "acctestManagedRG1%[3]d"
   app_location                = azurerm_resource_group.app.location
   sap_fqdn                    = "sap1.bpaas.com"
 
@@ -163,12 +160,12 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test1" {
 }
 
 resource "azurerm_workloads_sap_three_tier_virtual_instance" "test2" {
-  name                        = "Y%d"
+  name                        = "Y%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
-  managed_resource_group_name = "acctestManagedRG2%d"
+  managed_resource_group_name = "acctestManagedRG2%[3]d"
   app_location                = azurerm_resource_group.app.location
   sap_fqdn                    = "sap2.bpaas.com"
 
@@ -256,12 +253,12 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test2" {
 }
 
 resource "azurerm_workloads_sap_three_tier_virtual_instance" "test3" {
-  name                        = "Z%d"
+  name                        = "Z%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = azurerm_resource_group.test.location
   environment                 = "NonProd"
   sap_product                 = "S4HANA"
-  managed_resource_group_name = "acctestManagedRG3%d"
+  managed_resource_group_name = "acctestManagedRG3%[3]d"
   app_location                = azurerm_resource_group.app.location
   sap_fqdn                    = "sap3.bpaas.com"
 
@@ -347,10 +344,10 @@ resource "azurerm_workloads_sap_three_tier_virtual_instance" "test3" {
     azurerm_role_assignment.test,
   ]
 }
-`, template, sapVISNameSuffix1, data.RandomInteger, sapVISNameSuffix2, data.RandomInteger, sapVISNameSuffix3, data.RandomInteger)
+`, r.template(data), sapVISNameSuffix, data.RandomInteger)
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) basicListQuery() string {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) basicListQuery() string {
 	return `
 list "azurerm_workloads_sap_three_tier_virtual_instance" "list" {
   provider = azurerm
@@ -359,7 +356,7 @@ list "azurerm_workloads_sap_three_tier_virtual_instance" "list" {
 `
 }
 
-func (r WorkloadsSAPThreeTierVirtualInstanceResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
+func (r WorkloadsSapThreeTierVirtualInstanceResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_workloads_sap_three_tier_virtual_instance" "list" {
   provider = azurerm

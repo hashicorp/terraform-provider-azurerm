@@ -13,9 +13,9 @@ import (
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
-func TestAccWorkloadsSAPThreeTierVirtualInstance_resourceIdentity(t *testing.T) {
+func TestAccWorkloadsSapThreeTierVirtualInstance_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_three_tier_virtual_instance", "test")
-	r := WorkloadsSAPThreeTierVirtualInstanceResource{}
+	r := WorkloadsSapThreeTierVirtualInstanceResource{}
 
 	checkedFields := map[string]struct{}{
 		"subscription_id":     {},
