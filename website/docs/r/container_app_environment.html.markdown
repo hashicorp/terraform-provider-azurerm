@@ -89,7 +89,9 @@ A `workload_profile` block supports the following:
 
 * `name` - (Required) The name of the workload profile.
 
-* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `Consumption`, `Consumption-GPU-NC24-A100`, `Consumption-GPU-NC8as-T4`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16`, `E32`, `NC24-A100`, `NC48-A100` and `NC96-A100`.
+* `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `Consumption`, `Consumption-GPU-NC24-A100`, `Consumption-GPU-NC8as-T4`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16`, `E32`, `Flex`, `NC24-A100`, `NC48-A100` and `NC96-A100`.
+
+~> **Note:** The `Flex` profile type is currently in preview and requires a subnet of at least `/25`. It is only available in select regions.
 
 ~> **Note:** A `Consumption` type must have a name of `Consumption` and an environment may only have one `Consumption` Workload Profile.
 
