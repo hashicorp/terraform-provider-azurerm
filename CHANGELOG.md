@@ -1,3 +1,22 @@
+## 4.62.0 (Unreleased)
+
+ENHANCEMENTS:
+* dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
+* `network` - deprecate and rename `enabled_*` properties for 5.0 [GH-31643]
+* `azurerm_monitor_diagnostic_setting` - deprecate the `enabled_log.retention_policy` block [GH-31792]
+
+
+FEATURES:
+* `azurerm_private_endpoint` implement list resource (#31769) [GH-31769]
+* `mssql_virtual_machine` implement list and identity (#31737) [GH-31737]
+* `azurerm_network_ddos_protection_plan` implement list and identity (#31768) [GH-31768]
+* `mssql_elasticpool` implement list and identity (#31736) [GH-31736]
+* `azurerm_route` implement list (#31760) [GH-31760]
+* **New List Resource**: `azurerm_redis_cache` and `azurerm_redis_firewall_rule`  - includes addition of Identity [GH-31770] [GH-31770]
+* `azurerm_private_dns_a_record` list and identity, including sdk support for constant segment types (#31785) [GH-31785]
+
+BUG FIXES:
+
 ## 4.61.0 (February 19, 2026)
 
 FEATURES:
