@@ -11,9 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/sentinel/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,7 +111,7 @@ func (r ThreatIntelligenceIndicator) IDValidationFunc() pluginsdk.SchemaValidate
 }
 
 func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	res := map[string]*pluginsdk.Schema{
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -138,6 +141,7 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 		"display_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -310,6 +314,12 @@ func (r ThreatIntelligenceIndicator) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 	}
+
+	if !features.FivePointOh() {
+		res["display_name"].ForceNew = false
+	}
+
+	return res
 }
 
 func (r ThreatIntelligenceIndicator) Attributes() map[string]*pluginsdk.Schema {
@@ -525,6 +535,14 @@ func (r ThreatIntelligenceIndicator) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing threat intelligence indicator id %s: %+v", *info.ID, err)
 			}
 
+			// The creation request shall be a LRO, otherwise the GET request after creation may be returned with HTTP 404.
+			// Tracked by https://github.com/Azure/azure-rest-api-specs/issues/35551
+			pollerType := custompollers.NewThreatIntelligenceIndicatorPoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -635,10 +653,6 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 				properties.Revoked = &model.Revoked
 			}
 
-			if metadata.ResourceData.HasChange("source") {
-				properties.Source = &model.Source
-			}
-
 			if metadata.ResourceData.HasChange("threat_types") {
 				properties.ThreatTypes = &model.ThreatTypes
 			}
@@ -653,6 +667,13 @@ func (r ThreatIntelligenceIndicator) Update() sdk.ResourceFunc {
 
 			if _, err := client.Create(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName, *properties); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			// The GET result may be inconsistent with update in a period, similar to the issue on creation.
+			pollerType := custompollers.NewThreatIntelligenceIndicatorUpdatePoller(client, *id, pointer.From(properties.LastUpdatedTimeUtc))
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
 			}
 
 			return nil
@@ -671,7 +692,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
+			workspaceID := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 			resp, err := client.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.IndicatorName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
@@ -689,7 +710,7 @@ func (r ThreatIntelligenceIndicator) Read() sdk.ResourceFunc {
 			state := IndicatorModel{
 				Name:        pointer.From(model.Name),
 				CreatedOn:   pointer.From(model.Created),
-				WorkspaceId: workspaceId.ID(),
+				WorkspaceId: workspaceID.ID(),
 				PatternType: pointer.From(model.PatternType),
 				Revoked:     pointer.From(model.Revoked),
 			}
