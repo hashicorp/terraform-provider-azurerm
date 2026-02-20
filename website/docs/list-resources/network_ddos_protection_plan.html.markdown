@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_ddos_protection_plan"
 description: |-
-    Lists Network Ddos Protection Plan resources.
+    Lists Network DDoS Protection Plan resources.
 ---
 
 # List resource: azurerm_network_ddos_protection_plan
