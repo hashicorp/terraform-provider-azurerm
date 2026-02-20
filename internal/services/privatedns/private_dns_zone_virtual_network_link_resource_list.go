@@ -66,7 +66,7 @@ func (r PrivateDnsZoneVirtualNetworkLinkListResource) List(ctx context.Context, 
 	if !data.PrivateDnsZoneId.IsNull() {
 		privatednszoneId, err := virtualnetworklinks.ParsePrivateDnsZoneID(data.PrivateDnsZoneId.ValueString())
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing privatedns PrivateDnsZone ID for `%s`", "azurerm_private_dns_zone_virtual_network_link"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Private Dns Zone ID for `%s`", "azurerm_private_dns_zone_virtual_network_link"), err)
 			return
 		}
 
