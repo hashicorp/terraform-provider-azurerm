@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resourceids
@@ -62,6 +62,9 @@ const (
 
 	// UserSpecifiedSegmentType specifies that this Segment is User-Specifiable
 	UserSpecifiedSegmentType SegmentType = "UserSpecified"
+
+	// DataPlaneBaseURISegmentType specifies that this Segment is a Data Plane Endpoint URI for a resource type
+	DataPlaneBaseURISegmentType SegmentType = "DataPlane"
 )
 
 // ConstantSegment is a helper which returns a Segment for a Constant
@@ -126,6 +129,16 @@ func UserSpecifiedSegment(name, exampleValue string) Segment {
 	return Segment{
 		Name:         name,
 		Type:         UserSpecifiedSegmentType,
+		ExampleValue: exampleValue,
+	}
+}
+
+// DataPlaneBaseURISegment is a helper which returns a Segment for a Data Plane Base URI
+// This is a special segment type to accommodate the mandatory scheme://FQDN/ type prefix to data plane IDs
+func DataPlaneBaseURISegment(name, exampleValue string) Segment {
+	return Segment{
+		Name:         name,
+		Type:         DataPlaneBaseURISegmentType,
 		ExampleValue: exampleValue,
 	}
 }
