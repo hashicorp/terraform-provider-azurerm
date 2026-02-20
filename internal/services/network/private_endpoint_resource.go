@@ -695,7 +695,6 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 			d.Set("custom_network_interface_name", customNicName)
 
 			if fetchCompleteData {
-
 				privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
 				if err != nil {
 					return err
