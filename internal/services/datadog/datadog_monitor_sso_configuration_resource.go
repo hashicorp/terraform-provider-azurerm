@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/monitorsresource"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/singlesignon"
+	monitorsresource "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogmonitorresources"
+	singlesignon "github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2025-06-11/datadogsinglesignonresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -100,7 +100,7 @@ func resourceDatadogSingleSignOnConfigurations() *pluginsdk.Resource {
 }
 
 func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.SingleSignOn
+	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -110,7 +110,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 	}
 
 	id := singlesignon.NewSingleSignOnConfigurationID(monitorId.SubscriptionId, monitorId.ResourceGroupName, monitorId.MonitorName, d.Get("name").(string))
-	existing, err := client.ConfigurationsGet(ctx, id)
+	existing, err := client.SingleSignOnConfigurationsGet(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -132,7 +132,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
 	}
 
-	if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
+	if err := client.SingleSignOnConfigurationsCreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -141,7 +141,7 @@ func resourceDatadogSingleSignOnConfigurationsCreate(d *pluginsdk.ResourceData, 
 }
 
 func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.SingleSignOn
+	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -150,7 +150,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	resp, err := client.ConfigurationsGet(ctx, *id)
+	resp, err := client.SingleSignOnConfigurationsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
@@ -179,7 +179,7 @@ func resourceDatadogSingleSignOnConfigurationsRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.SingleSignOn
+	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -200,7 +200,7 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 		payload.Properties.SingleSignOnState = pointer.To(singlesignon.SingleSignOnStates(d.Get("single_sign_on_enabled").(string)))
 	}
 
-	if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+	if err := client.SingleSignOnConfigurationsCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -208,7 +208,7 @@ func resourceDatadogSingleSignOnConfigurationsUpdate(d *pluginsdk.ResourceData, 
 }
 
 func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Datadog.SingleSignOn
+	client := meta.(*clients.Client).Datadog.DatadogSingleSignOnResources
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -225,7 +225,7 @@ func resourceDatadogSingleSignOnConfigurationsDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if err := client.ConfigurationsCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+	if err := client.SingleSignOnConfigurationsCreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("removing %s: %+v", id, err)
 	}
 
