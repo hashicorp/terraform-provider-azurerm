@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 * dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
 * `network` - deprecate and rename `enabled_*` properties for 5.0 [GH-31643]
+* `azurerm_monitor_diagnostic_setting` - deprecate the `enabled_log.retention_policy` block [GH-31792]
 
 
 FEATURES:
