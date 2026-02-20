@@ -22,7 +22,7 @@ list "azurerm_network_ddos_protection_plan" "example" {
 }
 ```
 
-### List all Network Ddos Protection Plans in a Resource Group
+### List all Network DDoS Protection Plans in a Resource Group
 
 ```hcl
 list "azurerm_network_ddos_protection_plan" "example" {
