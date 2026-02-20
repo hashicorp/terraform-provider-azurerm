@@ -105,7 +105,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Watcher.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation Watcher.
-* `update` - (Defaults to 10 minutes) Used when updating the Automation Watcher.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Watcher.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Automation Watcher.
 
 ## Import
