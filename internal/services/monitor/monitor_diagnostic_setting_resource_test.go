@@ -407,7 +407,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -463,7 +463,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -521,7 +521,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -989,7 +989,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1055,7 +1055,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1127,7 +1127,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1189,7 +1189,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
@@ -1255,7 +1255,7 @@ resource "azurerm_eventhub" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "example"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = azurerm_eventhub_namespace.test.name
   resource_group_name = azurerm_resource_group.test.name
   listen              = true
