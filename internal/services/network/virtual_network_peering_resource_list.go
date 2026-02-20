@@ -67,7 +67,7 @@ func (r VirtualNetworkPeeringListResource) List(ctx context.Context, request lis
 	if !data.VirtualNetworkId.IsNull() {
 		virtualnetworkId, err := commonids.ParseVirtualNetworkIDInsensitively(data.VirtualNetworkId.ValueString())
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing network Virtual Network ID for `%s`", "azurerm_virtual_network_peering"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Virtual Network ID for `%s`", "azurerm_virtual_network_peering"), err)
 			return
 		}
 
