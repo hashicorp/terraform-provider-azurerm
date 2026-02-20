@@ -33,24 +33,43 @@ Arguments in the documentation are expected to be ordered as follows:
 The following conventions apply to argument descriptions:
 
 - Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a [note](#notes).
-- If an argument has `ForceNew: true`, its description must end with `Changing this forces a new <resource name> to be created.`
-- If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `value1`, `value2`, and `value3. ``. Other common entries include:
-  - Arguments with a single allowed value: `` The only possible values is `value1`. ``
-  - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
-- If the argument has a default value, this must be documented using `` Defaults to `default1`. ``
+- If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using ``Possible values include `value1`, `value2`, and `value3`.``. Other common entries include:
+  - Arguments with a single allowed value: ``The only possible values is `value1`.``
+  - Arguments allowing a range of values, e.g. `validation.IntBetween()`: ``Possible values range between `1` and `100`.``
+- If the argument has a default value, this must be documented using ``Defaults to `default1`.``
 
 Examples:
 
-- `` * `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.``
-- `` * `public_network_access` - (Optional) The public network access setting for this resource. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`. ``
-- `` * `disk_size_in_gb` - (Optional) The disk size in gigabytes. Possible values range between `4` and `256`. ``
+- `name` - (Required) The name which should be used for this resource.
+- `public_network_access` - (Optional) The public network access setting for this resource. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+- `disk_size_in_gb` - (Optional) The disk size in gigabytes. Possible values range between `4` and `256`.
+
+### ForceNew (resource recreation)
+
+Some arguments will force the Terraform resource to be recreated when changed (for example, schema fields with `ForceNew: true`).
+
+For these arguments:
+
+- Existing documentation pages may continue to use the legacy sentence: `Changing this forces a new resource to be created.`
+- For new documentation pages (and when updating/touching an argument description), use the more descriptive sentence: `Changing this forces a new <Resource Display Name> to be created.`
+
+The `<Resource Display Name>` should be the same noun phrase used by the page description/title (for example, `Storage Account`, `Bot Web App`, `Virtual Network`), and should be used consistently across the page.
 
 ### Block Arguments
 
 Block arguments must have two entries in the documentation:
 
-1. The initial entry, e.g. `` * `block_argument` - (Optional) A `block_argument` as defined below. ``
+1. The initial entry, e.g. ``* `block_argument` - (Optional) A `block_argument` as defined below.``
 2. A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
+
+#### Ordering (nested fields)
+
+Nested arguments within a block section (for example under `A <block> block supports the following:`) should follow the same ordering rules as top-level arguments:
+
+1. Required nested arguments, sorted alphabetically first.
+2. Optional nested arguments, sorted alphabetically, with the exception of `tags`, which must always be documented last (if present).
+
+If nested arguments include ID segments such as `name` / `resource_group_name`, or include `location`, those should appear first in the same order used for top-level arguments.
 
 Example:
 
@@ -67,9 +86,15 @@ Example:
 
 A `block_argument` supports the following:
 
-* `nested_argument_1` - (Required) A nested argument that must be specified.
+* `name` - (Required) Specifies the name of this nested item.
 
-* `nested_argument_2` - (Optional) A nested argument that may be specified.
+* `location` - (Required) Specifies the Azure location where this nested item exists.
+
+* `sku_name` - (Required) Specifies the SKU name for this nested item.
+
+* `zone_redundant` - (Optional) Should this nested item be zone redundant? Defaults to `false`.
+
+* `tags` - (Optional) A mapping of tags to assign to this nested item.
 
 ## Attributes References
 
@@ -94,8 +119,15 @@ Attribute descriptions should be concise, and must not include possible or defau
 
 Block attributes must have two entries in the documentation:
 
-1. The initial entry, e.g. `` * `block_attribute` - A `block_attribute` as defined below. ``
+1. The initial entry, e.g. ``* `block_attribute` - A `block_attribute` as defined below.``
 2. A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
+
+#### Ordering (nested fields)
+
+Nested attributes within a block section (for example under `A <block> exports the following:`) should be ordered as follows:
+
+1. the `id` attribute (if present).
+2. The remaining nested attributes, sorted alphabetically.
 
 Example:
 
@@ -112,10 +144,14 @@ Example:
 
 A `block_attribute` exports the following:
 
-* `nested_attribute_1` - A very whimsical attribute.
+* `id` - The ID of this nested item.
 
-* `nested_attribute_2` - A much more monotonous attribute.
+* `identity_ids` - A list of User Assigned Managed Identity IDs assigned to this resource.
 
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this resource.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this resource.
+...
 ```
 
 ## Timeouts
@@ -132,7 +168,7 @@ Note blocks are used to provide additional information to users beyond the basic
 In the past, there have been different approaches to how notes were formatted, some examples are:
 
 - Different words to indicate level of importance, e.g. `Info`, `Important`, `Caution`, and `Be Aware`.
-- Capitalisation differences, e.g. `Note:` vs `NOTE:`.
+- Capitalization differences, e.g. `Note:` vs `NOTE:`.
 - Whether or not a colon is included, e.g. `Note:` vs `Note`.
 
 Going forward, all notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below.
