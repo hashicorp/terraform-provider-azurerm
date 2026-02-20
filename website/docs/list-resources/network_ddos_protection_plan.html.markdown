@@ -12,7 +12,7 @@ Lists Network DDoS Protection Plan resources.
 
 ## Example Usage
 
-### List all Network Ddos Protection Plans in the subscription
+### List all Network DDoS Protection Plans in the subscription
 
 ```hcl
 list "azurerm_network_ddos_protection_plan" "example" {
