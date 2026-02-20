@@ -18,7 +18,7 @@ Lists MySQL Flexible Server Database resources.
 list "azurerm_mysql_flexible_database" "example" {
   provider = azurerm
   config {
-    flexible_server_id = "some-mysql-flexible-serverid"
+    flexible_server_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforMySQL/flexibleServers/flexibleServer1"
   }
 }
 ```
