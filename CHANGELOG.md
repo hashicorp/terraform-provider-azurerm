@@ -2,6 +2,8 @@
 
 ENHANCEMENTS:
 * dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
+* `network` - deprecate and rename `enabled_*` properties for 5.0 [GH-31643]
+
 
 FEATURES:
 * **New List Resource**: `azurerm_redis_cache` and `azurerm_redis_firewall_rule`  - includes addition of Identity [GH-31770] [GH-31770]
