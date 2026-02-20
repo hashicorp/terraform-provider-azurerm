@@ -54,24 +54,10 @@ func ImporterValidatingIdentity(id resourceids.ResourceId, idType ...ResourceTyp
 		return []*ResourceData{d}, nil
 	}
 
-	return importerValidatingIdentityThen(id, thenFunc, "", idType...)
+	return ImporterValidatingIdentityThen(id, thenFunc, idType...)
 }
 
-// ImporterValidatingIdentityWithConstantThen validates the ID provided at import time is valid or that the resource identity data provided in the import block is valid
-// based on the expected resource ID type, when the ID type has a constant segment, then runs the 'thenFunc', allowing the import to be customised.
-func ImporterValidatingIdentityWithConstantThen(id resourceids.ResourceId, thenFunc ImporterFunc, constant string, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
-
-	return importerValidatingIdentityThen(id, thenFunc, constant, idType...)
-}
-
-// ImporterValidatingIdentityThen validates the ID provided at import time is valid or that the resource identity data provided in the import block is valid
-// based on the expected resource ID type, then runs the 'thenFunc', allowing the import to be customised.
 func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
-
-	return importerValidatingIdentityThen(id, thenFunc, "", idType...)
-}
-
-func importerValidatingIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc, constant string, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
@@ -91,7 +77,7 @@ func importerValidatingIdentityThen(id resourceids.ResourceId, thenFunc Importer
 				return thenFunc(ctx, d, meta)
 			}
 
-			if err := ValidateResourceIdentityData(d, id, constant, idType...); err != nil {
+			if err := ValidateResourceIdentityData(d, id, idType...); err != nil {
 				return nil, err
 			}
 

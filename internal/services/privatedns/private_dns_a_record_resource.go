@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_a_record -properties "name,private_dns_zone_name:zone_name,resource_group_name"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_a_record -properties "name,private_dns_zone_name:zone_name,resource_group_name" -compare-values "record_type:id"
 
 func resourcePrivateDnsARecord() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,7 +32,7 @@ func resourcePrivateDnsARecord() *pluginsdk.Resource {
 		Update: resourcePrivateDnsARecordCreateUpdate,
 		Delete: resourcePrivateDnsARecordDelete,
 
-		Importer: pluginsdk.ImporterValidatingIdentityWithConstantThen(&privatedns.RecordTypeId{}, resourcePrivateDnsARecordImporter, string(privatedns.RecordTypeA)),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&privatedns.RecordTypeId{}, resourcePrivateDnsARecordImporter),
 
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatedns.RecordTypeId{}),

@@ -22,6 +22,7 @@ func TestAccPrivateDnsARecord_resourceIdentity(t *testing.T) {
 		"name":                  {},
 		"private_dns_zone_name": {},
 		"resource_group_name":   {},
+		"record_type":           {},
 	}
 
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
@@ -33,6 +34,7 @@ func TestAccPrivateDnsARecord_resourceIdentity(t *testing.T) {
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_a_record.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_a_record.test", tfjsonpath.New("private_dns_zone_name"), tfjsonpath.New("zone_name")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_private_dns_a_record.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_private_dns_a_record.test", tfjsonpath.New("record_type"), tfjsonpath.New("id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),

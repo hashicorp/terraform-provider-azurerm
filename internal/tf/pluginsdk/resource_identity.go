@@ -45,6 +45,7 @@ func identityType(idType []ResourceTypeForIdentity) ResourceTypeForIdentity {
 // that begin with a different prefix to /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1
 func segmentTypeSupported(segment resourceids.SegmentType) bool {
 	supportedSegmentTypes := []resourceids.SegmentType{
+		resourceids.ConstantSegmentType,
 		resourceids.SubscriptionIdSegmentType,
 		resourceids.ResourceGroupSegmentType,
 		resourceids.UserSpecifiedSegmentType,
@@ -93,7 +94,7 @@ func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) m
 
 // ValidateResourceIdentityData validates the resource identity data provided by the user when performing a plannable
 // import using resource identity
-func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, constant string, idType ...ResourceTypeForIdentity) error {
+func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.ResourceId, idType ...ResourceTypeForIdentity) error {
 	identity, err := d.Identity()
 	if err != nil {
 		return fmt.Errorf("getting identity: %+v", err)
@@ -107,11 +108,11 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 		case resourceids.StaticSegmentType, resourceids.ResourceProviderSegmentType:
 			identityString += pointer.From(segment.FixedValue) + "/"
 		case resourceids.ConstantSegmentType:
-			if constant == "" {
-				return fmt.Errorf("resource ID contains constant segment this must be provide, got \"\"")
-			}
-
-			identityString += constant + "/"
+			//if constant == "" {
+			//	return fmt.Errorf("resource ID contains constant segment this must be provide, got \"\"")
+			//}
+			////
+			////identityString += constant + "/"
 		}
 
 		if segmentTypeSupported(segment.Type) {
