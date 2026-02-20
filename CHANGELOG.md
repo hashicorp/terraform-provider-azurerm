@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 
 FEATURES:
+* `azurerm_private_endpoint` implement list resource (#31769) [GH-31769]
 * `mssql_virtual_machine` implement list and identity (#31737) [GH-31737]
 * `azurerm_network_ddos_protection_plan` implement list and identity (#31768) [GH-31768]
 * `mssql_elasticpool` implement list and identity (#31736) [GH-31736]
