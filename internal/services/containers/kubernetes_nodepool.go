@@ -218,6 +218,14 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Optional:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
+					"pod_ip_allocation_mode": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						RequiredWith: []string{"default_node_pool.0.pod_subnet_id"},
+						Default:      string(managedclusters.PodIPAllocationModeDynamicIndividual),
+						ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForPodIPAllocationMode(), false),
+						Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`. The default is `DynamicIndividual`.",
+					},
 					"proximity_placement_group_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -926,6 +934,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.PodSubnetID = pointer.To(podSubnetID)
 	}
 
+	if podIPAllocationMode := raw["pod_ip_allocation_mode"].(string); podIPAllocationMode != "" {
+		profile.PodIPAllocationMode = pointer.ToEnum[managedclusters.PodIPAllocationMode](podIPAllocationMode)
+	}
+
 	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
 	profile.ScaleDownMode = &scaleDownModeDelete
 	if scaleDownMode := raw["scale_down_mode"].(string); scaleDownMode != "" {
@@ -1428,6 +1440,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"vm_size":                       vmSize,
 		"workload_runtime":              workloadRunTime,
 		"pod_subnet_id":                 podSubnetId,
+		"pod_ip_allocation_mode":        pointer.FromEnum(agentPool.PodIPAllocationMode),
 		"orchestrator_version":          orchestratorVersion,
 		"proximity_placement_group_id":  proximityPlacementGroupId,
 		"upgrade_settings":              upgradeSettings,
