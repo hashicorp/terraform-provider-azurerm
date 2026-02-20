@@ -8,7 +8,7 @@ description: |-
 
 # List resource: azurerm_network_ddos_protection_plan
 
-Lists Network Ddos Protection Plan resources.
+Lists Network DDoS Protection Plan resources.
 
 ## Example Usage
 
