@@ -196,6 +196,12 @@ M/s/1JRtO3bDSzD9TazRVzn2oBqzSa8VgIo5C1nOnoAKJTlsClJKvIhnRlaLQqk=
 EOF
     }
   }
+
+  lifecycle {
+    ignore_changes = [
+      "radius[0].server[0].secret"
+    ]
+  }
 }
 
 data "azurerm_vpn_server_configuration" "test" {
