@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_databricks_workspace
 
-Manages a Databricks Workspace
+Manages a Databricks Workspace with `hybrid` `compute_mode`. To create Databricks Workspace with `serverless` `compute_mode`, please use `azurerm_databricks_workspace_serverless` instead.
 
 ## Example Usage
 
@@ -214,6 +214,6 @@ terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2024-05-01, 2022-10-01-preview
+* `Microsoft.Databricks` - 2026-01-01
 
 * `Microsoft.Network` - 2025-01-01, 2023-09-01
