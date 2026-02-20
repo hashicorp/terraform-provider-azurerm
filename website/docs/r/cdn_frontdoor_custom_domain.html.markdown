@@ -14,7 +14,7 @@ Manages a Front Door (standard/premium) Custom Domain.
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "azurerm_resource_group" "example" {
   name     = "example-cdn-frontdoor"
   location = "West Europe"
@@ -38,8 +38,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   host_name                = "contoso.fabrikam.com"
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 ```
@@ -48,7 +48,9 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
 
 The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the Front Door Custom Domains `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.
 
-```hcl
+-> **Note:** Domain ownership validation is performed asynchronously by the Azure Front Door service (the domain typically transitions through states like `Submitting` and `Pending` before becoming `Approved`). If validation appears to be taking longer than expected, refer to the Azure Front Door documentation on [domain validation](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation) and [domain validation states](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation).
+
+```terraform
 resource "azurerm_dns_txt_record" "example" {
   name                = join(".", ["_dnsauth", "contoso"])
   zone_name           = azurerm_dns_zone.example.name
@@ -65,7 +67,7 @@ resource "azurerm_dns_txt_record" "example" {
 
 !> **Note:** You **must** include the `depends_on` meta-argument which references both the `azurerm_cdn_frontdoor_route` and the `azurerm_cdn_frontdoor_security_policy` that are associated with your Custom Domain. The reason for these `depends_on` meta-arguments is because all of the resources for the Custom Domain need to be associated within Front Door before the CNAME record can be written to the domains DNS, else the CNAME validation will fail and Front Door will not enable traffic to the Domain.
 
-```hcl
+```terraform
 resource "azurerm_dns_cname_record" "example" {
   depends_on = [azurerm_cdn_frontdoor_route.example, azurerm_cdn_frontdoor_security_policy.example]
 
@@ -103,11 +105,41 @@ A `tls` block supports the following:
 
 -> **Note:** It may take up to 15 minutes for the Front Door Service to validate the state and Domain ownership of the Custom Domain.
 
-* `minimum_tls_version` - (Optional) TLS protocol version that will be used for Https. Possible values are `TLS12`. Defaults to `TLS12`.
-  
-~> **Note:** On March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 will be retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
+* `minimum_version` - (Optional) TLS protocol version that will be used for Https. Possible values are `TLS12`. Defaults to `TLS12`.
+
+~> **Note:** As of March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 has been retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
 
 * `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
+
+* `cipher_suite` - (Optional) A `cipher_suite` block as defined below.
+
+---
+
+A `cipher_suite` block supports the following:
+
+* `type` - (Required) The TLS policy type to be used for this Front Door Custom Domain. Possible values are `Customized`, `TLS12_2023`, or `TLS12_2022`.
+
+* `custom_ciphers` - (Optional) A `custom_ciphers` block as defined below.
+
+~> **Note:** The `custom_ciphers` block is required when `type` is set to `Customized`.
+
+---
+
+A `custom_ciphers` block supports the following:
+
+* `tls12` - (Optional) A set of `TLS 1.2` cipher suites to be used. Possible values are `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_SHA384`, `DHE_RSA_AES128_GCM_SHA256`, and `DHE_RSA_AES256_GCM_SHA384`.
+
+-> **Note:** Azure Front Door does not support `ECDSA` cipher suites. Only `RSA-based` cipher suites are supported.
+
+~> **Note:** At least one cipher suite must be selected when using `customized` cipher suites. When `minimum_version` is set to `TLS12`, at least one `TLS 1.2` cipher suite must be specified in the `tls12` field.
+
+* `tls13` - (Optional) A set of `TLS 1.3` cipher suites to be used. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
+
+~> **Note:** Azure Front Door supports TLS 1.2 and TLS 1.3, and TLS 1.3 is always enabled regardless of the configured minimum version. The TLS 1.3 cipher suite values supported by Azure Front Door are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` (see [product documentation](https://learn.microsoft.com/en-us/azure/frontdoor/standard-premium/tls-policy#custom-tls-policy)).
+
+~> **Note:** Azure Front Door returns the TLS 1.3 cipher suites even when `tls13` is not configured. The AzureRM Provider will record the service-returned values in state; `tls13` behaves as a computed value unless explicitly configured.
+
+~> **Note:** If `tls13` is explicitly configured, it must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
 
 ---
 
@@ -125,6 +157,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
+-> **Note:** Deleting a Front Door Custom Domain can take a significant amount of time while the Azure Front Door service performs backend synchronization. During this period, the domain may remain visible in the Azure Portal with a provisioning state of `Deleting`. If you encounter `context deadline exceeded` during deletion, increase the `delete` timeout accordingly.
+
 * `create` - (Defaults to 12 hours) Used when creating the Front Door Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain.
 * `update` - (Defaults to 24 hours) Used when updating the Front Door Custom Domain.
@@ -137,3 +171,9 @@ Front Door Custom Domains can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cdn_frontdoor_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/customDomains/customDomain1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-04-15
