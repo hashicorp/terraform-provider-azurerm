@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
 
 FEATURES:
+* **New List Resource**: `azurerm_redis_cache` and `azurerm_redis_firewall_rule`  - includes addition of Identity [GH-31770] [GH-31770]
 * `azurerm_private_dns_a_record` list and identity, including sdk support for constant segment types (#31785) [GH-31785]
 
 BUG FIXES:
