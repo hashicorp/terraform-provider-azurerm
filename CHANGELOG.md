@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 
 FEATURES:
+* `mssql_elasticpool` implement list and identity (#31736) [GH-31736]
 * `azurerm_route` implement list (#31760) [GH-31760]
 * **New List Resource**: `azurerm_redis_cache` and `azurerm_redis_firewall_rule`  - includes addition of Identity [GH-31770] [GH-31770]
 * `azurerm_private_dns_a_record` list and identity, including sdk support for constant segment types (#31785) [GH-31785]
