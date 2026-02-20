@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/codesigningaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -87,7 +87,22 @@ func TestAccTrustedSigningAccount_complete(t *testing.T) {
 	})
 }
 
-func (a TrustedSigningAccountResource) basic(data acceptance.TestData) string {
+func TestAccTrustedSigningAccount_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, codesigning.TrustedSigningAccountResource{}.ResourceType(), "test")
+	r := TrustedSigningAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
+func (r TrustedSigningAccountResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -97,10 +112,10 @@ resource "azurerm_trusted_signing_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Basic"
 }
-`, a.template(data), data.RandomString, data.Locations.Primary)
+`, r.template(data), data.RandomString, data.Locations.Primary)
 }
 
-func (a TrustedSigningAccountResource) complete(data acceptance.TestData) string {
+func (r TrustedSigningAccountResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -113,10 +128,10 @@ resource "azurerm_trusted_signing_account" "test" {
     key = "example"
   }
 }
-`, a.template(data), data.RandomString, data.Locations.Primary)
+`, r.template(data), data.RandomString, data.Locations.Primary)
 }
 
-func (a TrustedSigningAccountResource) template(data acceptance.TestData) string {
+func (r TrustedSigningAccountResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -127,4 +142,17 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r TrustedSigningAccountResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_trusted_signing_account" "import" {
+  name                = azurerm_trusted_signing_account.test.name
+  resource_group_name = azurerm_trusted_signing_account.test.resource_group_name
+  location            = azurerm_trusted_signing_account.test.location
+  sku_name            = azurerm_trusted_signing_account.test.sku_name
+}
+`, r.basic(data))
 }
