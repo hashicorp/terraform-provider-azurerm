@@ -1511,7 +1511,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 		resource.Schema["backend_http_settings"].Elem.(*pluginsdk.Resource).Schema["authentication_certificate"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -1531,7 +1530,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 		resource.Schema["authentication_certificate"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {

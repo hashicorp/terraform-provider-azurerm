@@ -532,6 +532,7 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The `backend_http_settings.authentication_certificate` property has been removed.
 * The `authentication_certificate` property has been removed.
+
 ### `azurerm_batch_pool`
 
 * The deprecated `certificate` property has been removed.
