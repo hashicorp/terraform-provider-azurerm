@@ -7,6 +7,7 @@ ENHANCEMENTS:
 
 
 FEATURES:
+* `azurerm_network_ddos_protection_plan` implement list and identity (#31768) [GH-31768]
 * `mssql_elasticpool` implement list and identity (#31736) [GH-31736]
 * `azurerm_route` implement list (#31760) [GH-31760]
 * **New List Resource**: `azurerm_redis_cache` and `azurerm_redis_firewall_rule`  - includes addition of Identity [GH-31770] [GH-31770]
