@@ -4,5 +4,5 @@ package managedclusters
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedClusterStatus struct {
-	ProvisioningError *CloudErrorBody `json:"provisioningError,omitempty"`
+	ProvisioningError *ErrorDetail `json:"provisioningError,omitempty"`
 }

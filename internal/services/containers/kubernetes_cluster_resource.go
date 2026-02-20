@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
@@ -153,6 +153,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 					}
 					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
 						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+					}
+					securityEnabled := d.Get("network_profile.0.advanced_networking.0.security_enabled").(bool)
+					advancedNetworkPolicies := d.Get("network_profile.0.advanced_networking.0.advanced_network_policies").(string)
+					if !securityEnabled && advancedNetworkPolicies != "" && advancedNetworkPolicies != string(managedclusters.AdvancedNetworkPoliciesNone) {
+						return fmt.Errorf("`network_profile.0.advanced_networking.0.advanced_network_policies` can only be set to `%s` or `%s` when `network_profile.0.advanced_networking.0.security_enabled` is set to `true`", managedclusters.AdvancedNetworkPoliciesFQDN, managedclusters.AdvancedNetworkPoliciesLSeven)
 					}
 				}
 				return nil
@@ -1338,6 +1343,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 										Optional:     true,
 										Default:      false,
 										AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									},
+									"advanced_network_policies": {
+										Type:     pluginsdk.TypeString,
+										Optional: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(managedclusters.AdvancedNetworkPoliciesFQDN),
+											string(managedclusters.AdvancedNetworkPoliciesLSeven),
+											string(managedclusters.AdvancedNetworkPoliciesNone),
+										}, false),
 									},
 								},
 							},
@@ -3680,14 +3694,21 @@ func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk
 	observabilityEnabled := config["observability_enabled"].(bool)
 	securityEnabled := config["security_enabled"].(bool)
 
+	security := &managedclusters.AdvancedNetworkingSecurity{
+		Enabled: pointer.To(securityEnabled),
+	}
+
+	if v, ok := config["advanced_network_policies"].(string); ok && v != "" {
+		advancedNetworkPolicies := managedclusters.AdvancedNetworkPolicies(v)
+		security.AdvancedNetworkPolicies = &advancedNetworkPolicies
+	}
+
 	return &managedclusters.AdvancedNetworking{
 		Enabled: pointer.To(true),
 		Observability: &managedclusters.AdvancedNetworkingObservability{
 			Enabled: pointer.To(observabilityEnabled),
 		},
-		Security: &managedclusters.AdvancedNetworkingSecurity{
-			Enabled: pointer.To(securityEnabled),
-		},
+		Security: security,
 	}
 }
 
@@ -3702,14 +3723,19 @@ func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclust
 	}
 
 	securityEnabled := false
+	advancedNetworkPolicies := ""
 	if advancedNetworking.Security != nil {
 		securityEnabled = pointer.From(advancedNetworking.Security.Enabled)
+		if advancedNetworking.Security.AdvancedNetworkPolicies != nil {
+			advancedNetworkPolicies = string(*advancedNetworking.Security.AdvancedNetworkPolicies)
+		}
 	}
 
 	return []interface{}{
 		map[string]interface{}{
-			"observability_enabled": observabilityEnabled,
-			"security_enabled":      securityEnabled,
+			"observability_enabled":     observabilityEnabled,
+			"security_enabled":          securityEnabled,
+			"advanced_network_policies": advancedNetworkPolicies,
 		},
 	}
 }
