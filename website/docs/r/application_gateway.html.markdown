@@ -124,67 +124,87 @@ The following arguments are supported:
 
 * `backend_address_pool` - (Required) One or more `backend_address_pool` blocks as defined below.
 
-* `backend_http_settings` - (Required) One or more `backend_http_settings` blocks as defined below.
-
 * `frontend_ip_configuration` - (Required) One or more `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - (Required) One or more `frontend_port` blocks as defined below.
 
 * `gateway_ip_configuration` - (Required) One or more `gateway_ip_configuration` blocks as defined below.
 
-* `http_listener` - (Required) One or more `http_listener` blocks as defined below.
-
-* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
-
 * `sku` - (Required) A `sku` block as defined below.
 
 ---
 
-* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
-
-* `global` - (Optional) A `global` block as defined below.
-
-* `identity` - (Optional) An `identity` block as defined below.
-
-* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
-
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
-
--> **Note:** Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
-
-* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
-
-* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
-
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
-* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
+* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
-* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+* `backend` - (Optional) One or more `backend` blocks as defined below.
+
+~> **Note:** At least one of `backend_http_settings` or `backend` must be specified.
+
+* `backend_http_settings` - (Optional) One or more `backend_http_settings` blocks as defined below.
+
+~> **Note:** At least one of `backend_http_settings` or `backend` must be specified.
+
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
+
 * `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
+
+* `global` - (Optional) A `global` block as defined below.
+
+* `http_listener` - (Optional) One or more `http_listener` blocks as defined below.
+
+~> **Note:** At least one of `http_listener` or `listener` must be specified.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `listener` - (Optional) One or more `listener` blocks as defined below.
+
+~> **Note:** At least one of `http_listener` or `listener` must be specified.
+
+* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
 
 * `probe` - (Optional) One or more `probe` blocks as defined below.
 
+* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
+
+* `request_routing_rule` - (Optional) One or more `request_routing_rule` blocks as defined below.
+
+~> **Note:** At least one of `request_routing_rule` or `routing_rule` must be specified.
+
+* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
+
+* `routing_rule` - (Optional) One or more `routing_rule` blocks as defined below.
+
+~> **Note:** At least one of `request_routing_rule` or `routing_rule` must be specified.
+
 * `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
 
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+
+* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
+
+* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
 * `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
 
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
-* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
 
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
+-> **Note:** Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
-* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
-
-* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
-
-* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
+---
 
 ---
 
@@ -219,6 +239,26 @@ A `backend_address_pool` block supports the following:
 * `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
 * `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
+
+---
+
+A `backend` block supports the following:
+
+* `name` - (Required) The name of the Backend Settings Collection.
+
+* `port` - (Required) The port which should be used for this Backend Settings Collection.
+
+* `protocol` - (Required) The Protocol which should be used. Possible values are `Tcp` and `Tls`.
+
+* `host_name` - (Optional) Host header to be sent to the backend servers for TLS protocol. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
+
+* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server for TLS protocol. Defaults to `false`.
+
+* `probe_name` - (Optional) The name of an associated Probe.
+
+* `timeout` - (Optional) The connection timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
+
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
 ---
 
@@ -328,6 +368,24 @@ A `http_listener` block supports the following:
 
 ---
 
+A `listener` block supports the following:
+
+* `name` - (Required) The Name of the Listener.
+
+* `frontend_ip_configuration_name` - (Required) The Name of the Frontend IP Configuration used for this Listener.
+
+* `frontend_port_name` - (Required) The Name of the Frontend Port use for this Listener.
+
+* `protocol` - (Required) The Protocol to use for this Listener. Possible values are `Tcp`, and `Tls`.
+
+* `host_names` - (Optional) A list of Hostname(s) should be used for this Listener. It allows special wildcard characters.
+
+* `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this Listener.
+
+* `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this Listener.
+
+---
+
 An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
@@ -398,9 +456,11 @@ A `probe` block supports the following:
 
 * `name` - (Required) The Name of the Probe.
 
-* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
+* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http`, `Https`, `Tcp` and `Tls`.
 
-* `path` - (Required) The Path used for this Probe.
+* `path` - (Optional) The Path used for this Probe.
+
+!> **Note:** `path` cannot be set when `protocol` is set to `Tcp` or `Tls`.
 
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
@@ -439,6 +499,22 @@ A `request_routing_rule` block supports the following:
 * `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
 -> **Note:** `priority` is required when `sku[0].tier` is set to `*_v2`.
+
+---
+
+A `routing_rule` block supports the following:
+
+* `name` - (Required) The Name of this Routing Rule.
+
+* `backend_address_pool_name` - (Required) The Name of the Backend Address Pool which should be used for this Routing Rule.
+
+* `backend_name` - (Required) The Name of the Backend Settings which should be used for this Routing Rule.
+
+* `listener_name` - (Required) The Name of the Listener which should be used for this Routing Rule.
+
+* `priority` - (Required) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
+
+* `rule_type` - (Required) The Type of Routing that should be used for this Rule. The only possible value is `Basic`.
 
 ---
 
@@ -693,6 +769,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
 
+* `backend` - A list of `backend` blocks as defined below.
+
 * `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - A list of `frontend_port` blocks as defined below.
@@ -701,6 +779,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
+* `listener` - A list of `listener` blocks as defined below.
+
 * `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
 
 * `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
@@ -708,6 +788,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `probe` - A `probe` block as defined below.
 
 * `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
+
+* `routing_rule` - A list of `routing_rule` blocks as defined below.
 
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 
@@ -734,6 +816,14 @@ A `authentication_certificate` block, within the `backend_http_settings` block e
 A `backend_address_pool` block exports the following:
 
 * `id` - The ID of the Backend Address Pool.
+
+---
+
+A `backend` block exports the following:
+
+* `id` - The ID of the Backend Settings Configuration.
+
+* `probe_id` - The ID of the associated Probe.
 
 ---
 
@@ -768,6 +858,20 @@ A `gateway_ip_configuration` block exports the following:
 A `http_listener` block exports the following:
 
 * `id` - The ID of the HTTP Listener.
+
+* `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
+
+* `frontend_port_id` - The ID of the associated Frontend Port.
+
+* `ssl_certificate_id` - The ID of the associated SSL Certificate.
+
+* `ssl_profile_id` - The ID of the associated SSL Profile.
+
+---
+
+A `listener` block exports the following:
+
+* `id` - The ID of the Listener.
 
 * `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
 
@@ -828,6 +932,18 @@ A `request_routing_rule` block exports the following:
 * `rewrite_rule_set_id` - The ID of the associated Rewrite Rule Set.
 
 * `url_path_map_id` - The ID of the associated URL Path Map.
+
+---
+
+A `routing_rule` block exports the following:
+
+* `backend_address_pool_id` - The ID of the associated Backend Address Pool.
+
+* `backend_id` - The ID of the associated Backend Settings.
+
+* `id` - The ID of the Routing Rule.
+
+* `listener_id` - The ID of the associated Listener.
 
 ---
 
