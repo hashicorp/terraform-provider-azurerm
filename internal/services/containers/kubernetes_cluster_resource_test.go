@@ -28,6 +28,21 @@ var (
 	currentKubernetesVersionAlias = "1.33"
 )
 
+func TestAccKubernetesCluster_automaticSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.automaticSKU(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -399,6 +414,46 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 			),
 		},
 	})
+}
+
+func (KubernetesClusterResource) automaticSKU(data acceptance.TestData, controlPlaneVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+
+  azure_policy_enabled = true
+  local_account_disabled = true
+
+  automatic_upgrade_channel = "stable"
+
+  sku_tier = "Standard"
+  sku_name = "Automatic"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    os_disk_type = "Ephemeral"
+    vm_size    = "standard_d4lds_v5" 
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
 func (KubernetesClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {
