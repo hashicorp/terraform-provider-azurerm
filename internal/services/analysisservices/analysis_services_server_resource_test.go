@@ -36,6 +36,32 @@ func TestAccAnalysisServicesServer_basic(t *testing.T) {
 	})
 }
 
+func TestAccAnalysisServicesServer_UpdateFirewallSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
+	r := AnalysisServicesServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.firewallSettings1(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("power_bi_service_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.firewallSettings2(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("power_bi_service_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("ipv4_firewall_rule.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccAnalysisServicesServer_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_analysis_services_server", "test")
 	r := AnalysisServicesServerResource{}
