@@ -171,6 +171,8 @@ The following arguments are supported:
 
 * `min_tls_version` - (Optional) Specifies the minimum TLS version to support for this hub. The only valid value is `1.2`. Changing this forces a new resource to be created.
 
+* `data_residency_enabled` - (Optional) Specifies whether data residency is enabled. When data residency is enabled, disaster recovery is disabled.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
