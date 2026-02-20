@@ -32,7 +32,7 @@ func TestAccMsSqlElasticPool_basicDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -72,7 +72,7 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.standardDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -81,7 +81,7 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -102,7 +102,7 @@ func TestAccMsSqlElasticPool_premiumDTUZoneRedundant(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.premiumDTUZoneRedundant(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -112,7 +112,7 @@ func TestAccMsSqlElasticPool_premiumDTUZoneRedundant(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -128,7 +128,7 @@ func TestAccMsSqlElasticPool_basicVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicVCore(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -136,7 +136,7 @@ func TestAccMsSqlElasticPool_basicVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -152,7 +152,7 @@ func TestAccMsSqlElasticPool_basicVCoreMaxSizeBytes(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicVCoreMaxSizeBytes(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -160,7 +160,7 @@ func TestAccMsSqlElasticPool_basicVCoreMaxSizeBytes(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -176,7 +176,7 @@ func TestAccMsSqlElasticPool_resizeDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.resizeDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -184,7 +184,7 @@ func TestAccMsSqlElasticPool_resizeDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -200,7 +200,7 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.resizeVCore(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -208,7 +208,7 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -227,7 +227,7 @@ func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.fsv2VCore(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -235,7 +235,7 @@ func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -254,7 +254,7 @@ func TestAccMsSqlElasticPool_dcFamilyVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -272,7 +272,7 @@ func TestAccMsSqlElasticPool_dcFamilyBcTierVCore(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -314,7 +314,7 @@ func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.hyperScaleUpdate(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -322,7 +322,7 @@ func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
@@ -379,7 +379,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -387,7 +387,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicDTU(data, `enclave_type = "Default"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -395,7 +395,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("Default"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -403,7 +403,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
