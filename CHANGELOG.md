@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
 
 FEATURES:
+* `azurerm_private_dns_a_record` list and identity, including sdk support for constant segment types (#31785) [GH-31785]
 
 BUG FIXES:
 
