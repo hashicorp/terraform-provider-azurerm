@@ -36,7 +36,6 @@ func resourceVirtualNetworkPeering() *pluginsdk.Resource {
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
 
-		// We will be including the new `Identity` field
 		Identity: &schema.ResourceIdentity{
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualnetworkpeerings.VirtualNetworkPeeringId{}),
 		},
