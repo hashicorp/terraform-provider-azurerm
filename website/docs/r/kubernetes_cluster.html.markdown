@@ -782,6 +782,8 @@ An `oms_agent` block supports the following:
 
 * `msi_auth_for_monitoring_enabled` - (Optional) Is managed identity authentication for monitoring enabled?
 
+* `retina_flow_logs_enabled` - (Optional) Is Retina Flow Logs collection enabled?
+
 ---
 
 An `ingress_application_gateway` block supports the following:
