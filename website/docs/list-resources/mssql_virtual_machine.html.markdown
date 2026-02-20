@@ -37,6 +37,6 @@ list "azurerm_mssql_virtual_machine" "example" {
 
 This list resource supports the following arguments:
 
-* `subscription_id` - (Optional) The ID of the Subscription to query.
+* `subscription_id` - (Optional) The ID of the Subscription to query. Defaults to the value specified in the Provider Configuration.
 
 * `resource_group_name` - (Optional) The name of the Resource Group to query.
