@@ -18,7 +18,7 @@ Lists Firewall Rules associated with a Redis Cache.
 list "azurerm_redis_firewall_rule" "example" {
   provider = azurerm
   config {
-    redis_cache_id = "some-redis-cache-id"
+    redis_cache_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redis/cache1"
   }
 }
 ```
