@@ -640,17 +640,12 @@ func resourcePrivateEndpointRead(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return resourcePrivateEndpointFlatten(ctx, meta.(*clients.Client), d, id, resp.Model)
+	return resourcePrivateEndpointFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
 }
 
-func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *privateendpoints.PrivateEndpointId, model *privateendpoints.PrivateEndpoint) error {
+func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *privateendpoints.PrivateEndpointId, model *privateendpoints.PrivateEndpoint, fetchCompleteData bool) error {
 	nicsClient := metaClient.Network.NetworkInterfaces
 	dnsClient := metaClient.Network.PrivateDnsZoneGroups
-
-	privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
-	if err != nil {
-		return err
-	}
 
 	d.Set("name", id.PrivateEndpointName)
 	d.Set("resource_group_name", id.ResourceGroupName)
@@ -698,33 +693,40 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 				customNicName = *props.CustomNetworkInterfaceName
 			}
 			d.Set("custom_network_interface_name", customNicName)
-		}
 
-		privateDnsZoneConfigs := make([]interface{}, 0)
-		privateDnsZoneGroups := make([]interface{}, 0)
-		if privateDnsZoneIds != nil {
-			for _, dnsZoneId := range *privateDnsZoneIds {
-				flattened, err := retrieveAndFlattenPrivateDnsZone(ctx, dnsClient, dnsZoneId)
+			if fetchCompleteData {
+
+				privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)
 				if err != nil {
-					return fmt.Errorf("reading %s for %s: %+v", dnsZoneId, id, err)
+					return err
 				}
 
-				// an exceptional case but no harm in handling
-				if flattened == nil {
-					continue
-				}
+				privateDnsZoneConfigs := make([]interface{}, 0)
+				privateDnsZoneGroups := make([]interface{}, 0)
+				if privateDnsZoneIds != nil {
+					for _, dnsZoneId := range *privateDnsZoneIds {
+						flattened, err := retrieveAndFlattenPrivateDnsZone(ctx, dnsClient, dnsZoneId)
+						if err != nil {
+							return fmt.Errorf("reading %s for %s: %+v", dnsZoneId, id, err)
+						}
 
-				privateDnsZoneConfigs = append(privateDnsZoneConfigs, flattened.DnsZoneConfig...)
-				privateDnsZoneGroups = append(privateDnsZoneGroups, flattened.DnsZoneGroup)
+						// an exceptional case but no harm in handling
+						if flattened == nil {
+							continue
+						}
+
+						privateDnsZoneConfigs = append(privateDnsZoneConfigs, flattened.DnsZoneConfig...)
+						privateDnsZoneGroups = append(privateDnsZoneGroups, flattened.DnsZoneGroup)
+					}
+				}
+				if err = d.Set("private_dns_zone_configs", privateDnsZoneConfigs); err != nil {
+					return fmt.Errorf("setting `private_dns_zone_configs`: %+v", err)
+				}
+				if err = d.Set("private_dns_zone_group", privateDnsZoneGroups); err != nil {
+					return fmt.Errorf("setting `private_dns_zone_group`: %+v", err)
+				}
 			}
 		}
-		if err = d.Set("private_dns_zone_configs", privateDnsZoneConfigs); err != nil {
-			return fmt.Errorf("setting `private_dns_zone_configs`: %+v", err)
-		}
-		if err = d.Set("private_dns_zone_group", privateDnsZoneGroups); err != nil {
-			return fmt.Errorf("setting `private_dns_zone_group`: %+v", err)
-		}
-
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
 		}

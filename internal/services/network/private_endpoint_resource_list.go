@@ -90,7 +90,7 @@ func (r PrivateEndpointListResource) List(ctx context.Context, request list.List
 
 			rd.SetId(id.ID())
 
-			if err := resourcePrivateEndpointFlatten(ctx, metaClient, rd, id, &privateendpoint); err != nil {
+			if err := resourcePrivateEndpointFlatten(ctx, metaClient, rd, id, &privateendpoint, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_private_endpoint"), err)
 				return
 			}
