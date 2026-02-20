@@ -380,6 +380,8 @@ func (r ArcKubernetesClusterResource) getCredentials(t *testing.T) (credential, 
 	if os.Getenv(resource.EnvTfAcc) == "" {
 		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
+	ra := rand.New(rand.NewSource(10))
+	ra.Intn(1000)
 
 	credential = fmt.Sprintf("P@$$w0rd%d!", rand.Intn(10000))
 	privateKey, publicKey, err := r.generateKey()
