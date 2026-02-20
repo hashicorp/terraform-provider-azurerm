@@ -155,7 +155,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
 			MaxItems:   1,
-			Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more https://aka.ms/diagnostic_settings_log_retention",
+			Deprecated: "`retention_policy` has been deprecated in favour of `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more https://aka.ms/diagnostic_settings_log_retention",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
@@ -179,7 +179,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			Deprecated:    "`metric` has been deprecated in favor of the `enabled_metric` property and will be removed in v5.0 of the AzureRM provider",
+			Deprecated:    "`metric` has been deprecated in favour of the `enabled_metric` property and will be removed in v5.0 of the AzureRM provider",
 			AtLeastOneOf:  []string{"enabled_log", "enabled_metric", "metric"},
 			ConflictsWith: []string{"enabled_metric"},
 			Set:           resourceMonitorDiagnosticMetricsSettingHash,
@@ -201,7 +201,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						Type:       pluginsdk.TypeList,
 						Optional:   true,
 						MaxItems:   1,
-						Deprecated: "`retention_policy` has been deprecated in favor of the `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more go to https://aka.ms/diagnostic_settings_log_retention",
+						Deprecated: "`retention_policy` has been deprecated in favour of the `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more go to https://aka.ms/diagnostic_settings_log_retention",
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
