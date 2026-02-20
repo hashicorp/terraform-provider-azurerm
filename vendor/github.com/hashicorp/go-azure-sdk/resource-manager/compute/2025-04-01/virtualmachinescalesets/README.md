@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets` Documentation
 
-The `virtualmachinescalesets` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2024-11-01`).
+The `virtualmachinescalesets` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2025-04-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
 ```
 
 
@@ -347,6 +347,23 @@ payload := virtualmachinescalesets.VirtualMachineScaleSetVMInstanceIDs{
 
 
 if err := client.RestartThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `VirtualMachineScaleSetsClient.ScaleOut`
+
+```go
+ctx := context.TODO()
+id := virtualmachinescalesets.NewVirtualMachineScaleSetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualMachineScaleSetName")
+
+payload := virtualmachinescalesets.VMScaleSetScaleOutInput{
+	// ...
+}
+
+
+if err := client.ScaleOutThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

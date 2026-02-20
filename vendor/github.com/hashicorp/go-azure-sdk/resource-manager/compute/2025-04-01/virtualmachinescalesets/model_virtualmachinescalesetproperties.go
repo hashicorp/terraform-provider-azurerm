@@ -14,6 +14,7 @@ type VirtualMachineScaleSetProperties struct {
 	AutomaticRepairsPolicy                 *AutomaticRepairsPolicy            `json:"automaticRepairsPolicy,omitempty"`
 	ConstrainedMaximumCapacity             *bool                              `json:"constrainedMaximumCapacity,omitempty"`
 	DoNotRunExtensionsOnOverprovisionedVMs *bool                              `json:"doNotRunExtensionsOnOverprovisionedVMs,omitempty"`
+	HighSpeedInterconnectPlacement         *HighSpeedInterconnectPlacement    `json:"highSpeedInterconnectPlacement,omitempty"`
 	HostGroup                              *SubResource                       `json:"hostGroup,omitempty"`
 	OrchestrationMode                      *OrchestrationMode                 `json:"orchestrationMode,omitempty"`
 	Overprovision                          *bool                              `json:"overprovision,omitempty"`
