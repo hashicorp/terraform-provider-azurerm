@@ -135,6 +135,10 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 	return nil
 }
 
+func validateKubernetesAutomaticCluster(d *pluginsdk.ResourceData, cluster *managedclusters.ManagedCluster) error {
+	return nil
+}
+
 var errExistingClusterCommon = `
 Azure Kubernetes Service has recently made several breaking changes to Cluster Authentication as
 the Managed Identity Preview has concluded and entered General Availability.
