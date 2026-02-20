@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/deploymentsafeguards"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
@@ -34,6 +35,7 @@ type Client struct {
 	ContainerRegistryClient *containerregistry.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
+	DeploymentSafeguardsClient                  *deploymentsafeguards.DeploymentSafeguardsClient
 	FleetUpdateRunsClient                       *updateruns.UpdateRunsClient
 	FleetUpdateStrategiesClient                 *fleetupdatestrategies.FleetUpdateStrategiesClient
 	KubernetesClustersClient                    *managedclusters.ManagedClustersClient
@@ -80,6 +82,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	o.Configure(credentialSetsClient.Client, o.Authorizers.ResourceManager)
 
 	// AKS
+	deploymentSafeguardsClient, err := deploymentsafeguards.NewDeploymentSafeguardsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Deployment Safeguards Client: %+v", err)
+	}
+	o.Configure(deploymentSafeguardsClient.Client, o.Authorizers.ResourceManager)
+
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Fleet Update Runs Client: %+v", err)
@@ -147,6 +155,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 		CredentialSetsClient:                        credentialSetsClient,
 		ContainerRegistryClient:                     containerRegistryClient,
 		ContainerRegistryClient_v2019_06_01_preview: containerRegistryClient_v2019_06_01_preview,
+		DeploymentSafeguardsClient:                  deploymentSafeguardsClient,
 		FleetUpdateRunsClient:                       fleetUpdateRunsClient,
 		FleetUpdateStrategiesClient:                 fleetUpdateStrategiesClient,
 		KubernetesClustersClient:                    kubernetesClustersClient,
