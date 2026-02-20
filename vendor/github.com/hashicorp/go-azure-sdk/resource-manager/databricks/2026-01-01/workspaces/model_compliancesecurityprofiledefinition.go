@@ -4,6 +4,6 @@ package workspaces
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ComplianceSecurityProfileDefinition struct {
-	ComplianceStandards *[]ComplianceStandard           `json:"complianceStandards,omitempty"`
+	ComplianceStandards *[]string                       `json:"complianceStandards,omitempty"`
 	Value               *ComplianceSecurityProfileValue `json:"value,omitempty"`
 }

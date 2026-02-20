@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector` Documentation
 
-The `workspaces` SDK allows for interaction with Azure Resource Manager `databricks` (API Version `2022-04-01-preview`).
+The `accessconnector` SDK allows for interaction with Azure Resource Manager `databricks` (API Version `2026-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,25 +9,25 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 ```
 
 
 ### Client Initialization
 
 ```go
-client := workspaces.NewWorkspacesClientWithBaseURI("https://management.azure.com")
+client := accessconnector.NewAccessConnectorClientWithBaseURI("https://management.azure.com")
 client.Client.Authorizer = authorizer
 ```
 
 
-### Example Usage: `WorkspacesClient.CreateOrUpdate`
+### Example Usage: `AccessConnectorClient.CreateOrUpdate`
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorName")
 
-payload := workspaces.Workspace{
+payload := accessconnector.AccessConnector{
 	// ...
 }
 
@@ -38,11 +38,11 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 ```
 
 
-### Example Usage: `WorkspacesClient.Delete`
+### Example Usage: `AccessConnectorClient.Delete`
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -50,11 +50,11 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 ```
 
 
-### Example Usage: `WorkspacesClient.Get`
+### Example Usage: `AccessConnectorClient.Get`
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -66,7 +66,7 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `WorkspacesClient.ListByResourceGroup`
+### Example Usage: `AccessConnectorClient.ListByResourceGroup`
 
 ```go
 ctx := context.TODO()
@@ -83,7 +83,7 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `WorkspacesClient.ListBySubscription`
+### Example Usage: `AccessConnectorClient.ListBySubscription`
 
 ```go
 ctx := context.TODO()
@@ -100,13 +100,13 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `WorkspacesClient.Update`
+### Example Usage: `AccessConnectorClient.Update`
 
 ```go
 ctx := context.TODO()
-id := workspaces.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
+id := accessconnector.NewAccessConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accessConnectorName")
 
-payload := workspaces.WorkspaceUpdate{
+payload := accessconnector.AccessConnectorUpdate{
 	// ...
 }
 

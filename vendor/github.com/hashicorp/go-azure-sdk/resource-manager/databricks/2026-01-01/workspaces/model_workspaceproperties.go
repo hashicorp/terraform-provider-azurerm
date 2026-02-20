@@ -12,6 +12,7 @@ import (
 type WorkspaceProperties struct {
 	AccessConnector            *WorkspacePropertiesAccessConnector   `json:"accessConnector,omitempty"`
 	Authorizations             *[]WorkspaceProviderAuthorization     `json:"authorizations,omitempty"`
+	ComputeMode                ComputeMode                           `json:"computeMode"`
 	CreatedBy                  *CreatedBy                            `json:"createdBy,omitempty"`
 	CreatedDateTime            *string                               `json:"createdDateTime,omitempty"`
 	DefaultCatalog             *DefaultCatalogProperties             `json:"defaultCatalog,omitempty"`
@@ -21,7 +22,7 @@ type WorkspaceProperties struct {
 	EnhancedSecurityCompliance *EnhancedSecurityComplianceDefinition `json:"enhancedSecurityCompliance,omitempty"`
 	IsUcEnabled                *bool                                 `json:"isUcEnabled,omitempty"`
 	ManagedDiskIdentity        *ManagedIdentityConfiguration         `json:"managedDiskIdentity,omitempty"`
-	ManagedResourceGroupId     string                                `json:"managedResourceGroupId"`
+	ManagedResourceGroupId     *string                               `json:"managedResourceGroupId,omitempty"`
 	Parameters                 *WorkspaceCustomParameters            `json:"parameters,omitempty"`
 	PrivateEndpointConnections *[]PrivateEndpointConnection          `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState          *ProvisioningState                    `json:"provisioningState,omitempty"`
