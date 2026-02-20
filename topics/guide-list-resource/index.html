@@ -1,0 +1,1501 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Contributor documentation and reference for the Terraform AzureRM Provider">
+      
+      
+      
+      
+        <link rel="prev" href="../guide-new-resource/">
+      
+      
+        <link rel="next" href="../guide-new-data-source/">
+      
+      <link rel="icon" href="../../images/hashicorp-black.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Adding a new List Resource - Terraform AzureRM Provider - Contributor Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="hashicorp" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#guide-list-resource" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-header__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Terraform AzureRM Provider - Contributor Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Adding a new List Resource
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-nav__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    Terraform AzureRM Provider - Contributor Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Welcome
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+          Getting Started
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Getting Started" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Getting Started
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-level-overview/" class="md-nav__link">
+        Overview of the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-the-provider/" class="md-nav__link">
+        Building the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../debugging-the-provider/" class="md-nav__link">
+        Debugging the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../running-the-tests/" class="md-nav__link">
+        Running Tests
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-opening-a-pr/" class="md-nav__link">
+        Opening a Pull Request
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="true">
+          Creating New Resources & Data Sources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Creating New Resources & Data Sources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Creating New Resources & Data Sources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-service-package/" class="md-nav__link">
+        Adding a new Service Package
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource/" class="md-nav__link">
+        Adding a new Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Adding a new List Resource
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Adding a new List Resource
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-list-resource" class="md-nav__link">
+    Adding List Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-issues-and-considerations" class="md-nav__link">
+    Known Issues and Considerations
+  </a>
+  
+    <nav class="md-nav" aria-label="Known Issues and Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cancelled-context" class="md-nav__link">
+    Cancelled Context
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-data-source/" class="md-nav__link">
+        Adding a new Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource-vs-inline/" class="md-nav__link">
+        When to create a new Resource vs Inline Block
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="false">
+          Extending Existing Resources
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Extending Existing Resources" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Extending Existing Resources
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-feature/" class="md-nav__link">
+        Adding a new Feature
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-resource/" class="md-nav__link">
+        Adding fields to an existing Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-data-source/" class="md-nav__link">
+        Adding fields to an existing Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-identity/" class="md-nav__link">
+        Adding Resource Identity
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-write-only-attribute/" class="md-nav__link">
+        Adding Write-Only Attributes
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Maintenance & Updates
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Maintenance & Updates" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Maintenance & Updates
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-api-version/" class="md-nav__link">
+        Updating API Versions
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-state-migrations/" class="md-nav__link">
+        Adding State Migrations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-breaking-changes/" class="md-nav__link">
+        Breaking Changes and Deprecations
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_6" type="checkbox" id="__nav_6" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6" tabindex="0" aria-expanded="false">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-acceptance-testing/" class="md-nav__link">
+        Acceptance Testing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-glossary/" class="md-nav__link">
+        Glossary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-naming/" class="md-nav__link">
+        Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-ids/" class="md-nav__link">
+        Resource IDs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-design-considerations/" class="md-nav__link">
+        Schema Design
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-documentation-standards/" class="md-nav__link">
+        Provider Documentation Standards
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-errors/" class="md-nav__link">
+        Working with Errors
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_7" type="checkbox" id="__nav_7" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_7" tabindex="0" aria-expanded="false">
+          Maintainers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Maintainers" data-md-level="1">
+        <label class="md-nav__title" for="__nav_7">
+          <span class="md-nav__icon md-icon"></span>
+          Maintainers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainer-merging/" class="md-nav__link">
+        Merging PRs
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frequently-asked-questions/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    Prerequisites
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-list-resource" class="md-nav__link">
+    Adding List Resource
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#known-issues-and-considerations" class="md-nav__link">
+    Known Issues and Considerations
+  </a>
+  
+    <nav class="md-nav" aria-label="Known Issues and Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cancelled-context" class="md-nav__link">
+    Cancelled Context
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+<h1 id="guide-list-resource">Guide: List Resource<a class="headerlink" href="#guide-list-resource" title="Permanent link">#</a></h1>
+<p>This guide covers how to add a List Resource for an existing resource, using <code>azurerm_network_profile</code> as an example. For more information on Lists, see <a href="https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/list">Resources - List</a>.</p>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">#</a></h2>
+<p>Before adding a List Resource, the resource must have Resource Identity implemented. For more information on implementing Resource Identity see <a href="../guide-resource-identity/">Guide: Resource Identity</a>.</p>
+<h2 id="adding-list-resource">Adding List Resource<a class="headerlink" href="#adding-list-resource" title="Permanent link">#</a></h2>
+<blockquote>
+<p><strong>Note:</strong> There are some minor differences between the implementation of a List Resource for an untyped or typed resource. These differences are highlighted in separated code snippets.</p>
+</blockquote>
+<ol>
+<li>
+<p>In the resource, refactor the Read function to have a separate flatten function containing only the logic to set the attributes into state. This will be used by both the Read function and later in the List Resource.<br><br></p>
+<p>For untyped resources:
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="nx">resourceNetworkProfileFlatten</span><span class="p">(</span><span class="nx">d</span><span class="w"> </span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="w"> </span><span class="o">*</span><span class="nx">networkprofiles</span><span class="p">.</span><span class="nx">NetworkProfileId</span><span class="p">,</span><span class="w"> </span><span class="nx">profile</span><span class="w"> </span><span class="o">*</span><span class="nx">networkprofiles</span><span class="p">.</span><span class="nx">NetworkProfile</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">d</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">.</span><span class="nx">NetworkProfileName</span><span class="p">)</span>
+<span class="w">    </span><span class="nx">d</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;resource_group_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">.</span><span class="nx">ResourceGroupName</span><span class="p">)</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">profile</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">profile</span><span class="p">.</span><span class="nx">Properties</span><span class="p">;</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">cniConfigs</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">flattenNetworkProfileContainerNetworkInterface</span><span class="p">(</span><span class="nx">props</span><span class="p">.</span><span class="nx">ContainerNetworkInterfaceConfigurations</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">d</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;container_network_interface&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">cniConfigs</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;setting `container_network_interface`: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">            </span><span class="nx">cniIDs</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">flattenNetworkProfileContainerNetworkInterfaceIDs</span><span class="p">(</span><span class="nx">props</span><span class="p">.</span><span class="nx">ContainerNetworkInterfaces</span><span class="p">)</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">d</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;container_network_interface_ids&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">cniIDs</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Errorf</span><span class="p">(</span><span class="s">&quot;setting `container_network_interface_ids`: %+v&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">        </span><span class="nx">d</span><span class="p">.</span><span class="nx">Set</span><span class="p">(</span><span class="s">&quot;location&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">location</span><span class="p">.</span><span class="nx">NormalizeNilable</span><span class="p">(</span><span class="nx">profile</span><span class="p">.</span><span class="nx">Location</span><span class="p">))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">tags</span><span class="p">.</span><span class="nx">FlattenAndSet</span><span class="p">(</span><span class="nx">d</span><span class="p">,</span><span class="w"> </span><span class="nx">profile</span><span class="p">.</span><span class="nx">Tags</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">SetResourceIdentityData</span><span class="p">(</span><span class="nx">d</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p>For typed resources:
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ExampleResource</span><span class="p">)</span><span class="w"> </span><span class="nx">flatten</span><span class="p">(</span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetaData</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="w"> </span><span class="o">*</span><span class="nx">example</span><span class="p">.</span><span class="nx">ExampleId</span><span class="p">,</span><span class="w"> </span><span class="nx">model</span><span class="w"> </span><span class="o">*</span><span class="nx">example</span><span class="p">.</span><span class="nx">ExampleModel</span><span class="p">)</span><span class="w"> </span><span class="kt">error</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Instantiate state, set any fields with known values (e.g. ones we can derive from the ID)</span>
+<span class="w">    </span><span class="nx">state</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ExampleResourceModel</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Name</span><span class="p">:</span><span class="w"> </span><span class="nx">id</span><span class="p">.</span><span class="nx">ExampleResourceName</span>
+<span class="w">        </span><span class="nx">ResourceGroupName</span><span class="p">:</span><span class="w"> </span><span class="nx">id</span><span class="p">.</span><span class="nx">ResourceGroupName</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">model</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">state</span><span class="p">.</span><span class="nx">Location</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">location</span><span class="p">.</span><span class="nx">Normalize</span><span class="p">(</span><span class="nx">model</span><span class="p">.</span><span class="nx">Location</span><span class="p">)</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">model</span><span class="p">.</span><span class="nx">Properties</span><span class="p">;</span><span class="w"> </span><span class="nx">props</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Set remaining properties into the Resource Model (`state`)   </span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Set the Resource Identity Data</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">SetResourceIdentityData</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="nx">err</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Encode</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">state</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Create a new file for the List Resource (for example, <code>network_profile_resource_list.go</code>) and scaffold the empty resource:<br><br></p>
+<p>For untyped resources:
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">NetworkProfileListResource</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">FrameworkListWrappedResource</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">new</span><span class="p">(</span><span class="nx">NetworkProfileListResource</span><span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">NetworkProfileListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">ResourceFunc</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">resourceNetworkProfile</span><span class="p">()</span>
+<span class="p">}</span>
+
+<span class="c1">// set this with a const from the resource containing the resource name eg, `azurerm_network_profile`</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">r</span><span class="w"> </span><span class="nx">NetworkProfileListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Metadata</span><span class="p">(</span><span class="nx">_</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">resource</span><span class="p">.</span><span class="nx">MetadataRequest</span><span class="p">,</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">*</span><span class="nx">resource</span><span class="p">.</span><span class="nx">MetadataResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">response</span><span class="p">.</span><span class="nx">TypeName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">azureNetworkProfileResourceName</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p>For typed resources:
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">ExampleListResource</span><span class="w"> </span><span class="kd">struct</span><span class="p">{}</span>
+
+<span class="kd">var</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">FrameworkListWrappedResource</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nb">new</span><span class="p">(</span><span class="nx">ExampleListResource</span><span class="p">)</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ExampleListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">ResourceFunc</span><span class="p">()</span><span class="w"> </span><span class="o">*</span><span class="nx">pluginsdk</span><span class="p">.</span><span class="nx">Resource</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Use the `sdk.WrappedResource` helper to convert a typed resource into `*pluginsdk.Resource`</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">WrappedResource</span><span class="p">(</span><span class="nx">ExampleResource</span><span class="p">{})</span>
+<span class="p">}</span>
+
+<span class="c1">// Set the name using the `ResourceType()` function</span>
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ExampleListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">Metadata</span><span class="p">(</span><span class="nx">_</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">resource</span><span class="p">.</span><span class="nx">MetadataRequest</span><span class="p">,</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">*</span><span class="nx">resource</span><span class="p">.</span><span class="nx">MetadataResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">response</span><span class="p">.</span><span class="nx">TypeName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">ExampleResource</span><span class="p">{}.</span><span class="nx">ResourceType</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Define any List Resource specific configuration options. This step can be omitted if using the DefaultListModel (which includes <code>subscription_id</code> and <code>resource_group_name</code>). However, other resources may have different configuration options that need to be defined here and would look something like this:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">type</span><span class="w"> </span><span class="nx">NetworkProfileListModel</span><span class="w"> </span><span class="kd">struct</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">SubscriptionId</span><span class="w">    </span><span class="nx">types</span><span class="p">.</span><span class="nx">String</span><span class="w"> </span><span class="s">`tfsdk:&quot;subscription_id&quot;`</span>
+<span class="w">    </span><span class="nx">ResourceGroupName</span><span class="w"> </span><span class="nx">types</span><span class="p">.</span><span class="nx">String</span><span class="w"> </span><span class="s">`tfsdk:&quot;resource_group_name&quot;`</span>
+<span class="p">}</span>
+
+<span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">NetworkProfileListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">ListResourceConfigSchema</span><span class="p">(</span><span class="nx">_</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">_</span><span class="w"> </span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResourceSchemaRequest</span><span class="p">,</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">*</span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResourceSchemaResponse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">response</span><span class="p">.</span><span class="nx">Schema</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">schema</span><span class="p">.</span><span class="nx">Schema</span><span class="p">{</span>
+<span class="w">        </span><span class="nx">Attributes</span><span class="p">:</span><span class="w"> </span><span class="kd">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="nx">schema</span><span class="p">.</span><span class="nx">Attribute</span><span class="p">{</span>
+<span class="w">            </span><span class="s">&quot;subscription_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">schema</span><span class="p">.</span><span class="nx">StringAttribute</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Optional</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">Validators</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">validator</span><span class="p">.</span><span class="nx">String</span><span class="p">{</span>
+<span class="w">                    </span><span class="nx">typehelpers</span><span class="p">.</span><span class="nx">WrappedStringValidator</span><span class="p">{</span>
+<span class="w">                        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="nx">commonids</span><span class="p">.</span><span class="nx">ValidateSubscriptionID</span><span class="p">,</span>
+<span class="w">                    </span><span class="p">},</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="s">&quot;resource_group_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="nx">schema</span><span class="p">.</span><span class="nx">StringAttribute</span><span class="p">{</span>
+<span class="w">                </span><span class="nx">Optional</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">                </span><span class="nx">Validators</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="nx">validator</span><span class="p">.</span><span class="nx">String</span><span class="p">{</span>
+<span class="w">                    </span><span class="nx">typehelpers</span><span class="p">.</span><span class="nx">WrappedStringValidator</span><span class="p">{</span>
+<span class="w">                        </span><span class="nx">Func</span><span class="p">:</span><span class="w"> </span><span class="nx">resourcegroups</span><span class="p">.</span><span class="nx">ValidateName</span><span class="p">,</span>
+<span class="w">                    </span><span class="p">},</span>
+<span class="w">                </span><span class="p">},</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+</li>
+<li>
+<p>Implement the List function.<br><br></p>
+<p>For untyped resources:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">NetworkProfileListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">List</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">request</span><span class="w"> </span><span class="nx">list</span><span class="p">.</span><span class="nx">ListRequest</span><span class="p">,</span><span class="w"> </span><span class="nx">stream</span><span class="w"> </span><span class="o">*</span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResultsStream</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetadata</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">    </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Network</span><span class="p">.</span><span class="nx">NetworkProfiles</span>
+
+<span class="w">    </span><span class="c1">// Read the list config data into the model</span>
+<span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">DefaultListModel</span>
+<span class="w">    </span><span class="nx">diags</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">request</span><span class="p">.</span><span class="nx">Config</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">data</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">diags</span><span class="p">.</span><span class="nx">HasError</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">stream</span><span class="p">.</span><span class="nx">Results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResultsStreamDiagnostics</span><span class="p">(</span><span class="nx">diags</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Initialize a list for the results of the API request</span>
+<span class="w">    </span><span class="nx">results</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nb">make</span><span class="p">([]</span><span class="nx">networkprofiles</span><span class="p">.</span><span class="nx">NetworkProfile</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+
+<span class="w">    </span><span class="nx">subscriptionID</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">SubscriptionId</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">data</span><span class="p">.</span><span class="nx">SubscriptionId</span><span class="p">.</span><span class="nx">IsNull</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">subscriptionID</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">SubscriptionId</span><span class="p">.</span><span class="nx">ValueString</span><span class="p">()</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Make the request based on which list parameters have been set in the config</span>
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">!</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceGroupName</span><span class="p">.</span><span class="nx">IsNull</span><span class="p">():</span>
+<span class="w">        </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">ListComplete</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">commonids</span><span class="p">.</span><span class="nx">NewResourceGroupID</span><span class="p">(</span><span class="nx">subscriptionID</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceGroupName</span><span class="p">.</span><span class="nx">ValueString</span><span class="p">()))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetResponseErrorDiagnostic</span><span class="p">(</span><span class="nx">stream</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;listing `%s`&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">azureNetworkProfileResourceName</span><span class="p">),</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="nx">results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Items</span>
+<span class="w">    </span><span class="k">default</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">ListAllComplete</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">commonids</span><span class="p">.</span><span class="nx">NewSubscriptionID</span><span class="p">(</span><span class="nx">subscriptionID</span><span class="p">))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetResponseErrorDiagnostic</span><span class="p">(</span><span class="nx">stream</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;listing `%s`&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">azureNetworkProfileResourceName</span><span class="p">),</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="nx">results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Items</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Define the function that will push results into the stream </span>
+<span class="w">    </span><span class="nx">stream</span><span class="p">.</span><span class="nx">Results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">push</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResult</span><span class="p">)</span><span class="w"> </span><span class="kt">bool</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">profile</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">            </span><span class="c1">// Initialize a new result object for each resource in the list</span>
+<span class="w">            </span><span class="nx">result</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">request</span><span class="p">.</span><span class="nx">NewListResult</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+
+<span class="w">            </span><span class="c1">// Set the display name of the item as the resource name</span>
+<span class="w">            </span><span class="nx">result</span><span class="p">.</span><span class="nx">DisplayName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="nx">profile</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+
+<span class="w">            </span><span class="c1">// Create a new ResourceData object to hold the state of the resource</span>
+<span class="w">            </span><span class="nx">rd</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resourceNetworkProfile</span><span class="p">().</span><span class="nx">Data</span><span class="p">(</span><span class="o">&amp;</span><span class="nx">terraform</span><span class="p">.</span><span class="nx">InstanceState</span><span class="p">{})</span>
+
+<span class="w">            </span><span class="c1">// Set the ID of the resource for the ResourceData object</span>
+<span class="w">            </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">networkprofiles</span><span class="p">.</span><span class="nx">ParseNetworkProfileID</span><span class="p">(</span><span class="nx">pointer</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="nx">profile</span><span class="p">.</span><span class="nx">Id</span><span class="p">))</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetErrorDiagnosticAndPushListResult</span><span class="p">(</span><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="nx">push</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;parsing Network Profile ID&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">                </span><span class="k">return</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">            </span><span class="nx">rd</span><span class="p">.</span><span class="nx">SetId</span><span class="p">(</span><span class="nx">id</span><span class="p">.</span><span class="nx">ID</span><span class="p">())</span>
+
+<span class="w">            </span><span class="c1">// Use the resource flatten function to set the attributes into the resource state</span>
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">resourceNetworkProfileFlatten</span><span class="p">(</span><span class="nx">rd</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">profile</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetErrorDiagnosticAndPushListResult</span><span class="p">(</span><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="nx">push</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;encoding `%s` resource data&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">azureNetworkProfileResourceName</span><span class="p">),</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">                </span><span class="k">return</span>
+<span class="w">            </span><span class="p">}</span>
+
+<span class="w">           </span><span class="c1">// Convert and set the identity and resource state into the result</span>
+<span class="w">           </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">EncodeListResult</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">rd</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">result</span><span class="p">)</span>
+<span class="w">           </span><span class="k">if</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Diagnostics</span><span class="p">.</span><span class="nx">HasError</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nx">push</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span>
+<span class="w">               </span><span class="k">return</span>
+<span class="w">           </span><span class="p">}</span>
+
+<span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">push</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="k">return</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>For typed resources:
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ExampleListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">List</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">request</span><span class="w"> </span><span class="nx">list</span><span class="p">.</span><span class="nx">ListRequest</span><span class="p">,</span><span class="w"> </span><span class="nx">stream</span><span class="w"> </span><span class="o">*</span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResultsStream</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetadata</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nx">client</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">.</span><span class="nx">Example</span><span class="p">.</span><span class="nx">ExampleResourceClient</span>
+
+<span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">DefaultListModel</span>
+<span class="w">    </span><span class="nx">diags</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">request</span><span class="p">.</span><span class="nx">Config</span><span class="p">.</span><span class="nx">Get</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">data</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="nx">diags</span><span class="p">.</span><span class="nx">HasError</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">stream</span><span class="p">.</span><span class="nx">Results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResultsStreamDiagnostics</span><span class="p">(</span><span class="nx">diags</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kd">var</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="p">[]</span><span class="nx">example</span><span class="p">.</span><span class="nx">ExampleModel</span>
+
+<span class="w">    </span><span class="nx">subscriptionID</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">metadata</span><span class="p">.</span><span class="nx">SubscriptionId</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">data</span><span class="p">.</span><span class="nx">SubscriptionId</span><span class="p">.</span><span class="nx">IsNull</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">subscriptionID</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">SubscriptionId</span><span class="p">.</span><span class="nx">ValueString</span><span class="p">()</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">r</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ExampleResource</span><span class="p">{}</span>
+
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">!</span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceGroupName</span><span class="p">.</span><span class="nx">IsNull</span><span class="p">():</span>
+<span class="w">        </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">ListByResourceGroupComplete</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">commonids</span><span class="p">.</span><span class="nx">NewResourceGroupID</span><span class="p">(</span><span class="nx">subscriptionID</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">ResourceGroupName</span><span class="p">.</span><span class="nx">ValueString</span><span class="p">()))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetResponseErrorDiagnostic</span><span class="p">(</span><span class="nx">stream</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;listing `%s`&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">ResourceType</span><span class="p">()),</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="nx">results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Items</span>
+<span class="w">    </span><span class="k">default</span><span class="p">:</span>
+<span class="w">        </span><span class="nx">resp</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">client</span><span class="p">.</span><span class="nx">ListComplete</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">commonids</span><span class="p">.</span><span class="nx">NewSubscriptionID</span><span class="p">(</span><span class="nx">subscriptionID</span><span class="p">))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetResponseErrorDiagnostic</span><span class="p">(</span><span class="nx">stream</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;listing `%s`&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">ResourceType</span><span class="p">()),</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">resp</span><span class="p">.</span><span class="nx">Items</span>
+<span class="p">}</span>
+
+<span class="nx">stream</span><span class="p">.</span><span class="nx">Results</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">push</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResult</span><span class="p">)</span><span class="w"> </span><span class="kt">bool</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">exampleResult</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nx">result</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">request</span><span class="p">.</span><span class="nx">NewListResult</span><span class="p">(</span><span class="nx">ctx</span><span class="p">)</span>
+<span class="w">        </span><span class="nx">result</span><span class="p">.</span><span class="nx">DisplayName</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="nx">pointer</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="nx">exampleResult</span><span class="p">.</span><span class="nx">Name</span><span class="p">)</span>
+
+<span class="w">        </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">example</span><span class="p">.</span><span class="nx">ParseExampleID</span><span class="p">(</span><span class="nx">pointer</span><span class="p">.</span><span class="nx">From</span><span class="p">(</span><span class="nx">exampleResult</span><span class="p">.</span><span class="nx">Id</span><span class="p">))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetErrorDiagnosticAndPushListResult</span><span class="p">(</span><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="nx">push</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;parsing Example ID&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// Instantiate a new ResourceMetaData object to leverage the resource&#39;s `flatten` function</span>
+<span class="w">        </span><span class="c1">// which uses the `(ResourceMetaData).Encode()` function to populate the resource state.</span>
+<span class="w">        </span><span class="nx">rmd</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">NewResourceMetaData</span><span class="p">(</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">Client</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">)</span>
+<span class="w">        </span><span class="nx">rmd</span><span class="p">.</span><span class="nx">SetID</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">flatten</span><span class="p">(</span><span class="nx">rmd</span><span class="p">,</span><span class="w"> </span><span class="nx">id</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">exampleResult</span><span class="p">);</span><span class="w"> </span><span class="nx">err</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="kc">nil</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetErrorDiagnosticAndPushListResult</span><span class="p">(</span><span class="nx">result</span><span class="p">,</span><span class="w"> </span><span class="nx">push</span><span class="p">,</span><span class="w"> </span><span class="nx">fmt</span><span class="p">.</span><span class="nx">Sprintf</span><span class="p">(</span><span class="s">&quot;encoding `%s` resource data&quot;</span><span class="p">,</span><span class="w"> </span><span class="nx">r</span><span class="p">.</span><span class="nx">ResourceType</span><span class="p">()),</span><span class="w"> </span><span class="nx">err</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">EncodeListResult</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">rmd</span><span class="p">.</span><span class="nx">ResourceData</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="nx">result</span><span class="p">)</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="nx">result</span><span class="p">.</span><span class="nx">Diagnostics</span><span class="p">.</span><span class="nx">HasError</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nx">push</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">push</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="k">return</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p>Register the new List Resource</p>
+</li>
+</ol>
+<p>List Resources are registered within the <code>registration.go</code> within each Service Package - and should look something like this:</p>
+<div class="highlight"><pre><span></span><code>```
+package network
+
+import &quot;github.com/hashicorp/terraform-provider-azurerm/internal/sdk&quot;
+
+type Registration struct{}
+
+var _ sdk.FrameworkServiceRegistration = Registration{}
+
+// ...
+
+// Resources returns a list of List Resources supported by this Service
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+    return []sdk.FrameworkListWrappedResource{
+        NetworkProfileListResource{},
+        }
+}
+```
+</code></pre></div>
+<ol>
+<li>
+<p>Add Acceptance Tests for this List Resource</p>
+<p>Create a new acceptance test file for the List Resource (for example, <code>network_profile_resource_list_test.go</code>) and add tests to cover the List Resource functionality. The test should provision any prerequisite resources and multiple resources of the type of List Resource we want to test.</p>
+<p>The test should look something like this:</p>
+<div class="highlight"><pre><span></span><code>package network_test
+
+import (
+    &quot;context&quot;
+    &quot;fmt&quot;
+    &quot;testing&quot;
+
+    &quot;github.com/hashicorp/terraform-plugin-testing/helper/resource&quot;
+    &quot;github.com/hashicorp/terraform-plugin-testing/querycheck&quot;
+    &quot;github.com/hashicorp/terraform-plugin-testing/tfversion&quot;
+    &quot;github.com/hashicorp/terraform-provider-azurerm/internal/acceptance&quot;
+    &quot;github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework&quot;
+)
+
+func TestAccNetworkProfile_list_basic(t *testing.T) {
+    r := NetworkProfileResource{}
+    listResourceAddress := &quot;azurerm_network_profile.list&quot;
+
+    data := acceptance.BuildTestData(t, &quot;azurerm_network_profile&quot;, &quot;test1&quot;)
+
+    resource.Test(t, resource.TestCase{
+        TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+            tfversion.SkipBelow(tfversion.Version1_14_0),
+        },
+        ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), &quot;azurerm&quot;),
+        Steps: []resource.TestStep{
+            {
+                Config: r.basicList(data), // provision multiple resources
+            },
+            {
+                Query:  true,
+                Config: r.basicQuery(),
+                QueryResultChecks: []querycheck.QueryResultCheck{
+                    querycheck.ExpectLengthAtLeast(listResourceAddress, 3), // expect at least the 3 we created
+                },
+            },
+            {
+                Query:  true,
+                Config: r.basicQueryByResourceGroupName(data),
+                QueryResultChecks: []querycheck.QueryResultCheck{
+                    querycheck.ExpectLength(listResourceAddress, 3), // expect exactly the 3 we created in that resource group
+                },
+            },
+        },
+    })
+}
+
+// provision multiple Network Profile resources for testing
+func (r NetworkProfileResource) basicList(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+provider &quot;azurerm&quot; {
+  features {}
+}
+
+// Prerequisite Resources ....
+
+resource &quot;azurerm_network_profile&quot; &quot;test&quot; {
+  // Where possible, use the `count` meta argument to provision multiple resources to query
+  count = 3
+
+  name                = &quot;acctestnetprofile${count.index}-%[1]d&quot;
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  container_network_interface {
+    name = &quot;acctesteth-%[1]d&quot;
+
+    ip_configuration {
+      name      = &quot;acctestipconfig-%[1]d&quot;
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+// define the basic list query for testing
+func (r NetworkProfileResource) basicQuery() string {
+    return `
+list &quot;azurerm_network_profile&quot; &quot;list&quot; {
+  provider = azurerm
+  config {}
+}
+`
+}
+
+// define the list query for testing by resource group name
+func (r NetworkProfileResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+list &quot;azurerm_network_profile&quot; &quot;list&quot; {
+  provider = azurerm
+  config {
+    resource_group_name = &quot;acctestRG-%[1]d&quot;
+  }
+}
+`, data.RandomInteger)
+}
+</code></pre></div>
+</li>
+<li>
+<p>Add documentation for this List Resource</p>
+<p>Documentation should be written manually and added to the <code>./website/docs/list-resources/</code> folder.</p>
+<p>It should include an example, arguments reference, and look something like this:</p>
+<div class="highlight"><pre><span></span><code>---
+subcategory: &quot;Network&quot;
+layout: &quot;azurerm&quot;
+page_title: &quot;Azure Resource Manager: azurerm_network_profile&quot;
+description: |-
+<span class="gu">Lists Network Profile resources.</span>
+<span class="gu">---</span>
+
+<span class="gh"># List resource: azurerm_network_profile</span>
+
+Lists Network Profile resources.
+
+<span class="gu">## Example Usage</span>
+
+<span class="gu">### List all Network Profiles in the subscription</span>
+
+<span class="sb">```hcl</span>
+<span class="s">list &quot;azurerm_network_profile&quot; &quot;example&quot; {</span>
+<span class="s">  provider = azurerm</span>
+<span class="s">  config {}</span>
+<span class="s">}</span>
+<span class="sb">```</span>
+
+<span class="gu">### List all Network Profiles in a specific resource group</span>
+
+<span class="sb">```hcl</span>
+<span class="s">list &quot;azurerm_network_profile&quot; &quot;example&quot; {</span>
+<span class="s">  provider = azurerm</span>
+<span class="s">  config {</span>
+<span class="s">    resource_group_name = &quot;example-rg&quot;</span>
+<span class="s">  }</span>
+<span class="s">}</span>
+<span class="sb">```</span>
+
+<span class="gu">## Argument Reference</span>
+
+This list resource supports the following arguments:
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`resource_group_name`</span> - (Optional) The name of the resource group to query.
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`subscription_id`</span> - (Optional) The Subscription ID to query. Defaults to the value specified in the Provider Configuration.
+</code></pre></div>
+</li>
+</ol>
+<h2 id="known-issues-and-considerations">Known Issues and Considerations<a class="headerlink" href="#known-issues-and-considerations" title="Permanent link">#</a></h2>
+<h3 id="cancelled-context">Cancelled Context<a class="headerlink" href="#cancelled-context" title="Permanent link">#</a></h3>
+<p>Some resources need to send additional API requests in the flatten function, these API requests require a valid context (i.e. not cancelled or done). However, due to the way the List resources function, the context provided will be cancelled by the time Terraform calls the iterator (<code>stream.Results</code>).</p>
+<p>In this scenario, you must instantiate a new context within the iterator using the deadline from the provided context, this should look like the below:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">func</span><span class="w"> </span><span class="p">(</span><span class="nx">ExampleListResource</span><span class="p">)</span><span class="w"> </span><span class="nx">List</span><span class="p">(</span><span class="nx">ctx</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">Context</span><span class="p">,</span><span class="w"> </span><span class="nx">request</span><span class="w"> </span><span class="nx">list</span><span class="p">.</span><span class="nx">ListRequest</span><span class="p">,</span><span class="w"> </span><span class="nx">stream</span><span class="w"> </span><span class="o">*</span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResultsStream</span><span class="p">,</span><span class="w"> </span><span class="nx">metadata</span><span class="w"> </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">ResourceMetadata</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="o">...</span>
+
+<span class="w">    </span><span class="c1">// retrieve the deadline from the supplied context</span>
+<span class="w">    </span><span class="nx">deadline</span><span class="p">,</span><span class="w"> </span><span class="nx">ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">ctx</span><span class="p">.</span><span class="nx">Deadline</span><span class="p">()</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">!</span><span class="nx">ok</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// This *should* never happen given the List Wrapper instantiates a context with a timeout</span>
+<span class="w">        </span><span class="nx">sdk</span><span class="p">.</span><span class="nx">SetResponseErrorDiagnostic</span><span class="p">(</span><span class="nx">stream</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;internal-error&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;context had no deadline&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">return</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="nx">stream</span><span class="p">.</span><span class="nx">Result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">push</span><span class="w"> </span><span class="kd">func</span><span class="p">(</span><span class="nx">list</span><span class="p">.</span><span class="nx">ListResult</span><span class="p">)</span><span class="w"> </span><span class="kt">bool</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Instantiate a new context based on the deadline retrieved earlier</span>
+<span class="w">        </span><span class="nx">ctx</span><span class="p">,</span><span class="w"> </span><span class="nx">cancel</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">context</span><span class="p">.</span><span class="nx">WithDeadline</span><span class="p">(</span><span class="nx">context</span><span class="p">.</span><span class="nx">Background</span><span class="p">(),</span><span class="w"> </span><span class="nx">deadline</span><span class="p">)</span>
+<span class="w">        </span><span class="k">defer</span><span class="w"> </span><span class="nx">cancel</span><span class="p">()</span>
+
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="nx">_</span><span class="p">,</span><span class="w"> </span><span class="nx">example</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">range</span><span class="w"> </span><span class="nx">results</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="c1">// Remaining logic to retrieve and set the resource data</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      HashiCorp
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+    
+  </body>
+</html>
