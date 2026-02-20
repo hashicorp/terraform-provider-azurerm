@@ -692,20 +692,14 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings
 
 		if !features.FivePointOh() {
 			policies := make([]interface{}, 0)
-
 			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-
 				outputPolicy := make(map[string]interface{})
-
 				outputPolicy["days"] = int(inputPolicy.Days)
-
 				outputPolicy["enabled"] = inputPolicy.Enabled
 				policies = append(policies, outputPolicy)
 			}
 			output["retention_policy"] = policies
-
 		}
-
 		enabledLogs = append(enabledLogs, output)
 	}
 	return enabledLogs
@@ -725,7 +719,6 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSe
 		}
 
 		output["category"] = pointer.From(v.Category)
-
 		enabledLogs = append(enabledLogs, output)
 	}
 	return enabledLogs
