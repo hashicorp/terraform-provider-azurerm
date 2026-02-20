@@ -12,6 +12,8 @@ Manages a Public IP Prefix.
 
 ## Example Usage
 
+### IPv4 Prefix
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -28,6 +30,24 @@ resource "azurerm_public_ip_prefix" "example" {
   tags = {
     environment = "Production"
   }
+}
+```
+
+### IPv6 Prefix
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_public_ip_prefix" "example" {
+  name                = "acceptanceTestPublicIpPrefix2"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+
+  ip_version    = "IPv6"
+  prefix_length = 127
 }
 ```
 
@@ -51,11 +71,17 @@ The following arguments are supported:
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
-* `ip_version` - (Optional) The IP Version to use, `IPv6` or `IPv4`. Changing this forces a new resource to be created. Default is `IPv4`.
+* `ip_version` - (Optional) The IP Version to use, `IPv6` or `IPv4`. Changing this forces a new resource to be created. Default is `IPv4`. The chosen IP version determines the valid range for `prefix_length` - see below.
 
-* `prefix_length` - (Optional) Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to `28`(16 addresses). Changing this forces a new resource to be created.
+* `prefix_length` - (Optional) Specifies the number of bits of the prefix. The valid values depend on the `ip_version`. Defaults to `28`. Changing this forces a new resource to be created.
 
--> **Note:** There may be Public IP address limits on the subscription . [More information available here](https://docs.microsoft.com/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address)
+  For **IPv4** (`ip_version = "IPv4"`), the supported prefix sizes are `/28` (16 addresses), `/29` (8 addresses), `/30` (4 addresses), and `/31` (2 addresses).
+
+  For **IPv6** (`ip_version = "IPv6"`), the supported prefix sizes are `/124` (16 addresses), `/125` (8 addresses), `/126` (4 addresses), and `/127` (2 addresses).
+
+-> **Note:** Larger IP prefixes may be available with a [subscription limit increase](https://learn.microsoft.com/azure/azure-portal/supportability/networking-quota-requests) or when deriving from a [Custom IP Prefix](https://learn.microsoft.com/azure/virtual-network/ip-services/create-custom-ip-address-prefix-ipv6-portal).
+
+-> **Note:** There may be Public IP address limits on the subscription. [More information available here](https://docs.microsoft.com/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

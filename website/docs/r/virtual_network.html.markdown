@@ -67,7 +67,7 @@ The following arguments are supported:
 
 ---
 
-* `address_space` - (Optional) The address space that is used the virtual network. You can supply more than one address space.
+* `address_space` - (Optional) The address space that is used by the virtual network. You can supply more than one address space. Both IPv4 and IPv6 CIDR blocks are supported (e.g. `"10.0.0.0/16"` or `"fd00::/48"`). To configure a dual-stack virtual network, specify both an IPv4 and an IPv6 CIDR block.
 
 -> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
@@ -131,7 +131,7 @@ The `subnet` block supports:
 
 * `name` - (Required) The name of the subnet.
 
-* `address_prefixes` - (Required) The address prefixes to use for the subnet.
+* `address_prefixes` - (Required) The address prefixes to use for the subnet. Both IPv4 and IPv6 CIDR blocks are supported. For dual-stack subnets, specify one IPv4 and one IPv6 prefix (e.g. `["10.0.1.0/24", "fd00::/64"]`). Each prefix must fall within the virtual network's `address_space`.
 
 * `security_group` - (Optional) The Network Security Group to associate with the subnet. (Referenced by `id`, i.e. `azurerm_network_security_group.example.id`)
 
