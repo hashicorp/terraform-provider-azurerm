@@ -82,6 +82,18 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateKustoClusterID,
 			},
 
+			"database_name_override": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"database_name_prefix": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"attached_database_names": {
 				Type:     pluginsdk.TypeList,
 				Computed: true,
@@ -112,6 +124,22 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 						},
 
 						"external_tables_to_include": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"functions_to_exclude": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
+						"functions_to_include": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
@@ -246,6 +274,8 @@ func resourceKustoAttachedDatabaseConfigurationRead(d *pluginsdk.ResourceData, m
 			}
 			d.Set("cluster_id", clusterResourceId.ID())
 			d.Set("database_name", props.DatabaseName)
+			d.Set("database_name_override", pointer.From(props.DatabaseNameOverride))
+			d.Set("database_name_prefix", pointer.From(props.DatabaseNamePrefix))
 			d.Set("default_principal_modification_kind", props.DefaultPrincipalsModificationKind)
 			d.Set("attached_database_names", props.AttachedDatabaseNames)
 			d.Set("sharing", flattenAttachedDatabaseConfigurationTableLevelSharingProperties(props.TableLevelSharingProperties))
@@ -297,6 +327,14 @@ func expandKustoAttachedDatabaseConfigurationProperties(d *pluginsdk.ResourceDat
 		AttachedDatabaseConfigurationProperties.DatabaseName = databaseName.(string)
 	}
 
+	if databaseNameOverride, ok := d.GetOk("database_name_override"); ok {
+		AttachedDatabaseConfigurationProperties.DatabaseNameOverride = pointer.To(databaseNameOverride.(string))
+	}
+
+	if databaseNamePrefix, ok := d.GetOk("database_name_prefix"); ok {
+		AttachedDatabaseConfigurationProperties.DatabaseNamePrefix = pointer.To(databaseNamePrefix.(string))
+	}
+
 	if defaultPrincipalModificationKind, ok := d.GetOk("default_principal_modification_kind"); ok {
 		AttachedDatabaseConfigurationProperties.DefaultPrincipalsModificationKind = attacheddatabaseconfigurations.DefaultPrincipalsModificationKind(defaultPrincipalModificationKind.(string))
 	}
@@ -316,6 +354,8 @@ func expandAttachedDatabaseConfigurationTableLevelSharingProperties(input []inte
 		TablesToExclude:            utils.ExpandStringSlice(v["tables_to_exclude"].(*pluginsdk.Set).List()),
 		ExternalTablesToInclude:    utils.ExpandStringSlice(v["external_tables_to_include"].(*pluginsdk.Set).List()),
 		ExternalTablesToExclude:    utils.ExpandStringSlice(v["external_tables_to_exclude"].(*pluginsdk.Set).List()),
+		FunctionsToInclude:         utils.ExpandStringSlice(v["functions_to_include"].(*pluginsdk.Set).List()),
+		FunctionsToExclude:         utils.ExpandStringSlice(v["functions_to_exclude"].(*pluginsdk.Set).List()),
 		MaterializedViewsToInclude: utils.ExpandStringSlice(v["materialized_views_to_include"].(*pluginsdk.Set).List()),
 		MaterializedViewsToExclude: utils.ExpandStringSlice(v["materialized_views_to_exclude"].(*pluginsdk.Set).List()),
 	}
@@ -330,6 +370,8 @@ func flattenAttachedDatabaseConfigurationTableLevelSharingProperties(input *atta
 		map[string]interface{}{
 			"external_tables_to_exclude":    utils.FlattenStringSlice(input.ExternalTablesToExclude),
 			"external_tables_to_include":    utils.FlattenStringSlice(input.ExternalTablesToInclude),
+			"functions_to_exclude":          utils.FlattenStringSlice(input.FunctionsToExclude),
+			"functions_to_include":          utils.FlattenStringSlice(input.FunctionsToInclude),
 			"materialized_views_to_exclude": utils.FlattenStringSlice(input.MaterializedViewsToExclude),
 			"materialized_views_to_include": utils.FlattenStringSlice(input.MaterializedViewsToInclude),
 			"tables_to_exclude":             utils.FlattenStringSlice(input.TablesToExclude),
