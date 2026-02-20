@@ -28,7 +28,7 @@ list "azurerm_mssql_virtual_machine" "example" {
 list "azurerm_mssql_virtual_machine" "example" {
   provider = azurerm
   config {
-    resource_group_name = "resource_group_name-example"
+    resource_group_name = "example-rg"
   }
 }
 ```
