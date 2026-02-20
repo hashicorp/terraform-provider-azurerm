@@ -31,6 +31,12 @@ func TestAccResourceProviderRegistration_basic(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				if err := r.unRegisterProviders("Microsoft.BlockchainTokens"); err != nil {
+					t.Fatalf("Failed to reset feature registration with error: %+v", err)
+				}
+			},
 			Config: r.basic("Microsoft.BlockchainTokens"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -45,13 +51,19 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic("Microsoft.AgFoodPlatform"),
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				if err := r.unRegisterProviders("Microsoft.AppLink"); err != nil {
+					t.Fatalf("Failed to reset feature registration with error: %+v", err)
+				}
+			},
+			Config: r.basic("Microsoft.AppLink"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport("Microsoft.AgFoodPlatform")
+			return r.requiresImport("Microsoft.AppLink")
 		}),
 	})
 }
@@ -59,11 +71,11 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 func TestAccResourceProviderRegistration_feature(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
 	r := ResourceProviderRegistrationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
-				if err := r.unRegisterProviders("Microsoft.ApiSecurity"); err != nil {
+				if err := r.unRegisterProviders("Microsoft.HealthDataAIServices"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
 				}
 			},
@@ -92,6 +104,7 @@ func TestAccResourceProviderRegistration_feature(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			Destroy: false,
 		},
 		data.ImportStep(),
 	})
@@ -205,13 +218,13 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.ApiSecurity"
+  name = "Microsoft.DevCenter"
   feature {
-    name       = "PP2CanaryAccessDEV"
+    name       = "ServerlessGpuPreview"
     registered = %t
   }
   feature {
-    name       = "PP3CanaryAccessDEV"
+    name       = "DevTunnelsPreview"
     registered = %t
   }
 }
