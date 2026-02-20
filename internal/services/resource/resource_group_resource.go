@@ -7,6 +7,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,6 +31,14 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -properties "name"
 
 const resourceGroupResourceName = "azurerm_resource_group"
+
+func replayAwareResourceGroupPollInterval(defaultInterval time.Duration) time.Duration {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+		return 0
+	}
+
+	return defaultInterval
+}
 
 func resourceResourceGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -98,7 +108,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// custom poller to account for replication delays in the eventual consistency responses of newly created RG resources
 	pollerType := custompollers.NewResourceGroupCreatePoller(client, id)
-	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	poller := pollers.NewPoller(pollerType, replayAwareResourceGroupPollInterval(10*time.Second), pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err = poller.PollUntilDone(ctx); err != nil {
 		return err
 	}
@@ -198,7 +208,7 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 		defer deletePollerCancel()
 
 		pollerType := custompollers.NewResourceGroupPreventDeletePoller(client, *id)
-		poller := pollers.NewRetryOnErrorPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow, true)
+		poller := pollers.NewRetryOnErrorPoller(pollerType, replayAwareResourceGroupPollInterval(10*time.Second), pollers.DefaultNumberOfDroppedConnectionsToAllow, true)
 		if err := poller.PollUntilDone(deletePollerContext); err != nil {
 			return err
 		}

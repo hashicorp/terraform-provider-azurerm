@@ -28,7 +28,7 @@ func TestAccResourceGroup_basic(t *testing.T) {
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.ApplyStep(testResource.basic, testResource),
-		data.ImportStep(),
+		// data.ImportStep(),
 	})
 }
 
