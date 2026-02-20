@@ -669,6 +669,18 @@ func TestAccApiManagement_softDeleteRecoveryDisabled(t *testing.T) {
 	})
 }
 
+func TestAccApiManagement_certificateWithV2Sku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.certificateWithV2Sku(data),
+			ExpectError: regexp.MustCompile("`certificate` cannot be set when V2 SKU is used [(]`sku_name` is `.+`[)]. Please use `azurerm_api_management_certificate` instead"),
+		},
+	})
+}
+
 func (ApiManagementResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := apimanagementservice.ParseServiceID(state.ID)
 	if err != nil {
@@ -3143,4 +3155,30 @@ resource "azurerm_api_management" "test" {
   sku_name            = "BasicV2_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) certificateWithV2Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "StandardV2_1"
+  certificate {
+    encoded_certificate = filebase64("testdata/api_management_api_test.cer")
+    store_name          = "Root"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
