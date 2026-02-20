@@ -2061,8 +2061,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageStringFlex string, storageConnStringForFCApp string) (*webapps.SiteConfig, error) {
-	if len(siteConfigFlexConsumption) == 0 {
+func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageString string, storageConnStringForFCApp, storageConnStringForFCAppValue string) (*webapps.SiteConfig, error) {
+	if len(input) == 0 {
 		return nil, nil
 	}
 
@@ -2077,14 +2077,19 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 		appSettings = *existing.AppSettings
 	}
 
-	if storageStringFlex != "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageStringFlex, false)
-		if storageConnStringForFCApp != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageStringFlex, false)
-		}
+	if storageUsesMSI {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
 	}
 
-	FlexConsumptionSiteConfig := siteConfigFlexConsumption[0]
+	if storageConnStringForFCApp != "" {
+		appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageConnStringForFCAppValue, false)
+	} else {
+		appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageConnStringForFCAppValue, true)
+	}
+
+	FlexConsumptionSiteConfig := input[0]
 
 	v := strconv.FormatInt(FlexConsumptionSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || FlexConsumptionSiteConfig.HealthCheckPath == "" {
