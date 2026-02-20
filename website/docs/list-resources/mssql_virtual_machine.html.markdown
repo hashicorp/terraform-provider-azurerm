@@ -12,7 +12,7 @@ Lists Mssql Virtual Machine resources.
 
 ## Example Usage
 
-### List all Mssql Virtual Machines
+### List all Mssql Virtual Machines in the subscription
 
 ```hcl
 list "azurerm_mssql_virtual_machine" "example" {
