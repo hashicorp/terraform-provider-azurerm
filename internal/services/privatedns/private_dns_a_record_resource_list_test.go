@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
@@ -38,6 +39,7 @@ func TestAccPrivateDnsARecord_listByPrivateDnsZoneID(t *testing.T) {
 							"name":                  knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"resource_group_name":   knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
 							"private_dns_zone_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"record_type":           knownvalue.StringRegexp(regexp.MustCompile(string(privatedns.RecordTypeA))),
 							"subscription_id":       knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
