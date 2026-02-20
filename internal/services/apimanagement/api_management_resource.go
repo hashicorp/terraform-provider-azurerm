@@ -785,6 +785,13 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		publicNetworkAccess = apimanagementservice.PublicNetworkAccessDisabled
 	}
 
+	// V2 SKUs require public_network_access to be enabled during creation;
+	// it will be disabled in a post-creation PATCH if the user requested it
+	publicNetworkAccessForCreate := publicNetworkAccess
+	if strings.Contains(string(sku.Name), "V2") && publicNetworkAccess == apimanagementservice.PublicNetworkAccessDisabled {
+		publicNetworkAccessForCreate = apimanagementservice.PublicNetworkAccessEnabled
+	}
+
 	// before creating check to see if the resource exists in the soft delete state
 	deletedServiceId := deletedservice.NewDeletedServiceID(id.SubscriptionId, location, id.ServiceName)
 	softDeleted, err := deletedServicesClient.GetByName(ctx, deletedServiceId)
@@ -836,7 +843,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 		Properties: apimanagementservice.ApiManagementServiceProperties{
 			PublisherName:       d.Get("publisher_name").(string),
 			PublisherEmail:      d.Get("publisher_email").(string),
-			PublicNetworkAccess: pointer.To(publicNetworkAccess),
+			PublicNetworkAccess: pointer.To(publicNetworkAccessForCreate),
 			CustomProperties:    pointer.To(customProperties),
 			Certificates:        certificates,
 		},
@@ -923,6 +930,19 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+
+	// V2 SKUs require public_network_access to be enabled during creation (Azure API limitation).
+	// If the user requested it disabled, send a follow-up PATCH to disable it now.
+	if strings.Contains(string(sku.Name), "V2") && publicNetworkAccess == apimanagementservice.PublicNetworkAccessDisabled {
+		updatePayload := apimanagementservice.ApiManagementServiceUpdateParameters{
+			Properties: &apimanagementservice.ApiManagementServiceUpdateProperties{
+				PublicNetworkAccess: pointer.To(apimanagementservice.PublicNetworkAccessDisabled),
+			},
+		}
+		if err := client.UpdateThenPoll(ctx, id, updatePayload); err != nil {
+			return fmt.Errorf("disabling public network access after creation for V2 SKU %s: %+v", id, err)
+		}
+	}
 
 	// Remove sample products and APIs after creating (v3.0 behaviour)
 	apiServiceId := api.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
