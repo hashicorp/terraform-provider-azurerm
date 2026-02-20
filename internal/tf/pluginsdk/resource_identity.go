@@ -107,12 +107,6 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 		switch segment.Type {
 		case resourceids.StaticSegmentType, resourceids.ResourceProviderSegmentType:
 			identityString += pointer.From(segment.FixedValue) + "/"
-		case resourceids.ConstantSegmentType:
-			//if constant == "" {
-			//	return fmt.Errorf("resource ID contains constant segment this must be provide, got \"\"")
-			//}
-			////
-			////identityString += constant + "/"
 		}
 
 		if segmentTypeSupported(segment.Type) {

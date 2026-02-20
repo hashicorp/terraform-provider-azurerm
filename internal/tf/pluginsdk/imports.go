@@ -57,6 +57,8 @@ func ImporterValidatingIdentity(id resourceids.ResourceId, idType ...ResourceTyp
 	return ImporterValidatingIdentityThen(id, thenFunc, idType...)
 }
 
+// ImporterValidatingIdentityThen validates the ID provided at import time is valid or that the resource identity data provided in the import block is valid
+// based on the expected resource ID type, then runs the 'thenFunc', allowing the import to be customised.
 func ImporterValidatingIdentityThen(id resourceids.ResourceId, thenFunc ImporterFunc, idType ...ResourceTypeForIdentity) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *ResourceData, meta interface{}) ([]*ResourceData, error) {
