@@ -50,6 +50,7 @@ type FunctionAppFlexConsumptionModel struct {
 	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
 	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
 	HttpsOnly                        bool                       `tfschema:"https_only"`
+	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
 	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
@@ -217,6 +218,13 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 					},
 				},
 			},
+		},
+
+		"key_vault_reference_identity_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"site_config": helpers.SiteConfigSchemaFunctionAppFlexConsumption(),
@@ -531,6 +539,10 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			siteEnvelope.Properties.PublicNetworkAccess = pointer.To(pna)
 			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = siteEnvelope.Properties.PublicNetworkAccess
 
+			if functionAppFlexConsumption.KeyVaultReferenceIdentityID != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(functionAppFlexConsumption.KeyVaultReferenceIdentityID)
+			}
+
 			if functionAppFlexConsumption.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppFlexConsumption.VirtualNetworkSubnetID)
 			}
@@ -686,6 +698,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 				state.CustomDomainVerificationId = pointer.From(props.CustomDomainVerificationId)
 				state.DefaultHostname = pointer.From(props.DefaultHostName)
 				state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+				state.KeyVaultReferenceIdentityID = pointer.From(props.KeyVaultReferenceIdentity)
 
 				servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
 				if err != nil {
@@ -859,6 +872,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				model.Identity = expandedIdentity
+			}
+
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				model.Properties.KeyVaultReferenceIdentity = pointer.To(state.KeyVaultReferenceIdentityID)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
