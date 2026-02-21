@@ -1577,7 +1577,7 @@ resource "azurerm_kubernetes_cluster" "test" {
       topology_manager_policy   = "best-effort"
       allowed_unsafe_sysctls    = ["kernel.msg*", "net.core.somaxconn"]
       container_log_max_size_mb = 100
-      container_log_max_line    = 100000
+      container_log_max_files   = 100000
       pod_max_pid               = 12345
     }
 

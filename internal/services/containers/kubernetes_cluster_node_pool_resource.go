@@ -1358,8 +1358,13 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	if v := raw["container_log_max_size_mb"].(int); v != 0 {
 		result.ContainerLogMaxSizeMB = pointer.To(int64(v))
 	}
-	if v := raw["container_log_max_line"].(int); v != 0 {
+	if v := raw["container_log_max_files"].(int); v != 0 {
 		result.ContainerLogMaxFiles = pointer.To(int64(v))
+	}
+	if !features.FivePointOh() {
+		if v := raw["container_log_max_line"].(int); v != 0 {
+			result.ContainerLogMaxFiles = pointer.To(int64(v))
+		}
 	}
 	if v := raw["pod_max_pid"].(int); v != 0 {
 		result.PodMaxPids = pointer.To(int64(v))
