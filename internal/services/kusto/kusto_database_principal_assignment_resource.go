@@ -5,6 +5,7 @@ package kusto
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,6 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+)
+
+const (
+	pollStateNotFound = "notfound"
+	pollStateOk       = "ok"
 )
 
 func resourceKustoDatabasePrincipalAssignment() *pluginsdk.Resource {
@@ -137,6 +143,37 @@ func resourceKustoDatabasePrincipalAssignmentCreate(d *pluginsdk.ResourceData, m
 	err = client.CreateOrUpdateThenPoll(ctx, id, principalAssignment)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("could not determine context deadline for create of %s", id)
+	}
+
+	// The CreateOrUpdateThenPoll can return before the resource is retrievable,
+	// so we wait for the resource to be available before proceeding to read.
+	createWait := &pluginsdk.StateChangeConf{
+		Pending:                   []string{pollStateNotFound},
+		Target:                    []string{pollStateOk},
+		MinTimeout:                10 * time.Second,
+		Timeout:                   time.Until(deadline),
+		NotFoundChecks:            10,
+		ContinuousTargetOccurence: 2,
+		Refresh: func() (any, string, error) {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					log.Printf("[DEBUG] %s was not found - polling", id)
+					return nil, pollStateNotFound, nil
+				}
+				return nil, "error", err
+			}
+			return resp, pollStateOk, nil
+		},
+	}
+
+	if _, err := createWait.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
