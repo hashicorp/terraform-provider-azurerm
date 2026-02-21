@@ -502,6 +502,7 @@ func expandContainerAppJobVolumes(input []ContainerVolume) *[]jobs.Volume {
 		if v.MountOptions != "" {
 			volume.MountOptions = pointer.To(v.MountOptions)
 		}
+		volume.Secrets = expandContainerAppJobSecretVolumeItems(v.Secrets)
 		volumes = append(volumes, volume)
 	}
 
@@ -540,6 +541,38 @@ func expandContainerJobVolumeMounts(input []ContainerVolumeMount) *[]jobs.Volume
 	}
 
 	return &volumeMounts
+}
+
+func expandContainerAppJobSecretVolumeItems(input []SecretVolumeItem) *[]jobs.SecretVolumeItem {
+	if len(input) == 0 {
+		return nil
+	}
+
+	items := make([]jobs.SecretVolumeItem, 0)
+	for _, v := range input {
+		items = append(items, jobs.SecretVolumeItem{
+			SecretRef: pointer.To(v.SecretName),
+			Path:      pointer.To(v.Path),
+		})
+	}
+
+	return &items
+}
+
+func flattenContainerAppJobSecretVolumeItems(input *[]jobs.SecretVolumeItem) []SecretVolumeItem {
+	if input == nil || len(*input) == 0 {
+		return []SecretVolumeItem{}
+	}
+
+	items := make([]SecretVolumeItem, 0)
+	for _, v := range *input {
+		items = append(items, SecretVolumeItem{
+			SecretName: pointer.From(v.SecretRef),
+			Path:       pointer.From(v.Path),
+		})
+	}
+
+	return items
 }
 
 func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.ContainerAppProbe {
@@ -847,6 +880,7 @@ func flattenContainerAppJobVolumes(input *[]jobs.Volume) []ContainerVolume {
 		if v.MountOptions != nil {
 			containerVolume.MountOptions = pointer.From(v.MountOptions)
 		}
+		containerVolume.Secrets = flattenContainerAppJobSecretVolumeItems(v.Secrets)
 
 		result = append(result, containerVolume)
 	}
