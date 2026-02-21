@@ -303,6 +303,23 @@ func TestAccContainerAppResource_volumeSecretWithSecrets(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_volumeSecretAllSecrets(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.volumeSecretAllSecrets(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("template.0.volume.0.storage_type").HasValue("Secret"),
+				check.That(data.ResourceName).Key("template.0.volume.0.secrets.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppResource_completeWithNoDaprAppPort(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -3029,6 +3046,43 @@ resource "azurerm_container_app" "test" {
         secret_name = "my-secret"
         path        = "my-secret.txt"
       }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) volumeSecretAllSecrets(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  secret {
+    name  = "my-secret"
+    value = "c2VjcmV0dmFsdWU="
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      cpu    = 0.25
+      memory = "0.5Gi"
+
+      volume_mounts {
+        name = "secret-vol"
+        path = "/mnt/secrets"
+      }
+    }
+
+    volume {
+      name         = "secret-vol"
+      storage_type = "Secret"
     }
   }
 }
