@@ -145,7 +145,7 @@ func TestAccContainerAppJob_allProbes(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.eventTrigger(data),
+			Config: r.allProbes(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
