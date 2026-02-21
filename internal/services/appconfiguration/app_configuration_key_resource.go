@@ -389,6 +389,26 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 				if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
 					return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)
 				}
+
+				// Wait for the update to be fully propagated
+				deadline, ok := ctx.Deadline()
+				if !ok {
+					return errors.New("internal-error: context had no deadline")
+				}
+
+				metadata.Logger.Infof("[DEBUG] Waiting for App Configuration Key %q update to be propagated", model.Key)
+				stateConf := &pluginsdk.StateChangeConf{
+					Pending:                   []string{"NotFound", "Forbidden"},
+					Target:                    []string{"Exists"},
+					Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, model.Key, model.Label),
+					PollInterval:              5 * time.Second,
+					ContinuousTargetOccurence: 2,
+					Timeout:                   time.Until(deadline),
+				}
+
+				if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+					return fmt.Errorf("waiting for App Configuration Key %q update to be propagated: %+v", model.Key, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("locked") {
