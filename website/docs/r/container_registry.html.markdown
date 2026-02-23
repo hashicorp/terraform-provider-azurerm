@@ -29,12 +29,12 @@ resource "azurerm_container_registry" "acr" {
   sku                 = "Premium"
   admin_enabled       = false
   georeplications {
-    location                = "East US"
-    tags                    = {}
+    location = "East US"
+    tags     = {}
   }
   georeplications {
-    location                = "North Europe"
-    tags                    = {}
+    location = "North Europe"
+    tags     = {}
   }
 }
 ```
