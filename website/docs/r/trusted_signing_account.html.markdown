@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_trusted_signing_account
 
-Manages an Trusted Signing Account (Artifact Signing Account).
+Manages a Trusted Signing Account (Artifact Signing Account).
 
 ~> **Note:** The resource provider has been rebranded to [Artifact Signing](https://learn.microsoft.com/azure/artifact-signing/overview).
 
