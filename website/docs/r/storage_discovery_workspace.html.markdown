@@ -3,12 +3,12 @@ subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_discovery_workspace"
 description: |-
-  Manages a Storage Discovery Workspace.
+  Manages a Storage Discovery workspace.
 ---
 
 # azurerm_storage_discovery_workspace
 
-Manages a Storage Discovery Workspace.
+Manages a Storage Discovery workspace. A workspace defines which storage resources to scan across your Microsoft Entra tenant and how to segment reporting for them.
 
 ## Example Usage
 
@@ -48,23 +48,23 @@ resource "azurerm_storage_discovery_workspace" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Storage Discovery Workspace. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Discovery workspace. Must be 4-64 characters long, start with a letter, and contain only letters, numbers, and hyphens (no consecutive hyphens). Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Storage Discovery Workspace should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Storage Discovery Workspace should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure Region where the Storage Discovery Workspace should exist. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the Azure Region where the Discovery resource is created. Changing this forces a new resource to be created.
 
-* `workspace_root` - (Required) A set of Azure Resource IDs that define the root scope for storage discovery. Each ID can be either a Subscription ID or a Resource Group ID. You cannot specify both a subscription and its child resource group. Maximum of 100 items.
+* `workspace_root` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Maximum of 100 items.
+
+-> **Note:** The user or service principal must have at least Reader access (`Microsoft.Storage/storageAccounts/read`) on each specified root. The default limit of 100 can be increased by contacting Azure Support.
 
 * `scopes` - (Required) One or more `scopes` blocks as defined below.
 
----
+* `description` - (Optional) A description for the Discovery workspace resource.
 
-* `description` - (Optional) A description for the Storage Discovery Workspace.
+* `sku` - (Optional) Specifies the Storage Discovery pricing plan. Possible values are `Free` and `Standard`. Defaults to `Standard`. See [Understand Storage Discovery Pricing](https://learn.microsoft.com/azure/storage-discovery/understand-pricing) for details.
 
-* `sku` - (Optional) The SKU for the Storage Discovery Workspace. Possible values are `Free` and `Standard`. Defaults to `Standard`.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `tags` - (Optional) A mapping of tags which should be assigned to the resource.
 
 ---
 
@@ -83,6 +83,8 @@ A `scopes` block supports the following:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Storage Discovery Workspace.
+
+-> **Note:** It can take up to 24 hours after workspace creation for metrics to begin appearing in reports.
 
 ## Timeouts
 
