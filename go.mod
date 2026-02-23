@@ -17,6 +17,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/go-azure-helpers v0.76.2
+	github.com/hashicorp/go-azure-sdk/data-plane v0.20260212.1143955
 	github.com/hashicorp/go-azure-sdk/resource-manager v0.20260212.1143955
 	github.com/hashicorp/go-azure-sdk/sdk v0.20260212.1143955
 	github.com/hashicorp/go-cty v1.5.0

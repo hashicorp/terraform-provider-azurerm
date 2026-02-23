@@ -10,15 +10,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	key74 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultKeyResource struct{}
@@ -462,12 +462,17 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	resp, err := client.ManagementClient.GetKey(ctx, id.KeyVaultBaseUrl, id.Name, "")
+	keysClient := client.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl)
+	keyVersionId := key74.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
+	resp, err := keysClient.GetKey(ctx, keyVersionId)
 	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
+		}
 		return nil, fmt.Errorf("retrieving Key Vault Key %q: %+v", state.ID, err)
 	}
 
-	return pointer.To(resp.Key != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Key != nil), nil
 }
 
 func (KeyVaultKeyResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -500,13 +505,14 @@ func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.Client
 		if err != nil {
 			return err
 		}
-		expirationUnixTime := date.UnixTime(expirationDate)
-		update := keyvault.KeyUpdateParameters{
-			KeyAttributes: &keyvault.KeyAttributes{
-				Expires: &expirationUnixTime,
+		keysClient := clients.KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*vaultBaseUrl)
+		keyVersionId := key74.NewKeyversionID(*vaultBaseUrl, name, "")
+		update := key74.KeyUpdateParameters{
+			Attributes: &key74.KeyAttributes{
+				Exp: pointer.To(expirationDate.Unix()),
 			},
 		}
-		if _, err = clients.KeyVault.ManagementClient.UpdateKey(ctx, *vaultBaseUrl, name, "", update); err != nil {
+		if _, err = keysClient.UpdateKey(ctx, keyVersionId, update); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
 		}
 
@@ -526,8 +532,10 @@ func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, 
 		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	if _, err := client.KeyVault.ManagementClient.DeleteKey(ctx, *vaultBaseUrl, name); err != nil {
-		return nil, fmt.Errorf("deleting keyVaultManagementClient: %+v", err)
+	keysClient := client.KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*vaultBaseUrl)
+	keyId := key74.NewKeyID(*vaultBaseUrl, name)
+	if _, err := keysClient.DeleteKey(ctx, keyId); err != nil {
+		return nil, fmt.Errorf("deleting key vault key: %+v", err)
 	}
 
 	return pointer.To(true), nil
