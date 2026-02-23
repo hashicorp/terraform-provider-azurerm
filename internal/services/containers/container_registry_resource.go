@@ -331,13 +331,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			Optional:   true,
 			Computed:   true,
 		}
-
-		r.SchemaVersion = 3
-		r.StateUpgraders = pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.RegistryV0ToV1{},
-			1: migration.RegistryV1ToV2{},
-			2: migration.RegistryV2ToV3{},
-		})
 	}
 
 	return r
