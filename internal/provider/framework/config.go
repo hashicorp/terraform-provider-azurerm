@@ -126,6 +126,31 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
+	// Validate enhanced validation environment variables don't conflict
+	if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
+		diags.Append(diag.NewErrorDiagnostic("validating enhanced validation environment variables", err.Error()))
+		return
+	}
+
+	// Read enhanced_validation block
+	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
+	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
+	if !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
+		var evList []EnhancedValidationModel
+		d := data.EnhancedValidation.ElementsAs(ctx, &evList, true)
+		diags.Append(d...)
+		if diags.HasError() {
+			return
+		}
+		if len(evList) > 0 {
+			if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
+				enhancedValidationLocations = evList[0].Locations.ValueBool()
+			}
+			if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
+				enhancedValidationResourceProviders = evList[0].ResourceProviders.ValueBool()
+			}
+		}
+	}
 
 	f := providerfeatures.UserFeatures{}
 
@@ -520,6 +545,9 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.DatabricksWorkspace.ForceDelete = false
 		}
 	}
+
+	f.EnhancedValidation.Locations = enhancedValidationLocations
+	f.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
 
 	p.clientBuilder.Features = f
 	p.clientBuilder.AuthConfig = authConfig

@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -375,6 +376,28 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
+
+			"enhanced_validation": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"locations": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", features.EnhancedValidationLocationsEnabled()),
+							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+						},
+						"resource_providers": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", features.EnhancedValidationResourceProvidersEnabled()),
+							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+						},
+					},
+				},
+			},
 		},
 
 		DataSourcesMap: dataSources,
@@ -537,6 +560,25 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		// this field is intentionally not exposed in the provider block, since it's only used for
 		// platform level tracing
 		CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
+	}
+
+	// Validate enhanced validation environment variables don't conflict
+	if err := features.ValidateEnhancedValidationEnvVars(); err != nil {
+		return nil, diag.FromErr(err)
+	}
+
+	// Read enhanced_validation block
+	if raw, ok := d.GetOk("enhanced_validation"); ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			evRaw := items[0].(map[string]interface{})
+			if v, ok := evRaw["locations"]; ok {
+				clientBuilder.Features.EnhancedValidation.Locations = v.(bool)
+			}
+			if v, ok := evRaw["resource_providers"]; ok {
+				clientBuilder.Features.EnhancedValidation.ResourceProviders = v.(bool)
+			}
+		}
 	}
 
 	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golangci-lint

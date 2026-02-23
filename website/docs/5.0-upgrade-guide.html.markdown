@@ -27,15 +27,26 @@ TODO
 
 ### Enhanced Validation Default Changed
 
-The `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which controls enhanced validation of `location` and Resource Provider fields by caching supported Azure regions and Resource Providers from the Azure MetaData Service, now defaults to `false` instead of `true`.
+The enhanced validation feature, which caches supported Azure regions and Resource Providers from the Azure MetaData Service to validate `location` and Resource Provider arguments, now defaults to disabled in version 5.0.
 
-**Timing Impact:** With enhanced validation enabled, invalid locations or resource providers are caught at `terraform plan` time. With it disabled (the new default), these errors are caught at `terraform apply` time when Azure rejects the request.
+This is now controlled through the new `enhanced_validation` provider block:
+
+```hcl
+provider "azurerm" {
+  enhanced_validation {
+    locations          = true  # Re-enable location validation at plan time
+    resource_providers = true  # Re-enable resource provider validation at plan time
+  }
+}
+```
+
+**Timing Impact:** With enhanced validation enabled, invalid locations or resource providers are caught at `terraform plan` time. With it disabled (the new default in 5.0), these errors are caught at `terraform apply` time when Azure rejects the request.
 
 This change was made because:
 * A region may be functional even if not present in the ARM region list
 * The MetaData Service call adds latency to provider initialization
 
-If you relied on enhanced validation to catch errors at plan time, you can re-enable it by setting the `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable to `true`.
+The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, still works in version 4.x but has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
 
 ## Removed Resources
 
