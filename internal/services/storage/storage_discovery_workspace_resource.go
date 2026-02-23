@@ -4,385 +4,423 @@
 package storage
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagediscovery/2025-09-01/storagediscoveryworkspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceStorageDiscoveryWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceStorageDiscoveryWorkspaceCreate,
-		Read:   resourceStorageDiscoveryWorkspaceRead,
-		Update: resourceStorageDiscoveryWorkspaceUpdate,
-		Delete: resourceStorageDiscoveryWorkspaceDelete,
+var _ sdk.ResourceWithUpdate = StorageDiscoveryWorkspaceResource{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+type StorageDiscoveryWorkspaceResource struct{}
+
+type StorageDiscoveryWorkspaceModel struct {
+	Name              string                       `tfschema:"name"`
+	ResourceGroupName string                       `tfschema:"resource_group_name"`
+	Location          string                       `tfschema:"location"`
+	WorkspaceRoot     []string                     `tfschema:"workspace_root"`
+	Scopes            []StorageDiscoveryScopeModel `tfschema:"scopes"`
+	Description       string                       `tfschema:"description"`
+	Sku               string                       `tfschema:"sku"`
+	Tags              map[string]string            `tfschema:"tags"`
+}
+
+type StorageDiscoveryScopeModel struct {
+	DisplayName   string            `tfschema:"display_name"`
+	ResourceTypes []string          `tfschema:"resource_types"`
+	TagKeysOnly   []string          `tfschema:"tag_keys_only"`
+	Tags          map[string]string `tfschema:"tags"`
+}
+
+func (r StorageDiscoveryWorkspaceResource) ResourceType() string {
+	return "azurerm_storage_discovery_workspace"
+}
+
+func (r StorageDiscoveryWorkspaceResource) ModelObject() interface{} {
+	return &StorageDiscoveryWorkspaceModel{}
+}
+
+func (r StorageDiscoveryWorkspaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return storagediscoveryworkspaces.ValidateProviderStorageDiscoveryWorkspaceID
+}
+
+func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.StorageDiscoveryWorkspaceName,
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(id)
-			return err
-		}),
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
+		"location": commonschema.Location(),
+
+		"workspace_root": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 100,
+			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+		},
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+		"scopes": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			MinItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"display_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-			"location": commonschema.Location(),
-
-			"workspace_roots": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-
-			"scopes": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MinItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"display_name": {
+					"resource_types": {
+						Type:     pluginsdk.TypeList,
+						Required: true,
+						MinItems: 1,
+						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							Required:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"resource_types": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
+					"tag_keys_only": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"tag_keys_only": {
-							Type:     pluginsdk.TypeList,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"tags": {
-							Type:     pluginsdk.TypeMap,
-							Optional: true,
-							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-							},
+					"tags": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
 						},
 					},
 				},
 			},
-
-			"description": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Default:  string(storagediscoveryworkspaces.StorageDiscoverySkuStandard),
-				ValidateFunc: validation.StringInSlice(
-					storagediscoveryworkspaces.PossibleValuesForStorageDiscoverySku(),
-					false,
-				),
-			},
-
-			"tags": commonschema.Tags(),
 		},
+
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(storagediscoveryworkspaces.StorageDiscoverySkuStandard),
+			ValidateFunc: validation.StringInSlice(
+				storagediscoveryworkspaces.PossibleValuesForStorageDiscoverySku(),
+				false,
+			),
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
-func resourceStorageDiscoveryWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageDiscoveryWorkspacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id := storagediscoveryworkspaces.NewProviderStorageDiscoveryWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	existing, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for existing %s: %+v", id, err)
-		}
-	}
-
-	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_discovery_workspace", id.ID())
-	}
-
-	payload := storagediscoveryworkspaces.StorageDiscoveryWorkspace{
-		Location: location.Normalize(d.Get("location").(string)),
-		Properties: &storagediscoveryworkspaces.StorageDiscoveryWorkspaceProperties{
-			WorkspaceRoots: expandStorageDiscoveryWorkspaceRoots(d.Get("workspace_roots").([]interface{})),
-			Scopes:         expandStorageDiscoveryScopes(d.Get("scopes").([]interface{})),
-		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v, ok := d.GetOk("description"); ok {
-		payload.Properties.Description = pointer.To(v.(string))
-	}
-
-	if v, ok := d.GetOk("sku"); ok {
-		sku := storagediscoveryworkspaces.StorageDiscoverySku(v.(string))
-		payload.Properties.Sku = &sku
-	}
-
-	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	return resourceStorageDiscoveryWorkspaceRead(d, meta)
+func (r StorageDiscoveryWorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
-func resourceStorageDiscoveryWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageDiscoveryWorkspacesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r StorageDiscoveryWorkspaceResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			diff := metadata.ResourceDiff
 
-	id, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(d.Id())
-	if err != nil {
-		return err
-	}
+			workspaceRootsRaw := diff.Get("workspace_root")
+			if workspaceRootsRaw == nil {
+				return nil
+			}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] %s does not exist - removing from state", *id)
-			d.SetId("")
+			workspaceRootsSet := workspaceRootsRaw.(*pluginsdk.Set)
+			workspaceRoots := make([]string, 0)
+			for _, item := range workspaceRootsSet.List() {
+				workspaceRoots = append(workspaceRoots, item.(string))
+			}
+
+			subscriptionIDs := make(map[string]bool)
+			resourceGroupIDs := make([]commonids.ResourceGroupId, 0)
+
+			// First pass: collect all subscription IDs and resource group IDs
+			for _, rootID := range workspaceRoots {
+				// Try to parse as subscription ID
+				if subscriptionID, err := commonids.ParseSubscriptionID(rootID); err == nil {
+					subscriptionIDs[subscriptionID.SubscriptionId] = true
+					continue
+				}
+
+				// Try to parse as resource group ID
+				if resourceGroupID, err := commonids.ParseResourceGroupID(rootID); err == nil {
+					resourceGroupIDs = append(resourceGroupIDs, *resourceGroupID)
+				}
+			}
+
+			// Second pass: check if any resource group belongs to a subscription in the list
+			for _, rgID := range resourceGroupIDs {
+				if subscriptionIDs[rgID.SubscriptionId] {
+					return fmt.Errorf("cannot specify both subscription ID `/subscriptions/%s` and its child resource group ID `%s` in `workspace_root`", rgID.SubscriptionId, rgID.ID())
+				}
+			}
+
 			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		},
 	}
+}
 
-	d.Set("name", id.StorageDiscoveryWorkspaceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+func (r StorageDiscoveryWorkspaceResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.StorageDiscoveryWorkspacesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-
-		if props := model.Properties; props != nil {
-			d.Set("description", props.Description)
-
-			sku := string(storagediscoveryworkspaces.StorageDiscoverySkuStandard)
-			if props.Sku != nil {
-				sku = string(*props.Sku)
+			var model StorageDiscoveryWorkspaceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
-			d.Set("sku", sku)
-			d.Set("workspace_roots", flattenStorageDiscoveryWorkspaceRoots(props.WorkspaceRoots))
 
-			if err := d.Set("scopes", flattenStorageDiscoveryScopes(props.Scopes)); err != nil {
-				return fmt.Errorf("setting `scopes`: %+v", err)
+			id := storagediscoveryworkspaces.NewProviderStorageDiscoveryWorkspaceID(subscriptionId, model.ResourceGroupName, model.Name)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
 			}
-		}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
+			sku := storagediscoveryworkspaces.StorageDiscoverySkuStandard
+			if model.Sku != "" {
+				sku = storagediscoveryworkspaces.StorageDiscoverySku(model.Sku)
+			}
+
+			payload := storagediscoveryworkspaces.StorageDiscoveryWorkspace{
+				Location: location.Normalize(model.Location),
+				Properties: &storagediscoveryworkspaces.StorageDiscoveryWorkspaceProperties{
+					WorkspaceRoots: model.WorkspaceRoot,
+					Scopes:         expandStorageDiscoveryScopes(model.Scopes),
+					Sku:            &sku,
+				},
+				Tags: pointer.To(model.Tags),
+			}
+
+			if model.Description != "" {
+				payload.Properties.Description = pointer.To(model.Description)
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
 	}
-
-	return nil
 }
 
-func resourceStorageDiscoveryWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageDiscoveryWorkspacesClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r StorageDiscoveryWorkspaceResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.StorageDiscoveryWorkspacesClient
 
-	id, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(d.Id())
-	if err != nil {
-		return err
+			id, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			state := StorageDiscoveryWorkspaceModel{
+				Name:              id.StorageDiscoveryWorkspaceName,
+				ResourceGroupName: id.ResourceGroupName,
+			}
+
+			if resp.Model != nil {
+				state.Location = location.Normalize(resp.Model.Location)
+				state.Tags = pointer.From(resp.Model.Tags)
+
+				if props := resp.Model.Properties; props != nil {
+					state.Description = pointer.From(props.Description)
+					state.WorkspaceRoot = props.WorkspaceRoots
+
+					sku := string(storagediscoveryworkspaces.StorageDiscoverySkuStandard)
+					if props.Sku != nil {
+						sku = string(*props.Sku)
+					}
+					state.Sku = sku
+
+					state.Scopes = flattenStorageDiscoveryScopes(props.Scopes)
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	payload := storagediscoveryworkspaces.StorageDiscoveryWorkspaceUpdate{
-		Properties: &storagediscoveryworkspaces.StorageDiscoveryWorkspacePropertiesUpdate{},
-	}
-
-	if d.HasChange("description") {
-		payload.Properties.Description = pointer.To(d.Get("description").(string))
-	}
-
-	if d.HasChange("sku") {
-		sku := storagediscoveryworkspaces.StorageDiscoverySku(d.Get("sku").(string))
-		payload.Properties.Sku = &sku
-	}
-
-	if d.HasChange("workspace_roots") {
-		workspaceRoots := expandStorageDiscoveryWorkspaceRoots(d.Get("workspace_roots").([]interface{}))
-		payload.Properties.WorkspaceRoots = &workspaceRoots
-	}
-
-	if d.HasChange("scopes") {
-		scopes := expandStorageDiscoveryScopes(d.Get("scopes").([]interface{}))
-		payload.Properties.Scopes = &scopes
-	}
-
-	if d.HasChange("tags") {
-		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if _, err := client.Update(ctx, *id, payload); err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	return resourceStorageDiscoveryWorkspaceRead(d, meta)
 }
 
-func resourceStorageDiscoveryWorkspaceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Storage.StorageDiscoveryWorkspacesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r StorageDiscoveryWorkspaceResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.StorageDiscoveryWorkspacesClient
 
-	id, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(d.Id())
-	if err != nil {
-		return err
+			id, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model StorageDiscoveryWorkspaceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			payload := storagediscoveryworkspaces.StorageDiscoveryWorkspaceUpdate{
+				Properties: &storagediscoveryworkspaces.StorageDiscoveryWorkspacePropertiesUpdate{},
+			}
+
+			if metadata.ResourceData.HasChange("description") {
+				payload.Properties.Description = pointer.To(model.Description)
+			}
+
+			if metadata.ResourceData.HasChange("sku") {
+				sku := storagediscoveryworkspaces.StorageDiscoverySku(model.Sku)
+				payload.Properties.Sku = &sku
+			}
+
+			if metadata.ResourceData.HasChange("workspace_root") {
+				payload.Properties.WorkspaceRoots = &model.WorkspaceRoot
+			}
+
+			if metadata.ResourceData.HasChange("scopes") {
+				scopes := expandStorageDiscoveryScopes(model.Scopes)
+				payload.Properties.Scopes = &scopes
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				payload.Tags = pointer.To(model.Tags)
+			}
+
+			if _, err := client.Update(ctx, *id, payload); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
 	}
-
-	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	return nil
 }
 
-func expandStorageDiscoveryWorkspaceRoots(input []interface{}) []string {
-	result := make([]string, 0)
-	for _, item := range input {
-		if item != nil {
-			result = append(result, item.(string))
-		}
+func (r StorageDiscoveryWorkspaceResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Storage.StorageDiscoveryWorkspacesClient
+
+			id, err := storagediscoveryworkspaces.ParseProviderStorageDiscoveryWorkspaceID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
 	}
-	return result
 }
 
-func expandStorageDiscoveryScopes(input []interface{}) []storagediscoveryworkspaces.StorageDiscoveryScope {
+func expandStorageDiscoveryScopes(input []StorageDiscoveryScopeModel) []storagediscoveryworkspaces.StorageDiscoveryScope {
 	result := make([]storagediscoveryworkspaces.StorageDiscoveryScope, 0)
 
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		scope := storagediscoveryworkspaces.StorageDiscoveryScope{
-			DisplayName:   v["display_name"].(string),
-			ResourceTypes: expandStorageDiscoveryResourceTypes(v["resource_types"].([]interface{})),
+	for _, scope := range input {
+		apiScope := storagediscoveryworkspaces.StorageDiscoveryScope{
+			DisplayName:   scope.DisplayName,
+			ResourceTypes: expandStorageDiscoveryResourceTypes(scope.ResourceTypes),
 		}
 
-		if tagKeysOnly := v["tag_keys_only"].([]interface{}); len(tagKeysOnly) > 0 {
-			scope.TagKeysOnly = expandStorageDiscoveryTagKeysOnly(tagKeysOnly)
+		if len(scope.TagKeysOnly) > 0 {
+			apiScope.TagKeysOnly = &scope.TagKeysOnly
 		}
 
-		if scopeTags := v["tags"].(map[string]interface{}); len(scopeTags) > 0 {
-			tagsMap := make(map[string]string)
-			for k, val := range scopeTags {
-				tagsMap[k] = val.(string)
-			}
-			scope.Tags = &tagsMap
+		if len(scope.Tags) > 0 {
+			apiScope.Tags = &scope.Tags
 		}
 
-		result = append(result, scope)
+		result = append(result, apiScope)
 	}
 
 	return result
 }
 
-func expandStorageDiscoveryResourceTypes(input []interface{}) []storagediscoveryworkspaces.StorageDiscoveryResourceType {
+func expandStorageDiscoveryResourceTypes(input []string) []storagediscoveryworkspaces.StorageDiscoveryResourceType {
 	result := make([]storagediscoveryworkspaces.StorageDiscoveryResourceType, 0)
 	for _, item := range input {
-		if item != nil {
-			result = append(result, storagediscoveryworkspaces.StorageDiscoveryResourceType(item.(string)))
+		if item != "" {
+			result = append(result, storagediscoveryworkspaces.StorageDiscoveryResourceType(item))
 		}
 	}
 	return result
 }
 
-func expandStorageDiscoveryTagKeysOnly(input []interface{}) *[]string {
-	result := make([]string, 0)
-	for _, item := range input {
-		if item != nil {
-			result = append(result, item.(string))
-		}
-	}
-	return &result
-}
-
-func flattenStorageDiscoveryWorkspaceRoots(input []string) []interface{} {
-	result := make([]interface{}, 0)
-	for _, item := range input {
-		result = append(result, item)
-	}
-	return result
-}
-
-func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDiscoveryScope) []interface{} {
-	result := make([]interface{}, 0)
+func flattenStorageDiscoveryScopes(input []storagediscoveryworkspaces.StorageDiscoveryScope) []StorageDiscoveryScopeModel {
+	result := make([]StorageDiscoveryScopeModel, 0)
 
 	for _, scope := range input {
-		scopeMap := map[string]interface{}{
-			"display_name":   scope.DisplayName,
-			"resource_types": flattenStorageDiscoveryResourceTypes(scope.ResourceTypes),
+		model := StorageDiscoveryScopeModel{
+			DisplayName:   scope.DisplayName,
+			ResourceTypes: flattenStorageDiscoveryResourceTypes(scope.ResourceTypes),
 		}
 
 		if scope.TagKeysOnly != nil {
-			scopeMap["tag_keys_only"] = flattenStorageDiscoveryTagKeysOnly(scope.TagKeysOnly)
+			model.TagKeysOnly = *scope.TagKeysOnly
 		}
 
 		if scope.Tags != nil {
-			scopeMap["tags"] = pointer.From(scope.Tags)
+			model.Tags = *scope.Tags
 		}
 
-		result = append(result, scopeMap)
+		result = append(result, model)
 	}
 
 	return result
 }
 
-func flattenStorageDiscoveryResourceTypes(input []storagediscoveryworkspaces.StorageDiscoveryResourceType) []interface{} {
-	result := make([]interface{}, 0)
+func flattenStorageDiscoveryResourceTypes(input []storagediscoveryworkspaces.StorageDiscoveryResourceType) []string {
+	result := make([]string, 0)
 	for _, item := range input {
 		result = append(result, string(item))
-	}
-	return result
-}
-
-func flattenStorageDiscoveryTagKeysOnly(input *[]string) []interface{} {
-	result := make([]interface{}, 0)
-	if input != nil {
-		for _, item := range *input {
-			result = append(result, item)
-		}
 	}
 	return result
 }

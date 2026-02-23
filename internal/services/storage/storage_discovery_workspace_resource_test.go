@@ -124,7 +124,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  workspace_roots = [data.azurerm_subscription.current.id]
+  workspace_root = [data.azurerm_subscription.current.id]
 
   scopes {
     display_name   = "TestScope"
@@ -144,7 +144,7 @@ resource "azurerm_storage_discovery_workspace" "import" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  workspace_roots = [data.azurerm_subscription.current.id]
+  workspace_root = [data.azurerm_subscription.current.id]
 
   scopes {
     display_name   = "TestScope"
@@ -174,7 +174,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   description         = "Test Storage Discovery Workspace"
   sku                 = "Standard"
 
-  workspace_roots = [data.azurerm_subscription.current.id]
+  workspace_root = [data.azurerm_subscription.current.id]
 
   scopes {
     display_name   = "TestScope1"

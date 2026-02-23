@@ -27,7 +27,7 @@ resource "azurerm_storage_discovery_workspace" "example" {
   description         = "Example Storage Discovery Workspace"
   sku                 = "Standard"
 
-  workspace_roots = [data.azurerm_subscription.current.id]
+  workspace_root = [data.azurerm_subscription.current.id]
 
   scopes {
     display_name   = "Production Storage"
@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Storage Discovery Workspace should exist. Changing this forces a new resource to be created.
 
-* `workspace_roots` - (Required) A list of Azure Resource IDs that define the root scope for storage discovery. Typically this is the Subscription ID.
+* `workspace_root` - (Required) A set of Azure Resource IDs that define the root scope for storage discovery. Each ID can be either a Subscription ID or a Resource Group ID. You cannot specify both a subscription and its child resource group. Maximum of 100 items.
 
 * `scopes` - (Required) One or more `scopes` blocks as defined below.
 
