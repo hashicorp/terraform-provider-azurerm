@@ -131,6 +131,9 @@ service/dns:
 service/domain-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_active_directory_domain_service((.|\n)*)###'
 
+service/durable-task:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_durable_task_((.|\n)*)###'
+
 service/dynatrace:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dynatrace_((.|\n)*)###'
 
