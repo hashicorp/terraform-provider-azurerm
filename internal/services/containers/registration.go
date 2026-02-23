@@ -42,6 +42,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_container_registry":           dataSourceContainerRegistry(),
 		"azurerm_container_registry_token":     dataSourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map": dataSourceContainerRegistryScopeMap(),
+		"azurerm_kubernetes_automatic_cluster": dataSourceKubernetesAutomaticCluster(),
 		"azurerm_kubernetes_cluster":           dataSourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool": dataSourceKubernetesClusterNodePool(),
 	}
@@ -56,6 +57,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_container_registry":            resourceContainerRegistry(),
 		"azurerm_container_registry_token":      resourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map":  resourceContainerRegistryScopeMap(),
+		"azurerm_kubernetes_automatic_cluster":  resourceKubernetesAutomaticCluster(),
 		"azurerm_kubernetes_cluster":            resourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool":  resourceKubernetesClusterNodePool(),
 	}

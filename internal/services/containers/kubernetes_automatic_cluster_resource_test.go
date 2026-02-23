@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type KubernetesClusterResource struct{}
+type KubernetesAutomaticClusterResource struct{}
 
 var (
 	olderKubernetesVersion        = "1.32.9"
@@ -28,9 +28,24 @@ var (
 	currentKubernetesVersionAlias = "1.33"
 )
 
-func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_automaticSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.automaticSKU(data, currentKubernetesVersion),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccKubernetesAutomaticCluster_hostEncryption(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -43,9 +58,9 @@ func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_dedicatedHost(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -57,9 +72,9 @@ func TestAccKubernetesCluster_dedicatedHost(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_runCommand(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_runCommand(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,9 +94,9 @@ func TestAccKubernetesCluster_runCommand(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_keyVaultKms(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -99,9 +114,9 @@ func TestAccKubernetesCluster_keyVaultKms(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_storageProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_storageProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,9 +128,9 @@ func TestAccKubernetesCluster_storageProfile(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -137,9 +152,9 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) 
 	})
 }
 
-func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -160,9 +175,9 @@ func TestAccKubernetesCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -182,9 +197,9 @@ func TestAccKubernetesCluster_workloadAutoscalerProfileVerticalPodAutoscalerTogg
 	})
 }
 
-func TestAccKubernetesCluster_nodeProvisioningProfileUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_nodeProvisioningProfileUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -225,9 +240,9 @@ func TestAccKubernetesCluster_nodeProvisioningProfileUpdate(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_edgeZone(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_edgeZone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -245,9 +260,9 @@ func TestAccKubernetesCluster_edgeZone(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_updateNetworkProfileOutboundType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -274,9 +289,9 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_bootstrapProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_bootstrapProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -303,9 +318,9 @@ func TestAccKubernetesCluster_bootstrapProfile(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesCluster_upgradeOverrideSetting(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccKubernetesAutomaticCluster_upgradeOverrideSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -332,13 +347,13 @@ func TestAccKubernetesCluster_upgradeOverrideSetting(t *testing.T) {
 	})
 }
 
-func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := commonids.ParseKubernetesClusterID(state.ID)
+func (t KubernetesAutomaticClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := commonids.ParseKubernetesAutomaticClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Containers.KubernetesClustersClient.Get(ctx, *id)
+	resp, err := clients.Containers.KubernetesAutomaticClustersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
 	}
@@ -346,7 +361,7 @@ func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
-func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
+func (KubernetesAutomaticClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 		if _, ok := ctx.Deadline(); !ok {
 			var cancel context.CancelFunc
@@ -383,12 +398,12 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 	}
 }
 
-func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
+func TestAccKubernetesAutomaticCluster_dnsPrefix(t *testing.T) {
 	// regression test case for issue #20806
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	dnsPrefix := fmt.Sprintf("1stCluster%d", data.RandomInteger)
 
-	r := KubernetesClusterResource{}
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -401,7 +416,7 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 	})
 }
 
-func (KubernetesClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {
+func (KubernetesAutomaticClusterResource) automaticSKU(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -412,7 +427,47 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = %q
+
+  azure_policy_enabled = true
+  local_account_disabled = true
+
+  automatic_upgrade_channel = "stable"
+
+  sku_tier = "Standard"
+  sku_name = "Automatic"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    os_disk_type = "Ephemeral"
+    vm_size    = "standard_d4lds_v5" 
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesAutomaticClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -436,7 +491,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {
+func (KubernetesAutomaticClusterResource) vnetWithNetworkProfileInfra(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -562,11 +617,11 @@ resource "azurerm_subnet_route_table_association" "node_subnet" {
   `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
+func (r KubernetesAutomaticClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -595,7 +650,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, r.vnetWithNetworkProfileInfra(data), data.RandomInteger, data.RandomInteger, currentKubernetesVersionAlias, "10%", outboundType)
 }
 
-func (KubernetesClusterResource) dedicatedHost(data acceptance.TestData) string {
+func (KubernetesAutomaticClusterResource) dedicatedHost(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -634,7 +689,7 @@ resource "azurerm_role_assignment" "test" {
   role_definition_name = "Contributor"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -663,7 +718,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (KubernetesClusterResource) runCommand(data acceptance.TestData, controlPlaneVersion string, runCommandEnabled bool) string {
+func (KubernetesAutomaticClusterResource) runCommand(data acceptance.TestData, controlPlaneVersion string, runCommandEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -674,7 +729,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -698,7 +753,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, runCommandEnabled)
 }
 
-func (KubernetesClusterResource) workloadAutoscalerProfileKeda(data acceptance.TestData, controlPlaneVersion string, kedaEnabled bool) string {
+func (KubernetesAutomaticClusterResource) workloadAutoscalerProfileKeda(data acceptance.TestData, controlPlaneVersion string, kedaEnabled bool) string {
 	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
@@ -708,7 +763,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -735,7 +790,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, kedaEnabled)
 }
 
-func (KubernetesClusterResource) nodeProvisioningProfile(data acceptance.TestData, mode, defaultNodePools string) string {
+func (KubernetesAutomaticClusterResource) nodeProvisioningProfile(data acceptance.TestData, mode, defaultNodePools string) string {
 	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
@@ -745,7 +800,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -770,7 +825,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, mode, defaultNodePools)
 }
 
-func (KubernetesClusterResource) nodeProvisioningProfileRemoved(data acceptance.TestData) string {
+func (KubernetesAutomaticClusterResource) nodeProvisioningProfileRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
@@ -780,7 +835,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -801,7 +856,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (KubernetesClusterResource) workloadAutoscalerProfileVerticalPodAutoscaler(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+func (KubernetesAutomaticClusterResource) workloadAutoscalerProfileVerticalPodAutoscaler(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
 	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
@@ -811,7 +866,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -838,7 +893,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
 }
 
-func (KubernetesClusterResource) imageCleanerSecurityProfile(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+func (KubernetesAutomaticClusterResource) imageCleanerSecurityProfile(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -849,7 +904,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -875,9 +930,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, enabled)
 }
 
-func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterResource{}
+func TestAccResourceKubernetesAutomaticCluster_roleBasedAccessControlAAD_OlderKubernetesVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -890,7 +945,7 @@ func TestAccResourceKubernetesCluster_roleBasedAccessControlAAD_OlderKubernetesV
 	})
 }
 
-func (KubernetesClusterResource) edgeZone(data acceptance.TestData, controlPlaneVersion, tag string) string {
+func (KubernetesAutomaticClusterResource) edgeZone(data acceptance.TestData, controlPlaneVersion, tag string) string {
 	// WestUS has an edge zone available - so hard-code to that
 	data.Locations.Primary = "westus"
 
@@ -905,7 +960,7 @@ resource "azurerm_resource_group" "test" {
 data "azurerm_extended_locations" "test" {
   location = azurerm_resource_group.test.location
 }
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -931,7 +986,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, tag)
 }
 
-func (KubernetesClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
+func (KubernetesAutomaticClusterResource) azureKeyVaultKms(data acceptance.TestData, controlPlaneVersion string, enabled bool) string {
 	kmsBlock := ""
 	if enabled {
 		kmsBlock = `
@@ -989,7 +1044,7 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1015,7 +1070,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, controlPlaneVersion, kmsBlock)
 }
 
-func (KubernetesClusterResource) storageProfile(data acceptance.TestData, controlPlaneVersion string) string {
+func (KubernetesAutomaticClusterResource) storageProfile(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1026,7 +1081,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1056,7 +1111,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) dnsPrefix(data acceptance.TestData, controlPlaneVersion string) string {
+func (KubernetesAutomaticClusterResource) dnsPrefix(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1067,7 +1122,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1090,7 +1145,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
-func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData, isUpgradeOverrideSettingEnabled bool) string {
+func (KubernetesAutomaticClusterResource) upgradeOverrideSetting(data acceptance.TestData, isUpgradeOverrideSettingEnabled bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1101,7 +1156,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[1]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1128,7 +1183,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   `, data.RandomString, data.Locations.Primary, time.Now().UTC().Add(8*time.Minute).Format(time.RFC3339), isUpgradeOverrideSettingEnabled)
 }
 
-func (KubernetesClusterResource) networkIsolatedBootstrapProfileTemplate(data acceptance.TestData) string {
+func (KubernetesAutomaticClusterResource) networkIsolatedBootstrapProfileTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1239,11 +1294,11 @@ resource "azurerm_role_assignment" "aks_to_kubeletidentity" {
   `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r KubernetesClusterResource) networkIsolatedBootstrapProfileArtifactSourceCache(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) networkIsolatedBootstrapProfileArtifactSourceCache(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1286,11 +1341,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
 }
 
-func (r KubernetesClusterResource) networkIsolatedBootstrapProfileArtifactSourceDirect(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) networkIsolatedBootstrapProfileArtifactSourceDirect(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1331,11 +1386,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 }`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
 }
 
-func (r KubernetesClusterResource) networkIsolatedBootstrapProfileRemoved(data acceptance.TestData) string {
+func (r KubernetesAutomaticClusterResource) networkIsolatedBootstrapProfileRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
