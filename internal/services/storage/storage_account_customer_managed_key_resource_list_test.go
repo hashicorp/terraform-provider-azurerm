@@ -74,7 +74,7 @@ list "azurerm_storage_account_customer_managed_key" "list" {
 func (r StorageAccountCustomerManagedKeyResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_storage_account_customer_managed_key" "list" {
-  provider = azurerm
+  provider         = azurerm
   include_resource = true
   config {
     subscription_id     = "%s"
