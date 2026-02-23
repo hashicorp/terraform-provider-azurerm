@@ -52,16 +52,9 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_ai_services" "example" {
-  name                = "exampleaiservices"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "S0"
-}
-
 resource "azurerm_ai_foundry" "example" {
   name                = "exampleaihub"
-  location            = azurerm_ai_services.example.location
+  location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   storage_account_id  = azurerm_storage_account.example.id
   key_vault_id        = azurerm_key_vault.example.id

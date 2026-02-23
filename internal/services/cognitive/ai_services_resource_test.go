@@ -14,12 +14,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type AIServices struct{}
 
 func TestAccCognitiveAIServices_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -38,6 +42,9 @@ func TestAccCognitiveAIServices_basic(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -53,6 +60,9 @@ func TestAccCognitiveAIServices_requiresImport(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -70,6 +80,9 @@ func TestAccCognitiveAIServices_complete(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -90,6 +103,9 @@ func TestAccCognitiveAIServices_update(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_networkACLs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -119,6 +135,9 @@ func TestAccCognitiveAIServices_networkACLs(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_identity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -159,6 +178,9 @@ func TestAccCognitiveAIServices_identity(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_customerManagedKey_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_ai_services", "test")
 	r := AIServices{}
 
@@ -192,6 +214,9 @@ func TestAccCognitiveAIServices_customerManagedKey_update(t *testing.T) {
 }
 
 func TestAccCognitiveAIServices_KVHsmManagedKey(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_ai_services` is deprecated and will be removed in 5.0")
+	}
 	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
