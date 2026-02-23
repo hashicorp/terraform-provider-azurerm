@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -24,6 +25,8 @@ import (
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_customer_managed_key -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
+
+var storageAccountCustomerManagedKeyResourceName = "azurerm_storage_account_customer_managed_key"
 
 func resourceStorageAccountCustomerManagedKey() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -161,7 +164,7 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 	if d.IsNewResource() {
 		if existing.Model.Properties.Encryption != nil && pointer.From(existing.Model.Properties.Encryption.KeySource) == storageaccounts.KeySourceMicrosoftPointKeyvault {
-			return tf.ImportAsExistsError("azurerm_storage_account_customer_managed_key", id.ID())
+			return tf.ImportAsExistsError(storageAccountCustomerManagedKeyResourceName, id.ID())
 		}
 	}
 
@@ -310,7 +313,6 @@ func resourceStorageAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceD
 
 func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	storageClient := meta.(*clients.Client).Storage.ResourceManager.StorageAccounts
-	keyVaultsClient := meta.(*clients.Client).KeyVault
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -330,11 +332,15 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceStorageAccountCustomerManagedKeyFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+}
+
+func resourceStorageAccountCustomerManagedKeyFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *commonids.StorageAccountId, storageAccount *storageaccounts.StorageAccount, fetchCompleteData bool) error {
 	d.Set("storage_account_id", id.ID())
 
 	enabled := false
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
+	if storageAccount != nil {
+		if props := storageAccount.Properties; props != nil {
 			if encryption := props.Encryption; encryption != nil && pointer.From(encryption.KeySource) == storageaccounts.KeySourceMicrosoftPointKeyvault {
 				enabled = true
 
@@ -371,26 +377,30 @@ func resourceStorageAccountCustomerManagedKeyRead(d *pluginsdk.ResourceData, met
 						keyID = keyId
 					}
 
-					federatedIdentityClientID := ""
-					userAssignedIdentity := ""
-					if identityProps := encryption.Identity; identityProps != nil {
-						federatedIdentityClientID = pointer.From(identityProps.FederatedIdentityClientId)
-						userAssignedIdentity = pointer.From(identityProps.UserAssignedIdentity)
-					}
-					// now we have the key vault uri we can look up the ID
-					// we can't look up the ID when using federated identity as the key will be under different tenant
-					keyVaultID := ""
-					if federatedIdentityClientID == "" && keyID != nil && !keyID.IsManagedHSM() {
-						subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-						tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyID.KeyVaultBaseURL)
-						if err != nil {
-							return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyID.KeyVaultBaseURL, err)
+					if fetchCompleteData {
+						keyVaultsClient := metaClient.KeyVault
+
+						federatedIdentityClientID := ""
+						userAssignedIdentity := ""
+						if identityProps := encryption.Identity; identityProps != nil {
+							federatedIdentityClientID = pointer.From(identityProps.FederatedIdentityClientId)
+							userAssignedIdentity = pointer.From(identityProps.UserAssignedIdentity)
 						}
-						keyVaultID = pointer.From(tmpKeyVaultID)
+						// now we have the key vault uri we can look up the ID
+						// we can't look up the ID when using federated identity as the key will be under different tenant
+						keyVaultID := ""
+						if federatedIdentityClientID == "" && keyID != nil && !keyID.IsManagedHSM() {
+							subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
+							tmpKeyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyID.KeyVaultBaseURL)
+							if err != nil {
+								return fmt.Errorf("retrieving Key Vault ID from the Base URI %q: %+v", keyID.KeyVaultBaseURL, err)
+							}
+							keyVaultID = pointer.From(tmpKeyVaultID)
+						}
+						d.Set("key_vault_id", keyVaultID)
+						d.Set("user_assigned_identity_id", userAssignedIdentity)
+						d.Set("federated_identity_client_id", federatedIdentityClientID)
 					}
-					d.Set("key_vault_id", keyVaultID)
-					d.Set("user_assigned_identity_id", userAssignedIdentity)
-					d.Set("federated_identity_client_id", federatedIdentityClientID)
 				}
 			}
 		}
