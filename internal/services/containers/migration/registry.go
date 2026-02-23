@@ -97,6 +97,7 @@ func registrySchemaForV0AndV1() map[string]*pluginsdk.Schema {
 		"storage_account": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
