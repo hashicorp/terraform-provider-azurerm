@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -49,7 +48,7 @@ func (r StorageMoverAgentResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.StorageMoverResourceName,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"arc_virtual_machine_id": {
