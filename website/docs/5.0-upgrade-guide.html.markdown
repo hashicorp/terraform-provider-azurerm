@@ -97,8 +97,8 @@ This is now controlled through the new `enhanced_validation` provider block:
 ```hcl
 provider "azurerm" {
   enhanced_validation {
-    locations          = true  # Re-enable location validation at plan time
-    resource_providers = true  # Re-enable resource provider validation at plan time
+    locations          = true # Re-enable location validation at plan time
+    resource_providers = true # Re-enable resource provider validation at plan time
   }
 }
 ```
@@ -110,11 +110,6 @@ This change was made because:
 * The MetaData Service call adds latency to provider initialization
 
 The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, still works in version 4.x but has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
-
-In version 5.0, the default behaviour for Resource Provider registration has changed. The `resource_provider_registrations` property now defaults to `none` instead of `legacy`.
-
----
-
 
 ## Removed Resources
 
