@@ -96,12 +96,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"location": commonschema.LocationWithoutForceNew(),
 
-						"zone_redundancy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
 						"regional_endpoint_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
@@ -225,13 +219,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"zone_redundancy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				ForceNew: true,
-				Optional: true,
-				Default:  false,
-			},
-
 			"anonymous_pull_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -315,19 +302,6 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				return errors.New("an ACR encryption can only be applied when using the Premium Sku")
 			}
 
-			// zone redundancy is only available for Premium Sku.
-			zoneRedundancyEnabled, ok := d.GetOk("zone_redundancy_enabled")
-			if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
-			}
-			for _, loc := range geoReplications {
-				loc := loc.(map[string]interface{})
-				zoneRedundancyEnabled, ok := loc["zone_redundancy_enabled"]
-				if ok && zoneRedundancyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-					return fmt.Errorf("ACR zone redundancy can only be applied when using the Premium Sku")
-				}
-			}
-
 			// anonymous pull is only available for Standard/Premium Sku.
 			if d.Get("anonymous_pull_enabled").(bool) && (!strings.EqualFold(sku, string(registries.SkuNameStandard)) && !strings.EqualFold(sku, string(registries.SkuNamePremium))) {
 				return fmt.Errorf("`anonymous_pull_enabled` can only be applied when using the Standard/Premium Sku")
@@ -344,6 +318,26 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		r.Schema["encryption"].Computed = true
+
+		r.Schema["georeplications"].Elem.(*pluginsdk.Resource).Schema["zone_redundancy_enabled"] = &pluginsdk.Schema{
+			Deprecated: "`zone_redundancy_enabled` is deprecated since it is now enabled by default in regions that support availability zones.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+		}
+		r.Schema["zone_redundancy_enabled"] = &pluginsdk.Schema{
+			Deprecated: "`zone_redundancy_enabled` is deprecated since it is now enabled by default in regions that support availability zones.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+		}
+
+		r.SchemaVersion = 3
+		r.StateUpgraders = pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.RegistryV0ToV1{},
+			1: migration.RegistryV1ToV2{},
+			2: migration.RegistryV2ToV3{},
+		})
 	}
 
 	return r
@@ -411,11 +405,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess = registries.PublicNetworkAccessDisabled
 	}
 
-	zoneRedundancy := registries.ZoneRedundancyDisabled
-	if d.Get("zone_redundancy_enabled").(bool) {
-		zoneRedundancy = registries.ZoneRedundancyEnabled
-	}
-
 	retentionPolicy := &registries.RetentionPolicy{}
 	if v, ok := d.GetOk("retention_policy_in_days"); ok && v.(int) > 0 {
 		retentionPolicy.Days = pointer.To(int64(v.(int)))
@@ -445,7 +434,6 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 				ExportPolicy:     expandExportPolicy(d.Get("export_policy_enabled").(bool)),
 			},
 			PublicNetworkAccess:      &publicNetworkAccess,
-			ZoneRedundancy:           &zoneRedundancy,
 			AnonymousPullEnabled:     pointer.To(d.Get("anonymous_pull_enabled").(bool)),
 			DataEndpointEnabled:      pointer.To(d.Get("data_endpoint_enabled").(bool)),
 			NetworkRuleBypassOptions: pointer.To(registries.NetworkRuleBypassOptions(d.Get("network_rule_bypass_option").(string))),
@@ -852,7 +840,9 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("encryption", flattenEncryption(props.Encryption)); err != nil {
 				return fmt.Errorf("setting `encryption`: %+v", err)
 			}
-			d.Set("zone_redundancy_enabled", *props.ZoneRedundancy == registries.ZoneRedundancyEnabled)
+			if !features.FivePointOh() {
+				d.Set("zone_redundancy_enabled", *props.ZoneRedundancy == registries.ZoneRedundancyEnabled)
+			}
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
 			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
@@ -914,7 +904,9 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication := make(map[string]interface{})
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
-				replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
+				if !features.FivePointOh() {
+					replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
+				}
 				replication["regional_endpoint_enabled"] = value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
 				geoReplications = append(geoReplications, replication)
 			}
@@ -1005,16 +997,11 @@ func expandReplications(p []interface{}) []replications.Replication {
 		value := v.(map[string]interface{})
 		location := location.Normalize(value["location"].(string))
 		tags := tags.Expand(value["tags"].(map[string]interface{}))
-		zoneRedundancy := replications.ZoneRedundancyDisabled
-		if value["zone_redundancy_enabled"].(bool) {
-			zoneRedundancy = replications.ZoneRedundancyEnabled
-		}
 		reps = append(reps, replications.Replication{
 			Location: location,
 			Name:     &location,
 			Tags:     tags,
 			Properties: &replications.ReplicationProperties{
-				ZoneRedundancy:        &zoneRedundancy,
 				RegionEndpointEnabled: pointer.To(value["regional_endpoint_enabled"].(bool)),
 			},
 		})
