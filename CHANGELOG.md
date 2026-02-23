@@ -16,6 +16,7 @@ FEATURES:
 * `azurerm_private_dns_a_record` list and identity, including sdk support for constant segment types (#31785) [GH-31785]
 
 BUG FIXES:
+* `azurerm_container_app_job` add InitialDelaySeconds for readiness and startup probes (#31796) [GH-31796]
 
 ## 4.61.0 (February 19, 2026)
 
