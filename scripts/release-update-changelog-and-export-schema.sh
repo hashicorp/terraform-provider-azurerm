@@ -53,3 +53,6 @@ echo "exporting Provider Schema JSON"
   # shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
   ${debug}go run internal/tools/schema-api/main.go -export .release/provider-schema.json
 )
+
+# Update the version file with this new version
+printf "%s" "${RELEASE}" > version/VERSION
