@@ -619,7 +619,7 @@ resource "azurerm_container_registry" "test" {
   location            = azurerm_resource_group.test.location
   sku                 = "Premium"
   georeplications {
-    location                = "%s"
+    location = "%s"
   }
   georeplications {
     location                  = "%s"
