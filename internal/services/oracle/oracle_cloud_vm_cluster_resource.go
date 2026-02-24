@@ -155,7 +155,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"cluster_name": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			// NOTE: O+C To prevent configuration drift caused by updates to multicloud resources via the OCI Terraform provider, we are making this property O+C to ensure consistency and accuracy
 			Computed: true,
 			ForceNew: true,
 		},
@@ -303,7 +302,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"file_system_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			// NOTE: O+C To prevent configuration drift caused by updates to multicloud resources via the OCI Terraform provider, we are making this property O+C to ensure consistency and accuracy
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
