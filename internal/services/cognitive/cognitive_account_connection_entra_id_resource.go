@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive
 
 import (
@@ -16,23 +19,23 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = CognitiveAccountConnectionAADResource{}
+var _ sdk.ResourceWithUpdate = CognitiveAccountConnectionEntraIDResource{}
 
-type CognitiveAccountConnectionAADResource struct{}
+type CognitiveAccountConnectionEntraIDResource struct{}
 
-func (r CognitiveAccountConnectionAADResource) ResourceType() string {
-	return "azurerm_cognitive_account_connection_aad"
+func (r CognitiveAccountConnectionEntraIDResource) ResourceType() string {
+	return "azurerm_cognitive_account_connection_entra_id"
 }
 
-func (r CognitiveAccountConnectionAADResource) ModelObject() interface{} {
-	return &CognitiveAccountConnectionAADModel{}
+func (r CognitiveAccountConnectionEntraIDResource) ModelObject() interface{} {
+	return &CognitiveAccountConnectionEntraIDModel{}
 }
 
-func (r CognitiveAccountConnectionAADResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r CognitiveAccountConnectionEntraIDResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return accountconnectionresource.ValidateConnectionID
 }
 
-type CognitiveAccountConnectionAADModel struct {
+type CognitiveAccountConnectionEntraIDModel struct {
 	Category           string            `tfschema:"category"`
 	CognitiveAccountId string            `tfschema:"cognitive_account_id"`
 	Metadata           map[string]string `tfschema:"metadata"`
@@ -40,7 +43,7 @@ type CognitiveAccountConnectionAADModel struct {
 	Target             string            `tfschema:"target"`
 }
 
-func (r CognitiveAccountConnectionAADResource) Arguments() map[string]*pluginsdk.Schema {
+func (r CognitiveAccountConnectionEntraIDResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -77,17 +80,17 @@ func (r CognitiveAccountConnectionAADResource) Arguments() map[string]*pluginsdk
 	}
 }
 
-func (r CognitiveAccountConnectionAADResource) Attributes() map[string]*pluginsdk.Schema {
+func (r CognitiveAccountConnectionEntraIDResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r CognitiveAccountConnectionAADResource) Create() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionEntraIDResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountConnectionResourceClient
 
-			var model CognitiveAccountConnectionAADModel
+			var model CognitiveAccountConnectionEntraIDModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -129,7 +132,7 @@ func (r CognitiveAccountConnectionAADResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r CognitiveAccountConnectionAADResource) Read() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionEntraIDResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -148,12 +151,12 @@ func (r CognitiveAccountConnectionAADResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var currentState CognitiveAccountConnectionAADModel
+			var currentState CognitiveAccountConnectionEntraIDModel
 			if err := metadata.Decode(&currentState); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			state := CognitiveAccountConnectionAADModel{
+			state := CognitiveAccountConnectionEntraIDModel{
 				CognitiveAccountId: accountconnectionresource.NewAccountID(id.SubscriptionId, id.ResourceGroupName, id.AccountName).ID(),
 				Name:               id.ConnectionName,
 			}
@@ -188,7 +191,7 @@ func (r CognitiveAccountConnectionAADResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r CognitiveAccountConnectionAADResource) Update() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionEntraIDResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -208,12 +211,15 @@ func (r CognitiveAccountConnectionAADResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
-			var model CognitiveAccountConnectionAADModel
+			var model CognitiveAccountConnectionEntraIDModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props := resp.Model.Properties.(accountconnectionresource.AADAuthTypeConnectionProperties)
+			props, ok := resp.Model.Properties.(accountconnectionresource.AADAuthTypeConnectionProperties)
+			if !ok {
+				return fmt.Errorf("unexpected properties type for %s", *id)
+			}
 
 			if metadata.ResourceData.HasChange("target") {
 				props.Target = pointer.To(model.Target)
@@ -236,7 +242,7 @@ func (r CognitiveAccountConnectionAADResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r CognitiveAccountConnectionAADResource) Delete() sdk.ResourceFunc {
+func (r CognitiveAccountConnectionEntraIDResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

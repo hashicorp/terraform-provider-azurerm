@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive_test
 
 import (
@@ -119,7 +122,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
@@ -183,7 +186,7 @@ provider "azurerm" {
 
 resource "azurerm_storage_container" "test2" {
   name                  = "acctestsc2%[2]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 

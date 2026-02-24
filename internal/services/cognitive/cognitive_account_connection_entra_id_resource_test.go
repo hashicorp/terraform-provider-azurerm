@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive_test
 
 import (
@@ -13,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type CognitiveAccountConnectionAADResource struct{}
+type CognitiveAccountConnectionEntraIDResource struct{}
 
-func TestAccCognitiveAccountConnectionAAD_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_aad", "test")
-	r := CognitiveAccountConnectionAADResource{}
+func TestAccCognitiveAccountConnectionEntraID_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIDResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -30,9 +33,9 @@ func TestAccCognitiveAccountConnectionAAD_basic(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccountConnectionAAD_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_aad", "test")
-	r := CognitiveAccountConnectionAADResource{}
+func TestAccCognitiveAccountConnectionEntraID_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIDResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -45,9 +48,9 @@ func TestAccCognitiveAccountConnectionAAD_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccCognitiveAccountConnectionAAD_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_aad", "test")
-	r := CognitiveAccountConnectionAADResource{}
+func TestAccCognitiveAccountConnectionEntraID_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account_connection_entra_id", "test")
+	r := CognitiveAccountConnectionEntraIDResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -67,7 +70,7 @@ func TestAccCognitiveAccountConnectionAAD_update(t *testing.T) {
 	})
 }
 
-func (r CognitiveAccountConnectionAADResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r CognitiveAccountConnectionEntraIDResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := accountconnectionresource.ParseConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -81,7 +84,7 @@ func (r CognitiveAccountConnectionAADResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r CognitiveAccountConnectionAADResource) template(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIDResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cognitive-ac-%[1]d"
@@ -112,13 +115,13 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestsc%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r CognitiveAccountConnectionAADResource) basic(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIDResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -126,7 +129,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_cognitive_account_connection_aad" "test" {
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   category             = "AzureBlob"
@@ -140,25 +143,25 @@ resource "azurerm_cognitive_account_connection_aad" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r CognitiveAccountConnectionAADResource) requiresImport(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIDResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_cognitive_account_connection_aad" "import" {
-  name                 = azurerm_cognitive_account_connection_aad.test.name
-  cognitive_account_id = azurerm_cognitive_account_connection_aad.test.cognitive_account_id
-  category             = azurerm_cognitive_account_connection_aad.test.category
-  target               = azurerm_cognitive_account_connection_aad.test.target
+resource "azurerm_cognitive_account_connection_entra_id" "import" {
+  name                 = azurerm_cognitive_account_connection_entra_id.test.name
+  cognitive_account_id = azurerm_cognitive_account_connection_entra_id.test.cognitive_account_id
+  category             = azurerm_cognitive_account_connection_entra_id.test.category
+  target               = azurerm_cognitive_account_connection_entra_id.test.target
 
   metadata = {
-    accountName   = azurerm_cognitive_account_connection_aad.test.metadata.accountName
-    containerName = azurerm_cognitive_account_connection_aad.test.metadata.containerName
+    accountName   = azurerm_cognitive_account_connection_entra_id.test.metadata.accountName
+    containerName = azurerm_cognitive_account_connection_entra_id.test.metadata.containerName
   }
 }
 `, r.basic(data))
 }
 
-func (r CognitiveAccountConnectionAADResource) updated(data acceptance.TestData) string {
+func (r CognitiveAccountConnectionEntraIDResource) updated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -168,11 +171,11 @@ provider "azurerm" {
 
 resource "azurerm_storage_container" "test2" {
   name                  = "acctestsc2%[3]s"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
-resource "azurerm_cognitive_account_connection_aad" "test" {
+resource "azurerm_cognitive_account_connection_entra_id" "test" {
   name                 = "acctest-conn-%[2]d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   category             = "AzureBlob"

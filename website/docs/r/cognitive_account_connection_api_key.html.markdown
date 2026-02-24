@@ -3,12 +3,12 @@ subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_api_key"
 description: |-
-  Manages a Cognitive Services Account Connection with API Key authentication.
+  Manages a Cognitive Services (Microsoft Foundry) Account Connection with API Key authentication.
 ---
 
 # azurerm_cognitive_account_connection_api_key
 
-Manages a Cognitive Services Account Connection with API Key authentication.
+Manages a Cognitive Services (Microsoft Foundry) Account Connection with API Key authentication.
 
 ## Example Usage
 

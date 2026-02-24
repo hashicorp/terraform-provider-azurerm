@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive
 
 import (
@@ -225,7 +228,10 @@ func (r CognitiveAccountConnectionApiKeyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props := resp.Model.Properties.(accountconnectionresource.ApiKeyAuthConnectionProperties)
+			props, ok := resp.Model.Properties.(accountconnectionresource.ApiKeyAuthConnectionProperties)
+			if !ok {
+				return fmt.Errorf("unexpected properties type for %s", *id)
+			}
 
 			props.Credentials = &accountconnectionresource.ConnectionApiKey{
 				Key: pointer.To(model.ApiKey),

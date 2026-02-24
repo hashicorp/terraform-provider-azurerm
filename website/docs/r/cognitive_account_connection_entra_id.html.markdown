@@ -1,14 +1,14 @@
 ---
 subcategory: "Cognitive Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_aad"
+page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_entra_id"
 description: |-
-  Manages a Cognitive Services Account Connection with AAD authentication.
+  Manages a Cognitive Services (Microsoft Foundry) Account Connection with Entra ID authentication.
 ---
 
-# azurerm_cognitive_account_connection_aad
+# azurerm_cognitive_account_connection_entra_id
 
-Manages a Cognitive Services Account Connection with AAD (Azure Active Directory) authentication.
+Manages a Cognitive Services (Microsoft Foundry) Account Connection with Entra ID (formerly Azure Active Directory) authentication.
 
 ## Example Usage
 
@@ -42,11 +42,11 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "examplecsc"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "private"
 }
 
-resource "azurerm_cognitive_account_connection_aad" "example" {
+resource "azurerm_cognitive_account_connection_entra_id" "example" {
   name                 = "example-connection"
   cognitive_account_id = azurerm_cognitive_account.example.id
   category             = "AzureBlob"
@@ -93,7 +93,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Cognitive Services Account Connections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cognitive_account_connection_aad.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
+terraform import azurerm_cognitive_account_connection_entra_id.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/connections/connection1
 ```
 
 ## API Providers
