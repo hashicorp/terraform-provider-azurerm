@@ -6,7 +6,6 @@ package hybridcompute_test
 import (
 	"fmt"
 	"math/rand"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-uuid"
@@ -41,12 +40,12 @@ func generateRandomPassword(n int) string {
 func TestAccArcMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_arc_machine", "test")
 	d := ArcMachineDataSource{}
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	clientData := data.Client()
 	randomUUID, _ := uuid.GenerateUUID()
 	password := generateRandomPassword(15)
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: d.basic(data, clientSecret, randomUUID, password),
+			Config: d.basic(data, clientData.Default.ClientSecret, randomUUID, password),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent.#").HasValue("1"),
 				check.That(data.ResourceName).Key("mssql_discovered").HasValue("false"),
