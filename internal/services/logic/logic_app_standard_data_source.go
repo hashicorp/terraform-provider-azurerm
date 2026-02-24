@@ -426,6 +426,8 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
+	result["ip_restriction_default_action"] = string(pointer.From(input.IPSecurityRestrictionsDefaultAction))
+
 	results = append(results, result)
 	return results
 }
@@ -590,6 +592,11 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"ip_restriction_default_action": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
