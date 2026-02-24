@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	key74 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -463,7 +463,7 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 	}
 
 	keysClient := client.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl)
-	keyVersionId := key74.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
+	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
 	resp, err := keysClient.GetKey(ctx, keyVersionId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -512,9 +512,9 @@ func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.Client
 			return err
 		}
 		keysClient := clients.KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*vaultBaseUrl)
-		keyVersionId := key74.NewKeyversionID(*vaultBaseUrl, name, "")
-		update := key74.KeyUpdateParameters{
-			Attributes: &key74.KeyAttributes{
+		keyVersionId := keys.NewKeyversionID(*vaultBaseUrl, name, "")
+		update := keys.KeyUpdateParameters{
+			Attributes: &keys.KeyAttributes{
 				Exp: pointer.To(expirationDate.Unix()),
 			},
 		}
@@ -539,7 +539,7 @@ func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, 
 	}
 
 	keysClient := client.KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*vaultBaseUrl)
-	keyId := key74.NewKeyID(*vaultBaseUrl, name)
+	keyId := keys.NewKeyID(*vaultBaseUrl, name)
 	if _, err := keysClient.DeleteKey(ctx, keyId); err != nil {
 		return nil, fmt.Errorf("deleting key vault key: %+v", err)
 	}

@@ -24,7 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedkeys"
-	key74 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
+	"github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -74,10 +74,10 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				// turns out Azure's *really* sensitive about the casing of these
 				// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 				ValidateFunc: validation.StringInSlice([]string{
-					string(key74.JsonWebKeyTypeEC),
-					string(key74.JsonWebKeyTypeECNegativeHSM),
-					string(key74.JsonWebKeyTypeRSA),
-					string(key74.JsonWebKeyTypeRSANegativeHSM),
+					string(keys.JsonWebKeyTypeEC),
+					string(keys.JsonWebKeyTypeECNegativeHSM),
+					string(keys.JsonWebKeyTypeRSA),
+					string(keys.JsonWebKeyTypeRSANegativeHSM),
 				}, false),
 			},
 
@@ -96,12 +96,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 					// turns out Azure's *really* sensitive about the casing of these
 					// issue: https://github.com/Azure/azure-rest-api-specs/issues/1739
 					ValidateFunc: validation.StringInSlice([]string{
-						string(key74.JsonWebKeyOperationDecrypt),
-						string(key74.JsonWebKeyOperationEncrypt),
-						string(key74.JsonWebKeyOperationSign),
-						string(key74.JsonWebKeyOperationUnwrapKey),
-						string(key74.JsonWebKeyOperationVerify),
-						string(key74.JsonWebKeyOperationWrapKey),
+						string(keys.JsonWebKeyOperationDecrypt),
+						string(keys.JsonWebKeyOperationEncrypt),
+						string(keys.JsonWebKeyOperationSign),
+						string(keys.JsonWebKeyOperationUnwrapKey),
+						string(keys.JsonWebKeyOperationVerify),
+						string(keys.JsonWebKeyOperationWrapKey),
 					}, false),
 				},
 			},
@@ -112,14 +112,14 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-					return old == "SECP256K1" && new == string(key74.JsonWebKeyCurveNamePNegativeTwoFiveSixK)
+					return old == "SECP256K1" && new == string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSixK)
 				},
 				ValidateFunc: func() pluginsdk.SchemaValidateFunc {
 					out := []string{
-						string(key74.JsonWebKeyCurveNamePNegativeTwoFiveSix),
-						string(key74.JsonWebKeyCurveNamePNegativeTwoFiveSixK),
-						string(key74.JsonWebKeyCurveNamePNegativeThreeEightFour),
-						string(key74.JsonWebKeyCurveNamePNegativeFiveTwoOne),
+						string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSix),
+						string(keys.JsonWebKeyCurveNamePNegativeTwoFiveSixK),
+						string(keys.JsonWebKeyCurveNamePNegativeThreeEightFour),
+						string(keys.JsonWebKeyCurveNamePNegativeFiveTwoOne),
 					}
 					return validation.StringInSlice(out, false)
 				}(),
@@ -293,8 +293,8 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
 	client := meta.(*clients.Client).KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*keyVaultBaseUri)
-	keyId := key74.NewKeyID(*keyVaultBaseUri, name)
-	keyVersionId := key74.NewKeyversionID(keyId.BaseURI, keyId.KeyName, "")
+	keyId := keys.NewKeyID(*keyVaultBaseUri, name)
+	keyVersionId := keys.NewKeyversionID(keyId.BaseURI, keyId.KeyName, "")
 
 	existing, err := client.GetKey(ctx, keyVersionId)
 	if err != nil {
@@ -313,10 +313,10 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// TODO: support Importing Keys once this is fixed:
 	// https://github.com/Azure/azure-rest-api-specs/issues/1747
-	parameters := key74.KeyCreateParameters{
-		Kty:    key74.JsonWebKeyType(keyType),
+	parameters := keys.KeyCreateParameters{
+		Kty:    keys.JsonWebKeyType(keyType),
 		KeyOps: keyOptions,
-		Attributes: &key74.KeyAttributes{
+		Attributes: &keys.KeyAttributes{
 			Enabled: pointer.To(true),
 		},
 
@@ -324,10 +324,10 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	switch parameters.Kty {
-	case key74.JsonWebKeyTypeEC, key74.JsonWebKeyTypeECNegativeHSM:
+	case keys.JsonWebKeyTypeEC, keys.JsonWebKeyTypeECNegativeHSM:
 		curveName := d.Get("curve").(string)
-		parameters.Crv = pointer.To(key74.JsonWebKeyCurveName(curveName))
-	case key74.JsonWebKeyTypeRSA, key74.JsonWebKeyTypeRSANegativeHSM:
+		parameters.Crv = pointer.To(keys.JsonWebKeyCurveName(curveName))
+	case keys.JsonWebKeyTypeRSA, keys.JsonWebKeyTypeRSANegativeHSM:
 		keySize, ok := d.GetOk("key_size")
 		if !ok {
 			return errors.New("key_size is required when creating an RSA key")
@@ -435,14 +435,14 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	client := meta.(*clients.Client).KeyVault.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl)
-	keyVersionId := key74.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
-	keyId := key74.NewKeyID(id.KeyVaultBaseUrl, id.Name)
+	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
+	keyId := keys.NewKeyID(id.KeyVaultBaseUrl, id.Name)
 	keyOptions := expandKeyVaultKeyOptions(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	parameters := key74.KeyUpdateParameters{
+	parameters := keys.KeyUpdateParameters{
 		KeyOps: keyOptions,
-		Attributes: &key74.KeyAttributes{
+		Attributes: &keys.KeyAttributes{
 			Enabled: pointer.To(true),
 		},
 		Tags: pointer.To(tags.ToTypedObject(tags.Expand(t))),
@@ -511,7 +511,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	}
 
 	client := meta.(*clients.Client).KeyVault.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl)
-	keyVersionId := key74.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
+	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
 	resp, err := client.GetKey(ctx, keyVersionId)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
@@ -568,7 +568,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		d.Set("versionless_id", id.VersionlessID())
 		if key := resp.Model.Key; key != nil {
 			switch pointer.From(key.Kty) {
-			case key74.JsonWebKeyTypeRSA, key74.JsonWebKeyTypeRSANegativeHSM:
+			case keys.JsonWebKeyTypeRSA, keys.JsonWebKeyTypeRSANegativeHSM:
 				nBytes, err := base64.RawURLEncoding.DecodeString(*key.N)
 				if err != nil {
 					return fmt.Errorf("failed to decode N: %+v", err)
@@ -585,7 +585,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 				if err != nil {
 					return fmt.Errorf("failed to read public key: %+v", err)
 				}
-			case key74.JsonWebKeyTypeEC, key74.JsonWebKeyTypeECNegativeHSM:
+			case keys.JsonWebKeyTypeEC, keys.JsonWebKeyTypeECNegativeHSM:
 				// do ec keys
 				xBytes, err := base64.RawURLEncoding.DecodeString(*key.X)
 				if err != nil {
@@ -600,11 +600,11 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 					Y: big.NewInt(0).SetBytes(yBytes),
 				}
 				switch pointer.From(key.Crv) {
-				case key74.JsonWebKeyCurveNamePNegativeTwoFiveSix:
+				case keys.JsonWebKeyCurveNamePNegativeTwoFiveSix:
 					publicKey.Curve = elliptic.P256()
-				case key74.JsonWebKeyCurveNamePNegativeThreeEightFour:
+				case keys.JsonWebKeyCurveNamePNegativeThreeEightFour:
 					publicKey.Curve = elliptic.P384()
-				case key74.JsonWebKeyCurveNamePNegativeFiveTwoOne:
+				case keys.JsonWebKeyCurveNamePNegativeFiveTwoOne:
 					publicKey.Curve = elliptic.P521()
 				}
 				if publicKey.Curve != nil {
@@ -620,7 +620,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	d.Set("resource_id", parse.NewKeyID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
 	d.Set("resource_versionless_id", parse.NewKeyVersionlessID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name).ID())
 
-	keyIdForPolicy := key74.NewKeyID(id.KeyVaultBaseUrl, id.Name)
+	keyIdForPolicy := keys.NewKeyID(id.KeyVaultBaseUrl, id.Name)
 	respPolicy, err := client.GetKeyRotationPolicy(ctx, keyIdForPolicy)
 	if err != nil {
 		switch {
@@ -707,20 +707,20 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 var _ deleteAndPurgeNestedItem = deleteAndPurgeKey{}
 
 type deleteAndPurgeKey struct {
-	keysClient        *key74.KeysClient
+	keysClient        *keys.KeysClient
 	deletedKeysClient *deletedkeys.DeletedKeysClient
 	keyVaultUri       string
 	name              string
 }
 
 func (d deleteAndPurgeKey) DeleteNestedItem(ctx context.Context) (autorest.Response, error) {
-	keyId := key74.NewKeyID(d.keyVaultUri, d.name)
+	keyId := keys.NewKeyID(d.keyVaultUri, d.name)
 	resp, err := d.keysClient.DeleteKey(ctx, keyId)
 	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
 func (d deleteAndPurgeKey) NestedItemHasBeenDeleted(ctx context.Context) (autorest.Response, error) {
-	keyVersionId := key74.NewKeyversionID(d.keyVaultUri, d.name, "")
+	keyVersionId := keys.NewKeyversionID(d.keyVaultUri, d.name, "")
 	resp, err := d.keysClient.GetKey(ctx, keyVersionId)
 	return autorest.Response{Response: resp.HttpResponse}, err
 }
@@ -737,20 +737,20 @@ func (d deleteAndPurgeKey) NestedItemHasBeenPurged(ctx context.Context) (autores
 	return autorest.Response{Response: resp.HttpResponse}, err
 }
 
-func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]key74.JsonWebKeyOperation {
+func expandKeyVaultKeyOptions(d *pluginsdk.ResourceData) *[]keys.JsonWebKeyOperation {
 	options := d.Get("key_opts").([]interface{})
-	results := make([]key74.JsonWebKeyOperation, 0, len(options))
+	results := make([]keys.JsonWebKeyOperation, 0, len(options))
 
 	for _, option := range options {
-		results = append(results, key74.JsonWebKeyOperation(option.(string)))
+		results = append(results, keys.JsonWebKeyOperation(option.(string)))
 	}
 
 	return &results
 }
 
-func expandKeyVaultKeyRotationPolicy(v []interface{}) key74.KeyRotationPolicy {
+func expandKeyVaultKeyRotationPolicy(v []interface{}) keys.KeyRotationPolicy {
 	if len(v) == 0 {
-		return key74.KeyRotationPolicy{LifetimeActions: &[]key74.LifetimeActions{}}
+		return keys.KeyRotationPolicy{LifetimeActions: &[]keys.LifetimeActions{}}
 	}
 
 	policy := v[0].(map[string]interface{})
@@ -760,25 +760,25 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) key74.KeyRotationPolicy {
 		expiryTime = pointer.To(rawExpiryTime.(string))
 	}
 
-	lifetimeActions := make([]key74.LifetimeActions, 0)
+	lifetimeActions := make([]keys.LifetimeActions, 0)
 	if rawNotificationTime := policy["notify_before_expiry"]; rawNotificationTime != nil && rawNotificationTime.(string) != "" {
-		lifetimeActionNotify := key74.LifetimeActions{
-			Trigger: &key74.LifetimeActionsTrigger{
+		lifetimeActionNotify := keys.LifetimeActions{
+			Trigger: &keys.LifetimeActionsTrigger{
 				TimeBeforeExpiry: pointer.To(rawNotificationTime.(string)), // for Type: Notify always TimeBeforeExpiry
 			},
-			Action: &key74.LifetimeActionsType{
-				Type: pointer.To(key74.ActionTypeNotify),
+			Action: &keys.LifetimeActionsType{
+				Type: pointer.To(keys.ActionTypeNotify),
 			},
 		}
 		lifetimeActions = append(lifetimeActions, lifetimeActionNotify)
 	}
 
 	if autoRotationList := policy["automatic"].([]interface{}); len(autoRotationList) == 1 && autoRotationList[0] != nil {
-		lifetimeActionRotate := key74.LifetimeActions{
-			Action: &key74.LifetimeActionsType{
-				Type: pointer.To(key74.ActionTypeRotate),
+		lifetimeActionRotate := keys.LifetimeActions{
+			Action: &keys.LifetimeActionsType{
+				Type: pointer.To(keys.ActionTypeRotate),
 			},
-			Trigger: &key74.LifetimeActionsTrigger{},
+			Trigger: &keys.LifetimeActionsTrigger{},
 		}
 		autoRotationRaw := autoRotationList[0].(map[string]interface{})
 
@@ -795,9 +795,9 @@ func expandKeyVaultKeyRotationPolicy(v []interface{}) key74.KeyRotationPolicy {
 		lifetimeActions = append(lifetimeActions, lifetimeActionRotate)
 	}
 
-	return key74.KeyRotationPolicy{
+	return keys.KeyRotationPolicy{
 		LifetimeActions: &lifetimeActions,
-		Attributes: &key74.KeyRotationPolicyAttributes{
+		Attributes: &keys.KeyRotationPolicyAttributes{
 			ExpiryTime: expiryTime,
 		},
 	}
@@ -813,7 +813,7 @@ func flattenKeyVaultKeyOptions(input *[]string) []interface{} {
 	return results
 }
 
-func flattenKeyVaultKeyRotationPolicy(input key74.KeyRotationPolicy) []interface{} {
+func flattenKeyVaultKeyRotationPolicy(input keys.KeyRotationPolicy) []interface{} {
 	if input.LifetimeActions == nil && input.Attributes == nil {
 		return []interface{}{}
 	}
@@ -828,7 +828,7 @@ func flattenKeyVaultKeyRotationPolicy(input key74.KeyRotationPolicy) []interface
 			action := ltAction.Action
 			trigger := ltAction.Trigger
 
-			if action != nil && trigger != nil && action.Type != nil && strings.EqualFold(string(*action.Type), string(key74.ActionTypeNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
+			if action != nil && trigger != nil && action.Type != nil && strings.EqualFold(string(*action.Type), string(keys.ActionTypeNotify)) && trigger.TimeBeforeExpiry != nil && *trigger.TimeBeforeExpiry != "" {
 				// Somehow a default is set after creation for notify_before_expiry
 				// Submitting this set value in the next run will not work though..
 				if policy["expire_after"] != nil {
@@ -836,7 +836,7 @@ func flattenKeyVaultKeyRotationPolicy(input key74.KeyRotationPolicy) []interface
 				}
 			}
 
-			if action != nil && trigger != nil && action.Type != nil && strings.EqualFold(string(*action.Type), string(key74.ActionTypeRotate)) {
+			if action != nil && trigger != nil && action.Type != nil && strings.EqualFold(string(*action.Type), string(keys.ActionTypeRotate)) {
 				autoRotation := make(map[string]interface{})
 				autoRotation["time_after_creation"] = pointer.From(trigger.TimeAfterCreate)
 				autoRotation["time_before_expiry"] = pointer.From(trigger.TimeBeforeExpiry)
