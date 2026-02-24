@@ -65,6 +65,7 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
+			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(schedulers.SchedulerSkuNameConsumption),
 				string(schedulers.SchedulerSkuNameDedicated),
