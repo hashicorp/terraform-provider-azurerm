@@ -32,6 +32,7 @@ type LogicAppSiteConfig struct {
 	DotnetFrameworkVersion        string          `tfschema:"dotnet_framework_version"`
 	VNETRouteAllEnabled           bool            `tfschema:"vnet_route_all_enabled"`
 	AutoSwapSlotName              string          `tfschema:"auto_swap_slot_name"`
+	IpRestrictionDefaultAction    string          `tfschema:"ip_restriction_default_action"`
 
 	PublicNetworkAccessEnabled bool `tfschema:"public_network_access_enabled,removedInNextMajorVersion"`
 }
@@ -187,6 +188,12 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Computed: true,
+				},
+
+				"ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
 				},
 
 				"auto_swap_slot_name": {
