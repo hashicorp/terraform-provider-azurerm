@@ -89,7 +89,7 @@ func TestAccApiManagementCertificate_basicKeyVaultUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_certificate", "test")
 	r := ApiManagementCertificateResource{}
 
-	certUpdatedRegex := regexp.MustCompile(fmt.Sprintf(`https://acct%d\.vault\.azure\.net/secrets/cert2/[a-z0-9]{32}`, data.RandomInteger))
+	certUpdatedRegex := regexp.MustCompile(fmt.Sprintf(`https://acctest%s\.vault\.azure\.net/secrets/cert2/[a-z0-9]{32}`, data.RandomString))
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
