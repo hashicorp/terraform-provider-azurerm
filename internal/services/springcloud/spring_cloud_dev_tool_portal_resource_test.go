@@ -6,7 +6,6 @@ package springcloud_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -51,11 +50,10 @@ func TestAccSpringCloudDevToolPortal_requiresImport(t *testing.T) {
 func TestAccSpringCloudDevToolPortal_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_dev_tool_portal", "test")
 	r := SpringCloudDevToolPortalResource{}
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	clientData := data.Client()
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(data, clientId, clientSecret),
+			Config: r.complete(data, clientData.Default.ClientID, clientData.Default.ClientSecret),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -66,8 +64,7 @@ func TestAccSpringCloudDevToolPortal_complete(t *testing.T) {
 
 func TestAccSpringCloudDevToolPortal_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_spring_cloud_dev_tool_portal", "test")
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	clientData := data.Client()
 	r := SpringCloudDevToolPortalResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -78,7 +75,7 @@ func TestAccSpringCloudDevToolPortal_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data, clientId, clientSecret),
+			Config: r.complete(data, clientData.Default.ClientID, clientData.Default.ClientSecret),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

@@ -144,7 +144,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("cannot read Hostname Binding %q (App Service %q / Resource Group %q) ID", hostname, appServiceName, resourceGroup)
 	}
 
-	d.SetId(*read.ID)
+	d.SetId(pointer.From(read.ID))
 
 	return resourceAppServiceCustomHostnameBindingRead(d, meta)
 }
