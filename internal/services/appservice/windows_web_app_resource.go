@@ -1020,7 +1020,7 @@ func (r WindowsWebAppResource) Update() sdk.ResourceFunc {
 					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
-					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
+					return fmt.Errorf("updating AuthV2 Settings for Windows %s: %+v", id, err)
 				}
 				updateLogs = true
 			}
