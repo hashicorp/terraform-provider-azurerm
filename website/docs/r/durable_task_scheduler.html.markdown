@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Durable Task Scheduler should exist. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values are `Consumption` and `Dedicated`.
+* `sku_name` - (Required) The SKU of the Durable Task Scheduler. Possible values include `Consumption` and `Dedicated`. Changing this forces a new Durable Task Scheduler to be created.
 
 * `ip_allow_list` - (Required) A list of IP addresses or CIDR ranges that are allowed to access the Durable Task Scheduler.
 

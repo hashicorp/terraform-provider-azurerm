@@ -57,8 +57,7 @@ func TestAccDurableTaskScheduler_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku_name").HasValue("Dedicated"),
-				check.That(data.ResourceName).Key("capacity").HasValue("1"),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Consumption"),
 			),
 		},
 		data.ImportStep(),
@@ -158,9 +157,8 @@ resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Dedicated"
+  sku_name            = "Consumption"
   ip_allow_list       = ["10.0.0.0/8", "192.168.0.0/16"]
-  capacity            = 1
 
   tags = {
     environment = "test"
