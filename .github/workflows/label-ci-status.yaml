@@ -1,0 +1,53 @@
+name: 'Label CI Status on PRs'
+on:
+  check_suite:
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label-ci-status:
+    runs-on: ubuntu-latest
+    # Only run for PRs, not pushes to branches
+    if: github.event.check_suite.pull_requests[0] != null
+    steps:
+      - name: Add or remove ci-failed label
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const pullRequests = context.payload.check_suite.pull_requests;
+            const conclusion = context.payload.check_suite.conclusion;
+            const label = 'ci-failed';
+
+            for (const pr of pullRequests) {
+              const prNumber = pr.number;
+
+              // Get current labels
+              const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+              });
+              const hasLabel = currentLabels.some(l => l.name === label);
+
+              if (conclusion === 'failure' && !hasLabel) {
+                console.log(`PR #${prNumber}: CI failed → adding '${label}' label`);
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  labels: [label],
+                });
+              } else if (conclusion === 'success' && hasLabel) {
+                console.log(`PR #${prNumber}: CI passed → removing '${label}' label`);
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  name: label,
+                });
+              } else {
+                console.log(`PR #${prNumber}: conclusion=${conclusion}, hasLabel=${hasLabel} → no action`);
+              }
+            }
