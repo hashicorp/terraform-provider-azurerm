@@ -203,7 +203,7 @@ The `site_config` block supports the following:
 
 -> **Note:** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `ip_restriction_default_action` - (Optional) The action to take when no rules match in the `ip_restriction` block. Possible values are `Allow` and `Deny`.
+* `ip_restriction_default_action` - (Optional) The action to take when no `ip_restriction` rules match. Possible values are `Allow` and `Deny`.
 
 -> **Note:** If `ip_restriction_default_action` is not configured, it is implicitly set to `Allow` when no `ip_restriction` rules are defined and `Deny` when at least one `ip_restriction` rule is defined.
 
