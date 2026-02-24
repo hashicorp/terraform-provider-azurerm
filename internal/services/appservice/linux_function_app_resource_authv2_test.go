@@ -288,7 +288,7 @@ func TestAccLinuxFunctionApp_authV2UpgradeFromV1(t *testing.T) {
 	})
 }
 
-func (r LinuxFunctionAppResource) authV2AzureActiveDirectory(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppResource) authV2AzureActiveDirectory(data acceptance.TestData, planSku string) string { // nolint: unparam
 	secretSettingName := "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
 	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
 	return fmt.Sprintf(`

@@ -941,7 +941,6 @@ func (r LinuxWebAppResource) Update() sdk.ResourceFunc {
 				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
 				if authV2Update.Properties == nil {
 					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
-					updateLogs = true
 				}
 				if _, err := client.UpdateAuthSettingsV2(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
