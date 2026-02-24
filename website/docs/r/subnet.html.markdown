@@ -65,6 +65,8 @@ The following arguments are supported:
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
+* `delete_on_destroy` - (Optional) Should the Subnet be deleted in Azure when this resource is destroyed? Defaults to `true`. When set to `false`, Terraform will remove this resource from state without deleting the Subnet in Azure.
+
 * `default_outbound_access_enabled` - (Optional) Enable default outbound access to the internet for the subnet. Defaults to `true`.
 
 * `ip_address_pool` - (Optional) An `ip_address_pool` block as defined below.

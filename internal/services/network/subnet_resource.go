@@ -276,6 +276,12 @@ func resourceSubnet() *pluginsdk.Resource {
 				Optional: true,
 			},
 
+			"delete_on_destroy": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"private_endpoint_network_policies": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -638,6 +644,11 @@ func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	locks.ByName(id.SubnetName, SubnetResourceName)
 	defer locks.UnlockByName(id.SubnetName, SubnetResourceName)
+
+	if !d.Get("delete_on_destroy").(bool) {
+		log.Printf("[DEBUG] Skipping deletion for %s because `delete_on_destroy` is false", *id)
+		return nil
+	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)

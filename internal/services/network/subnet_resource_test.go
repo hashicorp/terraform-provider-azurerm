@@ -149,6 +149,30 @@ func TestAccSubnet_defaultOutbound(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_deleteOnDestroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deleteOnDestroy(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delete_on_destroy").HasValue("false"),
+			),
+		},
+		data.ImportStep("delete_on_destroy"),
+		{
+			Config: r.deleteOnDestroy(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delete_on_destroy").HasValue("true"),
+			),
+		},
+		data.ImportStep("delete_on_destroy"),
+	})
+}
+
 func TestAccSubnet_delegation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -703,6 +727,19 @@ resource "azurerm_subnet" "internal" {
   default_outbound_access_enabled = %t
 }
 `, r.template(data), enabled)
+}
+
+func (r SubnetResource) deleteOnDestroy(data acceptance.TestData, deleteOnDestroy bool) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_subnet" "internal" {
+	name                 = "internal"
+	resource_group_name  = azurerm_resource_group.test.name
+	virtual_network_name = azurerm_virtual_network.test.name
+	address_prefixes     = ["10.0.2.0/24"]
+	delete_on_destroy    = %t
+}
+`, r.template(data), deleteOnDestroy)
 }
 
 func (r SubnetResource) delegationUpdated(data acceptance.TestData) string {
