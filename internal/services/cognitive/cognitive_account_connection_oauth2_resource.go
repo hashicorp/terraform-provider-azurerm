@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive
 
 import (
@@ -302,7 +305,10 @@ func (r CognitiveAccountConnectionOAuth2Resource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props := resp.Model.Properties.(accountconnectionresource.OAuth2AuthTypeConnectionProperties)
+			props, ok := resp.Model.Properties.(accountconnectionresource.OAuth2AuthTypeConnectionProperties)
+			if !ok {
+				return fmt.Errorf("unexpected properties type for %s", *id)
+			}
 
 			props.Credentials = &accountconnectionresource.ConnectionOAuth2{
 				AuthURL:        pointer.To(model.OAuth2[0].AuthenticationURL),

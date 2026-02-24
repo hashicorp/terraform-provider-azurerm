@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package cognitive
 
 import (
@@ -227,7 +230,10 @@ func (r CognitiveAccountConnectionCustomKeysResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			props := resp.Model.Properties.(accountconnectionresource.CustomKeysConnectionProperties)
+			props, ok := resp.Model.Properties.(accountconnectionresource.CustomKeysConnectionProperties)
+			if !ok {
+				return fmt.Errorf("unexpected properties type for %s", *id)
+			}
 
 			props.Credentials = &accountconnectionresource.CustomKeys{
 				Keys: &model.CustomKeys,

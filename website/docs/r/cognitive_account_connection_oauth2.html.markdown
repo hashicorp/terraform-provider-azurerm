@@ -3,12 +3,12 @@ subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_oauth2"
 description: |-
-  Manages a Cognitive Services Account Connection with OAuth2 authentication.
+  Manages a Cognitive Services (Microsoft Foundry) Account Connection with OAuth2 authentication.
 ---
 
 # azurerm_cognitive_account_connection_oauth2
 
-Manages a Cognitive Services Account Connection with OAuth2 authentication.
+Manages a Cognitive Services (Microsoft Foundry) Account Connection with OAuth2 authentication.
 
 ## Example Usage
 
@@ -42,7 +42,7 @@ resource "azurerm_storage_account" "example" {
 
 resource "azurerm_storage_container" "example" {
   name                  = "examplecsc"
-  storage_account_name  = azurerm_storage_account.example.name
+  storage_account_id    = azurerm_storage_account.example.id
   container_access_type = "private"
 }
 

@@ -3,12 +3,12 @@ subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account_connection_custom_keys"
 description: |-
-  Manages a Cognitive Services Account Connection with Custom Keys authentication.
+  Manages a Cognitive Services (Microsoft Foundry) Account Connection with Custom Keys authentication.
 ---
 
 # azurerm_cognitive_account_connection_custom_keys
 
-Manages a Cognitive Services Account Connection with Custom Keys authentication.
+Manages a Cognitive Services (Microsoft Foundry) Account Connection with Custom Keys authentication.
 
 ## Example Usage
 
