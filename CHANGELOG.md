@@ -1,6 +1,7 @@
 ## 4.62.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `databricks` - update to API version `2026-01-01` [GH-31654]
 * dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
 * `network` - deprecate and rename `enabled_*` properties for 5.0 [GH-31643]
 * `azurerm_monitor_diagnostic_setting` - deprecate the `enabled_log.retention_policy` block [GH-31792]
