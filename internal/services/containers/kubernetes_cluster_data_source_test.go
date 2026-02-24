@@ -95,6 +95,7 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	tenantId := os.Getenv("ARM_TENANT_ID")
+
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: r.roleBasedAccessControlAADConfig(data, clientId, clientSecret, tenantId),
