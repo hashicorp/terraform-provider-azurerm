@@ -85,7 +85,6 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			"prefix_length": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Default:      28,
 				ForceNew:     true,
 				ValidateFunc: validation.IntBetween(0, 127),
 			},
@@ -140,10 +139,19 @@ func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			Tier: pointer.To(publicipprefixes.PublicIPPrefixSkuTier(d.Get("sku_tier").(string))),
 		},
 		Properties: &publicipprefixes.PublicIPPrefixPropertiesFormat{
-			PrefixLength:           pointer.To(int64(d.Get("prefix_length").(int))),
 			PublicIPAddressVersion: pointer.To(publicipprefixes.IPVersion(d.Get("ip_version").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("prefix_length"); ok {
+		publicIpPrefix.Properties.PrefixLength = pointer.To(int64(v.(int)))
+	} else {
+		defaultPrefixLength := int64(28)
+		if pointer.From(publicIpPrefix.Properties.PublicIPAddressVersion) == publicipprefixes.IPVersionIPvSix {
+			defaultPrefixLength = 124
+		}
+		publicIpPrefix.Properties.PrefixLength = pointer.To(defaultPrefixLength)
 	}
 
 	if customIpPrefixId := d.Get("custom_ip_prefix_id").(string); customIpPrefixId != "" {

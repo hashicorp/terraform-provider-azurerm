@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `ip_version` - (Optional) The IP Version to use, `IPv6` or `IPv4`. Changing this forces a new resource to be created. Default is `IPv4`. The chosen IP version determines the valid range for `prefix_length` - see below.
 
-* `prefix_length` - (Optional) Specifies the number of bits of the prefix. The valid values depend on the `ip_version`. Defaults to `28`. Changing this forces a new resource to be created.
+* `prefix_length` - (Optional) Specifies the number of bits of the prefix. The valid values depend on the `ip_version`. Defaults to `28` for IPv4 and `124` for IPv6 (both allocate 16 addresses). Changing this forces a new resource to be created.
 
   For **IPv4** (`ip_version = "IPv4"`), the supported prefix sizes are `/28` (16 addresses), `/29` (8 addresses), `/30` (4 addresses), and `/31` (2 addresses).
 
