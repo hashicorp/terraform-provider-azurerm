@@ -42,8 +42,10 @@ type WorkloadsSAPDiscoveryVirtualInstanceModel struct {
 
 type WorkloadsSAPDiscoveryVirtualInstanceResource struct{}
 
-var _ sdk.ResourceWithUpdate = WorkloadsSAPDiscoveryVirtualInstanceResource{}
-var _ sdk.ResourceWithIdentity = WorkloadsSAPDiscoveryVirtualInstanceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = WorkloadsSAPDiscoveryVirtualInstanceResource{}
+	_ sdk.ResourceWithIdentity = WorkloadsSAPDiscoveryVirtualInstanceResource{}
+)
 
 func (r WorkloadsSAPDiscoveryVirtualInstanceResource) Identity() resourceids.ResourceId {
 	return &sapvirtualinstances.SapVirtualInstanceId{}
