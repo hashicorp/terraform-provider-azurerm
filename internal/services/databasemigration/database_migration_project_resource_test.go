@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databasemigration_test
@@ -169,6 +169,10 @@ resource "azurerm_database_migration_project" "test" {
   target_platform     = "%s"
 }
 `, DatabaseMigrationServiceResource{}.basic(data), data.RandomInteger, sourcePlatform, targetPlatform)
+}
+
+func (DatabaseMigrationProjectResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return DatabaseMigrationProjectResource{}.basic(data, "SQL", "SQLDB")
 }
 
 func (DatabaseMigrationProjectResource) complete(data acceptance.TestData) string {

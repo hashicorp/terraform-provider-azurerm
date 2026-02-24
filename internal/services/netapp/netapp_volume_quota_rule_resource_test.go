@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -266,7 +266,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }

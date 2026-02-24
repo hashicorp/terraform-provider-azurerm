@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package postgres
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/backups"
+	backupsautomaticandondemand "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -33,7 +33,7 @@ type PostgresqlFlexibleServerBackupResourceModel struct {
 }
 
 func (r PostgresqlFlexibleServerBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return backups.ValidateBackupID
+	return backupsautomaticandondemand.ValidateBackupID
 }
 
 func (r PostgresqlFlexibleServerBackupResource) ResourceType() string {
@@ -49,7 +49,7 @@ func (r PostgresqlFlexibleServerBackupResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validate.FlexibleServerBackupName,
 		},
 
-		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&backups.FlexibleServerId{}),
+		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&backupsautomaticandondemand.FlexibleServerId{}),
 	}
 }
 
@@ -74,17 +74,17 @@ func (r PostgresqlFlexibleServerBackupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			serverId, err := backups.ParseFlexibleServerID(model.ServerId)
+			serverId, err := backupsautomaticandondemand.ParseFlexibleServerID(model.ServerId)
 			if err != nil {
 				return err
 			}
 
-			id := backups.NewBackupID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, model.Name)
+			id := backupsautomaticandondemand.NewBackupID(subscriptionId, serverId.ResourceGroupName, serverId.FlexibleServerName, model.Name)
 
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.BackupsAutomaticAndOnDemandGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -92,7 +92,7 @@ func (r PostgresqlFlexibleServerBackupResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			if err := client.CreateThenPoll(ctx, id); err != nil {
+			if err := client.BackupsAutomaticAndOnDemandCreateThenPoll(ctx, id); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -108,12 +108,12 @@ func (r PostgresqlFlexibleServerBackupResource) Read() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Postgres.BackupsClient
 
-			id, err := backups.ParseBackupID(metadata.ResourceData.Id())
+			id, err := backupsautomaticandondemand.ParseBackupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupsAutomaticAndOnDemandGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -123,7 +123,7 @@ func (r PostgresqlFlexibleServerBackupResource) Read() sdk.ResourceFunc {
 
 			state := PostgresqlFlexibleServerBackupResourceModel{
 				Name:     id.BackupName,
-				ServerId: backups.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID(),
+				ServerId: backupsautomaticandondemand.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -143,7 +143,7 @@ func (r PostgresqlFlexibleServerBackupResource) Delete() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Postgres.BackupsClient
 
-			id, err := backups.ParseBackupID(metadata.ResourceData.Id())
+			id, err := backupsautomaticandondemand.ParseBackupID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -151,7 +151,7 @@ func (r PostgresqlFlexibleServerBackupResource) Delete() sdk.ResourceFunc {
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.BackupsAutomaticAndOnDemandDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package firewall
@@ -417,11 +417,14 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 		return fmt.Errorf("making Read request on Azure Firewall %s : %+v", *id, err)
 	}
+	return resourceFirewallSetFlatten(d, id, read.Model)
+}
 
+func resourceFirewallSetFlatten(d *pluginsdk.ResourceData, id *azurefirewalls.AzureFirewallId, model *azurefirewalls.AzureFirewall) error {
 	d.Set("name", id.AzureFirewallName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := read.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 

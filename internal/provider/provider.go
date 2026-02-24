@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -339,7 +340,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"resource_provider_registrations": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone),
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
 					resourceproviders.ProviderRegistrationsCore,
@@ -382,6 +383,10 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	}
 
 	p.ConfigureContextFunc = providerConfigure(p)
+
+	if !features.FivePointOh() {
+		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
+	}
 
 	return p
 }

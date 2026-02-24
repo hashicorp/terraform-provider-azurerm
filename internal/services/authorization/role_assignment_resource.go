@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -450,6 +451,11 @@ func normalizeScopeValue(scope string) (result string) {
 	if rg, err := commonids.ParseResourceGroupIDInsensitively(scope); err == nil {
 		return rg.ID()
 	}
+
+	if ag, err := applicationgroup.ParseApplicationGroupIDInsensitively(scope); err == nil {
+		return ag.ID()
+	}
+
 	// only check part of IDs, there are may be other specific resource types, like storage account id
 	// we may need append these parse logics below when needed
 	return scope

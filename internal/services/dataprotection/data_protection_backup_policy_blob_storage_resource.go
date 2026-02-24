@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -12,17 +12,18 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_blob_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
 
 func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 	resource := &schema.Resource{
@@ -36,10 +37,10 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := backuppolicies.ParseBackupPolicyID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&basebackuppolicyresources.BackupPolicyId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&basebackuppolicyresources.BackupPolicyId{}),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -56,7 +57,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: backuppolicies.ValidateBackupVaultID,
+				ValidateFunc: basebackuppolicyresources.ValidateBackupVaultID,
 			},
 
 			"backup_repeating_time_intervals": {
@@ -118,7 +119,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice(
-											backuppolicies.PossibleValuesForAbsoluteMarker(), false),
+											basebackuppolicyresources.PossibleValuesForAbsoluteMarker(), false),
 									},
 
 									"days_of_month": {
@@ -174,7 +175,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 										MinItems: 1,
 										Elem: &pluginsdk.Schema{
 											Type:         pluginsdk.TypeString,
-											ValidateFunc: validation.StringInSlice(backuppolicies.PossibleValuesForWeekNumber(), false),
+											ValidateFunc: validation.StringInSlice(basebackuppolicyresources.PossibleValuesForWeekNumber(), false),
 										},
 									},
 								},
@@ -195,7 +196,7 @@ func resourceDataProtectionBackupPolicyBlobStorage() *schema.Resource {
 										ValidateFunc: validation.StringInSlice([]string{
 											// confirmed with the service team that currently only `VaultStore` is supported.
 											// However, since `ArchiveStore` may be supported in the future, it is open to user specification.
-											string(backuppolicies.DataStoreTypesVaultStore),
+											string(basebackuppolicyresources.DataStoreTypesVaultStore),
 										}, false),
 									},
 
@@ -230,10 +231,10 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := backuppolicies.ParseBackupVaultID(d.Get("vault_id").(string))
-	id := backuppolicies.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
+	vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(d.Get("vault_id").(string))
+	id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.BackupPoliciesGet(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
@@ -243,11 +244,11 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 		return tf.ImportAsExistsError("azurerm_data_protection_backup_policy_blob_storage", id.ID())
 	}
 
-	policyRules := make([]backuppolicies.BasePolicyRule, 0)
+	policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
 	// expand the default operational retention rule when the operational default duration is specified
 	operationalDefaultDuration := d.Get("operational_default_retention_duration").(string)
 	if operationalDefaultDuration != "" {
-		policyRules = append(policyRules, expandBackupPolicyBlobStorageDefaultRetentionRuleArray(operationalDefaultDuration, backuppolicies.DataStoreTypesOperationalStore))
+		policyRules = append(policyRules, expandBackupPolicyBlobStorageDefaultRetentionRuleArray(operationalDefaultDuration, basebackuppolicyresources.DataStoreTypesOperationalStore))
 	}
 
 	// expand the default vault retention rule when the vault default duration is specified
@@ -257,7 +258,7 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 			return err
 		}
 		policyRules = append(policyRules, expandBackupPolicyBlobStorageAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
-		policyRules = append(policyRules, expandBackupPolicyBlobStorageDefaultRetentionRuleArray(v.(string), backuppolicies.DataStoreTypesVaultStore))
+		policyRules = append(policyRules, expandBackupPolicyBlobStorageDefaultRetentionRuleArray(v.(string), basebackuppolicyresources.DataStoreTypesVaultStore))
 	}
 
 	// expand the vault retention rule when the vault retention rules are specified, the operational backup cannot specify retention rules.
@@ -265,18 +266,21 @@ func resourceDataProtectionBackupPolicyBlobStorageCreate(d *schema.ResourceData,
 		policyRules = append(policyRules, expandBackupPolicyBlobStorageAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
 	}
 
-	parameters := backuppolicies.BaseBackupPolicyResource{
-		Properties: &backuppolicies.BackupPolicy{
+	parameters := basebackuppolicyresources.BaseBackupPolicyResource{
+		Properties: &basebackuppolicyresources.BackupPolicy{
 			PolicyRules:     policyRules,
 			DatasourceTypes: []string{"Microsoft.Storage/storageAccounts/blobServices"},
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.BackupPoliciesCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceDataProtectionBackupPolicyBlobStorageRead(d, meta)
 }
 
@@ -285,12 +289,12 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
@@ -299,20 +303,20 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 		}
 		return fmt.Errorf("retrieving DataProtection BackupPolicy (%q): %+v", id, err)
 	}
-	vaultId := backuppolicies.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+	vaultId := basebackuppolicyresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupPolicyName)
 	d.Set("vault_id", vaultId.ID())
 	if resp.Model != nil {
 		if resp.Model.Properties != nil {
-			if props, ok := resp.Model.Properties.(backuppolicies.BackupPolicy); ok {
+			if props, ok := resp.Model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
 				if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyBlobStorageVaultBackupRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `backup_repeating_time_intervals`: %+v", err)
 				}
-				if err := d.Set("operational_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesOperationalStore)); err != nil {
+				if err := d.Set("operational_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, basebackuppolicyresources.DataStoreTypesOperationalStore)); err != nil {
 					return fmt.Errorf("setting `operational_default_retention_duration`: %+v", err)
 				}
 				d.Set("time_zone", flattenBackupPolicyBlobStorageVaultBackupTimeZone(&props.PolicyRules))
-				if err := d.Set("vault_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, backuppolicies.DataStoreTypesVaultStore)); err != nil {
+				if err := d.Set("vault_default_retention_duration", flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(props.PolicyRules, basebackuppolicyresources.DataStoreTypesVaultStore)); err != nil {
 					return fmt.Errorf("setting `vault_default_retention_duration`: %+v", err)
 				}
 				if err := d.Set("retention_rule", flattenBackupPolicyBlobStorageRetentionRuleArray(&props.PolicyRules)); err != nil {
@@ -321,7 +325,7 @@ func resourceDataProtectionBackupPolicyBlobStorageRead(d *schema.ResourceData, m
 			}
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataProtectionBackupPolicyBlobStorageDelete(d *schema.ResourceData, meta interface{}) error {
@@ -329,12 +333,12 @@ func resourceDataProtectionBackupPolicyBlobStorageDelete(d *schema.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
+	if resp, err := client.BackupPoliciesDelete(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
@@ -344,13 +348,13 @@ func resourceDataProtectionBackupPolicyBlobStorageDelete(d *schema.ResourceData,
 	return nil
 }
 
-func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]backuppolicies.TaggingCriteria, error) {
-	results := []backuppolicies.TaggingCriteria{
+func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]basebackuppolicyresources.TaggingCriteria, error) {
+	results := []basebackuppolicyresources.TaggingCriteria{
 		{
 			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
-			TagInfo: backuppolicies.RetentionTag{
+			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
@@ -359,10 +363,10 @@ func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		result := backuppolicies.TaggingCriteria{
+		result := basebackuppolicyresources.TaggingCriteria{
 			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
-			TagInfo: backuppolicies.RetentionTag{
+			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(v["name"].(string) + "_"),
 				TagName: v["name"].(string),
 			},
@@ -378,46 +382,46 @@ func expandBackupPolicyBlobStorageTaggingCriteriaArray(input []interface{}) (*[]
 	return &results, nil
 }
 
-func expandBackupPolicyBlobStorageCriteriaArray(input []interface{}) (*[]backuppolicies.BackupCriteria, error) {
+func expandBackupPolicyBlobStorageCriteriaArray(input []interface{}) (*[]basebackuppolicyresources.BackupCriteria, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, fmt.Errorf("criteria is a required field, cannot leave blank")
 	}
-	results := make([]backuppolicies.BackupCriteria, 0)
+	results := make([]basebackuppolicyresources.BackupCriteria, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		var absoluteCriteria []backuppolicies.AbsoluteMarker
+		var absoluteCriteria []basebackuppolicyresources.AbsoluteMarker
 		if absoluteCriteriaRaw := v["absolute_criteria"].(string); len(absoluteCriteriaRaw) > 0 {
-			absoluteCriteria = []backuppolicies.AbsoluteMarker{backuppolicies.AbsoluteMarker(absoluteCriteriaRaw)}
+			absoluteCriteria = []basebackuppolicyresources.AbsoluteMarker{basebackuppolicyresources.AbsoluteMarker(absoluteCriteriaRaw)}
 		}
 
-		var daysOfMonth []backuppolicies.Day
+		var daysOfMonth []basebackuppolicyresources.Day
 		if v["days_of_month"].(*pluginsdk.Set).Len() > 0 {
-			daysOfMonth = make([]backuppolicies.Day, 0)
+			daysOfMonth = make([]basebackuppolicyresources.Day, 0)
 			for _, value := range v["days_of_month"].(*pluginsdk.Set).List() {
 				isLast := false
 				if value == 0 {
 					isLast = true
 				}
-				daysOfMonth = append(daysOfMonth, backuppolicies.Day{
+				daysOfMonth = append(daysOfMonth, basebackuppolicyresources.Day{
 					Date: pointer.To(int64(value.(int))), IsLast: pointer.To(isLast),
 				})
 			}
 		}
 
-		var daysOfWeek []backuppolicies.DayOfWeek
+		var daysOfWeek []basebackuppolicyresources.DayOfWeek
 		if v["days_of_week"].(*pluginsdk.Set).Len() > 0 {
-			daysOfWeek = make([]backuppolicies.DayOfWeek, 0)
+			daysOfWeek = make([]basebackuppolicyresources.DayOfWeek, 0)
 			for _, value := range v["days_of_week"].(*pluginsdk.Set).List() {
-				daysOfWeek = append(daysOfWeek, backuppolicies.DayOfWeek(value.(string)))
+				daysOfWeek = append(daysOfWeek, basebackuppolicyresources.DayOfWeek(value.(string)))
 			}
 		}
 
-		var monthsOfYear []backuppolicies.Month
+		var monthsOfYear []basebackuppolicyresources.Month
 		if v["months_of_year"].(*pluginsdk.Set).Len() > 0 {
-			monthsOfYear = make([]backuppolicies.Month, 0)
+			monthsOfYear = make([]basebackuppolicyresources.Month, 0)
 			for _, value := range v["months_of_year"].(*pluginsdk.Set).List() {
-				monthsOfYear = append(monthsOfYear, backuppolicies.Month(value.(string)))
+				monthsOfYear = append(monthsOfYear, basebackuppolicyresources.Month(value.(string)))
 			}
 		}
 
@@ -426,15 +430,15 @@ func expandBackupPolicyBlobStorageCriteriaArray(input []interface{}) (*[]backupp
 			scheduleTimes = utils.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
 		}
 
-		var weeksOfMonth []backuppolicies.WeekNumber
+		var weeksOfMonth []basebackuppolicyresources.WeekNumber
 		if v["weeks_of_month"].(*pluginsdk.Set).Len() > 0 {
-			weeksOfMonth = make([]backuppolicies.WeekNumber, 0)
+			weeksOfMonth = make([]basebackuppolicyresources.WeekNumber, 0)
 			for _, value := range v["weeks_of_month"].(*pluginsdk.Set).List() {
-				weeksOfMonth = append(weeksOfMonth, backuppolicies.WeekNumber(value.(string)))
+				weeksOfMonth = append(weeksOfMonth, basebackuppolicyresources.WeekNumber(value.(string)))
 			}
 		}
 
-		results = append(results, backuppolicies.ScheduleBasedBackupCriteria{
+		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
 			DaysOfMonth:      &daysOfMonth,
 			DaysOfTheWeek:    &daysOfWeek,
@@ -446,19 +450,19 @@ func expandBackupPolicyBlobStorageCriteriaArray(input []interface{}) (*[]backupp
 	return &results, nil
 }
 
-func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, timeZone string, taggingCriteria *[]backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
-	results := make([]backuppolicies.BasePolicyRule, 0)
-	results = append(results, backuppolicies.AzureBackupRule{
+func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, timeZone string, taggingCriteria *[]basebackuppolicyresources.TaggingCriteria) []basebackuppolicyresources.BasePolicyRule {
+	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
+	results = append(results, basebackuppolicyresources.AzureBackupRule{
 		Name: "BackupIntervals",
-		DataStore: backuppolicies.DataStoreInfoBase{
-			DataStoreType: backuppolicies.DataStoreTypesVaultStore,
+		DataStore: basebackuppolicyresources.DataStoreInfoBase{
+			DataStoreType: basebackuppolicyresources.DataStoreTypesVaultStore,
 			ObjectType:    "DataStoreInfoBase",
 		},
-		BackupParameters: &backuppolicies.AzureBackupParams{
+		BackupParameters: &basebackuppolicyresources.AzureBackupParams{
 			BackupType: "Discrete",
 		},
-		Trigger: backuppolicies.ScheduleBasedTriggerContext{
-			Schedule: backuppolicies.BackupSchedule{
+		Trigger: basebackuppolicyresources.ScheduleBasedTriggerContext{
+			Schedule: basebackuppolicyresources.BackupSchedule{
 				RepeatingTimeIntervals: *utils.ExpandStringSlice(input),
 				TimeZone:               pointer.To(timeZone),
 			},
@@ -469,30 +473,30 @@ func expandBackupPolicyBlobStorageAzureBackupRuleArray(input []interface{}, time
 	return results
 }
 
-func expandBackupPolicyBlobStorageDefaultRetentionRuleArray(input interface{}, dataStoreType backuppolicies.DataStoreTypes) backuppolicies.BasePolicyRule {
-	return backuppolicies.AzureRetentionRule{
+func expandBackupPolicyBlobStorageDefaultRetentionRuleArray(input interface{}, dataStoreType basebackuppolicyresources.DataStoreTypes) basebackuppolicyresources.BasePolicyRule {
+	return basebackuppolicyresources.AzureRetentionRule{
 		Name:      "Default",
 		IsDefault: pointer.To(true),
-		Lifecycles: []backuppolicies.SourceLifeCycle{
+		Lifecycles: []basebackuppolicyresources.SourceLifeCycle{
 			{
-				DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+				DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
 					Duration: input.(string),
 				},
-				SourceDataStore: backuppolicies.DataStoreInfoBase{
+				SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
 					DataStoreType: dataStoreType,
 					ObjectType:    "DataStoreInfoBase",
 				},
-				TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
+				TargetDataStoreCopySettings: &[]basebackuppolicyresources.TargetCopySetting{},
 			},
 		},
 	}
 }
 
-func expandBackupPolicyBlobStorageAzureRetentionRuleArray(input []interface{}) []backuppolicies.BasePolicyRule {
-	results := make([]backuppolicies.BasePolicyRule, 0)
+func expandBackupPolicyBlobStorageAzureRetentionRuleArray(input []interface{}) []basebackuppolicyresources.BasePolicyRule {
+	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		results = append(results, backuppolicies.AzureRetentionRule{
+		results = append(results, basebackuppolicyresources.AzureRetentionRule{
 			Name:       v["name"].(string),
 			IsDefault:  pointer.To(false),
 			Lifecycles: expandBackupPolicyBlobStorageLifeCycle(v["life_cycle"].([]interface{})),
@@ -501,19 +505,19 @@ func expandBackupPolicyBlobStorageAzureRetentionRuleArray(input []interface{}) [
 	return results
 }
 
-func expandBackupPolicyBlobStorageLifeCycle(input []interface{}) []backuppolicies.SourceLifeCycle {
-	results := make([]backuppolicies.SourceLifeCycle, 0)
+func expandBackupPolicyBlobStorageLifeCycle(input []interface{}) []basebackuppolicyresources.SourceLifeCycle {
+	results := make([]basebackuppolicyresources.SourceLifeCycle, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		sourceLifeCycle := backuppolicies.SourceLifeCycle{
-			DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+		sourceLifeCycle := basebackuppolicyresources.SourceLifeCycle{
+			DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
 				Duration: v["duration"].(string),
 			},
-			SourceDataStore: backuppolicies.DataStoreInfoBase{
-				DataStoreType: backuppolicies.DataStoreTypes(v["data_store_type"].(string)),
+			SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
+				DataStoreType: basebackuppolicyresources.DataStoreTypes(v["data_store_type"].(string)),
 				ObjectType:    "DataStoreInfoBase",
 			},
-			TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
+			TargetDataStoreCopySettings: &[]basebackuppolicyresources.TargetCopySetting{},
 		}
 		results = append(results, sourceLifeCycle)
 	}
@@ -521,15 +525,15 @@ func expandBackupPolicyBlobStorageLifeCycle(input []interface{}) []backuppolicie
 	return results
 }
 
-func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []backuppolicies.BasePolicyRule, dsType backuppolicies.DataStoreTypes) interface{} {
+func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []basebackuppolicyresources.BasePolicyRule, dsType basebackuppolicyresources.DataStoreTypes) interface{} {
 	if input == nil {
 		return nil
 	}
 
 	for _, item := range input {
-		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
+		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					if (retentionRule.Lifecycles)[0].SourceDataStore.DataStoreType == dsType {
 						return deleteOption.Duration
 					}
@@ -540,14 +544,14 @@ func flattenBackupPolicyBlobStorageDefaultRetentionRuleDuration(input []backuppo
 	return nil
 }
 
-func flattenBackupPolicyBlobStorageVaultBackupRuleArray(input *[]backuppolicies.BasePolicyRule) []interface{} {
+func flattenBackupPolicyBlobStorageVaultBackupRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 	for _, item := range *input {
-		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
-				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 					return utils.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
 				}
 			}
@@ -556,14 +560,14 @@ func flattenBackupPolicyBlobStorageVaultBackupRuleArray(input *[]backuppolicies.
 	return make([]interface{}, 0)
 }
 
-func flattenBackupPolicyBlobStorageVaultBackupTimeZone(input *[]backuppolicies.BasePolicyRule) string {
+func flattenBackupPolicyBlobStorageVaultBackupTimeZone(input *[]basebackuppolicyresources.BasePolicyRule) string {
 	if input == nil {
 		return ""
 	}
 	for _, item := range *input {
-		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
-				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 					return pointer.From(scheduleBasedTrigger.Schedule.TimeZone)
 				}
 			}
@@ -572,16 +576,16 @@ func flattenBackupPolicyBlobStorageVaultBackupTimeZone(input *[]backuppolicies.B
 	return ""
 }
 
-func flattenBackupPolicyBlobStorageRetentionRuleArray(input *[]backuppolicies.BasePolicyRule) []interface{} {
+func flattenBackupPolicyBlobStorageRetentionRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	var taggingCriterias []backuppolicies.TaggingCriteria
+	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
 	for _, item := range *input {
-		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
-			if trigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
+			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 				if trigger.TaggingCriteria != nil {
 					taggingCriterias = trigger.TaggingCriteria
 				}
@@ -590,7 +594,7 @@ func flattenBackupPolicyBlobStorageRetentionRuleArray(input *[]backuppolicies.Ba
 	}
 
 	for _, item := range *input {
-		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && (retentionRule.IsDefault == nil || !*retentionRule.IsDefault) {
+		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && (retentionRule.IsDefault == nil || !*retentionRule.IsDefault) {
 			name := retentionRule.Name
 			var taggingPriority int64
 			var taggingCriteria []interface{}
@@ -604,7 +608,7 @@ func flattenBackupPolicyBlobStorageRetentionRuleArray(input *[]backuppolicies.Ba
 
 			var lifeCycle []interface{}
 			if v := retentionRule.Lifecycles; len(v) > 0 {
-				lifeCycle = flattenBackupPolicyBlobStorageBackupLifeCycleArray(v, backuppolicies.DataStoreTypesVaultStore)
+				lifeCycle = flattenBackupPolicyBlobStorageBackupLifeCycleArray(v, basebackuppolicyresources.DataStoreTypesVaultStore)
 			}
 			results = append(results, map[string]interface{}{
 				"name":       name,
@@ -617,7 +621,7 @@ func flattenBackupPolicyBlobStorageRetentionRuleArray(input *[]backuppolicies.Ba
 	return results
 }
 
-func flattenBackupPolicyBlobStorageBackupLifeCycleArray(input []backuppolicies.SourceLifeCycle, dsType backuppolicies.DataStoreTypes) []interface{} {
+func flattenBackupPolicyBlobStorageBackupLifeCycleArray(input []basebackuppolicyresources.SourceLifeCycle, dsType basebackuppolicyresources.DataStoreTypes) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -626,7 +630,7 @@ func flattenBackupPolicyBlobStorageBackupLifeCycleArray(input []backuppolicies.S
 	for _, item := range input {
 		var duration string
 		dataStoreType := item.SourceDataStore.DataStoreType
-		if deleteOption, ok := item.DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+		if deleteOption, ok := item.DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 			if dataStoreType == dsType {
 				duration = deleteOption.Duration
 			} else {
@@ -642,14 +646,14 @@ func flattenBackupPolicyBlobStorageBackupLifeCycleArray(input []backuppolicies.S
 	return results
 }
 
-func flattenBackupPolicyBlobStorageBackupCriteriaArray(input *[]backuppolicies.BackupCriteria) []interface{} {
+func flattenBackupPolicyBlobStorageBackupCriteriaArray(input *[]basebackuppolicyresources.BackupCriteria) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if criteria, ok := item.(backuppolicies.ScheduleBasedBackupCriteria); ok {
+		if criteria, ok := item.(basebackuppolicyresources.ScheduleBasedBackupCriteria); ok {
 			var absoluteCriteria string
 			if criteria.AbsoluteCriteria != nil && len(*criteria.AbsoluteCriteria) > 0 {
 				absoluteCriteria = string((*criteria.AbsoluteCriteria)[0])

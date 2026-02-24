@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -40,11 +40,11 @@ func TestAccDataProtectionBackupVaultDataSource_complete(t *testing.T) {
 }
 
 func (r DataProtectionBackupVaultDataSource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backupvaults.ParseBackupVaultID(state.ID)
+	id, err := backupvaultresources.ParseBackupVaultID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupVaultClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupVaultClient.BackupVaultsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

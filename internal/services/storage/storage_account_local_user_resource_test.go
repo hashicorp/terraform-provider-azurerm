@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -412,8 +412,8 @@ resource "azurerm_storage_account" "test" {
   is_hns_enabled           = true
 }
 resource "azurerm_storage_container" "test" {
-  name                 = "acctestcontainer"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "acctestcontainer"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 locals {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -41,6 +41,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ManagerNetworkGroupDataSource{},
 		ManagerConnectivityConfigurationDataSource{},
 		ManagerIpamPoolDataSource{},
+		NetworkSecurityPerimeterProfileDataSource{},
+		NetworkSecurityPerimeterDataSource{},
 		VPNServerConfigurationDataSource{},
 		VirtualNetworkPeeringDataSource{},
 	}
@@ -67,6 +69,10 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerSubscriptionConnectionResource{},
 		ManagerVerifierWorkspaceResource{},
 		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
+		NetworkSecurityPerimeterAccessRuleResource{},
+		NetworkSecurityPerimeterAssociationResource{},
+		NetworkSecurityPerimeterResource{},
+		NetworkSecurityPerimeterProfileResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},
@@ -199,11 +205,22 @@ func (r Registration) Actions() []func() action.Action {
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		ApplicationGatewayListResource{},
+		ApplicationSecurityGroupListResource{},
+		IpGroupListResource{},
+		NatGatewayListResource{},
+		NetworkDDoSProtectionPlanListResource{},
 		NetworkInterfaceListResource{},
 		NetworkProfileListResource{},
 		NetworkSecurityGroupListResource{},
+		NetworkSecurityRuleListResource{},
+		PrivateEndpointListResource{},
+		PublicIpListResource{},
+		RouteListResource{},
 		RouteTableListResource{},
 		VirtualNetworkListResource{},
+		VirtualNetworkPeeringListResource{},
+		WebApplicationFirewallPolicyListResource{},
 	}
 }
 

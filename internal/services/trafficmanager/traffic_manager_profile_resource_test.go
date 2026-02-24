@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager_test
@@ -219,6 +219,15 @@ func TestAccTrafficManagerProfile_trafficView(t *testing.T) {
 				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("true"),
 			),
 		},
+		data.ImportStep(),
+		{
+			Config: r.withTrafficView(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("traffic_view_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
