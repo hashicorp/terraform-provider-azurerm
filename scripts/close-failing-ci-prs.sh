@@ -79,14 +79,17 @@ echo "Found ${total_prs} open PR(s)"
 echo ""
 
 # Check CI status for a commit SHA.
-# Outputs "status|timestamp" where status is "failure" or "ok" and timestamp
-# is the earliest failure time (or the PR updated_at as fallback).
+# Outputs "status|timestamp|failed_checks" where:
+#   status = "failure" or "ok"
+#   timestamp = earliest failure time (or PR updated_at as fallback)
+#   failed_checks = comma-separated list of failed check/status names
 check_ci_status() {
   local sha=$1
   local pr_updated_at=$2
 
   local has_failure=false
   local earliest_failure=""
+  local failed_names=""
 
   # Check combined commit status (legacy status API)
   local status_json
@@ -99,13 +102,18 @@ check_ci_status() {
   local combined_state
   combined_state=$(echo "$status_json" | jq -r '.state')
 
-  # Collect failure timestamps from legacy statuses
+  # Collect failure timestamps and names from legacy statuses
   if [[ "$combined_state" == "failure" ]]; then
     has_failure=true
     local status_failure_time
     status_failure_time=$(echo "$status_json" | jq -r '[.statuses[] | select(.state == "failure" or .state == "error") | .updated_at] | sort | first // empty')
     if [[ -n "$status_failure_time" ]]; then
       earliest_failure="$status_failure_time"
+    fi
+    local status_names
+    status_names=$(echo "$status_json" | jq -r '[.statuses[] | select(.state == "failure" or .state == "error") | .context] | join(",")')
+    if [[ -n "$status_names" ]]; then
+      failed_names="$status_names"
     fi
   fi
 
@@ -125,14 +133,26 @@ check_ci_status() {
       break
     fi
 
-    # Find failed check runs and their completion times
+    # Find failed check runs - times and names
     local failed_time
     failed_time=$(echo "$check_runs_json" | jq -r '[.check_runs[] | select(.conclusion == "failure" or .conclusion == "cancelled") | .completed_at // empty] | map(select(. != "")) | sort | first // empty')
+
+    local check_names
+    check_names=$(echo "$check_runs_json" | jq -r '[.check_runs[] | select(.conclusion == "failure" or .conclusion == "cancelled") | .name] | join(",")')
 
     if [[ -n "$failed_time" ]]; then
       has_failure=true
       if [[ -z "$earliest_failure" ]] || [[ "$failed_time" < "$earliest_failure" ]]; then
         earliest_failure="$failed_time"
+      fi
+    fi
+
+    if [[ -n "$check_names" ]]; then
+      has_failure=true
+      if [[ -n "$failed_names" ]]; then
+        failed_names="${failed_names},${check_names}"
+      else
+        failed_names="$check_names"
       fi
     fi
 
@@ -143,11 +163,83 @@ check_ci_status() {
   done
 
   if [[ "$has_failure" == "true" ]]; then
-    # Output status and timestamp separated by |, fall back to PR updated_at
-    echo "failure|${earliest_failure:-$pr_updated_at}"
+    echo "failure|${earliest_failure:-$pr_updated_at}|${failed_names}"
   else
-    echo "ok|"
+    echo "ok||"
   fi
+}
+
+# Map a failed check name to actionable guidance
+get_check_guidance() {
+  local check_name=$1
+  case "$check_name" in
+    depscheck|"Vendor Dependencies Check")
+      echo "Run \`make depscheck\`. Do not modify files in the \`vendor/\` directory directly - instead update dependencies in \`go.mod\` and run \`go mod vendor\`."
+      ;;
+    website-lint|"Website Linting")
+      echo "Run \`make website-lint\` and \`make document-validate\` locally. Check your documentation files under \`website/\` for formatting issues."
+      ;;
+    gencheck|"Generation Check")
+      echo "Run \`make generate\` to regenerate any auto-generated code, then commit the changes."
+      ;;
+    golint|"GoLang Linting")
+      echo "Run the Go linter locally with \`golangci-lint run ./internal/...\` and fix any reported issues."
+      ;;
+    tflint|"Terraform Schema Linting")
+      echo "Run \`make tflint\` locally and fix any Terraform schema issues in your resource/data source definitions."
+      ;;
+    detect|"Breaking Schema Changes")
+      echo "Your changes contain breaking schema changes. Please review the [breaking changes guide](contributing/topics/guide-breaking-changes.md) and ensure any breaking changes are behind the appropriate feature flag."
+      ;;
+    test|"Unit Tests")
+      echo "Run \`make test\` locally to reproduce and fix the failing unit tests."
+      ;;
+    "Static Analysis")
+      echo "Run \`bash ./scripts/run-static-analysis.sh\` locally and fix any reported issues."
+      ;;
+    shellcheck|"ShellCheck Scripts")
+      echo "Run \`make shellcheck\` to check shell scripts for issues."
+      ;;
+    "Validate Examples")
+      echo "Run \`make validate-examples\` to check that your example configurations are valid."
+      ;;
+    compatibility-32bit-test|"32 Bit Build")
+      echo "The 32-bit build is failing. Run \`GOARCH=386 GOOS=linux go build ./...\` locally to diagnose."
+      ;;
+    "Preview API Version Linter")
+      echo "Check that any API version references are not using preview versions unless explicitly required."
+      ;;
+    *)
+      echo "Check the CI logs for details on this failure."
+      ;;
+  esac
+}
+
+# Build a guidance section from a comma-separated list of failed check names
+build_guidance() {
+  local failed_checks=$1
+  if [[ -z "$failed_checks" ]]; then
+    echo ""
+    return
+  fi
+
+  local guidance="\\n\\n**Failing checks and how to fix them:**\\n"
+  local seen=""
+
+  IFS=',' read -ra checks <<< "$failed_checks"
+  for check in "${checks[@]}"; do
+    # Deduplicate
+    if echo "$seen" | grep -qF "|${check}|"; then
+      continue
+    fi
+    seen="${seen}|${check}|"
+
+    local fix
+    fix=$(get_check_guidance "$check")
+    guidance="${guidance}\\n- **${check}**: ${fix}"
+  done
+
+  echo "$guidance"
 }
 
 # Check if we already left a warning comment (uses a hidden HTML marker)
@@ -190,10 +282,11 @@ for pr in "${all_prs[@]}"; do
     continue
   fi
 
-  # Check CI status - returns "status|timestamp"
+  # Check CI status - returns "status|timestamp|failed_checks"
   ci_result=$(check_ci_status "$head_sha" "$updated_at")
-  ci_status="${ci_result%%|*}"
-  ci_failed_since="${ci_result#*|}"
+  ci_status=$(echo "$ci_result" | cut -d'|' -f1)
+  ci_failed_since=$(echo "$ci_result" | cut -d'|' -f2)
+  ci_failed_checks=$(echo "$ci_result" | cut -d'|' -f3)
 
   if [[ "$ci_status" != "failure" ]]; then
     continue
@@ -215,19 +308,30 @@ for pr in "${all_prs[@]}"; do
   days_since=$(( (now_epoch - failed_epoch) / 86400 ))
 
   echo "  ↳ CI failing since: ${ci_failed_since} (${days_since} days)"
+  if [[ -n "$ci_failed_checks" ]]; then
+    echo "  ↳ Failed checks: ${ci_failed_checks}"
+  fi
+
+  # Build guidance text for the comment
+  guidance=$(build_guidance "$ci_failed_checks")
 
   # Close if past close threshold
   if [[ "$days_since" -ge "$CLOSE_DAYS" ]]; then
     close_count=$((close_count + 1))
-    echo "  ↳ CI failing for ${days_since} days → CLOSING"
+    echo "  ↳ CI failing for ${days_since} days -> CLOSING"
 
     if [[ "$DRY_RUN" == "false" ]]; then
+      comment_body="${WARNING_MARKER}\nThank you for your contribution @${pr_author}. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than 14 days.\n\nPlease feel free to reopen this PR once the CI issues have been resolved.${guidance}\n\nThank you for your understanding!"
+
+      # Use jq to safely build JSON
+      json_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
+
       curl -s -L -X POST \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer $token" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         "${API_BASE}/issues/${pr_number}/comments" \
-        -d '{"body":"'"${WARNING_MARKER}"'\nThank you for your contribution @'"${pr_author}"'. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than 14 days.\n\nPlease feel free to reopen this PR once the CI issues have been resolved. If you need help understanding the CI failures, please check the failing CI steps for guidance on how to resolve them. Thank you for your understanding!"}' > /dev/null
+        -d "$json_payload" > /dev/null
 
       curl -s -L -X PATCH \
         -H "Accept: application/vnd.github+json" \
@@ -250,15 +354,19 @@ for pr in "${all_prs[@]}"; do
     fi
 
     warn_count=$((warn_count + 1))
-    echo "  ↳ CI failing for ${days_since} days → WARNING"
+    echo "  ↳ CI failing for ${days_since} days -> WARNING"
 
     if [[ "$DRY_RUN" == "false" ]]; then
+      comment_body="${WARNING_MARKER}\nHi @${pr_author}, we have noticed that the CI on this pull request has been failing for 7 days.\n\nIf the CI failures are not resolved within the next 7 days, we will close this pull request.${guidance}\n\nIf you need help, please leave a comment and we will do our best to assist. Thank you!"
+
+      json_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
+
       curl -s -L -X POST \
         -H "Accept: application/vnd.github+json" \
         -H "Authorization: Bearer $token" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         "${API_BASE}/issues/${pr_number}/comments" \
-        -d '{"body":"'"${WARNING_MARKER}"'\n👋 Hi @'"${pr_author}"', we have noticed that the CI on this pull request has been failing for 7 days.\n\nIf the CI failures are not resolved within the next 7 days, we will close this pull request.\n\nPlease check the failing CI steps for actions you can take to resolve the issues. If you need help, please leave a comment and we will do our best to assist. Thank you!"}' > /dev/null
+        -d "$json_payload" > /dev/null
       echo "  ↳ Warning comment posted"
     else
       echo "  ↳ (dry run - would post warning comment)"

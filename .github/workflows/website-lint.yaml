@@ -25,6 +25,15 @@ jobs:
       - run: make tools
       - run: make website-lint
       - run: make document-validate
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Website Linting failed."
+          echo ""
+          echo "Run 'make website-lint' and 'make document-validate' locally."
+          echo "Check your documentation files under website/ for formatting or validation issues."
+          echo "Common issues include: missing required frontmatter fields, incorrect markdown formatting,"
+          echo "or mismatched resource documentation with the schema definition."
   save-artifacts-on-fail:
     needs: website-lint
     if: ${{ failure() }}

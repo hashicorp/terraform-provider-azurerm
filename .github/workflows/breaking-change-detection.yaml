@@ -27,3 +27,12 @@ jobs:
         with:
           go-version-file: ./.go-version
       - run: bash ./scripts/run-breaking-change-detection.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Breaking Schema Changes detected."
+          echo ""
+          echo "Your changes contain breaking schema changes (e.g. removing or renaming"
+          echo "a property, changing a property type, or making an optional property required)."
+          echo "Breaking changes must be gated behind the appropriate feature flag (e.g. features.FivePointOh())."
+          echo "Please review the breaking changes guide: contributing/topics/guide-breaking-changes.md"

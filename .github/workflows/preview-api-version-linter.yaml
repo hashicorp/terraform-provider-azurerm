@@ -22,6 +22,14 @@ jobs:
         with:
           go-version-file: ./.go-version
       - run: go run internal/tools/preview-api-version-linter/main.go
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Preview API Version Linter failed."
+          echo ""
+          echo "Your changes reference Azure ARM API versions that are in preview."
+          echo "Preview API versions should not be used unless explicitly required and approved."
+          echo "Please update the API version references to use GA (stable) versions."
   comment-on-fail:
     needs: preview-api-version-linter
     if: ${{ failure() }}
