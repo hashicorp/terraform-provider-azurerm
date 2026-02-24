@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -35,8 +35,10 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_data_protection_backup_policy_postgresql` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider",
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := backuppolicies.ParseBackupPolicyID(id)
+			_, err := basebackuppolicyresources.ParseBackupPolicyID(id)
 			return err
 		}),
 
@@ -107,11 +109,11 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 										Optional: true,
 										ForceNew: true,
 										ValidateFunc: validation.StringInSlice([]string{
-											string(backuppolicies.AbsoluteMarkerAllBackup),
-											string(backuppolicies.AbsoluteMarkerFirstOfDay),
-											string(backuppolicies.AbsoluteMarkerFirstOfMonth),
-											string(backuppolicies.AbsoluteMarkerFirstOfWeek),
-											string(backuppolicies.AbsoluteMarkerFirstOfYear),
+											string(basebackuppolicyresources.AbsoluteMarkerAllBackup),
+											string(basebackuppolicyresources.AbsoluteMarkerFirstOfDay),
+											string(basebackuppolicyresources.AbsoluteMarkerFirstOfMonth),
+											string(basebackuppolicyresources.AbsoluteMarkerFirstOfWeek),
+											string(basebackuppolicyresources.AbsoluteMarkerFirstOfYear),
 										}, false),
 									},
 
@@ -156,11 +158,11 @@ func resourceDataProtectionBackupPolicyPostgreSQL() *pluginsdk.Resource {
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
-												string(backuppolicies.WeekNumberFirst),
-												string(backuppolicies.WeekNumberSecond),
-												string(backuppolicies.WeekNumberThird),
-												string(backuppolicies.WeekNumberFourth),
-												string(backuppolicies.WeekNumberLast),
+												string(basebackuppolicyresources.WeekNumberFirst),
+												string(basebackuppolicyresources.WeekNumberSecond),
+												string(basebackuppolicyresources.WeekNumberThird),
+												string(basebackuppolicyresources.WeekNumberFourth),
+												string(basebackuppolicyresources.WeekNumberLast),
 											}, false),
 										},
 									},
@@ -197,9 +199,9 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 	resourceGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("vault_name").(string)
 
-	id := backuppolicies.NewBackupPolicyID(subscriptionId, resourceGroup, vaultName, name)
+	id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, resourceGroup, vaultName, name)
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.BackupPoliciesGet(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing DataProtection BackupPolicy (%q): %+v", id, err)
@@ -214,18 +216,18 @@ func resourceDataProtectionBackupPolicyPostgreSQLCreate(d *pluginsdk.ResourceDat
 		return err
 	}
 
-	policyRules := make([]backuppolicies.BasePolicyRule, 0)
+	policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureBackupRuleArray(d.Get("backup_repeating_time_intervals").([]interface{}), d.Get("time_zone").(string), taggingCriteria)...)
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(d.Get("default_retention_duration")))
 	policyRules = append(policyRules, expandBackupPolicyPostgreSQLAzureRetentionRuleArray(d.Get("retention_rule").([]interface{}))...)
-	parameters := backuppolicies.BaseBackupPolicyResource{
-		Properties: &backuppolicies.BackupPolicy{
+	parameters := basebackuppolicyresources.BaseBackupPolicyResource{
+		Properties: &basebackuppolicyresources.BackupPolicy{
 			PolicyRules:     policyRules,
 			DatasourceTypes: []string{"Microsoft.DBforPostgreSQL/servers/databases"},
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if _, err := client.BackupPoliciesCreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupPolicy (%q): %+v", id, err)
 	}
 
@@ -238,12 +240,12 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
@@ -258,7 +260,7 @@ func resourceDataProtectionBackupPolicyPostgreSQLRead(d *pluginsdk.ResourceData,
 
 	if resp.Model != nil {
 		if resp.Model.Properties != nil {
-			if props, ok := resp.Model.Properties.(backuppolicies.BackupPolicy); ok {
+			if props, ok := resp.Model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
 				if err := d.Set("backup_repeating_time_intervals", flattenBackupPolicyPostgreSQLBackupRuleArray(&props.PolicyRules)); err != nil {
 					return fmt.Errorf("setting `backup_rule`: %+v", err)
 				}
@@ -280,12 +282,12 @@ func resourceDataProtectionBackupPolicyPostgreSQLDelete(d *pluginsdk.ResourceDat
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backuppolicies.ParseBackupPolicyID(d.Id())
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if resp, err := client.Delete(ctx, *id); err != nil {
+	if resp, err := client.BackupPoliciesDelete(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
@@ -295,19 +297,19 @@ func resourceDataProtectionBackupPolicyPostgreSQLDelete(d *pluginsdk.ResourceDat
 	return nil
 }
 
-func expandBackupPolicyPostgreSQLAzureBackupRuleArray(input []interface{}, timeZone string, taggingCriteria *[]backuppolicies.TaggingCriteria) []backuppolicies.BasePolicyRule {
-	results := make([]backuppolicies.BasePolicyRule, 0)
-	results = append(results, backuppolicies.AzureBackupRule{
+func expandBackupPolicyPostgreSQLAzureBackupRuleArray(input []interface{}, timeZone string, taggingCriteria *[]basebackuppolicyresources.TaggingCriteria) []basebackuppolicyresources.BasePolicyRule {
+	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
+	results = append(results, basebackuppolicyresources.AzureBackupRule{
 		Name: "BackupIntervals",
-		DataStore: backuppolicies.DataStoreInfoBase{
-			DataStoreType: backuppolicies.DataStoreTypesVaultStore,
+		DataStore: basebackuppolicyresources.DataStoreInfoBase{
+			DataStoreType: basebackuppolicyresources.DataStoreTypesVaultStore,
 			ObjectType:    "DataStoreInfoBase",
 		},
-		BackupParameters: &backuppolicies.AzureBackupParams{
+		BackupParameters: &basebackuppolicyresources.AzureBackupParams{
 			BackupType: "Full",
 		},
-		Trigger: backuppolicies.ScheduleBasedTriggerContext{
-			Schedule: backuppolicies.BackupSchedule{
+		Trigger: basebackuppolicyresources.ScheduleBasedTriggerContext{
+			Schedule: basebackuppolicyresources.BackupSchedule{
 				RepeatingTimeIntervals: *utils.ExpandStringSlice(input),
 				TimeZone:               pointer.To(timeZone),
 			},
@@ -318,23 +320,23 @@ func expandBackupPolicyPostgreSQLAzureBackupRuleArray(input []interface{}, timeZ
 	return results
 }
 
-func expandBackupPolicyPostgreSQLAzureRetentionRuleArray(input []interface{}) []backuppolicies.BasePolicyRule {
-	results := make([]backuppolicies.BasePolicyRule, 0)
+func expandBackupPolicyPostgreSQLAzureRetentionRuleArray(input []interface{}) []basebackuppolicyresources.BasePolicyRule {
+	results := make([]basebackuppolicyresources.BasePolicyRule, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		results = append(results, backuppolicies.AzureRetentionRule{
+		results = append(results, basebackuppolicyresources.AzureRetentionRule{
 			Name:      v["name"].(string),
 			IsDefault: pointer.To(false),
-			Lifecycles: []backuppolicies.SourceLifeCycle{
+			Lifecycles: []basebackuppolicyresources.SourceLifeCycle{
 				{
-					DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+					DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
 						Duration: v["duration"].(string),
 					},
-					SourceDataStore: backuppolicies.DataStoreInfoBase{
+					SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
 						DataStoreType: "VaultStore",
 						ObjectType:    "DataStoreInfoBase",
 					},
-					TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
+					TargetDataStoreCopySettings: &[]basebackuppolicyresources.TargetCopySetting{},
 				},
 			},
 		})
@@ -342,32 +344,32 @@ func expandBackupPolicyPostgreSQLAzureRetentionRuleArray(input []interface{}) []
 	return results
 }
 
-func expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(input interface{}) backuppolicies.BasePolicyRule {
-	return backuppolicies.AzureRetentionRule{
+func expandBackupPolicyPostgreSQLDefaultAzureRetentionRule(input interface{}) basebackuppolicyresources.BasePolicyRule {
+	return basebackuppolicyresources.AzureRetentionRule{
 		Name:      "Default",
 		IsDefault: pointer.To(true),
-		Lifecycles: []backuppolicies.SourceLifeCycle{
+		Lifecycles: []basebackuppolicyresources.SourceLifeCycle{
 			{
-				DeleteAfter: backuppolicies.AbsoluteDeleteOption{
+				DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
 					Duration: input.(string),
 				},
-				SourceDataStore: backuppolicies.DataStoreInfoBase{
+				SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
 					DataStoreType: "VaultStore",
 					ObjectType:    "DataStoreInfoBase",
 				},
-				TargetDataStoreCopySettings: &[]backuppolicies.TargetCopySetting{},
+				TargetDataStoreCopySettings: &[]basebackuppolicyresources.TargetCopySetting{},
 			},
 		},
 	}
 }
 
-func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]backuppolicies.TaggingCriteria, error) {
-	results := []backuppolicies.TaggingCriteria{
+func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]basebackuppolicyresources.TaggingCriteria, error) {
+	results := []basebackuppolicyresources.TaggingCriteria{
 		{
 			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
-			TagInfo: backuppolicies.RetentionTag{
+			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To("Default_"),
 				TagName: "Default",
 			},
@@ -375,10 +377,10 @@ func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]b
 	}
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		result := backuppolicies.TaggingCriteria{
+		result := basebackuppolicyresources.TaggingCriteria{
 			IsDefault:       false,
 			TaggingPriority: int64(v["priority"].(int)),
-			TagInfo: backuppolicies.RetentionTag{
+			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(v["name"].(string) + "_"),
 				TagName: v["name"].(string),
 			},
@@ -395,40 +397,40 @@ func expandBackupPolicyPostgreSQLTaggingCriteriaArray(input []interface{}) (*[]b
 	return &results, nil
 }
 
-func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) (*[]backuppolicies.BackupCriteria, error) {
+func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) (*[]basebackuppolicyresources.BackupCriteria, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, fmt.Errorf("criteria is a required field, cannot leave blank")
 	}
-	results := make([]backuppolicies.BackupCriteria, 0)
+	results := make([]basebackuppolicyresources.BackupCriteria, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		var absoluteCriteria []backuppolicies.AbsoluteMarker
+		var absoluteCriteria []basebackuppolicyresources.AbsoluteMarker
 		if absoluteCriteriaRaw := v["absolute_criteria"].(string); len(absoluteCriteriaRaw) > 0 {
-			absoluteCriteria = []backuppolicies.AbsoluteMarker{backuppolicies.AbsoluteMarker(absoluteCriteriaRaw)}
+			absoluteCriteria = []basebackuppolicyresources.AbsoluteMarker{basebackuppolicyresources.AbsoluteMarker(absoluteCriteriaRaw)}
 		}
 
-		var daysOfWeek []backuppolicies.DayOfWeek
+		var daysOfWeek []basebackuppolicyresources.DayOfWeek
 		if v["days_of_week"].(*pluginsdk.Set).Len() > 0 {
-			daysOfWeek = make([]backuppolicies.DayOfWeek, 0)
+			daysOfWeek = make([]basebackuppolicyresources.DayOfWeek, 0)
 			for _, value := range v["days_of_week"].(*pluginsdk.Set).List() {
-				daysOfWeek = append(daysOfWeek, backuppolicies.DayOfWeek(value.(string)))
+				daysOfWeek = append(daysOfWeek, basebackuppolicyresources.DayOfWeek(value.(string)))
 			}
 		}
 
-		var monthsOfYear []backuppolicies.Month
+		var monthsOfYear []basebackuppolicyresources.Month
 		if v["months_of_year"].(*pluginsdk.Set).Len() > 0 {
-			monthsOfYear = make([]backuppolicies.Month, 0)
+			monthsOfYear = make([]basebackuppolicyresources.Month, 0)
 			for _, value := range v["months_of_year"].(*pluginsdk.Set).List() {
-				monthsOfYear = append(monthsOfYear, backuppolicies.Month(value.(string)))
+				monthsOfYear = append(monthsOfYear, basebackuppolicyresources.Month(value.(string)))
 			}
 		}
 
-		var weeksOfMonth []backuppolicies.WeekNumber
+		var weeksOfMonth []basebackuppolicyresources.WeekNumber
 		if v["weeks_of_month"].(*pluginsdk.Set).Len() > 0 {
-			weeksOfMonth = make([]backuppolicies.WeekNumber, 0)
+			weeksOfMonth = make([]basebackuppolicyresources.WeekNumber, 0)
 			for _, value := range v["weeks_of_month"].(*pluginsdk.Set).List() {
-				weeksOfMonth = append(weeksOfMonth, backuppolicies.WeekNumber(value.(string)))
+				weeksOfMonth = append(weeksOfMonth, basebackuppolicyresources.WeekNumber(value.(string)))
 			}
 		}
 
@@ -436,7 +438,7 @@ func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) (*[]backuppo
 		if v["scheduled_backup_times"].(*pluginsdk.Set).Len() > 0 {
 			scheduleTimes = utils.ExpandStringSlice(v["scheduled_backup_times"].(*pluginsdk.Set).List())
 		}
-		results = append(results, backuppolicies.ScheduleBasedBackupCriteria{
+		results = append(results, basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: &absoluteCriteria,
 			DaysOfMonth:      nil,
 			DaysOfTheWeek:    &daysOfWeek,
@@ -448,14 +450,14 @@ func expandBackupPolicyPostgreSQLCriteriaArray(input []interface{}) (*[]backuppo
 	return &results, nil
 }
 
-func flattenBackupPolicyPostgreSQLBackupRuleArray(input *[]backuppolicies.BasePolicyRule) []interface{} {
+func flattenBackupPolicyPostgreSQLBackupRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []interface{} {
 	if input == nil {
 		return make([]interface{}, 0)
 	}
 	for _, item := range *input {
-		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
-				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 					return utils.FlattenStringSlice(&scheduleBasedTrigger.Schedule.RepeatingTimeIntervals)
 				}
 			}
@@ -464,14 +466,14 @@ func flattenBackupPolicyPostgreSQLBackupRuleArray(input *[]backuppolicies.BasePo
 	return make([]interface{}, 0)
 }
 
-func flattenBackupPolicyPostgreSQLBackupTimeZone(input *[]backuppolicies.BasePolicyRule) string {
+func flattenBackupPolicyPostgreSQLBackupTimeZone(input *[]basebackuppolicyresources.BasePolicyRule) string {
 	if input == nil {
 		return ""
 	}
 	for _, item := range *input {
-		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
+		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
 			if backupRule.Trigger != nil {
-				if scheduleBasedTrigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 					return pointer.From(scheduleBasedTrigger.Schedule.TimeZone)
 				}
 			}
@@ -480,15 +482,15 @@ func flattenBackupPolicyPostgreSQLBackupTimeZone(input *[]backuppolicies.BasePol
 	return ""
 }
 
-func flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(input *[]backuppolicies.BasePolicyRule) interface{} {
+func flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(input *[]basebackuppolicyresources.BasePolicyRule) interface{} {
 	if input == nil {
 		return nil
 	}
 
 	for _, item := range *input {
-		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
+		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					return deleteOption.Duration
 				}
 			}
@@ -497,16 +499,16 @@ func flattenBackupPolicyPostgreSQLDefaultRetentionRuleDuration(input *[]backuppo
 	return nil
 }
 
-func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]backuppolicies.BasePolicyRule) []interface{} {
+func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]basebackuppolicyresources.BasePolicyRule) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
-	var taggingCriterias []backuppolicies.TaggingCriteria
+	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
 	for _, item := range *input {
-		if backupRule, ok := item.(backuppolicies.AzureBackupRule); ok {
-			if trigger, ok := backupRule.Trigger.(backuppolicies.ScheduleBasedTriggerContext); ok {
+		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
+			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
 				if trigger.TaggingCriteria != nil {
 					taggingCriterias = trigger.TaggingCriteria
 				}
@@ -515,7 +517,7 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]backuppolicies.Bas
 	}
 
 	for _, item := range *input {
-		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && (retentionRule.IsDefault == nil || !*retentionRule.IsDefault) {
+		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok && (retentionRule.IsDefault == nil || !*retentionRule.IsDefault) {
 			name := retentionRule.Name
 			var taggingPriority int64
 			var taggingCriteria []interface{}
@@ -527,7 +529,7 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]backuppolicies.Bas
 			}
 			var duration string
 			if len(retentionRule.Lifecycles) > 0 {
-				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
+				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 					duration = deleteOption.Duration
 				}
 			}
@@ -542,14 +544,14 @@ func flattenBackupPolicyPostgreSQLRetentionRuleArray(input *[]backuppolicies.Bas
 	return results
 }
 
-func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]backuppolicies.BackupCriteria) []interface{} {
+func flattenBackupPolicyPostgreSQLBackupCriteriaArray(input *[]basebackuppolicyresources.BackupCriteria) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
-		if criteria, ok := item.(backuppolicies.ScheduleBasedBackupCriteria); ok {
+		if criteria, ok := item.(basebackuppolicyresources.ScheduleBasedBackupCriteria); ok {
 			var absoluteCriteria string
 			if criteria.AbsoluteCriteria != nil && len(*criteria.AbsoluteCriteria) > 0 {
 				absoluteCriteria = string((*criteria.AbsoluteCriteria)[0])

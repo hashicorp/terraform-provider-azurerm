@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mysql_test
@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type MySQLFlexibleDatabaseResource struct{}
+type MysqlFlexibleDatabaseResource struct{}
 
 func TestAccMySQLFlexibleDatabase_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
-	r := MySQLFlexibleDatabaseResource{}
+	r := MysqlFlexibleDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccMySQLFlexibleDatabase_basic(t *testing.T) {
 
 func TestAccMySQLFlexibleDatabase_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
-	r := MySQLFlexibleDatabaseResource{}
+	r := MysqlFlexibleDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccMySQLFlexibleDatabase_requiresImport(t *testing.T) {
 
 func TestAccMySQLFlexibleDatabase_charsetUppercase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
-	r := MySQLFlexibleDatabaseResource{}
+	r := MysqlFlexibleDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -69,7 +69,7 @@ func TestAccMySQLFlexibleDatabase_charsetUppercase(t *testing.T) {
 
 func TestAccMySQLFlexibleDatabase_charsetMixedcase(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_database", "test")
-	r := MySQLFlexibleDatabaseResource{}
+	r := MysqlFlexibleDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +83,7 @@ func TestAccMySQLFlexibleDatabase_charsetMixedcase(t *testing.T) {
 	})
 }
 
-func (r MySQLFlexibleDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r MysqlFlexibleDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -97,7 +97,7 @@ func (r MySQLFlexibleDatabaseResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (MySQLFlexibleDatabaseResource) basic(data acceptance.TestData) string {
+func (MysqlFlexibleDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -127,7 +127,7 @@ resource "azurerm_mysql_flexible_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r MySQLFlexibleDatabaseResource) requiresImport(data acceptance.TestData) string {
+func (r MysqlFlexibleDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -141,7 +141,7 @@ resource "azurerm_mysql_flexible_database" "import" {
 `, r.basic(data))
 }
 
-func (MySQLFlexibleDatabaseResource) charsetUppercase(data acceptance.TestData) string {
+func (MysqlFlexibleDatabaseResource) charsetUppercase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -171,7 +171,7 @@ resource "azurerm_mysql_flexible_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (MySQLFlexibleDatabaseResource) charsetMixedcase(data acceptance.TestData) string {
+func (MysqlFlexibleDatabaseResource) charsetMixedcase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

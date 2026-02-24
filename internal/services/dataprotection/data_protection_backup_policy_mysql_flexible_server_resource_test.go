@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -9,18 +9,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupPolicyMySQLFlexibleServerResource struct{}
+type DataProtectionBackupPolicyMysqlFlexibleServerResource struct{}
 
 func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_mysql_flexible_server", "test")
-	r := DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+	r := DataProtectionBackupPolicyMysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_basic(t *testing.T) {
 
 func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_mysql_flexible_server", "test")
-	r := DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+	r := DataProtectionBackupPolicyMysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_requiresImport(t *test
 
 func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_mysql_flexible_server", "test")
-	r := DataProtectionBackupPolicyMySQLFlexibleServerResource{}
+	r := DataProtectionBackupPolicyMysqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,19 +63,19 @@ func TestAccDataProtectionBackupPolicyMySQLFlexibleServer_complete(t *testing.T)
 	})
 }
 
-func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
+func (r DataProtectionBackupPolicyMysqlFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyMysqlFlexibleServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -96,7 +96,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyMysqlFlexibleServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -115,7 +115,7 @@ resource "azurerm_data_protection_backup_policy_mysql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyMysqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ resource "azurerm_data_protection_backup_policy_mysql_flexible_server" "import" 
 `, r.basic(data))
 }
 
-func (r DataProtectionBackupPolicyMySQLFlexibleServerResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyMysqlFlexibleServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

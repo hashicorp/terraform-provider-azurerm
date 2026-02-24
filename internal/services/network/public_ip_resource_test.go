@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -19,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PublicIPResource struct{}
+type PublicIpResource struct{}
 
 func TestAccPublicIpStatic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -42,7 +42,7 @@ func TestAccPublicIpStatic_basic(t *testing.T) {
 
 func TestAccPublicIpStatic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccPublicIpStatic_requiresImport(t *testing.T) {
 
 func TestAccPublicIp_zonesSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +80,7 @@ func TestAccPublicIp_zonesSingle(t *testing.T) {
 
 func TestAccPublicIp_zonesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +97,7 @@ func TestAccPublicIp_zonesMultiple(t *testing.T) {
 
 func TestAccPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -116,7 +116,7 @@ func TestAccPublicIpStatic_basic_withDNSLabel(t *testing.T) {
 
 func TestAccPublicIpStatic_standard_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -132,7 +132,7 @@ func TestAccPublicIpStatic_standard_withIPv6(t *testing.T) {
 
 func TestAccPublicIpDynamic_basic_withIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 	ipVersion := "IPv6"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -149,7 +149,7 @@ func TestAccPublicIpDynamic_basic_withIPv6(t *testing.T) {
 
 func TestAccPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -165,7 +165,7 @@ func TestAccPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 
 func TestAccPublicIpStatic_basic_withIPv4(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 	ipVersion := "IPv4"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -182,7 +182,7 @@ func TestAccPublicIpStatic_basic_withIPv4(t *testing.T) {
 
 func TestAccPublicIpStatic_standard(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -197,7 +197,7 @@ func TestAccPublicIpStatic_standard(t *testing.T) {
 
 func TestAccPublicIpStatic_standard_withDDoS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -222,7 +222,7 @@ func TestAccPublicIpStatic_standard_withDDoS(t *testing.T) {
 
 func TestAccPublicIpStatic_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -234,7 +234,7 @@ func TestAccPublicIpStatic_disappears(t *testing.T) {
 
 func TestAccPublicIpStatic_idleTimeout(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -256,7 +256,7 @@ func TestAccPublicIpStatic_idleTimeout(t *testing.T) {
 
 func TestAccPublicIpStatic_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -281,7 +281,7 @@ func TestAccPublicIpStatic_withTags(t *testing.T) {
 
 func TestAccPublicIpStatic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -303,7 +303,7 @@ func TestAccPublicIpStatic_update(t *testing.T) {
 
 func TestAccPublicIpStatic_standardPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -317,7 +317,7 @@ func TestAccPublicIpStatic_standardPrefix(t *testing.T) {
 
 func TestAccPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -342,7 +342,7 @@ func TestAccPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 
 func TestAccPublicIpDynamic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -357,7 +357,7 @@ func TestAccPublicIpDynamic_basic(t *testing.T) {
 
 func TestAccPublicIpStatic_canLabelBe63(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -374,7 +374,7 @@ func TestAccPublicIpStatic_canLabelBe63(t *testing.T) {
 
 func TestAccPublicIpStatic_ipTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -390,7 +390,7 @@ func TestAccPublicIpStatic_ipTags(t *testing.T) {
 
 func TestAccPublicIpStatic_globalTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -408,7 +408,7 @@ func TestAccPublicIpStatic_globalTier(t *testing.T) {
 
 func TestAccPublicIpStatic_regionalTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -426,7 +426,7 @@ func TestAccPublicIpStatic_regionalTier(t *testing.T) {
 
 func TestAccPublicIpStatic_edgeZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
+	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -439,7 +439,7 @@ func TestAccPublicIpStatic_edgeZone(t *testing.T) {
 	})
 }
 
-func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t PublicIpResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParsePublicIPAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -453,7 +453,7 @@ func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, s
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (PublicIpResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParsePublicIPAddressID(state.ID)
 	if err != nil {
 		return nil, err
@@ -468,7 +468,11 @@ func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, sta
 	return pointer.To(true), nil
 }
 
-func (PublicIPResource) static_basic(data acceptance.TestData) string {
+func (r PublicIpResource) basic(data acceptance.TestData) string {
+	return r.static_basic(data)
+}
+
+func (PublicIpResource) static_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -489,7 +493,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r PublicIPResource) requiresImport(data acceptance.TestData) string {
+func (r PublicIpResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -503,7 +507,7 @@ resource "azurerm_public_ip" "import" {
 `, r.static_basic(data))
 }
 
-func (PublicIPResource) basic_withDNSLabel(data acceptance.TestData, dnsNameLabel string) string {
+func (PublicIpResource) basic_withDNSLabel(data acceptance.TestData, dnsNameLabel string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -525,7 +529,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, dnsNameLabel)
 }
 
-func (PublicIPResource) static_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
+func (PublicIpResource) static_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -547,7 +551,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
 }
 
-func (PublicIPResource) standard(data acceptance.TestData) string {
+func (PublicIpResource) standard(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -568,7 +572,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) standardDDoSDisabled(data acceptance.TestData) string {
+func (PublicIpResource) standardDDoSDisabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -590,7 +594,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) standardDDoSEnabled(data acceptance.TestData) string {
+func (PublicIpResource) standardDDoSEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -619,7 +623,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PublicIPResource) standardPrefix(data acceptance.TestData) string {
+func (PublicIpResource) standardPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -647,7 +651,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PublicIPResource) standardPrefixWithTags(data acceptance.TestData) string {
+func (PublicIpResource) standardPrefixWithTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -680,7 +684,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PublicIPResource) standardPrefixWithTagsUpdate(data acceptance.TestData) string {
+func (PublicIpResource) standardPrefixWithTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -712,7 +716,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PublicIPResource) standard_withIPVersion(data acceptance.TestData, ipVersion string) string {
+func (PublicIpResource) standard_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -734,7 +738,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
 }
 
-func (PublicIPResource) update(data acceptance.TestData) string {
+func (PublicIpResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -758,7 +762,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PublicIPResource) idleTimeout(data acceptance.TestData, idleTimeout int) string {
+func (PublicIpResource) idleTimeout(data acceptance.TestData, idleTimeout int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -780,7 +784,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, idleTimeout)
 }
 
-func (PublicIPResource) dynamic_basic(data acceptance.TestData) string {
+func (PublicIpResource) dynamic_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -801,7 +805,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) dynamic_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
+func (PublicIpResource) dynamic_basic_withIPVersion(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -824,7 +828,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
 }
 
-func (PublicIPResource) withTags(data acceptance.TestData) string {
+func (PublicIpResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -850,7 +854,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) withTagsUpdate(data acceptance.TestData) string {
+func (PublicIpResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -875,7 +879,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) canLabelBe63(data acceptance.TestData) string {
+func (PublicIpResource) canLabelBe63(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -898,7 +902,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, fmt.Sprintf("test%s", strings.ToLower(data.RandomStringOfLength(59)))) // prepend with test (4+59) to ensure the string starts with a letter
 }
 
-func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {
+func (PublicIpResource) standard_IpTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -924,7 +928,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) globalTier(data acceptance.TestData) string {
+func (PublicIpResource) globalTier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -946,7 +950,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) regionalTier(data acceptance.TestData) string {
+func (PublicIpResource) regionalTier(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -968,7 +972,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPResource) zonesSingle(data acceptance.TestData) string {
+func (PublicIpResource) zonesSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -990,7 +994,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PublicIPResource) zonesMultiple(data acceptance.TestData) string {
+func (PublicIpResource) zonesMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1012,7 +1016,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PublicIPResource) edgeZone(data acceptance.TestData) string {
+func (PublicIpResource) edgeZone(data acceptance.TestData) string {
 	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Primary = "westus"
 

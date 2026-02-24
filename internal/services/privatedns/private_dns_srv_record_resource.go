@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -188,7 +188,9 @@ func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}
 				return err
 			}
 
-			return tags.FlattenAndSet(d, props.Metadata)
+			if err := tags.FlattenAndSet(d, props.Metadata); err != nil {
+				return err
+			}
 		}
 	}
 

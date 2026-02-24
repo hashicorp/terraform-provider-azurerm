@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor_test
@@ -200,7 +200,7 @@ func (t MonitorAADDiagnosticSettingResource) Exists(ctx context.Context, clients
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (MonitorAADDiagnosticSettingResource) eventhub(data acceptance.TestData) string {

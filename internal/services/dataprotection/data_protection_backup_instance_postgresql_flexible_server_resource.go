@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -12,13 +12,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_postgresql_flexible_server -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
 
 type BackupInstancePostgreSQLFlexibleServerModel struct {
 	Name            string `tfschema:"name"`
@@ -31,7 +35,14 @@ type BackupInstancePostgreSQLFlexibleServerModel struct {
 
 type DataProtectionBackupInstancePostgreSQLFlexibleServerResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupInstancePostgreSQLFlexibleServerResource{}
+)
+
+func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Identity() resourceids.ResourceId {
+	return &backupinstanceresources.BackupInstanceId{}
+}
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_postgresql_flexible_server"
@@ -42,7 +53,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) ModelObjec
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return backupinstances.ValidateBackupInstanceID
+	return backupinstanceresources.ValidateBackupInstanceID
 }
 
 func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments() map[string]*pluginsdk.Schema {
@@ -56,9 +67,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Arguments(
 
 		"location": commonschema.Location(),
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&backuppolicies.BackupVaultId{}),
+		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&basebackuppolicyresources.BackupVaultId{}),
 
-		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&backuppolicies.BackupPolicyId{}),
+		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
 
 		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&servers.FlexibleServerId{}),
 	}
@@ -84,14 +95,14 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			vaultId, err := backupinstances.ParseBackupVaultID(model.VaultId)
+			vaultId, err := backupvaultresources.ParseBackupVaultID(model.VaultId)
 			if err != nil {
 				return err
 			}
 
-			id := backupinstances.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
+			id := backupinstanceresources.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.BackupInstancesGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -107,14 +118,14 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 				return err
 			}
 
-			policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
+			policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 			if err != nil {
 				return err
 			}
 
-			parameters := backupinstances.BackupInstanceResource{
-				Properties: &backupinstances.BackupInstance{
-					DataSourceInfo: backupinstances.Datasource{
+			parameters := backupinstanceresources.BackupInstanceResource{
+				Properties: &backupinstanceresources.BackupInstance{
+					DataSourceInfo: backupinstanceresources.Datasource{
 						DatasourceType:   pointer.To("Microsoft.DBforPostgreSQL/flexibleServers"),
 						ObjectType:       pointer.To("Datasource"),
 						ResourceID:       serverId.ID(),
@@ -123,7 +134,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 						ResourceType:     pointer.To("Microsoft.DBforPostgreSQL/flexibleServers"),
 						ResourceUri:      pointer.To(serverId.ID()),
 					},
-					DataSourceSetInfo: &backupinstances.DatasourceSet{
+					DataSourceSetInfo: &backupinstanceresources.DatasourceSet{
 						DatasourceType:   pointer.To("Microsoft.DBforPostgreSQL/flexibleServers"),
 						ObjectType:       pointer.To("DatasourceSet"),
 						ResourceID:       serverId.ID(),
@@ -133,13 +144,13 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 						ResourceUri:      pointer.To(serverId.ID()),
 					},
 					FriendlyName: pointer.To(id.BackupInstanceName),
-					PolicyInfo: backupinstances.PolicyInfo{
+					PolicyInfo: backupinstanceresources.PolicyInfo{
 						PolicyId: policyId.ID(),
 					},
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -151,8 +162,8 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:        5 * time.Second,
-				Pending:      []string{string(backupinstances.CurrentProtectionStateConfiguringProtection)},
-				Target:       []string{string(backupinstances.CurrentProtectionStateProtectionConfigured)},
+				Pending:      []string{string(backupinstanceresources.CurrentProtectionStateConfiguringProtection)},
+				Target:       []string{string(backupinstanceresources.CurrentProtectionStateProtectionConfigured)},
 				Refresh:      dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx, client, id),
 				PollInterval: 1 * time.Minute,
 				Timeout:      time.Until(deadline),
@@ -163,6 +174,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Create() s
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -174,12 +188,12 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupInstancesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -188,7 +202,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+			vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 
 			state := BackupInstancePostgreSQLFlexibleServerModel{
 				Name:    id.BackupInstanceName,
@@ -205,7 +219,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 					}
 					state.ServerId = serverId.ID()
 
-					backupPolicyId, err := backuppolicies.ParseBackupPolicyID(props.PolicyInfo.PolicyId)
+					backupPolicyId, err := basebackuppolicyresources.ParseBackupPolicyID(props.PolicyInfo.PolicyId)
 					if err != nil {
 						return err
 					}
@@ -215,6 +229,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Read() sdk
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
@@ -226,7 +243,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -236,7 +253,7 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.BackupInstancesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -248,14 +265,14 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 			parameters := *existing.Model
 
 			if metadata.ResourceData.HasChange("backup_policy_id") {
-				policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
+				policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 				if err != nil {
 					return err
 				}
 				parameters.Properties.PolicyInfo.PolicyId = policyId.ID()
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, *id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -267,8 +284,8 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Update() s
 
 			stateConf := &pluginsdk.StateChangeConf{
 				Delay:        5 * time.Second,
-				Pending:      []string{string(backupinstances.CurrentProtectionStateUpdatingProtection)},
-				Target:       []string{string(backupinstances.CurrentProtectionStateProtectionConfigured)},
+				Pending:      []string{string(backupinstanceresources.CurrentProtectionStateUpdatingProtection)},
+				Target:       []string{string(backupinstanceresources.CurrentProtectionStateProtectionConfigured)},
 				Refresh:      dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx, client, *id),
 				PollInterval: 1 * time.Minute,
 				Timeout:      time.Until(deadline),
@@ -289,12 +306,12 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Delete() s
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
+			err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -304,9 +321,9 @@ func (r DataProtectionBackupInstancePostgreSQLFlexibleServerResource) Delete() s
 	}
 }
 
-func dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstances.BackupInstancesClient, id backupinstances.BackupInstanceId) pluginsdk.StateRefreshFunc {
+func dataProtectionBackupInstancePostgreSQLFlexibleServerStateRefreshFunc(ctx context.Context, client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.Get(ctx, id)
+		resp, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 		}

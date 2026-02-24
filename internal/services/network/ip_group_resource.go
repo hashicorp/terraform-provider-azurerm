@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -172,11 +172,14 @@ func resourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	return resourceIpGroupFlatten(d, id, resp.Model)
+}
 
+func resourceIpGroupFlatten(d *pluginsdk.ResourceData, id *ipgroups.IPGroupId, model *ipgroups.IPGroup) error {
 	d.Set("name", id.IpGroupName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 
 		if props := model.Properties; props != nil {
