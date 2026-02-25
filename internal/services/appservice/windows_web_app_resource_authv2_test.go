@@ -69,6 +69,14 @@ func TestAccWindowsWebApp_authV2CustomOIDC(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.authV2CustomOIDCWithSecretName(data, "CustomSecretName"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("auth_settings_v2.0.custom_oidc_v2.0.client_secret_setting_name").HasValue("CustomSecretName"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -358,6 +366,49 @@ resource "azurerm_windows_web_app" "test" {
       name                          = "testcustom"
       client_id                     = "testCustomID"
       openid_configuration_endpoint = "https://oidc.testcustom.contoso.com/auth"
+    }
+
+    login {}
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, secretSettingName, secretSettingValue)
+}
+
+func (r WindowsWebAppResource) authV2CustomOIDCWithSecretName(data acceptance.TestData, secretSettingName string) string {
+	secretSettingValue := "902D17F6-FD6B-4E44-BABB-58E788DCD907"
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+
+  app_settings = {
+    "%[3]s" = "%[4]s"
+  }
+
+  sticky_settings {
+    app_setting_names = ["%[3]s"]
+  }
+
+  auth_settings_v2 {
+    auth_enabled           = true
+    unauthenticated_action = "Return401"
+
+    custom_oidc_v2 {
+      name                          = "testcustom"
+      client_id                     = "testCustomID"
+      openid_configuration_endpoint = "https://oidc.testcustom.contoso.com/auth"
+      client_secret_setting_name    = "%[3]s"
     }
 
     login {}
