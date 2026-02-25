@@ -24,9 +24,9 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"time_zone_name": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "UTC",
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "UTC",
 					ValidateFunc: validate.ResourcePredictionsProfileTimeZone(),
 				},
 
