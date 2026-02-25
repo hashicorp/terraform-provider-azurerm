@@ -1,6 +1,7 @@
 ## 4.62.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_dashboard_grafana` - add support for the `12` value in the `grafana_major_version` property and remove the deprecated `10` value  [GH-31653]
 * dependencies: `databricks` - update to API version `2026-01-01` [GH-31654]
 * dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
 * `network` - deprecate and rename `enabled_*` properties for 5.0 [GH-31643]
