@@ -67,6 +67,7 @@ type ValidationRuleModel struct {
 	CertificateRemainingLifetime int64          `tfschema:"ssl_cert_remaining_lifetime"`
 	SSLCheck                     bool           `tfschema:"ssl_check_enabled"`
 	Content                      []ContentModel `tfschema:"content"`
+	IgnoreStatusCode             bool           `tfschema:"ignore_status_code"`
 }
 
 type HeaderModel struct {
@@ -223,12 +224,11 @@ func (ApplicationInsightsStandardWebTestResource) Arguments() map[string]*plugin
 						Default:  200,
 					},
 
-					// Typo in API spec, issue: https://github.com/Azure/azure-rest-api-specs/issues/22136
-					// "ignore_status_code": {
-					// 	Type:     pluginsdk.TypeBool,
-					// 	Optional: true,
-					// 	Default:  false,
-					// },
+					"ignore_status_code": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 
 					"ssl_cert_remaining_lifetime": {
 						Type:         pluginsdk.TypeInt,
@@ -665,6 +665,7 @@ func flattenApplicationInsightsStandardWebTestValidations(input *webtests.WebTes
 		CertificateRemainingLifetime: pointer.From(rules.SSLCertRemainingLifetimeCheck),
 		SSLCheck:                     pointer.From(rules.SSLCheck),
 		Content:                      flattenApplicationInsightsStandardWebTestContentValidations(rules.ContentValidation),
+		IgnoreStatusCode:             pointer.From(rules.IgnoreHTTPStatusCode),
 	}
 
 	return []ValidationRuleModel{result}
@@ -695,6 +696,7 @@ func expandApplicationInsightsStandardWebTestValidations(input []ValidationRuleM
 
 	validationsInput := input[0]
 	rules.ExpectedHTTPStatusCode = pointer.To(validationsInput.ExpectedStatusCode)
+	rules.IgnoreHTTPStatusCode = pointer.To(validationsInput.IgnoreStatusCode)
 
 	// if URL http, sslCheck cannot be enabled - Catch in CustomiseDiff
 	rules.SSLCheck = pointer.To(validationsInput.SSLCheck)
