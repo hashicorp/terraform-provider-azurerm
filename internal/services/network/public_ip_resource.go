@@ -29,6 +29,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name public_ip -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourcePublicIp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePublicIpCreate,
@@ -36,10 +38,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 		Update: resourcePublicIpUpdate,
 		Delete: resourcePublicIpDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParsePublicIPAddressID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.PublicIPAddressId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.PublicIPAddressId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -299,6 +302,10 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourcePublicIpRead(d, meta)
 }
 
@@ -407,10 +414,14 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourcePublicIpFlatten(d, id, resp.Model)
+}
+
+func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAddressId, model *publicipaddresses.PublicIPAddress) error {
 	d.Set("name", id.PublicIPAddressesName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("edge_zone", flattenEdgeZoneNew(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
@@ -452,7 +463,7 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {

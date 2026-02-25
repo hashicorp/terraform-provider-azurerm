@@ -3,7 +3,6 @@ package cognitive
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -15,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesprojects"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -77,13 +77,10 @@ func (r CognitiveAccountProjectResource) CustomizeDiff() sdk.ResourceFunc {
 func (r CognitiveAccountProjectResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile("^[a-zA-Z0-9][a-zA-Z0-9_.-]{1,63}$"),
-				"`name` must be between 2 and 64 characters long, start with an alphanumeric character, and contain only alphanumeric characters, dashes(-), periods(.) or underscores(_).",
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AccountProjectName(),
 		},
 
 		"cognitive_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&cognitiveservicesprojects.AccountId{}),

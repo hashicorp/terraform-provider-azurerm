@@ -10,18 +10,82 @@ Azure Resource Manager: 5.0 Upgrade Guide
 
 ## Azure Provider Version 5.0
 
-TODO
+Version 5.0 of the Azure Provider is a major release that includes breaking changes and behavioural differences. This guide covers the most significant changes and explains how to upgrade from v4.x to v5.0.
 
 ### Pinning your Provider Version
 
-TODO
+We recommend pinning the version of each Provider you use in Terraform. You can do this using the `version` attribute within the `required_providers` block:
+
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=5.0.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+```
+
+More information on [how to pin the version of a Terraform Provider being used can be found on the Terraform Website](https://developer.hashicorp.com/terraform/language/providers/requirements#require-providers).
+
+---
 
 ## What's available in Version 5.0 of the Azure Provider?
 
+* [Resource Provider Registration Changes](#resource-provider-registration-changes)
 * [Removed Resources](#removed-resources)
 * [Removed Data Sources](#removed-data-sources)
 * [Breaking Changes in Resources](#breaking-changes-in-resources)
 * [Breaking Changes in Data Sources](#breaking-changes-in-data-sources)
+
+## Resource Provider Registration Changes
+
+In version 5.0, the default behaviour for Resource Provider registration has changed. The `resource_provider_registrations` property now defaults to `none` instead of `legacy`.
+
+### What this means
+
+Previously, the provider would automatically attempt to register a large set of Azure Resource Providers (~60 RPs) when initializing. This could:
+
+* Add delay to provider startup due to sequential RP registration checks
+* Cause permission errors for users with restricted access to their subscription
+* Register RPs that users may not need or want
+
+In v5.0, no Resource Providers are registered by default. This gives users full control over RP registration and avoids potential permission issues.
+
+### Registering specific Resource Providers
+
+The recommendation is to only register the specific Resource Providers that your configuration requires, using the `resource_providers_to_register` property:
+
+```hcl
+provider "azurerm" {
+  resource_providers_to_register = [
+    "Microsoft.Compute",
+    "Microsoft.Network",
+    "Microsoft.Storage",
+  ]
+
+  features {}
+}
+```
+### How to replicate the previous behaviour
+
+If you want to maintain the v4.x behaviour and automatically register the same set of Resource Providers as before, explicitly set `resource_provider_registrations` to the `legacy` resource provider set in your provider block:
+
+```hcl
+provider "azurerm" {
+  resource_provider_registrations = "legacy"
+  features {}
+}
+```
+
+For more information, see the [Resource Provider Registrations](index.html#resource-provider-registrations) section in the provider documentation.
+
+---
 
 
 ## Removed Resources
@@ -200,6 +264,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
 
+### `azurerm_application_gateway`
+
+* The deprecated `ssl_profile.verify_client_cert_issuer_dn` property has been removed in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property.
+* The deprecated `enable_http2` property has been removed in favour of the `http2_enabled` property.
+
 ### `azurerm_automation_account`
 
 * The `encryption.key_source` property has been removed.
@@ -247,6 +316,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `single_sign_on_enabled` property has been removed in favour of the `single_sign_on` property.
 
+### `azurerm_data_factory_linked_service_azure_blob_storage`
+
+* The deprecated `key_vault_sas_token` block has been removed in favour of the `sas_token_linked_key_vault_key` block.
+
+### `azurerm_data_factory_linked_service_azure_databricks`
+
+* The deprecated `msi_work_space_resource_id` property has been removed in favour of the `msi_workspace_id` property.
+
 ### `azurerm_data_factory_integration_runtime_self_hosted`
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
@@ -277,6 +354,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_express_route_connection`
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
+* The deprecated `enable_internet_security` property has been removed in favour of the `internet_security_enabled` property.
 
 ### `azurerm_key_vault`
 
@@ -362,6 +440,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `metric.retention_policy` block has been removed.
 * The deprecated `metric` block has been removed in favour of the `enabled_metric` block.
+* The deprecated `enabled_log.retention_policy` block has been removed.
 
 ### `azurerm_mssql_database`
 
@@ -377,13 +456,21 @@ Please follow the format in the example below for listing breaking changes in re
 * The property `proxy_override` now defaults to `Redirect`.
 * The property `proxy_override` no longer accepts `Default` as a value.
 
+### `azurerm_mssql_managed_instance_transparent_data_encryption`
+
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
+
 ### `azurerm_mssql_server`
 
 * The property `minimum_tls_version` no longer accepts `Disabled`, `1.0` or `1.1` as a value.
 
+### `azurerm_mssql_server_transparent_data_encryption`
+
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
+
 ### `azurerm_mysql_flexible_server`
 
-* The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The deprecated `public_network_access_enabled` property has been removed in favour of the `public_network_access` property.
 
 ### `azurerm_netapp_volume`
 
@@ -421,6 +508,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_powerbi_embedded`
 
 * The `mode` property now defaults to `Gen2`.
+
+### `azurerm_private_link_service`
+
+* The deprecated `enable_proxy_protocol` property has been removed in favour of the `proxy_protocol_enabled` property.
 
 ### `azurerm_redis_cache`
 
@@ -604,3 +695,11 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
 * The deprecated `resource_manager_id` property has been removed in favour of the `id` property.
+
+### `azurerm_virtual_network_gateway`
+
+* The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
+
+### `azurerm_virtual_network_gateway_connection`
+
+* The deprecated `enable_bgp` property has been removed in favour of the `bgp_enabled` property.
