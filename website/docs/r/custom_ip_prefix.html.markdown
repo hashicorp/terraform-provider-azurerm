@@ -88,6 +88,8 @@ The following arguments are supported:
 
 * `parent_custom_ip_prefix_id` - (Optional) Specifies the ID of the parent prefix. Only needed when creating a regional/child IPv6 prefix. Changing this forces a new resource to be created.
 
+* `prefix_type` - (Optional) Type of custom IP prefix. Possible values are `Child`, `Parent`, or `Singular`. Changing this forces a new resource to be created.
+
 * `roa_validity_end_date` - (Optional) The expiration date of the Route Origin Authorization (ROA) document which has been filed with the Routing Internet Registry (RIR) for this prefix. The expected format is `YYYY-MM-DD`. Required when provisioning an IPv4 prefix or IPv6 global prefix. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Custom IP Prefix.
