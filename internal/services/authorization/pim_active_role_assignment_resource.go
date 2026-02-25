@@ -39,6 +39,8 @@ type PimActiveRoleAssignmentModel struct {
 	Justification    string                                `tfschema:"justification"`
 	TicketInfo       []PimActiveRoleAssignmentTicketInfo   `tfschema:"ticket"`
 	ScheduleInfo     []PimActiveRoleAssignmentScheduleInfo `tfschema:"schedule"`
+	Condition        string                                `tfschema:"condition"`
+	ConditionVersion string                                `tfschema:"condition_version"`
 }
 
 type PimActiveRoleAssignmentTicketInfo struct {
@@ -111,6 +113,24 @@ func (PimActiveRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema 
 			Computed:    true,
 			ForceNew:    true,
 			Description: "The justification for this role assignment",
+		},
+
+		"condition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"condition_version"},
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"condition_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"condition"},
+			ValidateFunc: validation.StringInSlice([]string{
+				"2.0",
+			}, false),
 		},
 
 		"schedule": {
@@ -284,16 +304,26 @@ func (r PimActiveRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			properties := &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{
+				Justification:    pointer.To(config.Justification),
+				PrincipalId:      id.PrincipalId,
+				RequestType:      roleassignmentschedulerequests.RequestTypeAdminAssign,
+				RoleDefinitionId: id.RoleDefinitionId,
+				Scope:            pointer.To(scopeId.ID()),
+				ScheduleInfo:     scheduleInfo,
+				TicketInfo:       ticketInfo,
+			}
+
+			condition := config.Condition
+			conditionVersion := config.ConditionVersion
+
+			if condition != "" && conditionVersion != "" {
+				properties.Condition = pointer.To(condition)
+				properties.ConditionVersion = pointer.To(conditionVersion)
+			}
+
 			payload := roleassignmentschedulerequests.RoleAssignmentScheduleRequest{
-				Properties: &roleassignmentschedulerequests.RoleAssignmentScheduleRequestProperties{
-					Justification:    pointer.To(config.Justification),
-					PrincipalId:      id.PrincipalId,
-					RequestType:      roleassignmentschedulerequests.RequestTypeAdminAssign,
-					RoleDefinitionId: id.RoleDefinitionId,
-					Scope:            pointer.To(scopeId.ID()),
-					ScheduleInfo:     scheduleInfo,
-					TicketInfo:       ticketInfo,
-				},
+				Properties: properties,
 			}
 
 			roleAssignmentScheduleRequestName, err := uuid.GenerateUUID()
@@ -395,6 +425,9 @@ func (r PimActiveRoleAssignmentResource) Read() sdk.ResourceFunc {
 				state.PrincipalId = request.Properties.PrincipalId
 				state.PrincipalType = string(pointer.From(request.Properties.PrincipalType))
 				state.RoleDefinitionId = request.Properties.RoleDefinitionId
+
+				state.Condition = pointer.From(request.Properties.Condition)
+				state.ConditionVersion = pointer.From(request.Properties.ConditionVersion)
 
 				if ticketInfo := request.Properties.TicketInfo; ticketInfo != nil {
 					if len(state.TicketInfo) == 0 {
