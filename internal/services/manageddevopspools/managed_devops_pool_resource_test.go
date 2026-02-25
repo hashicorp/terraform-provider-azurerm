@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package manageddevopspools_test
 
 import (
@@ -310,7 +313,7 @@ resource "azurerm_managed_devops_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   maximum_concurrency            = 1
-  dev_center_project_resource_id = azurerm_dev_center_project.test.id
+  dev_center_project_id = azurerm_dev_center_project.test.id
 
   azure_devops_organization_profile {
     organization {
@@ -341,7 +344,7 @@ resource "azurerm_managed_devops_pool" "import" {
   resource_group_name = azurerm_managed_devops_pool.test.resource_group_name
 
   maximum_concurrency            = 1
-  dev_center_project_resource_id = azurerm_dev_center_project.test.id
+  dev_center_project_id = azurerm_dev_center_project.test.id
 
   azure_devops_organization_profile {
     organization {
@@ -389,7 +392,7 @@ resource "azurerm_managed_devops_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   maximum_concurrency            = 2
-  dev_center_project_resource_id = azurerm_dev_center_project.test2.id
+  dev_center_project_id = azurerm_dev_center_project.test2.id
 
   azure_devops_organization_profile {
     organization {
@@ -409,7 +412,7 @@ resource "azurerm_managed_devops_pool" "test" {
     grace_period_time_span = "00:10:00"
     max_agent_lifetime     = "08:00:00"
     manual_resource_predictions_profile {
-      time_zone        = "UTC"
+      time_zone_name   = "UTC-11"
       monday_schedule  = { "09:00:00" = 1, "17:00:00" = 0 }
       tuesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
     }
@@ -417,9 +420,9 @@ resource "azurerm_managed_devops_pool" "test" {
 
   vmss_fabric_profile {
     image {
-      resource_id = data.azurerm_platform_image.test.id
-      aliases     = ["marketplace image"]
-      buffer      = "0"
+      id      = data.azurerm_platform_image.test.id
+      aliases = ["marketplace image"]
+      buffer  = "0"
     }
     image {
       aliases               = ["well known image", "22.04 version"]
@@ -430,12 +433,12 @@ resource "azurerm_managed_devops_pool" "test" {
     subnet_id = azurerm_subnet.test.id
     os_profile {
       logon_type = "Interactive"
-      secrets_management {
+      key_vault_management {
         certificate_store_location = "/"
         certificate_store_name     = "My"
 
         key_export_enabled = false
-        observed_certificates = [
+        key_vault_certificate_ids = [
           azurerm_key_vault_certificate.test.versionless_secret_id
         ]
       }
@@ -443,7 +446,7 @@ resource "azurerm_managed_devops_pool" "test" {
     storage_profile {
       data_disk {
         caching              = "None"
-        disk_size_gb         = 10
+        disk_size_in_gb      = 10
         drive_letter         = "F"
         storage_account_type = "Standard_LRS"
       }
@@ -498,7 +501,7 @@ resource "azurerm_managed_devops_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   maximum_concurrency            = 2
-  dev_center_project_resource_id = azurerm_dev_center_project.test2.id
+  dev_center_project_id = azurerm_dev_center_project.test2.id
 
   azure_devops_organization_profile {
     organization {
@@ -518,7 +521,7 @@ resource "azurerm_managed_devops_pool" "test" {
     grace_period_time_span = "00:10:00"
     max_agent_lifetime     = "08:00:00"
     manual_resource_predictions_profile {
-      time_zone        = "UTC"
+      time_zone_name   = "UTC-11"
       monday_schedule  = { "09:00:00" = 1, "17:00:00" = 0 }
       tuesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
     }
@@ -526,9 +529,9 @@ resource "azurerm_managed_devops_pool" "test" {
 
   vmss_fabric_profile {
     image {
-      resource_id = data.azurerm_platform_image.test.id
-      aliases     = ["marketplace image"]
-      buffer      = "0"
+      id      = data.azurerm_platform_image.test.id
+      aliases = ["marketplace image"]
+      buffer  = "0"
     }
     image {
       aliases               = ["well known image", "22.04 version"]
@@ -538,12 +541,12 @@ resource "azurerm_managed_devops_pool" "test" {
     sku_name = "Standard_B1ms"
     os_profile {
       logon_type = "Interactive"
-      secrets_management {
+      key_vault_management {
         certificate_store_location = "/"
         certificate_store_name     = "My"
 
         key_export_enabled = false
-        observed_certificates = [
+        key_vault_certificate_ids = [
           azurerm_key_vault_certificate.test.versionless_secret_id
         ]
       }
@@ -551,7 +554,7 @@ resource "azurerm_managed_devops_pool" "test" {
     storage_profile {
       data_disk {
         caching              = "None"
-        disk_size_gb         = 10
+        disk_size_in_gb      = 10
         drive_letter         = "F"
         storage_account_type = "Standard_LRS"
       }

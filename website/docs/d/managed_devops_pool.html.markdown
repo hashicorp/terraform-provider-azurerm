@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `azure_devops_organization_profile` - An `azure_devops_organization_profile` block as defined below.
 
-* `dev_center_project_resource_id` - The ID of the Dev Center project.
+* `dev_center_project_id` - The ID of the Dev Center project.
 
 * `identity` - An `identity` block as defined below.
 
@@ -83,7 +83,7 @@ A `data_disk` block exports the following:
 
 * `caching` - The type of caching on the data disk.
 
-* `disk_size_gb` - The initial disk size in gigabytes.
+* `disk_size_in_gb` - The initial disk size in gigabytes.
 
 * `drive_letter` - The drive letter for the empty data disk.
 
@@ -105,7 +105,7 @@ An `image` block exports the following:
 
 * `buffer` - The percentage of the buffer allocated to this image.
 
-* `resource_id` - The resource id of the image.
+* `id` - The resource id of the image.
 
 * `well_known_image_name` - The image name from a well-known set of images made available to customers.
 
@@ -113,7 +113,7 @@ An `image` block exports the following:
 
 A `manual_resource_predictions_profile` block exports the following:
 
-* `time_zone` - The time zone for the predictions data to be provisioned at.
+* `time_zone_name` - The time zone for the predictions data to be provisioned at.
 
 * `all_week_schedule` - A number of agents available 24/7 all week.
 
@@ -147,7 +147,7 @@ An `os_profile` block exports the following:
 
 * `logon_type` - The logon type.
 
-* `secrets_management` - A `secrets_management` block as defined below.
+* `key_vault_management` - A `key_vault_management` block as defined below.
 
 ---
 
@@ -159,7 +159,7 @@ A `permission_profile` block exports the following:
 
 ---
 
-A `secrets_management` block exports the following:
+A `key_vault_management` block exports the following:
 
 * `certificate_store_location` -  The location where the certificates are stored.
 
@@ -167,7 +167,7 @@ A `secrets_management` block exports the following:
 
 * `key_export_enabled` - Whether the keys of the certificates are exportable.
 
-* `observed_certificates` - A list of certificates installed on the machines in the Managed DevOps Pool.
+* `key_vault_certificate_ids` - A list of certificates installed on the machines in the Managed DevOps Pool.
 
 ---
 

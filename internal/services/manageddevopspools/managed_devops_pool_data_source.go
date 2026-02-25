@@ -1,8 +1,12 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package manageddevopspools
 
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.DataSource = ManagedDevOpsPoolDataSource{}
@@ -20,7 +25,7 @@ var _ sdk.DataSource = ManagedDevOpsPoolDataSource{}
 type ManagedDevOpsPoolDataSource struct{}
 
 type ManagedDevOpsPoolDataSourceModel struct {
-	DevCenterProjectResourceId     string                                `tfschema:"dev_center_project_resource_id"`
+	DevCenterProjectId             string                                `tfschema:"dev_center_project_id"`
 	VmssFabricProfile              []VmssFabricProfileModel              `tfschema:"vmss_fabric_profile"`
 	Identity                       []identity.ModelUserAssigned          `tfschema:"identity"`
 	Location                       string                                `tfschema:"location"`
@@ -39,7 +44,15 @@ func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(3, 44),
+				validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9-]$`),
+					"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
+				),
+			),
 		},
+
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 	}
 }
@@ -119,7 +132,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"dev_center_project_resource_id": {
+		"dev_center_project_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -165,8 +178,6 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"tags": commonschema.TagsDataSource(),
-
 		"vmss_fabric_profile": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -190,7 +201,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Computed: true,
 								},
 
-								"resource_id": {
+								"id": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
@@ -213,7 +224,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 									Computed: true,
 								},
 
-								"secrets_management": {
+								"key_vault_management": {
 									Type:     pluginsdk.TypeList,
 									Computed: true,
 									Elem: &pluginsdk.Resource{
@@ -233,7 +244,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 												Computed: true,
 											},
 
-											"observed_certificates": {
+											"key_vault_certificate_ids": {
 												Type:     pluginsdk.TypeList,
 												Computed: true,
 												Elem: &pluginsdk.Schema{
@@ -267,7 +278,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 												Computed: true,
 											},
 
-											"disk_size_gb": {
+											"disk_size_in_gb": {
 												Type:     pluginsdk.TypeInt,
 												Computed: true,
 											},
@@ -300,6 +311,8 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 
@@ -350,7 +363,7 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
+					state.DevCenterProjectId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {

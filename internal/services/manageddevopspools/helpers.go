@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package manageddevopspools
 
 import (
@@ -7,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -19,11 +23,13 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 		ConflictsWith: []string{parentPath + ".automatic_resource_predictions_profile"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"time_zone": {
+				"time_zone_name": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					Default:  "UTC",
+					ValidateFunc: validate.ResourcePredictionsProfileTimeZone(),
 				},
+
 				"all_week_schedule": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
@@ -38,6 +44,7 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 					},
 					ValidateFunc: validation.IntAtLeast(1),
 				},
+
 				"sunday_schedule": {
 					Type:          pluginsdk.TypeMap,
 					Optional:      true,
@@ -47,6 +54,7 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
+
 				"monday_schedule": {
 					Type:          pluginsdk.TypeMap,
 					Optional:      true,
@@ -56,6 +64,7 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
+
 				"tuesday_schedule": {
 					Type:          pluginsdk.TypeMap,
 					Optional:      true,
@@ -65,6 +74,7 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
+
 				"wednesday_schedule": {
 					Type:          pluginsdk.TypeMap,
 					Optional:      true,
@@ -74,6 +84,7 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
+
 				"thursday_schedule": {
 					Type:          pluginsdk.TypeMap,
 					Optional:      true,
@@ -83,6 +94,7 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
+
 				"friday_schedule": {
 					Type:          pluginsdk.TypeMap,
 					Optional:      true,
@@ -92,6 +104,7 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 						ValidateFunc: validation.IntAtLeast(0),
 					},
 				},
+
 				"saturday_schedule": {
 					Type:          pluginsdk.TypeMap,
 					Optional:      true,
@@ -131,14 +144,16 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"time_zone": {
+				"time_zone_name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
 				},
+
 				"all_week_schedule": {
 					Type:     pluginsdk.TypeInt,
 					Computed: true,
 				},
+
 				"sunday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -146,6 +161,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"monday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -153,6 +169,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"tuesday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -160,6 +177,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"wednesday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -167,6 +185,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"thursday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -174,6 +193,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"friday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -181,6 +201,7 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 						Type: pluginsdk.TypeInt,
 					},
 				},
+
 				"saturday_schedule": {
 					Type:     pluginsdk.TypeMap,
 					Computed: true,
@@ -314,7 +335,7 @@ func expandResourcePredictionsModel(input ManualResourcePredictionsProfileModel)
 
 	return &ResourcePredictionsSdkModel{
 		DaysData: daysData,
-		TimeZone: input.TimeZone,
+		TimeZone: input.TimeZoneName,
 	}
 }
 
@@ -397,8 +418,8 @@ func expandImageModel(input []ImageModel) []pools.PoolImage {
 			poolImage.WellKnownImageName = pointer.To(image.WellKnownImageName)
 		}
 
-		if image.ResourceId != "" {
-			poolImage.ResourceId = pointer.To(image.ResourceId)
+		if image.Id != "" {
+			poolImage.ResourceId = pointer.To(image.Id)
 		}
 
 		output = append(output, poolImage)
@@ -416,7 +437,7 @@ func expandOsProfileModel(input []OsProfileModel) *pools.OsProfile {
 	logonType := pools.LogonType(osProfile.LogonType)
 	return &pools.OsProfile{
 		LogonType:                 &logonType,
-		SecretsManagementSettings: expandSecretsManagementSettingsModel(osProfile.SecretsManagementSettings),
+		SecretsManagementSettings: expandKeyVaultManagementSettingsModel(osProfile.KeyVaultManagementSettings),
 	}
 }
 
@@ -438,7 +459,7 @@ func expandStorageProfileModel(input []StorageProfileModel) *pools.StorageProfil
 			storageAccountType := pools.StorageAccountType(disk.StorageAccountType)
 			diskOut := pools.DataDisk{
 				Caching:            pointer.To(cachingType),
-				DiskSizeGiB:        pointer.To(disk.DiskSizeGB),
+				DiskSizeGiB:        pointer.To(disk.DiskSizeInGB),
 				DriveLetter:        pointer.To(disk.DriveLetter),
 				StorageAccountType: pointer.To(storageAccountType),
 			}
@@ -452,23 +473,23 @@ func expandStorageProfileModel(input []StorageProfileModel) *pools.StorageProfil
 	return output
 }
 
-func expandSecretsManagementSettingsModel(input []SecretsManagementSettingsModel) *pools.SecretsManagementSettings {
+func expandKeyVaultManagementSettingsModel(input []KeyVaultManagementSettingsModel) *pools.SecretsManagementSettings {
 	if len(input) == 0 {
 		return nil
 	}
 
-	secretsManagementSettings := input[0]
+	keyVaultManagementSettings := input[0]
 	output := &pools.SecretsManagementSettings{
-		KeyExportable:        secretsManagementSettings.KeyExportable,
-		ObservedCertificates: secretsManagementSettings.ObservedCertificates,
+		KeyExportable:        keyVaultManagementSettings.KeyExportable,
+		ObservedCertificates: keyVaultManagementSettings.KeyVaultCertificateIds,
 	}
 
-	if secretsManagementSettings.CertificateStoreLocation != "" {
-		output.CertificateStoreLocation = pointer.To(secretsManagementSettings.CertificateStoreLocation)
+	if keyVaultManagementSettings.CertificateStoreLocation != "" {
+		output.CertificateStoreLocation = pointer.To(keyVaultManagementSettings.CertificateStoreLocation)
 	}
 
-	if secretsManagementSettings.CertificateStoreName != "" {
-		certificateStoreName := pools.CertificateStoreNameOption(secretsManagementSettings.CertificateStoreName)
+	if keyVaultManagementSettings.CertificateStoreName != "" {
+		certificateStoreName := pools.CertificateStoreNameOption(keyVaultManagementSettings.CertificateStoreName)
 		output.CertificateStoreName = pointer.To(certificateStoreName)
 	}
 
@@ -542,7 +563,7 @@ func flattenManualResourcePredictionsModel(input interface{}) ManualResourcePred
 		return manualProfile
 	}
 
-	manualProfile.TimeZone = sdkModel.TimeZone
+	manualProfile.TimeZoneName = sdkModel.TimeZone
 
 	if len(sdkModel.DaysData) == 1 {
 		if agentCount, exists := sdkModel.DaysData[0]["00:00:00"]; exists {
@@ -631,33 +652,33 @@ func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []VmssFabric
 
 func flattenOsProfileToModel(input *pools.OsProfile) []OsProfileModel {
 	if input == nil {
-		return nil
+		return []OsProfileModel{}
 	}
 
 	osProfileModel := OsProfileModel{
-		LogonType:                 string(pointer.From(input.LogonType)),
-		SecretsManagementSettings: flattenSecretsManagementSettingsToModel(input.SecretsManagementSettings),
+		LogonType:                  string(pointer.From(input.LogonType)),
+		KeyVaultManagementSettings: flattenKeyVaultManagementSettingsToModel(input.SecretsManagementSettings),
 	}
 
 	return []OsProfileModel{osProfileModel}
 }
 
-func flattenSecretsManagementSettingsToModel(input *pools.SecretsManagementSettings) []SecretsManagementSettingsModel {
+func flattenKeyVaultManagementSettingsToModel(input *pools.SecretsManagementSettings) []KeyVaultManagementSettingsModel {
 	if input == nil {
-		return nil
+		return []KeyVaultManagementSettingsModel{}
 	}
 
-	secretsManagementSettingsModel := SecretsManagementSettingsModel{
+	keyvaultManagementSettingsModel := KeyVaultManagementSettingsModel{
 		CertificateStoreLocation: pointer.From(input.CertificateStoreLocation),
 		KeyExportable:            input.KeyExportable,
-		ObservedCertificates:     input.ObservedCertificates,
+		KeyVaultCertificateIds:   input.ObservedCertificates,
 	}
 
 	if input.CertificateStoreName != nil {
-		secretsManagementSettingsModel.CertificateStoreName = string(pointer.From(input.CertificateStoreName))
+		keyvaultManagementSettingsModel.CertificateStoreName = string(pointer.From(input.CertificateStoreName))
 	}
 
-	return []SecretsManagementSettingsModel{secretsManagementSettingsModel}
+	return []KeyVaultManagementSettingsModel{keyvaultManagementSettingsModel}
 }
 
 func flattenImagesToModel(input []pools.PoolImage) []ImageModel {
@@ -671,7 +692,7 @@ func flattenImagesToModel(input []pools.PoolImage) []ImageModel {
 		}
 
 		if image.ResourceId != nil {
-			imageModel.ResourceId = pointer.From(image.ResourceId)
+			imageModel.Id = pointer.From(image.ResourceId)
 		}
 
 		output = append(output, imageModel)
@@ -682,7 +703,7 @@ func flattenImagesToModel(input []pools.PoolImage) []ImageModel {
 
 func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileModel {
 	if input == nil {
-		return nil
+		return []StorageProfileModel{}
 	}
 
 	storageProfileModel := StorageProfileModel{
@@ -694,7 +715,7 @@ func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileM
 		for _, disk := range pointer.From(input.DataDisks) {
 			diskOut := DataDiskModel{
 				Caching:            string(pointer.From(disk.Caching)),
-				DiskSizeGB:         pointer.From(disk.DiskSizeGiB),
+				DiskSizeInGB:       pointer.From(disk.DiskSizeGiB),
 				DriveLetter:        pointer.From(disk.DriveLetter),
 				StorageAccountType: string(pointer.From(disk.StorageAccountType)),
 			}
@@ -730,7 +751,7 @@ func expandManagedDevopsToUserAssignedIdentity(input []identity.ModelUserAssigne
 
 func flattenManagedDevopsUserAssignedToLegacyIdentity(input *identity.LegacySystemAndUserAssignedMap) ([]identity.ModelUserAssigned, error) {
 	if input == nil {
-		return nil, nil
+		return []identity.ModelUserAssigned{}, nil
 	}
 
 	tmp := identity.UserAssignedMap{
@@ -740,7 +761,7 @@ func flattenManagedDevopsUserAssignedToLegacyIdentity(input *identity.LegacySyst
 
 	output, err := identity.FlattenUserAssignedMapToModel(&tmp)
 	if err != nil {
-		return nil, fmt.Errorf("expanding `identity`: %+v", err)
+		return []identity.ModelUserAssigned{}, fmt.Errorf("expanding `identity`: %+v", err)
 	}
 
 	return *output, nil

@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package manageddevopspools
 
 const (
@@ -28,7 +31,7 @@ type ResourcePredictionsProfileModel struct {
 }
 
 type ManualResourcePredictionsProfileModel struct {
-	TimeZone          string           `tfschema:"time_zone"`
+	TimeZoneName      string           `tfschema:"time_zone_name"`
 	AllWeekSchedule   int64            `tfschema:"all_week_schedule"`
 	SundaySchedule    map[string]int64 `tfschema:"sunday_schedule"`
 	MondaySchedule    map[string]int64 `tfschema:"monday_schedule"`
@@ -54,20 +57,20 @@ type VmssFabricProfileModel struct {
 type ImageModel struct {
 	Aliases            []string `tfschema:"aliases"`
 	Buffer             string   `tfschema:"buffer"`
-	ResourceId         string   `tfschema:"resource_id"`
+	Id                 string   `tfschema:"id"`
 	WellKnownImageName string   `tfschema:"well_known_image_name"`
 }
 
 type OsProfileModel struct {
-	LogonType                 string                           `tfschema:"logon_type"`
-	SecretsManagementSettings []SecretsManagementSettingsModel `tfschema:"secrets_management"`
+	LogonType                  string                            `tfschema:"logon_type"`
+	KeyVaultManagementSettings []KeyVaultManagementSettingsModel `tfschema:"key_vault_management"`
 }
 
-type SecretsManagementSettingsModel struct {
+type KeyVaultManagementSettingsModel struct {
 	CertificateStoreLocation string   `tfschema:"certificate_store_location"`
 	CertificateStoreName     string   `tfschema:"certificate_store_name"`
 	KeyExportable            bool     `tfschema:"key_export_enabled"`
-	ObservedCertificates     []string `tfschema:"observed_certificates"`
+	KeyVaultCertificateIds   []string `tfschema:"key_vault_certificate_ids"`
 }
 
 type StorageProfileModel struct {
@@ -77,7 +80,7 @@ type StorageProfileModel struct {
 
 type DataDiskModel struct {
 	Caching            string `tfschema:"caching"`
-	DiskSizeGB         int64  `tfschema:"disk_size_gb"`
+	DiskSizeInGB       int64  `tfschema:"disk_size_in_gb"`
 	DriveLetter        string `tfschema:"drive_letter"`
 	StorageAccountType string `tfschema:"storage_account_type"`
 }

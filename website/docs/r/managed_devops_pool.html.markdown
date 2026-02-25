@@ -95,7 +95,7 @@ resource "azurerm_managed_devops_pool" "example" {
   name                           = "example"
   resource_group_name            = azurerm_resource_group.example.name
   location                       = azurerm_resource_group.example.location
-  dev_center_project_resource_id = azurerm_dev_center_project.example.id
+  dev_center_project_id = azurerm_dev_center_project.example.id
   maximum_concurrency            = 1
 
   azure_devops_organization_profile {
@@ -119,7 +119,7 @@ resource "azurerm_managed_devops_pool" "example" {
     grace_period_time_span = "00:10:00"
     max_agent_lifetime     = "08:00:00"
     manual_resource_predictions_profile {
-      time_zone = "UTC"
+      time_zone_name = "UTC"
 
       monday_schedule    = { "09:00:00" = 1, "17:00:00" = 0 }
       tuesday_schedule   = { "09:00:00" = 1, "17:00:00" = 0 }
@@ -133,7 +133,7 @@ resource "azurerm_managed_devops_pool" "example" {
     sku_name = "Standard_D2ads_v5"
 
     image {
-      resource_id = data.azurerm_platform_image.example.id
+      id = data.azurerm_platform_image.example.id
       buffer      = "*"
     }
 
@@ -147,7 +147,7 @@ resource "azurerm_managed_devops_pool" "example" {
       os_disk_storage_account_type = "Standard"
 
       data_disk {
-        disk_size_gb = 1
+        disk_size_in_gb = 1
         drive_letter = "F"
       }
     }
@@ -185,7 +185,7 @@ The following arguments are supported:
 
 * `azure_devops_organization_profile` - (Required) An `azure_devops_organization_profile` block as defined below.
 
-* `dev_center_project_resource_id` - (Required) The ID of the Dev Center project.
+* `dev_center_project_id` - (Required) The ID of the Dev Center project.
 
 * `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time. Possible values are between `1` and `10000`.
 
@@ -229,7 +229,7 @@ A `data_disk` block supports the following:
 
 * `caching` - (Optional) The type of caching in a data disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
-* `disk_size_gb` - (Optional) The initial disk size in gigabytes. Possible values are between `1` and `32767`.
+* `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values are between `1` and `32767`.
 
 * `drive_letter` - (Optional) The drive letter for the empty data disk. If not specified, it will be the first available letter.
 
@@ -251,19 +251,19 @@ An `image` block supports the following:
 
 * `buffer` - (Optional) The percentage of the buffer to be allocated to this image. Possible values are `*` or between `0` and `100`.
 
-* `resource_id` - (Optional) The resource id of the image.
+* `id` - (Optional) The resource id of the image.
 
 * `well_known_image_name` - (Optional) The image to use from a well-known set of images made available to customers.
 
 ~> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=arm#azure-pipelines-images). You can optionally specify a version in your well_known_image_name, for example `windows-2022/latest` or `windows-2022/20250427.1.0`. If you don't specify a version, latest is used.
 
-~> **Note:** Exactly one of `resource_id` or `well_known_image_name` are required per `image`
+~> **Note:** Exactly one of `id` or `well_known_image_name` are required per `image`
 
 ---
 
 A `manual_resource_predictions_profile` block supports the following:
 
-* `time_zone` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
+* `time_zone_name` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
 
 * `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are between `1` and `maximum_concurrency`.
 
@@ -307,7 +307,7 @@ An `os_profile` block supports the following:
 
 * `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
 
-* `secrets_management` - (Optional) A `secrets_management` block as defined below.
+* `key_vault_management` - (Optional) A `key_vault_management` block as defined below.
 
 ---
 
@@ -319,7 +319,7 @@ A `permission_profile` block supports the following:
 
 ---
 
-A `secrets_management` block supports the following:
+A `key_vault_management` block supports the following:
 
 * `certificate_store_location` - (Optional) Specifies where to store certificates on the machine.
 
@@ -327,7 +327,7 @@ A `secrets_management` block supports the following:
 
 * `key_export_enabled` - (Required) Defines if the key of the certificates should be exportable.
 
-* `observed_certificates` - (Required) Specifies the list of certificates from Azure Key vault to install on all machines in the pool.
+* `key_vault_certificate_ids` - (Required) Specifies the list of certificates from Azure Key vault to install on all machines in the pool.
 
 ---
 

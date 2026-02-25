@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package manageddevopspools
 
 import (
@@ -30,7 +33,7 @@ var (
 type ManagedDevOpsPoolResource struct{}
 
 type ManagedDevOpsPoolModel struct {
-	DevCenterProjectResourceId     string                                `tfschema:"dev_center_project_resource_id"`
+	DevCenterProjectId             string                                `tfschema:"dev_center_project_id"`
 	VmssFabricProfile              []VmssFabricProfileModel              `tfschema:"vmss_fabric_profile"`
 	Identity                       []identity.ModelUserAssigned          `tfschema:"identity"`
 	Location                       string                                `tfschema:"location"`
@@ -49,9 +52,12 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9-]$`),
-				"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(3, 44),
+				validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9-]$`),
+					"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
+				),
 			),
 		},
 
@@ -147,7 +153,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"dev_center_project_resource_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
+		"dev_center_project_id": commonschema.ResourceIDReferenceRequired(&projects.ProjectId{}),
 
 		"maximum_concurrency": {
 			Type:         pluginsdk.TypeInt,
@@ -178,13 +184,14 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								"buffer": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
+									Default:  "*",
 									ValidateFunc: validation.StringMatch(
 										regexp.MustCompile(`^(?:\*|[0-9][0-9]?|100)$`),
 										`Buffer must be "*" or value between 0 and 100.`,
 									),
 								},
 
-								"resource_id": {
+								"id": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
 									ValidateFunc: azure.ValidateResourceID,
@@ -224,7 +231,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
 								},
 
-								"secrets_management": {
+								"key_vault_management": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
 									MaxItems: 1,
@@ -235,7 +242,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												Required: true,
 											},
 
-											"observed_certificates": {
+											"key_vault_certificate_ids": {
 												Type:     pluginsdk.TypeList,
 												Required: true,
 												Elem: &pluginsdk.Schema{
@@ -280,10 +287,10 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
 											},
 
-											"disk_size_gb": {
+											"disk_size_in_gb": {
 												Type:         pluginsdk.TypeInt,
-												Optional:     true,
-												ValidateFunc: validation.IntBetween(1, 32767),
+												Required:     true,
+												ValidateFunc: validation.IntBetween(1, 65536),
 											},
 
 											"drive_letter": {
@@ -316,6 +323,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+
+		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"stateful_agent_profile": {
 			Type:     pluginsdk.TypeList,
@@ -358,8 +367,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
 		},
-
-		"identity": commonschema.UserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -418,7 +425,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				Location: config.Location,
 				Identity: expandedIdentity,
 				Properties: &pools.PoolProperties{
-					DevCenterProjectResourceId: config.DevCenterProjectResourceId,
+					DevCenterProjectResourceId: config.DevCenterProjectId,
 					MaximumConcurrency:         config.MaximumConcurrency,
 					AgentProfile:               agentProfile,
 					OrganizationProfile:        azureDevOpsOrganizationProfile,
@@ -475,8 +482,8 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				payload.Identity = expandedIdentity
 			}
 
-			if metadata.ResourceData.HasChange("dev_center_project_resource_id") {
-				payload.Properties.DevCenterProjectResourceId = config.DevCenterProjectResourceId
+			if metadata.ResourceData.HasChange("dev_center_project_id") {
+				payload.Properties.DevCenterProjectResourceId = config.DevCenterProjectId
 			}
 
 			if metadata.ResourceData.HasChange("maximum_concurrency") {
@@ -556,7 +563,7 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-					state.DevCenterProjectResourceId = props.DevCenterProjectResourceId
+					state.DevCenterProjectId = props.DevCenterProjectResourceId
 					state.MaximumConcurrency = props.MaximumConcurrency
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
@@ -674,15 +681,15 @@ func validateVmssFabricProfileImages(metadata sdk.ResourceMetaData, vmssFabricPr
 
 	for _, vmssFabricProfile := range vmssFabricProfiles {
 		for i, image := range vmssFabricProfile.Images {
-			haveResourceId := image.ResourceId != ""
+			haveResourceId := image.Id != ""
 			haveWellKnownImageName := image.WellKnownImageName != ""
 
 			if !haveResourceId && !haveWellKnownImageName {
-				return fmt.Errorf("one of `resource_id` or `well_known_image_name` must be specified for image %d in `vmss_fabric_profile`", i)
+				return fmt.Errorf("one of `id` or `well_known_image_name` must be specified for image %d in `vmss_fabric_profile`", i)
 			}
 
 			if haveResourceId && haveWellKnownImageName {
-				return fmt.Errorf("only one of `resource_id` or `well_known_image_name` can be specified for image %d in `vmss_fabric_profile`", i)
+				return fmt.Errorf("only one of `id` or `well_known_image_name` can be specified for image %d in `vmss_fabric_profile`", i)
 			}
 		}
 	}
