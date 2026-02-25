@@ -26,6 +26,7 @@ resource "azurerm_dashboard_grafana" "example" {
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
+  snapshot_external_enabled         = true
 
   identity {
     type = "SystemAssigned"
@@ -53,6 +54,8 @@ The following arguments are supported:
 
 * `auto_generated_domain_name_label_scope` - (Optional) Scope for dns deterministic name hash calculation. The only possible value is `TenantReuse`. Defaults to `TenantReuse`.
 
+* `csrf_always_check` - (Optional) Whether to enable CSRF (Cross-Site Request Forgery) always check for the Grafana instance. Defaults to `false`.
+
 * `deterministic_outbound_ip_enabled` - (Optional) Whether to enable the Grafana instance to use deterministic outbound IPs. Defaults to `false`.
 
 * `smtp` - (Optional) A `smtp` block as defined below.
@@ -65,7 +68,13 @@ The following arguments are supported:
 
 * `sku` - (Optional) The name of the SKU used for the Grafana instance. Possible values are `Standard` and `Essential`. Defaults to `Standard`. Changing this forces a new Dashboard Grafana to be created.
 
+* `snapshot_external_enabled` - (Optional) Whether to enable external snapshot publish endpoint for the Grafana instance. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana.
+
+* `unified_alerting_screenshots_capture_enabled` - (Optional) Whether to enable unified alerting screenshots capture for the Grafana instance. Defaults to `false`.
+
+* `users` - (Optional) A `users` block as defined below.
 
 * `zone_redundancy_enabled` - (Optional) Whether to enable the zone redundancy setting of the Grafana instance. Defaults to `false`. Changing this forces a new Dashboard Grafana to be created.
 
@@ -94,6 +103,14 @@ A `smtp` block supports the following:
 An `azure_monitor_workspace_integrations` block supports the following:
 
 * `resource_id` - (Required) Specifies the resource ID of the connected Azure Monitor Workspace.
+
+---
+
+A `users` block supports the following:
+
+* `editors_can_admin` - (Optional) Whether Grafana Editors can administer the Grafana instance. Defaults to `false`.
+
+* `viewers_can_edit` - (Optional) Whether Grafana Viewers can edit but not save dashboards. Defaults to `false`.
 
 ---
 
