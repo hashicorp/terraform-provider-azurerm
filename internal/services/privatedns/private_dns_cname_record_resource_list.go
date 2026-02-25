@@ -21,10 +21,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateDnsCNameRecordListResource struct{}
-type PrivateDnsCNameRecordListModel struct {
-	PrivateDnsZoneId types.String `tfsdk:"private_dns_zone_id"`
-}
+type (
+	PrivateDnsCNameRecordListResource struct{}
+	PrivateDnsCNameRecordListModel    struct {
+		PrivateDnsZoneId types.String `tfsdk:"private_dns_zone_id"`
+	}
+)
 
 var _ sdk.FrameworkListWrappedResource = new(PrivateDnsCNameRecordListResource)
 
@@ -35,6 +37,7 @@ func (r PrivateDnsCNameRecordListResource) ResourceFunc() *pluginsdk.Resource {
 func (r PrivateDnsCNameRecordListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = "azurerm_private_dns_cname_record"
 }
+
 func (r PrivateDnsCNameRecordListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
