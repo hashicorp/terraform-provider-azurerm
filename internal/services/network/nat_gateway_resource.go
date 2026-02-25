@@ -87,8 +87,12 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 			ForceNew: true,
 			Elem: &schema.Schema{
-				Type:         schema.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type: schema.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"1",
+					"2",
+					"3",
+				}, false),
 			},
 		},
 
