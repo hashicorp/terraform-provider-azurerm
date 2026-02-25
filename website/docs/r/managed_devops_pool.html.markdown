@@ -92,11 +92,11 @@ data "azurerm_platform_image" "example" {
 }
 
 resource "azurerm_managed_devops_pool" "example" {
-  name                           = "example"
-  resource_group_name            = azurerm_resource_group.example.name
-  location                       = azurerm_resource_group.example.location
+  name                  = "example"
+  resource_group_name   = azurerm_resource_group.example.name
+  location              = azurerm_resource_group.example.location
   dev_center_project_id = azurerm_dev_center_project.example.id
-  maximum_concurrency            = 1
+  maximum_concurrency   = 1
 
   azure_devops_organization_profile {
     organization {
@@ -133,8 +133,8 @@ resource "azurerm_managed_devops_pool" "example" {
     sku_name = "Standard_D2ads_v5"
 
     image {
-      id = data.azurerm_platform_image.example.id
-      buffer      = "*"
+      id     = data.azurerm_platform_image.example.id
+      buffer = "*"
     }
 
     image {
@@ -148,7 +148,7 @@ resource "azurerm_managed_devops_pool" "example" {
 
       data_disk {
         disk_size_in_gb = 1
-        drive_letter = "F"
+        drive_letter    = "F"
       }
     }
 

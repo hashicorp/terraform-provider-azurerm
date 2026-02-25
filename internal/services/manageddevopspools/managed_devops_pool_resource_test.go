@@ -312,7 +312,7 @@ resource "azurerm_managed_devops_pool" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  maximum_concurrency            = 1
+  maximum_concurrency   = 1
   dev_center_project_id = azurerm_dev_center_project.test.id
 
   azure_devops_organization_profile {
@@ -343,7 +343,7 @@ resource "azurerm_managed_devops_pool" "import" {
   location            = azurerm_managed_devops_pool.test.location
   resource_group_name = azurerm_managed_devops_pool.test.resource_group_name
 
-  maximum_concurrency            = 1
+  maximum_concurrency   = 1
   dev_center_project_id = azurerm_dev_center_project.test.id
 
   azure_devops_organization_profile {
@@ -391,7 +391,7 @@ resource "azurerm_managed_devops_pool" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  maximum_concurrency            = 2
+  maximum_concurrency   = 2
   dev_center_project_id = azurerm_dev_center_project.test2.id
 
   azure_devops_organization_profile {
@@ -500,7 +500,7 @@ resource "azurerm_managed_devops_pool" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  maximum_concurrency            = 2
+  maximum_concurrency   = 2
   dev_center_project_id = azurerm_dev_center_project.test2.id
 
   azure_devops_organization_profile {
