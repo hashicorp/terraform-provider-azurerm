@@ -173,6 +173,43 @@ func TestAccSubnet_deleteOnDestroy(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_deleteOnDestroy_default(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deleteOnDestroyDefault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delete_on_destroy").HasValue("true"),
+			),
+		},
+		data.ImportStep("delete_on_destroy"),
+	})
+}
+
+func TestAccSubnet_deleteOnDestroy_stateOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deleteOnDestroy(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("delete_on_destroy").HasValue("false"),
+			),
+		},
+		{
+			Config: r.deleteOnDestroyStateOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("data.azurerm_subnet.internal").Key("name").HasValue("internal"),
+			),
+		},
+	})
+}
+
 func TestAccSubnet_delegation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -740,6 +777,30 @@ resource "azurerm_subnet" "internal" {
 	delete_on_destroy    = %t
 }
 `, r.template(data), deleteOnDestroy)
+}
+
+func (r SubnetResource) deleteOnDestroyDefault(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_subnet" "internal" {
+	name                 = "internal"
+	resource_group_name  = azurerm_resource_group.test.name
+	virtual_network_name = azurerm_virtual_network.test.name
+	address_prefixes     = ["10.0.2.0/24"]
+}
+`, r.template(data))
+}
+
+func (r SubnetResource) deleteOnDestroyStateOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_subnet" "internal" {
+	name                 = "internal"
+	resource_group_name  = azurerm_resource_group.test.name
+	virtual_network_name = azurerm_virtual_network.test.name
+}
+`, r.template(data))
 }
 
 func (r SubnetResource) delegationUpdated(data acceptance.TestData) string {
