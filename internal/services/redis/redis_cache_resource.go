@@ -37,6 +37,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name azurerm_redis_cache -service-package-name redis -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicWithSSL
+
+var redisCacheResourceName = "azurerm_redis_cache"
+
 var skuWeight = map[string]int8{
 	"Basic":    1,
 	"Standard": 2,
@@ -45,14 +49,15 @@ var skuWeight = map[string]int8{
 
 func resourceRedisCache() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceRedisCacheCreate,
-		Read:   resourceRedisCacheRead,
-		Update: resourceRedisCacheUpdate,
-		Delete: resourceRedisCacheDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := redisresources.ParseRediID(id)
-			return err
-		}),
+		Create:   resourceRedisCacheCreate,
+		Read:     resourceRedisCacheRead,
+		Update:   resourceRedisCacheUpdate,
+		Delete:   resourceRedisCacheDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&redisresources.RediId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&redisresources.RediId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
@@ -553,6 +558,9 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	if patchSchedule != nil {
 		patchScheduleRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
@@ -688,7 +696,6 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Redis.RedisResourcesClient
-	patchSchedulesClient := meta.(*clients.Client).Redis.PatchSchedulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -706,25 +713,17 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	keysResp, err := client.RedisListKeys(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", *id, err)
-	}
+	return resourceRedisCacheFlatten(ctx, meta.(*clients.Client), d, id, resp.Model, true)
+}
 
-	patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
-	schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchSchedulesRedisId)
-	var patchSchedule []interface{}
-	if err == nil {
-		patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
-	}
-	if err = d.Set("patch_schedule", patchSchedule); err != nil {
-		return fmt.Errorf("setting `patch_schedule`: %+v", err)
-	}
+func resourceRedisCacheFlatten(ctx context.Context, metaClient *clients.Client, d *pluginsdk.ResourceData, id *redisresources.RediId, redis *redisresources.RedisResource, fetchCompleteData bool) error {
+	client := metaClient.Redis.RedisResourcesClient
+	patchSchedulesClient := metaClient.Redis.PatchSchedulesClient
 
 	d.Set("name", id.RedisName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
-		redisIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+	if redis != nil {
+		redisIdentity, err := identity.FlattenSystemAndUserAssignedMap(redis.Identity)
 		if err != nil {
 			return fmt.Errorf("flattening `identity`: %+v", err)
 		}
@@ -732,10 +731,10 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `identity`: %+v", err)
 		}
 
-		d.Set("location", location.Normalize(model.Location))
-		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		d.Set("location", location.Normalize(redis.Location))
+		d.Set("zones", zones.FlattenUntyped(redis.Zones))
 
-		props := model.Properties
+		props := redis.Properties
 		d.Set("capacity", int(props.Sku.Capacity))
 		d.Set("family", string(props.Sku.Family))
 		d.Set("sku_name", string(props.Sku.Name))
@@ -786,18 +785,35 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			return fmt.Errorf("setting `redis_configuration`: %+v", err)
 		}
 
-		d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, true))
-		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
-		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
-		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
-		d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
+		if fetchCompleteData {
+			keysResp, err := client.RedisListKeys(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing keys for %s: %+v", *id, err)
+			}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			d.Set("primary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.PrimaryKey, true))
+			d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
+			d.Set("primary_access_key", keysResp.Model.PrimaryKey)
+			d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
+			d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
+
+			patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
+			schedule, err := patchSchedulesClient.PatchSchedulesGet(ctx, patchSchedulesRedisId)
+			var patchSchedule []interface{}
+			if err == nil {
+				patchSchedule = flattenRedisPatchSchedules(*schedule.Model)
+			}
+			if err = d.Set("patch_schedule", patchSchedule); err != nil {
+				return fmt.Errorf("setting `patch_schedule`: %+v", err)
+			}
+		}
+
+		if err := tags.FlattenAndSet(d, redis.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRedisCacheDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -892,10 +908,12 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 
 	// AAD/Entra support
 	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
+	v, valExists := d.GetOk("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
 		output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
+	} else {
+		output.AadEnabled = pointer.To("false")
 	}
 
 	// RDB Backup

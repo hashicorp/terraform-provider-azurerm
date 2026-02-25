@@ -8,7 +8,7 @@ If you are ever unsure please just reach out, we are more than happy to guide yo
 
 ## Considerations
 
-As a general rule, the smaller the PR the quicker it's merged - as such when upgrading an SDK and introducing new properties we'd ask that you split that into multiple smaller PR's, for example if you were planning on updating an SDK to add a new resource and update an existing one we would prefer `3` separate PRs:
+As a general rule, the smaller the PR the quicker it's merged - as such when upgrading an SDK and introducing new properties we'd ask that you split that into multiple smaller PRs, for example if you were planning on updating an SDK to add a new resource and update an existing one we would prefer `3` separate PRs:
 
 1. Update the Cosmos DB SDK to use API Version `2022-02-02` from `2020-01-01`.
 2. Add the new property `new_feature` to the `azurerm_cosmosdb_*` resources.
@@ -47,6 +47,8 @@ In general, Pull Requests which add/change either code or SDK's go through the f
 * The PR Title is obvious/clear about what it's changing (see `Title` below).
 * The PR Body contains a summary of what/why is included (see `Body` below).
 * any linked Issues (see `Body` below)
+* Avoid force pushing - it removes commit history and forces reviewers to re-review everything
+* Reply to every reviewer comment and only mark it as resolved if you are 100% sure it has been resolved, such as "remove this comment" and you have removed it.
 
 ### Title
 

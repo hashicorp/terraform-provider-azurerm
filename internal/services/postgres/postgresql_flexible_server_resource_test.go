@@ -709,6 +709,30 @@ func TestAccPostgresqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_cluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	t.Skip(r.cluster(data, 3))
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cluster(data, 3),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.cluster(data, 5),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -733,7 +757,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-postgresql-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (PostgresqlFlexibleServerResource) templateWithLocationOverride(data acceptance.TestData, location string) string {
@@ -848,7 +872,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-postgresql-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -863,7 +887,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                         = "1"
   geo_redundant_backup_enabled = true
 }
-`, data.RandomInteger)
+`, data.RandomInteger, "southcentralus")
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestore(data acceptance.TestData) string {
@@ -873,12 +897,12 @@ func (r PostgresqlFlexibleServerResource) geoRestore(data acceptance.TestData) s
 resource "azurerm_postgresql_flexible_server" "geo_restore" {
   name                              = "acctest-fs-restore-%d"
   resource_group_name               = azurerm_resource_group.test.name
-  location                          = "westus"
+  location                          = "%s"
   create_mode                       = "GeoRestore"
   source_server_id                  = azurerm_postgresql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
 }
-`, r.geoRestoreSource(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
+`, r.geoRestoreSource(data), data.RandomInteger, "northcentralus", time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
 func (r PostgresqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
@@ -1354,7 +1378,7 @@ resource "azurerm_key_vault_key" "test" {
     azurerm_key_vault_access_policy.server,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString, data.RandomString)
 }
 
 func (r PostgresqlFlexibleServerResource) withCustomerManagedKey(data acceptance.TestData) string {
@@ -1698,4 +1722,27 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                              = "2"
 }
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
+}
+
+func (r PostgresqlFlexibleServerResource) cluster(data acceptance.TestData, clusterSize int) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  storage_tier           = "P4"
+  version                = "17"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+
+  cluster {
+    size                  = %d
+    default_database_name = "testdb"
+  }
+}
+`, r.template(data), data.RandomInteger, clusterSize)
 }

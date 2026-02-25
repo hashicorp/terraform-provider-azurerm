@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automanage/2022-05-04/configurationprofiles"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automanage/migration"
@@ -88,12 +89,19 @@ type SchedulePolicyConfiguration struct {
 	SchedulePolicyType   string   `tfschema:"schedule_policy_type"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name automanage_configuration -service-package-name automanage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 type AutoManageConfigurationResource struct{}
 
 var (
 	_ sdk.ResourceWithUpdate         = AutoManageConfigurationResource{}
 	_ sdk.ResourceWithStateMigration = AutoManageConfigurationResource{}
+	_ sdk.ResourceWithIdentity       = AutoManageConfigurationResource{}
 )
+
+func (r AutoManageConfigurationResource) Identity() resourceids.ResourceId {
+	return &configurationprofiles.ConfigurationProfileId{}
+}
 
 func (r AutoManageConfigurationResource) ResourceType() string {
 	return "azurerm_automanage_configuration"
@@ -497,6 +505,9 @@ func (r AutoManageConfigurationResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -598,6 +609,9 @@ func (r AutoManageConfigurationResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}

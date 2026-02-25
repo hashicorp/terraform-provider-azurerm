@@ -13,7 +13,7 @@ import (
 
 func NewClient(o *common.ClientOptions) (*datadog_v2021_03_01.Client, error) {
 	client, err := datadog_v2021_03_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
-		c.Authorizer = o.Authorizers.ResourceManager
+		o.Configure(c.Client, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
 		return nil, fmt.Errorf("building client: %+v", err)

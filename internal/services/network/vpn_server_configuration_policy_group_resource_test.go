@@ -29,7 +29,7 @@ func TestAccVPNServerConfigurationPolicyGroup_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
@@ -44,7 +44,7 @@ func TestAccVPNServerConfigurationPolicyGroup_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
@@ -59,14 +59,14 @@ func TestAccVPNServerConfigurationPolicyGroup_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 
@@ -96,7 +96,7 @@ func TestAccVPNServerConfigurationPolicyGroup_multiplePolicyGroups(t *testing.T)
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("radius.0.server.0.secret"),
 	})
 }
 

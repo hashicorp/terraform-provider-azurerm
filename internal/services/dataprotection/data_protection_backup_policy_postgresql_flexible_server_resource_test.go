@@ -9,18 +9,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type DataProtectionBackupPolicyPostgreSQLFlexibleServerResource struct{}
+type DataProtectionBackupPolicyPostgresqlFlexibleServerResource struct{}
 
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
-	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+	r := DataProtectionBackupPolicyPostgresqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_basic(t *testing.
 
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
-	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+	r := DataProtectionBackupPolicyPostgresqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -50,7 +50,7 @@ func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_requiresImport(t 
 
 func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_postgresql_flexible_server", "test")
-	r := DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{}
+	r := DataProtectionBackupPolicyPostgresqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,19 +63,19 @@ func TestAccDataProtectionBackupPolicyPostgreSQLFlexibleServer_complete(t *testi
 	})
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
+func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) template(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -96,7 +96,7 @@ resource "azurerm_data_protection_backup_vault" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) basic(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -115,7 +115,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "tes
 `, r.template(data), data.RandomInteger)
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) requiresImport(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +134,7 @@ resource "azurerm_data_protection_backup_policy_postgresql_flexible_server" "imp
 `, r.basic(data))
 }
 
-func (r DataProtectionBackupPolicyPostgreSQLFlexibleServerResource) complete(data acceptance.TestData) string {
+func (r DataProtectionBackupPolicyPostgresqlFlexibleServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

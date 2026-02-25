@@ -38,9 +38,10 @@ while [ $# -gt 0 ]; do
   done
 
   # shift options to get positional arguments
+  # shellcheck disable=SC2181 # Checking $? is clearer here for option parsing
   [ $? -eq 0 ] || exit 1
   [ $OPTIND -gt $# ] && break
-  shift $[$OPTIND-1]
+  shift $((OPTIND-1))
   OPTIND=1
   ARGS[${#ARGS[*]}]="${1}"
   shift
@@ -52,6 +53,7 @@ if [[ -z "${MODULE_PATH}" ]]; then
   exit 1
 fi
 
+# shellcheck disable=SC2206 # Word splitting is intentional here to split path components
 _mod=(${MODULE_PATH//\// })
 for (( i=${#_mod[@]}-1 ; i>=0 ; i-- )) ; do
   if ! [[ "${_mod[${i}]}" =~ ^v[0-9]$ ]]; then
@@ -83,10 +85,10 @@ if [[ "${CURRENT_BRANCH}" != "${TRUNK}" ]]; then
 fi
 
 
-if git branch -l ${BRANCH_NAME} | grep -q ${BRANCH_NAME}; then
+if git branch -l "${BRANCH_NAME}" | grep -q "${BRANCH_NAME}"; then
   if [[ "${FORCE}" == "1" ]]; then
     echo "Caution: Deleting existing branch ${BRANCH_NAME} as \`-f\` was specified."
-    git branch -D ${BRANCH_NAME}
+    git branch -D "${BRANCH_NAME}"
   else
     echo "The branch \`${BRANCH_NAME}\` already exists. Specify \`-f\` to delete it." >&2
     exit 1
@@ -107,7 +109,7 @@ pwd
 echo "Checking out a new branch..."
 (
   set -x
-  git checkout -b ${BRANCH_NAME}
+  git checkout -b "${BRANCH_NAME}"
 )
 
 VERSION="${ARGS[1]}"
@@ -115,13 +117,14 @@ VERSION="${ARGS[1]}"
 echo "Updating dependency..."
 (
   set -x
-  go get ${MODULE_PATH}@${VERSION:-latest}
+  go get "${MODULE_PATH}"@"${VERSION:-latest}"
   go get ./...
   go mod vendor
   go mod tidy
 )
 
 if [[ -z "${VERSION}" ]]; then
+  # shellcheck disable=SC2207 # Word splitting is intentional to parse go.mod line
   _mod=($(grep "${MODULE_PATH}" "${REPO_DIR}"/go.mod))
   if [[ "${#_mod[@]}" == "2" ]]; then
     VERSION="${_mod[1]}"
