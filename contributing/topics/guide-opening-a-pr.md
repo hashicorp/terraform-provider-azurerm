@@ -8,7 +8,7 @@ If you are ever unsure please just reach out, we are more than happy to guide yo
 
 ## Considerations
 
-As a general rule, the smaller the PR the quicker it's merged - as such when upgrading an SDK and introducing new properties we'd ask that you split that into multiple smaller PR's, for example if you were planning on updating an SDK to add a new resource and update an existing one we would prefer `3` separate PRs:
+As a general rule, the smaller the PR the quicker it's merged - as such when upgrading an SDK and introducing new properties we'd ask that you split that into multiple smaller PRs, for example if you were planning on updating an SDK to add a new resource and update an existing one we would prefer `3` separate PRs:
 
 1. Update the Cosmos DB SDK to use API Version `2022-02-02` from `2020-01-01`.
 2. Add the new property `new_feature` to the `azurerm_cosmosdb_*` resources.

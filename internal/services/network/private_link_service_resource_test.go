@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -31,6 +32,7 @@ func TestAccPrivateLinkService_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestPLS-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("nat_ip_configuration.#").HasValue("1"),
 				check.That(data.ResourceName).Key("load_balancer_frontend_ip_configuration_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -168,6 +170,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -176,6 +179,7 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -184,6 +188,46 @@ func TestAccPrivateLinkService_enableProxyProtocol(t *testing.T) {
 			Config: r.enableProxyProtocol(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("proxy_protocol_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPrivateLinkService_enableProxyProtocolDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as `enable_proxy_protocol` is deprecated in favour of `proxy_protocol_enabled` in v5.0 of the provider")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_private_link_service", "test")
+	r := PrivateLinkServiceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Enable
+			Config: r.enableProxyProtocolDeprecated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_proxy_protocol").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Disable
+			Config: r.enableProxyProtocolDeprecated(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_proxy_protocol").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Enable
+			Config: r.enableProxyProtocolDeprecated(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("enable_proxy_protocol").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -392,6 +436,38 @@ resource "azurerm_private_link_service" "import" {
 }
 
 func (r PrivateLinkServiceResource) enableProxyProtocol(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsnet-basic-%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.4.0/24"]
+
+  private_link_service_network_policies_enabled = false
+}
+
+resource "azurerm_private_link_service" "test" {
+  name                   = "acctestPLS-%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  proxy_protocol_enabled = %t
+
+  nat_ip_configuration {
+    name      = "primaryIpConfiguration-%d"
+    subnet_id = azurerm_subnet.test.id
+    primary   = true
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, enabled, data.RandomInteger)
+}
+
+func (r PrivateLinkServiceResource) enableProxyProtocolDeprecated(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
 
