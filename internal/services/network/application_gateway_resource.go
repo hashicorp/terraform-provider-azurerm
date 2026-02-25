@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -21,11 +22,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -108,7 +111,7 @@ func sslProfileSchema(computed bool) *pluginsdk.Schema {
 }
 
 func resourceApplicationGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create:   resourceApplicationGatewayCreate,
 		Read:     resourceApplicationGatewayRead,
 		Update:   resourceApplicationGatewayUpdate,
@@ -224,6 +227,12 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"dedicated_backend_connection_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"host_name": {
@@ -905,10 +914,10 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 			// lintignore:XS003
 			"ssl_policy": sslProfileSchema(true),
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_http2": {
+			"http2_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"force_firewall_policy_association": {
@@ -1233,8 +1242,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						// TODO: replace cert by certificate in 4.0
-						"verify_client_cert_issuer_dn": {
+						"verify_client_certificate_issuer_dn": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -1543,6 +1551,34 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(applicationGatewayCustomizeDiff),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["http2_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_http2"},
+		}
+		resource.Schema["enable_http2"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "the `enable_http2` property has been deprecated in favour of the `http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_certificate_issuer_dn"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+		resource.Schema["ssl_profile"].Elem.(*pluginsdk.Resource).Schema["verify_client_cert_issuer_dn"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "the `ssl_profile.verify_client_cert_issuer_dn` property has been deprecated in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property and will be removed in v5.0 of the AzureRM provider",
+		}
+	}
+
+	return resource
 }
 
 func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -1564,7 +1600,11 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError("azurerm_application_gateway", id.ID())
 	}
 
-	enablehttp2 := d.Get("enable_http2").(bool)
+	http2Enabled := d.Get("http2_enabled").(bool)
+	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_http2"].IsNull() {
+		http2Enabled = d.Get("enable_http2").(bool)
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
@@ -1624,7 +1664,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
 			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
-			EnableHTTP2:                   pointer.To(enablehttp2),
+			EnableHTTP2:                   pointer.To(http2Enabled),
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
@@ -1719,6 +1759,10 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceApplicationGatewayRead(d, meta)
 }
 
@@ -1751,8 +1795,17 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		payload.Properties = &applicationgateways.ApplicationGatewayPropertiesFormat{}
 	}
 
-	if d.HasChange("enable_http2") {
-		payload.Properties.EnableHTTP2 = pointer.To(d.Get("enable_http2").(bool))
+	if !features.FivePointOh() && d.HasChanges("enable_http2", "http2_enabled") {
+		enableHttp2 := false
+		if d.HasChange("enable_http2") && !d.GetRawConfig().AsValueMap()["enable_http2"].IsNull() {
+			enableHttp2 = d.Get("enable_http2").(bool)
+		}
+		if d.HasChange("http2_enabled") && !d.GetRawConfig().AsValueMap()["http2_enabled"].IsNull() {
+			enableHttp2 = d.Get("http2_enabled").(bool)
+		}
+		payload.Properties.EnableHTTP2 = pointer.To(enableHttp2)
+	} else if d.HasChange("http2_enabled") {
+		payload.Properties.EnableHTTP2 = pointer.To(d.Get("http2_enabled").(bool))
 	}
 
 	if d.HasChange("trusted_root_certificate") {
@@ -2001,11 +2054,14 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceApplicationGatewaySetFlatten(d, id, resp.Model)
+}
 
+func resourceApplicationGatewaySetFlatten(d *pluginsdk.ResourceData, id *applicationgateways.ApplicationGatewayId, model *applicationgateways.ApplicationGateway) error {
 	d.Set("name", id.ApplicationGatewayName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
@@ -2042,7 +2098,10 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 				return fmt.Errorf("setting `ssl_policy`: %+v", setErr)
 			}
 
-			d.Set("enable_http2", props.EnableHTTP2)
+			d.Set("http2_enabled", props.EnableHTTP2)
+			if !features.FivePointOh() {
+				d.Set("enable_http2", props.EnableHTTP2)
+			}
 			d.Set("fips_enabled", props.EnableFips)
 			d.Set("force_firewall_policy_association", props.ForceFirewallPolicyAssociation)
 
@@ -2422,6 +2481,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 			Name: &name,
 			Properties: &applicationgateways.ApplicationGatewayBackendHTTPSettingsPropertiesFormat{
 				CookieBasedAffinity:            pointer.To(applicationgateways.ApplicationGatewayCookieBasedAffinity(cookieBasedAffinity)),
+				DedicatedBackendConnection:     pointer.To(v["dedicated_backend_connection_enabled"].(bool)),
 				Path:                           pointer.To(path),
 				PickHostNameFromBackendAddress: pointer.To(pickHostNameFromBackendAddress),
 				Port:                           pointer.To(port),
@@ -2509,6 +2569,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 
 		if props := v.Properties; props != nil {
 			output["cookie_based_affinity"] = props.CookieBasedAffinity
+			output["dedicated_backend_connection_enabled"] = pointer.From(props.DedicatedBackendConnection)
 
 			if affinityCookieName := props.AffinityCookieName; affinityCookieName != nil {
 				output["affinity_cookie_name"] = affinityCookieName
@@ -4137,11 +4198,25 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 	vs := d.Get("ssl_profile").([]interface{})
 	results := make([]applicationgateways.ApplicationGatewaySslProfile, 0)
 
-	for _, raw := range vs {
+	for i, raw := range vs {
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
-		verifyClientCertIssuerDn := v["verify_client_cert_issuer_dn"].(bool)
+
+		verifyClientCertIssuerDn := false
+		if !features.FivePointOh() {
+			rawVerifyClientCertIssuerDn, _ := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("ssl_profile.%d.verify_client_cert_issuer_dn", i)))
+			if !rawVerifyClientCertIssuerDn.IsNull() {
+				verifyClientCertIssuerDn = v["verify_client_cert_issuer_dn"].(bool)
+			} else {
+				rawVerifyClientCertIssuerDn, _ := d.GetRawConfigAt(sdk.ConstructCtyPath(fmt.Sprintf("ssl_profile.%d.verify_client_certificate_issuer_dn", i)))
+				if !rawVerifyClientCertIssuerDn.IsNull() {
+					verifyClientCertIssuerDn = v["verify_client_certificate_issuer_dn"].(bool)
+				}
+			}
+		} else {
+			verifyClientCertIssuerDn = v["verify_client_certificate_issuer_dn"].(bool)
+		}
 		verifyClientCertificateRevocation := applicationgateways.ApplicationGatewayClientRevocationOptionsNone
 		if v["verify_client_certificate_revocation"].(string) != "" {
 			verifyClientCertificateRevocation = applicationgateways.ApplicationGatewayClientRevocationOptions(v["verify_client_certificate_revocation"].(string))
@@ -4232,7 +4307,10 @@ func flattenApplicationGatewaySslProfiles(input *[]applicationgateways.Applicati
 				}
 			}
 			output["trusted_client_certificate_names"] = trustedClientCertificateNames
-			output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
+			output["verify_client_certificate_issuer_dn"] = verifyClientCertIssuerDn
+			if !features.FivePointOh() {
+				output["verify_client_cert_issuer_dn"] = verifyClientCertIssuerDn
+			}
 			output["verify_client_certificate_revocation"] = verifyClientCertificateRevocation
 		}
 
@@ -4793,6 +4871,18 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		}
 	}
 
+	if tier != "" && d.HasChange("sku.0.tier") && slices.Contains(networkValidate.DeprecatedV1SkuTiers, tier) {
+		return fmt.Errorf("new creation / update to %q SKU tier is no longer supported, please use supported SKU tiers: \"Basic\", \"Standard_v2\", \"WAF_v2\", refer to https://aka.ms/V1retirement", tier)
+	}
+
+	if d.HasChange("sku.0.name") {
+		skuName := d.Get("sku.0.name").(string)
+
+		if skuName != "" && slices.Contains(networkValidate.DeprecatedV1SkuNames, skuName) {
+			return fmt.Errorf("new creation / update to %q SKU name is no longer supported, please use supported SKU names: \"Basic\", \"Standard_v2\", \"WAF_v2\", refer to https://aka.ms/V1retirement", skuName)
+		}
+	}
+
 	return nil
 }
 
@@ -4846,6 +4936,7 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%d", m["port"].(int)))
 		buf.WriteString(m["protocol"].(string))
 		buf.WriteString(m["cookie_based_affinity"].(string))
+		buf.WriteString(fmt.Sprintf("%t", m["dedicated_backend_connection_enabled"].(bool)))
 
 		if v, ok := m["path"]; ok {
 			buf.WriteString(v.(string))
@@ -4946,8 +5037,13 @@ func applicationGatewayProbeHash(v interface{}) int {
 		if match, ok := m["match"]; ok {
 			if attrs := match.([]interface{}); len(attrs) == 1 {
 				attr := attrs[0].(map[string]interface{})
-				if attr["body"].(string) != "" || len(attr["status_code"].([]interface{})) != 0 {
-					buf.WriteString(fmt.Sprintf("%s-%+v", attr["body"].(string), attr["status_code"].([]interface{})))
+				body := attr["body"].(string)
+				statusCodes := attr["status_code"].([]interface{})
+
+				// Only include in hash if it's not the default
+				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
+				if !defaultMatch {
+					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
 				}
 			}
 		}

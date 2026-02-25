@@ -35,7 +35,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
@@ -137,7 +137,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 An `sku_profile` block supports the following:
 
-* `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `LowestPrice` and `CapacityOptimized`.
+* `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `CapacityOptimized`, `LowestPrice` and `Prioritized`.
 
 * `vm_sizes` - (Required) Specifies the VM sizes for the virtual machine scale set.
 

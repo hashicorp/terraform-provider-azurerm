@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
-* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`. Changing this forces a new resource to be created.
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`.
 
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 
@@ -146,4 +146,4 @@ terraform import azurerm_dashboard_grafana.example /subscriptions/00000000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Dashboard` - 2023-09-01
+* `Microsoft.Dashboard` - 2025-08-01

@@ -64,7 +64,7 @@ resource "azurerm_dns_cname_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

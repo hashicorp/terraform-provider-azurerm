@@ -24,7 +24,7 @@ output "netapp_pool_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -68,6 +68,12 @@ The following arguments are supported:
 
 * `request_message` - (Optional) The user request message.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Managed Private Endpoint for a Kusto Cluster.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:

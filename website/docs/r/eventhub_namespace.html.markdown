@@ -31,7 +31,7 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

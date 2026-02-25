@@ -56,7 +56,7 @@ resource "azurerm_resource_policy_remediation" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -20,7 +20,7 @@ data "azurerm_eventgrid_domain_topic" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

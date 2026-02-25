@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -15,10 +15,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestStorageAccount_list_basic(t *testing.T) {
+func TestAccStorageAccount_list_basic(t *testing.T) {
 	r := StorageAccountResource{}
 
-	data := acceptance.BuildTestData(t, "azurerm_storage_account", "list1")
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	listResourceAddress := "azurerm_storage_account.test"
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
@@ -30,14 +31,18 @@ func TestStorageAccount_list_basic(t *testing.T) {
 				Config: r.basicList(data),
 			},
 			{
-				Query:             true,
-				Config:            r.basicQuery(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQuery(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLengthAtLeast(listResourceAddress, 3),
+				},
 			},
 			{
-				Query:             true,
-				Config:            r.basicQueryByResourceGroup(data),
-				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
+				Query:  true,
+				Config: r.basicQueryByResourceGroup(data),
+				QueryResultChecks: []querycheck.QueryResultCheck{
+					querycheck.ExpectLength(listResourceAddress, 3),
+				},
 			},
 		},
 	})
@@ -55,7 +60,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                = "unlikely23exst2acct%s"
+  count = 3
+
+  name                = "acctestunlkly2exst${count.index}%s"
   resource_group_name = azurerm_resource_group.test.name
 
   location                 = azurerm_resource_group.test.location
@@ -82,7 +89,7 @@ func (r StorageAccountResource) basicQueryByResourceGroup(data acceptance.TestDa
 list "azurerm_storage_account" "test" {
   provider = azurerm
   config {
-	resource_group_name = "acctestRG-storage-%d"
+    resource_group_name = "acctestRG-storage-%d"
   }
 }
 `, data.RandomInteger)

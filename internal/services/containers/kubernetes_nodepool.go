@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -253,7 +253,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: computeValidate.HostGroupID,
 					},
 
-					"upgrade_settings": upgradeSettingsSchema(),
+					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
 
 					"workload_runtime": {
 						Type:     pluginsdk.TypeString,
@@ -678,34 +678,65 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 	}
 }
 
+func upgradeSettingsSchemaClusterDefaultNodePool() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"max_surge": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+				},
+				"drain_timeout_in_minutes": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+				"node_soak_duration_in_minutes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 30),
+				},
+				"undrainable_node_behavior": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
+				},
+			},
+		},
+	}
+}
+
 func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAgentPoolProfile) agentpools.AgentPool {
 	defaultCluster := (*input)[0]
 
 	agentpool := agentpools.AgentPool{
 		Name: &defaultCluster.Name,
 		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
-			Count:                     defaultCluster.Count,
-			VMSize:                    defaultCluster.VMSize,
-			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
-			VnetSubnetID:              defaultCluster.VnetSubnetID,
-			MaxPods:                   defaultCluster.MaxPods,
-			MaxCount:                  defaultCluster.MaxCount,
-			MinCount:                  defaultCluster.MinCount,
-			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
-			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
-			EnableFIPS:                defaultCluster.EnableFIPS,
-			EnableUltraSSD:            defaultCluster.EnableUltraSSD,
-			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
-			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
-			AvailabilityZones:         defaultCluster.AvailabilityZones,
-			EnableNodePublicIP:        defaultCluster.EnableNodePublicIP,
-			NodePublicIPPrefixID:      defaultCluster.NodePublicIPPrefixID,
-			SpotMaxPrice:              defaultCluster.SpotMaxPrice,
-			MessageOfTheDay:           defaultCluster.MessageOfTheDay,
-			NodeLabels:                defaultCluster.NodeLabels,
-			NodeTaints:                defaultCluster.NodeTaints,
-			PodSubnetID:               defaultCluster.PodSubnetID,
-			Tags:                      defaultCluster.Tags,
+			CapacityReservationGroupID: defaultCluster.CapacityReservationGroupID,
+			Count:                      defaultCluster.Count,
+			VMSize:                     defaultCluster.VMSize,
+			OsDiskSizeGB:               defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:               defaultCluster.VnetSubnetID,
+			MaxPods:                    defaultCluster.MaxPods,
+			MaxCount:                   defaultCluster.MaxCount,
+			MinCount:                   defaultCluster.MinCount,
+			EnableAutoScaling:          defaultCluster.EnableAutoScaling,
+			EnableEncryptionAtHost:     defaultCluster.EnableEncryptionAtHost,
+			EnableFIPS:                 defaultCluster.EnableFIPS,
+			EnableUltraSSD:             defaultCluster.EnableUltraSSD,
+			OrchestratorVersion:        defaultCluster.OrchestratorVersion,
+			ProximityPlacementGroupID:  defaultCluster.ProximityPlacementGroupID,
+			AvailabilityZones:          defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:         defaultCluster.EnableNodePublicIP,
+			NodePublicIPPrefixID:       defaultCluster.NodePublicIPPrefixID,
+			SpotMaxPrice:               defaultCluster.SpotMaxPrice,
+			MessageOfTheDay:            defaultCluster.MessageOfTheDay,
+			NodeLabels:                 defaultCluster.NodeLabels,
+			NodeTaints:                 defaultCluster.NodeTaints,
+			PodSubnetID:                defaultCluster.PodSubnetID,
+			Tags:                       defaultCluster.Tags,
 		},
 	}
 
@@ -800,6 +831,9 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		}
 		if upgradeSettingsNodePool.NodeSoakDurationInMinutes != nil {
 			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
+		}
+		if upgradeSettingsNodePool.UndrainableNodeBehavior != nil {
+			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(*upgradeSettingsNodePool.UndrainableNodeBehavior))
 		}
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
@@ -1432,8 +1466,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
-	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
+	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
 		return []interface{}{}
 	}
 
@@ -1449,6 +1482,10 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	if input.UndrainableNodeBehavior != nil && *input.UndrainableNodeBehavior != "" {
+		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}
@@ -1828,6 +1865,9 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 	}
 	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
+	}
+	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
+		setting.UndrainableNodeBehavior = pointer.To(managedclusters.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
 	}
 
 	return setting

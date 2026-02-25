@@ -22,7 +22,7 @@ data "azurerm_function_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

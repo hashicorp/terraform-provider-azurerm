@@ -32,7 +32,7 @@ resource "azurerm_application_insights_smart_detection_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

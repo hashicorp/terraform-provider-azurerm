@@ -276,7 +276,7 @@ resource "azurerm_active_directory_domain_service_replica_set" "replica" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

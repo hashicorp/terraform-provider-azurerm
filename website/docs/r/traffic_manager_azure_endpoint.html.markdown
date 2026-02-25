@@ -60,7 +60,7 @@ resource "azurerm_traffic_manager_azure_endpoint" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

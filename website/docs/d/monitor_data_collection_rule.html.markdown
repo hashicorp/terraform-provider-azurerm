@@ -24,7 +24,7 @@ output "rule_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Data Collection Rule.
 

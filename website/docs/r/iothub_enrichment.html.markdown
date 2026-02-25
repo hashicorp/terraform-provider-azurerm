@@ -83,7 +83,7 @@ resource "azurerm_iothub_enrichment" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

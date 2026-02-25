@@ -23,11 +23,11 @@ data "azurerm_machine_learning_workspace" "existing" {
 }
 
 output "id" {
-  value = azurerm_machine_learning_workspace.existing.id
+  value = data.azurerm_machine_learning_workspace.existing.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

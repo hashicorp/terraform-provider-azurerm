@@ -19,7 +19,7 @@ data "azurerm_kusto_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -16,6 +16,8 @@ Manages a Key Vault Secret.
 
 ~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Secret resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_secrets_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_secrets_on_destroy) for more information.
 
+~> **Note:** When managing Azure Key Vault secrets with soft-delete enabled, Terraform will create a new version of a secret upon recovery. This occurs because Terraform cannot determine if the recovered secret's value matches the configuration, it sets the secret again to ensure consistency—resulting in a new version being created.
+
 ## Example Usage
 
 ```hcl
@@ -69,7 +71,7 @@ resource "azurerm_key_vault_secret" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -79,7 +81,7 @@ The following arguments are supported:
 
 * `value_wo` - (Optional, Write-Only) Specifies the value of the Key Vault Secret. Changing this will create a new version of the Key Vault Secret.
 
-* ~> **Note:** One of `value` or `value_wo` must be specified.
+~> **Note:** One of `value` or `value_wo` must be specified.
 
 * `value_wo_version` - (Optional) An integer value used to trigger an update for `value_wo`. This property should be incremented when updating `value_wo`.
 

@@ -23,7 +23,7 @@ output "unique_identifier" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Dev Test Lab.
 

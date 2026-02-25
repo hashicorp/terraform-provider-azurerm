@@ -39,7 +39,7 @@ resource "azurerm_data_factory_trigger_schedule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

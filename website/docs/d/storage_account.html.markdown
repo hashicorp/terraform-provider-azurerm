@@ -24,7 +24,7 @@ output "storage_account_tier" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Storage Account
 * `resource_group_name` - Specifies the name of the resource group the Storage Account is located in.

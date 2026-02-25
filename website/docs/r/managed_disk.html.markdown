@@ -68,7 +68,7 @@ resource "azurerm_managed_disk" "copy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -109,6 +109,8 @@ The following arguments are supported:
 ~> **Note:** If No Downtime Resizing is not available, be aware that changing this value is disruptive if the disk is attached to a Virtual Machine. The VM will be shut down and de-allocated as required by Azure to action the change. Terraform will attempt to start the machine again after the update if it was in a `running` state when the apply was started.
 
 ~> **Note:** When upgrading `disk_size_gb` from a value less than 4095 to one greater than 4095, and if `storage_account_type` is not set to `PremiumV2_LRS` or `UltraSSD_LRS`, the disk will be detached from its associated Virtual Machine as required by Azure to action the change. Terraform will attempt to reattach the disk again after the update.
+
+~> **Note:** Expanding Ultra Disks and Premium SSD v2 disks without downtime has additional limitations. Allow up to 10 minutes for the correct size to be reflected, and a `rescan` function may be required. For more details, refer to [Expand with Ultra Disks and Premium SSD v2](https://learn.microsoft.com/azure/virtual-machines/linux/expand-disks?tabs=ubuntu#expand-with-ultra-disks-and-premium-ssd-v2).
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Disk should exist. Changing this forces a new Managed Disk to be created.
 
@@ -175,7 +177,7 @@ The following arguments are supported:
 
 ~> **Note:** Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
-* `network_access_policy` - (Optional) Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`.
+* `network_access_policy` - (Optional) Policy for accessing the disk via network. Allowed values are `AllowAll`, `AllowPrivate`, and `DenyAll`. Defaults to `AllowAll`.
 
 * `disk_access_id` - (Optional) The ID of the disk access resource for using private endpoints on disks.
 
@@ -197,7 +199,7 @@ The `disk_encryption_key` block supports:
 
 The `encryption_settings` block supports:
 
-* `disk_encryption_key` - (Optional) A `disk_encryption_key` block as defined above.
+* `disk_encryption_key` - (Required) A `disk_encryption_key` block as defined above.
 
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 

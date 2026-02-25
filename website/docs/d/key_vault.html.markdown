@@ -23,7 +23,7 @@ output "vault_uri" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

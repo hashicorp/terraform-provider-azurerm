@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/resourceguardresources"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/validate"
@@ -21,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_resource_guard -service-package-name dataprotection -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,10 +39,10 @@ func resourceDataProtectionResourceGuard() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := resourceguards.ParseResourceGuardID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&resourceguardresources.ResourceGuardId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&resourceguardresources.ResourceGuardId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -73,10 +76,10 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := resourceguards.NewResourceGuardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := resourceguardresources.NewResourceGuardID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.ResourceGuardsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -87,20 +90,23 @@ func resourceDataProtectionResourceGuardCreateUpdate(d *pluginsdk.ResourceData, 
 		}
 	}
 
-	parameters := resourceguards.ResourceGuardResource{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		Properties: &resourceguards.ResourceGuard{
+	parameters := resourceguardresources.ResourceGuardResource{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &resourceguardresources.ResourceGuard{
 			VaultCriticalOperationExclusionList: utils.ExpandStringSlice(d.Get("vault_critical_operation_exclusion_list").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if _, err := client.Put(ctx, id, parameters); err != nil {
+	if _, err := client.ResourceGuardsPut(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	if d.IsNewResource() {
 		d.SetId(id.ID())
+		if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+			return err
+		}
 	}
 
 	return resourceDataProtectionResourceGuardRead(d, meta)
@@ -111,12 +117,12 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := resourceguards.ParseResourceGuardID(d.Id())
+	id, err := resourceguardresources.ParseResourceGuardID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.ResourceGuardsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s does not exist - removing from state", *id)
@@ -130,7 +136,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(*model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		props := model.Properties
 		d.Set("vault_critical_operation_exclusion_list", utils.FlattenStringSlice(props.VaultCriticalOperationExclusionList))
@@ -140,7 +146,7 @@ func resourceDataProtectionResourceGuardRead(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDataProtectionResourceGuardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -148,12 +154,12 @@ func resourceDataProtectionResourceGuardDelete(d *pluginsdk.ResourceData, meta i
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := resourceguards.ParseResourceGuardID(d.Id())
+	id, err := resourceguardresources.ParseResourceGuardID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if _, err := client.ResourceGuardsDelete(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -7,28 +7,28 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maintenance/2023-04-01/publicmaintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/elasticpools"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_elasticpool -service-package-name mssql -properties "resource_group_name,server_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceMsSqlElasticPool() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -37,10 +37,11 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 		Update: resourceMsSqlElasticPoolCreateUpdate,
 		Delete: resourceMsSqlElasticPoolDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ElasticPoolID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SqlElasticPoolId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SqlElasticPoolId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -252,7 +253,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	sku := expandMsSqlElasticPoolSku(d)
 
 	maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, d.Get("maintenance_configuration_name").(string))
@@ -278,7 +279,7 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	if d.HasChange("max_size_gb") {
 		if v, ok := d.GetOk("max_size_gb"); ok {
 			maxSizeBytes := v.(float64) * 1073741824
-			elasticPool.Properties.MaxSizeBytes = utils.Int64(int64(maxSizeBytes))
+			elasticPool.Properties.MaxSizeBytes = pointer.To(int64(maxSizeBytes))
 		}
 	} else if v, ok := d.GetOk("max_size_bytes"); ok {
 		elasticPool.Properties.MaxSizeBytes = pointer.To(int64(v.(int)))
@@ -290,6 +291,9 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceMsSqlElasticPoolRead(d, meta)
 }
@@ -312,8 +316,11 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+	return resourceMssqlElasticPoolSetFlatten(d, id, resp.Model)
+}
 
-	if model := resp.Model; model != nil {
+func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlElasticPoolId, model *elasticpools.ElasticPool) error {
+	if model != nil {
 		d.Set("name", model.Name)
 		d.Set("resource_group_name", id.ResourceGroupName)
 		d.Set("location", model.Location)
@@ -329,16 +336,8 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 				enclaveType = string(pointer.From(v))
 			}
 			d.Set("enclave_type", enclaveType)
-
-			// Basic tier does not return max_size_bytes, so we need to skip setting this
-			// value if the pricing tier is equal to Basic
-			if tier, ok := d.GetOk("sku.0.tier"); ok {
-				if !strings.EqualFold(tier.(string), "Basic") {
-					d.Set("max_size_gb", pointer.To(*props.MaxSizeBytes/int64(1073741824)))
-					d.Set("max_size_bytes", pointer.To(props.MaxSizeBytes))
-				}
-			}
-
+			d.Set("max_size_gb", pointer.To(float64(*props.MaxSizeBytes)/1073741824))
+			d.Set("max_size_bytes", pointer.To(props.MaxSizeBytes))
 			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
 
 			licenseType := string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded)
@@ -363,7 +362,7 @@ func resourceMsSqlElasticPoolRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlElasticPoolDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -392,8 +391,8 @@ func expandMsSqlElasticPoolPerDatabaseSettings(d *pluginsdk.ResourceData) *elast
 	maxCapacity := perDatabaseSetting["max_capacity"].(float64)
 
 	return &elasticpools.ElasticPoolPerDatabaseSettings{
-		MinCapacity: utils.Float(minCapacity),
-		MaxCapacity: utils.Float(maxCapacity),
+		MinCapacity: pointer.To(minCapacity),
+		MaxCapacity: pointer.To(maxCapacity),
 	}
 }
 

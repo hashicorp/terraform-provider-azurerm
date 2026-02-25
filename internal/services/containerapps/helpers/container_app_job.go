@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -586,11 +586,12 @@ func expandContainerAppJobLivenessProbe(input ContainerAppLivenessProbe) jobs.Co
 func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.ContainerAppProbe {
 	probeType := jobs.TypeReadiness
 	result := jobs.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
-		SuccessThreshold: pointer.To(input.SuccessThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
+		SuccessThreshold:    pointer.To(input.SuccessThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -627,10 +628,11 @@ func expandContainerAppJobReadinessProbe(input ContainerAppReadinessProbe) jobs.
 func expandContainerAppJobStartupProbe(input ContainerAppStartupProbe) jobs.ContainerAppProbe {
 	probeType := jobs.TypeStartup
 	result := jobs.ContainerAppProbe{
-		Type:             &probeType,
-		PeriodSeconds:    pointer.To(input.Interval),
-		TimeoutSeconds:   pointer.To(input.Timeout),
-		FailureThreshold: pointer.To(input.FailureThreshold),
+		Type:                &probeType,
+		InitialDelaySeconds: pointer.To(input.InitialDelay),
+		PeriodSeconds:       pointer.To(input.Interval),
+		TimeoutSeconds:      pointer.To(input.Timeout),
+		FailureThreshold:    pointer.To(input.FailureThreshold),
 	}
 
 	switch p := strings.ToUpper(input.Transport); p {
@@ -753,6 +755,7 @@ func flattenContainerAppJobLivenessProbe(input jobs.ContainerAppProbe) []Contain
 func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []ContainerAppReadinessProbe {
 	result := make([]ContainerAppReadinessProbe, 0)
 	probe := ContainerAppReadinessProbe{
+		InitialDelay:     pointer.From(input.InitialDelaySeconds),
 		Interval:         pointer.From(input.PeriodSeconds),
 		Timeout:          pointer.From(input.TimeoutSeconds),
 		FailureThreshold: pointer.From(input.FailureThreshold),
@@ -793,6 +796,7 @@ func flattenContainerAppJobReadinessProbe(input jobs.ContainerAppProbe) []Contai
 func flattenContainerAppJobStartupProbe(input jobs.ContainerAppProbe) []ContainerAppStartupProbe {
 	result := make([]ContainerAppStartupProbe, 0)
 	probe := ContainerAppStartupProbe{
+		InitialDelay:           pointer.From(input.InitialDelaySeconds),
 		Interval:               pointer.From(input.PeriodSeconds),
 		Timeout:                pointer.From(input.TimeoutSeconds),
 		FailureThreshold:       pointer.From(input.FailureThreshold),

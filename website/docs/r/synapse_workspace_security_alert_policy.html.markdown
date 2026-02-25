@@ -78,7 +78,7 @@ resource "azurerm_synapse_workspace_security_alert_policy" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

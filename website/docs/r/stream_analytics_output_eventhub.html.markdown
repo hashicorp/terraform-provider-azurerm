@@ -54,7 +54,7 @@ resource "azurerm_stream_analytics_output_eventhub" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

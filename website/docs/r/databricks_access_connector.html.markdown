@@ -33,7 +33,7 @@ resource "azurerm_databricks_access_connector" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
@@ -101,4 +101,4 @@ terraform import azurerm_databricks_access_connector.connector1 /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2022-10-01-preview
+* `Microsoft.Databricks` - 2026-01-01

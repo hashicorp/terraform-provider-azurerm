@@ -32,7 +32,7 @@ resource "azurerm_databricks_workspace" "example" {
 
 -> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -214,6 +214,6 @@ terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Databricks` - 2024-05-01, 2022-10-01-preview
+* `Microsoft.Databricks` - 2026-01-01
 
-* `Microsoft.Network` - 2024-05-01, 2023-09-01
+* `Microsoft.Network` - 2025-01-01, 2023-09-01

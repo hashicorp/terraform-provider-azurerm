@@ -23,7 +23,7 @@ output "certificate_order_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the App Service.
 

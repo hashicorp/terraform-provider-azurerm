@@ -86,21 +86,21 @@ resource "azurerm_virtual_desktop_scaling_plan_host_pool_association" "example" 
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-- `host_pool_id` - (Required) The resource ID for the Virtual Desktop Host Pool. Changing this forces a new resource to be created.
+* `host_pool_id` - (Required) The resource ID for the Virtual Desktop Host Pool. Changing this forces a new resource to be created.
 
-- `scaling_plan_id` - (Required) The resource ID for the Virtual Desktop Scaling Plan. Changing this forces a new resource to be created.
+* `scaling_plan_id` - (Required) The resource ID for the Virtual Desktop Scaling Plan. Changing this forces a new resource to be created.
 
-- `enabled` - (Required) Should the Scaling Plan be enabled on this Host Pool.
+* `enabled` - (Required) Should the Scaling Plan be enabled on this Host Pool.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-- `id` - The ID of the Virtual Desktop Scaling Plan Host Pool association.
+* `id` - The ID of the Virtual Desktop Scaling Plan Host Pool association.
 
 ## Timeouts
 

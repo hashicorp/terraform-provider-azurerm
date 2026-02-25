@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -53,7 +53,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	apiversionset_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionset"
+	apiversionsets_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	certificate_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/certificate"
+	namedvalue_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/namedvalue"
+	policyfragment_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspacepolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -72,11 +77,14 @@ type Client struct {
 	ApiTagClient                       *apitag.ApiTagClient
 	ApiTagDescriptionClient            *apitagdescription.ApiTagDescriptionClient
 	ApiVersionSetClient                *apiversionset.ApiVersionSetClient
+	ApiVersionSetClient_v2024_05_01    *apiversionset_v2024_05_01.ApiVersionSetClient
 	ApiVersionSetsClient               *apiversionsets.ApiVersionSetsClient
+	ApiVersionSetsClient_v2024_05_01   *apiversionsets_v2024_05_01.ApiVersionSetsClient
 	AuthorizationServersClient         *authorizationserver.AuthorizationServerClient
 	BackendClient                      *backend.BackendClient
 	CacheClient                        *cache.CacheClient
 	CertificatesClient                 *certificate.CertificateClient
+	CertificateClient_v2024_05_01      *certificate_v2024_05_01.CertificateClient
 	DelegationSettingsClient           *delegationsettings.DelegationSettingsClient
 	DeletedServicesClient              *deletedservice.DeletedServiceClient
 	DiagnosticClient                   *diagnostic.DiagnosticClient
@@ -91,12 +99,14 @@ type Client struct {
 	IdentityProviderClient             *identityprovider.IdentityProviderClient
 	LoggerClient                       *logger.LoggerClient
 	NamedValueClient                   *namedvalue.NamedValueClient
+	NamedValueClient_v2024_05_01       *namedvalue_v2024_05_01.NamedValueClient
 	NotificationRecipientEmailClient   *notificationrecipientemail.NotificationRecipientEmailClient
 	NotificationRecipientUserClient    *notificationrecipientuser.NotificationRecipientUserClient
 	OpenIdConnectClient                *openidconnectprovider.OpenidConnectProviderClient
 	PolicyClient                       *policy.PolicyClient
 	WorkspacePolicyClient              *workspacepolicy.WorkspacePolicyClient
 	PolicyFragmentClient               *policyfragment.PolicyFragmentClient
+	PolicyFragmentClient_v2024_05_01   *policyfragment_v2024_05_01.PolicyFragmentClient
 	ProductApisClient                  *productapi.ProductApiClient
 	ProductGroupsClient                *productgroup.ProductGroupClient
 	ProductPoliciesClient              *productpolicy.ProductPolicyClient
@@ -179,11 +189,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(apiVersionSetClient.Client, o.Authorizers.ResourceManager)
 
+	apiVersionSetClient_v2024_05_01, err := apiversionset_v2024_05_01.NewApiVersionSetClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Version Set client: %+v", err)
+	}
+	o.Configure(apiVersionSetClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
+
 	apiVersionSetsClient, err := apiversionsets.NewApiVersionSetsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Api Version Sets client: %+v", err)
 	}
 	o.Configure(apiVersionSetsClient.Client, o.Authorizers.ResourceManager)
+
+	apiVersionSetsClient_v2024_05_01, err := apiversionsets_v2024_05_01.NewApiVersionSetsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api Version Sets client: %+v", err)
+	}
+	o.Configure(apiVersionSetsClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
 
 	apiTagDescriptionClient, err := apitagdescription.NewApiTagDescriptionClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -214,6 +236,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building certificates client: %+v", err)
 	}
 	o.Configure(certificatesClient.Client, o.Authorizers.ResourceManager)
+
+	certificateClient_v2024_05_01, err := certificate_v2024_05_01.NewCertificateClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building certificate client: %+v", err)
+	}
+	o.Configure(certificateClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
 
 	diagnosticClient, err := diagnostic.NewDiagnosticClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -293,6 +321,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(namedValueClient.Client, o.Authorizers.ResourceManager)
 
+	namedValueClient_v2024_05_01, err := namedvalue_v2024_05_01.NewNamedValueClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Named Value client: %+v", err)
+	}
+	o.Configure(namedValueClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
+
 	notificationRecipientEmailClient, err := notificationrecipientemail.NewNotificationRecipientEmailClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Notification Recipient Email client: %+v", err)
@@ -334,6 +368,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Policy Fragment client: %+v", err)
 	}
 	o.Configure(policyFragmentClient.Client, o.Authorizers.ResourceManager)
+
+	policyFragmentClient_v2024_05_01, err := policyfragment_v2024_05_01.NewPolicyFragmentClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy Fragment client: %+v", err)
+	}
+	o.Configure(policyFragmentClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
 
 	productsClient, err := product.NewProductClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -426,11 +466,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ApiTagClient:                       apiTagClient,
 		ApiTagDescriptionClient:            apiTagDescriptionClient,
 		ApiVersionSetClient:                apiVersionSetClient,
+		ApiVersionSetClient_v2024_05_01:    apiVersionSetClient_v2024_05_01,
 		ApiVersionSetsClient:               apiVersionSetsClient,
+		ApiVersionSetsClient_v2024_05_01:   apiVersionSetsClient_v2024_05_01,
 		AuthorizationServersClient:         authorizationServersClient,
 		BackendClient:                      backendClient,
 		CacheClient:                        cacheClient,
 		CertificatesClient:                 certificatesClient,
+		CertificateClient_v2024_05_01:      certificateClient_v2024_05_01,
 		DelegationSettingsClient:           delegationSettingsClient,
 		DeletedServicesClient:              deletedServicesClient,
 		DiagnosticClient:                   diagnosticClient,
@@ -445,12 +488,14 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		IdentityProviderClient:             identityProviderClient,
 		LoggerClient:                       loggerClient,
 		NamedValueClient:                   namedValueClient,
+		NamedValueClient_v2024_05_01:       namedValueClient_v2024_05_01,
 		NotificationRecipientEmailClient:   notificationRecipientEmailClient,
 		NotificationRecipientUserClient:    notificationRecipientUserClient,
 		OpenIdConnectClient:                openIdConnectClient,
 		PolicyClient:                       policyClient,
 		WorkspacePolicyClient:              workspacePolicyClient,
 		PolicyFragmentClient:               policyFragmentClient,
+		PolicyFragmentClient_v2024_05_01:   policyFragmentClient_v2024_05_01,
 		ProductApisClient:                  productApisClient,
 		ProductGroupsClient:                productGroupsClient,
 		ProductPoliciesClient:              productPoliciesClient,
