@@ -65,7 +65,6 @@ resource "azurerm_oracle_database_system" "example" {
   location            = "eastus"
   zones               = ["1"]
   admin_password      = "BEstrO0ng_#11"
-  cpu_core_count      = 4
   compute_count       = 2.0
   compute_model       = "ECPU"
   database_edition    = "StandardEdition"
@@ -141,7 +140,7 @@ The following arguments are supported:
 
 A `database_system_options` block supports the following:
 
-* `storage_management` - (Optional) The storage option used in the Database system. Possible values are `ASM`, `LVM`.
+* `storage_management` - (Optional) The storage option used in the Database system. Possible values are `ASM` and `LVM`.
 
 ---
 

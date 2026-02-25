@@ -231,7 +231,7 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"time_zone_in_utc_in_utc": {
+		"time_zone_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
