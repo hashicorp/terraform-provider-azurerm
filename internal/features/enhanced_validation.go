@@ -88,7 +88,7 @@ func ValidateEnhancedValidationEnvVars() error {
 
 	// In 5.0, the legacy env var is no longer supported
 	if FivePointOh() {
-		return fmt.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the specific environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
+		return fmt.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
 	}
 
 	// In 4.x, check for conflicts with specific env vars
@@ -101,7 +101,7 @@ func ValidateEnhancedValidationEnvVars() error {
 	}
 
 	if len(conflicts) > 0 {
-		return fmt.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` cannot be set at the same time as %v - please either use the legacy `ARM_PROVIDER_ENHANCED_VALIDATION` or the specific environment variables, but not both", conflicts)
+		return fmt.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` cannot be set at the same time as %v - please either use the legacy `ARM_PROVIDER_ENHANCED_VALIDATION` or the replacement environment variables, but not both", conflicts)
 	}
 
 	return nil

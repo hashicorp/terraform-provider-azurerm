@@ -566,9 +566,13 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
 	}
 
-	// Validate enhanced validation environment variables don't conflict
-	if err := features.ValidateEnhancedValidationEnvVars(); err != nil {
-		return nil, diag.FromErr(err)
+	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
+	if !features.FivePointOh() {
+		if err := features.ValidateEnhancedValidationEnvVars(); err != nil {
+			return nil, diag.FromErr(err)
+		}
+	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
 	}
 
 	// Read enhanced_validation block
