@@ -57,7 +57,8 @@ lint:
 shellcheck:
 	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
 	@echo "==> Checking shell scripts with shellcheck..."
-	@shellcheck scripts/*.sh
+	@shellcheck scripts/*.sh || \
+		(echo; echo "ShellCheck found issues in shell scripts."; echo "Review the errors above and fix them. See https://www.shellcheck.net/ for detailed explanations of each rule."; exit 1)
 
 depscheck:
 	@echo "==> Checking dependencies.."
@@ -65,16 +66,16 @@ depscheck:
 	@echo "==> Checking source code with go mod tidy..."
 	@go mod tidy
 	@git diff --exit-code -- go.mod go.sum || \
-		(echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; exit 1)
+		(echo; echo "Unexpected difference in go.mod/go.sum files. Run 'go mod tidy' command or revert any go.mod/go.sum changes and commit."; echo "Do not modify files in the vendor/ directory directly."; exit 1)
 	@echo "==> Checking source code with go mod vendor..."
 	@go mod vendor
 	@git diff --compact-summary --exit-code -- vendor || \
-		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; exit 1)
+		(echo; echo "Unexpected difference in vendor/ directory. Run 'go mod vendor' command or revert any go.mod/go.sum/vendor changes and commit."; echo "Do not modify files in the vendor/ directory directly."; exit 1)
 
 gencheck: generate
 	@echo "==> Comparing generated code to committed code..."
 	@git diff --compact-summary --exit-code -- ./ || \
-    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; exit 1)
+    		(echo; echo "Unexpected difference in generated code. Run 'make generate' to update the generated code and commit."; echo "If you added or modified a resource, ensure 'go generate' directives are up to date."; exit 1)
 
 tflint:
 	./scripts/run-tflint.sh
@@ -118,13 +119,16 @@ website-lint:
 	@echo "==> Checking documentation for .html.markdown extension present"
 	@if ! find website/docs -type f -not -name "*.html.markdown" -print -exec false {} +; then \
 		echo "ERROR: file extension should be .html.markdown"; \
+		echo "All documentation files must use the .html.markdown extension."; \
 		exit 1; \
 	fi
 	@echo "==> Checking documentation spelling..."
-	@misspell -error -source=text -i hdinsight,exportfs website/
+	@misspell -error -source=text -i hdinsight,exportfs website/ || \
+		(echo; echo "Spelling errors found in documentation. Install misspell: go install github.com/client9/misspell/cmd/misspell@latest"; exit 1)
 	@echo "==> Checking documentation for errors..."
 	@tfproviderdocs check -provider-name=azurerm -require-resource-subcategory \
-		-allowed-resource-subcategories-file website/allowed-subcategories
+		-allowed-resource-subcategories-file website/allowed-subcategories || \
+		(echo; echo "Documentation validation failed. Check that your docs follow the provider documentation format."; echo "See: contributing/topics/guide-new-resource.md for documentation requirements."; exit 1)
 	@sh -c "'$(CURDIR)/scripts/terrafmt-website.sh'"
 
 website:
