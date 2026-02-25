@@ -5062,8 +5062,6 @@ func isRetryableCapacityError(err error) bool {
 		return false
 	}
 
-	errMsg := strings.ToLower(err.Error())
-
 	// Azure error codes related to capacity constraints:
 	// - OverconstrainedZonalAllocationRequest: VM allocation failed due to zonal capacity constraints
 
@@ -5073,7 +5071,7 @@ func isRetryableCapacityError(err error) bool {
 
 	for _, retryable := range retryableErrors {
 		if strings.Contains(
-			strings.ToLower(errMsg), strings.ToLower(retryable)) {
+			strings.ToLower(err.Error()), strings.ToLower(retryable)) {
 			return true
 		}
 	}
