@@ -288,7 +288,7 @@ resource "azurerm_network_security_group" "test1" {
     destination_address_prefix = "VirtualNetwork"
     description                = "Management endpoint for Azure portal and PowerShell"
   }
-  
+
   security_rule {
     name                       = "Allow-AzureLoadBalancer-Inbound-6390"
     priority                   = 220
@@ -301,7 +301,7 @@ resource "azurerm_network_security_group" "test1" {
     destination_address_prefix = "VirtualNetwork"
     description                = "Azure Infrastructure Load Balancer"
   }
-  
+
   security_rule {
     name                       = "Allow-Internet-Outbound-80"
     priority                   = 240
@@ -314,7 +314,7 @@ resource "azurerm_network_security_group" "test1" {
     destination_address_prefix = "Internet"
     description                = "Certificate validation/management"
   }
-  
+
   security_rule {
     name                       = "Allow-Storage-Outbound-443"
     priority                   = 250
@@ -327,7 +327,7 @@ resource "azurerm_network_security_group" "test1" {
     destination_address_prefix = "Storage"
     description                = "Azure Storage dependency (core)"
   }
-  
+
   security_rule {
     name                       = "Allow-SQL-Outbound-1433"
     priority                   = 260
@@ -340,7 +340,7 @@ resource "azurerm_network_security_group" "test1" {
     destination_address_prefix = "Sql"
     description                = "Azure SQL dependency (core)"
   }
-  
+
   security_rule {
     name                       = "Allow-KeyVault-Outbound-443"
     priority                   = 270
@@ -353,7 +353,7 @@ resource "azurerm_network_security_group" "test1" {
     destination_address_prefix = "AzureKeyVault"
     description                = "Azure Key Vault dependency (core)"
   }
-  
+
   security_rule {
     name                       = "Allow-AzureMonitor-Outbound-1886-443"
     priority                   = 280
@@ -404,7 +404,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "VirtualNetwork"
     description                = "Client communication to API Management (external mode only)"
   }
-  
+
   security_rule {
     name                       = "Allow-APIM-Management-Inbound-3443"
     priority                   = 210
@@ -417,7 +417,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "VirtualNetwork"
     description                = "Management endpoint for Azure portal and PowerShell"
   }
-  
+
   security_rule {
     name                       = "Allow-AzureLoadBalancer-Inbound-6390"
     priority                   = 220
@@ -430,7 +430,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "VirtualNetwork"
     description                = "Azure Infrastructure Load Balancer"
   }
-  
+
   security_rule {
     name                       = "Allow-AzureTrafficManager-Inbound-443"
     priority                   = 230
@@ -443,7 +443,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "VirtualNetwork"
     description                = "Azure Traffic Manager routing for multi-region deployment (external mode only)"
   }
-  
+
   security_rule {
     name                       = "Allow-Internet-Outbound-80"
     priority                   = 240
@@ -456,7 +456,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "Internet"
     description                = "Validation and management of Microsoft-managed and customer-managed certificates"
   }
-  
+
   security_rule {
     name                       = "Allow-Storage-Outbound-443"
     priority                   = 250
@@ -469,7 +469,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "Storage"
     description                = "Dependency on Azure Storage for core service functionality"
   }
-  
+
   security_rule {
     name                       = "Allow-SQL-Outbound-1433"
     priority                   = 260
@@ -482,7 +482,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "Sql"
     description                = "Access to Azure SQL endpoints for core service functionality"
   }
-  
+
   security_rule {
     name                       = "Allow-KeyVault-Outbound-443"
     priority                   = 270
@@ -495,7 +495,7 @@ resource "azurerm_network_security_group" "test2" {
     destination_address_prefix = "AzureKeyVault"
     description                = "Access to Azure Key Vault for core service functionality"
   }
-  
+
   security_rule {
     name                       = "Allow-AzureMonitor-Outbound-1886-443"
     priority                   = 280
