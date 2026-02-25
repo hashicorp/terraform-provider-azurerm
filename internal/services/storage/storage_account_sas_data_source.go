@@ -133,52 +133,52 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"read": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"write": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"delete": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"list": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"add": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"create": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"update": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"process": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"tag": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"filter": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
