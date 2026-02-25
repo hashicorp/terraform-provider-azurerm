@@ -1,0 +1,167 @@
+---
+name: Run TeamCity Tests on Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-team-membership:
+    runs-on: ubuntu-latest
+    # Only run on pull request comments that contain /test
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/test')
+    outputs:
+      is-team-member: ${{ steps.check-membership.outputs.is-member }}
+    steps:
+      - name: Check team membership
+        id: check-membership
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const teamSlug = 'terraform-azure';
+            const org = context.repo.owner;
+            const username = context.actor;
+
+            try {
+              const response = await github.rest.teams.getMembershipForUserInOrg({
+                org: org,
+                team_slug: teamSlug,
+                username: username,
+              });
+
+              const isMember = response.data.state === 'active';
+              core.setOutput('is-member', isMember);
+
+              if (isMember) {
+                core.info(`User ${username} is a member of team ${teamSlug}`);
+              } else {
+                core.warning(`User ${username} is not an active member of team ${teamSlug}`);
+              }
+
+              return isMember;
+            } catch (error) {
+              if (error.status === 404) {
+                core.warning(`User ${username} is not a member of team ${teamSlug}`);
+                core.setOutput('is-member', false);
+                return false;
+              }
+              throw error;
+            }
+
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: check-team-membership
+    if: needs.check-team-membership.outputs.is-team-member == 'true'
+    env:
+      TCTEST_SERVER: hashicorp.teamcity.com
+      TCTEST_FILEREGEX: 'internal/services/[a-z]*/[_a-zA-Z]*(resource|data_source)'
+      TCTEST_SKIP_QUEUE: 'true'
+      TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
+      TCTEST_BUILDTYPEID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_REPO: terraform-providers/terraform-provider-azurerm
+    steps:
+      - name: Add reaction to comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      - name: Download tctest
+        run: |
+          # Get the latest release of tctest
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/katbyte/tctest/releases/latest | grep "tag_name" | cut -d '"' -f 4)
+          echo "Latest tctest release: $LATEST_RELEASE"
+
+          # Determine OS and architecture
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          ARCH=$(uname -m)
+
+          # Map architecture names
+          if [ "$ARCH" = "x86_64" ]; then
+            ARCH="amd64"
+          elif [ "$ARCH" = "aarch64" ]; then
+            ARCH="arm64"
+          fi
+
+          # Download and extract tctest
+          DOWNLOAD_URL="https://github.com/katbyte/tctest/releases/download/${LATEST_RELEASE}/tctest_${LATEST_RELEASE#v}_${OS}_${ARCH}.tar.gz"
+          echo "Downloading from: $DOWNLOAD_URL"
+
+          curl -L -o tctest.tar.gz "$DOWNLOAD_URL"
+          tar -xzf tctest.tar.gz
+          chmod +x tctest
+          sudo mv tctest /usr/local/bin/
+
+          # Verify installation
+          tctest --version
+
+      - name: Run tctest
+        run: |
+          PR_NUMBER=${{ github.event.issue.number }}
+          COMMENT_BODY="${{ github.event.comment.body }}"
+
+          # Check if the comment contains /test -d for detailed output
+          if [[ "$COMMENT_BODY" == *"/test -d"* ]]; then
+            echo "Running tctest for PR #${PR_NUMBER} with detailed output"
+            tctest pr ${PR_NUMBER} --parameter "COMMENT_DETAILED=true"
+          else
+            echo "Running tctest for PR #${PR_NUMBER}"
+            tctest pr ${PR_NUMBER}
+          fi
+
+      - name: Comment on success
+        if: success()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '✅ TeamCity tests triggered successfully!'
+            });
+
+      - name: Comment on failure
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '❌ Failed to trigger TeamCity tests. Please check the workflow logs for details.'
+            });
+
+  unauthorized-comment:
+    runs-on: ubuntu-latest
+    needs: check-team-membership
+    if: needs.check-team-membership.outputs.is-team-member == 'false'
+    steps:
+      - name: Comment unauthorized
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '⚠️ You are not authorized to run tests. Only members of the designated team can trigger test runs.'
+            });
+
+# Made with Bob
