@@ -28,9 +28,9 @@ import (
 
 func resourceApiManagementBackend() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementBackendCreateUpdate,
+		Create: resourceApiManagementBackendCreate,
 		Read:   resourceApiManagementBackendRead,
-		Update: resourceApiManagementBackendCreateUpdate,
+		Update: resourceApiManagementBackendUpdate,
 		Delete: resourceApiManagementBackendDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := backend.ParseBackendID(id)
@@ -344,43 +344,36 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementBackendCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.BackendClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := backend.NewBackendID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_backend", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	credentialsRaw := d.Get("credentials").([]interface{})
-	credentials := expandApiManagementBackendCredentials(credentialsRaw)
-	protocol := d.Get("protocol").(string)
-	proxyRaw := d.Get("proxy").([]interface{})
-	proxy := expandApiManagementBackendProxy(proxyRaw)
-	tlsRaw := d.Get("tls").([]interface{})
-	tls := expandApiManagementBackendTls(tlsRaw)
-	url := d.Get("url").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_backend", id.ID())
+	}
+
+	credentials := expandApiManagementBackendCredentials(d.Get("credentials").([]interface{}))
+	proxy := expandApiManagementBackendProxy(d.Get("proxy").([]interface{}))
+	tls := expandApiManagementBackendTls(d.Get("tls").([]interface{}))
 
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
 			Credentials: credentials,
-			Protocol:    pointer.To(backend.BackendProtocol(protocol)),
+			Protocol:    pointer.To(backend.BackendProtocol(d.Get("protocol").(string))),
 			Proxy:       proxy,
 			Tls:         tls,
-			Url:         pointer.To(url),
+			Url:         pointer.To(d.Get("url").(string)),
 		},
 	}
 	if v, ok := d.GetOk("circuit_breaker_rule"); ok {
@@ -407,10 +400,63 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, backendContract, backend.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceApiManagementBackendRead(d, meta)
+}
+
+func resourceApiManagementBackendUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.BackendClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := backend.ParseBackendID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	credentials := expandApiManagementBackendCredentials(d.Get("credentials").([]interface{}))
+	proxy := expandApiManagementBackendProxy(d.Get("proxy").([]interface{}))
+	tls := expandApiManagementBackendTls(d.Get("tls").([]interface{}))
+
+	backendContract := backend.BackendContract{
+		Properties: &backend.BackendContractProperties{
+			Credentials: credentials,
+			Protocol:    pointer.To(backend.BackendProtocol(d.Get("protocol").(string))),
+			Proxy:       proxy,
+			Tls:         tls,
+			Url:         pointer.To(d.Get("url").(string)),
+		},
+	}
+	if v, ok := d.GetOk("circuit_breaker_rule"); ok {
+		backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
+	}
+	if description, ok := d.GetOk("description"); ok {
+		backendContract.Properties.Description = pointer.To(description.(string))
+	}
+	if resourceID, ok := d.GetOk("resource_id"); ok {
+		backendContract.Properties.ResourceId = pointer.To(resourceID.(string))
+	}
+	if title, ok := d.GetOk("title"); ok {
+		backendContract.Properties.Title = pointer.To(title.(string))
+	}
+
+	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
+		serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+		if err != nil {
+			return err
+		}
+		backendContract.Properties.Properties = &backend.BackendProperties{
+			ServiceFabricCluster: serviceFabricCluster,
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, backendContract, backend.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
 	return resourceApiManagementBackendRead(d, meta)
 }
 

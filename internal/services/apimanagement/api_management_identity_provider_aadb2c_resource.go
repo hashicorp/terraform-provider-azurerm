@@ -23,9 +23,9 @@ import (
 
 func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
+		Create: resourceArmApiManagementIdentityProviderAADB2CCreate,
 		Read:   resourceArmApiManagementIdentityProviderAADB2CRead,
-		Update: resourceArmApiManagementIdentityProviderAADB2CCreateUpdate,
+		Update: resourceArmApiManagementIdentityProviderAADB2CUpdate,
 		Delete: resourceArmApiManagementIdentityProviderAADB2CDelete,
 
 		Importer: identityProviderImportFunc(identityprovider.IdentityProviderTypeAadBTwoC),
@@ -109,61 +109,79 @@ func resourceArmApiManagementIdentityProviderAADB2C() *pluginsdk.Resource {
 	}
 }
 
-func resourceArmApiManagementIdentityProviderAADB2CCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceArmApiManagementIdentityProviderAADB2CCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 
-	clientID := d.Get("client_id").(string)
-	clientSecret := d.Get("client_secret").(string)
-	clientLibrary := d.Get("client_library").(string)
-
-	allowedTenant := d.Get("allowed_tenant").(string)
-	signinTenant := d.Get("signin_tenant").(string)
-	authority := d.Get("authority").(string)
-	signupPolicy := d.Get("signup_policy").(string)
-
-	signinPolicy := d.Get("signin_policy").(string)
-	profileEditingPolicy := d.Get("profile_editing_policy").(string)
-	passwordResetPolicy := d.Get("password_reset_policy").(string)
-
 	id := identityprovider.NewIdentityProviderID(meta.(*clients.Client).Account.SubscriptionId, resourceGroup, serviceName, identityprovider.IdentityProviderTypeAadBTwoC)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
-			}
-		} else {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", id.ID())
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id.String(), err)
 		}
+	} else {
+		return tf.ImportAsExistsError("azurerm_api_management_identity_provider_aadb2c", id.ID())
 	}
 
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
-			ClientId:                 clientID,
-			ClientLibrary:            pointer.To(clientLibrary),
-			ClientSecret:             clientSecret,
+			ClientId:                 d.Get("client_id").(string),
+			ClientLibrary:            pointer.To(d.Get("client_library").(string)),
+			ClientSecret:             d.Get("client_secret").(string),
 			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
-			AllowedTenants:           utils.ExpandStringSlice([]interface{}{allowedTenant}),
-			SigninTenant:             pointer.To(signinTenant),
-			Authority:                pointer.To(authority),
-			SignupPolicyName:         pointer.To(signupPolicy),
-			SigninPolicyName:         pointer.To(signinPolicy),
-			ProfileEditingPolicyName: pointer.To(profileEditingPolicy),
-			PasswordResetPolicyName:  pointer.To(passwordResetPolicy),
+			AllowedTenants:           utils.ExpandStringSlice([]interface{}{d.Get("allowed_tenant").(string)}),
+			SigninTenant:             pointer.To(d.Get("signin_tenant").(string)),
+			Authority:                pointer.To(d.Get("authority").(string)),
+			SignupPolicyName:         pointer.To(d.Get("signup_policy").(string)),
+			SigninPolicyName:         pointer.To(d.Get("signin_policy").(string)),
+			ProfileEditingPolicyName: pointer.To(d.Get("profile_editing_policy").(string)),
+			PasswordResetPolicyName:  pointer.To(d.Get("password_reset_policy").(string)),
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceArmApiManagementIdentityProviderAADB2CRead(d, meta)
+}
+
+func resourceArmApiManagementIdentityProviderAADB2CUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := identityprovider.ParseIdentityProviderID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := identityprovider.IdentityProviderCreateContract{
+		Properties: &identityprovider.IdentityProviderCreateContractProperties{
+			ClientId:                 d.Get("client_id").(string),
+			ClientLibrary:            pointer.To(d.Get("client_library").(string)),
+			ClientSecret:             d.Get("client_secret").(string),
+			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
+			AllowedTenants:           utils.ExpandStringSlice([]interface{}{d.Get("allowed_tenant").(string)}),
+			SigninTenant:             pointer.To(d.Get("signin_tenant").(string)),
+			Authority:                pointer.To(d.Get("authority").(string)),
+			SignupPolicyName:         pointer.To(d.Get("signup_policy").(string)),
+			SigninPolicyName:         pointer.To(d.Get("signin_policy").(string)),
+			ProfileEditingPolicyName: pointer.To(d.Get("profile_editing_policy").(string)),
+			PasswordResetPolicyName:  pointer.To(d.Get("password_reset_policy").(string)),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
 	return resourceArmApiManagementIdentityProviderAADB2CRead(d, meta)
 }
 

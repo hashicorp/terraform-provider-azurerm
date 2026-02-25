@@ -24,9 +24,9 @@ import (
 
 func resourceApiManagementProductPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementProductPolicyCreateUpdate,
+		Create: resourceApiManagementProductPolicyCreate,
 		Read:   resourceApiManagementProductPolicyRead,
-		Update: resourceApiManagementProductPolicyCreateUpdate,
+		Update: resourceApiManagementProductPolicyUpdate,
 		Delete: resourceApiManagementProductPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := productpolicy.ParseProductID(id)
@@ -70,40 +70,35 @@ func resourceApiManagementProductPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := productpolicy.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatXml)})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, productpolicy.GetOperationOptions{Format: pointer.To(productpolicy.PolicyExportFormatXml)})
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_product_policy", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_product_policy", id.ID())
 	}
 
 	parameters := productpolicy.PolicyContract{}
 
-	xmlContent := d.Get("xml_content").(string)
-	xmlLink := d.Get("xml_link").(string)
-
-	if xmlContent != "" {
+	if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
 		parameters.Properties = &productpolicy.PolicyContractProperties{
 			Format: pointer.To(productpolicy.PolicyContentFormatRawxml),
 			Value:  xmlContent,
 		}
 	}
 
-	if xmlLink != "" {
+	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
 		parameters.Properties = &productpolicy.PolicyContractProperties{
 			Format: pointer.To(productpolicy.PolicyContentFormatRawxmlNegativelink),
 			Value:  xmlLink,
@@ -115,9 +110,46 @@ func resourceApiManagementProductPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, productpolicy.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+
+	return resourceApiManagementProductPolicyRead(d, meta)
+}
+
+func resourceApiManagementProductPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ProductPoliciesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := productpolicy.ParseProductID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := productpolicy.PolicyContract{}
+
+	if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
+		parameters.Properties = &productpolicy.PolicyContractProperties{
+			Format: pointer.To(productpolicy.PolicyContentFormatRawxml),
+			Value:  xmlContent,
+		}
+	}
+
+	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
+		parameters.Properties = &productpolicy.PolicyContractProperties{
+			Format: pointer.To(productpolicy.PolicyContentFormatRawxmlNegativelink),
+			Value:  xmlLink,
+		}
+	}
+
+	if parameters.Properties == nil {
+		return errors.New("either `xml_content` or `xml_link` must be set")
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, productpolicy.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementProductPolicyRead(d, meta)
 }

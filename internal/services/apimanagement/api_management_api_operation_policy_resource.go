@@ -24,9 +24,9 @@ import (
 
 func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementAPIOperationPolicyCreateUpdate,
+		Create: resourceApiManagementAPIOperationPolicyCreate,
 		Read:   resourceApiManagementAPIOperationPolicyRead,
-		Update: resourceApiManagementAPIOperationPolicyCreateUpdate,
+		Update: resourceApiManagementAPIOperationPolicyUpdate,
 		Delete: resourceApiManagementAPIOperationPolicyDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apioperationpolicy.ParseOperationID(id)
@@ -72,40 +72,35 @@ func resourceApiManagementApiOperationPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAPIOperationPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := apioperationpolicy.NewOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, apioperationpolicy.GetOperationOptions{Format: pointer.To(apioperationpolicy.PolicyExportFormatXml)})
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_operation_policy", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api_operation_policy", id.ID())
 	}
 
 	parameters := apioperationpolicy.PolicyContract{}
 
-	xmlContent := d.Get("xml_content").(string)
-	xmlLink := d.Get("xml_link").(string)
-
-	if xmlContent != "" {
+	if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
 		parameters.Properties = &apioperationpolicy.PolicyContractProperties{
 			Format: pointer.To(apioperationpolicy.PolicyContentFormatRawxml),
 			Value:  xmlContent,
 		}
 	}
 
-	if xmlLink != "" {
+	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
 		parameters.Properties = &apioperationpolicy.PolicyContractProperties{
 			Format: pointer.To(apioperationpolicy.PolicyContentFormatRawxmlNegativelink),
 			Value:  xmlLink,
@@ -117,10 +112,47 @@ func resourceApiManagementAPIOperationPolicyCreateUpdate(d *pluginsdk.ResourceDa
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, apioperationpolicy.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementAPIOperationPolicyRead(d, meta)
+}
+
+func resourceApiManagementAPIOperationPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ApiOperationPoliciesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := apioperationpolicy.ParseOperationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := apioperationpolicy.PolicyContract{}
+
+	if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
+		parameters.Properties = &apioperationpolicy.PolicyContractProperties{
+			Format: pointer.To(apioperationpolicy.PolicyContentFormatRawxml),
+			Value:  xmlContent,
+		}
+	}
+
+	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
+		parameters.Properties = &apioperationpolicy.PolicyContractProperties{
+			Format: pointer.To(apioperationpolicy.PolicyContentFormatRawxmlNegativelink),
+			Value:  xmlLink,
+		}
+	}
+
+	if parameters.Properties == nil {
+		return errors.New("either `xml_content` or `xml_link` must be set")
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, apioperationpolicy.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementAPIOperationPolicyRead(d, meta)
 }

@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementPolicyCreateUpdate,
+		Create: resourceApiManagementPolicyCreate,
 		Read:   resourceApiManagementPolicyRead,
-		Update: resourceApiManagementPolicyCreateUpdate,
+		Update: resourceApiManagementPolicyUpdate,
 		Delete: resourceApiManagementPolicyDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -73,9 +73,9 @@ func resourceApiManagementPolicy() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementPolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.PolicyClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	apiManagementID := d.Get("api_management_id").(string)
@@ -94,22 +94,12 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := policy.PolicyContract{}
 
-	xmlContent := d.Get("xml_content").(string)
-	xmlLink := d.Get("xml_link").(string)
-
-	if xmlLink != "" {
+	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
 		parameters.Properties = &policy.PolicyContractProperties{
 			Format: pointer.To(policy.PolicyContentFormatRawxmlNegativelink),
 			Value:  xmlLink,
 		}
-	} else if xmlContent != "" {
-		// this is intentionally an else-if since `xml_content` is computed
-
-		// clear out any existing value for xml_link
-		if !d.IsNewResource() {
-			d.Set("xml_link", "")
-		}
-
+	} else if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
 		parameters.Properties = &policy.PolicyContractProperties{
 			Format: pointer.To(policy.PolicyContentFormatRawxml),
 			Value:  xmlContent,
@@ -121,13 +111,51 @@ func resourceApiManagementPolicyCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	policyServiceId := policy.NewServiceID(apiMgmtId.SubscriptionId, resourceGroup, serviceName)
-	_, err = client.CreateOrUpdate(ctx, policyServiceId, parameters, policy.CreateOrUpdateOperationOptions{})
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, policyServiceId, parameters, policy.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", policyServiceId, err)
 	}
 
 	id := policy.NewServiceID(apiMgmtId.SubscriptionId, apiMgmtId.ResourceGroupName, apiMgmtId.ServiceName)
 	d.SetId(id.ID())
+
+	return resourceApiManagementPolicyRead(d, meta)
+}
+
+func resourceApiManagementPolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.PolicyClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := policy.ParseServiceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := policy.PolicyContract{}
+
+	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
+		parameters.Properties = &policy.PolicyContractProperties{
+			Format: pointer.To(policy.PolicyContentFormatRawxmlNegativelink),
+			Value:  xmlLink,
+		}
+	} else if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
+		// this is intentionally an else-if since `xml_content` is computed
+		// clear out any existing value for xml_link
+		d.Set("xml_link", "")
+
+		parameters.Properties = &policy.PolicyContractProperties{
+			Format: pointer.To(policy.PolicyContentFormatRawxml),
+			Value:  xmlContent,
+		}
+	}
+
+	if parameters.Properties == nil {
+		return errors.New("either `xml_content` or `xml_link` must be set")
+	}
+
+	if _, err = client.CreateOrUpdate(ctx, *id, parameters, policy.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementPolicyRead(d, meta)
 }

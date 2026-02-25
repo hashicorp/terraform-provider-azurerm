@@ -24,9 +24,9 @@ import (
 
 func resourceApiManagementApiOperation() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiOperationCreateUpdate,
+		Create: resourceApiManagementApiOperationCreate,
 		Read:   resourceApiManagementApiOperationRead,
-		Update: resourceApiManagementApiOperationCreateUpdate,
+		Update: resourceApiManagementApiOperationUpdate,
 		Delete: resourceApiManagementApiOperationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apioperation.ParseOperationID(id)
@@ -153,64 +153,95 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiOperationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := apioperation.NewOperationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("operation_id").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	description := d.Get("description").(string)
-	displayName := d.Get("display_name").(string)
-	method := d.Get("method").(string)
-	urlTemplate := d.Get("url_template").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api_operation", id.ID())
+	}
 
-	requestContractRaw := d.Get("request").([]interface{})
-	requestContract, err := expandApiManagementOperationRequestContract(d, "request", requestContractRaw)
+	requestContract, err := expandApiManagementOperationRequestContract(d, "request", d.Get("request").([]interface{}))
 	if err != nil {
 		return err
 	}
 
-	responseContractsRaw := d.Get("response").([]interface{})
-	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", responseContractsRaw)
+	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", d.Get("response").([]interface{}))
 	if err != nil {
 		return err
 	}
 
-	templateParametersRaw := d.Get("template_parameter").([]interface{})
-	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", templateParametersRaw)
+	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", d.Get("template_parameter").([]interface{}))
 
 	parameters := apioperation.OperationContract{
 		Properties: &apioperation.OperationContractProperties{
-			Description:        pointer.To(description),
-			DisplayName:        displayName,
-			Method:             method,
+			Description:        pointer.To(d.Get("description").(string)),
+			DisplayName:        d.Get("display_name").(string),
+			Method:             d.Get("method").(string),
 			Request:            requestContract,
 			Responses:          responseContracts,
 			TemplateParameters: templateParameters,
-			UrlTemplate:        urlTemplate,
+			UrlTemplate:        d.Get("url_template").(string),
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, apioperation.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementApiOperationRead(d, meta)
+}
+
+func resourceApiManagementApiOperationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ApiOperationsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := apioperation.ParseOperationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	requestContract, err := expandApiManagementOperationRequestContract(d, "request", d.Get("request").([]interface{}))
+	if err != nil {
+		return err
+	}
+
+	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", d.Get("response").([]interface{}))
+	if err != nil {
+		return err
+	}
+
+	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", d.Get("template_parameter").([]interface{}))
+
+	parameters := apioperation.OperationContract{
+		Properties: &apioperation.OperationContractProperties{
+			Description:        pointer.To(d.Get("description").(string)),
+			DisplayName:        d.Get("display_name").(string),
+			Method:             d.Get("method").(string),
+			Request:            requestContract,
+			Responses:          responseContracts,
+			TemplateParameters: templateParameters,
+			UrlTemplate:        d.Get("url_template").(string),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, apioperation.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementApiOperationRead(d, meta)
 }

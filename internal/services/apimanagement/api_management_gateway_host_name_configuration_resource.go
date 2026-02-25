@@ -23,9 +23,9 @@ import (
 
 func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
+		Create: resourceApiManagementGatewayHostNameConfigurationCreate,
 		Read:   resourceApiManagementGatewayHostNameConfigurationRead,
-		Update: resourceApiManagementGatewayHostNameConfigurationCreateUpdate,
+		Update: resourceApiManagementGatewayHostNameConfigurationUpdate,
 		Delete: resourceApiManagementGatewayHostNameConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -88,9 +88,9 @@ func resourceApiManagementGatewayHostNameConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayHostNameConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
@@ -100,17 +100,15 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 
 	id := gatewayhostnameconfiguration.NewHostnameConfigurationID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("gateway_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_gateway_host_name_configuration", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_gateway_host_name_configuration", id.ID())
 	}
 
 	parameters := gatewayhostnameconfiguration.GatewayHostnameConfigurationContract{
@@ -124,12 +122,39 @@ func resourceApiManagementGatewayHostNameConfigurationCreateUpdate(d *pluginsdk.
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, parameters, gatewayhostnameconfiguration.CreateOrUpdateOperationOptions{})
-	if err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+	if _, err = client.CreateOrUpdate(ctx, id, parameters, gatewayhostnameconfiguration.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementGatewayHostNameConfigurationRead(d, meta)
+}
+
+func resourceApiManagementGatewayHostNameConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.GatewayHostNameConfigurationClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := gatewayhostnameconfiguration.ParseHostnameConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := gatewayhostnameconfiguration.GatewayHostnameConfigurationContract{
+		Properties: &gatewayhostnameconfiguration.GatewayHostnameConfigurationContractProperties{
+			Hostname:                   pointer.To(d.Get("host_name").(string)),
+			CertificateId:              pointer.To(d.Get("certificate_id").(string)),
+			NegotiateClientCertificate: pointer.To(d.Get("request_client_certificate_enabled").(bool)),
+			Tls10Enabled:               pointer.To(d.Get("tls10_enabled").(bool)),
+			Tls11Enabled:               pointer.To(d.Get("tls11_enabled").(bool)),
+			HTTP2Enabled:               pointer.To(d.Get("http2_enabled").(bool)),
+		},
+	}
+
+	if _, err = client.CreateOrUpdate(ctx, *id, parameters, gatewayhostnameconfiguration.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementGatewayHostNameConfigurationRead(d, meta)
 }

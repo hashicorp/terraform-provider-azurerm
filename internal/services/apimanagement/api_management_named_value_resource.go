@@ -27,9 +27,9 @@ import (
 
 func resourceApiManagementNamedValue() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: resourceApiManagementNamedValueCreateUpdate,
+		Create: resourceApiManagementNamedValueCreate,
 		Read:   resourceApiManagementNamedValueRead,
-		Update: resourceApiManagementNamedValueCreateUpdate,
+		Update: resourceApiManagementNamedValueUpdate,
 		Delete: resourceApiManagementNamedValueDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := namedvalue.ParseNamedValueID(id)
@@ -109,25 +109,23 @@ func resourceApiManagementNamedValue() *pluginsdk.Resource {
 	return r
 }
 
-func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementNamedValueCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.NamedValueClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := namedvalue.NewNamedValueID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf(" checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_property", id.ID())
+			return fmt.Errorf(" checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_property", id.ID())
 	}
 
 	parameters := namedvalue.NamedValueCreateContract{
@@ -150,12 +148,50 @@ func resourceApiManagementNamedValueCreateUpdate(d *pluginsdk.ResourceData, meta
 		parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{})
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters, namedvalue.CreateOrUpdateOperationOptions{})
 	if err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementNamedValueRead(d, meta)
+}
+
+func resourceApiManagementNamedValueUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.NamedValueClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := namedvalue.ParseNamedValueID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := namedvalue.NamedValueCreateContract{
+		Properties: &namedvalue.NamedValueCreateContractProperties{
+			DisplayName: d.Get("display_name").(string),
+			Secret:      pointer.To(d.Get("secret").(bool)),
+			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
+		},
+	}
+
+	if parameters.Properties.KeyVault != nil && (parameters.Properties.Secret == nil || !*parameters.Properties.Secret) {
+		return errors.New("`secret` must be true when `value_from_key_vault` is set")
+	}
+
+	if v, ok := d.GetOk("value"); ok {
+		parameters.Properties.Value = pointer.To(v.(string))
+	}
+
+	if tags, ok := d.GetOk("tags"); ok {
+		parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, *id, parameters, namedvalue.CreateOrUpdateOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementNamedValueRead(d, meta)
 }

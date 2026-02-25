@@ -23,9 +23,9 @@ import (
 
 func resourceApiManagementApiSchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiSchemaCreateUpdate,
+		Create: resourceApiManagementApiSchemaCreate,
 		Read:   resourceApiManagementApiSchemaRead,
-		Update: resourceApiManagementApiSchemaCreateUpdate,
+		Update: resourceApiManagementApiSchemaUpdate,
 		Delete: resourceApiManagementApiSchemaDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apischema.ParseApiSchemaID(id)
@@ -84,25 +84,23 @@ func resourceApiManagementApiSchema() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiSchemaCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := apischema.NewApiSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("api_name").(string), d.Get("schema_id").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_schema", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api_schema", id.ID())
 	}
 
 	parameters := apischema.SchemaContract{
@@ -135,10 +133,56 @@ func resourceApiManagementApiSchemaCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, apischema.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceApiManagementApiSchemaRead(d, meta)
+}
+
+func resourceApiManagementApiSchemaUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ApiSchemasClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := apischema.ParseApiSchemaID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := apischema.SchemaContract{
+		Properties: &apischema.SchemaContractProperties{
+			ContentType: d.Get("content_type").(string),
+			Document:    apischema.SchemaDocumentProperties{},
+		},
+	}
+
+	if v, ok := d.GetOk("value"); ok {
+		parameters.Properties.Document.Value = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("components"); ok {
+		var value interface{}
+		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+			return fmt.Errorf("failed to unmarshal components %v: %+v", v.(string), err)
+		}
+
+		parameters.Properties.Document.Components = pointer.To(value)
+	}
+
+	if v, ok := d.GetOk("definitions"); ok {
+		var value interface{}
+		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+			return fmt.Errorf("failed to unmarshal definitions %v: %+v", v.(string), err)
+		}
+
+		parameters.Properties.Document.Definitions = pointer.To(value)
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters, apischema.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %s", *id, err)
+	}
+
 	return resourceApiManagementApiSchemaRead(d, meta)
 }
 

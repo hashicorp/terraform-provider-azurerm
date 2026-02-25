@@ -21,9 +21,9 @@ import (
 
 func resourceApiManagementGateway() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGatewayCreateUpdate,
+		Create: resourceApiManagementGatewayCreate,
 		Read:   resourceApiManagementGatewayRead,
-		Update: resourceApiManagementGatewayCreateUpdate,
+		Update: resourceApiManagementGatewayUpdate,
 		Delete: resourceApiManagementGatewayDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -82,9 +82,9 @@ func resourceApiManagementGateway() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GatewayClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	apimId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
@@ -94,34 +94,53 @@ func resourceApiManagementGatewayCreateUpdate(d *pluginsdk.ResourceData, meta in
 
 	id := gateway.NewGatewayID(apimId.SubscriptionId, apimId.ResourceGroupName, apimId.ServiceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("making read request %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_gateway", id.ID())
+			return fmt.Errorf("making read request %s: %+v", id, err)
 		}
 	}
 
-	description := d.Get("description").(string)
-	locationData := expandApiManagementGatewayLocationData(d.Get("location_data").([]interface{}))
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_gateway", id.ID())
+	}
 
 	parameters := gateway.GatewayContract{
 		Properties: &gateway.GatewayContractProperties{
-			Description:  pointer.To(description),
-			LocationData: locationData,
+			Description:  pointer.To(d.Get("description").(string)),
+			LocationData: expandApiManagementGatewayLocationData(d.Get("location_data").([]interface{})),
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, gateway.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementGatewayRead(d, meta)
+}
+
+func resourceApiManagementGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.GatewayClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := gateway.ParseGatewayID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := gateway.GatewayContract{
+		Properties: &gateway.GatewayContractProperties{
+			Description:  pointer.To(d.Get("description").(string)),
+			LocationData: expandApiManagementGatewayLocationData(d.Get("location_data").([]interface{})),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, gateway.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementGatewayRead(d, meta)
 }

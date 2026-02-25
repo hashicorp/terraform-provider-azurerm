@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementUser() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementUserCreateUpdate,
+		Create: resourceApiManagementUserCreate,
 		Read:   resourceApiManagementUserRead,
-		Update: resourceApiManagementUserCreateUpdate,
+		Update: resourceApiManagementUserUpdate,
 		Delete: resourceApiManagementUserDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := user.ParseUserID(id)
@@ -98,63 +98,88 @@ func resourceApiManagementUser() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementUserCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementUserCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.UsersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for API Management User creation.")
 
 	id := user.NewUserID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("user_id").(string))
 
-	firstName := d.Get("first_name").(string)
-	lastName := d.Get("last_name").(string)
-	email := d.Get("email").(string)
-	state := d.Get("state").(string)
-	note := d.Get("note").(string)
-	password := d.Get("password").(string)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_user", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_user", id.ID())
 	}
 
 	properties := user.UserCreateParameters{
 		Properties: &user.UserCreateParameterProperties{
-			FirstName: firstName,
-			LastName:  lastName,
-			Email:     email,
+			FirstName: d.Get("first_name").(string),
+			LastName:  d.Get("last_name").(string),
+			Email:     d.Get("email").(string),
 		},
 	}
 
-	confirmation := d.Get("confirmation").(string)
-	if confirmation != "" {
-		properties.Properties.Confirmation = pointer.To(user.Confirmation(confirmation))
+	if v := d.Get("confirmation").(string); v != "" {
+		properties.Properties.Confirmation = pointer.To(user.Confirmation(v))
 	}
-	if note != "" {
-		properties.Properties.Note = pointer.To(note)
+	if v := d.Get("note").(string); v != "" {
+		properties.Properties.Note = pointer.To(v)
 	}
-	if password != "" {
-		properties.Properties.Password = pointer.To(password)
+	if v := d.Get("password").(string); v != "" {
+		properties.Properties.Password = pointer.To(v)
 	}
-	if state != "" {
-		properties.Properties.State = pointer.To(user.UserState(state))
+	if v := d.Get("state").(string); v != "" {
+		properties.Properties.State = pointer.To(user.UserState(v))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties, user.CreateOrUpdateOperationOptions{Notify: pointer.To(false)}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementUserRead(d, meta)
+}
+
+func resourceApiManagementUserUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.UsersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := user.ParseUserID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	properties := user.UserCreateParameters{
+		Properties: &user.UserCreateParameterProperties{
+			FirstName: d.Get("first_name").(string),
+			LastName:  d.Get("last_name").(string),
+			Email:     d.Get("email").(string),
+		},
+	}
+
+	if v := d.Get("note").(string); v != "" {
+		properties.Properties.Note = pointer.To(v)
+	}
+	if v := d.Get("password").(string); v != "" {
+		properties.Properties.Password = pointer.To(v)
+	}
+	if v := d.Get("state").(string); v != "" {
+		properties.Properties.State = pointer.To(user.UserState(v))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, properties, user.CreateOrUpdateOperationOptions{Notify: pointer.To(false)}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementUserRead(d, meta)
 }

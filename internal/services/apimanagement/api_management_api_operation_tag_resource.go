@@ -21,9 +21,9 @@ import (
 
 func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiOperationTagCreateUpdate,
+		Create: resourceApiManagementApiOperationTagCreate,
 		Read:   resourceApiManagementApiOperationTagRead,
-		Update: resourceApiManagementApiOperationTagCreateUpdate,
+		Update: resourceApiManagementApiOperationTagUpdate,
 		Delete: resourceApiManagementApiOperationTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -62,11 +62,11 @@ func resourceApiManagementApiOperationTag() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiOperationTagCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	tagClient := meta.(*clients.Client).ApiManagement.TagClient
 	client := meta.(*clients.Client).ApiManagement.ApiOperationTagClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	apiOperationId, err := apioperationtag.ParseOperationID(d.Get("api_operation_id").(string))
@@ -78,17 +78,15 @@ func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData,
 
 	id := apioperationtag.NewOperationTagID(subscriptionId, apiOperationId.ResourceGroupName, apiOperationId.ServiceName, apiName, apiOperationId.OperationId, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.TagGetByOperation(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)
-			}
-		}
-
+	existing, err := client.TagGetByOperation(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_operation_tag", id.ID())
+			return fmt.Errorf("checking for presence of existing Tag %q: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api_operation_tag", id.ID())
 	}
 
 	parameters := tag.TagCreateUpdateParameters{
@@ -99,7 +97,7 @@ func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData,
 
 	tagId := tag.NewTagID(subscriptionId, apiOperationId.ResourceGroupName, apiOperationId.ServiceName, d.Get("name").(string))
 	if _, err := tagClient.CreateOrUpdate(ctx, tagId, parameters, tag.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %q: %+v", id, err)
+		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
 	if _, err := client.TagAssignToOperation(ctx, id); err != nil {
@@ -107,6 +105,31 @@ func resourceApiManagementApiOperationTagCreateUpdate(d *pluginsdk.ResourceData,
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementApiOperationTagRead(d, meta)
+}
+
+func resourceApiManagementApiOperationTagUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	tagClient := meta.(*clients.Client).ApiManagement.TagClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := apioperationtag.ParseOperationTagID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := tag.TagCreateUpdateParameters{
+		Properties: &tag.TagContractProperties{
+			DisplayName: d.Get("display_name").(string),
+		},
+	}
+
+	tagId := tag.NewTagID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.TagId)
+	if _, err := tagClient.CreateOrUpdate(ctx, tagId, parameters, tag.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %q: %+v", *id, err)
+	}
 
 	return resourceApiManagementApiOperationTagRead(d, meta)
 }

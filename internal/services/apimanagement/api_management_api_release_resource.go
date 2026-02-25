@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementApiRelease() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiReleaseCreateUpdate,
+		Create: resourceApiManagementApiReleaseCreate,
 		Read:   resourceApiManagementApiReleaseRead,
-		Update: resourceApiManagementApiReleaseCreateUpdate,
+		Update: resourceApiManagementApiReleaseUpdate,
 		Delete: resourceApiManagementApiReleaseDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -63,7 +63,7 @@ func resourceApiManagementApiRelease() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiReleaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.ApiReleasesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -76,19 +76,15 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	id := apirelease.NewReleaseID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiId.ApiId, name)
-	ifMatch := "*"
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_release", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
-		ifMatch = ""
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api_release", id.ID())
 	}
 
 	parameters := apirelease.ApiReleaseContract{
@@ -98,11 +94,35 @@ func resourceApiManagementApiReleaseCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters, apirelease.CreateOrUpdateOperationOptions{IfMatch: pointer.To(ifMatch)}); err != nil {
-		return fmt.Errorf("creating/ updating %s: %+v", id, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, apirelease.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceApiManagementApiReleaseRead(d, meta)
+}
+
+func resourceApiManagementApiReleaseUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ApiReleasesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := apirelease.ParseReleaseID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := apirelease.ApiReleaseContract{
+		Properties: &apirelease.ApiReleaseContractProperties{
+			ApiId: pointer.To(d.Get("api_id").(string)),
+			Notes: pointer.To(d.Get("notes").(string)),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, apirelease.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
 	return resourceApiManagementApiReleaseRead(d, meta)
 }
 

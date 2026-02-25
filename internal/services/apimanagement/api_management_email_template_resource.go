@@ -23,9 +23,9 @@ import (
 
 func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementEmailTemplateCreateUpdate,
+		Create: resourceApiManagementEmailTemplateCreate,
 		Read:   resourceApiManagementEmailTemplateRead,
-		Update: resourceApiManagementEmailTemplateCreateUpdate,
+		Update: resourceApiManagementEmailTemplateUpdate,
 		Delete: resourceApiManagementEmailTemplateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := emailtemplates.ParseTemplateIDInsensitively(id)
@@ -88,44 +88,65 @@ func resourceApiManagementEmailTemplate() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementEmailTemplateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementEmailTemplateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
 	id := emailtemplates.NewTemplateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), emailtemplates.TemplateName(d.Get("template_name").(string)))
-	if d.IsNewResource() {
-		existing, err := client.EmailTemplateGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
 
-		// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
+	existing, err := client.EmailTemplateGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			if model := existing.Model; model != nil && model.Properties != nil && model.Properties.IsDefault != nil && !*model.Properties.IsDefault {
-				return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
-			}
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	subject := d.Get("subject").(string)
-	body := d.Get("body").(string)
+	// in case the template has been edited (is not default anymore) this errors and the resource should be imported manually into the state (terraform import).
+	if !response.WasNotFound(existing.HttpResponse) {
+		if model := existing.Model; model != nil && model.Properties != nil && model.Properties.IsDefault != nil && !*model.Properties.IsDefault {
+			return tf.ImportAsExistsError("azurerm_api_management_email_template", id.ID())
+		}
+	}
 
 	emailTemplateUpdateParameters := emailtemplates.EmailTemplateUpdateParameters{
 		Properties: &emailtemplates.EmailTemplateUpdateParameterProperties{
-			Subject: pointer.To(subject),
-			Body:    pointer.To(body),
+			Subject: pointer.To(d.Get("subject").(string)),
+			Body:    pointer.To(d.Get("body").(string)),
 		},
 	}
 
 	if _, err := client.EmailTemplateCreateOrUpdate(ctx, id, emailTemplateUpdateParameters, emailtemplates.EmailTemplateCreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementEmailTemplateRead(d, meta)
+}
+
+func resourceApiManagementEmailTemplateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.EmailTemplatesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := emailtemplates.ParseTemplateIDInsensitively(d.Id())
+	if err != nil {
+		return err
+	}
+
+	emailTemplateUpdateParameters := emailtemplates.EmailTemplateUpdateParameters{
+		Properties: &emailtemplates.EmailTemplateUpdateParameterProperties{
+			Subject: pointer.To(d.Get("subject").(string)),
+			Body:    pointer.To(d.Get("body").(string)),
+		},
+	}
+
+	newId := emailtemplates.NewTemplateID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.TemplateName)
+	if _, err := client.EmailTemplateCreateOrUpdate(ctx, newId, emailTemplateUpdateParameters, emailtemplates.EmailTemplateCreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", newId, err)
+	}
 
 	return resourceApiManagementEmailTemplateRead(d, meta)
 }
