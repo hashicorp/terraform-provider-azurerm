@@ -28,9 +28,9 @@ import (
 
 func resourceVirtualMachineExtension() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceVirtualMachineExtensionsCreateUpdate,
+		Create:   resourceVirtualMachineExtensionsCreate,
 		Read:     resourceVirtualMachineExtensionsRead,
-		Update:   resourceVirtualMachineExtensionsCreateUpdate,
+		Update:   resourceVirtualMachineExtensionsUpdate,
 		Delete:   resourceVirtualMachineExtensionsDelete,
 		Importer: pluginsdk.ImporterValidatingIdentity(&virtualmachineextensions.ExtensionId{}),
 
@@ -128,10 +128,10 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineExtensionsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
 	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	virtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
@@ -154,17 +154,15 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("reading location of %s", virtualMachineId)
 	}
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
 	}
 
 	publisher := d.Get("publisher").(string)
@@ -212,12 +210,90 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, extension); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	return resourceVirtualMachineExtensionsRead(d, meta)
+}
+
+func resourceVirtualMachineExtensionsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
+	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualmachineextensions.ParseExtensionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineName)
+
+	virtualMachine, err := vmClient.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", virtualMachineId, err)
+	}
+
+	if virtualMachine.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", virtualMachineId)
+	}
+
+	location := virtualMachine.Model.Location
+	if location == "" {
+		return fmt.Errorf("reading location of %s", virtualMachineId)
+	}
+
+	publisher := d.Get("publisher").(string)
+	extensionType := d.Get("type").(string)
+	typeHandlerVersion := d.Get("type_handler_version").(string)
+	autoUpgradeMinor := d.Get("auto_upgrade_minor_version").(bool)
+	enableAutomaticUpgrade := d.Get("automatic_upgrade_enabled").(bool)
+	suppressFailure := d.Get("failure_suppression_enabled").(bool)
+	t := d.Get("tags").(map[string]interface{})
+
+	extension := virtualmachineextensions.VirtualMachineExtension{
+		Location: &location,
+		Properties: &virtualmachineextensions.VirtualMachineExtensionProperties{
+			Publisher:                     &publisher,
+			Type:                          &extensionType,
+			TypeHandlerVersion:            &typeHandlerVersion,
+			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
+			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
+			SuppressFailures:              &suppressFailure,
+		},
+		Tags: tags.Expand(t),
+	}
+
+	if settingsString := d.Get("settings").(string); settingsString != "" {
+		var result interface{}
+		err := json.Unmarshal([]byte(settingsString), &result)
+		if err != nil {
+			return fmt.Errorf("unmarshaling `settings`: %+v", err)
+		}
+		extension.Properties.Settings = pointer.To(result)
+	}
+
+	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
+		var result interface{}
+		err := json.Unmarshal([]byte(protectedSettingsString), &result)
+		if err != nil {
+			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
+		}
+		extension.Properties.ProtectedSettings = pointer.To(result)
+	}
+
+	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
+		extension.Properties.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, extension); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceVirtualMachineExtensionsRead(d, meta)

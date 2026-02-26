@@ -27,9 +27,9 @@ import (
 
 func resourceProximityPlacementGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceProximityPlacementGroupCreateUpdate,
+		Create: resourceProximityPlacementGroupCreate,
 		Read:   resourceProximityPlacementGroupRead,
-		Update: resourceProximityPlacementGroupCreateUpdate,
+		Update: resourceProximityPlacementGroupUpdate,
 		Delete: resourceProximityPlacementGroupDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&proximityplacementgroups.ProximityPlacementGroupId{}),
@@ -86,25 +86,23 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceProximityPlacementGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := proximityplacementgroups.NewProximityPlacementGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id, proximityplacementgroups.DefaultGetOperationOptions())
-	if d.IsNewResource() {
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_proximity_placement_group", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_proximity_placement_group", id.ID())
 	}
 
 	payload := proximityplacementgroups.ProximityPlacementGroup{
@@ -126,12 +124,47 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	return resourceProximityPlacementGroupRead(d, meta)
+}
+
+func resourceProximityPlacementGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.ProximityPlacementGroupsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := proximityplacementgroups.ParseProximityPlacementGroupID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := proximityplacementgroups.ProximityPlacementGroup{
+		Location:   location.Normalize(d.Get("location").(string)),
+		Properties: &proximityplacementgroups.ProximityPlacementGroupProperties{},
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("allowed_vm_sizes"); ok {
+		if payload.Properties.Intent == nil {
+			payload.Properties.Intent = &proximityplacementgroups.ProximityPlacementGroupPropertiesIntent{}
+		}
+		payload.Properties.Intent.VMSizes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+	}
+
+	if v, ok := d.GetOk("zone"); ok {
+		zones := zones.Expand([]string{v.(string)})
+		payload.Zones = &zones
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceProximityPlacementGroupRead(d, meta)

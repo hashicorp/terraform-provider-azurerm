@@ -20,9 +20,9 @@ import (
 
 func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
+		Create: resourceCognitiveAccountCustomerManagedKeyCreate,
 		Read:   resourceCognitiveAccountCustomerManagedKeyRead,
-		Update: resourceCognitiveAccountCustomerManagedKeyCreateUpdate,
+		Update: resourceCognitiveAccountCustomerManagedKeyUpdate,
 		Delete: resourceCognitiveAccountCustomerManagedKeyDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -60,9 +60,9 @@ func resourceCognitiveAccountCustomerManagedKey() *pluginsdk.Resource {
 	}
 }
 
-func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCognitiveAccountCustomerManagedKeyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := cognitiveservicesaccounts.ParseAccountID(d.Get("cognitive_account_id").(string))
@@ -78,10 +78,8 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if d.IsNewResource() {
-		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeySource != nil && *resp.Model.Properties.Encryption.KeySource != cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
-			return tf.ImportAsExistsError("azurerm_cognitive_account_customer_managed_key", id.ID())
-		}
+	if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.Encryption != nil && resp.Model.Properties.Encryption.KeySource != nil && *resp.Model.Properties.Encryption.KeySource != cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
+		return tf.ImportAsExistsError("azurerm_cognitive_account_customer_managed_key", id.ID())
 	}
 
 	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
@@ -126,6 +124,64 @@ func resourceCognitiveAccountCustomerManagedKeyCreateUpdate(d *pluginsdk.Resourc
 		return fmt.Errorf("waiting for update of %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+
+	return resourceCognitiveAccountCustomerManagedKeyRead(d, meta)
+}
+
+func resourceCognitiveAccountCustomerManagedKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Cognitive.AccountsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := cognitiveservicesaccounts.ParseAccountID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(id.AccountName, "azurerm_cognitive_account")
+	defer locks.UnlockByName(id.AccountName, "azurerm_cognitive_account")
+
+	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
+
+	props := cognitiveservicesaccounts.Account{
+		Properties: &cognitiveservicesaccounts.AccountProperties{
+			Encryption: &cognitiveservicesaccounts.Encryption{
+				KeySource: &keySource,
+			},
+		},
+	}
+
+	keyId, err := keyvault.ParseNestedItemID(d.Get("key_vault_key_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return err
+	}
+	props.Properties.Encryption.KeyVaultProperties = &cognitiveservicesaccounts.KeyVaultProperties{
+		KeyName:     pointer.To(keyId.Name),
+		KeyVersion:  pointer.To(keyId.Version),
+		KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
+	}
+
+	if identityClientId := d.Get("identity_client_id").(string); identityClientId != "" {
+		props.Properties.Encryption.KeyVaultProperties.IdentityClientId = pointer.To(identityClientId)
+	}
+
+	// todo check if poll works in all the resources
+	if _, err = client.AccountsUpdate(ctx, *id, props); err != nil {
+		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Accepted"},
+		Target:     []string{"Succeeded"},
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    time.Until(timeout),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
+	}
 
 	return resourceCognitiveAccountCustomerManagedKeyRead(d, meta)
 }

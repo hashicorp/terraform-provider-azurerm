@@ -30,9 +30,9 @@ import (
 
 func resourceAvailabilitySet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create:   resourceAvailabilitySetCreateUpdate,
+		Create:   resourceAvailabilitySetCreate,
 		Read:     resourceAvailabilitySetRead,
-		Update:   resourceAvailabilitySetCreateUpdate,
+		Update:   resourceAvailabilitySetUpdate,
 		Delete:   resourceAvailabilitySetDelete,
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.AvailabilitySetId{}),
 
@@ -102,38 +102,32 @@ func resourceAvailabilitySet() *pluginsdk.Resource {
 	}
 }
 
-func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAvailabilitySetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := commonids.NewAvailabilitySetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_availability_set", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	updateDomainCount := d.Get("platform_update_domain_count").(int)
-	faultDomainCount := d.Get("platform_fault_domain_count").(int)
-	managed := d.Get("managed").(bool)
-	t := d.Get("tags").(map[string]interface{})
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_availability_set", id.ID())
+	}
 
 	payload := availabilitysets.AvailabilitySet{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &availabilitysets.AvailabilitySetProperties{
-			PlatformFaultDomainCount:  pointer.To(int64(faultDomainCount)),
-			PlatformUpdateDomainCount: pointer.To(int64(updateDomainCount)),
+			PlatformFaultDomainCount:  pointer.To(int64(d.Get("platform_fault_domain_count").(int))),
+			PlatformUpdateDomainCount: pointer.To(int64(d.Get("platform_update_domain_count").(int))),
 		},
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -142,21 +136,60 @@ func resourceAvailabilitySetCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if managed {
+	if d.Get("managed").(bool) {
 		n := "Aligned"
 		payload.Sku = &availabilitysets.Sku{
 			Name: &n,
 		}
 	}
 
-	_, err := client.CreateOrUpdate(ctx, id, payload)
+	_, err = client.CreateOrUpdate(ctx, id, payload)
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	return resourceAvailabilitySetRead(d, meta)
+}
+
+func resourceAvailabilitySetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.AvailabilitySetsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseAvailabilitySetID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := availabilitysets.AvailabilitySet{
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &availabilitysets.AvailabilitySetProperties{
+			PlatformFaultDomainCount:  pointer.To(int64(d.Get("platform_fault_domain_count").(int))),
+			PlatformUpdateDomainCount: pointer.To(int64(d.Get("platform_update_domain_count").(int))),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		payload.Properties.ProximityPlacementGroup = &availabilitysets.SubResource{
+			Id: pointer.To(v.(string)),
+		}
+	}
+
+	if d.Get("managed").(bool) {
+		n := "Aligned"
+		payload.Sku = &availabilitysets.Sku{
+			Name: &n,
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceAvailabilitySetRead(d, meta)

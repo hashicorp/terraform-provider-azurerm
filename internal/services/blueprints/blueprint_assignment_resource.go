@@ -28,8 +28,8 @@ import (
 
 func resourceBlueprintAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceBlueprintAssignmentCreateUpdate,
-		Update: resourceBlueprintAssignmentCreateUpdate,
+		Create: resourceBlueprintAssignmentCreate,
+		Update: resourceBlueprintAssignmentUpdate,
 		Read:   resourceBlueprintAssignmentRead,
 		Delete: resourceBlueprintAssignmentDelete,
 
@@ -141,29 +141,26 @@ func resourceBlueprintAssignment() *pluginsdk.Resource {
 	}
 }
 
-func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceBlueprintAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Blueprints.AssignmentsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := assignment.NewScopedBlueprintAssignmentID(d.Get("target_subscription_id").(string), d.Get("name").(string))
-	blueprintId := d.Get("version_id").(string)
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for an existing %s: %+v", id, err)
-			}
-		}
+	resp, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
+			return fmt.Errorf("checking for an existing %s: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_blueprint_assignment", id.ID())
 	}
 
 	payload := assignment.Assignment{
 		Properties: assignment.AssignmentProperties{
-			BlueprintId: pointer.To(blueprintId), // This is mislabeled - The ID is that of the Published Version, not just the Blueprint
+			BlueprintId: pointer.To(d.Get("version_id").(string)), // This is mislabeled - The ID is that of the Published Version, not just the Blueprint
 			Scope:       pointer.To(id.ResourceScope),
 		},
 		Location: location.Normalize(d.Get("location").(string)),
@@ -230,6 +227,87 @@ func resourceBlueprintAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
+
+	return resourceBlueprintAssignmentRead(d, meta)
+}
+
+func resourceBlueprintAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Blueprints.AssignmentsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := assignment.ParseScopedBlueprintAssignmentID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := assignment.Assignment{
+		Properties: assignment.AssignmentProperties{
+			BlueprintId: pointer.To(d.Get("version_id").(string)), // This is mislabeled - The ID is that of the Published Version, not just the Blueprint
+			Scope:       pointer.To(id.ResourceScope),
+		},
+		Location: location.Normalize(d.Get("location").(string)),
+	}
+
+	if lockModeRaw, ok := d.GetOk("lock_mode"); ok {
+		assignmentLockSettings := &assignment.AssignmentLockSettings{}
+		lockMode := lockModeRaw.(string)
+		assignmentLockSettings.Mode = pointer.To(assignment.AssignmentLockMode(lockMode))
+		if lockMode != "None" {
+			excludedPrincipalsRaw := d.Get("lock_exclude_principals").([]interface{})
+			if len(excludedPrincipalsRaw) != 0 {
+				assignmentLockSettings.ExcludedPrincipals = utils.ExpandStringSlice(excludedPrincipalsRaw)
+			}
+
+			excludedActionsRaw := d.Get("lock_exclude_actions").([]interface{})
+			if len(excludedActionsRaw) != 0 {
+				assignmentLockSettings.ExcludedActions = utils.ExpandStringSlice(excludedActionsRaw)
+			}
+		}
+		payload.Properties.Locks = assignmentLockSettings
+	}
+
+	i, err := identity.ExpandSystemOrUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	payload.Identity = *i
+
+	if paramValuesRaw := d.Get("parameter_values"); paramValuesRaw != "" {
+		payload.Properties.Parameters = expandArmBlueprintAssignmentParameters(paramValuesRaw.(string))
+	} else {
+		payload.Properties.Parameters = expandArmBlueprintAssignmentParameters("{}")
+	}
+
+	if resourceGroupsRaw := d.Get("resource_groups"); resourceGroupsRaw != "" {
+		payload.Properties.ResourceGroups = expandArmBlueprintAssignmentResourceGroups(resourceGroupsRaw.(string))
+	} else {
+		payload.Properties.ResourceGroups = expandArmBlueprintAssignmentResourceGroups("{}")
+	}
+
+	if _, err = client.CreateOrUpdate(ctx, *id, payload); err != nil {
+		return err
+	}
+
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(assignment.AssignmentProvisioningStateWaiting),
+			string(assignment.AssignmentProvisioningStateValidating),
+			string(assignment.AssignmentProvisioningStateCreating),
+			string(assignment.AssignmentProvisioningStateDeploying),
+			string(assignment.AssignmentProvisioningStateLocking),
+		},
+		Target:  []string{string(assignment.AssignmentProvisioningStateSucceeded)},
+		Refresh: blueprintAssignmentCreateStateRefreshFunc(ctx, client, *id),
+		Timeout: time.Until(deadline),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("failed waiting for Blueprint Assignment %s: %+v", id.String(), err)
+	}
 
 	return resourceBlueprintAssignmentRead(d, meta)
 }
