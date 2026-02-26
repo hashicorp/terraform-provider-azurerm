@@ -223,12 +223,11 @@ resource "azurerm_user_assigned_identity" "test" {
 
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standardv3_Monthly"
-  capacity                 = 10
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = false
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv3_Monthly"
+  capacity            = 10
+  location            = azurerm_resource_group.test.location
 
   identity {
     type         = "UserAssigned"

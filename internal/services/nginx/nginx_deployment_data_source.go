@@ -29,7 +29,7 @@ type DeploymentDataSourceModel struct {
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
 	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
@@ -105,11 +105,6 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"diagnose_support_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
 		},
 
 		"email": {
@@ -232,6 +227,12 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		}
+
+		dataSource["diagnose_support_enabled"] = &pluginsdk.Schema{
+			Deprecated: "this property is deprecated and will be removed in v5.0, metrics are enabled by default.",
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+		}
 	}
 	return dataSource
 }
@@ -323,7 +324,6 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					output.IpAddress = pointer.From(props.IPAddress)
 					output.NginxVersion = pointer.From(props.NginxVersion)
 					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
-					output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 
 					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
@@ -334,6 +334,7 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 								},
 							}
 						}
+						output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 					}
 
 					if profile := props.NetworkProfile; profile != nil {
