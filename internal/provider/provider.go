@@ -6,6 +6,7 @@ package provider
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -24,11 +25,16 @@ import (
 )
 
 func AzureProvider() *schema.Provider {
-	return azureProvider(false)
+	return azureProvider(false, nil)
 }
 
 func TestAzureProvider() *schema.Provider {
-	return azureProvider(true)
+	return azureProvider(true, nil)
+}
+
+// AzureProviderWithHTTPClient creates a provider with a custom HTTP client.
+func AzureProviderWithHTTPClient(httpClient *http.Client) *schema.Provider {
+	return azureProvider(false, httpClient)
 }
 
 func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
@@ -80,7 +86,7 @@ func ValidatePartnerID(i interface{}, k string) ([]string, []error) {
 	}
 }
 
-func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
+func azureProvider(supportLegacyTestSuite bool, httpClient *http.Client) *schema.Provider {
 	dataSources := make(map[string]*schema.Resource)
 	resources := make(map[string]*schema.Resource)
 
@@ -382,7 +388,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 		ResourcesMap:   resources,
 	}
 
-	p.ConfigureContextFunc = providerConfigure(p)
+	p.ConfigureContextFunc = providerConfigure(p, httpClient)
 
 	if !features.FivePointOh() {
 		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
@@ -394,7 +400,8 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 // providerConfigure is used to configure the cloud environment and authentication.
 // To configure behavioral aspects of the provider, use the buildClient function instead.
 // This separation allows us to robustly test different authentication scenarios.
-func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
+// The httpClient parameter is optional and used for VCR testing.
+func providerConfigure(p *schema.Provider, httpClient *http.Client) schema.ConfigureContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		subscriptionId := d.Get("subscription_id").(string)
 		if subscriptionId == "" {
@@ -499,13 +506,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 			EnableAuthenticationUsingADOPipelineOIDC:   enableOidc,
 		}
 
-		return buildClient(ctx, p, d, authConfig)
+		return buildClient(ctx, p, d, authConfig, httpClient)
 	}
 }
 
 // buildClient is used to configure behavioral aspects of the provider. To configure the
 // cloud environment and authentication-related settings, use the providerConfigure function.
-func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
+// The httpClient parameter is optional and used for VCR testing.
+func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials, httpClient *http.Client) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)
 
 	// TODO: Remove in v5.0
@@ -538,6 +546,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		StorageUseAzureAD:           d.Get("storage_use_azuread").(bool),
 		SubscriptionID:              d.Get("subscription_id").(string),
 		TerraformVersion:            p.TerraformVersion,
+		HttpClient:                  httpClient,
 
 		// this field is intentionally not exposed in the provider block, since it's only used for
 		// platform level tracing
@@ -551,6 +560,7 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 
 	client, err := clients.Build(stopCtx, clientBuilder)
+
 	if err != nil {
 		return nil, diag.FromErr(err)
 	}
