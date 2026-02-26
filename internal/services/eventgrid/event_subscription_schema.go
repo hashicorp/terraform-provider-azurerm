@@ -4,6 +4,8 @@
 package eventgrid
 
 import (
+	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -19,24 +21,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// EventSubscriptionEndpointType enumerates the values for event subscription endpoint types.
 type EventSubscriptionEndpointType string
 
 const (
-	// AzureFunctionEndpoint ...
-	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
-	// EventHubEndpointID ...
-	EventHubEndpointID EventSubscriptionEndpointType = "eventhub_endpoint_id"
-	// HybridConnectionEndpointID ...
-	HybridConnectionEndpointID EventSubscriptionEndpointType = "hybrid_connection_endpoint_id"
-	// ServiceBusQueueEndpointID ...
-	ServiceBusQueueEndpointID EventSubscriptionEndpointType = "service_bus_queue_endpoint_id"
-	// ServiceBusTopicEndpointID ...
-	ServiceBusTopicEndpointID EventSubscriptionEndpointType = "service_bus_topic_endpoint_id"
-	// StorageQueueEndpoint ...
-	StorageQueueEndpoint EventSubscriptionEndpointType = "storage_queue_endpoint"
-	// WebHookEndpoint ...
-	WebHookEndpoint EventSubscriptionEndpointType = "webhook_endpoint"
+	AzureFunction     EventSubscriptionEndpointType = "azure_function"
+	EventHubID        EventSubscriptionEndpointType = "eventhub_id"
+	ArcConnectionID   EventSubscriptionEndpointType = "arc_connection_id"
+	ServiceBusQueueID EventSubscriptionEndpointType = "service_bus_queue_id"
+	ServiceBusTopicID EventSubscriptionEndpointType = "service_bus_topic_id"
+	StorageQueue      EventSubscriptionEndpointType = "storage_queue"
+	WebHook           EventSubscriptionEndpointType = "webhook"
 )
 
 func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
@@ -113,7 +107,7 @@ func eventSubscriptionSchemaExpirationTimeUTC() *pluginsdk.Schema {
 	}
 }
 
-func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaAzureFunction(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -139,7 +133,7 @@ func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *plugi
 	}
 }
 
-func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaEventHubID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
@@ -149,7 +143,7 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 	}
 }
 
-func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaArcConnectionID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
@@ -159,7 +153,7 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 	}
 }
 
-func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaServiceBusQueueID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
@@ -168,7 +162,7 @@ func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *p
 	}
 }
 
-func eventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaServiceBusTopicID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
@@ -177,7 +171,7 @@ func eventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *p
 	}
 }
 
-func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaStorageQueue(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -190,12 +184,12 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 					Required:     true,
 					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
-				"queue_name": {
+				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"queue_message_time_to_live_in_seconds": {
+				"message_time_to_live_in_seconds": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 				},
@@ -204,7 +198,7 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 	}
 }
 
-func eventSubscriptionSchemaWebHookEndpoint(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaWebHook(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -776,3 +770,24 @@ func eventSubscriptionSchemaIdentity() *pluginsdk.Schema {
 		},
 	}
 }
+
+var advancedFilterLimitCustomizeDiffFunc = pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]interface{})) == 1 {
+		filters := filterRaw.([]interface{})[0].(map[string]interface{})
+		valueCount := 0
+		for _, valRaw := range filters {
+			for _, val := range valRaw.([]interface{}) {
+				v := val.(map[string]interface{})
+				if values, ok := v["values"]; ok {
+					valueCount += len(values.([]interface{}))
+				} else if _, ok := v["value"]; ok {
+					valueCount++
+				}
+			}
+		}
+		if valueCount > 25 {
+			return fmt.Errorf("the total number of `advanced_filter` values allowed on a single event subscription is 25, but %d are configured", valueCount)
+		}
+	}
+	return nil
+})

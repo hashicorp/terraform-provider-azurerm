@@ -331,6 +331,15 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_eventgrid_event_subscription`
 
 * Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+* The deprecated `azure_function_endpoint` property has been removed in favour of the `azure_function` property.
+* The deprecated `eventhub_endpoint_id` property has been removed in favour of the `eventhub_id` property.
+* The deprecated `hybrid_connection_endpoint_id` property has been removed in favour of the `arc_connection_id` property.
+* The deprecated `service_bus_queue_endpoint_id` property has been removed in favour of the `service_bus_queue_id` property.
+* The deprecated `service_bus_topic_endpoint_id` property has been removed in favour of the `service_bus_topic_id` property.
+* The deprecated `storage_queue_endpoint` property has been removed in favour of the `storage_queue` property.
+* The deprecated `storage_queue_endpoint.queue_name` property has been removed in favour of the `storage_queue.name` property.
+* The deprecated `storage_queue_endpoint.queue_message_time_to_live_in_seconds` property has been removed in favour of the `storage_queue.message_time_to_live_in_seconds` property.
+* The deprecated `webhook_endpoint` property has been removed in favour of the `webhook` property.
 
 ### `azurerm_eventgrid_system_topic`
 
@@ -341,6 +350,15 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+* The deprecated `azure_function_endpoint` property has been removed in favour of the `azure_function` property.
+* The deprecated `eventhub_endpoint_id` property has been removed in favour of the `eventhub_id` property.
+* The deprecated `hybrid_connection_endpoint_id` property has been removed in favour of the `arc_connection_id` property.
+* The deprecated `service_bus_queue_endpoint_id` property has been removed in favour of the `service_bus_queue_id` property.
+* The deprecated `service_bus_topic_endpoint_id` property has been removed in favour of the `service_bus_topic_id` property.
+* The deprecated `storage_queue_endpoint` property has been removed in favour of the `storage_queue` property.
+* The deprecated `storage_queue_endpoint.queue_name` property has been removed in favour of the `storage_queue.name` property.
+* The deprecated `storage_queue_endpoint.queue_message_time_to_live_in_seconds` property has been removed in favour of the `storage_queue.message_time_to_live_in_seconds` property.
+* The deprecated `webhook_endpoint` property has been removed in favour of the `webhook` property.
 
 ### `azurerm_eventhub`
 
