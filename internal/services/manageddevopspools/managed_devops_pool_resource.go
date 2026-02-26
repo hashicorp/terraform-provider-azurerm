@@ -245,7 +245,8 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 										Schema: map[string]*pluginsdk.Schema{
 											"key_export_enabled": {
 												Type:     pluginsdk.TypeBool,
-												Required: true,
+												Default:  false,
+												Optional: true,
 											},
 
 											"key_vault_certificate_ids": {
@@ -253,7 +254,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												Required: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
-													ValidateFunc: keyvaultvalidate.NestedItemIdWithOptionalVersion,
+													ValidateFunc: keyvaultvalidate.VersionlessNestedItemId,
 												},
 											},
 
