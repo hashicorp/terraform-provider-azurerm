@@ -24,9 +24,9 @@ import (
 
 func resourcePolicyArcMachineConfigurationAssignment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePolicyArcMachineConfigurationAssignmentCreateUpdate,
+		Create: resourcePolicyArcMachineConfigurationAssignmentCreate,
 		Read:   resourcePolicyArcMachineConfigurationAssignmentRead,
-		Update: resourcePolicyArcMachineConfigurationAssignmentCreateUpdate,
+		Update: resourcePolicyArcMachineConfigurationAssignmentUpdate,
 		Delete: resourcePolicyArcMachineConfigurationAssignmentDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -123,10 +123,10 @@ func resourcePolicyArcMachineConfigurationAssignmentSchema() map[string]*plugins
 	}
 }
 
-func resourcePolicyArcMachineConfigurationAssignmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourcePolicyArcMachineConfigurationAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).Policy.GuestConfigurationHCRPAssignmentsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	vmId, err := machines.ParseMachineID(d.Get("machine_id").(string))
@@ -169,7 +169,50 @@ func resourcePolicyArcMachineConfigurationAssignmentCreateUpdate(d *pluginsdk.Re
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, assignment); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourcePolicyArcMachineConfigurationAssignmentRead(d, meta)
+}
+
+func resourcePolicyArcMachineConfigurationAssignmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Policy.GuestConfigurationHCRPAssignmentsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	vmId, err := machines.ParseMachineID(d.Get("machine_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id := guestconfigurationhcrpassignments.NewProviders2GuestConfigurationAssignmentID(subscriptionId, vmId.ResourceGroupName, vmId.MachineName, d.Get("name").(string))
+
+	guestConfiguration := expandGuestConfigurationHCRPAssignment(d.Get("configuration").([]interface{}), id.GuestConfigurationAssignmentName)
+	assignment := guestconfigurationhcrpassignments.GuestConfigurationAssignment{
+		Name:     *pointer.To(id.GuestConfigurationAssignmentName),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: &guestconfigurationhcrpassignments.GuestConfigurationAssignmentProperties{
+			GuestConfiguration: guestConfiguration,
+		},
+	}
+
+	// I need to determine if the passed in guest config is a built-in config or not
+	// since the attribute is computed and optional I need to check the value of the
+	// contentURI to see if it is on a service team owned storage account or not
+	// all built-in guest configuration will always be on a service team owned
+	// storage account
+	if guestConfiguration.ContentUri != nil || *guestConfiguration.ContentUri != "" {
+		if strings.Contains(strings.ToLower(*guestConfiguration.ContentUri), "oaasguestconfig") {
+			assignment.Properties.GuestConfiguration.ContentHash = nil
+			assignment.Properties.GuestConfiguration.ContentUri = nil
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, assignment); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
