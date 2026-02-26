@@ -59,7 +59,7 @@ type subster struct {
 // Returns a subster that replaces tparams[i] with targs[i]. Uses ctxt as a cache.
 // targs should not contain any types in tparams.
 // fn is the generic function for which we are substituting.
-func makeSubster(ctxt *types.Context, fn *types.Func, tparams *types.TypeParamList, targs []types.Type, debug bool) *subster {
+func makeSubster(ctxt *types.Context, fn *types.Func, tparams *types.TypeParamList, targs []types.Type) *subster {
 	assert(tparams.Len() == len(targs), "makeSubster argument count must match")
 
 	subst := &subster{
@@ -352,8 +352,7 @@ func (subst *subster) alias(t *types.Alias) types.Type {
 
 		// Copy and substitute type params.
 		var newTParams []*types.TypeParam
-		for i := 0; i < tparams.Len(); i++ {
-			cur := tparams.At(i)
+		for cur := range tparams.TypeParams() {
 			cobj := cur.Obj()
 			cname := types.NewTypeName(cobj.Pos(), cobj.Pkg(), cobj.Name(), nil)
 			ntp := types.NewTypeParam(cname, nil)
@@ -488,8 +487,7 @@ func (subst *subster) named(t *types.Named) types.Type {
 		obj := types.NewTypeName(tname.Pos(), tname.Pkg(), tname.Name(), nil)
 		fresh := types.NewNamed(obj, nil, nil)
 		var newTParams []*types.TypeParam
-		for i := 0; i < tparams.Len(); i++ {
-			cur := tparams.At(i)
+		for cur := range tparams.TypeParams() {
 			cobj := cur.Obj()
 			cname := types.NewTypeName(cobj.Pos(), cobj.Pkg(), cobj.Name(), nil)
 			ntp := types.NewTypeParam(cname, nil)
@@ -566,77 +564,4 @@ func (subst *subster) signature(t *types.Signature) types.Type {
 		return types.NewSignatureType(recv, nil, nil, params, results, t.Variadic())
 	}
 	return t
-}
-
-// reaches returns true if a type t reaches any type t' s.t. c[t'] == true.
-// It updates c to cache results.
-//
-// reaches is currently only part of the wellFormed debug logic, and
-// in practice c is initially only type parameters. It is not currently
-// relied on in production.
-func reaches(t types.Type, c map[types.Type]bool) (res bool) {
-	if c, ok := c[t]; ok {
-		return c
-	}
-
-	// c is populated with temporary false entries as types are visited.
-	// This avoids repeat visits and break cycles.
-	c[t] = false
-	defer func() {
-		c[t] = res
-	}()
-
-	switch t := t.(type) {
-	case *types.TypeParam, *types.Basic:
-		return false
-	case *types.Array:
-		return reaches(t.Elem(), c)
-	case *types.Slice:
-		return reaches(t.Elem(), c)
-	case *types.Pointer:
-		return reaches(t.Elem(), c)
-	case *types.Tuple:
-		for i := 0; i < t.Len(); i++ {
-			if reaches(t.At(i).Type(), c) {
-				return true
-			}
-		}
-	case *types.Struct:
-		for i := 0; i < t.NumFields(); i++ {
-			if reaches(t.Field(i).Type(), c) {
-				return true
-			}
-		}
-	case *types.Map:
-		return reaches(t.Key(), c) || reaches(t.Elem(), c)
-	case *types.Chan:
-		return reaches(t.Elem(), c)
-	case *types.Signature:
-		if t.Recv() != nil && reaches(t.Recv().Type(), c) {
-			return true
-		}
-		return reaches(t.Params(), c) || reaches(t.Results(), c)
-	case *types.Union:
-		for i := 0; i < t.Len(); i++ {
-			if reaches(t.Term(i).Type(), c) {
-				return true
-			}
-		}
-	case *types.Interface:
-		for i := 0; i < t.NumEmbeddeds(); i++ {
-			if reaches(t.Embedded(i), c) {
-				return true
-			}
-		}
-		for i := 0; i < t.NumExplicitMethods(); i++ {
-			if reaches(t.ExplicitMethod(i).Type(), c) {
-				return true
-			}
-		}
-	case *types.Named, *types.Alias:
-		return reaches(t.Underlying(), c)
-	default:
-		panic("unreachable")
-	}
-	return false
 }

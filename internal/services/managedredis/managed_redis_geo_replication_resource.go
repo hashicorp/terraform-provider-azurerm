@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis
@@ -6,14 +6,17 @@ package managedredis
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/databaselink"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -130,12 +133,14 @@ func (r ManagedRedisGeoReplicationResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil && props.GeoReplication != nil {
 					state.LinkedManagedRedisIds = make([]string, 0, len(pointer.From(props.GeoReplication.LinkedDatabases)))
 					for _, db := range pointer.From(props.GeoReplication.LinkedDatabases) {
-						cId, err := toClusterId(pointer.From(db.Id))
-						if err != nil {
-							return err
-						}
-						if !resourceids.Match(cId, clusterId) {
-							state.LinkedManagedRedisIds = append(state.LinkedManagedRedisIds, cId.ID())
+						if pointer.From(db.State) == databases.LinkStateLinked {
+							cId, err := toClusterId(pointer.From(db.Id))
+							if err != nil {
+								return err
+							}
+							if !resourceids.Match(cId, clusterId) {
+								state.LinkedManagedRedisIds = append(state.LinkedManagedRedisIds, cId.ID())
+							}
 						}
 					}
 				}
@@ -193,14 +198,20 @@ func (r ManagedRedisGeoReplicationResource) Delete() sdk.ResourceFunc {
 				fromDbIds := flattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
 				toDbIds := []string{dbId.ID()}
 
-				dbIdsToUnlink := databaselink.DbIdsToUnlink(fromDbIds, toDbIds)
+				dbIdsToUnlink, intermediateDbIds, _ := databaselink.LinkUnlink(fromDbIds, toDbIds)
 
-				if len(dbIdsToUnlink) > 0 {
-					params := databases.ForceUnlinkParameters{
-						Ids: dbIdsToUnlink,
+				for _, inv := range databaselink.ForceUnlinkInvocations(intermediateDbIds, dbIdsToUnlink) {
+					id, err := databases.ParseDatabaseID(inv.Id)
+					if err != nil {
+						return err
 					}
-					if err := client.ForceUnlinkThenPoll(ctx, dbId, params); err != nil {
-						return fmt.Errorf("force unlink %s: %+v", dbId, err)
+
+					params := databases.ForceUnlinkParameters{
+						Ids: inv.Ids,
+					}
+
+					if err := client.ForceUnlinkThenPoll(ctx, *id, params); err != nil {
+						return fmt.Errorf("force unlink %s: %+v", *id, err)
 					}
 				}
 			}
@@ -223,56 +234,90 @@ func (r ManagedRedisGeoReplicationResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
+			if model.ManagedRedisId != "" && slices.ContainsFunc(model.LinkedManagedRedisIds, func(id string) bool {
+				return id != "" && id == model.ManagedRedisId
+			}) {
+				return fmt.Errorf("linked_managed_redis_ids cannot contain the same value as managed_redis_id: %s", model.ManagedRedisId)
+			}
+
 			return nil
 		},
 	}
 }
 
 func linkUnlinkGeoReplication(ctx context.Context, client *databases.DatabasesClient, model ManagedRedisGeoReplicationResourceModel, clusterId *redisenterprise.RedisEnterpriseId) error {
-	id := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
+	primaryId := databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
-	existing, err := client.Get(ctx, id)
+	existing, err := client.Get(ctx, primaryId)
 	if err != nil {
 		return err
 	}
 
 	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+		return fmt.Errorf("retrieving %s: `properties` was nil", primaryId)
 	}
 	if existing.Model.Properties.GeoReplication == nil {
-		return fmt.Errorf("geo_replication_group_name has to be set on database %s", id)
+		return fmt.Errorf("geo_replication_group_name has to be set on database %s", primaryId)
 	}
 
 	fromDbIds := flattenLinkedDatabases(existing.Model.Properties.GeoReplication.LinkedDatabases)
-	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, id)
+	toDbIds, err := toDbIds(model.LinkedManagedRedisIds, primaryId)
 	if err != nil {
 		return err
 	}
 
-	dbIdsToUnlink := databaselink.DbIdsToUnlink(fromDbIds, toDbIds)
+	dbIdsToUnlink, intermediateDbIds, dbIdsToLink := databaselink.LinkUnlink(fromDbIds, toDbIds)
 
-	if len(dbIdsToUnlink) > 0 {
-		params := databases.ForceUnlinkParameters{
-			Ids: dbIdsToUnlink,
+	for _, inv := range databaselink.ForceUnlinkInvocations(intermediateDbIds, dbIdsToUnlink) {
+		id, err := databases.ParseDatabaseID(inv.Id)
+		if err != nil {
+			return err
 		}
-		if err := client.ForceUnlinkThenPoll(ctx, id, params); err != nil {
-			return fmt.Errorf("force unlink %s: %+v", id, err)
+
+		params := databases.ForceUnlinkParameters{
+			Ids: inv.Ids,
+		}
+
+		if err := client.ForceUnlinkThenPoll(ctx, *id, params); err != nil {
+			return fmt.Errorf("force unlink %s: %+v", *id, err)
+		}
+
+		// Workaround for race-condition bug after force-unlinking
+		// The API bug will be fixed in https://github.com/Azure/azure-rest-api-specs/issues/39598
+		pollerType := custompollers.NewGeoReplicationUnlinkingPoller(client, primaryId, inv.Ids)
+		poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent after unlinking for %s: %+v", primaryId, err)
 		}
 	}
 
-	if databaselink.HasDbToLink(fromDbIds, toDbIds) {
+	for _, inv := range databaselink.ForceLinkInvocations(intermediateDbIds, dbIdsToLink) {
+		id, err := databases.ParseDatabaseID(inv.Id)
+		if err != nil {
+			return err
+		}
+
 		params := databases.ForceLinkParameters{
 			GeoReplication: databases.ForceLinkParametersGeoReplication{
 				GroupNickname:   existing.Model.Properties.GeoReplication.GroupNickname,
-				LinkedDatabases: expandLinkedDatabases(toDbIds),
+				LinkedDatabases: expandLinkedDatabases(inv.Ids),
 			},
 		}
 
-		err = client.ForceLinkToReplicationGroupThenPoll(ctx, id, params)
+		err = client.ForceLinkToReplicationGroupThenPoll(ctx, *id, params)
 		if err != nil {
-			return fmt.Errorf("force link %s: %+v", id, err)
+			return fmt.Errorf("force link %s: %+v", *id, err)
+		}
+
+		// Workaround for race-condition bug after force-linking
+		// The API bug will be fixed in https://github.com/Azure/azure-rest-api-specs/issues/39598
+		pollerType := custompollers.NewGeoReplicationLinkingPoller(client, primaryId, inv.Ids)
+		poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("waiting for `linked_managed_redis_id` state to be consistent after linking for %s: %+v", primaryId, err)
 		}
 	}
+
 	return nil
 }
 

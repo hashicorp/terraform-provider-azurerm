@@ -149,6 +149,8 @@ A `backend_http_settings` block exports the following:
 
 * `affinity_cookie_name` - The name of the affinity cookie.
 
+* `dedicated_backend_connection_enabled` - Whether a dedicated backend connection is used.
+
 * `name` - The name of the Backend HTTP Settings Collection.
 
 * `path` - The path which is used as a prefix for all HTTP requests.
@@ -641,4 +643,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

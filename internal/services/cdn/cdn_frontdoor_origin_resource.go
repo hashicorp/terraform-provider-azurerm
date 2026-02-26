@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -217,16 +217,16 @@ func resourceCdnFrontDoorOriginCreate(d *pluginsdk.ResourceData, meta interface{
 	enableCertNameCheck := d.Get("certificate_name_check_enabled").(bool)
 	props := &cdn.AFDOriginProperties{
 		EnabledState:                expandEnabledBool(enabled),
-		EnforceCertificateNameCheck: utils.Bool(enableCertNameCheck),
-		HostName:                    utils.String(d.Get("host_name").(string)),
-		HTTPPort:                    utils.Int32(int32(d.Get("http_port").(int))),
-		HTTPSPort:                   utils.Int32(int32(d.Get("https_port").(int))),
-		Priority:                    utils.Int32(int32(d.Get("priority").(int))),
-		Weight:                      utils.Int32(int32(d.Get("weight").(int))),
+		EnforceCertificateNameCheck: pointer.To(enableCertNameCheck),
+		HostName:                    pointer.To(d.Get("host_name").(string)),
+		HTTPPort:                    pointer.To(int32(d.Get("http_port").(int))),
+		HTTPSPort:                   pointer.To(int32(d.Get("https_port").(int))),
+		Priority:                    pointer.To(int32(d.Get("priority").(int))),
+		Weight:                      pointer.To(int32(d.Get("weight").(int))),
 	}
 
 	if originHostHeader := d.Get("origin_host_header").(string); originHostHeader != "" {
-		props.OriginHostHeader = utils.String(originHostHeader)
+		props.OriginHostHeader = pointer.To(originHostHeader)
 	}
 
 	expanded, err := expandPrivateLinkSettings(d.Get("private_link").([]interface{}), profiles.SkuName(skuName), enableCertNameCheck)
@@ -307,7 +307,7 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	params := &azuresdkhacks.AFDOriginUpdatePropertiesParameters{}
 
 	if d.HasChange("certificate_name_check_enabled") {
-		params.EnforceCertificateNameCheck = utils.Bool(d.Get("certificate_name_check_enabled").(bool))
+		params.EnforceCertificateNameCheck = pointer.To(d.Get("certificate_name_check_enabled").(bool))
 	}
 
 	if d.HasChange("enabled") {
@@ -315,22 +315,22 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("host_name") {
-		params.HostName = utils.String(d.Get("host_name").(string))
+		params.HostName = pointer.To(d.Get("host_name").(string))
 	}
 
 	if d.HasChange("http_port") {
-		params.HTTPPort = utils.Int32(int32(d.Get("http_port").(int)))
+		params.HTTPPort = pointer.To(int32(d.Get("http_port").(int)))
 	}
 
 	if d.HasChange("https_port") {
-		params.HTTPSPort = utils.Int32(int32(d.Get("https_port").(int)))
+		params.HTTPSPort = pointer.To(int32(d.Get("https_port").(int)))
 	}
 
 	// The API requires that an explicit null be passed as the 'origin_host_header' value to remove the origin host header, see issue #20617
 	// Since null is a valid value, we now have to always pass the value during update else we will inadvertently clear the value, see issue #20866
 	params.OriginHostHeader = nil
 	if d.Get("origin_host_header").(string) != "" {
-		params.OriginHostHeader = utils.String(d.Get("origin_host_header").(string))
+		params.OriginHostHeader = pointer.To(d.Get("origin_host_header").(string))
 	}
 
 	if d.HasChange("private_link") {
@@ -367,11 +367,11 @@ func resourceCdnFrontDoorOriginUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("priority") {
-		params.Priority = utils.Int32(int32(d.Get("priority").(int)))
+		params.Priority = pointer.To(int32(d.Get("priority").(int)))
 	}
 
 	if d.HasChange("weight") {
-		params.Weight = utils.Int32(int32(d.Get("weight").(int)))
+		params.Weight = pointer.To(int32(d.Get("weight").(int)))
 	}
 
 	payload := &azuresdkhacks.AFDOriginUpdateParameters{
@@ -464,11 +464,11 @@ func expandPrivateLinkSettings(input []interface{}, skuName profiles.SkuName, en
 
 	return &cdn.SharedPrivateLinkResourceProperties{
 		PrivateLink: &cdn.ResourceReference{
-			ID: utils.String(resourceId),
+			ID: pointer.To(resourceId),
 		},
-		GroupID:             utils.String(groupId),
-		PrivateLinkLocation: utils.String(location),
-		RequestMessage:      utils.String(requestMessage),
+		GroupID:             pointer.To(groupId),
+		PrivateLinkLocation: pointer.To(location),
+		RequestMessage:      pointer.To(requestMessage),
 	}, nil
 }
 

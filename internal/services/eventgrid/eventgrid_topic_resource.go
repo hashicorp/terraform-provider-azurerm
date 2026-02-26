@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventgrid
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceEventGridTopic() *pluginsdk.Resource {
@@ -231,7 +230,7 @@ func resourceEventGridTopicCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			InputSchema:         pointer.To(topics.InputSchema(d.Get("input_schema").(string))),
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 			InboundIPRules:      inboundIPRules,
-			DisableLocalAuth:    utils.Bool(!d.Get("local_auth_enabled").(bool)),
+			DisableLocalAuth:    pointer.To(!d.Get("local_auth_enabled").(bool)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -605,7 +604,7 @@ func expandTopicInboundIPRules(input []interface{}) *[]topics.InboundIPRule {
 		rawRule := item.(map[string]interface{})
 		rules = append(rules, topics.InboundIPRule{
 			Action: pointer.To(topics.IPActionType(rawRule["action"].(string))),
-			IPMask: utils.String(rawRule["ip_mask"].(string)),
+			IPMask: pointer.To(rawRule["ip_mask"].(string)),
 		})
 	}
 	return &rules
