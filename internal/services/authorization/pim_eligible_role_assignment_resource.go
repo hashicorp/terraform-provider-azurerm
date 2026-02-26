@@ -5,6 +5,7 @@ package authorization
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -29,6 +30,8 @@ import (
 )
 
 var _ sdk.Resource = PimEligibleRoleAssignmentResource{}
+
+var _ sdk.ResourceWithCustomizeDiff = PimEligibleRoleAssignmentResource{}
 
 type PimEligibleRoleAssignmentResource struct{}
 
@@ -748,4 +751,25 @@ func findRoleEligibilityScheduleRequest(ctx context.Context, client *roleeligibi
 
 	// No request was found, it probably expired
 	return nil, nil
+}
+
+func (r PimEligibleRoleAssignmentResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			roleDefinitionId := rd.Get("role_definition_id").(string)
+			scope := rd.Get("scope").(string)
+			if strings.HasPrefix(roleDefinitionId, "/providers") && strings.HasPrefix(scope, "/subscriptions") {
+				return errors.New("when `scope` is a subscription or resource, `role_definition_id` must include the subscription id part")
+			}
+
+			if strings.HasPrefix(roleDefinitionId, "/subscriptions") && strings.HasPrefix(scope, "/providers/Microsoft.Management/managementGroups") {
+				return errors.New("when `scope` is a management group, `role_definition_id` must NOT include the subscription id part")
+			}
+
+			return nil
+		},
+		Timeout: 30 * time.Minute,
+	}
 }
