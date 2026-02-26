@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -64,11 +64,11 @@ func TestAccDataProtectionBackupPolicyDataLakeStorage_complete(t *testing.T) {
 }
 
 func (r DataProtectionBackupPolicyDataLakeStorageResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
+	id, err := basebackuppolicyresources.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupPolicyClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupPolicyClient.BackupPoliciesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}

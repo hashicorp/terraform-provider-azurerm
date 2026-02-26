@@ -45,6 +45,7 @@ func identityType(idType []ResourceTypeForIdentity) ResourceTypeForIdentity {
 // that begin with a different prefix to /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1
 func segmentTypeSupported(segment resourceids.SegmentType) bool {
 	supportedSegmentTypes := []resourceids.SegmentType{
+		resourceids.ConstantSegmentType,
 		resourceids.SubscriptionIdSegmentType,
 		resourceids.ResourceGroupSegmentType,
 		resourceids.UserSpecifiedSegmentType,
@@ -103,9 +104,11 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 	segments := id.Segments()
 	numSegments := len(segments)
 	for idx, segment := range segments {
-		if segment.Type == resourceids.StaticSegmentType || segment.Type == resourceids.ResourceProviderSegmentType {
+		switch segment.Type {
+		case resourceids.StaticSegmentType, resourceids.ResourceProviderSegmentType:
 			identityString += pointer.From(segment.FixedValue) + "/"
 		}
+
 		if segmentTypeSupported(segment.Type) {
 			name := segmentName(segment, identityType(idType), numSegments, idx)
 
@@ -134,7 +137,10 @@ func ValidateResourceIdentityData(d *schema.ResourceData, id resourceids.Resourc
 
 	identityString = strings.TrimRight(identityString, "/")
 
-	// TODO it might be good practice then parse constructed ID string to ensure validity?
+	parser := resourceids.NewParserFromResourceIdType(id)
+	if _, err := parser.Parse(identityString, true); err != nil {
+		return fmt.Errorf("parsing after building Resource ID: %s", err)
+	}
 
 	d.SetId(identityString)
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -9,15 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
 var _ pollers.PollerType = &dataProtectionBackupVaultPoller{}
 
 type dataProtectionBackupVaultPoller struct {
-	client *backupvaults.BackupVaultsClient
-	id     backupvaults.BackupVaultId
+	client *backupvaultresources.BackupVaultResourcesClient
+	id     backupvaultresources.BackupVaultId
 }
 
 var (
@@ -32,7 +32,7 @@ var (
 	}
 )
 
-func NewDataProtectionBackupVaultPoller(client *backupvaults.BackupVaultsClient, id backupvaults.BackupVaultId) *dataProtectionBackupVaultPoller {
+func NewDataProtectionBackupVaultPoller(client *backupvaultresources.BackupVaultResourcesClient, id backupvaultresources.BackupVaultId) *dataProtectionBackupVaultPoller {
 	return &dataProtectionBackupVaultPoller{
 		client: client,
 		id:     id,
@@ -40,7 +40,7 @@ func NewDataProtectionBackupVaultPoller(client *backupvaults.BackupVaultsClient,
 }
 
 func (p dataProtectionBackupVaultPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
-	resp, err := p.client.Get(ctx, p.id)
+	resp, err := p.client.BackupVaultsGet(ctx, p.id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return &pollingSuccess, nil

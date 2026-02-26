@@ -44,6 +44,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name mssql_database -service-package-name mssql -properties "name" -compare-values "resource_group_name:server_id,server_name:server_id"
+
 func resourceMsSqlDatabase() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceMsSqlDatabaseCreate,
@@ -51,10 +53,11 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 		Update: resourceMsSqlDatabaseUpdate,
 		Delete: resourceMsSqlDatabaseDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
-			_, err := commonids.ParseSqlDatabaseID(id)
-			return err
-		}, resourceMsSqlDatabaseImporter),
+		Importer: pluginsdk.ImporterValidatingIdentityThen(&commonids.SqlDatabaseId{}, resourceMsSqlDatabaseImporter),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SqlDatabaseId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -117,11 +120,20 @@ func resourceMsSqlDatabase() *pluginsdk.Resource {
 			},
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 				if !strings.HasPrefix(d.Get("sku_name").(string), "GP_S_") && !strings.HasPrefix(d.Get("sku_name").(string), "HS_S_") {
-					if d.Get("min_capacity").(float64) > 0 {
-						return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+					rawConfig := d.GetRawConfig().AsValueMap()
+					minCapacityVal := rawConfig["min_capacity"]
+					if minCapacityVal.IsKnown() && !minCapacityVal.IsNull() {
+						minCapacityValFloat, _ := minCapacityVal.AsBigFloat().Float64()
+						if minCapacityValFloat > 0 {
+							return fmt.Errorf("`min_capacity` should only be specified when using a serverless database")
+						}
 					}
-					if d.Get("auto_pause_delay_in_minutes").(int) > 0 {
-						return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+					autoPauseDelayVal := rawConfig["auto_pause_delay_in_minutes"]
+					if autoPauseDelayVal.IsKnown() && !autoPauseDelayVal.IsNull() {
+						autoPauseDelayValInt, _ := autoPauseDelayVal.AsBigFloat().Int64()
+						if autoPauseDelayValInt > 0 {
+							return fmt.Errorf("`auto_pause_delay_in_minutes` should only be specified when using a serverless database")
+						}
 					}
 				}
 				return nil
@@ -583,6 +595,9 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// For Data Warehouse SKUs only
 	if isDwSku {
@@ -1139,12 +1154,6 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.DatabasesClient
-	securityAlertPoliciesClient := meta.(*clients.Client).MSSQL.DatabaseSecurityAlertPoliciesClient
-
-	longTermRetentionClient := meta.(*clients.Client).MSSQL.LongTermRetentionPoliciesClient
-	shortTermRetentionClient := meta.(*clients.Client).MSSQL.BackupShortTermRetentionPoliciesClient
-	geoBackupPoliciesClient := meta.(*clients.Client).MSSQL.GeoBackupPoliciesClient
-	transparentEncryptionClient := meta.(*clients.Client).MSSQL.TransparentDataEncryptionsClient
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -1166,13 +1175,26 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourceMssqlDatabaseSetFlatten(d, id, resp.Model, meta.(*clients.Client))
+}
+
+func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.SqlDatabaseId, model *databases.Database, metaClient *clients.Client) error {
+	securityAlertPoliciesClient := metaClient.MSSQL.DatabaseSecurityAlertPoliciesClient
+
+	longTermRetentionClient := metaClient.MSSQL.LongTermRetentionPoliciesClient
+	shortTermRetentionClient := metaClient.MSSQL.BackupShortTermRetentionPoliciesClient
+	geoBackupPoliciesClient := metaClient.MSSQL.GeoBackupPoliciesClient
+	transparentEncryptionClient := metaClient.MSSQL.TransparentDataEncryptionsClient
+	ctx, cancel := timeouts.ForRead(metaClient.StopContext, d)
+	defer cancel()
+
 	geoBackupPolicy := true
 	skuName := ""
 	elasticPoolId := ""
 	ledgerEnabled := false
 	enclaveType := ""
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("name", id.DatabaseName)
 
 		if props := model.Properties; props != nil {
@@ -1343,7 +1365,7 @@ func resourceMsSqlDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 	d.Set("transparent_data_encryption_enabled", tdeState)
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMsSqlDatabaseDelete(d *pluginsdk.ResourceData, meta interface{}) error {

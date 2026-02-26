@@ -181,13 +181,13 @@ A `application_stack` block supports the following:
 
 * `use_dotnet_isolated_runtime` - (Optional) Should the DotNet process use an isolated runtime. Defaults to `false`.
 
-* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11`, `17`, `21`.
+* `java_version` - (Optional) The Version of Java to use. Supported versions include `8`, `11`, `17`, `21`, `25`.
 
 ~> **Note:** The value `21` is currently in Preview for `java_version`.
 
 * `node_version` - (Optional) The version of Node to run. Possible values include `12`, `14`, `16`, `18`, `20`, `22` and `24`.
 
-* `python_version` - (Optional) The version of Python to run. Possible values are `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
+* `python_version` - (Optional) The version of Python to run. Possible values are `3.14`, `3.13`, `3.12`, `3.11`, `3.10`, `3.9`, `3.8` and `3.7`.
 
 * `powershell_core_version` - (Optional) The version of PowerShell Core to run. Possible values are `7`, `7.2`, and `7.4`.
 

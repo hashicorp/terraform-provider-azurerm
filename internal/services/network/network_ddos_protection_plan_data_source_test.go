@@ -35,5 +35,5 @@ data "azurerm_network_ddos_protection_plan" "test" {
   name                = azurerm_network_ddos_protection_plan.test.name
   resource_group_name = azurerm_network_ddos_protection_plan.test.resource_group_name
 }
-`, NetworkDDoSProtectionPlanResource{}.basicConfig(data))
+`, NetworkDdosProtectionPlanResource{}.basicConfig(data))
 }

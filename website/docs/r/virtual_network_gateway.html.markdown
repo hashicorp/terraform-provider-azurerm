@@ -51,7 +51,7 @@ resource "azurerm_virtual_network_gateway" "example" {
   vpn_type = "RouteBased"
 
   active_active = false
-  enable_bgp    = false
+  bgp_enabled   = false
   sku           = "Basic"
 
   ip_configuration {
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Virtual Network Gateway should exist. Changing this forces a new Virtual Network Gateway to be created.
 
-* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
+* `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
 
 * `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
 
@@ -169,6 +169,8 @@ The `ip_configuration` block supports:
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in which the virtual network gateway will be created. It is mandatory that the associated subnet is named `GatewaySubnet`. Therefore, each virtual network can contain at most a single Virtual Network Gateway.
 
 * `public_ip_address_id` - (Optional) The ID of the public IP address to associate with the Virtual Network Gateway.
+
+~> **Note:** `public_ip_address_id` should not be specified when `type` is set to `ExpressRoute`.
 
 ---
 

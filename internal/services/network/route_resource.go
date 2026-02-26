@@ -200,12 +200,15 @@ func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceRouteFlatten(d, id, resp.Model)
+}
 
+func resourceRouteFlatten(d *pluginsdk.ResourceData, id *routes.RouteId, model *routes.Route) error {
 	d.Set("name", id.RouteName)
 	d.Set("route_table_name", id.RouteTableName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("address_prefix", props.AddressPrefix)
 			d.Set("next_hop_type", string(props.NextHopType))
