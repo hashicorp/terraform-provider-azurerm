@@ -549,6 +549,23 @@ func (d DataCollectionRuleDataSource) Attributes() map[string]*pluginsdk.Schema 
 			Computed: true,
 		},
 
+		"endpoints": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"logs_ingestion": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"metrics_ingestion": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
 		"identity": commonschema.SystemOrUserAssignedIdentityComputed(),
 
 		"immutable_id": {
@@ -620,6 +637,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 			var dataFlows []DataFlow
 			var dataSources []DataSource
 			var destinations []Destination
+			var endpoints []Endpoints
 			var streamDeclaration []StreamDeclaration
 
 			if model := resp.Model; model != nil {
@@ -642,6 +660,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 					dataFlows = flattenDataCollectionRuleDataFlows(prop.DataFlows)
 					dataSources = flattenDataCollectionRuleDataSources(prop.DataSources)
 					destinations = flattenDataCollectionRuleDestinations(prop.Destinations)
+					endpoints = flattenDataCollectionRuleEndpoints(prop.Endpoints)
 					immutableId = flattenStringPtr(prop.ImmutableId)
 					streamDeclaration = flattenDataCollectionRuleStreamDeclarations(prop.StreamDeclarations)
 				}
@@ -657,6 +676,7 @@ func (d DataCollectionRuleDataSource) Read() sdk.ResourceFunc {
 				DataSources:              dataSources,
 				Description:              description,
 				Destinations:             destinations,
+				Endpoints:                endpoints,
 				ImmutableId:              immutableId,
 				Kind:                     kind,
 				Location:                 loc,
