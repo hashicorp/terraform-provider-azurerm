@@ -6,6 +6,7 @@ package typehelpers
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -78,4 +79,12 @@ func (w WrappedStringDefault) MarkdownDescription(_ context.Context) string {
 
 func (w WrappedStringDefault) DefaultString(_ context.Context, _ defaults.StringRequest, response *defaults.StringResponse) {
 	response.PlanValue = basetypes.NewStringValue(w.Value)
+}
+
+func StringFromEnum[T ~string](input *T) types.String {
+	if input == nil {
+		return types.StringNull()
+	}
+
+	return types.StringValue(string(*input))
 }

@@ -88,7 +88,7 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 }
 
 func RequiresImportError(resourceName string) *regexp.Regexp {
-	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information"
+	message := `to be managed via Terraform this resource needs to be\s*imported into the State\. Please see the resource documentation for\s*%q for more information`
 	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }
 

@@ -232,5 +232,7 @@ func (r Registration) FrameworkDataSources() []sdk.FrameworkWrappedDataSource {
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
-	return []sdk.FrameworkWrappedResource{}
+	return []sdk.FrameworkWrappedResource{
+		SubnetFWResource{},
+	}
 }

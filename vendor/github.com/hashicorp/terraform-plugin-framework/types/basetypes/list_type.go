@@ -119,7 +119,6 @@ func (l ListType) Equal(o attr.Type) bool {
 	if !ok {
 		return false
 	}
-
 	return l.ElementType().Equal(other.ElementType())
 }
 

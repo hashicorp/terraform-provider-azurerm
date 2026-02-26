@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
-// Flatten converts a terraform-plugin-framework object into a go-azure-sdk (native Go) object
+// Flatten converts a go-azure-sdk (native Go) object into a terraform-plugin-framework object
 // it will write any diagnostics back to the supplied diag.Diagnostics pointer
 func Flatten(ctx context.Context, apiObject any, fwObject any, diags *diag.Diagnostics) {
 	source, target, d := convert(apiObject, fwObject)
@@ -36,6 +36,15 @@ func Flatten(ctx context.Context, apiObject any, fwObject any, diags *diag.Diagn
 	}
 
 	diags.Append(flatten(ctx, sourcePath, source, targetPath, target)...)
+}
+
+func FlattenAndReturn[T any](ctx context.Context, fwObject any, diags *diag.Diagnostics) T {
+	var zero T
+	// TODO: validate list types? (potentially set types?) when fwObject is of type `typehelpers.ListValueOf[types.{SomeType}]`
+	// This panics further down the stack due to `ListValue.elementType` being nil
+	// TODO: should we ensure `zero` isn't a pointer? If pointer we'd pass pointer to pointer which may be problematic
+	Flatten(ctx, fwObject, &zero, diags)
+	return zero
 }
 
 // flatten does the heavy lifting via reflection to convert the API values to TF

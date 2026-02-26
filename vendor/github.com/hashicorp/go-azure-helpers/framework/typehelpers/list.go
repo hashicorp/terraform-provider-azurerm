@@ -6,6 +6,7 @@ package typehelpers
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"reflect"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -75,6 +76,16 @@ func ExpandList[T any](input types.List, target T) diag.Diagnostics {
 	}
 
 	return nil
+}
+
+// TODO: better name? naming is hard :(
+func ExpandListNestedTypeOf[T any](input types.List, diags *diag.Diagnostics) (result []T) {
+	if input.IsNull() || input.IsUnknown() {
+		return
+	}
+
+	diags.Append(input.ElementsAs(context.Background(), &result, false)...)
+	return
 }
 
 // WrappedListValidator provides a wrapper for legacy SDKv2 type validations to ease migration to Framework Native
@@ -156,4 +167,42 @@ type WrappedListDefault struct {
 	Desc     *string
 	Markdown *string
 	Value    []interface{}
+}
+
+// DecodeObjectListOfOne returns the first entry of a List of Objects or an empty struct
+func DecodeObjectListOfOne[T any](ctx context.Context, input ListNestedObjectValueOf[T], diags *diag.Diagnostics) (result T) {
+	if !input.IsNull() && len(input.Elements()) > 0 {
+		l := make([]T, 0)
+		diags.Append(input.ElementsAs(ctx, &l, false)...)
+		if diags.HasError() {
+			return result
+		}
+
+		result = l[0]
+	}
+
+	return result
+}
+
+// DecodeObjectList returns the decoded list of a List of Objects or an empty struct
+func DecodeObjectList[T any](ctx context.Context, input ListNestedObjectValueOf[T], diags *diag.Diagnostics) (result []T) {
+	if !input.IsNull() && len(input.Elements()) > 0 {
+		l := make([]T, 0)
+		diags.Append(input.ElementsAs(ctx, &l, false)...)
+		if diags.HasError() {
+			return result
+		}
+
+		result = l
+	}
+
+	return result
+}
+
+// TODO: improve descrip
+// ListValueFrom Wrapper to avoid diag returns instead writing to ptr to diags
+func ListValueFrom(ctx context.Context, elementType attr.Type, elements any, diags *diag.Diagnostics) basetypes.ListValue {
+	list, d := types.ListValueFrom(ctx, elementType, elements)
+	diags.Append(d...)
+	return list
 }

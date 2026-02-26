@@ -37,6 +37,13 @@ func Expand(ctx context.Context, fwObject any, apiObject any, diags *diag.Diagno
 	diags.Append(expand(ctx, sourcePath, source, targetPath, target)...)
 }
 
+func ExpandAndReturn[T any](ctx context.Context, fwObject any, diags *diag.Diagnostics) T {
+	var zero T
+	// TODO: should we ensure `zero` isn't a pointer? If pointer we'd pass pointer to pointer which may be problematic
+	Expand(ctx, fwObject, &zero, diags)
+	return zero
+}
+
 // expand does the heavy lifting via reflection to convert the tfObject into Go types for use with go-azure-sdk
 func expand(ctx context.Context, sourcePath path.Path, source reflect.Value, targetPath path.Path, target reflect.Value) diag.Diagnostics {
 	var diags diag.Diagnostics

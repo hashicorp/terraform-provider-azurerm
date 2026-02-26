@@ -7,6 +7,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -121,6 +124,15 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 		return
 	}
 
+	if warnings := response.Diagnostics.Warnings(); len(warnings) > 0 {
+		// Determine whether a `Resource removed from state` warning exists, if it does, return
+		for _, warning := range warnings {
+			if warning.Summary() == removedSummary {
+				return
+			}
+		}
+	}
+
 	r.ResourceMetadata.EncodeRead(ctx, response, state)
 	if response.Diagnostics.HasError() {
 		return
@@ -155,10 +167,11 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 		}
 
 		fr.Update(ctx, request, response, r.ResourceMetadata, plan, state)
+		if response.Diagnostics.HasError() {
+			return
+		}
 
 		r.ResourceMetadata.EncodeUpdate(ctx, response, plan)
-
-		return
 	} else {
 		SetResponseErrorDiagnostic(response, "Update called on non-updatable resource", fmt.Sprintf("resource type %s does not implement Update", r.FrameworkWrappedResource.ResourceType()))
 	}
@@ -232,42 +245,23 @@ func (r *FrameworkResourceWrapper) IdentitySchema(_ context.Context, _ resource.
 
 // SetIdentityOnCreate sets the identity attributes on the response based on the resource ID.
 func (r *FrameworkResourceWrapper) SetIdentityOnCreate(ctx context.Context, response *resource.CreateResponse) {
-	if id, idType := r.FrameworkWrappedResource.Identity(); id != nil {
-		parser := resourceids.NewParserFromResourceIdType(id)
-		idVal := ""
-		response.State.GetAttribute(ctx, path.Root("id"), &idVal)
-		parsed, err := parser.Parse(idVal, true)
-		if err != nil {
-			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
-		}
-
-		segments := id.Segments()
-		numSegments := len(segments)
-		for idx, segment := range segments {
-			if segmentTypeSupported(segment.Type) {
-				name := segmentName(segment, idType, numSegments, idx)
-
-				field, ok := parsed.Parsed[segment.Name]
-				if !ok {
-					response.Diagnostics.AddError("setting resource identity", fmt.Sprintf("field `%s` was not found in the parsed resource ID %s", name, id))
-					return
-				}
-
-				response.Identity.SetAttribute(ctx, path.Root(name), basetypes.NewStringValue(field))
-			}
-		}
-	}
+	r.setIdentity(ctx, &response.State, response.Identity, &response.Diagnostics)
 }
 
 // SetIdentityOnRead sets the identity on the read response based on the resource ID.
 func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, response *resource.ReadResponse) {
+	r.setIdentity(ctx, &response.State, response.Identity, &response.Diagnostics)
+}
+
+func (r *FrameworkResourceWrapper) setIdentity(ctx context.Context, state *tfsdk.State, identity *tfsdk.ResourceIdentity, diags *diag.Diagnostics) {
 	if id, idType := r.FrameworkWrappedResource.Identity(); id != nil {
 		parser := resourceids.NewParserFromResourceIdType(id)
 		idVal := ""
-		response.State.GetAttribute(ctx, path.Root("id"), &idVal)
+		state.GetAttribute(ctx, path.Root("id"), &idVal)
 		parsed, err := parser.Parse(idVal, true)
 		if err != nil {
-			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
+			diags.AddError("Parsing resource ID", err.Error())
+			return
 		}
 
 		segments := id.Segments()
@@ -278,11 +272,11 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 
 				field, ok := parsed.Parsed[segment.Name]
 				if !ok {
-					response.Diagnostics.AddError("setting resource identity", fmt.Sprintf("field `%s` was not found in the parsed resource ID %s", name, id))
+					diags.AddError("Setting resource identity", fmt.Sprintf("field `%s` was not found in the parsed resource ID %s", name, id))
 					return
 				}
 
-				response.Identity.SetAttribute(ctx, path.Root(name), basetypes.NewStringValue(field))
+				identity.SetAttribute(ctx, path.Root(name), basetypes.NewStringValue(field))
 			}
 		}
 	}

@@ -39,7 +39,8 @@ func (t listNestedObjectTypeOf[T]) Equal(o attr.Type) bool {
 		return false
 	}
 
-	return t.ListType.Equal(other.ListType)
+	equal := t.ListType.Equal(other.ListType)
+	return equal
 }
 
 func (t listNestedObjectTypeOf[T]) String() string {
@@ -252,6 +253,7 @@ func newListNestedObjectValueOf[T any](ctx context.Context, elements any) (ListN
 		return NewListNestedObjectValueOfUnknown[T](ctx), diags
 	}
 
+	// Problematic, causes panics further down the stack
 	v, d := basetypes.NewListValueFrom(ctx, typ, elements)
 	diags.Append(d...)
 	if diags.HasError() {
