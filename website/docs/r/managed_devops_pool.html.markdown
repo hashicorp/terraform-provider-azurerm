@@ -98,14 +98,14 @@ resource "azurerm_managed_devops_pool" "example" {
   dev_center_project_id = azurerm_dev_center_project.example.id
   maximum_concurrency   = 1
 
-  azure_devops_organization_profile {
+  azure_devops_organization {
     organization {
       parallelism = 1
       url         = "https://dev.azure.com/example"
       projects    = ["example"]
     }
 
-    permission_profile {
+    permission {
       kind = "SpecificAccounts"
 
       administrator_account {
@@ -115,21 +115,17 @@ resource "azurerm_managed_devops_pool" "example" {
     }
   }
 
-  stateful_agent_profile {
+  stateful_agent {
     grace_period_time_span = "00:10:00"
     max_agent_lifetime     = "08:00:00"
-    manual_resource_predictions_profile {
+    manual_resource_prediction {
       time_zone_name = "UTC"
 
-      monday_schedule    = { "09:00:00" = 1, "17:00:00" = 0 }
-      tuesday_schedule   = { "09:00:00" = 1, "17:00:00" = 0 }
-      wednesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
-      thursday_schedule  = { "09:00:00" = 1, "17:00:00" = 0 }
-      friday_schedule    = { "09:00:00" = 1, "17:00:00" = 0 }
+      all_week_schedule = 1
     }
   }
 
-  vmss_fabric_profile {
+  vmss_fabric {
     sku_name = "Standard_D2ads_v5"
 
     image {
@@ -143,13 +139,11 @@ resource "azurerm_managed_devops_pool" "example" {
       buffer                = "*"
     }
 
-    storage_profile {
-      os_disk_storage_account_type = "Standard"
+    os_disk_storage_account_type = "Standard"
 
-      data_disk {
-        disk_size_in_gb = 1
-        drive_letter    = "F"
-      }
+    storage {
+      disk_size_in_gb = 1
+      drive_letter    = "F"
     }
 
     subnet_id = azurerm_subnet.example.id
@@ -183,21 +177,21 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Managed DevOps Pool should exist. Changing this forces a new Managed DevOps Pool to be created.
 
-* `azure_devops_organization_profile` - (Required) An `azure_devops_organization_profile` block as defined below.
+* `azure_devops_organization` - (Required) An `azure_devops_organization` block as defined below.
 
 * `dev_center_project_id` - (Required) The ID of the Dev Center project.
 
 * `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time. Possible values are between `1` and `10000`.
 
-* `vmss_fabric_profile` - (Required) A `vmss_fabric_profile` block as defined below.
+* `vmss_fabric` - (Required) A `vmss_fabric` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `stateful_agent_profile` - (Optional) A `stateful_agent_profile` block as defined below.
+* `stateful_agent` - (Optional) A `stateful_agent` block as defined below.
 
-* `stateless_agent_profile` - (Optional) A `stateless_agent_profile` block as defined below.
+* `stateless_agent` - (Optional) A `stateless_agent` block as defined below.
 
-~> **Note:** Exactly one of `stateful_agent_profile` or `stateless_agent_profile` must be specified.
+~> **Note:** Exactly one of `stateful_agent` or `stateless_agent` must be specified.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Managed DevOps Pool.
 
@@ -211,29 +205,17 @@ An `administrator_account` block supports the following:
 
 ---
 
-An `automatic_resource_predictions_profile` block supports the following:
+An `automatic_resource_predictions` block supports the following:
 
 * `prediction_preference` - (Optional) Specifies the desired balance between cost and performance. Possible values are `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`. Defaults to `Balanced`.
 
 ---
 
-An `azure_devops_organization_profile` block supports the following:
+An `azure_devops_organization` block supports the following:
 
 * `organization` - (Required) One or more `organization` blocks as defined below.
 
-* `permission_profile` - (Optional) A `permission_profile` block as defined below.
-
----
-
-A `data_disk` block supports the following:
-
-* `caching` - (Optional) The type of caching in a data disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
-
-* `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values are between `1` and `32767`.
-
-* `drive_letter` - (Optional) The drive letter for the empty data disk. If not specified, it will be the first available letter.
-
-* `storage_account_type` - (Optional) The Storage Account type to be used for the data disk. Possible values are `Premium_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS` and `StandardSSD_ZRS`. Defaults to `Standard_LRS`.
+* `permission` - (Optional) A `permission` block as defined below.
 
 ---
 
@@ -249,7 +231,7 @@ An `image` block supports the following:
 
 * `aliases` - (Optional) List of aliases to reference the image by.
 
-* `buffer` - (Optional) The percentage of the buffer to be allocated to this image. Possible values are `*` or between `0` and `100`.
+* `buffer` - (Optional) The percentage of the buffer to be allocated to this image. Possible values are `*` or between `0` and `100`. Defaults to `*`.
 
 * `id` - (Optional) The resource id of the image.
 
@@ -261,27 +243,35 @@ An `image` block supports the following:
 
 ---
 
-A `manual_resource_predictions_profile` block supports the following:
+A `manual_resource_prediction` block supports the following:
 
 * `time_zone_name` - (Optional) Specifies the time zone for the predictions data to be provisioned at. Defaults to `UTC`.
 
 * `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are between `1` and `maximum_concurrency`.
 
-* `sunday_schedule` - (Optional) A map of time-to-agent-count pairs for Sunday.
+* `sunday_schedule` - (Optional) One or more `sunday_schedule` blocks as defined below.
 
-* `monday_schedule` - (Optional) A map of time-to-agent-count pairs for Monday.
+* `monday_schedule` - (Optional) One or more `monday_schedule` blocks as defined below.
 
-* `tuesday_schedule` - (Optional) A map of time-to-agent-count pairs for Tuesday.
+* `tuesday_schedule` - (Optional) One or more `tuesday_schedule` blocks as defined below.
 
-* `wednesday_schedule` - (Optional) A map of time-to-agent-count pairs for Wednesday.
+* `wednesday_schedule` - (Optional) One or more `wednesday_schedule` blocks as defined below.
 
-* `thursday_schedule` - (Optional) A map of time-to-agent-count pairs for Thursday.
+* `thursday_schedule` - (Optional) One or more `thursday_schedule` blocks as defined below.
 
-* `friday_schedule` - (Optional) A map of time-to-agent-count pairs for Friday.
+* `friday_schedule` - (Optional) One or more `friday_schedule` blocks as defined below.
 
-* `saturday_schedule` - (Optional) A map of time-to-agent-count pairs for Saturday.
+* `saturday_schedule` - (Optional) One or more `saturday_schedule` blocks as defined below.
 
-~> **Note:** Exactly one of `all_week_schedule` or individual daily schedules are required. Time keys must be in 24-hour format (HH:MM:SS). Agent counts must be non-negative integers and cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
+~> **Note:** Exactly one of `all_week_schedule` or at least one individual daily schedule block must be specified. Agent counts cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
+
+---
+
+Each schedule block (`sunday_schedule`, `monday_schedule`, `tuesday_schedule`, `wednesday_schedule`, `thursday_schedule`, `friday_schedule`, `saturday_schedule`) supports the following:
+
+* `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
+
+* `count` - (Required) The number of standby agents to provision at this time.
 
 ---
 
@@ -303,15 +293,15 @@ An `organization` block supports the following:
 
 ---
 
-An `os_profile` block supports the following:
+A `security` block supports the following:
 
-* `logon_type` - (Optional) Determines how the service should be run. Possible values are `Interactive` and `Service`. Defaults to `Service`.
+* `interactive_logon_enabled` - (Optional) Specifies whether the agent should run in interactive mode. Defaults to `false`.
 
 * `key_vault_management` - (Optional) A `key_vault_management` block as defined below.
 
 ---
 
-A `permission_profile` block supports the following:
+A `permission` block supports the following:
 
 * `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
 
@@ -331,39 +321,43 @@ A `key_vault_management` block supports the following:
 
 ---
 
-A `stateful_agent_profile` block supports the following:
+A `stateful_agent` block supports the following:
 
 * `grace_period_time_span` - (Optional) Configures the amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete. The format for Grace Period is `dd.hh:mm:ss`. Defaults to `00:00:00`.
 
 * `max_agent_lifetime` - (Optional) Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss`. Defaults to `7.00:00:00`.
 
-* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
+* `manual_resource_prediction` - (Optional) A `manual_resource_prediction` block as defined below.
 
-* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
+* `automatic_resource_prediction` - (Optional) An `automatic_resource_prediction` block as defined below.
 
-~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
-
----
-
-A `stateless_agent_profile` block supports the following:
-
-* `manual_resource_predictions_profile` - (Optional) A `manual_resource_predictions_profile` block as defined below.
-
-* `automatic_resource_predictions_profile` - (Optional) An `automatic_resource_predictions_profile` block as defined below.
-
-~> **Note:** Exactly one of `manual_resource_predictions_profile` or `automatic_resource_predictions_profile` may be specified.
+~> **Note:** Exactly one of `manual_resource_prediction` or `automatic_resource_prediction` may be specified.
 
 ---
 
-A `storage_profile` block supports the following:
+A `stateless_agent` block supports the following:
 
-* `data_disk` - (Optional) One or more `data_disk` blocks as defined above.
+* `manual_resource_prediction` - (Optional) A `manual_resource_prediction` block as defined below.
 
-* `os_disk_storage_account_type` - (Optional) The storage account type of the OS disk. Possible values are `Premium`, `Standard` and `StandardSSD`.
+* `automatic_resource_prediction` - (Optional) An `automatic_resource_prediction` block as defined below.
+
+~> **Note:** Exactly one of `manual_resource_prediction` or `automatic_resource_prediction` may be specified.
 
 ---
 
-A `vmss_fabric_profile` block supports the following:
+A `storage` block supports the following:
+
+* `caching` - (Optional) The type of caching for the data disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+
+* `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values are between `1` and `65535`.
+
+* `drive_letter` - (Optional) The drive letter for the data disk.
+
+* `storage_account_type` - (Optional) The storage account type of the data disk. Possible values are `Premium_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS` and `StandardSSD_ZRS`. Defaults to `Standard_LRS`.
+
+---
+
+A `vmss_fabric` block supports the following:
 
 * `image` - (Required) One or more `image` blocks as defined below.
 
@@ -371,9 +365,11 @@ A `vmss_fabric_profile` block supports the following:
 
 * `subnet_id` - (Optional) The subnet ID on which to put all machines created in the pool.
 
-* `os_profile` - (Optional) An `os_profile` block as defined below.
+* `security` - (Optional) A `security` block as defined below.
 
-* `storage_profile` - (Optional) A `storage_profile` block as defined below.
+* `os_disk_storage_account_type` - (Optional) The storage account type for the OS disk. Possible values are `Premium`, `Standard` and `StandardSSD`. Defaults to `Standard`.
+
+* `storage` - (Optional) A `storage` block as defined below.
 
 ## Attributes Reference
 

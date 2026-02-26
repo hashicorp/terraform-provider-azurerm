@@ -25,17 +25,17 @@ var _ sdk.DataSource = ManagedDevOpsPoolDataSource{}
 type ManagedDevOpsPoolDataSource struct{}
 
 type ManagedDevOpsPoolDataSourceModel struct {
-	DevCenterProjectId             string                                `tfschema:"dev_center_project_id"`
-	VmssFabricProfile              []VmssFabricProfileModel              `tfschema:"vmss_fabric_profile"`
-	Identity                       []identity.ModelUserAssigned          `tfschema:"identity"`
-	Location                       string                                `tfschema:"location"`
-	MaximumConcurrency             int64                                 `tfschema:"maximum_concurrency"`
-	Name                           string                                `tfschema:"name"`
-	AzureDevOpsOrganizationProfile []AzureDevOpsOrganizationProfileModel `tfschema:"azure_devops_organization_profile"`
-	ResourceGroupName              string                                `tfschema:"resource_group_name"`
-	Tags                           map[string]string                     `tfschema:"tags"`
-	StatefulAgentProfile           []StatefulAgentProfileModel           `tfschema:"stateful_agent_profile"`
-	StatelessAgentProfile          []StatelessAgentProfileModel          `tfschema:"stateless_agent_profile"`
+	DevCenterProjectId      string                         `tfschema:"dev_center_project_id"`
+	VmssFabric              []VmssFabricModel              `tfschema:"vmss_fabric"`
+	Identity                []identity.ModelUserAssigned   `tfschema:"identity"`
+	Location                string                         `tfschema:"location"`
+	MaximumConcurrency      int64                          `tfschema:"maximum_concurrency"`
+	Name                    string                         `tfschema:"name"`
+	AzureDevOpsOrganization []AzureDevOpsOrganizationModel `tfschema:"azure_devops_organization"`
+	ResourceGroupName       string                         `tfschema:"resource_group_name"`
+	Tags                    map[string]string              `tfschema:"tags"`
+	StatefulAgent           []StatefulAgentModel           `tfschema:"stateful_agent"`
+	StatelessAgent          []StatelessAgentModel          `tfschema:"stateless_agent"`
 }
 
 func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -61,7 +61,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
-		"azure_devops_organization_profile": {
+		"azure_devops_organization": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -92,7 +92,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"permission_profile": {
+					"permission": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -144,7 +144,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"stateful_agent_profile": {
+		"stateful_agent": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -159,26 +159,26 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchemaComputed(),
+					"manual_resource_prediction": manualResourcePredictionSchemaComputed(),
 
-					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchemaComputed(),
+					"automatic_resource_prediction": automaticResourcePredictionSchemaComputed(),
 				},
 			},
 		},
 
-		"stateless_agent_profile": {
+		"stateless_agent": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchemaComputed(),
+					"manual_resource_prediction": manualResourcePredictionSchemaComputed(),
 
-					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchemaComputed(),
+					"automatic_resource_prediction": automaticResourcePredictionSchemaComputed(),
 				},
 			},
 		},
 
-		"vmss_fabric_profile": {
+		"vmss_fabric": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -214,13 +214,13 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"os_profile": {
+					"security": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"logon_type": {
-									Type:     pluginsdk.TypeString,
+								"interactive_logon_enabled": {
+									Type:     pluginsdk.TypeBool,
 									Computed: true,
 								},
 
@@ -263,40 +263,32 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"storage_profile": {
+					"os_disk_storage_account_type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"storage": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"data_disk": {
-									Type:     pluginsdk.TypeList,
+								"caching": {
+									Type:     pluginsdk.TypeString,
 									Computed: true,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"caching": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-
-											"disk_size_in_gb": {
-												Type:     pluginsdk.TypeInt,
-												Computed: true,
-											},
-
-											"drive_letter": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-
-											"storage_account_type": {
-												Type:     pluginsdk.TypeString,
-												Computed: true,
-											},
-										},
-									},
 								},
 
-								"os_disk_storage_account_type": {
+								"disk_size_in_gb": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+
+								"drive_letter": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"storage_account_type": {
 									Type:     pluginsdk.TypeString,
 									Computed: true,
 								},
@@ -368,21 +360,21 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
 						if stateful, ok := agentProfile.(pools.Stateful); ok {
-							state.StatefulAgentProfile = flattenStatefulAgentProfileToModel(stateful)
+							state.StatefulAgent = flattenStatefulAgentToModel(stateful)
 						} else if stateless, ok := agentProfile.(pools.StatelessAgentProfile); ok {
-							state.StatelessAgentProfile = flattenStatelessAgentProfileToModel(stateless)
+							state.StatelessAgent = flattenStatelessAgentToModel(stateless)
 						}
 					}
 
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
-						if azureDevOpsOrganizationProfile, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
-							state.AzureDevOpsOrganizationProfile = flattenAzureDevOpsOrganizationProfileToModel(azureDevOpsOrganizationProfile)
+						if azureDevOpsOrg, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
+							state.AzureDevOpsOrganization = flattenAzureDevOpsOrganizationToModel(azureDevOpsOrg)
 						}
 					}
 
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
-						if vmssFabricProfile, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
-							state.VmssFabricProfile = flattenVmssFabricProfileToModel(vmssFabricProfile)
+						if vmssFabric, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
+							state.VmssFabric = flattenVmssFabricToModel(vmssFabric)
 						}
 					}
 				}

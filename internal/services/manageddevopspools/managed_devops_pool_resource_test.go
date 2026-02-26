@@ -315,15 +315,15 @@ resource "azurerm_managed_devops_pool" "test" {
   maximum_concurrency   = 1
   dev_center_project_id = azurerm_dev_center_project.test.id
 
-  azure_devops_organization_profile {
+  azure_devops_organization {
     organization {
       url = "%s"
     }
   }
 
-  stateless_agent_profile {}
+  stateless_agent {}
 
-  vmss_fabric_profile {
+  vmss_fabric {
     image {
       well_known_image_name = "ubuntu-24.04"
       buffer                = "*"
@@ -346,15 +346,15 @@ resource "azurerm_managed_devops_pool" "import" {
   maximum_concurrency   = 1
   dev_center_project_id = azurerm_dev_center_project.test.id
 
-  azure_devops_organization_profile {
+  azure_devops_organization {
     organization {
       url = "%s"
     }
   }
 
-  stateless_agent_profile {}
+  stateless_agent {}
 
-  vmss_fabric_profile {
+  vmss_fabric {
     image {
       well_known_image_name = "ubuntu-24.04"
       buffer                = "*"
@@ -394,13 +394,13 @@ resource "azurerm_managed_devops_pool" "test" {
   maximum_concurrency   = 2
   dev_center_project_id = azurerm_dev_center_project.test2.id
 
-  azure_devops_organization_profile {
+  azure_devops_organization {
     organization {
       parallelism = 1
       url         = "%s"
       projects    = ["%s"]
     }
-    permission_profile {
+    permission {
       kind = "SpecificAccounts"
       administrator_account {
         users = ["%s"]
@@ -408,17 +408,31 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 
-  stateful_agent_profile {
+  stateful_agent {
     grace_period_time_span = "00:10:00"
     max_agent_lifetime     = "08:00:00"
-    manual_resource_predictions_profile {
-      time_zone_name   = "UTC-11"
-      monday_schedule  = { "09:00:00" = 1, "17:00:00" = 0 }
-      tuesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
+    manual_resource_prediction {
+      time_zone_name = "UTC-11"
+      monday_schedule {
+        time  = "09:00:00"
+        count = 1
+      }
+      monday_schedule {
+        time  = "17:00:00"
+        count = 0
+      }
+      tuesday_schedule {
+        time  = "09:00:00"
+        count = 1
+      }
+      tuesday_schedule {
+        time  = "17:00:00"
+        count = 0
+      }
     }
   }
 
-  vmss_fabric_profile {
+  vmss_fabric {
     image {
       id      = data.azurerm_platform_image.test.id
       aliases = ["marketplace image"]
@@ -431,8 +445,8 @@ resource "azurerm_managed_devops_pool" "test" {
     }
     sku_name  = "Standard_B1ms"
     subnet_id = azurerm_subnet.test.id
-    os_profile {
-      logon_type = "Interactive"
+    security {
+      interactive_logon_enabled = true
       key_vault_management {
         certificate_store_location = "/"
         certificate_store_name     = "My"
@@ -443,14 +457,12 @@ resource "azurerm_managed_devops_pool" "test" {
         ]
       }
     }
-    storage_profile {
-      data_disk {
-        caching              = "None"
-        disk_size_in_gb      = 10
-        drive_letter         = "F"
-        storage_account_type = "Standard_LRS"
-      }
-      os_disk_storage_account_type = "Standard"
+    os_disk_storage_account_type = "Standard"
+    storage {
+      caching              = "None"
+      disk_size_in_gb      = 10
+      drive_letter         = "F"
+      storage_account_type = "Standard_LRS"
     }
   }
 
@@ -503,13 +515,13 @@ resource "azurerm_managed_devops_pool" "test" {
   maximum_concurrency   = 2
   dev_center_project_id = azurerm_dev_center_project.test2.id
 
-  azure_devops_organization_profile {
+  azure_devops_organization {
     organization {
       parallelism = 1
       url         = "%s"
       projects    = ["%s"]
     }
-    permission_profile {
+    permission {
       kind = "SpecificAccounts"
       administrator_account {
         users = ["%s"]
@@ -517,17 +529,31 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 
-  stateful_agent_profile {
+  stateful_agent {
     grace_period_time_span = "00:10:00"
     max_agent_lifetime     = "08:00:00"
-    manual_resource_predictions_profile {
-      time_zone_name   = "UTC-11"
-      monday_schedule  = { "09:00:00" = 1, "17:00:00" = 0 }
-      tuesday_schedule = { "09:00:00" = 1, "17:00:00" = 0 }
+    manual_resource_prediction {
+      time_zone_name = "UTC-11"
+      monday_schedule {
+        time  = "09:00:00"
+        count = 1
+      }
+      monday_schedule {
+        time  = "17:00:00"
+        count = 0
+      }
+      tuesday_schedule {
+        time  = "09:00:00"
+        count = 1
+      }
+      tuesday_schedule {
+        time  = "17:00:00"
+        count = 0
+      }
     }
   }
 
-  vmss_fabric_profile {
+  vmss_fabric {
     image {
       id      = data.azurerm_platform_image.test.id
       aliases = ["marketplace image"]
@@ -539,8 +565,8 @@ resource "azurerm_managed_devops_pool" "test" {
       buffer                = "100"
     }
     sku_name = "Standard_B1ms"
-    os_profile {
-      logon_type = "Interactive"
+    security {
+      interactive_logon_enabled = true
       key_vault_management {
         certificate_store_location = "/"
         certificate_store_name     = "My"
@@ -551,14 +577,12 @@ resource "azurerm_managed_devops_pool" "test" {
         ]
       }
     }
-    storage_profile {
-      data_disk {
-        caching              = "None"
-        disk_size_in_gb      = 10
-        drive_letter         = "F"
-        storage_account_type = "Standard_LRS"
-      }
-      os_disk_storage_account_type = "Standard"
+    os_disk_storage_account_type = "Standard"
+    storage {
+      caching              = "None"
+      disk_size_in_gb      = 10
+      drive_letter         = "F"
+      storage_account_type = "Standard_LRS"
     }
   }
 

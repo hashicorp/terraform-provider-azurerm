@@ -37,7 +37,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Managed DevOps Pool.
 
-* `azure_devops_organization_profile` - An `azure_devops_organization_profile` block as defined below.
+* `azure_devops_organization` - An `azure_devops_organization` block as defined below.
 
 * `dev_center_project_id` - The ID of the Dev Center project.
 
@@ -47,13 +47,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `maximum_concurrency` - The maximum number of agents that can be created.
 
-* `stateful_agent_profile` - A `stateful_agent_profile` block as defined below.
+* `stateful_agent` - A `stateful_agent` block as defined below.
 
-* `stateless_agent_profile` - A `stateless_agent_profile` block as defined below.
+* `stateless_agent` - A `stateless_agent` block as defined below.
 
 * `tags` - A mapping of tags assigned to the Managed DevOps Pool.
 
-* `vmss_fabric_profile` - A `vmss_fabric_profile` block as defined below.
+* `vmss_fabric` - A `vmss_fabric` block as defined below.
 
 ---
 
@@ -65,29 +65,17 @@ An `administrator_account` block exports the following:
 
 ---
 
-An `automatic_resource_predictions_profile` block exports the following:
+An `automatic_resource_predictions` block exports the following:
 
 * `prediction_preference` - The desired balance between cost and performance.
 
 ---
 
-An `azure_devops_organization_profile` block exports the following:
+An `azure_devops_organization` block exports the following:
 
 * `organization` - One or more `organization` blocks as defined below.
 
-* `permission_profile` - A `permission_profile` block as defined below.
-
----
-
-A `data_disk` block exports the following:
-
-* `caching` - The type of caching on the data disk.
-
-* `disk_size_in_gb` - The initial disk size in gigabytes.
-
-* `drive_letter` - The drive letter for the empty data disk.
-
-* `storage_account_type` - The storage account type of the data disk.
+* `permission` - A `permission` block as defined below.
 
 ---
 
@@ -111,25 +99,33 @@ An `image` block exports the following:
 
 ---
 
-A `manual_resource_predictions_profile` block exports the following:
+A `manual_resource_prediction` block exports the following:
 
 * `time_zone_name` - The time zone for the predictions data to be provisioned at.
 
 * `all_week_schedule` - A number of agents available 24/7 all week.
 
-* `sunday_schedule` - A map of time-to-agent-count pairs for Sunday.
+* `sunday_schedule` - One or more `sunday_schedule` blocks as defined below.
 
-* `monday_schedule` - A map of time-to-agent-count pairs for Monday.
+* `monday_schedule` - One or more `monday_schedule` blocks as defined below.
 
-* `tuesday_schedule` - A map of time-to-agent-count pairs for Tuesday.
+* `tuesday_schedule` - One or more `tuesday_schedule` blocks as defined below.
 
-* `wednesday_schedule` - A map of time-to-agent-count pairs for Wednesday.
+* `wednesday_schedule` - One or more `wednesday_schedule` blocks as defined below.
 
-* `thursday_schedule` - A map of time-to-agent-count pairs for Thursday.
+* `thursday_schedule` - One or more `thursday_schedule` blocks as defined below.
 
-* `friday_schedule` - A map of time-to-agent-count pairs for Friday.
+* `friday_schedule` - One or more `friday_schedule` blocks as defined below.
 
-* `saturday_schedule` - A map of time-to-agent-count pairs for Saturday.
+* `saturday_schedule` - One or more `saturday_schedule` blocks as defined below.
+
+---
+
+Each schedule block (`sunday_schedule`, `monday_schedule`, `tuesday_schedule`, `wednesday_schedule`, `thursday_schedule`, `friday_schedule`, `saturday_schedule`) exports the following:
+
+* `time` - The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
+
+* `count` - The number of standby agents provisioned at this time.
 
 ---
 
@@ -143,15 +139,15 @@ An `organization` block exports the following:
 
 ---
 
-An `os_profile` block exports the following:
+A `security` block exports the following:
 
-* `logon_type` - The logon type.
+* `interactive_logon_enabled` - Whether the agent runs in interactive mode.
 
 * `key_vault_management` - A `key_vault_management` block as defined below.
 
 ---
 
-A `permission_profile` block exports the following:
+A `permission` block exports the following:
 
 * `kind` - The type of Azure DevOps pool permission.
 
@@ -171,35 +167,39 @@ A `key_vault_management` block exports the following:
 
 ---
 
-A `stateful_agent_profile` block exports the following:
+A `stateful_agent` block exports the following:
 
 * `grace_period_time_span` - The amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete.
 
 * `max_agent_lifetime` - The maximum duration an agent in a `stateful` pool can run before it is shut down and discarded.
 
-* `manual_resource_predictions_profile` - A `manual_resource_predictions_profile` block as defined below.
+* `manual_resource_prediction` - A `manual_resource_prediction` block as defined below.
 
-* `automatic_resource_predictions_profile` - An `automatic_resource_predictions_profile` block as defined below.
-
----
-
-A `stateless_agent_profile` block exports the following:
-
-* `manual_resource_predictions_profile` - A `manual_resource_predictions_profile` block as defined below.
-
-* `automatic_resource_predictions_profile` - An `automatic_resource_predictions_profile` block as defined below.
+* `automatic_resource_prediction` - An `automatic_resource_prediction` block as defined below.
 
 ---
 
-A `storage_profile` block exports the following:
+A `stateless_agent` block exports the following:
 
-* `data_disk` - A `data_disk` block as defined above.
+* `manual_resource_prediction` - A `manual_resource_prediction` block as defined below.
 
-* `os_disk_storage_account_type` - The storage account type of the OS disk.
+* `automatic_resource_prediction` - An `automatic_resource_prediction` block as defined below.
 
 ---
 
-A `vmss_fabric_profile` block exports the following:
+A `storage` block exports the following:
+
+* `caching` - The type of caching for the data disk.
+
+* `disk_size_in_gb` - The initial disk size in gigabytes.
+
+* `drive_letter` - The drive letter for the data disk.
+
+* `storage_account_type` - The storage account type of the data disk.
+
+---
+
+A `vmss_fabric` block exports the following:
 
 * `image` - One or more `image` blocks as defined below.
 
@@ -207,9 +207,11 @@ A `vmss_fabric_profile` block exports the following:
 
 * `subnet_id` - The ID of the subnet associated with the Managed DevOps Pool.
 
-* `os_profile` - An `os_profile` block as defined below.
+* `security` - A `security` block as defined below.
 
-* `storage_profile` - A `storage_profile` block as defined below.
+* `os_disk_storage_account_type` - The storage account type for the OS disk.
+
+* `storage` - A `storage` block as defined below.
 
 ## Timeouts
 

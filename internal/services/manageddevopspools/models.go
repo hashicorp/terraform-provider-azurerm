@@ -8,16 +8,16 @@ const (
 	AgentProfileKindStateful  = "Stateful"
 )
 
-type StatefulAgentProfileModel struct {
-	GracePeriodTimeSpan                 string                                     `tfschema:"grace_period_time_span"`
-	MaxAgentLifetime                    string                                     `tfschema:"max_agent_lifetime"`
-	ManualResourcePredictionsProfile    []ManualResourcePredictionsProfileModel    `tfschema:"manual_resource_predictions_profile"`
-	AutomaticResourcePredictionsProfile []AutomaticResourcePredictionsProfileModel `tfschema:"automatic_resource_predictions_profile"`
+type StatefulAgentModel struct {
+	GracePeriodTimeSpan         string                             `tfschema:"grace_period_time_span"`
+	MaxAgentLifetime            string                             `tfschema:"max_agent_lifetime"`
+	ManualResourcePrediction    []ManualResourcePredictionModel    `tfschema:"manual_resource_prediction"`
+	AutomaticResourcePrediction []AutomaticResourcePredictionModel `tfschema:"automatic_resource_prediction"`
 }
 
-type StatelessAgentProfileModel struct {
-	ManualResourcePredictionsProfile    []ManualResourcePredictionsProfileModel    `tfschema:"manual_resource_predictions_profile"`
-	AutomaticResourcePredictionsProfile []AutomaticResourcePredictionsProfileModel `tfschema:"automatic_resource_predictions_profile"`
+type StatelessAgentModel struct {
+	ManualResourcePrediction    []ManualResourcePredictionModel    `tfschema:"manual_resource_prediction"`
+	AutomaticResourcePrediction []AutomaticResourcePredictionModel `tfschema:"automatic_resource_prediction"`
 }
 
 type ResourcePredictionsSdkModel struct {
@@ -25,33 +25,39 @@ type ResourcePredictionsSdkModel struct {
 	DaysData []map[string]int64 `tfschema:"days_data"`
 }
 
-type ResourcePredictionsProfileModel struct {
+type ResourcePredictionsModel struct {
 	Kind                 string `tfschema:"kind"`
 	PredictionPreference string `tfschema:"prediction_preference"`
 }
 
-type ManualResourcePredictionsProfileModel struct {
-	TimeZoneName      string           `tfschema:"time_zone_name"`
-	AllWeekSchedule   int64            `tfschema:"all_week_schedule"`
-	SundaySchedule    map[string]int64 `tfschema:"sunday_schedule"`
-	MondaySchedule    map[string]int64 `tfschema:"monday_schedule"`
-	TuesdaySchedule   map[string]int64 `tfschema:"tuesday_schedule"`
-	WednesdaySchedule map[string]int64 `tfschema:"wednesday_schedule"`
-	ThursdaySchedule  map[string]int64 `tfschema:"thursday_schedule"`
-	FridaySchedule    map[string]int64 `tfschema:"friday_schedule"`
-	SaturdaySchedule  map[string]int64 `tfschema:"saturday_schedule"`
+type ManualResourcePredictionModel struct {
+	TimeZoneName      string             `tfschema:"time_zone_name"`
+	AllWeekSchedule   int64              `tfschema:"all_week_schedule"`
+	SundaySchedule    []DayScheduleModel `tfschema:"sunday_schedule"`
+	MondaySchedule    []DayScheduleModel `tfschema:"monday_schedule"`
+	TuesdaySchedule   []DayScheduleModel `tfschema:"tuesday_schedule"`
+	WednesdaySchedule []DayScheduleModel `tfschema:"wednesday_schedule"`
+	ThursdaySchedule  []DayScheduleModel `tfschema:"thursday_schedule"`
+	FridaySchedule    []DayScheduleModel `tfschema:"friday_schedule"`
+	SaturdaySchedule  []DayScheduleModel `tfschema:"saturday_schedule"`
 }
 
-type AutomaticResourcePredictionsProfileModel struct {
+type DayScheduleModel struct {
+	Time  string `tfschema:"time"`
+	Count int64  `tfschema:"count"`
+}
+
+type AutomaticResourcePredictionModel struct {
 	PredictionPreference string `tfschema:"prediction_preference"`
 }
 
-type VmssFabricProfileModel struct {
-	Images         []ImageModel          `tfschema:"image"`
-	SubnetId       string                `tfschema:"subnet_id"`
-	OsProfile      []OsProfileModel      `tfschema:"os_profile"`
-	SkuName        string                `tfschema:"sku_name"`
-	StorageProfile []StorageProfileModel `tfschema:"storage_profile"`
+type VmssFabricModel struct {
+	Images                   []ImageModel    `tfschema:"image"`
+	SubnetId                 string          `tfschema:"subnet_id"`
+	Security                 []SecurityModel `tfschema:"security"`
+	SkuName                  string          `tfschema:"sku_name"`
+	OsDiskStorageAccountType string          `tfschema:"os_disk_storage_account_type"`
+	Storage                  []StorageModel  `tfschema:"storage"`
 }
 
 type ImageModel struct {
@@ -61,8 +67,8 @@ type ImageModel struct {
 	WellKnownImageName string   `tfschema:"well_known_image_name"`
 }
 
-type OsProfileModel struct {
-	LogonType                  string                            `tfschema:"logon_type"`
+type SecurityModel struct {
+	InteractiveLogonEnabled    bool                              `tfschema:"interactive_logon_enabled"`
 	KeyVaultManagementSettings []KeyVaultManagementSettingsModel `tfschema:"key_vault_management"`
 }
 
@@ -73,21 +79,16 @@ type KeyVaultManagementSettingsModel struct {
 	KeyVaultCertificateIds   []string `tfschema:"key_vault_certificate_ids"`
 }
 
-type StorageProfileModel struct {
-	DataDisks                []DataDiskModel `tfschema:"data_disk"`
-	OsDiskStorageAccountType string          `tfschema:"os_disk_storage_account_type"`
-}
-
-type DataDiskModel struct {
+type StorageModel struct {
 	Caching            string `tfschema:"caching"`
 	DiskSizeInGB       int64  `tfschema:"disk_size_in_gb"`
 	DriveLetter        string `tfschema:"drive_letter"`
 	StorageAccountType string `tfschema:"storage_account_type"`
 }
 
-type AzureDevOpsOrganizationProfileModel struct {
-	Organizations     []OrganizationModel                 `tfschema:"organization"`
-	PermissionProfile []AzureDevOpsPermissionProfileModel `tfschema:"permission_profile"`
+type AzureDevOpsOrganizationModel struct {
+	Organizations []OrganizationModel          `tfschema:"organization"`
+	Permission    []AzureDevOpsPermissionModel `tfschema:"permission"`
 }
 
 type OrganizationModel struct {
@@ -96,7 +97,7 @@ type OrganizationModel struct {
 	Url         string   `tfschema:"url"`
 }
 
-type AzureDevOpsPermissionProfileModel struct {
+type AzureDevOpsPermissionModel struct {
 	Kind                  string                                  `tfschema:"kind"`
 	AdministratorAccounts []AzureDevOpsAdministratorAccountsModel `tfschema:"administrator_account"`
 }

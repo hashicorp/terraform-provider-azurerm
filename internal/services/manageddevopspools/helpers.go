@@ -6,6 +6,8 @@ package manageddevopspools
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"sort"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -15,12 +17,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema {
+func manualResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
 		MaxItems:      1,
-		ConflictsWith: []string{parentPath + ".automatic_resource_predictions_profile"},
+		ConflictsWith: []string{parentPath + ".automatic_resource_prediction"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"time_zone_name": {
@@ -34,97 +36,41 @@ func manualResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 					ConflictsWith: []string{
-						parentPath + ".manual_resource_predictions_profile.0.sunday_schedule",
-						parentPath + ".manual_resource_predictions_profile.0.monday_schedule",
-						parentPath + ".manual_resource_predictions_profile.0.tuesday_schedule",
-						parentPath + ".manual_resource_predictions_profile.0.wednesday_schedule",
-						parentPath + ".manual_resource_predictions_profile.0.thursday_schedule",
-						parentPath + ".manual_resource_predictions_profile.0.friday_schedule",
-						parentPath + ".manual_resource_predictions_profile.0.saturday_schedule",
+						parentPath + ".manual_resource_prediction.0.sunday_schedule",
+						parentPath + ".manual_resource_prediction.0.monday_schedule",
+						parentPath + ".manual_resource_prediction.0.tuesday_schedule",
+						parentPath + ".manual_resource_prediction.0.wednesday_schedule",
+						parentPath + ".manual_resource_prediction.0.thursday_schedule",
+						parentPath + ".manual_resource_prediction.0.friday_schedule",
+						parentPath + ".manual_resource_prediction.0.saturday_schedule",
 					},
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
-				"sunday_schedule": {
-					Type:          pluginsdk.TypeMap,
-					Optional:      true,
-					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
+				"sunday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
 
-				"monday_schedule": {
-					Type:          pluginsdk.TypeMap,
-					Optional:      true,
-					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
+				"monday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
 
-				"tuesday_schedule": {
-					Type:          pluginsdk.TypeMap,
-					Optional:      true,
-					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
+				"tuesday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
 
-				"wednesday_schedule": {
-					Type:          pluginsdk.TypeMap,
-					Optional:      true,
-					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
+				"wednesday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
 
-				"thursday_schedule": {
-					Type:          pluginsdk.TypeMap,
-					Optional:      true,
-					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
+				"thursday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
 
-				"friday_schedule": {
-					Type:          pluginsdk.TypeMap,
-					Optional:      true,
-					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
+				"friday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
 
-				"saturday_schedule": {
-					Type:          pluginsdk.TypeMap,
-					Optional:      true,
-					ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile.0.all_week_schedule"},
-					Elem: &pluginsdk.Schema{
-						Type:         pluginsdk.TypeInt,
-						ValidateFunc: validation.IntAtLeast(0),
-					},
-				},
+				"saturday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
 			},
 		},
 	}
 }
 
-func automaticResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Schema {
+func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
 		MaxItems:      1,
-		ConflictsWith: []string{parentPath + ".manual_resource_predictions_profile"},
+		ConflictsWith: []string{parentPath + ".manual_resource_prediction"},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"prediction_preference": {
@@ -138,7 +84,54 @@ func automaticResourcePredictionsProfileSchema(parentPath string) *pluginsdk.Sch
 	}
 }
 
-func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
+func dayScheduleSchemaOptional(conflictsWith ...string) *pluginsdk.Schema {
+	s := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"time": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$`),
+						"must be a valid 24-hour time in format HH:MM:SS",
+					),
+				},
+
+				"count": {
+					Type:         pluginsdk.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+			},
+		},
+		ConflictsWith: conflictsWith,
+	}
+	return s
+}
+
+func dayScheduleSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"time": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"count": {
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func manualResourcePredictionSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -154,67 +147,25 @@ func manualResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"sunday_schedule": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeInt,
-					},
-				},
+				"sunday_schedule": dayScheduleSchemaComputed(),
 
-				"monday_schedule": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeInt,
-					},
-				},
+				"monday_schedule": dayScheduleSchemaComputed(),
 
-				"tuesday_schedule": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeInt,
-					},
-				},
+				"tuesday_schedule": dayScheduleSchemaComputed(),
 
-				"wednesday_schedule": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeInt,
-					},
-				},
+				"wednesday_schedule": dayScheduleSchemaComputed(),
 
-				"thursday_schedule": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeInt,
-					},
-				},
+				"thursday_schedule": dayScheduleSchemaComputed(),
 
-				"friday_schedule": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeInt,
-					},
-				},
+				"friday_schedule": dayScheduleSchemaComputed(),
 
-				"saturday_schedule": {
-					Type:     pluginsdk.TypeMap,
-					Computed: true,
-					Elem: &pluginsdk.Schema{
-						Type: pluginsdk.TypeInt,
-					},
-				},
+				"saturday_schedule": dayScheduleSchemaComputed(),
 			},
 		},
 	}
 }
 
-func automaticResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
+func automaticResourcePredictionSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Computed: true,
@@ -229,7 +180,7 @@ func automaticResourcePredictionsProfileSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.AgentProfile {
+func expandStatefulAgentModel(input []StatefulAgentModel) pools.AgentProfile {
 	stateful := &pools.Stateful{
 		Kind: "Stateful",
 	}
@@ -243,36 +194,37 @@ func expandStatefulAgentProfileModel(input []StatefulAgentProfileModel) pools.Ag
 	stateful.GracePeriodTimeSpan = pointer.To(agentProfile.GracePeriodTimeSpan)
 	stateful.MaxAgentLifetime = pointer.To(agentProfile.MaxAgentLifetime)
 
-	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
-		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
+	if len(agentProfile.ManualResourcePrediction) > 0 {
+		manualResourcePrediction := agentProfile.ManualResourcePrediction[0]
 
-		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile)
+		resourcePredictions := expandResourcePredictionsModel(manualResourcePrediction)
 		if resourcePredictions != nil {
 			stateful.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
 		}
 
-		manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
+		manualPredictionProfile := &pools.ManualResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeManual,
 		}
-		stateful.ResourcePredictionsProfile = manualPredictionsProfile
-	} else if len(agentProfile.AutomaticResourcePredictionsProfile) > 0 {
-		automaticPredictionsProfile := &pools.AutomaticResourcePredictionsProfile{
+		stateful.ResourcePredictionsProfile = manualPredictionProfile
+	} else if len(agentProfile.AutomaticResourcePrediction) > 0 {
+		automaticResourcePrediction := agentProfile.AutomaticResourcePrediction[0]
+
+		automaticPredictionProfile := &pools.AutomaticResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeAutomatic,
 		}
 
-		resourcePredictionsProfile := agentProfile.AutomaticResourcePredictionsProfile[0]
-		if resourcePredictionsProfile.PredictionPreference != "" {
-			predictionPreference := pools.PredictionPreference(resourcePredictionsProfile.PredictionPreference)
-			automaticPredictionsProfile.PredictionPreference = &predictionPreference
+		if automaticResourcePrediction.PredictionPreference != "" {
+			predictionPreference := pools.PredictionPreference(automaticResourcePrediction.PredictionPreference)
+			automaticPredictionProfile.PredictionPreference = &predictionPreference
 		}
 
-		stateful.ResourcePredictionsProfile = automaticPredictionsProfile
+		stateful.ResourcePredictionsProfile = automaticPredictionProfile
 	}
 
 	return stateful
 }
 
-func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.AgentProfile {
+func expandStatelessAgentModel(input []StatelessAgentModel) pools.AgentProfile {
 	stateless := &pools.StatelessAgentProfile{
 		Kind: "Stateless",
 	}
@@ -283,53 +235,49 @@ func expandStatelessAgentProfileModel(input []StatelessAgentProfileModel) pools.
 
 	agentProfile := input[0]
 
-	if len(agentProfile.ManualResourcePredictionsProfile) > 0 {
-		resourcePredictionsProfile := agentProfile.ManualResourcePredictionsProfile[0]
+	if len(agentProfile.ManualResourcePrediction) > 0 {
+		manualResourcePrediction := agentProfile.ManualResourcePrediction[0]
 
-		resourcePredictions := expandResourcePredictionsModel(resourcePredictionsProfile)
+		resourcePredictions := expandResourcePredictionsModel(manualResourcePrediction)
 		if resourcePredictions != nil {
 			stateless.ResourcePredictions = pointer.To(interface{}(*resourcePredictions))
 		}
 
-		manualPredictionsProfile := &pools.ManualResourcePredictionsProfile{
+		manualPredictionProfile := &pools.ManualResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeManual,
 		}
-		stateless.ResourcePredictionsProfile = manualPredictionsProfile
-	} else if len(agentProfile.AutomaticResourcePredictionsProfile) > 0 {
-		automaticPredictionsProfile := &pools.AutomaticResourcePredictionsProfile{
+		stateless.ResourcePredictionsProfile = manualPredictionProfile
+	} else if len(agentProfile.AutomaticResourcePrediction) > 0 {
+		automaticPredictionProfile := &pools.AutomaticResourcePredictionsProfile{
 			Kind: pools.ResourcePredictionsProfileTypeAutomatic,
 		}
 
-		resourcePredictionsProfile := agentProfile.AutomaticResourcePredictionsProfile[0]
-		if resourcePredictionsProfile.PredictionPreference != "" {
-			predictionPreference := pools.PredictionPreference(resourcePredictionsProfile.PredictionPreference)
-			automaticPredictionsProfile.PredictionPreference = &predictionPreference
+		automaticResourcePrediction := agentProfile.AutomaticResourcePrediction[0]
+		if automaticResourcePrediction.PredictionPreference != "" {
+			predictionPreference := pools.PredictionPreference(automaticResourcePrediction.PredictionPreference)
+			automaticPredictionProfile.PredictionPreference = &predictionPreference
 		}
 
-		stateless.ResourcePredictionsProfile = automaticPredictionsProfile
+		stateless.ResourcePredictionsProfile = automaticPredictionProfile
 	}
 
 	return stateless
 }
 
-func expandResourcePredictionsModel(input ManualResourcePredictionsProfileModel) *ResourcePredictionsSdkModel {
+func expandResourcePredictionsModel(input ManualResourcePredictionModel) *ResourcePredictionsSdkModel {
 	var daysData []map[string]int64
 
 	if input.AllWeekSchedule > 0 {
-		allWeekMap := map[string]int64{
-			"00:00:00": input.AllWeekSchedule,
-		}
-		daysData = append(daysData, allWeekMap)
+		daysData = []map[string]int64{{"00:00:00": input.AllWeekSchedule}}
 	} else {
-		// Per-day schedule - create 7 map entries (one per day)
 		daysData = []map[string]int64{
-			input.SundaySchedule,    // 0 = Sunday
-			input.MondaySchedule,    // 1 = Monday
-			input.TuesdaySchedule,   // 2 = Tuesday
-			input.WednesdaySchedule, // 3 = Wednesday
-			input.ThursdaySchedule,  // 4 = Thursday
-			input.FridaySchedule,    // 5 = Friday
-			input.SaturdaySchedule,  // 6 = Saturday
+			expandDaySchedule(input.SundaySchedule),
+			expandDaySchedule(input.MondaySchedule),
+			expandDaySchedule(input.TuesdaySchedule),
+			expandDaySchedule(input.WednesdaySchedule),
+			expandDaySchedule(input.ThursdaySchedule),
+			expandDaySchedule(input.FridaySchedule),
+			expandDaySchedule(input.SaturdaySchedule),
 		}
 	}
 
@@ -339,7 +287,15 @@ func expandResourcePredictionsModel(input ManualResourcePredictionsProfileModel)
 	}
 }
 
-func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationProfileModel) pools.OrganizationProfile {
+func expandDaySchedule(input []DayScheduleModel) map[string]int64 {
+	m := make(map[string]int64, len(input))
+	for _, entry := range input {
+		m[entry.Time] = entry.Count
+	}
+	return m
+}
+
+func expandAzureDevOpsOrganizationModel(input []AzureDevOpsOrganizationModel) pools.OrganizationProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -359,8 +315,8 @@ func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationPr
 		Organizations: poolOrganizations,
 	}
 
-	if len(organizationProfile.PermissionProfile) > 0 {
-		permissionProfile := organizationProfile.PermissionProfile[0]
+	if len(organizationProfile.Permission) > 0 {
+		permissionProfile := organizationProfile.Permission[0]
 		poolPermissionProfile := &pools.AzureDevOpsPermissionProfile{
 			Kind: pools.AzureDevOpsPermissionType(permissionProfile.Kind),
 		}
@@ -377,7 +333,7 @@ func expandAzureDevOpsOrganizationProfileModel(input []AzureDevOpsOrganizationPr
 	return azureDevOpsOrganizationProfile
 }
 
-func expandVmssFabricProfileModel(input []VmssFabricProfileModel) pools.FabricProfile {
+func expandVmssFabricModel(input []VmssFabricModel) pools.FabricProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -385,9 +341,9 @@ func expandVmssFabricProfileModel(input []VmssFabricProfileModel) pools.FabricPr
 	fabricProfile := input[0]
 	vmssFabricProfile := pools.VMSSFabricProfile{
 		Images:         expandImageModel(fabricProfile.Images),
-		OsProfile:      expandOsProfileModel(fabricProfile.OsProfile),
+		OsProfile:      expandSecurityModel(fabricProfile.Security),
 		Sku:            pools.DevOpsAzureSku{Name: fabricProfile.SkuName},
-		StorageProfile: expandStorageProfileModel(fabricProfile.StorageProfile),
+		StorageProfile: expandStorageModel(fabricProfile.OsDiskStorageAccountType, fabricProfile.Storage),
 	}
 
 	if fabricProfile.SubnetId != "" {
@@ -428,46 +384,39 @@ func expandImageModel(input []ImageModel) []pools.PoolImage {
 	return output
 }
 
-func expandOsProfileModel(input []OsProfileModel) *pools.OsProfile {
+func expandSecurityModel(input []SecurityModel) *pools.OsProfile {
 	if len(input) == 0 {
 		return nil
 	}
 
-	osProfile := input[0]
-	logonType := pools.LogonType(osProfile.LogonType)
+	security := input[0]
+	logonType := pools.LogonTypeService
+	if security.InteractiveLogonEnabled {
+		logonType = pools.LogonTypeInteractive
+	}
 	return &pools.OsProfile{
 		LogonType:                 &logonType,
-		SecretsManagementSettings: expandKeyVaultManagementSettingsModel(osProfile.KeyVaultManagementSettings),
+		SecretsManagementSettings: expandKeyVaultManagementSettingsModel(security.KeyVaultManagementSettings),
 	}
 }
 
-func expandStorageProfileModel(input []StorageProfileModel) *pools.StorageProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-	storageProfile := input[0]
-	osDiskStorageAccountType := pools.OsDiskStorageAccountType(storageProfile.OsDiskStorageAccountType)
+func expandStorageModel(osDiskStorageAccountType string, input []StorageModel) *pools.StorageProfile {
+	osDiskType := pools.OsDiskStorageAccountType(osDiskStorageAccountType)
 	output := &pools.StorageProfile{
-		OsDiskStorageAccountType: &osDiskStorageAccountType,
+		OsDiskStorageAccountType: &osDiskType,
 	}
 
-	if len(storageProfile.DataDisks) > 0 {
-		dataDisksOut := []pools.DataDisk{}
-		for _, disk := range storageProfile.DataDisks {
-			cachingType := pools.CachingType(disk.Caching)
-			storageAccountType := pools.StorageAccountType(disk.StorageAccountType)
-			diskOut := pools.DataDisk{
-				Caching:            pointer.To(cachingType),
-				DiskSizeGiB:        pointer.To(disk.DiskSizeInGB),
-				DriveLetter:        pointer.To(disk.DriveLetter),
-				StorageAccountType: pointer.To(storageAccountType),
-			}
-
-			dataDisksOut = append(dataDisksOut, diskOut)
+	if len(input) > 0 {
+		disk := input[0]
+		cachingType := pools.CachingType(disk.Caching)
+		storageAccountType := pools.StorageAccountType(disk.StorageAccountType)
+		diskOut := pools.DataDisk{
+			Caching:            pointer.To(cachingType),
+			DiskSizeGiB:        pointer.To(disk.DiskSizeInGB),
+			DriveLetter:        pointer.To(disk.DriveLetter),
+			StorageAccountType: pointer.To(storageAccountType),
 		}
-
-		output.DataDisks = &dataDisksOut
+		output.DataDisks = &[]pools.DataDisk{diskOut}
 	}
 
 	return output
@@ -496,58 +445,58 @@ func expandKeyVaultManagementSettingsModel(input []KeyVaultManagementSettingsMod
 	return output
 }
 
-func flattenStatefulAgentProfileToModel(input pools.Stateful) []StatefulAgentProfileModel {
-	statefulAgentProfileModel := StatefulAgentProfileModel{
+func flattenStatefulAgentToModel(input pools.Stateful) []StatefulAgentModel {
+	statefulAgentModel := StatefulAgentModel{
 		GracePeriodTimeSpan: pointer.From(input.GracePeriodTimeSpan),
 		MaxAgentLifetime:    pointer.From(input.MaxAgentLifetime),
 	}
 
 	if input.ResourcePredictionsProfile != nil {
 		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
-			statefulAgentProfileModel.AutomaticResourcePredictionsProfile = []AutomaticResourcePredictionsProfileModel{
+			statefulAgentModel.AutomaticResourcePrediction = []AutomaticResourcePredictionModel{
 				{
 					PredictionPreference: string(pointer.From(automatic.PredictionPreference)),
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
-			manualProfile := ManualResourcePredictionsProfileModel{}
+			manualProfile := ManualResourcePredictionModel{}
 
 			if input.ResourcePredictions != nil {
 				manualProfile = flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions))
 			}
 
-			statefulAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{manualProfile}
+			statefulAgentModel.ManualResourcePrediction = []ManualResourcePredictionModel{manualProfile}
 		}
 	}
 
-	return []StatefulAgentProfileModel{statefulAgentProfileModel}
+	return []StatefulAgentModel{statefulAgentModel}
 }
 
-func flattenStatelessAgentProfileToModel(input pools.StatelessAgentProfile) []StatelessAgentProfileModel {
-	statelessAgentProfileModel := StatelessAgentProfileModel{}
+func flattenStatelessAgentToModel(input pools.StatelessAgentProfile) []StatelessAgentModel {
+	statelessAgentModel := StatelessAgentModel{}
 
 	if input.ResourcePredictionsProfile != nil {
 		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
-			statelessAgentProfileModel.AutomaticResourcePredictionsProfile = []AutomaticResourcePredictionsProfileModel{
+			statelessAgentModel.AutomaticResourcePrediction = []AutomaticResourcePredictionModel{
 				{
 					PredictionPreference: string(pointer.From(automatic.PredictionPreference)),
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
-			manualProfile := ManualResourcePredictionsProfileModel{}
+			manualProfile := ManualResourcePredictionModel{}
 
 			if input.ResourcePredictions != nil {
 				manualProfile = flattenManualResourcePredictionsModel(pointer.From(input.ResourcePredictions))
 			}
 
-			statelessAgentProfileModel.ManualResourcePredictionsProfile = []ManualResourcePredictionsProfileModel{manualProfile}
+			statelessAgentModel.ManualResourcePrediction = []ManualResourcePredictionModel{manualProfile}
 		}
 	}
-	return []StatelessAgentProfileModel{statelessAgentProfileModel}
+	return []StatelessAgentModel{statelessAgentModel}
 }
 
-func flattenManualResourcePredictionsModel(input interface{}) ManualResourcePredictionsProfileModel {
-	manualProfile := ManualResourcePredictionsProfileModel{}
+func flattenManualResourcePredictionsModel(input interface{}) ManualResourcePredictionModel {
+	manualProfile := ManualResourcePredictionModel{}
 
 	if input == nil {
 		return manualProfile
@@ -566,43 +515,41 @@ func flattenManualResourcePredictionsModel(input interface{}) ManualResourcePred
 	manualProfile.TimeZoneName = sdkModel.TimeZone
 
 	if len(sdkModel.DaysData) == 1 {
-		if agentCount, exists := sdkModel.DaysData[0]["00:00:00"]; exists {
-			manualProfile.AllWeekSchedule = agentCount
+		for _, count := range sdkModel.DaysData[0] {
+			manualProfile.AllWeekSchedule = count
+			break
 		}
 	} else if len(sdkModel.DaysData) == 7 {
-		if len(sdkModel.DaysData[0]) > 0 {
-			manualProfile.SundaySchedule = sdkModel.DaysData[0]
-		}
-		if len(sdkModel.DaysData[1]) > 0 {
-			manualProfile.MondaySchedule = sdkModel.DaysData[1]
-		}
-		if len(sdkModel.DaysData[2]) > 0 {
-			manualProfile.TuesdaySchedule = sdkModel.DaysData[2]
-		}
-		if len(sdkModel.DaysData[3]) > 0 {
-			manualProfile.WednesdaySchedule = sdkModel.DaysData[3]
-		}
-		if len(sdkModel.DaysData[4]) > 0 {
-			manualProfile.ThursdaySchedule = sdkModel.DaysData[4]
-		}
-		if len(sdkModel.DaysData[5]) > 0 {
-			manualProfile.FridaySchedule = sdkModel.DaysData[5]
-		}
-		if len(sdkModel.DaysData[6]) > 0 {
-			manualProfile.SaturdaySchedule = sdkModel.DaysData[6]
-		}
+		manualProfile.SundaySchedule = flattenDaySchedule(sdkModel.DaysData[0])
+		manualProfile.MondaySchedule = flattenDaySchedule(sdkModel.DaysData[1])
+		manualProfile.TuesdaySchedule = flattenDaySchedule(sdkModel.DaysData[2])
+		manualProfile.WednesdaySchedule = flattenDaySchedule(sdkModel.DaysData[3])
+		manualProfile.ThursdaySchedule = flattenDaySchedule(sdkModel.DaysData[4])
+		manualProfile.FridaySchedule = flattenDaySchedule(sdkModel.DaysData[5])
+		manualProfile.SaturdaySchedule = flattenDaySchedule(sdkModel.DaysData[6])
 	}
 
 	return manualProfile
 }
 
-func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganizationProfile) []AzureDevOpsOrganizationProfileModel {
-	organizationProfileModel := AzureDevOpsOrganizationProfileModel{
+func flattenDaySchedule(input map[string]int64) []DayScheduleModel {
+	output := make([]DayScheduleModel, 0, len(input))
+	for t, count := range input {
+		output = append(output, DayScheduleModel{Time: t, Count: count})
+	}
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].Time < output[j].Time
+	})
+	return output
+}
+
+func flattenAzureDevOpsOrganizationToModel(input pools.AzureDevOpsOrganizationProfile) []AzureDevOpsOrganizationModel {
+	organizationModel := AzureDevOpsOrganizationModel{
 		Organizations: flattenOrganizationsToModel(input.Organizations),
 	}
 
 	if input.PermissionProfile != nil {
-		permissionProfile := AzureDevOpsPermissionProfileModel{
+		permission := AzureDevOpsPermissionModel{
 			Kind: string(input.PermissionProfile.Kind),
 		}
 
@@ -611,13 +558,13 @@ func flattenAzureDevOpsOrganizationProfileToModel(input pools.AzureDevOpsOrganiz
 				Groups: pointer.From(input.PermissionProfile.Groups),
 				Users:  pointer.From(input.PermissionProfile.Users),
 			}
-			permissionProfile.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{adminAccounts}
+			permission.AdministratorAccounts = []AzureDevOpsAdministratorAccountsModel{adminAccounts}
 		}
 
-		organizationProfileModel.PermissionProfile = []AzureDevOpsPermissionProfileModel{permissionProfile}
+		organizationModel.Permission = []AzureDevOpsPermissionModel{permission}
 	}
 
-	return []AzureDevOpsOrganizationProfileModel{organizationProfileModel}
+	return []AzureDevOpsOrganizationModel{organizationModel}
 }
 
 func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel {
@@ -635,32 +582,33 @@ func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel
 	return output
 }
 
-func flattenVmssFabricProfileToModel(input pools.VMSSFabricProfile) []VmssFabricProfileModel {
-	vmssFabricProfileModel := VmssFabricProfileModel{
-		Images:         flattenImagesToModel(input.Images),
-		OsProfile:      flattenOsProfileToModel(input.OsProfile),
-		SkuName:        input.Sku.Name,
-		StorageProfile: flattenStorageProfileToModel(input.StorageProfile),
+func flattenVmssFabricToModel(input pools.VMSSFabricProfile) []VmssFabricModel {
+	vmssFabricModel := VmssFabricModel{
+		Images:                   flattenImagesToModel(input.Images),
+		Security:                 flattenSecurityToModel(input.OsProfile),
+		SkuName:                  input.Sku.Name,
+		OsDiskStorageAccountType: flattenOsDiskStorageAccountType(input.StorageProfile),
+		Storage:                  flattenStorageToModel(input.StorageProfile),
 	}
 
 	if input.NetworkProfile != nil {
-		vmssFabricProfileModel.SubnetId = input.NetworkProfile.SubnetId
+		vmssFabricModel.SubnetId = input.NetworkProfile.SubnetId
 	}
 
-	return []VmssFabricProfileModel{vmssFabricProfileModel}
+	return []VmssFabricModel{vmssFabricModel}
 }
 
-func flattenOsProfileToModel(input *pools.OsProfile) []OsProfileModel {
+func flattenSecurityToModel(input *pools.OsProfile) []SecurityModel {
 	if input == nil {
-		return []OsProfileModel{}
+		return []SecurityModel{}
 	}
 
-	osProfileModel := OsProfileModel{
-		LogonType:                  string(pointer.From(input.LogonType)),
+	securityModel := SecurityModel{
+		InteractiveLogonEnabled:    pointer.From(input.LogonType) == pools.LogonTypeInteractive,
 		KeyVaultManagementSettings: flattenKeyVaultManagementSettingsToModel(input.SecretsManagementSettings),
 	}
 
-	return []OsProfileModel{osProfileModel}
+	return []SecurityModel{securityModel}
 }
 
 func flattenKeyVaultManagementSettingsToModel(input *pools.SecretsManagementSettings) []KeyVaultManagementSettingsModel {
@@ -701,32 +649,25 @@ func flattenImagesToModel(input []pools.PoolImage) []ImageModel {
 	return output
 }
 
-func flattenStorageProfileToModel(input *pools.StorageProfile) []StorageProfileModel {
-	if input == nil {
-		return []StorageProfileModel{}
+func flattenOsDiskStorageAccountType(input *pools.StorageProfile) string {
+	if input == nil || input.OsDiskStorageAccountType == nil {
+		return string(pools.OsDiskStorageAccountTypeStandard)
+	}
+	return string(pointer.From(input.OsDiskStorageAccountType))
+}
+
+func flattenStorageToModel(input *pools.StorageProfile) []StorageModel {
+	if input == nil || input.DataDisks == nil || len(pointer.From(input.DataDisks)) == 0 {
+		return []StorageModel{}
 	}
 
-	storageProfileModel := StorageProfileModel{
-		OsDiskStorageAccountType: string(pointer.From(input.OsDiskStorageAccountType)),
-	}
-
-	if input.DataDisks != nil {
-		dataDisksOut := []DataDiskModel{}
-		for _, disk := range pointer.From(input.DataDisks) {
-			diskOut := DataDiskModel{
-				Caching:            string(pointer.From(disk.Caching)),
-				DiskSizeInGB:       pointer.From(disk.DiskSizeGiB),
-				DriveLetter:        pointer.From(disk.DriveLetter),
-				StorageAccountType: string(pointer.From(disk.StorageAccountType)),
-			}
-
-			dataDisksOut = append(dataDisksOut, diskOut)
-		}
-
-		storageProfileModel.DataDisks = dataDisksOut
-	}
-
-	return []StorageProfileModel{storageProfileModel}
+	disk := pointer.From(input.DataDisks)[0]
+	return []StorageModel{{
+		Caching:            string(pointer.From(disk.Caching)),
+		DiskSizeInGB:       pointer.From(disk.DiskSizeGiB),
+		DriveLetter:        pointer.From(disk.DriveLetter),
+		StorageAccountType: string(pointer.From(disk.StorageAccountType)),
+	}}
 }
 
 // identity defined both systemAssigned and userAssigned Identity type in Swagger but only support userAssigned Identity,

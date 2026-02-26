@@ -33,17 +33,17 @@ var (
 type ManagedDevOpsPoolResource struct{}
 
 type ManagedDevOpsPoolModel struct {
-	DevCenterProjectId             string                                `tfschema:"dev_center_project_id"`
-	VmssFabricProfile              []VmssFabricProfileModel              `tfschema:"vmss_fabric_profile"`
-	Identity                       []identity.ModelUserAssigned          `tfschema:"identity"`
-	Location                       string                                `tfschema:"location"`
-	MaximumConcurrency             int64                                 `tfschema:"maximum_concurrency"`
-	Name                           string                                `tfschema:"name"`
-	AzureDevOpsOrganizationProfile []AzureDevOpsOrganizationProfileModel `tfschema:"azure_devops_organization_profile"`
-	ResourceGroupName              string                                `tfschema:"resource_group_name"`
-	Tags                           map[string]string                     `tfschema:"tags"`
-	StatefulAgentProfile           []StatefulAgentProfileModel           `tfschema:"stateful_agent_profile"`
-	StatelessAgentProfile          []StatelessAgentProfileModel          `tfschema:"stateless_agent_profile"`
+	DevCenterProjectId      string                         `tfschema:"dev_center_project_id"`
+	VmssFabric              []VmssFabricModel              `tfschema:"vmss_fabric"`
+	Identity                []identity.ModelUserAssigned   `tfschema:"identity"`
+	Location                string                         `tfschema:"location"`
+	MaximumConcurrency      int64                          `tfschema:"maximum_concurrency"`
+	Name                    string                         `tfschema:"name"`
+	AzureDevOpsOrganization []AzureDevOpsOrganizationModel `tfschema:"azure_devops_organization"`
+	ResourceGroupName       string                         `tfschema:"resource_group_name"`
+	Tags                    map[string]string              `tfschema:"tags"`
+	StatefulAgent           []StatefulAgentModel           `tfschema:"stateful_agent"`
+	StatelessAgent          []StatelessAgentModel          `tfschema:"stateless_agent"`
 }
 
 func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
@@ -65,7 +65,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"azure_devops_organization_profile": {
+		"azure_devops_organization": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -106,7 +106,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"permission_profile": {
+					"permission": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
@@ -131,7 +131,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validate.Email,
 												},
-												AtLeastOneOf: []string{"azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.groups", "azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.users"},
+												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
 
 											"users": {
@@ -141,7 +141,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validate.Email,
 												},
-												AtLeastOneOf: []string{"azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.groups", "azure_devops_organization_profile.0.permission_profile.0.administrator_account.0.users"},
+												AtLeastOneOf: []string{"azure_devops_organization.0.permission.0.administrator_account.0.groups", "azure_devops_organization.0.permission.0.administrator_account.0.users"},
 											},
 										},
 									},
@@ -161,7 +161,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1, 10000),
 		},
 
-		"vmss_fabric_profile": {
+		"vmss_fabric": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -212,23 +212,29 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 
+					"os_disk_storage_account_type": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(pools.OsDiskStorageAccountTypeStandard),
+						ValidateFunc: validation.StringInSlice(pools.PossibleValuesForOsDiskStorageAccountType(), false),
+					},
+
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
-					"os_profile": {
+					"security": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"logon_type": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									Default:      string(pools.LogonTypeService),
-									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForLogonType(), false),
+								"interactive_logon_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
 								},
 
 								"key_vault_management": {
@@ -269,53 +275,38 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						},
 					},
 
-					"storage_profile": {
+					"storage": {
 						Type:     pluginsdk.TypeList,
 						MaxItems: 1,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"data_disk": {
-									Type:     pluginsdk.TypeList,
-									Optional: true,
-									MaxItems: 1,
-									Elem: &pluginsdk.Resource{
-										Schema: map[string]*pluginsdk.Schema{
-											"caching": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
-											},
-
-											"disk_size_in_gb": {
-												Type:         pluginsdk.TypeInt,
-												Required:     true,
-												ValidateFunc: validation.IntBetween(1, 65536),
-											},
-
-											"drive_letter": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
-												ValidateFunc: validation.StringMatch(
-													regexp.MustCompile(`^[FGHIJKLMNOPQRSTUVWXYZfghijklmnopqrstuvwxyz]$`),
-													"drive_letter must be a single letter and cannot be A, C, D, or E (case insensitive)",
-												),
-											},
-
-											"storage_account_type": {
-												Type:         pluginsdk.TypeString,
-												Optional:     true,
-												Default:      pools.StorageAccountTypeStandardLRS,
-												ValidateFunc: validation.StringInSlice(pools.PossibleValuesForStorageAccountType(), false),
-											},
-										},
-									},
-								},
-
-								"os_disk_storage_account_type": {
+								"caching": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForOsDiskStorageAccountType(), false),
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
+								},
+
+								"disk_size_in_gb": {
+									Type:         pluginsdk.TypeInt,
+									Required:     true,
+									ValidateFunc: validation.IntBetween(1, 65536),
+								},
+
+								"drive_letter": {
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringMatch(
+										regexp.MustCompile(`^[FGHIJKLMNOPQRSTUVWXYZfghijklmnopqrstuvwxyz]$`),
+										"drive_letter must be a single letter and cannot be A, C, D, or E (case insensitive)",
+									),
+								},
+
+								"storage_account_type": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									Default:      pools.StorageAccountTypeStandardLRS,
+									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForStorageAccountType(), false),
 								},
 							},
 						},
@@ -326,7 +317,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"identity": commonschema.UserAssignedIdentityOptional(),
 
-		"stateful_agent_profile": {
+		"stateful_agent": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -336,36 +327,36 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "00:00:00",
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validate.AgentLifetime,
 					},
 
 					"max_agent_lifetime": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "7.00:00:00",
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validate.AgentLifetime,
 					},
 
-					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchema("stateful_agent_profile.0"),
+					"manual_resource_prediction": manualResourcePredictionSchema("stateful_agent.0"),
 
-					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchema("stateful_agent_profile.0"),
+					"automatic_resource_prediction": automaticResourcePredictionSchema("stateful_agent.0"),
 				},
 			},
-			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
+			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 		},
 
-		"stateless_agent_profile": {
+		"stateless_agent": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"manual_resource_predictions_profile": manualResourcePredictionsProfileSchema("stateless_agent_profile.0"),
+					"manual_resource_prediction": manualResourcePredictionSchema("stateless_agent.0"),
 
-					"automatic_resource_predictions_profile": automaticResourcePredictionsProfileSchema("stateless_agent_profile.0"),
+					"automatic_resource_prediction": automaticResourcePredictionSchema("stateless_agent.0"),
 				},
 			},
-			ExactlyOneOf: []string{"stateful_agent_profile", "stateless_agent_profile"},
+			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 		},
 
 		"tags": commonschema.Tags(),
@@ -412,14 +403,14 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 			}
 
 			var agentProfile pools.AgentProfile
-			if _, ok := metadata.ResourceData.GetOk("stateful_agent_profile"); ok {
-				agentProfile = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
+			if _, ok := metadata.ResourceData.GetOk("stateful_agent"); ok {
+				agentProfile = expandStatefulAgentModel(config.StatefulAgent)
 			} else {
-				agentProfile = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
+				agentProfile = expandStatelessAgentModel(config.StatelessAgent)
 			}
 
-			azureDevOpsOrganizationProfile := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
-			fabricProfile := expandVmssFabricProfileModel(config.VmssFabricProfile)
+			azureDevOpsOrganization := expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization)
+			fabricProfile := expandVmssFabricModel(config.VmssFabric)
 			payload := pools.Pool{
 				Name:     pointer.To(config.Name),
 				Location: config.Location,
@@ -428,7 +419,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 					DevCenterProjectResourceId: config.DevCenterProjectId,
 					MaximumConcurrency:         config.MaximumConcurrency,
 					AgentProfile:               agentProfile,
-					OrganizationProfile:        azureDevOpsOrganizationProfile,
+					OrganizationProfile:        azureDevOpsOrganization,
 					FabricProfile:              fabricProfile,
 				},
 				Tags: pointer.To(config.Tags),
@@ -490,26 +481,26 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				payload.Properties.MaximumConcurrency = config.MaximumConcurrency
 			}
 
-			if metadata.ResourceData.HasChange("stateful_agent_profile") || metadata.ResourceData.HasChange("stateless_agent_profile") {
+			if metadata.ResourceData.HasChange("stateful_agent") || metadata.ResourceData.HasChange("stateless_agent") {
 				var agentProfile pools.AgentProfile
 
-				if _, ok := metadata.ResourceData.GetOk("stateful_agent_profile"); ok {
-					agentProfile = expandStatefulAgentProfileModel(config.StatefulAgentProfile)
+				if _, ok := metadata.ResourceData.GetOk("stateful_agent"); ok {
+					agentProfile = expandStatefulAgentModel(config.StatefulAgent)
 				} else {
-					agentProfile = expandStatelessAgentProfileModel(config.StatelessAgentProfile)
+					agentProfile = expandStatelessAgentModel(config.StatelessAgent)
 				}
 
 				payload.Properties.AgentProfile = agentProfile
 			}
 
-			if metadata.ResourceData.HasChange("azure_devops_organization_profile") {
-				organizationProfile := expandAzureDevOpsOrganizationProfileModel(config.AzureDevOpsOrganizationProfile)
-				payload.Properties.OrganizationProfile = organizationProfile
+			if metadata.ResourceData.HasChange("azure_devops_organization") {
+				organization := expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization)
+				payload.Properties.OrganizationProfile = organization
 			}
 
-			if metadata.ResourceData.HasChange("vmss_fabric_profile") {
-				vmssFabricProfile := expandVmssFabricProfileModel(config.VmssFabricProfile)
-				payload.Properties.FabricProfile = vmssFabricProfile
+			if metadata.ResourceData.HasChange("vmss_fabric") {
+				vmssFabric := expandVmssFabricModel(config.VmssFabric)
+				payload.Properties.FabricProfile = vmssFabric
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -568,21 +559,21 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
 						if stateful, ok := agentProfile.(pools.Stateful); ok {
-							state.StatefulAgentProfile = flattenStatefulAgentProfileToModel(stateful)
+							state.StatefulAgent = flattenStatefulAgentToModel(stateful)
 						} else if stateless, ok := agentProfile.(pools.StatelessAgentProfile); ok {
-							state.StatelessAgentProfile = flattenStatelessAgentProfileToModel(stateless)
+							state.StatelessAgent = flattenStatelessAgentToModel(stateless)
 						}
 					}
 
 					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
-						if azureDevOpsOrganizationProfile, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
-							state.AzureDevOpsOrganizationProfile = flattenAzureDevOpsOrganizationProfileToModel(azureDevOpsOrganizationProfile)
+						if azureDevOpsOrganization, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
+							state.AzureDevOpsOrganization = flattenAzureDevOpsOrganizationToModel(azureDevOpsOrganization)
 						}
 					}
 
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
-						if vmssFabricProfile, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
-							state.VmssFabricProfile = flattenVmssFabricProfileToModel(vmssFabricProfile)
+						if vmssFabric, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
+							state.VmssFabric = flattenVmssFabricToModel(vmssFabric)
 						}
 					}
 				}
@@ -625,37 +616,33 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("DecodeDiff: %+v", err)
 			}
 
-			// Validate vmss_fabric_profile images with proper handling of computed/unknown values
-			if err := validateVmssFabricProfileImages(metadata, model.VmssFabricProfile); err != nil {
+			if err := validateVmssFabricImages(metadata, model.VmssFabric); err != nil {
 				return err
 			}
 
-			for _, orgProfile := range model.AzureDevOpsOrganizationProfile {
-				for _, permProfile := range orgProfile.PermissionProfile {
-					if permProfile.Kind != string(pools.AzureDevOpsPermissionTypeSpecificAccounts) {
-						if len(permProfile.AdministratorAccounts) > 0 {
-							return fmt.Errorf("`administrator_account` block is not required when `permission_profile` kind is `%s`", permProfile.Kind)
+			for _, org := range model.AzureDevOpsOrganization {
+				for _, perm := range org.Permission {
+					if perm.Kind != string(pools.AzureDevOpsPermissionTypeSpecificAccounts) {
+						if len(perm.AdministratorAccounts) > 0 {
+							return fmt.Errorf("`administrator_account` block is not required when `permission` kind is `%s`", perm.Kind)
 						}
 					}
 				}
 			}
 
-			// Validate agent counts don't exceed maximum_concurrency
 			maxConcurrency := model.MaximumConcurrency
 
-			// Validate stateful agent profile schedules
-			for _, statefulProfile := range model.StatefulAgentProfile {
-				for _, manualProfile := range statefulProfile.ManualResourcePredictionsProfile {
-					if err := validateManualProfileAgentCounts("stateful_agent_profile", manualProfile, maxConcurrency); err != nil {
+			for _, stateful := range model.StatefulAgent {
+				for _, manualPredictions := range stateful.ManualResourcePrediction {
+					if err := validateManualAgentCounts("stateful_agent", manualPredictions, maxConcurrency); err != nil {
 						return err
 					}
 				}
 			}
 
-			// Validate stateless agent profile schedules
-			for _, statelessProfile := range model.StatelessAgentProfile {
-				for _, manualProfile := range statelessProfile.ManualResourcePredictionsProfile {
-					if err := validateManualProfileAgentCounts("stateless_agent_profile", manualProfile, maxConcurrency); err != nil {
+			for _, stateless := range model.StatelessAgent {
+				for _, manualPredictions := range stateless.ManualResourcePrediction {
+					if err := validateManualAgentCounts("stateless_agent", manualPredictions, maxConcurrency); err != nil {
 						return err
 					}
 				}
@@ -667,10 +654,10 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func validateVmssFabricProfileImages(metadata sdk.ResourceMetaData, vmssFabricProfiles []VmssFabricProfileModel) error {
+func validateVmssFabricImages(metadata sdk.ResourceMetaData, vmssFabrics []VmssFabricModel) error {
 	rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
 
-	vmssFabricValue, exists := rawConfig["vmss_fabric_profile"]
+	vmssFabricValue, exists := rawConfig["vmss_fabric"]
 	if !exists || vmssFabricValue.IsNull() {
 		return nil
 	}
@@ -679,17 +666,17 @@ func validateVmssFabricProfileImages(metadata sdk.ResourceMetaData, vmssFabricPr
 		return nil
 	}
 
-	for _, vmssFabricProfile := range vmssFabricProfiles {
-		for i, image := range vmssFabricProfile.Images {
+	for _, vmssFabric := range vmssFabrics {
+		for i, image := range vmssFabric.Images {
 			haveResourceId := image.Id != ""
 			haveWellKnownImageName := image.WellKnownImageName != ""
 
 			if !haveResourceId && !haveWellKnownImageName {
-				return fmt.Errorf("one of `id` or `well_known_image_name` must be specified for image %d in `vmss_fabric_profile`", i)
+				return fmt.Errorf("one of `id` or `well_known_image_name` must be specified for image %d in `vmss_fabric`", i)
 			}
 
 			if haveResourceId && haveWellKnownImageName {
-				return fmt.Errorf("only one of `id` or `well_known_image_name` can be specified for image %d in `vmss_fabric_profile`", i)
+				return fmt.Errorf("only one of `id` or `well_known_image_name` can be specified for image %d in `vmss_fabric`", i)
 			}
 		}
 	}
@@ -697,43 +684,42 @@ func validateVmssFabricProfileImages(metadata sdk.ResourceMetaData, vmssFabricPr
 	return nil
 }
 
-func validateManualProfileAgentCounts(profileType string, manualProfile ManualResourcePredictionsProfileModel, maxConcurrency int64) error {
-	// Check daily schedules
-	schedules := []struct {
+func validateManualAgentCounts(profileType string, manualPredictions ManualResourcePredictionModel, maxConcurrency int64) error {
+	hasAllWeek := manualPredictions.AllWeekSchedule > 0
+
+	daySchedules := []struct {
 		name     string
-		schedule map[string]int64
+		schedule []DayScheduleModel
 	}{
-		{"sunday_schedule", manualProfile.SundaySchedule},
-		{"monday_schedule", manualProfile.MondaySchedule},
-		{"tuesday_schedule", manualProfile.TuesdaySchedule},
-		{"wednesday_schedule", manualProfile.WednesdaySchedule},
-		{"thursday_schedule", manualProfile.ThursdaySchedule},
-		{"friday_schedule", manualProfile.FridaySchedule},
-		{"saturday_schedule", manualProfile.SaturdaySchedule},
+		{"sunday_schedule", manualPredictions.SundaySchedule},
+		{"monday_schedule", manualPredictions.MondaySchedule},
+		{"tuesday_schedule", manualPredictions.TuesdaySchedule},
+		{"wednesday_schedule", manualPredictions.WednesdaySchedule},
+		{"thursday_schedule", manualPredictions.ThursdaySchedule},
+		{"friday_schedule", manualPredictions.FridaySchedule},
+		{"saturday_schedule", manualPredictions.SaturdaySchedule},
 	}
 
-	// Validate that either all_week_schedule or at least one day schedule is specified
-	hasAllWeekSchedule := manualProfile.AllWeekSchedule > 0
 	hasDaySchedule := false
-
-	for _, sched := range schedules {
+	for _, sched := range daySchedules {
 		if len(sched.schedule) > 0 {
 			hasDaySchedule = true
 			break
 		}
 	}
 
-	if !hasAllWeekSchedule && !hasDaySchedule {
-		return fmt.Errorf("%s `manual_resource_predictions_profile` must specify either `all_week_schedule` or at least one day schedule", profileType)
+	if !hasAllWeek && !hasDaySchedule {
+		return fmt.Errorf("%s `manual_resource_prediction` must specify either `all_week_schedule` or at least one day schedule", profileType)
 	}
 
-	// Check all_week_schedule
-	if manualProfile.AllWeekSchedule > 0 && manualProfile.AllWeekSchedule > maxConcurrency {
-		return fmt.Errorf("%s `all_week_schedule` agent count (%d) cannot exceed `maximum_concurrency` (%d)",
-			profileType, manualProfile.AllWeekSchedule, maxConcurrency)
+	if hasAllWeek {
+		if manualPredictions.AllWeekSchedule > maxConcurrency {
+			return fmt.Errorf("%s `all_week_schedule` agent count (%d) cannot exceed `maximum_concurrency` (%d)",
+				profileType, manualPredictions.AllWeekSchedule, maxConcurrency)
+		}
 	}
 
-	for _, sched := range schedules {
+	for _, sched := range daySchedules {
 		if err := validateScheduleAgentCounts(profileType, sched.name, sched.schedule, maxConcurrency); err != nil {
 			return err
 		}
@@ -742,17 +728,18 @@ func validateManualProfileAgentCounts(profileType string, manualProfile ManualRe
 	return nil
 }
 
-func validateScheduleAgentCounts(profileType, scheduleName string, schedule map[string]int64, maxConcurrency int64) error {
-	if len(schedule) == 0 {
-		return nil
-	}
-
-	for timeSlot, agentCount := range schedule {
-		if agentCount > maxConcurrency {
+func validateScheduleAgentCounts(profileType, scheduleName string, schedule []DayScheduleModel, maxConcurrency int64) error {
+	seen := make(map[string]bool, len(schedule))
+	for _, entry := range schedule {
+		if seen[entry.Time] {
+			return fmt.Errorf("%s %s has duplicate time slot %q - entries with the same time must be merged into a single block",
+				profileType, scheduleName, entry.Time)
+		}
+		seen[entry.Time] = true
+		if entry.Count > maxConcurrency {
 			return fmt.Errorf("%s %s time slot %s has agent count (%d) that exceeds `maximum_concurrency` (%d)",
-				profileType, scheduleName, timeSlot, agentCount, maxConcurrency)
+				profileType, scheduleName, entry.Time, entry.Count, maxConcurrency)
 		}
 	}
-
 	return nil
 }
