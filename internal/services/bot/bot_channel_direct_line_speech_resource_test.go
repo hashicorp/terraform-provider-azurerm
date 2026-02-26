@@ -6,6 +6,7 @@ package bot_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
@@ -73,7 +74,7 @@ func TestAccBotChannelDirectLineSpeech_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("cognitive_service_location", "cognitive_service_access_key"), // not returned from API
+		data.ImportStep(),
 	})
 }
 
@@ -92,7 +93,7 @@ func TestAccBotChannelDirectLineSpeech_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("cognitive_service_location", "cognitive_service_access_key"), // not returned from API
+		data.ImportStep(),
 		{
 			Config: r.cognitiveAccountForUpdate(data),
 		},
@@ -103,7 +104,7 @@ func TestAccBotChannelDirectLineSpeech_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("cognitive_service_location", "cognitive_service_access_key"), // not returned from API
+		data.ImportStep(),
 	})
 }
 
@@ -168,14 +169,12 @@ func (BotChannelDirectLineSpeechResource) complete(data acceptance.TestData) str
 %s
 
 resource "azurerm_bot_channel_direct_line_speech" "test" {
-  bot_name                     = azurerm_bot_channels_registration.test.name
-  location                     = azurerm_bot_channels_registration.test.location
-  resource_group_name          = azurerm_resource_group.test.name
-  cognitive_account_id         = azurerm_cognitive_account.test.id
-  cognitive_service_location   = azurerm_cognitive_account.test.location
-  cognitive_service_access_key = azurerm_cognitive_account.test.primary_access_key
-  custom_speech_model_id       = "a9316355-7b04-4468-9f6e-114419e6c9cc"
-  custom_voice_deployment_id   = "58dd86d4-31e3-4cf7-9b17-ee1d3dd77695"
+  bot_name                   = azurerm_bot_channels_registration.test.name
+  location                   = azurerm_bot_channels_registration.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  cognitive_account_id       = azurerm_cognitive_account.test.id
+  custom_speech_model_id     = "a9316355-7b04-4468-9f6e-114419e6c9cc"
+  custom_voice_deployment_id = "58dd86d4-31e3-4cf7-9b17-ee1d3dd77695"
 }
 `, BotChannelDirectLineSpeechResource{}.cognitiveAccount(data))
 }
@@ -204,14 +203,94 @@ func (BotChannelDirectLineSpeechResource) update(data acceptance.TestData) strin
 %s
 
 resource "azurerm_bot_channel_direct_line_speech" "test" {
+  bot_name                   = azurerm_bot_channels_registration.test.name
+  location                   = azurerm_bot_channels_registration.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  cognitive_account_id       = azurerm_cognitive_account.test2.id
+  custom_speech_model_id     = "cf7a4202-9be3-4195-9619-5a747260626d"
+  custom_voice_deployment_id = "b815f623-c217-4327-b765-f6e0fd7dceef"
+}
+`, BotChannelDirectLineSpeechResource{}.cognitiveAccountForUpdate(data))
+}
+
+func TestAccBotChannelDirectLineSpeech_validation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
+	r := BotChannelDirectLineSpeechResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cognitiveAccount(data),
+		},
+		{
+			PreConfig:   func() { time.Sleep(5 * time.Minute) },
+			Config:      r.missingRequiredFields(data),
+			ExpectError: regexp.MustCompile(`"cognitive_account_id": one of`),
+		},
+		{
+			Config:      r.conflictingFields(data),
+			ExpectError: regexp.MustCompile(`"cognitive_service_location": conflicts with cognitive_account_id`),
+		},
+	})
+}
+
+func (BotChannelDirectLineSpeechResource) missingRequiredFields(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_direct_line_speech" "test" {
+  bot_name            = azurerm_bot_channels_registration.test.name
+  location            = azurerm_bot_channels_registration.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+`, BotChannelDirectLineSpeechResource{}.cognitiveAccount(data))
+}
+
+func (BotChannelDirectLineSpeechResource) conflictingFields(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_direct_line_speech" "test" {
   bot_name                     = azurerm_bot_channels_registration.test.name
   location                     = azurerm_bot_channels_registration.test.location
   resource_group_name          = azurerm_resource_group.test.name
-  cognitive_account_id         = azurerm_cognitive_account.test2.id
-  cognitive_service_location   = azurerm_cognitive_account.test2.location
-  cognitive_service_access_key = azurerm_cognitive_account.test2.primary_access_key
-  custom_speech_model_id       = "cf7a4202-9be3-4195-9619-5a747260626d"
-  custom_voice_deployment_id   = "b815f623-c217-4327-b765-f6e0fd7dceef"
+  cognitive_account_id         = azurerm_cognitive_account.test.id
+  cognitive_service_location   = azurerm_cognitive_account.test.location
+  cognitive_service_access_key = azurerm_cognitive_account.test.primary_access_key
 }
-`, BotChannelDirectLineSpeechResource{}.cognitiveAccountForUpdate(data))
+`, BotChannelDirectLineSpeechResource{}.cognitiveAccount(data))
+}
+
+func TestAccBotChannelDirectLineSpeech_withAccessKey(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_channel_direct_line_speech", "test")
+	r := BotChannelDirectLineSpeechResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.cognitiveAccount(data),
+		},
+		{
+			PreConfig: func() { time.Sleep(5 * time.Minute) },
+			Config:    r.withAccessKeyComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("cognitive_service_location", "cognitive_service_access_key"), // not returned from API
+	})
+}
+
+func (BotChannelDirectLineSpeechResource) withAccessKeyComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_direct_line_speech" "test" {
+  bot_name                     = azurerm_bot_channels_registration.test.name
+  location                     = azurerm_bot_channels_registration.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  cognitive_service_location   = azurerm_cognitive_account.test.location
+  cognitive_service_access_key = azurerm_cognitive_account.test.primary_access_key
+  custom_speech_model_id       = "a9316355-7b04-4468-9f6e-114419e6c9cc"
+  custom_voice_deployment_id   = "58dd86d4-31e3-4cf7-9b17-ee1d3dd77695"
+}
+`, BotChannelDirectLineSpeechResource{}.cognitiveAccount(data))
 }
