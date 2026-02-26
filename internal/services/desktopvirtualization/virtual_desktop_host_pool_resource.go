@@ -62,23 +62,16 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.HostPoolTypePersonal),
-					string(hostpool.HostPoolTypePooled),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForHostPoolType(), false),
 			},
 
 			"load_balancer_type": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.LoadBalancerTypeBreadthFirst),
-					string(hostpool.LoadBalancerTypeDepthFirst),
-					string(hostpool.LoadBalancerTypePersistent),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForLoadBalancerType(), false),
 			},
 
 			"friendly_name": {
@@ -105,13 +98,10 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			},
 
 			"personal_desktop_assignment_type": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.PersonalDesktopAssignmentTypeAutomatic),
-					string(hostpool.PersonalDesktopAssignmentTypeDirect),
-				}, false),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForPersonalDesktopAssignmentType(), false),
 			},
 
 			"public_network_access": {
@@ -135,15 +125,11 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 			},
 
 			"preferred_app_group_type": {
-				Type:        pluginsdk.TypeString,
-				Optional:    true,
-				Description: "Preferred App Group type to display",
-				ValidateFunc: validation.StringInSlice([]string{
-					string(hostpool.PreferredAppGroupTypeDesktop),
-					string(hostpool.PreferredAppGroupTypeNone),
-					string(hostpool.PreferredAppGroupTypeRailApplications),
-				}, false),
-				Default: string(hostpool.PreferredAppGroupTypeDesktop),
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Description:  "Preferred App Group type to display",
+				ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForPreferredAppGroupType(), false),
+				Default:      string(hostpool.PreferredAppGroupTypeDesktop),
 			},
 
 			"scheduled_agent_updates": {
@@ -177,17 +163,9 @@ func resourceVirtualDesktopHostPool() *pluginsdk.Resource {
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"day_of_week": {
-										Type:     pluginsdk.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(hostpool.DayOfWeekMonday),
-											string(hostpool.DayOfWeekTuesday),
-											string(hostpool.DayOfWeekWednesday),
-											string(hostpool.DayOfWeekThursday),
-											string(hostpool.DayOfWeekFriday),
-											string(hostpool.DayOfWeekSaturday),
-											string(hostpool.DayOfWeekSunday),
-										}, false),
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringInSlice(hostpool.PossibleValuesForDayOfWeek(), false),
 									},
 
 									"hour_of_day": {
