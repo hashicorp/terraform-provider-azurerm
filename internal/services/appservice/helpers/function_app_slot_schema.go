@@ -13,48 +13,50 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type SiteConfigWindowsFunctionAppSlot struct {
-	AlwaysOn                      bool                                 `tfschema:"always_on"`
-	AppCommandLine                string                               `tfschema:"app_command_line"`
-	ApiDefinition                 string                               `tfschema:"api_definition_url"`
-	ApiManagementConfigId         string                               `tfschema:"api_management_api_id"`
-	AppInsightsInstrumentationKey string                               `tfschema:"application_insights_key"` // App Insights Instrumentation Key
-	AppInsightsConnectionString   string                               `tfschema:"application_insights_connection_string"`
-	AppScaleLimit                 int64                                `tfschema:"app_scale_limit"`
-	AppServiceLogs                []FunctionAppAppServiceLogs          `tfschema:"app_service_logs"`
-	AutoSwapSlotName              string                               `tfschema:"auto_swap_slot_name"`
-	DefaultDocuments              []string                             `tfschema:"default_documents"`
-	ElasticInstanceMinimum        int64                                `tfschema:"elastic_instance_minimum"`
-	Http2Enabled                  bool                                 `tfschema:"http2_enabled"`
-	IpRestriction                 []IpRestriction                      `tfschema:"ip_restriction"`
-	IpRestrictionDefaultAction    string                               `tfschema:"ip_restriction_default_action"`
-	LoadBalancing                 string                               `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
-	ManagedPipelineMode           string                               `tfschema:"managed_pipeline_mode"`
-	PreWarmedInstanceCount        int64                                `tfschema:"pre_warmed_instance_count"`
-	RemoteDebugging               bool                                 `tfschema:"remote_debugging_enabled"`
-	RemoteDebuggingVersion        string                               `tfschema:"remote_debugging_version"`
-	RuntimeScaleMonitoring        bool                                 `tfschema:"runtime_scale_monitoring_enabled"`
-	ScmIpRestriction              []IpRestriction                      `tfschema:"scm_ip_restriction"`
-	ScmIpRestrictionDefaultAction string                               `tfschema:"scm_ip_restriction_default_action"`
-	ScmType                       string                               `tfschema:"scm_type"` // Computed?
-	ScmUseMainIpRestriction       bool                                 `tfschema:"scm_use_main_ip_restriction"`
-	Use32BitWorker                bool                                 `tfschema:"use_32_bit_worker"`
-	WebSockets                    bool                                 `tfschema:"websockets_enabled"`
-	FtpsState                     string                               `tfschema:"ftps_state"`
-	HealthCheckPath               string                               `tfschema:"health_check_path"`
-	HealthCheckEvictionTime       int64                                `tfschema:"health_check_eviction_time_in_min"`
-	NumberOfWorkers               int64                                `tfschema:"worker_count"`
-	ApplicationStack              []ApplicationStackWindowsFunctionApp `tfschema:"application_stack"`
-	MinTlsVersion                 string                               `tfschema:"minimum_tls_version"`
-	ScmMinTlsVersion              string                               `tfschema:"scm_minimum_tls_version"`
-	Cors                          []CorsSetting                        `tfschema:"cors"`
-	DetailedErrorLogging          bool                                 `tfschema:"detailed_error_logging_enabled"`
-	WindowsFxVersion              string                               `tfschema:"windows_fx_version"`
-	VnetRouteAllEnabled           bool                                 `tfschema:"vnet_route_all_enabled"` // Not supported in Dynamic plans
+	AlwaysOn                        bool                                 `tfschema:"always_on"`
+	AppCommandLine                  string                               `tfschema:"app_command_line"`
+	ApiDefinition                   string                               `tfschema:"api_definition_url"`
+	ApiManagementConfigId           string                               `tfschema:"api_management_api_id"`
+	AppInsightsInstrumentationKey   string                               `tfschema:"application_insights_key"` // App Insights Instrumentation Key
+	AppInsightsConnectionString     string                               `tfschema:"application_insights_connection_string"`
+	AppInsightsAuthenticationString string                               `tfschema:"application_insights_authentication_string"`
+	AppScaleLimit                   int64                                `tfschema:"app_scale_limit"`
+	AppServiceLogs                  []FunctionAppAppServiceLogs          `tfschema:"app_service_logs"`
+	AutoSwapSlotName                string                               `tfschema:"auto_swap_slot_name"`
+	DefaultDocuments                []string                             `tfschema:"default_documents"`
+	ElasticInstanceMinimum          int64                                `tfschema:"elastic_instance_minimum"`
+	Http2Enabled                    bool                                 `tfschema:"http2_enabled"`
+	IpRestriction                   []IpRestriction                      `tfschema:"ip_restriction"`
+	IpRestrictionDefaultAction      string                               `tfschema:"ip_restriction_default_action"`
+	LoadBalancing                   string                               `tfschema:"load_balancing_mode"` // TODO - Valid for FunctionApps?
+	ManagedPipelineMode             string                               `tfschema:"managed_pipeline_mode"`
+	PreWarmedInstanceCount          int64                                `tfschema:"pre_warmed_instance_count"`
+	RemoteDebugging                 bool                                 `tfschema:"remote_debugging_enabled"`
+	RemoteDebuggingVersion          string                               `tfschema:"remote_debugging_version"`
+	RuntimeScaleMonitoring          bool                                 `tfschema:"runtime_scale_monitoring_enabled"`
+	ScmIpRestriction                []IpRestriction                      `tfschema:"scm_ip_restriction"`
+	ScmIpRestrictionDefaultAction   string                               `tfschema:"scm_ip_restriction_default_action"`
+	ScmType                         string                               `tfschema:"scm_type"` // Computed?
+	ScmUseMainIpRestriction         bool                                 `tfschema:"scm_use_main_ip_restriction"`
+	Use32BitWorker                  bool                                 `tfschema:"use_32_bit_worker"`
+	WebSockets                      bool                                 `tfschema:"websockets_enabled"`
+	FtpsState                       string                               `tfschema:"ftps_state"`
+	HealthCheckPath                 string                               `tfschema:"health_check_path"`
+	HealthCheckEvictionTime         int64                                `tfschema:"health_check_eviction_time_in_min"`
+	NumberOfWorkers                 int64                                `tfschema:"worker_count"`
+	ApplicationStack                []ApplicationStackWindowsFunctionApp `tfschema:"application_stack"`
+	MinTlsVersion                   string                               `tfschema:"minimum_tls_version"`
+	ScmMinTlsVersion                string                               `tfschema:"scm_minimum_tls_version"`
+	Cors                            []CorsSetting                        `tfschema:"cors"`
+	DetailedErrorLogging            bool                                 `tfschema:"detailed_error_logging_enabled"`
+	WindowsFxVersion                string                               `tfschema:"windows_fx_version"`
+	VnetRouteAllEnabled             bool                                 `tfschema:"vnet_route_all_enabled"` // Not supported in Dynamic plans
 }
 
 func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
@@ -113,6 +115,14 @@ func SiteConfigSchemaWindowsFunctionAppSlot() *pluginsdk.Schema {
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
 					Description:  "The Connection String for linking the Windows Function App to Application Insights.",
+				},
+
+				"application_insights_authentication_string": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Sensitive:    true,
+					ValidateFunc: validate.ApplicationInsightsAuthenticationString,
+					Description:  "The Authentication setting for the Windows Function App to Application Insights.",
 				},
 
 				"application_stack": windowsFunctionAppStackSchema(),
@@ -731,6 +741,13 @@ func ExpandSiteConfigWindowsFunctionAppSlot(siteConfig []SiteConfigWindowsFuncti
 		appSettings = append(appSettings, webapps.NameValuePair{
 			Name:  pointer.To("APPINSIGHTS_INSTRUMENTATIONKEY"),
 			Value: pointer.To(windowsSlotSiteConfig.AppInsightsInstrumentationKey),
+		})
+	}
+
+	if windowsSlotSiteConfig.AppInsightsAuthenticationString != "" {
+		appSettings = append(appSettings, webapps.NameValuePair{
+			Name:  pointer.To("APPLICATIONINSIGHTS_AUTHENTICATION_STRING"),
+			Value: pointer.To(windowsSlotSiteConfig.AppInsightsAuthenticationString),
 		})
 	}
 
