@@ -26,9 +26,9 @@ import (
 
 func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Create: resourceVirtualMachineDataDiskAttachmentCreate,
 		Read:   resourceVirtualMachineDataDiskAttachmentRead,
-		Update: resourceVirtualMachineDataDiskAttachmentCreateUpdate,
+		Update: resourceVirtualMachineDataDiskAttachmentUpdate,
 		Delete: resourceVirtualMachineDataDiskAttachmentDelete,
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := parse.DataDiskID(id)
@@ -137,9 +137,9 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 	}
 }
 
-func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVirtualMachineDataDiskAttachmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	parsedVirtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
@@ -208,27 +208,13 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 
 	disks := *virtualMachine.Model.Properties.StorageProfile.DataDisks
 
-	existingIndex := -1
-	for i, disk := range disks {
+	for _, disk := range disks {
 		if *disk.Name == name {
-			existingIndex = i
-			break
-		}
-	}
-
-	if d.IsNewResource() {
-		if existingIndex != -1 {
 			return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
 		}
-
-		disks = append(disks, expandedDisk)
-	} else {
-		if existingIndex == -1 {
-			return fmt.Errorf("unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
-		}
-
-		disks[existingIndex] = expandedDisk
 	}
+
+	disks = append(disks, expandedDisk)
 
 	virtualMachine.Model.Properties.StorageProfile.DataDisks = &disks
 
@@ -243,10 +229,101 @@ func resourceVirtualMachineDataDiskAttachmentCreateUpdate(d *pluginsdk.ResourceD
 	//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
 	// which we're intentionally not wrapping, since the errors good.
 	if err := client.CreateOrUpdateThenPoll(ctx, *parsedVirtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("updating %s with Disk %q: %+v", parsedVirtualMachineId, name, err)
+		return fmt.Errorf("creating %s with Disk %q: %+v", parsedVirtualMachineId, name, err)
 	}
 
 	d.SetId(resourceId)
+	return resourceVirtualMachineDataDiskAttachmentRead(d, meta)
+}
+
+func resourceVirtualMachineDataDiskAttachmentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.VirtualMachinesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	parsedVirtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+	defer locks.UnlockByName(parsedVirtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+
+	virtualMachine, err := client.Get(ctx, *parsedVirtualMachineId, virtualmachines.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(virtualMachine.HttpResponse) {
+			return fmt.Errorf("%s was not found", parsedVirtualMachineId)
+		}
+		return fmt.Errorf("retrieving %s: %+v", parsedVirtualMachineId, err)
+	}
+
+	if virtualMachine.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", parsedVirtualMachineId)
+	}
+	if virtualMachine.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", parsedVirtualMachineId)
+	}
+	if virtualMachine.Model.Properties.StorageProfile == nil {
+		return fmt.Errorf("retrieving %s: `storageprofile` was nil", parsedVirtualMachineId)
+	}
+
+	managedDiskId := d.Get("managed_disk_id").(string)
+	managedDisk, err := retrieveDataDiskAttachmentManagedDisk(d, meta, managedDiskId)
+	if err != nil {
+		return fmt.Errorf("retrieving Managed Disk %q: %+v", managedDiskId, err)
+	}
+
+	if managedDisk.Sku == nil {
+		return fmt.Errorf("unable to determine Storage Account Type for Managed Disk %q: %+v", managedDiskId, err)
+	}
+
+	name := *managedDisk.Name
+	lun := int32(d.Get("lun").(int))
+	caching := d.Get("caching").(string)
+	createOption := virtualmachines.DiskCreateOptionTypes(d.Get("create_option").(string))
+	writeAcceleratorEnabled := d.Get("write_accelerator_enabled").(bool)
+
+	expandedDisk := virtualmachines.DataDisk{
+		Name:         pointer.To(name),
+		Caching:      pointer.To(virtualmachines.CachingTypes(caching)),
+		CreateOption: createOption,
+		Lun:          int64(lun),
+		ManagedDisk: &virtualmachines.ManagedDiskParameters{
+			Id:                 pointer.To(managedDiskId),
+			StorageAccountType: pointer.To(virtualmachines.StorageAccountTypes(*managedDisk.Sku.Name)),
+		},
+		WriteAcceleratorEnabled: pointer.To(writeAcceleratorEnabled),
+	}
+
+	disks := *virtualMachine.Model.Properties.StorageProfile.DataDisks
+
+	existingIndex := -1
+	for i, disk := range disks {
+		if *disk.Name == name {
+			existingIndex = i
+			break
+		}
+	}
+
+	if existingIndex == -1 {
+		return fmt.Errorf("unable to find Disk %q attached to Virtual Machine %q ", name, parsedVirtualMachineId.String())
+	}
+
+	disks[existingIndex] = expandedDisk
+
+	virtualMachine.Model.Properties.StorageProfile.DataDisks = &disks
+
+	// fixes #2485
+	virtualMachine.Model.Identity = nil
+	// fixes #1600
+	virtualMachine.Model.Resources = nil
+	// fixes #24145
+	virtualMachine.Model.Properties.ApplicationProfile = nil
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *parsedVirtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("updating %s with Disk %q: %+v", parsedVirtualMachineId, name, err)
+	}
+
 	return resourceVirtualMachineDataDiskAttachmentRead(d, meta)
 }
 

@@ -25,9 +25,9 @@ import (
 
 func resourceImage() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceImageCreateUpdate,
+		Create: resourceImageCreate,
 		Read:   resourceImageRead,
-		Update: resourceImageCreateUpdate,
+		Update: resourceImageUpdate,
 		Delete: resourceImageDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := images.ParseImageID(id)
@@ -222,24 +222,23 @@ func resourceImage() *pluginsdk.Resource {
 	}
 }
 
-func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceImageCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.ImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := images.NewImageID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, images.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id, images.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_image", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_image", id.ID())
 	}
 
 	props := images.ImageProperties{
@@ -276,10 +275,60 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceImageRead(d, meta)
+}
+
+func resourceImageUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Compute.ImagesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := images.ParseImageID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	props := images.ImageProperties{
+		HyperVGeneration: pointer.To(images.HyperVGenerationTypes(d.Get("hyper_v_generation").(string))),
+	}
+
+	sourceVM := images.SubResource{}
+	if v, ok := d.GetOk("source_virtual_machine_id"); ok {
+		sourceVM.Id = pointer.To(v.(string))
+	}
+
+	storageProfile := images.ImageStorageProfile{
+		OsDisk:        expandImageOSDisk(d.Get("os_disk").([]interface{})),
+		DataDisks:     expandImageDataDisks(d.Get("data_disk").([]interface{})),
+		ZoneResilient: pointer.To(d.Get("zone_resilient").(bool)),
+	}
+
+	// either source VM or storage profile can be specified, but not both
+	if sourceVM.Id == nil {
+		// if both sourceVM and storageProfile are empty, return an error
+		if storageProfile.OsDisk == nil && (storageProfile.DataDisks == nil || len(*storageProfile.DataDisks) == 0) {
+			return fmt.Errorf("[ERROR] Cannot create image when both source VM and storage profile are empty")
+		}
+
+		props.StorageProfile = &storageProfile
+	} else {
+		// creating an image from source VM
+		props.SourceVirtualMachine = &sourceVM
+	}
+
+	payload := images.Image{
+		Location:   location.Normalize(d.Get("location").(string)),
+		Properties: &props,
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceImageRead(d, meta)
 }

@@ -26,9 +26,9 @@ import (
 
 func resourceCustomProvider() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceCustomProviderCreateUpdate,
+		Create: resourceCustomProviderCreate,
 		Read:   resourceCustomProviderRead,
-		Update: resourceCustomProviderCreateUpdate,
+		Update: resourceCustomProviderUpdate,
 		Delete: resourceCustomProviderDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&customresourceprovider.ResourceProviderId{}),
@@ -123,26 +123,23 @@ func resourceCustomProvider() *pluginsdk.Resource {
 	}
 }
 
-func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceCustomProviderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	location := location.Normalize(d.Get("location").(string))
 	id := customresourceprovider.NewResourceProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_custom_resource_provider", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_custom_resource_provider", id.ID())
 	}
 
 	provider := customresourceprovider.CustomRPManifest{
@@ -151,17 +148,44 @@ func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 			Actions:       expandCustomProviderAction(d.Get("action").(*pluginsdk.Set).List()),
 			Validations:   expandCustomProviderValidation(d.Get("validation").(*pluginsdk.Set).List()),
 		},
-		Location: location,
+		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, provider); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	return resourceCustomProviderRead(d, meta)
+}
+
+func resourceCustomProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).CustomProviders.CustomProviderClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := customresourceprovider.ParseResourceProviderID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	provider := customresourceprovider.CustomRPManifest{
+		Properties: &customresourceprovider.CustomRPManifestProperties{
+			ResourceTypes: expandCustomProviderResourceType(d.Get("resource_type").(*pluginsdk.Set).List()),
+			Actions:       expandCustomProviderAction(d.Get("action").(*pluginsdk.Set).List()),
+			Validations:   expandCustomProviderValidation(d.Get("validation").(*pluginsdk.Set).List()),
+		},
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, provider); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceCustomProviderRead(d, meta)
