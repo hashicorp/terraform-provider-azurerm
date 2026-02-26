@@ -10,6 +10,13 @@ description: |-
 
 Manages a Function App Running on a Flex Consumption Plan.
 
+!> **Warning:** This resource requires the `Microsoft.App` Resource Provider to be registered in your subscription.  
+You can register it with the following command:
+
+```bash
+az provider register --namespace Microsoft.App
+```
+
 ## Example Usage
 
 ```hcl
