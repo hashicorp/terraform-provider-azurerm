@@ -40,8 +40,10 @@ func AgentLifetime(i interface{}, k string) (warnings []string, errors []error) 
 	return
 }
 
-var timeSpanWithDays = regexp.MustCompile(`^(\d+)\.(\d{1,2}):(\d{2}):(\d{2})$`)
-var timeSpanWithoutDays = regexp.MustCompile(`^(\d{1,2}):(\d{2}):(\d{2})$`)
+var (
+	timeSpanWithDays    = regexp.MustCompile(`^(\d+)\.(\d{1,2}):(\d{2}):(\d{2})$`)
+	timeSpanWithoutDays = regexp.MustCompile(`^(\d{1,2}):(\d{2}):(\d{2})$`)
+)
 
 func parseTimeSpan(s string) (days, hours, minutes, seconds int, err error) {
 	if m := timeSpanWithDays.FindStringSubmatch(s); m != nil {
