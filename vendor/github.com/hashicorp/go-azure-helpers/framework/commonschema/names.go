@@ -6,6 +6,7 @@ package commonschema
 // This file supplies common standardised names for key properties used in the AzureRM provider. Use this package to ensure consistency for these names in resources and data sources.
 
 const (
+	ID                string = "id"
 	Identity          string = "identity"
 	Location          string = "location"
 	Name              string = "name"

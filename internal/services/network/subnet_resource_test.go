@@ -23,7 +23,7 @@ import (
 type SubnetResource struct{}
 
 func TestAccSubnet_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -38,7 +38,7 @@ func TestAccSubnet_basic(t *testing.T) {
 }
 
 func TestAccSubnet_basic_addressPrefixes(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -53,7 +53,7 @@ func TestAccSubnet_basic_addressPrefixes(t *testing.T) {
 }
 
 func TestAccSubnet_complete_addressPrefixes(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -68,7 +68,7 @@ func TestAccSubnet_complete_addressPrefixes(t *testing.T) {
 }
 
 func TestAccSubnet_update_addressPrefixes(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -97,7 +97,7 @@ func TestAccSubnet_update_addressPrefixes(t *testing.T) {
 }
 
 func TestAccSubnet_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -108,14 +108,15 @@ func TestAccSubnet_requiresImport(t *testing.T) {
 			),
 		},
 		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_subnet"),
+			Config: r.requiresImport(data),
+			// ExpectError: regexp.MustCompile("Existing Resource Error"),
+			ExpectError: acceptance.RequiresImportError("azurerm_subnet_fw"),
 		},
 	})
 }
 
 func TestAccSubnet_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -127,7 +128,7 @@ func TestAccSubnet_disappears(t *testing.T) {
 }
 
 func TestAccSubnet_defaultOutbound(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "internal")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "internal")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -150,7 +151,7 @@ func TestAccSubnet_defaultOutbound(t *testing.T) {
 }
 
 func TestAccSubnet_delegation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -186,7 +187,22 @@ func TestAccSubnet_delegation(t *testing.T) {
 }
 
 func testAccSubnet_ipAddressPool(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_ipAddressPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -201,7 +217,7 @@ func testAccSubnet_ipAddressPool(t *testing.T) {
 }
 
 func testAccSubnet_ipAddressPoolVNet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -216,7 +232,7 @@ func testAccSubnet_ipAddressPoolVNet(t *testing.T) {
 }
 
 func testAccSubnet_ipAddressPoolIPv6(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -230,8 +246,10 @@ func testAccSubnet_ipAddressPoolIPv6(t *testing.T) {
 	})
 }
 
-func testAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+func testAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {}
+
+func TestAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -260,7 +278,7 @@ func testAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {
 }
 
 func testAccSubnet_ipAddressPoolNumberUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -286,7 +304,7 @@ func testAccSubnet_ipAddressPoolNumberUpdated(t *testing.T) {
 }
 
 func TestAccSubnet_privateEndpointNetworkPolicies(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -322,7 +340,7 @@ func TestAccSubnet_privateEndpointNetworkPolicies(t *testing.T) {
 }
 
 func TestAccSubnet_enablePrivateLinkServiceNetworkPolicies(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -351,7 +369,7 @@ func TestAccSubnet_enablePrivateLinkServiceNetworkPolicies(t *testing.T) {
 }
 
 func TestAccSubnet_serviceEndpoints(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -388,7 +406,7 @@ func TestAccSubnet_serviceEndpoints(t *testing.T) {
 }
 
 func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -416,7 +434,7 @@ func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
 }
 
 func TestAccSubnet_sharingScopeUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -444,7 +462,7 @@ func TestAccSubnet_sharingScopeUpdated(t *testing.T) {
 }
 
 func TestAccSubnet_updateAddressPrefix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -466,7 +484,7 @@ func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 }
 
 func TestAccSubnet_privateLinkEndpointNetworkPoliciesValidateDefaultValues(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -483,7 +501,7 @@ func TestAccSubnet_privateLinkEndpointNetworkPoliciesValidateDefaultValues(t *te
 }
 
 func TestAccSubnet_updateServiceDelegation(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	data := acceptance.BuildTestData(t, "azurerm_subnet_fw", "test")
 	r := SubnetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -652,14 +670,14 @@ func (r SubnetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_subnet" "test2" {
+resource "azurerm_subnet_fw" "test2" {
   name                 = "internal2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -672,7 +690,7 @@ func (r SubnetResource) delegation(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -695,7 +713,7 @@ resource "azurerm_subnet" "test" {
 func (r SubnetResource) defaultOutbound(data acceptance.TestData, enabled bool) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_subnet" "internal" {
+resource "azurerm_subnet_fw" "internal" {
   name                            = "internal"
   resource_group_name             = azurerm_resource_group.test.name
   virtual_network_name            = azurerm_virtual_network.test.name
@@ -709,7 +727,7 @@ func (r SubnetResource) delegationUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -735,7 +753,7 @@ func (r SubnetResource) privateEndpointNetworkPolicies(data acceptance.TestData,
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_virtual_network.test.resource_group_name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -750,7 +768,7 @@ func (r SubnetResource) enablePrivateLinkServiceNetworkPolicies(data acceptance.
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -765,7 +783,7 @@ func (r SubnetResource) privateLinkEndpointNetworkPoliciesDefaults(data acceptan
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -789,7 +807,7 @@ resource "azurerm_virtual_network" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
@@ -813,7 +831,7 @@ resource "azurerm_virtual_network" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "acctestsubnet%d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
@@ -865,7 +883,7 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -920,7 +938,7 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -975,7 +993,7 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1028,7 +1046,7 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1044,11 +1062,11 @@ func (r SubnetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "import" {
-  name                 = azurerm_subnet.test.name
-  resource_group_name  = azurerm_subnet.test.resource_group_name
-  virtual_network_name = azurerm_subnet.test.virtual_network_name
-  address_prefixes     = azurerm_subnet.test.address_prefixes
+resource "azurerm_subnet_fw" "import" {
+  name                 = azurerm_subnet_fw.test.name
+  resource_group_name  = azurerm_subnet_fw.test.resource_group_name
+  virtual_network_name = azurerm_subnet_fw.test.virtual_network_name
+  address_prefixes     = azurerm_subnet_fw.test.address_prefixes
 }
 `, r.basic(data))
 }
@@ -1056,7 +1074,7 @@ resource "azurerm_subnet" "import" {
 func (r SubnetResource) sharingScope(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                            = "internal"
   resource_group_name             = azurerm_resource_group.test.name
   virtual_network_name            = azurerm_virtual_network.test.name
@@ -1071,7 +1089,7 @@ func (r SubnetResource) serviceEndpoints(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1079,7 +1097,7 @@ resource "azurerm_subnet" "test" {
   service_endpoints    = ["Microsoft.Sql"]
 }
 
-resource "azurerm_subnet" "test2" {
+resource "azurerm_subnet_fw" "test2" {
   name                 = "internal2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1093,7 +1111,7 @@ func (r SubnetResource) serviceEndpointsUpdated(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1101,7 +1119,7 @@ resource "azurerm_subnet" "test" {
   service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
 }
 
-resource "azurerm_subnet" "test2" {
+resource "azurerm_subnet_fw" "test2" {
   name                 = "internal2"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1121,7 +1139,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1140,7 +1158,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                        = "internal"
   resource_group_name         = azurerm_resource_group.test.name
   virtual_network_name        = azurerm_virtual_network.test.name
@@ -1155,7 +1173,7 @@ func (r SubnetResource) updatedAddressPrefix(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1168,7 +1186,7 @@ func (r SubnetResource) updateServiceDelegation(data acceptance.TestData, servic
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
@@ -1193,7 +1211,7 @@ func (r SubnetResource) updateServiceDelegationNetworkInterfaces(data acceptance
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet_fw" "test" {
   name                 = "internal"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name

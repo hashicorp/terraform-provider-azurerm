@@ -252,6 +252,8 @@ func newListNestedObjectValueOf[T any](ctx context.Context, elements any) (ListN
 		return NewListNestedObjectValueOfUnknown[T](ctx), diags
 	}
 
+	// Problematic, can cause panics
+	// TODO: I don't remember why this was problematic (should've left that in the comment above :( ) revisit.
 	v, d := basetypes.NewListValueFrom(ctx, typ, elements)
 	diags.Append(d...)
 	if diags.HasError() {

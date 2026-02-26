@@ -3,6 +3,10 @@
 
 package pointer
 
+import (
+	"github.com/hashicorp/terraform-plugin-framework/types"
+)
+
 // From is a generic function that returns the value of a pointer
 // If the pointer is nil, a zero value for the underlying type of the pointer is returned.
 func From[T any](input *T) (output T) {
@@ -27,6 +31,14 @@ func FromEnum[T ~string](input *T) (output string) {
 	return string(*input)
 }
 
+func FromEnumFW[T ~string](input *T) (output types.String) {
+	if input == nil {
+		return types.StringNull()
+	}
+
+	return types.StringValue(string(*input))
+}
+
 // To is a generic function that returns a pointer to the value provided.
 func To[T any](input T) *T {
 	return &input
@@ -40,4 +52,12 @@ func To[T any](input T) *T {
 func ToEnum[T ~string](input string) *T {
 	result := T(input)
 	return &result
+}
+
+func ToEnumFW[T ~string](input types.String) *T {
+	if input.IsNull() || input.IsUnknown() {
+		return nil
+	}
+
+	return To(T(input.ValueString()))
 }
