@@ -228,8 +228,7 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
 	}
 
@@ -314,8 +313,7 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
 	}
 

@@ -110,8 +110,7 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetCreate(d *pluginsdk.R
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, configurationAssignment)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, configurationAssignment); err != nil {
 		return err
 	}
 

@@ -1,6 +1,17 @@
 // Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
+// This tool runs project-specific static analysis rules that cannot be implemented
+// using standard linters like golangci-lint. These rules require domain knowledge of
+// the provider's internals, such as inspecting typed SDK resource models via runtime
+// reflection or enforcing code style conventions specific to this project.
+//
+// Usage:
+//
+//	go run internal/tools/static-analysis/main.go                           # run all rules
+//	go run internal/tools/static-analysis/main.go -rules=combinedIfErr     # run a specific rule
+//	go run internal/tools/static-analysis/main.go -fail-on-error=false     # log errors without failing
+
 package main
 
 import (
@@ -14,7 +25,8 @@ import (
 )
 
 var allRules = map[string]rules.Rule{
-	rules.TypedSDKBitCheck{}.Name(): rules.TypedSDKBitCheck{},
+	rules.TypedSDKBitCheck{}.Name():   rules.TypedSDKBitCheck{},
+	rules.CombinedIfErrCheck{}.Name(): rules.CombinedIfErrCheck{},
 }
 
 func main() {
@@ -51,11 +63,12 @@ func main() {
 	}
 
 	if len(errors) > 0 {
+		log.Printf("Static analysis found %d error(s):\n", len(errors))
+		for _, err := range errors {
+			log.Printf("  - %s\n", err)
+		}
 		if *failOnError {
-			log.Fatalf("failed to run rules: %v", errors)
-		} else {
-			log.Printf("failed to run rules: %v", errors)
-			os.Exit(0)
+			os.Exit(1)
 		}
 	}
 }

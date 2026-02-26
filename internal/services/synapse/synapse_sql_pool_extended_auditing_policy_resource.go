@@ -124,8 +124,7 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resou
 		params.StorageAccountAccessKey = pointer.To(v.(string))
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, params)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, params); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -183,8 +182,7 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyDelete(d *pluginsdk.ResourceDat
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, params)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, params); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 

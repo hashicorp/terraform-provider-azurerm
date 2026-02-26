@@ -237,8 +237,7 @@ func resourceVirtualDesktopHostPoolCreate(d *pluginsdk.ResourceData, meta interf
 	if vmTemplate != "" {
 		// we have no use with the json object as azure accepts string only
 		// merely here for validation
-		_, err := pluginsdk.ExpandJsonFromString(vmTemplate)
-		if err != nil {
+		if _, err := pluginsdk.ExpandJsonFromString(vmTemplate); err != nil {
 			return fmt.Errorf("expanding JSON for `vm_template`: %+v", err)
 		}
 	}

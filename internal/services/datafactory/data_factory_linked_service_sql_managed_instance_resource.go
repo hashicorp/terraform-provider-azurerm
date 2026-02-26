@@ -433,8 +433,7 @@ func (r LinkedServiceSqlManagedInstanceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.Delete(ctx, *id)
-			if err != nil {
+			if _, err = client.Delete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

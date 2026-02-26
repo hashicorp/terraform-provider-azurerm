@@ -610,8 +610,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		// make sure the key vault exists
-		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl)
-		if err != nil {
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 
@@ -644,8 +643,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		// make sure the key vault exists
-		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl)
-		if err != nil {
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 
@@ -1192,8 +1190,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		// make sure the key vault exists
-		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl)
-		if err != nil {
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 
@@ -1226,8 +1223,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 
 		// make sure the key vault exists
-		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl)
-		if err != nil {
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
 			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseUrl, err)
 		}
 

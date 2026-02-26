@@ -285,8 +285,7 @@ func waitForBackupVaultDeletion(ctx context.Context, vaultClient *backupvaults.B
 		Timeout:                   time.Until(deadline),
 	}
 
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for deletion of %s: %w", id, err)
 	}
 
