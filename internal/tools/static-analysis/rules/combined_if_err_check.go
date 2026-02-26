@@ -16,10 +16,12 @@ var _ Rule = CombinedIfErrCheck{}
 
 // matchUnderscoreErr matches lines like "_, err :=" or "_, err =" but NOT
 // "_, _, err :=" or "resp, _, err :=" (multi-return) or "for _, err := range" (loops).
-var matchUnderscoreErr = regexp.MustCompile(`^\s*_, err :?= `)
-var matchMultiReturn = regexp.MustCompile(`^\s*\w+.*,\s*_, err :?= `)
-var matchForRange = regexp.MustCompile(`^\s*for\s+`)
-var matchIfErrNil = regexp.MustCompile(`^\s*if err != nil`)
+var (
+	matchUnderscoreErr = regexp.MustCompile(`^\s*_, err :?= `)
+	matchMultiReturn   = regexp.MustCompile(`^\s*\w+.*,\s*_, err :?= `)
+	matchForRange      = regexp.MustCompile(`^\s*for\s+`)
+	matchIfErrNil      = regexp.MustCompile(`^\s*if err != nil`)
+)
 
 type CombinedIfErrCheck struct{}
 
