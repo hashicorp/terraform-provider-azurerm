@@ -7,6 +7,10 @@ ENHANCEMENTS:
 * dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
 * `network` - deprecate and rename `enabled_*` properties for 5.0 [GH-31643]
 * `azurerm_monitor_diagnostic_setting` - deprecate the `enabled_log.retention_policy` block [GH-31792]
+* `azurerm_linux_web_app` - add support for `25` in the `java_version` property [GH-31039]
+* `azurerm_windows_web_app` - add support for `25` in the `java_version` property [GH-31039]
+* `azurerm_linux_function_app` - add support for `25` in the `java_version` property [GH-31039]
+* `azurerm_windows_function_app` - add support for `25` in the `java_version` property [GH-31039]
 
 
 FEATURES:
@@ -17,6 +21,7 @@ FEATURES:
 * `azurerm_route` implement list (#31760) [GH-31760]
 * **New List Resource**: `azurerm_redis_cache` and `azurerm_redis_firewall_rule`  - includes addition of Identity [GH-31770] [GH-31770]
 * `azurerm_private_dns_a_record` list and identity, including sdk support for constant segment types (#31785) [GH-31785]
+
 
 BUG FIXES:
 * `azurerm_container_app_job` add InitialDelaySeconds for readiness and startup probes (#31796) [GH-31796]
