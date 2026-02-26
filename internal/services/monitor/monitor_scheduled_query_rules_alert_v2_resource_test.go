@@ -305,6 +305,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
     custom_properties = {
       key = "value"
     }
+    action_properties = {
+      "Email.Subject" = "Custom Alert Subject"
+    }
   }
 
   tags = {
@@ -362,6 +365,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "test" {
     custom_properties = {
       key  = "value"
       key2 = "value2"
+    }
+    action_properties = {
+      "Email.Subject" = "Updated Alert Subject"
     }
   }
 

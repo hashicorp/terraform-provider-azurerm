@@ -87,6 +87,9 @@ resource "azurerm_monitor_scheduled_query_rules_alert_v2" "example" {
       key  = "value"
       key2 = "value2"
     }
+    action_properties = {
+      "Email.Subject" = "Custom Alert Subject"
+    }
   }
 
   identity {
@@ -163,6 +166,8 @@ An `action` block supports the following:
 * `action_groups` - (Optional) List of Action Group resource IDs to invoke when the alert fires.
 
 * `custom_properties` - (Optional) Specifies the properties of an alert payload.
+
+* `action_properties` - (Optional) Specifies the properties of an action, such as customizing email subjects. For example, to customize email subjects, use `"Email.Subject" = "Custom Alert Subject"`. See the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-customize-email-subject-how-to) for more information.
 
 ---
 

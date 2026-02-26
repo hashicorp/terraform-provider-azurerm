@@ -48,6 +48,7 @@ type ScheduledQueryRulesAlertV2Model struct {
 type ScheduledQueryRulesAlertV2ActionsModel struct {
 	ActionGroups     []string          `tfschema:"action_groups"`
 	CustomProperties map[string]string `tfschema:"custom_properties"`
+	ActionProperties map[string]string `tfschema:"action_properties"`
 }
 
 type ScheduledQueryRulesAlertV2CriteriaModel struct {
@@ -288,6 +289,14 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 					},
 
 					"custom_properties": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"action_properties": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
@@ -761,6 +770,7 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 	output := scheduledqueryrules.Actions{
 		ActionGroups:     &input.ActionGroups,
 		CustomProperties: &input.CustomProperties,
+		ActionProperties: &input.ActionProperties,
 	}
 
 	return &output
@@ -842,6 +852,10 @@ func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Ac
 
 	if input.CustomProperties != nil {
 		output.CustomProperties = *input.CustomProperties
+	}
+
+	if input.ActionProperties != nil {
+		output.ActionProperties = *input.ActionProperties
 	}
 
 	return append(outputList, output)
