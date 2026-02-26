@@ -109,6 +109,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 				string(botservice.MsaAppTypeSingleTenant),
 				string(botservice.MsaAppTypeUserAssignedMSI),
 			}, false),
+			Default: string(botservice.MsaAppTypeMultiTenant),
 		},
 
 		"local_authentication_enabled": {
