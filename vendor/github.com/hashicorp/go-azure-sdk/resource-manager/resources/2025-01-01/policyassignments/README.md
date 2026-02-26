@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments` Documentation
 
-The `policyassignments` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2022-06-01`).
+The `policyassignments` SDK allows for interaction with Azure Resource Manager `resources` (API Version `2025-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policyassignments"
 ```
 
 
@@ -101,7 +101,7 @@ if model := read.Model; model != nil {
 ctx := context.TODO()
 id := policyassignments.NewScopedPolicyAssignmentID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "policyAssignmentName")
 
-read, err := client.Get(ctx, id)
+read, err := client.Get(ctx, id, policyassignments.DefaultGetOperationOptions())
 if err != nil {
 	// handle the error
 }

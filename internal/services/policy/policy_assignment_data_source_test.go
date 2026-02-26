@@ -76,6 +76,20 @@ func TestAccDataSourceAssignment_identity(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAssignment_definitionVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_policy_assignment", "test")
+	d := AssignmentDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.definitionVersion(data, "9.*.*"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("definition_version").HasValue("9.*.*"),
+			),
+		},
+	})
+}
+
 func (d AssignmentDataSource) builtinPolicy(data acceptance.TestData, r ResourceGroupAssignmentTestResource) string {
 	config := r.withBuiltInPolicyBasic(data)
 	return fmt.Sprintf(`
@@ -156,4 +170,36 @@ data "azurerm_policy_assignment" "test" {
   scope_id = azurerm_resource_group.test.id
 }
 `, config)
+}
+
+func (d AssignmentDataSource) definitionVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_subscription" "test" {}
+
+data "azurerm_policy_definition" "test" {
+  display_name = "Allowed locations"
+}
+
+resource "azurerm_subscription_policy_assignment" "test" {
+  name                 = "acctestpa-%[1]d"
+  subscription_id      = data.azurerm_subscription.test.id
+  policy_definition_id = data.azurerm_policy_definition.test.id
+  definition_version   = %[2]q
+
+  parameters = jsonencode({
+    "listOfAllowedLocations" = {
+      "value" = [%[3]q, %[4]q]
+    }
+  })
+}
+
+data "azurerm_policy_assignment" "test" {
+  name     = azurerm_subscription_policy_assignment.test.name
+  scope_id = data.azurerm_subscription.test.id
+}
+`, data.RandomInteger, version, data.Locations.Primary, data.Locations.Secondary)
 }

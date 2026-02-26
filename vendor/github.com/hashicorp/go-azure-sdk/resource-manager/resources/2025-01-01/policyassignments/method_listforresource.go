@@ -13,40 +13,44 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListForManagementGroupOperationResponse struct {
+type ListForResourceOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *[]PolicyAssignment
 }
 
-type ListForManagementGroupCompleteResult struct {
+type ListForResourceCompleteResult struct {
 	LatestHttpResponse *http.Response
 	Items              []PolicyAssignment
 }
 
-type ListForManagementGroupOperationOptions struct {
+type ListForResourceOperationOptions struct {
+	Expand *string
 	Filter *string
 	Top    *int64
 }
 
-func DefaultListForManagementGroupOperationOptions() ListForManagementGroupOperationOptions {
-	return ListForManagementGroupOperationOptions{}
+func DefaultListForResourceOperationOptions() ListForResourceOperationOptions {
+	return ListForResourceOperationOptions{}
 }
 
-func (o ListForManagementGroupOperationOptions) ToHeaders() *client.Headers {
+func (o ListForResourceOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 
 	return &out
 }
 
-func (o ListForManagementGroupOperationOptions) ToOData() *odata.Query {
+func (o ListForResourceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
 
 	return &out
 }
 
-func (o ListForManagementGroupOperationOptions) ToQuery() *client.QueryParams {
+func (o ListForResourceOperationOptions) ToQuery() *client.QueryParams {
 	out := client.QueryParams{}
+	if o.Expand != nil {
+		out.Append("$expand", fmt.Sprintf("%v", *o.Expand))
+	}
 	if o.Filter != nil {
 		out.Append("$filter", fmt.Sprintf("%v", *o.Filter))
 	}
@@ -56,11 +60,11 @@ func (o ListForManagementGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
-type ListForManagementGroupCustomPager struct {
+type ListForResourceCustomPager struct {
 	NextLink *odata.Link `json:"nextLink"`
 }
 
-func (p *ListForManagementGroupCustomPager) NextPageLink() *odata.Link {
+func (p *ListForResourceCustomPager) NextPageLink() *odata.Link {
 	defer func() {
 		p.NextLink = nil
 	}()
@@ -68,8 +72,8 @@ func (p *ListForManagementGroupCustomPager) NextPageLink() *odata.Link {
 	return p.NextLink
 }
 
-// ListForManagementGroup ...
-func (c PolicyAssignmentsClient) ListForManagementGroup(ctx context.Context, id commonids.ManagementGroupId, options ListForManagementGroupOperationOptions) (result ListForManagementGroupOperationResponse, err error) {
+// ListForResource ...
+func (c PolicyAssignmentsClient) ListForResource(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions) (result ListForResourceOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -77,7 +81,7 @@ func (c PolicyAssignmentsClient) ListForManagementGroup(ctx context.Context, id 
 		},
 		HttpMethod:    http.MethodGet,
 		OptionsObject: options,
-		Pager:         &ListForManagementGroupCustomPager{},
+		Pager:         &ListForResourceCustomPager{},
 		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/policyAssignments", id.ID()),
 	}
 
@@ -108,16 +112,16 @@ func (c PolicyAssignmentsClient) ListForManagementGroup(ctx context.Context, id 
 	return
 }
 
-// ListForManagementGroupComplete retrieves all the results into a single object
-func (c PolicyAssignmentsClient) ListForManagementGroupComplete(ctx context.Context, id commonids.ManagementGroupId, options ListForManagementGroupOperationOptions) (ListForManagementGroupCompleteResult, error) {
-	return c.ListForManagementGroupCompleteMatchingPredicate(ctx, id, options, PolicyAssignmentOperationPredicate{})
+// ListForResourceComplete retrieves all the results into a single object
+func (c PolicyAssignmentsClient) ListForResourceComplete(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions) (ListForResourceCompleteResult, error) {
+	return c.ListForResourceCompleteMatchingPredicate(ctx, id, options, PolicyAssignmentOperationPredicate{})
 }
 
-// ListForManagementGroupCompleteMatchingPredicate retrieves all the results and then applies the predicate
-func (c PolicyAssignmentsClient) ListForManagementGroupCompleteMatchingPredicate(ctx context.Context, id commonids.ManagementGroupId, options ListForManagementGroupOperationOptions, predicate PolicyAssignmentOperationPredicate) (result ListForManagementGroupCompleteResult, err error) {
+// ListForResourceCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c PolicyAssignmentsClient) ListForResourceCompleteMatchingPredicate(ctx context.Context, id commonids.ScopeId, options ListForResourceOperationOptions, predicate PolicyAssignmentOperationPredicate) (result ListForResourceCompleteResult, err error) {
 	items := make([]PolicyAssignment, 0)
 
-	resp, err := c.ListForManagementGroup(ctx, id, options)
+	resp, err := c.ListForResource(ctx, id, options)
 	if err != nil {
 		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
@@ -131,7 +135,7 @@ func (c PolicyAssignmentsClient) ListForManagementGroupCompleteMatchingPredicate
 		}
 	}
 
-	result = ListForManagementGroupCompleteResult{
+	result = ListForResourceCompleteResult{
 		LatestHttpResponse: resp.HttpResponse,
 		Items:              items,
 	}
