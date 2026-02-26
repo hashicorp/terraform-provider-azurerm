@@ -37,6 +37,89 @@ resource "azurerm_api_management_backend" "example" {
 }
 ```
 
+## Example Pool (Load Balancer) usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_api_management" "example" {
+  name                = "example-apim"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  publisher_name      = "My Company"
+  publisher_email     = "company@terraform.io"
+
+  sku_name = "Developer_1"
+}
+
+resource "azurerm_api_management_backend" "example_cb" {
+  name                = "example-backend-1"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  protocol            = "http"
+  url                 = "https://primary.backend.com/api"
+  circuit_breaker_rule {
+    name          = "percentage-rule"
+    trip_duration = "PT10M"
+    failure_condition {
+      percentage = 50
+      interval   = "PT5M"
+      error_reasons = [
+        "BackendConnectionFailure"
+      ]
+      status_code_range {
+        min = 400
+        max = 499
+      }
+    }
+  }
+}
+
+resource "azurerm_api_management_backend" "example_secondary_1" {
+  name                = "example-backend-2"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  protocol            = "http"
+  url                 = "https://secondary.backend.com/api"
+}
+
+resource "azurerm_api_management_backend" "example_secondary_2" {
+  name                = "example-backend-3"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  protocol            = "http"
+  url                 = "https://othersecondary.backend.com/api"
+}
+
+resource "azurerm_api_management_backend" "example_pool" {
+  name                = "example-backend-pool"
+  resource_group_name = azurerm_resource_group.example.name
+  api_management_name = azurerm_api_management.example.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      # If this backend trips its Circuit Breaker rule,
+      # then the other two will share load equally until this backend "un"-trips
+      id     = azurerm_api_management_backend.example_cb.id
+      weight = 100
+    }
+    service {
+      id       = azurerm_api_management_backend.example_secondary_1.id
+      priority = 1
+      weight   = 10
+    }
+    service {
+      id       = azurerm_api_management_backend.example_secondary_2.id
+      priority = 1
+      weight   = 10
+    }
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -47,25 +130,31 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The protocol used by the backend host. Possible values are `http` or `soap`.
+---
 
-* `url` - (Required) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend.
+* `protocol` - (Optional) The protocol used by the backend host. Possible values are `http` or `soap`. Cannot be used with `pool`.
 
-* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below.
+* `url` - (Optional) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend. Cannot be used with `pool`.
 
-* `credentials` - (Optional) A `credentials` block as documented below.
+* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below. Cannot be used with `pool`.
+
+* `credentials` - (Optional) A `credentials` block as documented below. Cannot be used with `pool`.
 
 * `description` - (Optional) The description of the backend.
 
-* `proxy` - (Optional) A `proxy` block as documented below.
+* `pool` - (Optional) A `pool` block as documented below.
 
-* `resource_id` - (Optional) The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster.
+~> **Note:** The `pool` configuration represents a different type of backend and cannot be used with the following fields: `credentials`, `protocol`, `proxy`, `resource_id`, `service_fabric_cluster`, `tls`, `url`, and `circuit_breaker_rule`. These fields are only applicable to single backend configurations.
 
-* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as documented below.
+* `proxy` - (Optional) A `proxy` block as documented below. Cannot be used with `pool`.
+
+* `resource_id` - (Optional) The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster. Cannot be used with `pool`.
+
+* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as documented below. Cannot be used with `pool`.
 
 * `title` - (Optional) The title of the backend.
 
-* `tls` - (Optional) A `tls` block as documented below.
+* `tls` - (Optional) A `tls` block as documented below. Cannot be used with `pool`.
 
 ---
 
@@ -168,6 +257,22 @@ A `status_code_range` block supports the following:
 * `min` - (Required) Specifies the minimum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
 
 * `max` - (Required) Specifies the maximum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
+
+---
+
+A `pool` block supports the following:
+
+* `service` - (Required) One or more `service` blocks as defined below. A minimum of 1 and maximum of 30 services are allowed.
+
+---
+
+A `service` block supports the following:
+
+* `id` - (Required) The ID of the backend service to include in the pool.
+
+* `priority` - (Optional) The priority assigned to this backend service. Default is 0.
+
+* `weight` - (Optional) The weight assigned to this backend service. Default is 0.
 
 ---
 
