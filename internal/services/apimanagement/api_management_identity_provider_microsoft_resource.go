@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementIdentityProviderMicrosoft() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
+		Create: resourceApiManagementIdentityProviderMicrosoftCreate,
 		Read:   resourceApiManagementIdentityProviderMicrosoftRead,
-		Update: resourceApiManagementIdentityProviderMicrosoftCreateUpdate,
+		Update: resourceApiManagementIdentityProviderMicrosoftUpdate,
 		Delete: resourceApiManagementIdentityProviderMicrosoftDelete,
 
 		Importer: identityProviderImportFunc(identityprovider.IdentityProviderTypeMicrosoft),
@@ -57,42 +57,63 @@ func resourceApiManagementIdentityProviderMicrosoft() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderMicrosoftCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderMicrosoftCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clientID := d.Get("client_id").(string)
-	clientSecret := d.Get("client_secret").(string)
 	id := identityprovider.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), identityprovider.IdentityProviderTypeMicrosoft)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_microsoft", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_identity_provider_microsoft", id.ID())
 	}
 
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
-			ClientId:     clientID,
-			ClientSecret: clientSecret,
+			ClientId:     d.Get("client_id").(string),
+			ClientSecret: d.Get("client_secret").(string),
 			Type:         pointer.To(identityprovider.IdentityProviderTypeMicrosoft),
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementIdentityProviderMicrosoftRead(d, meta)
+}
+
+func resourceApiManagementIdentityProviderMicrosoftUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := identityprovider.ParseIdentityProviderID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := identityprovider.IdentityProviderCreateContract{
+		Properties: &identityprovider.IdentityProviderCreateContractProperties{
+			ClientId:     d.Get("client_id").(string),
+			ClientSecret: d.Get("client_secret").(string),
+			Type:         pointer.To(identityprovider.IdentityProviderTypeMicrosoft),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementIdentityProviderMicrosoftRead(d, meta)
 }

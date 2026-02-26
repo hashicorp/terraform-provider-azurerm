@@ -25,9 +25,9 @@ import (
 
 func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementDiagnosticCreateUpdate,
+		Create: resourceApiManagementDiagnosticCreate,
 		Read:   resourceApiManagementDiagnosticRead,
-		Update: resourceApiManagementDiagnosticCreateUpdate,
+		Update: resourceApiManagementDiagnosticUpdate,
 		Delete: resourceApiManagementDiagnosticDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -134,25 +134,23 @@ func resourceApiManagementDiagnostic() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementDiagnosticCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := diagnostic.NewDiagnosticID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("identifier").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_diagnostic", id.ID())
 	}
 
 	parameters := diagnostic.DiagnosticContract{
@@ -218,10 +216,89 @@ func resourceApiManagementDiagnosticCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, diagnostic.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementDiagnosticRead(d, meta)
+}
+
+func resourceApiManagementDiagnosticUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.DiagnosticClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := diagnostic.ParseDiagnosticID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := diagnostic.DiagnosticContract{
+		Properties: &diagnostic.DiagnosticContractProperties{
+			LoggerId: d.Get("api_management_logger_id").(string),
+		},
+	}
+
+	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+		if d.Get("identifier") == "applicationinsights" {
+			parameters.Properties.OperationNameFormat = pointer.To(diagnostic.OperationNameFormat(operationNameFormat.(string)))
+		}
+	}
+
+	if samplingPercentage, ok := d.GetOk("sampling_percentage"); ok {
+		parameters.Properties.Sampling = &diagnostic.SamplingSettings{
+			SamplingType: pointer.To(diagnostic.SamplingTypeFixed),
+			Percentage:   pointer.To(samplingPercentage.(float64)),
+		}
+	} else {
+		parameters.Properties.Sampling = nil
+	}
+
+	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
+		parameters.Properties.AlwaysLog = pointer.To(diagnostic.AlwaysLogAllErrors)
+	}
+
+	if verbosity, ok := d.GetOk("verbosity"); ok {
+		parameters.Properties.Verbosity = pointer.To(diagnostic.Verbosity(verbosity.(string)))
+	}
+
+	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golanci-lint
+	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:staticcheck
+		parameters.Properties.LogClientIP = pointer.To(logClientIP.(bool))
+	}
+
+	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
+		parameters.Properties.HTTPCorrelationProtocol = pointer.To(diagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
+	}
+
+	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
+	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
+	if frontendRequestSet || frontendResponseSet {
+		parameters.Properties.Frontend = &diagnostic.PipelineDiagnosticSettings{}
+		if frontendRequestSet {
+			parameters.Properties.Frontend.Request = expandApiManagementDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+		}
+		if frontendResponseSet {
+			parameters.Properties.Frontend.Response = expandApiManagementDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+		}
+	}
+
+	backendRequest, backendRequestSet := d.GetOk("backend_request")
+	backendResponse, backendResponseSet := d.GetOk("backend_response")
+	if backendRequestSet || backendResponseSet {
+		parameters.Properties.Backend = &diagnostic.PipelineDiagnosticSettings{}
+		if backendRequestSet {
+			parameters.Properties.Backend.Request = expandApiManagementDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+		}
+		if backendResponseSet {
+			parameters.Properties.Backend.Response = expandApiManagementDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, diagnostic.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementDiagnosticRead(d, meta)
 }

@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGroupCreateUpdate,
+		Create: resourceApiManagementGroupCreate,
 		Read:   resourceApiManagementGroupRead,
-		Update: resourceApiManagementGroupCreateUpdate,
+		Update: resourceApiManagementGroupUpdate,
 		Delete: resourceApiManagementGroupDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := group.ParseGroupID(id)
@@ -77,46 +77,65 @@ func resourceApiManagementGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GroupClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := group.NewGroupID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	displayName := d.Get("display_name").(string)
-	description := d.Get("description").(string)
-	externalID := d.Get("external_id").(string)
-	groupType := d.Get("type").(string)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_group", id.ID())
+			return fmt.Errorf("checking for presence of %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_group", id.ID())
 	}
 
 	parameters := group.GroupCreateParameters{
 		Properties: &group.GroupCreateParametersProperties{
-			DisplayName: displayName,
-			Description: pointer.To(description),
-			ExternalId:  pointer.To(externalID),
-			Type:        pointer.To(group.GroupType(groupType)),
+			DisplayName: d.Get("display_name").(string),
+			Description: pointer.To(d.Get("description").(string)),
+			ExternalId:  pointer.To(d.Get("external_id").(string)),
+			Type:        pointer.To(group.GroupType(d.Get("type").(string))),
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, group.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementGroupRead(d, meta)
+}
+
+func resourceApiManagementGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.GroupClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := group.ParseGroupID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := group.GroupCreateParameters{
+		Properties: &group.GroupCreateParametersProperties{
+			DisplayName: d.Get("display_name").(string),
+			Description: pointer.To(d.Get("description").(string)),
+			ExternalId:  pointer.To(d.Get("external_id").(string)),
+			Type:        pointer.To(group.GroupType(d.Get("type").(string))),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, group.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementGroupRead(d, meta)
 }

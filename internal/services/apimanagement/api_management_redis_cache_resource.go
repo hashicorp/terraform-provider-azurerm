@@ -25,9 +25,9 @@ import (
 
 func resourceApiManagementRedisCache() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementRedisCacheCreateUpdate,
+		Create: resourceApiManagementRedisCacheCreate,
 		Read:   resourceApiManagementRedisCacheRead,
-		Update: resourceApiManagementRedisCacheCreateUpdate,
+		Update: resourceApiManagementRedisCacheUpdate,
 		Delete: resourceApiManagementRedisCacheDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -87,7 +87,7 @@ func resourceApiManagementRedisCache() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.CacheClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -105,16 +105,52 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 	id := cache.NewCacheID(subscriptionId, apimId.ResourceGroupName, apimId.ServiceName, name)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_redis_cache", id.ID())
+			return fmt.Errorf("checking for existing %q: %+v", id, err)
 		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_redis_cache", id.ID())
+	}
+
+	parameters := cache.CacheContract{
+		Properties: &cache.CacheContractProperties{
+			ConnectionString: d.Get("connection_string").(string),
+			UseFromLocation:  location.Normalize(d.Get("cache_location").(string)),
+		},
+	}
+
+	if v, ok := d.GetOk("description"); ok && v.(string) != "" {
+		parameters.Properties.Description = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("redis_cache_id"); ok && v.(string) != "" {
+		parameters.Properties.ResourceId = pointer.To(*resourceManagerEndpoint + v.(string))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, parameters, cache.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("creating %q: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceApiManagementRedisCacheRead(d, meta)
+}
+
+func resourceApiManagementRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.CacheClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	resourceManagerEndpoint, ok := meta.(*clients.Client).Account.Environment.ResourceManager.Endpoint()
+	if !ok {
+		return fmt.Errorf("could not determine Resource Manager endpoint suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+	}
+
+	id, err := cache.ParseCacheID(d.Id())
+	if err != nil {
+		return err
 	}
 
 	parameters := cache.CacheContract{
@@ -133,11 +169,10 @@ func resourceApiManagementRedisCacheCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	// here we use "PUT" for updating, because `description` is not allowed to be empty string, Then we could not update to remove `description` by `PATCH`
-	if _, err := client.CreateOrUpdate(ctx, id, parameters, cache.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/ updating %q: %+v", id, err)
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, cache.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %q: %+v", *id, err)
 	}
 
-	d.SetId(id.ID())
 	return resourceApiManagementRedisCacheRead(d, meta)
 }
 

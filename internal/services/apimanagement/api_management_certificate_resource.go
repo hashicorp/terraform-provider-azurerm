@@ -24,9 +24,9 @@ import (
 
 func resourceApiManagementCertificate() *pluginsdk.Resource {
 	r := &pluginsdk.Resource{
-		Create: resourceApiManagementCertificateCreateUpdate,
+		Create: resourceApiManagementCertificateCreate,
 		Read:   resourceApiManagementCertificateRead,
-		Update: resourceApiManagementCertificateCreateUpdate,
+		Update: resourceApiManagementCertificateUpdate,
 		Delete: resourceApiManagementCertificateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := certificate.ParseCertificateID(id)
@@ -102,37 +102,30 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 	return r
 }
 
-func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.CertificatesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := certificate.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	data := d.Get("data").(string)
-	password := d.Get("password").(string)
-	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
-	keyVaultIdentity := d.Get("key_vault_identity_client_id").(string)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_certificate", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_certificate", id.ID())
 	}
 
 	parameters := certificate.CertificateCreateOrUpdateParameters{
 		Properties: &certificate.CertificateCreateOrUpdateProperties{},
 	}
 
-	if keyVaultSecretId != "" {
+	if keyVaultSecretId := d.Get("key_vault_secret_id").(string); keyVaultSecretId != "" {
 		nestedItemType := keyvault.NestedItemTypeSecret
 		if !features.FivePointOh() {
 			nestedItemType = keyvault.NestedItemTypeAny
@@ -147,21 +140,67 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 			SecretIdentifier: pointer.To(parsedSecretId.ID()),
 		}
 
-		if keyVaultIdentity != "" {
+		if keyVaultIdentity := d.Get("key_vault_identity_client_id").(string); keyVaultIdentity != "" {
 			parameters.Properties.KeyVault.IdentityClientId = pointer.To(keyVaultIdentity)
 		}
 	}
 
-	if data != "" {
+	if data := d.Get("data").(string); data != "" {
 		parameters.Properties.Data = pointer.To(data)
-		parameters.Properties.Password = pointer.To(password)
+		parameters.Properties.Password = pointer.To(d.Get("password").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, certificate.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating or updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementCertificateRead(d, meta)
+}
+
+func resourceApiManagementCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.CertificatesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := certificate.ParseCertificateID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := certificate.CertificateCreateOrUpdateParameters{
+		Properties: &certificate.CertificateCreateOrUpdateProperties{},
+	}
+
+	if keyVaultSecretId := d.Get("key_vault_secret_id").(string); keyVaultSecretId != "" {
+		nestedItemType := keyvault.NestedItemTypeSecret
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		parsedSecretId, err := keyvault.ParseNestedItemID(keyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
+		if err != nil {
+			return err
+		}
+
+		parameters.Properties.KeyVault = &certificate.KeyVaultContractCreateProperties{
+			SecretIdentifier: pointer.To(parsedSecretId.ID()),
+		}
+
+		if keyVaultIdentity := d.Get("key_vault_identity_client_id").(string); keyVaultIdentity != "" {
+			parameters.Properties.KeyVault.IdentityClientId = pointer.To(keyVaultIdentity)
+		}
+	}
+
+	if data := d.Get("data").(string); data != "" {
+		parameters.Properties.Data = pointer.To(data)
+		parameters.Properties.Password = pointer.To(d.Get("password").(string))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, certificate.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementCertificateRead(d, meta)
 }

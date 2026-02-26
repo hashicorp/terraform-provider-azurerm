@@ -25,9 +25,9 @@ import (
 
 func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiVersionSetCreateUpdate,
+		Create: resourceApiManagementApiVersionSetCreate,
 		Read:   resourceApiManagementApiVersionSetRead,
-		Update: resourceApiManagementApiVersionSetCreateUpdate,
+		Update: resourceApiManagementApiVersionSetUpdate,
 		Delete: resourceApiManagementApiVersionSetDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := apiversionset.ParseApiVersionSetID(id)
@@ -92,25 +92,23 @@ func resourceApiManagementApiVersionSet() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiVersionSetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := apiversionset.NewApiVersionSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_version_set", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api_version_set", id.ID())
 	}
 
 	versioningScheme := apiversionset.VersioningScheme(d.Get("versioning_scheme").(string))
@@ -140,7 +138,6 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 		if querySet {
 			return errors.New("`version_query_name` can not be set if `versioning_schema` is `Header`")
 		}
-
 	case apiversionset.VersioningSchemeQuery:
 		if headerSet {
 			return errors.New("`version_header_name` can not be set if `versioning_schema` is `Query`")
@@ -148,7 +145,6 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 		if !querySet {
 			return errors.New("`version_query_name` must be set if `versioning_schema` is `Query`")
 		}
-
 	case apiversionset.VersioningSchemeSegment:
 		if headerSet {
 			return errors.New("`version_header_name` can not be set if `versioning_schema` is `Segment`")
@@ -159,10 +155,70 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, apiversionset.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementApiVersionSetRead(d, meta)
+}
+
+func resourceApiManagementApiVersionSetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ApiVersionSetClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := apiversionset.ParseApiVersionSetID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	versioningScheme := apiversionset.VersioningScheme(d.Get("versioning_scheme").(string))
+	parameters := apiversionset.ApiVersionSetContract{
+		Properties: &apiversionset.ApiVersionSetContractProperties{
+			DisplayName:      d.Get("display_name").(string),
+			VersioningScheme: versioningScheme,
+			Description:      pointer.To(d.Get("description").(string)),
+		},
+	}
+
+	var headerSet, querySet bool
+	if v, ok := d.GetOk("version_header_name"); ok {
+		headerSet = v.(string) != ""
+		parameters.Properties.VersionHeaderName = pointer.To(v.(string))
+	}
+	if v, ok := d.GetOk("version_query_name"); ok {
+		querySet = v.(string) != ""
+		parameters.Properties.VersionQueryName = pointer.To(v.(string))
+	}
+
+	switch schema := versioningScheme; schema {
+	case apiversionset.VersioningSchemeHeader:
+		if !headerSet {
+			return errors.New("`version_header_name` must be set if `versioning_schema` is `Header`")
+		}
+		if querySet {
+			return errors.New("`version_query_name` can not be set if `versioning_schema` is `Header`")
+		}
+	case apiversionset.VersioningSchemeQuery:
+		if headerSet {
+			return errors.New("`version_header_name` can not be set if `versioning_schema` is `Query`")
+		}
+		if !querySet {
+			return errors.New("`version_query_name` must be set if `versioning_schema` is `Query`")
+		}
+	case apiversionset.VersioningSchemeSegment:
+		if headerSet {
+			return errors.New("`version_header_name` can not be set if `versioning_schema` is `Segment`")
+		}
+		if querySet {
+			return errors.New("`version_query_name` can not be set if `versioning_schema` is `Segment`")
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, apiversionset.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementApiVersionSetRead(d, meta)
 }

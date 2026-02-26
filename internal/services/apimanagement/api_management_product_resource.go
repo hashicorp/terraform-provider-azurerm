@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementProduct() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementProductCreateUpdate,
+		Create: resourceApiManagementProductCreate,
 		Read:   resourceApiManagementProductRead,
-		Update: resourceApiManagementProductCreateUpdate,
+		Update: resourceApiManagementProductUpdate,
 		Delete: resourceApiManagementProductDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := product.ParseProductID(id)
@@ -85,48 +85,43 @@ func resourceApiManagementProduct() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementProductCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ProductsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for API Management Product creation.")
 
 	id := product.NewProductID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("product_id").(string))
 
-	displayName := d.Get("display_name").(string)
-	description := d.Get("description").(string)
-	terms := d.Get("terms").(string)
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
+		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_product", id.ID())
+	}
+
 	subscriptionRequired := d.Get("subscription_required").(bool)
 	approvalRequired := d.Get("approval_required").(bool)
 	subscriptionsLimit := d.Get("subscriptions_limit").(int)
-	published := d.Get("published").(bool)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_product", id.ID())
-		}
-	}
 	publishedVal := product.ProductStateNotPublished
-	if published {
+	if d.Get("published").(bool) {
 		publishedVal = product.ProductStatePublished
 	}
 
 	properties := product.ProductContract{
 		Properties: &product.ProductContractProperties{
-			Description:          pointer.To(description),
-			DisplayName:          displayName,
+			Description:          pointer.To(d.Get("description").(string)),
+			DisplayName:          d.Get("display_name").(string),
 			State:                pointer.To(publishedVal),
 			SubscriptionRequired: pointer.To(subscriptionRequired),
-			Terms:                pointer.To(terms),
+			Terms:                pointer.To(d.Get("terms").(string)),
 		},
 	}
 
@@ -147,10 +142,62 @@ func resourceApiManagementProductCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, properties, product.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementProductRead(d, meta)
+}
+
+func resourceApiManagementProductUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ProductsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := product.ParseProductID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	subscriptionRequired := d.Get("subscription_required").(bool)
+	approvalRequired := d.Get("approval_required").(bool)
+	subscriptionsLimit := d.Get("subscriptions_limit").(int)
+
+	publishedVal := product.ProductStateNotPublished
+	if d.Get("published").(bool) {
+		publishedVal = product.ProductStatePublished
+	}
+
+	properties := product.ProductContract{
+		Properties: &product.ProductContractProperties{
+			Description:          pointer.To(d.Get("description").(string)),
+			DisplayName:          d.Get("display_name").(string),
+			State:                pointer.To(publishedVal),
+			SubscriptionRequired: pointer.To(subscriptionRequired),
+			Terms:                pointer.To(d.Get("terms").(string)),
+		},
+	}
+
+	// Swagger says: Can be present only if subscriptionRequired property is present and has a value of false.
+	// API/Portal says: Cannot provide values for approvalRequired and subscriptionsLimit when subscriptionRequired is set to false in the request payload
+	if subscriptionRequired {
+		if approvalRequired && subscriptionsLimit <= 0 {
+			return fmt.Errorf("`subscriptions_limit` must be greater than 0 to use `approval_required`")
+		}
+		// Set `subscriptions_limit` to null or omit to allow unlimited per user subscriptions
+		// When `subscriptions_limit` is specified as `0` it means the maximum number of subscriptions is 0, rather than allowing unlimited per user subscriptions
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "subscriptions_limit") && subscriptionsLimit >= 0 {
+			properties.Properties.ApprovalRequired = pointer.To(approvalRequired)
+			properties.Properties.SubscriptionsLimit = pointer.To(int64(subscriptionsLimit))
+		}
+	} else if approvalRequired {
+		return fmt.Errorf("`subscription_required` must be true to use `approval_required`")
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, properties, product.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementProductRead(d, meta)
 }

@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementIdentityProviderTwitter() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Create: resourceApiManagementIdentityProviderTwitterCreate,
 		Read:   resourceApiManagementIdentityProviderTwitterRead,
-		Update: resourceApiManagementIdentityProviderTwitterCreateUpdate,
+		Update: resourceApiManagementIdentityProviderTwitterUpdate,
 		Delete: resourceApiManagementIdentityProviderTwitterDelete,
 
 		Importer: identityProviderImportFunc(identityprovider.IdentityProviderTypeTwitter),
@@ -58,42 +58,63 @@ func resourceApiManagementIdentityProviderTwitter() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementIdentityProviderTwitterCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementIdentityProviderTwitterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	clientID := d.Get("api_key").(string)
-	clientSecret := d.Get("api_secret_key").(string)
 	id := identityprovider.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), identityprovider.IdentityProviderTypeTwitter)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_identity_provider_twitter", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_identity_provider_twitter", id.ID())
 	}
 
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
-			ClientId:     clientID,
-			ClientSecret: clientSecret,
+			ClientId:     d.Get("api_key").(string),
+			ClientSecret: d.Get("api_secret_key").(string),
 			Type:         pointer.To(identityprovider.IdentityProviderTypeTwitter),
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementIdentityProviderTwitterRead(d, meta)
+}
+
+func resourceApiManagementIdentityProviderTwitterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.IdentityProviderClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := identityprovider.ParseIdentityProviderID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := identityprovider.IdentityProviderCreateContract{
+		Properties: &identityprovider.IdentityProviderCreateContractProperties{
+			ClientId:     d.Get("api_key").(string),
+			ClientSecret: d.Get("api_secret_key").(string),
+			Type:         pointer.To(identityprovider.IdentityProviderTypeTwitter),
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementIdentityProviderTwitterRead(d, meta)
 }

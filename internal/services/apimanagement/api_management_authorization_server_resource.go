@@ -22,9 +22,9 @@ import (
 
 func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementAuthorizationServerCreateUpdate,
+		Create: resourceApiManagementAuthorizationServerCreate,
 		Read:   resourceApiManagementAuthorizationServerRead,
-		Update: resourceApiManagementAuthorizationServerCreateUpdate,
+		Update: resourceApiManagementAuthorizationServerUpdate,
 		Delete: resourceApiManagementAuthorizationServerDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := authorizationserver.ParseAuthorizationServerID(id)
@@ -189,76 +189,56 @@ func resourceApiManagementAuthorizationServer() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementAuthorizationServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := authorizationserver.NewAuthorizationServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_authorization_server", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	authorizationEndpoint := d.Get("authorization_endpoint").(string)
-	clientId := d.Get("client_id").(string)
-	clientRegistrationEndpoint := d.Get("client_registration_endpoint").(string)
-	displayName := d.Get("display_name").(string)
-	grantTypesRaw := d.Get("grant_types").(*pluginsdk.Set).List()
-	grantTypes := expandApiManagementAuthorizationServerGrantTypes(grantTypesRaw)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_authorization_server", id.ID())
+	}
 
-	clientAuthenticationMethodsRaw := d.Get("client_authentication_method").(*pluginsdk.Set).List()
-	clientAuthenticationMethods := expandApiManagementAuthorizationServerClientAuthenticationMethods(clientAuthenticationMethodsRaw)
-	clientSecret := d.Get("client_secret").(string)
-	defaultScope := d.Get("default_scope").(string)
-	description := d.Get("description").(string)
-	resourceOwnerPassword := d.Get("resource_owner_password").(string)
-	resourceOwnerUsername := d.Get("resource_owner_username").(string)
-	supportState := d.Get("support_state").(bool)
-	tokenBodyParametersRaw := d.Get("token_body_parameter").([]interface{})
-	tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(tokenBodyParametersRaw)
+	grantTypes := expandApiManagementAuthorizationServerGrantTypes(d.Get("grant_types").(*pluginsdk.Set).List())
+	clientAuthenticationMethods := expandApiManagementAuthorizationServerClientAuthenticationMethods(d.Get("client_authentication_method").(*pluginsdk.Set).List())
+	tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(d.Get("token_body_parameter").([]interface{}))
 
 	params := authorizationserver.AuthorizationServerContract{
 		Properties: &authorizationserver.AuthorizationServerContractProperties{
 			// Required
-			AuthorizationEndpoint:      authorizationEndpoint,
-			ClientId:                   clientId,
-			ClientRegistrationEndpoint: clientRegistrationEndpoint,
-			DisplayName:                displayName,
+			AuthorizationEndpoint:      d.Get("authorization_endpoint").(string),
+			ClientId:                   d.Get("client_id").(string),
+			ClientRegistrationEndpoint: d.Get("client_registration_endpoint").(string),
+			DisplayName:                d.Get("display_name").(string),
 			GrantTypes:                 pointer.From(grantTypes),
 
 			// Optional
 			ClientAuthenticationMethod: clientAuthenticationMethods,
-			ClientSecret:               pointer.To(clientSecret),
-			DefaultScope:               pointer.To(defaultScope),
-			Description:                pointer.To(description),
-			ResourceOwnerPassword:      pointer.To(resourceOwnerPassword),
-			ResourceOwnerUsername:      pointer.To(resourceOwnerUsername),
-			SupportState:               pointer.To(supportState),
+			ClientSecret:               pointer.To(d.Get("client_secret").(string)),
+			DefaultScope:               pointer.To(d.Get("default_scope").(string)),
+			Description:                pointer.To(d.Get("description").(string)),
+			ResourceOwnerPassword:      pointer.To(d.Get("resource_owner_password").(string)),
+			ResourceOwnerUsername:      pointer.To(d.Get("resource_owner_username").(string)),
+			SupportState:               pointer.To(d.Get("support_state").(bool)),
 			TokenBodyParameters:        tokenBodyParameters,
 		},
 	}
 
-	authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List()
-	if len(authorizationMethodsRaw) > 0 {
-		authorizationMethods := expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
-		params.Properties.AuthorizationMethods = authorizationMethods
+	if authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List(); len(authorizationMethodsRaw) > 0 {
+		params.Properties.AuthorizationMethods = expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
 	}
 
-	bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List()
-	if len(bearerTokenSendingMethodsRaw) > 0 {
-		bearerTokenSendingMethods := expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
-		params.Properties.BearerTokenSendingMethods = bearerTokenSendingMethods
+	if bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List(); len(bearerTokenSendingMethodsRaw) > 0 {
+		params.Properties.BearerTokenSendingMethods = expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
 	}
 
 	if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {
@@ -266,10 +246,64 @@ func resourceApiManagementAuthorizationServerCreateUpdate(d *pluginsdk.ResourceD
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, params, authorizationserver.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementAuthorizationServerRead(d, meta)
+}
+
+func resourceApiManagementAuthorizationServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.AuthorizationServersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := authorizationserver.ParseAuthorizationServerID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	grantTypes := expandApiManagementAuthorizationServerGrantTypes(d.Get("grant_types").(*pluginsdk.Set).List())
+	clientAuthenticationMethods := expandApiManagementAuthorizationServerClientAuthenticationMethods(d.Get("client_authentication_method").(*pluginsdk.Set).List())
+	tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(d.Get("token_body_parameter").([]interface{}))
+
+	params := authorizationserver.AuthorizationServerContract{
+		Properties: &authorizationserver.AuthorizationServerContractProperties{
+			// Required
+			AuthorizationEndpoint:      d.Get("authorization_endpoint").(string),
+			ClientId:                   d.Get("client_id").(string),
+			ClientRegistrationEndpoint: d.Get("client_registration_endpoint").(string),
+			DisplayName:                d.Get("display_name").(string),
+			GrantTypes:                 pointer.From(grantTypes),
+
+			// Optional
+			ClientAuthenticationMethod: clientAuthenticationMethods,
+			ClientSecret:               pointer.To(d.Get("client_secret").(string)),
+			DefaultScope:               pointer.To(d.Get("default_scope").(string)),
+			Description:                pointer.To(d.Get("description").(string)),
+			ResourceOwnerPassword:      pointer.To(d.Get("resource_owner_password").(string)),
+			ResourceOwnerUsername:      pointer.To(d.Get("resource_owner_username").(string)),
+			SupportState:               pointer.To(d.Get("support_state").(bool)),
+			TokenBodyParameters:        tokenBodyParameters,
+		},
+	}
+
+	if authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List(); len(authorizationMethodsRaw) > 0 {
+		params.Properties.AuthorizationMethods = expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
+	}
+
+	if bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List(); len(bearerTokenSendingMethodsRaw) > 0 {
+		params.Properties.BearerTokenSendingMethods = expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
+	}
+
+	if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {
+		params.Properties.TokenEndpoint = pointer.To(tokenEndpoint)
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, params, authorizationserver.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementAuthorizationServerRead(d, meta)
 }

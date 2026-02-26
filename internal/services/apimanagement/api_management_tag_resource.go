@@ -21,9 +21,9 @@ import (
 
 func resourceApiManagementTag() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementTagCreateUpdate,
+		Create: resourceApiManagementTagCreate,
 		Read:   resourceApiManagementTagRead,
-		Update: resourceApiManagementTagCreateUpdate,
+		Update: resourceApiManagementTagUpdate,
 		Delete: resourceApiManagementTagDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -63,10 +63,10 @@ func resourceApiManagementTag() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementTagCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	client := meta.(*clients.Client).ApiManagement.TagClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	apiManagementId, err := apimanagementservice.ParseServiceID(d.Get("api_management_id").(string))
@@ -76,20 +76,18 @@ func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interf
 
 	id := tag.NewTagID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_tag", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
-	displayName := d.Get("name").(string)
 
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_tag", id.ID())
+	}
+
+	displayName := d.Get("name").(string)
 	if v, ok := d.GetOk("display_name"); ok {
 		displayName = v.(string)
 	}
@@ -101,10 +99,38 @@ func resourceApiManagementTagCreateUpdate(d *pluginsdk.ResourceData, meta interf
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, tag.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementTagRead(d, meta)
+}
+
+func resourceApiManagementTagUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.TagClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := tag.ParseTagID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	displayName := d.Get("name").(string)
+	if v, ok := d.GetOk("display_name"); ok {
+		displayName = v.(string)
+	}
+
+	parameters := tag.TagCreateUpdateParameters{
+		Properties: &tag.TagContractProperties{
+			DisplayName: displayName,
+		},
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters, tag.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementTagRead(d, meta)
 }

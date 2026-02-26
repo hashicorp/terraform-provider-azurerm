@@ -23,9 +23,9 @@ import (
 
 func resourceApiManagementGlobalSchema() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementGlobalSchemaCreateUpdate,
+		Create: resourceApiManagementGlobalSchemaCreate,
 		Read:   resourceApiManagementGlobalSchemaRead,
-		Update: resourceApiManagementGlobalSchemaCreateUpdate,
+		Update: resourceApiManagementGlobalSchemaUpdate,
 		Delete: resourceApiManagementGlobalSchemaDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := schema.ParseSchemaID(id)
@@ -68,24 +68,23 @@ func resourceApiManagementGlobalSchema() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementGlobalSchemaCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := schema.NewSchemaID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), d.Get("schema_id").(string))
-	if d.IsNewResource() {
-		existing, err := client.GlobalSchemaGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
 
+	existing, err := client.GlobalSchemaGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_global_schema", id.ID())
 	}
 
 	payload := schema.GlobalSchemaContract{
@@ -95,24 +94,59 @@ func resourceApiManagementGlobalSchemaCreateUpdate(d *pluginsdk.ResourceData, me
 		},
 	}
 
-	// value for type=xml, document for type=json
-	value := d.Get("value")
 	if d.Get("type").(string) == string(schema.SchemaTypeJson) {
 		var document interface{}
-		if err := json.Unmarshal([]byte(value.(string)), &document); err != nil {
+		if err := json.Unmarshal([]byte(d.Get("value").(string)), &document); err != nil {
 			return fmt.Errorf(" error preparing value data to send %s: %s", id, err)
 		}
 		payload.Properties.Document = &document
 	}
 	if d.Get("type").(string) == string(schema.SchemaTypeXml) {
+		value := d.Get("value")
 		payload.Properties.Value = &value
 	}
 
 	if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceApiManagementGlobalSchemaRead(d, meta)
+}
+
+func resourceApiManagementGlobalSchemaUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.GlobalSchemaClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := schema.ParseSchemaID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	payload := schema.GlobalSchemaContract{
+		Properties: &schema.GlobalSchemaContractProperties{
+			Description: pointer.To(d.Get("description").(string)),
+			SchemaType:  schema.SchemaType(d.Get("type").(string)),
+		},
+	}
+
+	if d.Get("type").(string) == string(schema.SchemaTypeJson) {
+		var document interface{}
+		if err := json.Unmarshal([]byte(d.Get("value").(string)), &document); err != nil {
+			return fmt.Errorf(" error preparing value data to send %s: %s", *id, err)
+		}
+		payload.Properties.Document = &document
+	}
+	if d.Get("type").(string) == string(schema.SchemaTypeXml) {
+		value := d.Get("value")
+		payload.Properties.Value = &value
+	}
+
+	if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, *id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("updating %s: %s", *id, err)
+	}
+
 	return resourceApiManagementGlobalSchemaRead(d, meta)
 }
 

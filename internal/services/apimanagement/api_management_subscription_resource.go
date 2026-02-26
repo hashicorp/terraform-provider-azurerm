@@ -30,9 +30,9 @@ import (
 
 func resourceApiManagementSubscription() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementSubscriptionCreateUpdate,
+		Create: resourceApiManagementSubscriptionCreate,
 		Read:   resourceApiManagementSubscriptionRead,
-		Update: resourceApiManagementSubscriptionCreateUpdate,
+		Update: resourceApiManagementSubscriptionUpdate,
 		Delete: resourceApiManagementSubscriptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -127,10 +127,10 @@ func resourceApiManagementSubscription() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	subName := d.Get("subscription_id").(string)
@@ -144,24 +144,19 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 	id := subscription.NewSubscriptions2ID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), subName)
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for present of existing %s: %+v", id, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_subscription", id.ID())
+			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 
-	displayName := d.Get("display_name").(string)
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_subscription", id.ID())
+	}
+
 	productId, productSet := d.GetOk("product_id")
 	apiId, apiSet := d.GetOk("api_id")
-	state := d.Get("state").(string)
-	allowTracing := d.Get("allow_tracing").(bool)
 
 	var scope string
 	switch {
@@ -175,10 +170,10 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 
 	params := subscription.SubscriptionCreateParameters{
 		Properties: &subscription.SubscriptionCreateParameterProperties{
-			DisplayName:  displayName,
+			DisplayName:  d.Get("display_name").(string),
 			Scope:        scope,
-			State:        pointer.To(subscription.SubscriptionState(state)),
-			AllowTracing: pointer.To(allowTracing),
+			State:        pointer.To(subscription.SubscriptionState(d.Get("state").(string))),
+			AllowTracing: pointer.To(d.Get("allow_tracing").(bool)),
 		},
 	}
 	if v, ok := d.GetOk("user_id"); ok {
@@ -193,7 +188,7 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		params.Properties.SecondaryKey = pointer.To(v.(string))
 	}
 
-	err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdate(ctx, id, params, subscription.CreateOrUpdateOperationOptions{AppType: pointer.To(subscription.AppTypeDeveloperPortal), Notify: pointer.To(false)}); err != nil {
 			// APIM admins set limit on number of subscriptions to a product.  In order to be able to correctly enforce that limit service cannot let simultaneous creations
 			// to go through and first one wins/subsequent one gets 412 and that client/user can retry. This ensures that we have proper limits enforces as desired by APIM admin.
@@ -205,10 +200,69 @@ func resourceApiManagementSubscriptionCreateUpdate(d *pluginsdk.ResourceData, me
 		return nil
 	})
 	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceApiManagementSubscriptionRead(d, meta)
+}
+
+func resourceApiManagementSubscriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.SubscriptionsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := subscription.ParseSubscriptions2ID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	productId, productSet := d.GetOk("product_id")
+	apiId, apiSet := d.GetOk("api_id")
+
+	var scope string
+	switch {
+	case productSet:
+		scope = productId.(string)
+	case apiSet:
+		scope = apiId.(string)
+	default:
+		scope = "/apis"
+	}
+
+	params := subscription.SubscriptionCreateParameters{
+		Properties: &subscription.SubscriptionCreateParameterProperties{
+			DisplayName:  d.Get("display_name").(string),
+			Scope:        scope,
+			State:        pointer.To(subscription.SubscriptionState(d.Get("state").(string))),
+			AllowTracing: pointer.To(d.Get("allow_tracing").(bool)),
+		},
+	}
+	if v, ok := d.GetOk("user_id"); ok {
+		params.Properties.OwnerId = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("primary_key"); ok {
+		params.Properties.PrimaryKey = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("secondary_key"); ok {
+		params.Properties.SecondaryKey = pointer.To(v.(string))
+	}
+
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {
+		if _, err := client.CreateOrUpdate(ctx, *id, params, subscription.CreateOrUpdateOperationOptions{AppType: pointer.To(subscription.AppTypeDeveloperPortal), Notify: pointer.To(false)}); err != nil {
+			if v, ok := err.(autorest.DetailedError); ok && v.StatusCode == http.StatusPreconditionFailed {
+				return pluginsdk.RetryableError(err)
+			}
+			return pluginsdk.NonRetryableError(err)
+		}
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApiManagementSubscriptionRead(d, meta)
 }

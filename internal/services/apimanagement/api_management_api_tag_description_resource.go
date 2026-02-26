@@ -21,9 +21,9 @@ import (
 
 func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApiManagementApiTagDescriptionCreateUpdate,
+		Create: resourceApiManagementApiTagDescriptionCreate,
 		Read:   resourceApiManagementApiTagDescriptionRead,
-		Update: resourceApiManagementApiTagDescriptionCreateUpdate,
+		Update: resourceApiManagementApiTagDescriptionUpdate,
 		Delete: resourceApiManagementApiTagDescriptionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -44,6 +44,19 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: apitag.ValidateApiTagID,
+				DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
+					oldApiTagId, err := apitag.ParseApiTagID(old)
+					if err != nil {
+						return false
+					}
+
+					newApiTagId, err := apitag.ParseApiTagID(new)
+					if err != nil {
+						return false
+					}
+
+					return oldApiTagId.ApiId == getApiName(newApiTagId.ApiId)
+				},
 			},
 
 			"description": {
@@ -65,10 +78,9 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 	}
 }
 
-func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApiManagementApiTagDescriptionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).ApiManagement.ApiTagDescriptionClient
-
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	apiTagId, err := apitag.ParseApiTagID(d.Get("api_tag_id").(string))
@@ -77,20 +89,17 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	apiName := getApiName(apiTagId.ApiId)
-
 	id := apitagdescription.NewTagDescriptionID(apiTagId.SubscriptionId, apiTagId.ResourceGroupName, apiTagId.ServiceName, apiName, apiTagId.TagId)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_api_management_api_tag_description", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_api_management_api_tag_description", id.ID())
 	}
 
 	tagDescParameter := apitagdescription.TagDescriptionCreateParameters{Properties: &apitagdescription.TagDescriptionBaseProperties{}}
@@ -107,10 +116,42 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, tagDescParameter, apitagdescription.CreateOrUpdateOperationOptions{}); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceApiManagementApiTagDescriptionRead(d, meta)
+}
+
+func resourceApiManagementApiTagDescriptionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).ApiManagement.ApiTagDescriptionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := apitagdescription.ParseTagDescriptionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	apiName := getApiName(id.ApiId)
+	newId := apitagdescription.NewTagDescriptionID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagDescriptionId)
+
+	tagDescParameter := apitagdescription.TagDescriptionCreateParameters{Properties: &apitagdescription.TagDescriptionBaseProperties{}}
+	if v, ok := d.GetOk("description"); ok {
+		tagDescParameter.Properties.Description = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("external_documentation_url"); ok {
+		tagDescParameter.Properties.ExternalDocsURL = pointer.To(v.(string))
+	}
+
+	if v, ok := d.GetOk("external_documentation_description"); ok {
+		tagDescParameter.Properties.ExternalDocsDescription = pointer.To(v.(string))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, newId, tagDescParameter, apitagdescription.CreateOrUpdateOperationOptions{}); err != nil {
+		return fmt.Errorf("updating %s: %+v", newId, err)
+	}
 
 	return resourceApiManagementApiTagDescriptionRead(d, meta)
 }
