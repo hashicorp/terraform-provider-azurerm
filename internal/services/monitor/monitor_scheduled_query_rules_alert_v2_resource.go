@@ -799,6 +799,10 @@ func expandScheduledQueryRulesAlertV2CriteriaModel(inputList []ScheduledQueryRul
 }
 
 func expandScheduledQueryRulesAlertV2DimensionModel(inputList []ScheduledQueryRulesAlertV2DimensionModel) *[]scheduledqueryrules.Dimension {
+	if len(inputList) == 0 {
+		return nil
+	}
+
 	outputList := make([]scheduledqueryrules.Dimension, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
