@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `api_management_id` - (Required) The ID of the API Management Resource in which the gateway will be created. Changing this forces a new API Management Gateway resource to be created.
 
-* `location_data` - (Required) A `location_data` block as documented below.
+* `location_data` - (Required) A `location_data` block as defined below.
 
 * `description` - (Optional) The description of the API Management Gateway.
 

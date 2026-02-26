@@ -51,7 +51,7 @@ The following attributes are exported:
 
 * `secondary_connection_string` - The secondary connection string of the Web Pubsub service.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 ---
 

@@ -48,7 +48,7 @@ The following arguments are supported:
 
 -> **Note:** If you do not specify a `custom_subdomain_name` then you will not be able to attach a Private Endpoint to the resource.
 
-* `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
+* `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
 * `fqdns` - (Optional) List of FQDNs allowed for the AI Services Account.
 

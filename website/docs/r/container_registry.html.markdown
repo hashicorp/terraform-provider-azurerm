@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `georeplications` - (Optional) One or more `georeplications` blocks as documented below.
+* `georeplications` - (Optional) One or more `georeplications` blocks as defined below.
 
 ~> **Note:** The `georeplications` is only supported on new resources with the `Premium` SKU.
 
@@ -154,7 +154,7 @@ The following arguments are supported:
 
 ~> **Note:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
 
-* `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
+* `network_rule_set` - (Optional) A `network_rule_set` block as defined below.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the container registry. Defaults to `true`.
 
@@ -172,7 +172,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `encryption` - (Optional) An `encryption` block as documented below.
+* `encryption` - (Optional) An `encryption` block as defined below.
 
 * `anonymous_pull_enabled` - (Optional) Whether to allow anonymous (unauthenticated) pull access to this Container Registry. This is only supported on resources with the `Standard` or `Premium` SKU.
 

@@ -396,9 +396,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Linux Virtual Machine.
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
-* `os_disk` - An `os_disk` block as documented below.
+* `os_disk` - An `os_disk` block as defined below.
 
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
 

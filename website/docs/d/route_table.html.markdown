@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region in which the Route Table exists.
 
-* `route` - One or more `route` blocks as documented below.
+* `route` - One or more `route` blocks as defined below.
 
 * `subnets` - The collection of Subnets associated with this route table.
 

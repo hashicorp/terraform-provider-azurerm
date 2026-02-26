@@ -113,7 +113,7 @@ The following arguments are supported:
 
 * `maximum_elastic_worker_count` - (Optional) The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
 
-* `sku` - (Required) A `sku` block as documented below.
+* `sku` - (Required) A `sku` block as defined below.
 
 * `app_service_environment_id` - (Optional) The ID of the App Service Environment where the App Service Plan should be located. Changing forces a new resource to be created.
 

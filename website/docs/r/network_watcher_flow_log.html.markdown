@@ -93,13 +93,13 @@ The following arguments are supported:
 
 * `enabled` - (Required) Should Network Flow Logging be Enabled?
 
-* `retention_policy` - (Required) A `retention_policy` block as documented below.
+* `retention_policy` - (Required) A `retention_policy` block as defined below.
 
 ---
 
 * `location` - (Optional) The location where the Network Watcher Flow Log resides. Changing this forces a new resource to be created. Defaults to the `location` of the Network Watcher.
 
-* `traffic_analytics` - (Optional) A `traffic_analytics` block as documented below.
+* `traffic_analytics` - (Optional) A `traffic_analytics` block as defined below.
 
 * `version` - (Optional) The version (revision) of the flow log. Possible values are `1` and `2`. Defaults to `1`.
 

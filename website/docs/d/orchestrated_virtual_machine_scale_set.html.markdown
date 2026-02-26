@@ -63,7 +63,7 @@ An `identity` block exports the following:
 
 * `primary` - Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
 
-* `ip_configuration` - An `ip_configuration` block as documented below.
+* `ip_configuration` - An `ip_configuration` block as defined below.
 
 * `accelerated_networking_enabled` - Is accelerated networking enabled?
 

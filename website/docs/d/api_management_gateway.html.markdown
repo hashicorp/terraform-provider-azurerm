@@ -36,7 +36,7 @@ The following arguments are supported:
 
 * `id` - The ID of the API Management Gateway.
 
-* `location_data` - A `location_data` block as documented below.
+* `location_data` - A `location_data` block as defined below.
 
 * `description` - The description of the API Management Gateway.
 

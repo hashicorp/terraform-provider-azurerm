@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `integration_account_name` - (Required) The name of the Logic App Integration Account. Changing this forces a new Logic App Integration Account Certificate to be created.
 
-* `key_vault_key` - (Optional) A `key_vault_key` block as documented below.
+* `key_vault_key` - (Optional) A `key_vault_key` block as defined below.
 
 * `metadata` - (Optional) A JSON mapping of any Metadata for this Logic App Integration Account Certificate.
 

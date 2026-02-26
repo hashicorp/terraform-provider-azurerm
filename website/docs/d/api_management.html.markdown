@@ -107,15 +107,15 @@ An `identity` block exports the following:
 
 A `hostname_configuration` block exports the following:
 
-* `management` - One or more `management` blocks as documented below.
+* `management` - One or more `management` blocks as defined below.
 
-* `portal` - One or more `portal` blocks as documented below.
+* `portal` - One or more `portal` blocks as defined below.
 
-* `developer_portal` - One or more `developer_portal` blocks as documented below.
+* `developer_portal` - One or more `developer_portal` blocks as defined below.
 
-* `proxy` - One or more `proxy` blocks as documented below.
+* `proxy` - One or more `proxy` blocks as defined below.
 
-* `scm` - One or more `scm` blocks as documented below.
+* `scm` - One or more `scm` blocks as defined below.
 
 ---
 

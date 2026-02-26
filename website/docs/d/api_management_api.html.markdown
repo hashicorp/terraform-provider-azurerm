@@ -55,7 +55,7 @@ output "api_management_api_id" {
 
 * `soap_pass_through` - Should this API expose a SOAP frontend, rather than a HTTP frontend?
 
-* `subscription_key_parameter_names` - A `subscription_key_parameter_names` block as documented below.
+* `subscription_key_parameter_names` - A `subscription_key_parameter_names` block as defined below.
 
 * `subscription_required` - Should this API require a subscription key?
 

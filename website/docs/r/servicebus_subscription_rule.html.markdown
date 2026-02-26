@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `sql_filter` - (Optional) Represents a filter written in SQL language-based syntax that to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `SqlFilter`.
 
-* `correlation_filter` - (Optional) A `correlation_filter` block as documented below to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `CorrelationFilter`.
+* `correlation_filter` - (Optional) A `correlation_filter` block as defined below to be evaluated against a BrokeredMessage. Required when `filter_type` is set to `CorrelationFilter`.
 
 * `action` - (Optional) Represents set of actions written in SQL language-based syntax that is performed against a BrokeredMessage.
 

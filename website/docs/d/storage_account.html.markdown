@@ -35,7 +35,7 @@ output "storage_account_tier" {
 
 * `location` - The Azure location where the Storage Account exists
 
-* `identity` - An `identity` block as documented below.
+* `identity` - An `identity` block as defined below.
 
 * `account_kind` - The Kind of account.
 
@@ -57,7 +57,7 @@ output "storage_account_tier" {
 
 * `nfsv3_enabled` - Is NFSv3 protocol enabled?
 
-* `custom_domain` - A `custom_domain` block as documented below.
+* `custom_domain` - A `custom_domain` block as defined below.
 
 * `tags` - A mapping of tags to assigned to the resource.
 
@@ -214,7 +214,7 @@ output "storage_account_tier" {
 * `infrastructure_encryption_enabled` - Is infrastructure encryption enabled? See [here](https://docs.microsoft.com/azure/storage/common/infrastructure-encryption-enable/)
     for more information.
 
-* `azure_files_authentication` - A `azure_files_authentication` block as documented below.
+* `azure_files_authentication` - A `azure_files_authentication` block as defined below.
 
 ---
 
@@ -240,7 +240,7 @@ output "storage_account_tier" {
 
 * `directory_type` - The directory service used for this Storage Account.
 
-* `active_directory` - An `active_directory` block as documented below.
+* `active_directory` - An `active_directory` block as defined below.
 
 * `default_share_level_permission` - The default share level permissions applied to all users.
 

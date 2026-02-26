@@ -82,7 +82,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Kubernetes Cluster Node Pool.
 
-* `upgrade_settings` - A `upgrade_settings` block as documented below.
+* `upgrade_settings` - A `upgrade_settings` block as defined below.
 
 * `vm_size` - The size of the Virtual Machines used in the Virtual Machine Scale Set backing this Node Pool.
 

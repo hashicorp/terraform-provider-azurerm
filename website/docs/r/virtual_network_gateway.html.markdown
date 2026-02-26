@@ -130,7 +130,7 @@ The following arguments are supported:
 
 * `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) will be enabled for this Virtual Network Gateway. Defaults to `false`.
 
-* `bgp_settings` - (Optional) A `bgp_settings` block which is documented below. In this block the BGP specific settings can be defined.
+* `bgp_settings` - (Optional) A `bgp_settings` block which is defined below. In this block the BGP specific settings can be defined.
 
 * `custom_route` - (Optional) A `custom_route` block as defined below. Specifies a custom routes address space for a virtual network gateway and a VpnClient.
 
@@ -154,7 +154,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is documented below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
+* `vpn_client_configuration` - (Optional) A `vpn_client_configuration` block which is defined below. In this block the Virtual Network Gateway can be configured to accept IPSec point-to-site connections.
 
 * `vpn_type` - (Optional) The routing type of the Virtual Network Gateway. Valid options are `RouteBased` or `PolicyBased`. Defaults to `RouteBased`. Changing this forces a new resource to be created.
 

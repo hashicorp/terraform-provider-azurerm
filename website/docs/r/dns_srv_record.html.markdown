@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields documented below.
+* `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
