@@ -1,0 +1,43 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package oracle_test
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
+)
+
+type AutonomousDatabaseCrossRegionDisasterRecoveryDataSource struct{}
+
+func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}.ResourceType(), "adbs_secondary_crdr")
+	r := AutonomousDatabaseCrossRegionDisasterRecoveryDataSource{}
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+
+				check.That(data.ResourceName).Key("remote_disaster_recovery_type").HasValue("Adg"),
+				check.That(data.ResourceName).Key("source_autonomous_database_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+			),
+		},
+	})
+}
+
+func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
+  name                = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.name
+  resource_group_name = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.resource_group_name
+}
+`, AdbsCrossRegionDisasterRecoveryResource{}.complete(data))
+}
