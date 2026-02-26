@@ -343,7 +343,7 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 		virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
 		virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
 	} else {
-		if secureBootEnabled {
+		if secureBootEnabled || vtpmEnabled {
 			if virtualMachineProfile.SecurityProfile == nil {
 				virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
 			}
@@ -351,18 +351,13 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 				virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
 			}
 			virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
-			virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
-		}
 
-		if vtpmEnabled {
-			if virtualMachineProfile.SecurityProfile == nil {
-				virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+			if secureBootEnabled {
+				virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(secureBootEnabled)
 			}
-			if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
-				virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
+			if vtpmEnabled {
+				virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
 			}
-			virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
-			virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(vtpmEnabled)
 		}
 	}
 
