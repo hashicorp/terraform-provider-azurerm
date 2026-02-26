@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
@@ -35,10 +36,11 @@ func TestAccPrivateDnsCNameRecord_listByPrivateDnsZoneID(t *testing.T) {
 					querycheck.ExpectIdentity(
 						"azurerm_private_dns_cname_record.list",
 						map[string]knownvalue.Check{
-							"name":                knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"PrivateDnsZone_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id":     knownvalue.StringExact(data.Subscriptions.Primary),
+							"name":                  knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name":   knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"private_dns_zone_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"record_type":           knownvalue.StringRegexp(regexp.MustCompile(string(privatedns.RecordTypeCNAME))),
+							"subscription_id":       knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
 				},
