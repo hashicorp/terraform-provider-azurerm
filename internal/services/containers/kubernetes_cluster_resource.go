@@ -407,6 +407,29 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"bootstrap_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"artifact_source": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  string(managedclusters.ArtifactSourceDirect),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.ArtifactSourceCache),
+								string(managedclusters.ArtifactSourceDirect),
+							}, false),
+						},
+						"container_registry_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"cost_analysis_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1817,6 +1840,11 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		azureADProfile = expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(v.([]interface{}))
 	}
 
+	var bootstrapProfile *managedclusters.ManagedClusterBootstrapProfile
+	if v, ok := d.GetOk("bootstrap_profile"); ok {
+		bootstrapProfile = expandKubernetesClusterBootstrapProfile(v.([]interface{}))
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 
 	windowsProfileRaw := d.Get("windows_profile").([]interface{})
@@ -1934,6 +1962,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AutoScalerProfile:         autoScalerProfile,
 			AutoUpgradeProfile:        autoUpgradeProfile,
 			AzureMonitorProfile:       azureMonitorProfile,
+			BootstrapProfile:          bootstrapProfile,
 			DnsPrefix:                 pointer.To(dnsPrefix),
 			EnableRBAC:                pointer.To(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         pointer.To(kubernetesVersion),
@@ -2192,6 +2221,14 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		autoScalerProfile := expandKubernetesClusterAutoScalerProfile(autoScalerProfileRaw)
 		existing.Model.Properties.AutoScalerProfile = autoScalerProfile
+	}
+
+	if d.HasChange("bootstrap_profile") {
+		updateCluster = true
+		bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
+
+		bootstrapProfile := expandKubernetesClusterBootstrapProfile(bootstrapProfileRaw)
+		existing.Model.Properties.BootstrapProfile = bootstrapProfile
 	}
 
 	if d.HasChange("monitor_metrics") {
@@ -2967,6 +3004,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
 			if err := d.Set("monitor_metrics", azureMonitorProfile); err != nil {
 				return fmt.Errorf("setting `monitor_metrics`: %+v", err)
+			}
+
+			bootstrapProfile := flattenKubernetesClusterBootstrapProfile(props.BootstrapProfile)
+			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
 			}
 
 			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
@@ -4017,6 +4059,21 @@ func expandKubernetesClusterAzureActiveDirectoryRoleBasedAccessControl(input []i
 	}
 }
 
+func expandKubernetesClusterBootstrapProfile(input []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	bootstrapProfileRaw := input[0].(map[string]interface{})
+
+	artifactSource := bootstrapProfileRaw["artifact_source"].(string)
+
+	return &managedclusters.ManagedClusterBootstrapProfile{
+		ArtifactSource:      pointer.To(managedclusters.ArtifactSource(artifactSource)),
+		ContainerRegistryId: pointer.To(bootstrapProfileRaw["container_registry_id"].(string)),
+	}
+}
+
 func expandKubernetesClusterManagedClusterIdentity(input []interface{}) (*identity.SystemOrUserAssignedMap, error) {
 	expanded, err := identity.ExpandSystemOrUserAssignedMap(input)
 	if err != nil {
@@ -4222,6 +4279,25 @@ func flattenKubernetesClusterAutoScalerProfile(profile *managedclusters.ManagedC
 			"skip_nodes_with_system_pods":           skipNodesWithSystemPods,
 		},
 	}, nil
+}
+
+func flattenKubernetesClusterBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	artifactSource := string(pointer.From(profile.ArtifactSource))
+	containerRegistryId := ""
+	if profile.ContainerRegistryId != nil {
+		containerRegistryId = *profile.ContainerRegistryId
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"artifact_source":       artifactSource,
+			"container_registry_id": containerRegistryId,
+		},
+	}
 }
 
 func expandKubernetesClusterAutoScalerProfile(input []interface{}) *managedclusters.ManagedClusterPropertiesAutoScalerProfile {

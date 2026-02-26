@@ -479,6 +479,21 @@ func TestAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_bootstrapProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.bootstrapProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("bootstrap_profile.0.artifact_source").HasValue("Direct"),
+				check.That(data.ResourceName).Key("bootstrap_profile.0.container_registry_id").Exists(),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceKubernetesCluster_nodeLabels(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -923,6 +938,17 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.autoscaleWithAvailabilityZonesConfig(data))
+}
+
+func (KubernetesClusterDataSource) bootstrapProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.bootstrapProfile(data, "Direct"))
 }
 
 func (KubernetesClusterDataSource) nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {
