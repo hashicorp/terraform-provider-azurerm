@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -93,6 +94,24 @@ func TestAccVirtualHubRouteTableRoute_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualHubRouteTableRoute_duplicateDestinations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_route_table_route", "test")
+	r := VirtualHubRouteTableRouteResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.duplicateDestinations(data),
+			ExpectError: regexp.MustCompile("already exists in route"),
+		},
 	})
 }
 
@@ -259,4 +278,32 @@ resource "azurerm_virtual_hub_route_table_route" "test_3" {
   next_hop          = azurerm_virtual_hub_connection.test.id
 }
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r VirtualHubRouteTableRouteResource) duplicateDestinations(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_route_table_route" "test" {
+  route_table_id = azurerm_virtual_hub_route_table.test.id
+
+  name = "acctest-Route-%d"
+
+  destinations_type = "CIDR"
+  destinations      = ["10.0.0.0/16"]
+  next_hop_type     = "ResourceId"
+  next_hop          = azurerm_virtual_hub_connection.test.id
+}
+
+resource "azurerm_virtual_hub_route_table_route" "duplicate" {
+  route_table_id = azurerm_virtual_hub_route_table.test.id
+
+  name = "acctest-Route-%d-duplicate"
+
+  destinations_type = "CIDR"
+  destinations      = ["10.0.0.0/16"]
+  next_hop_type     = "ResourceId"
+  next_hop          = azurerm_virtual_hub_connection.test.id
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger)
 }
