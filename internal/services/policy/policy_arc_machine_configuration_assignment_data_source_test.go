@@ -31,7 +31,7 @@ func (r PolicyArcMachineConfigurationAssignmentDataSource) template(data accepta
 	rgid := data.RandomInteger
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -61,9 +61,9 @@ func (r PolicyArcMachineConfigurationAssignmentDataSource) basic(data acceptance
 %s
 
 resource "azurerm_policy_arc_machine_configuration_assignment" "test" {
-  name               = "AzureWindowsBaseline"
-  location           = azurerm_arc_machine.test.location
-  machine_id 		 = azurerm_arc_machine.test.id
+  name       = "AzureWindowsBaseline"
+  location   = azurerm_arc_machine.test.location
+  machine_id = azurerm_arc_machine.test.id
 
   configuration {
     assignment_type = "ApplyAndMonitor"
@@ -93,9 +93,9 @@ resource "azurerm_policy_arc_machine_configuration_assignment" "test" {
 }
 
 data "azurerm_policy_arc_machine_configuration_assignment" "test" {
-  name                 = azurerm_policy_arc_machine_configuration_assignment.test.name
-  resource_group_name  = azurerm_resource_group.test.name
-  machine_name 		   = azurerm_arc_machine.test.name
+  name                = azurerm_policy_arc_machine_configuration_assignment.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  machine_name        = azurerm_arc_machine.test.name
 }
 `, r.template(data))
 }

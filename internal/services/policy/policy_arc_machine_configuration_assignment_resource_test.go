@@ -90,7 +90,7 @@ func (r PolicyArcMachineConfigurationAssignmentResource) template(data acceptanc
 	rgid := data.RandomInteger
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -142,9 +142,9 @@ func (r PolicyArcMachineConfigurationAssignmentResource) requiresImport(data acc
 %s
 
 resource "azurerm_policy_arc_machine_configuration_assignment" "import" {
-  name               = azurerm_policy_arc_machine_configuration_assignment.test.name
-  location           = azurerm_policy_arc_machine_configuration_assignment.test.location
-  machine_id 		 = azurerm_policy_arc_machine_configuration_assignment.test.machine_id
+  name       = azurerm_policy_arc_machine_configuration_assignment.test.name
+  location   = azurerm_policy_arc_machine_configuration_assignment.test.location
+  machine_id = azurerm_policy_arc_machine_configuration_assignment.test.machine_id
 
   configuration {
     version = "1.*"
@@ -163,9 +163,9 @@ func (r PolicyArcMachineConfigurationAssignmentResource) complete(data acceptanc
 %s
 
 resource "azurerm_policy_arc_machine_configuration_assignment" "test" {
-  name               = "WhitelistedApplication"
-  location           = azurerm_arc_machine.test.location
-  machine_id 		 = azurerm_arc_machine.test.id
+  name       = "WhitelistedApplication"
+  location   = azurerm_arc_machine.test.location
+  machine_id = azurerm_arc_machine.test.id
 
   configuration {
     version         = "1.1.1.1"
@@ -187,9 +187,9 @@ func (r PolicyArcMachineConfigurationAssignmentResource) updateGuestConfiguratio
 %s
 
 resource "azurerm_policy_arc_machine_configuration_assignment" "test" {
-  name               = "WhitelistedApplication"
-  location           = azurerm_arc_machine.test.location
-  machine_id 		 = azurerm_arc_machine.test.id
+  name       = "WhitelistedApplication"
+  location   = azurerm_arc_machine.test.location
+  machine_id = azurerm_arc_machine.test.id
 
   configuration {
     version         = "1.1.1.1"
