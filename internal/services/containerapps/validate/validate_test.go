@@ -279,7 +279,7 @@ func TestValidateInitTimeout(t *testing.T) {
 	}
 }
 
-func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
+func TestContainerAppScaleRuleConcurrentRequestsAndConnections(t *testing.T) {
 	cases := []struct {
 		Input string
 		Valid bool
@@ -316,7 +316,7 @@ func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Logf("[DEBUG] Testing Value %s", tc.Input)
-		_, errors := ContainerAppScaleRuleConcurrentRequests(tc.Input, "test")
+		_, errors := ContainerAppScaleRuleConcurrentRequestsAndConnections(tc.Input, "test")
 		valid := len(errors) == 0
 
 		if tc.Valid != valid {
