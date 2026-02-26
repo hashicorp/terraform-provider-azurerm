@@ -27,6 +27,7 @@ var services = mapOf(
         "communication" to "Communication",
         "compute" to "Compute",
         "confidentialledger" to "Confidential Ledger",
+        "confluent" to "Confluent",
         "connections" to "Connections",
         "consumption" to "Consumption",
         "containerapps" to "Container Apps",
