@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) The metadata for the policy definition. This is a JSON string representing additional metadata that should be stored with the policy definition.
 
-* `parameters` - (Optional) Parameters for the policy definition. This field is a JSON string that allows you to parameterize your policy definition. Reducing the number of parameters forces a new resource to be created.
+* `parameters` - (Optional) Parameters for the policy definition. This field is a JSON string that allows you to parameterize your policy definition. Removing or renaming parameters forces a new resource to be created.
 
 ## Attributes Reference
 

@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) The metadata for the Policy Set Definition in JSON format.
 
-* `parameters` - (Optional) The parameters for the Policy Set Definition in JSON format. Reducing the number of parameters forces a new resource to be created.
+* `parameters` - (Optional) The parameters for the Policy Set Definition in JSON format. Removing or renaming parameters forces a new resource to be created.
 
 * `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 

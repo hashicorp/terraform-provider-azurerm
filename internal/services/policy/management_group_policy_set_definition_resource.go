@@ -372,8 +372,10 @@ func (r ManagementGroupPolicySetDefinitionResource) CustomizeDiff() sdk.Resource
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(*newParameters) < len(*oldParameters) {
-						return metadata.ResourceDiff.ForceNew("parameters")
+					for paramName := range *oldParameters {
+						if _, ok := (*newParameters)[paramName]; !ok {
+							return metadata.ResourceDiff.ForceNew("parameters")
+						}
 					}
 				}
 			}
