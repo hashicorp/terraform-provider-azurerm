@@ -1,30 +1,31 @@
-## 4.62.0 (Unreleased)
-
-ENHANCEMENTS:
-`azurerm_linux_web_app` - add support for `3.14` in the `python_version` property [GH-31826]
-`azurerm_dashboard_grafana` - add support for the `12` value in the `grafana_major_version` property and remove the deprecated `10` value  [GH-31653]
-* dependencies: `databricks` - update to API version `2026-01-01` [GH-31654]
-* dependencies: `dataprotection` - update to API version `2025-09-01` [GH-31402]
-* `network` - deprecate and rename `enabled_*` properties for 5.0 [GH-31643]
-* `azurerm_monitor_diagnostic_setting` - deprecate the `enabled_log.retention_policy` block [GH-31792]
-* `azurerm_linux_web_app` - add support for `25` in the `java_version` property [GH-31039]
-* `azurerm_windows_web_app` - add support for `25` in the `java_version` property [GH-31039]
-* `azurerm_linux_function_app` - add support for `25` in the `java_version` property [GH-31039]
-* `azurerm_windows_function_app` - add support for `25` in the `java_version` property [GH-31039]
-
+## 4.62.0 (February 26, 2026)
 
 FEATURES:
-* `azurerm_private_endpoint` implement list resource (#31769) [GH-31769]
-* `mssql_virtual_machine` implement list and identity (#31737) [GH-31737]
-* `azurerm_network_ddos_protection_plan` implement list and identity (#31768) [GH-31768]
-* `mssql_elasticpool` implement list and identity (#31736) [GH-31736]
-* `azurerm_route` implement list (#31760) [GH-31760]
-* **New List Resource**: `azurerm_redis_cache` and `azurerm_redis_firewall_rule`  - includes addition of Identity [GH-31770] [GH-31770]
-* `azurerm_private_dns_a_record` list and identity, including sdk support for constant segment types (#31785) [GH-31785]
 
+* **New List Resource**: `azurerm_network_ddos_protection_plan` ([#31768](https://github.com/hashicorp/terraform-provider-azurerm/issues/31768))
+* **New List Resource**: `azurerm_private_dns_a_record` ([#31785](https://github.com/hashicorp/terraform-provider-azurerm/issues/31785))
+* **New List Resource**: `azurerm_private_endpoint` ([#31769](https://github.com/hashicorp/terraform-provider-azurerm/issues/31769))
+* **New List Resource**: `azurerm_redis_cache` ([#31770](https://github.com/hashicorp/terraform-provider-azurerm/issues/31770))
+* **New List Resource**: `azurerm_redis_firewall_rule` ([#31770](https://github.com/hashicorp/terraform-provider-azurerm/issues/31770))
+* **New List Resource**: `azurerm_route` ([#31760](https://github.com/hashicorp/terraform-provider-azurerm/issues/31760))
+* **New List Resource**: `azurerm_mssql_elasticpool` ([#31736](https://github.com/hashicorp/terraform-provider-azurerm/issues/31736))
+* **New List Resource**: `azurerm_mssql_virtual_machine` ([#31737](https://github.com/hashicorp/terraform-provider-azurerm/issues/31737))
+
+ENHANCEMENTS:
+
+* dependencies: `databricks` - update to API version `2026-01-01` ([#31654](https://github.com/hashicorp/terraform-provider-azurerm/issues/31654))
+* dependencies: `dataprotection` - update to API version `2025-09-01` ([#31402](https://github.com/hashicorp/terraform-provider-azurerm/issues/31402))
+* `azurerm_dashboard_grafana` - add support for the `12` value in the `grafana_major_version` property and remove the deprecated `10` value  ([#31653](https://github.com/hashicorp/terraform-provider-azurerm/issues/31653))
+* `azurerm_linux_function_app` - add support for `25` in the `java_version` property ([#31096](https://github.com/hashicorp/terraform-provider-azurerm/issues/31096))
+* `azurerm_linux_web_app` - add support for `3.14` in the `python_version` property ([#31826](https://github.com/hashicorp/terraform-provider-azurerm/issues/31826))
+* `azurerm_linux_web_app` - add support for `25` in the `java_version` property ([#31096](https://github.com/hashicorp/terraform-provider-azurerm/issues/31096))
+* `azurerm_linux_web_app_slot` - add support for `3.14` in the `python_version` property ([#31826](https://github.com/hashicorp/terraform-provider-azurerm/issues/31826))
+* `azurerm_windows_function_app` - add support for `25` in the `java_version` property ([#31096](https://github.com/hashicorp/terraform-provider-azurerm/issues/31096))
+* `azurerm_windows_web_app` - add support for `25` in the `java_version` property ([#31096](https://github.com/hashicorp/terraform-provider-azurerm/issues/31096))
 
 BUG FIXES:
-* `azurerm_container_app_job` add InitialDelaySeconds for readiness and startup probes (#31796) [GH-31796]
+
+* `azurerm_container_app_job` - fix an issue where `template.container.startup_probe.initial_delay` and `template.container.readiness_probe.initial_delay` were not set in the API request ([#31796](https://github.com/hashicorp/terraform-provider-azurerm/issues/31796))
 
 ## 4.61.0 (February 19, 2026)
 
