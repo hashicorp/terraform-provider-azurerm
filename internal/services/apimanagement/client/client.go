@@ -52,6 +52,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigatewayconfigconnection"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	apiversionset_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionset"
 	apiversionsets_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets"
@@ -68,6 +69,7 @@ type Client struct {
 	ApiClient                          *api.ApiClient
 	ApiDiagnosticClient                *apidiagnostic.ApiDiagnosticClient
 	ApiGatewayClient                   *apigateway.ApiGatewayClient
+	ApiGatewayConfigConnectionClient   *apigatewayconfigconnection.ApiGatewayConfigConnectionClient
 	ApiOperationPoliciesClient         *apioperationpolicy.ApiOperationPolicyClient
 	ApiOperationsClient                *apioperation.ApiOperationClient
 	ApiOperationTagClient              *apioperationtag.ApiOperationTagClient
@@ -140,6 +142,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building Api GateWay client: %+v", err)
 	}
 	o.Configure(apiGatewayClient.Client, o.Authorizers.ResourceManager)
+
+	apiGatewayConfigConnectionClient, err := apigatewayconfigconnection.NewApiGatewayConfigConnectionClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Api GateWay Config Connection client: %+v", err)
+	}
+	o.Configure(apiGatewayConfigConnectionClient.Client, o.Authorizers.ResourceManager)
 
 	apiPoliciesClient, err := apipolicy.NewApiPolicyClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -457,6 +465,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ApiClient:                          apiClient,
 		ApiDiagnosticClient:                apiDiagnosticClient,
 		ApiGatewayClient:                   apiGatewayClient,
+		ApiGatewayConfigConnectionClient:   apiGatewayConfigConnectionClient,
 		ApiOperationPoliciesClient:         apiOperationPoliciesClient,
 		ApiOperationsClient:                apiOperationsClient,
 		ApiOperationTagClient:              apiOperationTagClient,
