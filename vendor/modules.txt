@@ -440,7 +440,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/f
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools
