@@ -6,7 +6,6 @@ package cdn
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -329,8 +328,6 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	updateStartedAt := time.Now()
-
 	id, err := afdcustomdomains.ParseCustomDomainID(d.Id())
 	if err != nil {
 		return err
@@ -482,51 +479,9 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 		--- END previous (more defensive) implementation ---
 	*/
 
-	timeout := d.Timeout(pluginsdk.TimeoutUpdate)
-	if deadline, ok := ctx.Deadline(); ok {
-		if until := time.Until(deadline); until > 0 {
-			timeout = until
-		}
-	}
-
-	if err := pluginsdk.Retry(timeout, func() *pluginsdk.RetryError {
-		if err := ctx.Err(); err != nil {
-			return pluginsdk.NonRetryableError(err)
-		}
-
-		getResp, err := client.Get(ctx, *id)
-		if err != nil {
-			if response.WasNotFound(getResp.HttpResponse) {
-				log.Printf("[DEBUG] AFD Custom Domain %s not found while waiting for approval (elapsed %s)", *id, time.Since(updateStartedAt))
-				return pluginsdk.NonRetryableError(fmt.Errorf("retrieving %s while waiting for domainValidationState to be Approved: %+v", *id, err))
-			}
-			log.Printf("[DEBUG] AFD Custom Domain %s GET error while waiting for approval (elapsed %s): %+v", *id, time.Since(updateStartedAt), err)
-			time.Sleep(30 * time.Second)
-			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s while waiting for domainValidationState to be Approved: %+v", *id, err))
-		}
-
-		state := ""
-		if model := getResp.Model; model != nil {
-			if props := model.Properties; props != nil {
-				if props.DomainValidationState != nil {
-					state = string(*props.DomainValidationState)
-				}
-				if props.DomainValidationState != nil && *props.DomainValidationState == afdcustomdomains.DomainValidationStateApproved {
-					log.Printf("[DEBUG] AFD Custom Domain %s approved (elapsed %s)", *id, time.Since(updateStartedAt))
-					return nil
-				}
-			}
-		}
-
-		if state == "" {
-			log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState is empty (elapsed %s)", *id, time.Since(updateStartedAt))
-		} else {
-			log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState=%q (elapsed %s)", *id, state, time.Since(updateStartedAt))
-		}
-
-		time.Sleep(30 * time.Second)
-		return pluginsdk.RetryableError(fmt.Errorf("waiting for %s to be approved", *id))
-	}); err != nil {
+	approvalPollerType := custompollers.NewFrontDoorCustomDomainWaitForApprovedPoller(client, *id)
+	approvalPoller := pollers.NewPoller(approvalPollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := approvalPoller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be approved: %+v", *id, err)
 	}
 
