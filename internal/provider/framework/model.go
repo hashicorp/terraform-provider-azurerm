@@ -206,10 +206,14 @@ var ResourceGroupAttributes = map[string]attr.Type{
 
 type ManagedDisk struct {
 	ExpandWithoutDowntime types.Bool `tfsdk:"expand_without_downtime"`
+	StopVMBeforeDetaching types.Bool `tfsdk:"stop_vm_before_detaching"`
+	SkipAttachmentDestroy types.Bool `tfsdk:"skip_attachment_destroy"`
 }
 
 var ManagedDiskAttributes = map[string]attr.Type{
-	"expand_without_downtime": types.BoolType,
+	"expand_without_downtime":  types.BoolType,
+	"stop_vm_before_detaching": types.BoolType,
+	"skip_attachment_destroy":  types.BoolType,
 }
 
 type Storage struct {
