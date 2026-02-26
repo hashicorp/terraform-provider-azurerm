@@ -35,11 +35,11 @@ func resourceAutomationVariableObject() *pluginsdk.Resource {
 }
 
 func resourceAutomationVariableObjectCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Object")
+	return resourceAutomationVariableCreate(d, meta, "Object")
 }
 
 func resourceAutomationVariableObjectUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	return resourceAutomationVariableCreateUpdate(d, meta, "Object")
+	return resourceAutomationVariableUpdate(d, meta, "Object")
 }
 
 func resourceAutomationVariableObjectRead(d *pluginsdk.ResourceData, meta interface{}) error {
