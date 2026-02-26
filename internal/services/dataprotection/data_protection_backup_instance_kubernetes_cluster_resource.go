@@ -14,15 +14,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_kubernetes_cluster -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_kubernetes_cluster -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
 
 type BackupInstanceKubernatesClusterModel struct {
 	Name                       string                       `tfschema:"name"`
@@ -53,7 +54,7 @@ var (
 )
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Identity() resourceids.ResourceId {
-	return &backupinstances.BackupInstanceId{}
+	return &backupinstanceresources.BackupInstanceId{}
 }
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) ResourceType() string {
@@ -65,7 +66,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) ModelObject() int
 }
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return backupinstances.ValidateBackupInstanceID
+	return backupinstanceresources.ValidateBackupInstanceID
 }
 
 func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -82,14 +83,14 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Arguments() map[s
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: backupinstances.ValidateBackupVaultID,
+			ValidateFunc: backupvaultresources.ValidateBackupVaultID,
 		},
 
 		"backup_policy_id": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: backuppolicies.ValidateBackupPolicyID,
+			ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 		},
 
 		"kubernetes_cluster_id": {
@@ -186,13 +187,13 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			vaultId, err := backupinstances.ParseBackupVaultID(model.VaultId)
+			vaultId, err := backupvaultresources.ParseBackupVaultID(model.VaultId)
 			if err != nil {
 				return err
 			}
 
-			id := backupinstances.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
-			existing, err := client.Get(ctx, id)
+			id := backupinstanceresources.NewBackupInstanceID(vaultId.SubscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
+			existing, err := client.BackupInstancesGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for existing %s: %+v", id, err)
@@ -203,7 +204,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			policyId, err := backuppolicies.ParseBackupPolicyID(model.BackupPolicyId)
+			policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 			if err != nil {
 				return err
 			}
@@ -214,9 +215,9 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 			}
 
 			snapshotResourceGroupId := resourceParse.NewResourceGroupID(metadata.Client.Account.SubscriptionId, model.SnapshotResourceGroupName)
-			parameters := backupinstances.BackupInstanceResource{
-				Properties: &backupinstances.BackupInstance{
-					DataSourceInfo: backupinstances.Datasource{
+			parameters := backupinstanceresources.BackupInstanceResource{
+				Properties: &backupinstanceresources.BackupInstance{
+					DataSourceInfo: backupinstanceresources.Datasource{
 						DatasourceType:   pointer.To("Microsoft.ContainerService/managedClusters"),
 						ObjectType:       pointer.To("Datasource"),
 						ResourceID:       aksId.ID(),
@@ -225,7 +226,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 						ResourceType:     pointer.To("Microsoft.ContainerService/managedClusters"),
 						ResourceUri:      pointer.To(aksId.ID()),
 					},
-					DataSourceSetInfo: &backupinstances.DatasourceSet{
+					DataSourceSetInfo: &backupinstanceresources.DatasourceSet{
 						DatasourceType:   pointer.To("Microsoft.ContainerService/managedClusters"),
 						ObjectType:       pointer.To("DatasourceSet"),
 						ResourceID:       aksId.ID(),
@@ -236,13 +237,13 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 					},
 					FriendlyName: pointer.To(id.BackupInstanceName),
 					ObjectType:   "BackupInstance",
-					PolicyInfo: backupinstances.PolicyInfo{
+					PolicyInfo: backupinstanceresources.PolicyInfo{
 						PolicyId: policyId.ID(),
-						PolicyParameters: &backupinstances.PolicyParameters{
-							DataStoreParametersList: &[]backupinstances.DataStoreParameters{
-								backupinstances.AzureOperationalStoreParameters{
+						PolicyParameters: &backupinstanceresources.PolicyParameters{
+							DataStoreParametersList: &[]backupinstanceresources.DataStoreParameters{
+								backupinstanceresources.AzureOperationalStoreParameters{
 									ResourceGroupId: pointer.To(snapshotResourceGroupId.ID()),
-									DataStoreType:   backupinstances.DataStoreTypesOperationalStore,
+									DataStoreType:   backupinstanceresources.DataStoreTypesOperationalStore,
 								},
 							},
 							BackupDatasourceParametersList: expandBackupDatasourceParameters(model.BackupDatasourceParameters),
@@ -251,7 +252,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Create() sdk.Reso
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -270,12 +271,12 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupInstancesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -284,7 +285,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+			vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 
 			state := BackupInstanceKubernatesClusterModel{
 				Name:    id.BackupInstanceName,
@@ -301,7 +302,7 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Read() sdk.Resour
 					if policyParameters := properties.PolicyInfo.PolicyParameters; policyParameters != nil {
 						if dataStorePara := policyParameters.DataStoreParametersList; dataStorePara != nil {
 							if dsp := pointer.From(dataStorePara); len(dsp) > 0 {
-								if parameter, ok := dsp[0].(backupinstances.AzureOperationalStoreParameters); ok && parameter.ResourceGroupId != nil {
+								if parameter, ok := dsp[0].(backupinstanceresources.AzureOperationalStoreParameters); ok && parameter.ResourceGroupId != nil {
 									resourceGroupId, err := resourceParse.ResourceGroupID(*parameter.ResourceGroupId)
 									if err != nil {
 										return err
@@ -333,12 +334,12 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Delete() sdk.Reso
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupInstanceClient
 
-			id, err := backupinstances.ParseBackupInstanceID(metadata.ResourceData.Id())
+			id, err := backupinstanceresources.ParseBackupInstanceID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
+			err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -348,12 +349,12 @@ func (r DataProtectionBackupInstanceKubernatesClusterResource) Delete() sdk.Reso
 	}
 }
 
-func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]backupinstances.BackupDatasourceParameters {
+func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]backupinstanceresources.BackupDatasourceParameters {
 	if len(input) == 0 {
 		return nil
 	}
-	results := make([]backupinstances.BackupDatasourceParameters, 0)
-	results = append(results, backupinstances.KubernetesClusterBackupDatasourceParameters{
+	results := make([]backupinstanceresources.BackupDatasourceParameters, 0)
+	results = append(results, backupinstanceresources.KubernetesClusterBackupDatasourceParameters{
 		ExcludedNamespaces:           pointer.To(input[0].ExcludedNamespaces),
 		ExcludedResourceTypes:        pointer.To(input[0].ExcludedResourceTypes),
 		IncludeClusterScopeResources: input[0].ClusterScopeResourceEnabled,
@@ -365,13 +366,13 @@ func expandBackupDatasourceParameters(input []BackupDatasourceParameters) *[]bac
 	return &results
 }
 
-func flattenBackupDatasourceParameters(input []backupinstances.BackupDatasourceParameters) *[]BackupDatasourceParameters {
+func flattenBackupDatasourceParameters(input []backupinstanceresources.BackupDatasourceParameters) *[]BackupDatasourceParameters {
 	results := make([]BackupDatasourceParameters, 0)
 	if len(input) == 0 {
 		return &results
 	}
 
-	if item, ok := input[0].(backupinstances.KubernetesClusterBackupDatasourceParameters); ok {
+	if item, ok := input[0].(backupinstanceresources.KubernetesClusterBackupDatasourceParameters); ok {
 		results = append(results, BackupDatasourceParameters{
 			ExcludedNamespaces:          pointer.From(item.ExcludedNamespaces),
 			ExcludedResourceTypes:       pointer.From(item.ExcludedResourceTypes),

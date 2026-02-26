@@ -31,6 +31,11 @@ func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
 			NoDiff: false,
 		},
+		{
+			Old:    "server=myserver.database.windows.net;database=mydatabase;user id=myuser",
+			New:    "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser;Password=mypassword;",
+			NoDiff: true,
+		},
 	}
 
 	for _, tc := range cases {

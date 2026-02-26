@@ -13,13 +13,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_customer_managed_key -service-package-name dataprotection -compare-values "resource_group_name:data_protection_backup_vault_id,name:data_protection_backup_vault_id" -known-values "subscription_id:data.Subscriptions.Primary" -test-name complete
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_vault_customer_managed_key -service-package-name dataprotection -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,name:data_protection_backup_vault_id" -test-name complete
 
 type DataProtectionBackupVaultCustomerManagedKeyResource struct{}
 
@@ -34,7 +34,7 @@ var (
 )
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) Identity() resourceids.ResourceId {
-	return &backupvaults.BackupVaultId{}
+	return &backupvaultresources.BackupVaultId{}
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) ModelObject() interface{} {
@@ -46,7 +46,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) ResourceType() stri
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return backupvaults.ValidateBackupVaultID
+	return backupvaultresources.ValidateBackupVaultID
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) Arguments() map[string]*pluginsdk.Schema {
@@ -55,7 +55,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Arguments() map[str
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: backupvaults.ValidateBackupVaultID,
+			ValidateFunc: backupvaultresources.ValidateBackupVaultID,
 		},
 
 		"key_vault_key_id": {
@@ -81,7 +81,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				return err
 			}
 
-			id, err := backupvaults.ParseBackupVaultID(cmk.DataProtectionBackupVaultID)
+			id, err := backupvaultresources.ParseBackupVaultID(cmk.DataProtectionBackupVaultID)
 			if err != nil {
 				return err
 			}
@@ -89,7 +89,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupVaultsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", *id)
@@ -112,18 +112,18 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 				return err
 			}
 
-			payload.Properties.SecuritySettings.EncryptionSettings = &backupvaults.EncryptionSettings{
-				State: pointer.To(backupvaults.EncryptionStateEnabled),
-				KeyVaultProperties: &backupvaults.CmkKeyVaultProperties{
+			payload.Properties.SecuritySettings.EncryptionSettings = &backupvaultresources.EncryptionSettings{
+				State: pointer.To(backupvaultresources.EncryptionStateEnabled),
+				KeyVaultProperties: &backupvaultresources.CmkKeyVaultProperties{
 					KeyUri: pointer.To(keyId.ID()),
 				},
 			}
 
-			payload.Properties.SecuritySettings.EncryptionSettings.KekIdentity = &backupvaults.CmkKekIdentity{
-				IdentityType: pointer.To(backupvaults.IdentityTypeSystemAssigned),
+			payload.Properties.SecuritySettings.EncryptionSettings.KekIdentity = &backupvaultresources.CmkKekIdentity{
+				IdentityType: pointer.To(backupvaultresources.IdentityTypeSystemAssigned),
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, *payload, backupvaults.DefaultCreateOrUpdateOperationOptions())
+			err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
 			if err != nil {
 				return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 			}
@@ -144,12 +144,12 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Read() sdk.Resource
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.DataProtection.BackupVaultClient
 
-			id, err := backupvaults.ParseBackupVaultID(metadata.ResourceData.Id())
+			id, err := backupvaultresources.ParseBackupVaultID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.BackupVaultsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -197,15 +197,14 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 				return err
 			}
 
-			id, err := backupvaults.ParseBackupVaultID(metadata.ResourceData.Id())
+			id, err := backupvaultresources.ParseBackupVaultID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
-
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupVaultsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", *id)
@@ -228,12 +227,12 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Update() sdk.Resour
 				if err != nil {
 					return err
 				}
-				payload.Properties.SecuritySettings.EncryptionSettings.KeyVaultProperties = &backupvaults.CmkKeyVaultProperties{
+				payload.Properties.SecuritySettings.EncryptionSettings.KeyVaultProperties = &backupvaultresources.CmkKeyVaultProperties{
 					KeyUri: pointer.To(keyId.ID()),
 				}
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, *payload, backupvaults.DefaultCreateOrUpdateOperationOptions())
+			err = client.BackupVaultsCreateOrUpdateThenPoll(ctx, *id, *payload, backupvaultresources.DefaultBackupVaultsCreateOrUpdateOperationOptions())
 			if err != nil {
 				return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
 			}

@@ -18,6 +18,62 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 See [Running the Tests](running-the-tests.md).
 
+### PreCheck Helpers
+
+Acceptance tests frequently require additional prerequisites beyond the standard Azure credentials and test locations (for example, access to a real DNS zone, an existing Key Vault/certificate, or other shared infrastructure).
+
+To keep tests reliable (and to avoid creating resources that will inevitably fail), use a **pre-check** to either:
+
+* **Skip** a test when optional external prerequisites are not available (e.g. an environment variable pointing to shared infrastructure is not set).
+* **Fail fast** only when the prerequisite is considered mandatory for all acceptance tests in the suite.
+
+#### Global pre-check (mandatory)
+
+The acceptance test framework already includes a global pre-check (`acceptance.PreCheck(t)`) which validates the required Azure authentication and test location environment variables.
+
+This is intended for prerequisites that are required for *all* acceptance tests.
+
+#### Resource/service-specific pre-check (recommended pattern)
+
+For additional, test-specific prerequisites, the common convention in this repository is to implement a receiver method named `preCheck(t *testing.T)` on the test struct (for example `type ExampleResource struct {}`) and call it at the start of each `TestAcc...` that requires it.
+
+When the prerequisites are not met, these pre-checks should typically call `t.Skip(...)` / `t.Skipf(...)` (rather than `t.Fatalf(...)`) so that:
+
+* contributors without the optional infrastructure can still run unrelated tests successfully;
+* CI or scheduled runs can provide the prerequisites and run the full suite.
+
+Example:
+
+```go
+type ExampleResource struct{}
+
+func TestAccExampleResource_basic(t *testing.T) {
+        data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
+        r := ExampleResource{}
+        r.preCheck(t)
+
+        data.ResourceTest(t, r, []acceptance.TestStep{
+                {
+                        Config: r.basic(data),
+                        Check: acceptance.ComposeTestCheckFunc(
+                                check.That(data.ResourceName).ExistsInAzure(r),
+                        ),
+                },
+                data.ImportStep(),
+        })
+}
+
+func (ExampleResource) preCheck(t *testing.T) {
+        if os.Getenv("ARM_TEST_SOME_PREREQ") == "" {
+                t.Skip("Skipping as ARM_TEST_SOME_PREREQ is not set")
+        }
+}
+```
+
+#### Where to put `preCheck`
+
+Go does not require a specific function order, but for readability it is recommended to place `preCheck` close to the tests that call it (commonly after the `TestAcc...` functions and before the `Exists`/`Destroy` methods), following the pattern used throughout `internal/services/*/*_test.go`.
+
 ### Test Package
 
 While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:

@@ -3,7 +3,7 @@ module github.com/hashicorp/terraform-provider-azurerm/internal/tools/update-go-
 go 1.24.1
 
 require (
-	github.com/go-git/go-git/v5 v5.16.2
+	github.com/go-git/go-git/v5 v5.16.5
 	github.com/hashicorp/go-azure-helpers v0.73.0
 	github.com/hashicorp/go-hclog v1.6.3
 	golang.org/x/mod v0.25.0

@@ -14,8 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,7 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_disk -service-package-name dataprotection -properties "name" -compare-values "resource_group_name:vault_id,backup_vault_name:vault_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_disk -service-package-name dataprotection -properties "name" -compare-values "subscription_id:vault_id,resource_group_name:vault_id,backup_vault_name:vault_id"
 
 func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 	return &schema.Resource{
@@ -41,9 +42,9 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingIdentity(&backupinstances.BackupInstanceId{}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&backupinstanceresources.BackupInstanceId{}),
 		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&backupinstances.BackupInstanceId{}),
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&backupinstanceresources.BackupInstanceId{}),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -59,7 +60,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: backupinstances.ValidateBackupVaultID,
+				ValidateFunc: backupvaultresources.ValidateBackupVaultID,
 			},
 
 			"disk_id": {
@@ -74,7 +75,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 			"backup_policy_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
+				ValidateFunc: basebackuppolicyresources.ValidateBackupPolicyID,
 			},
 
 			"snapshot_subscription_id": {
@@ -86,7 +87,7 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 					// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
 					// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
 					_, planVaultId := d.GetChange("vault_id")
-					vaultId, err := backupinstances.ParseBackupVaultID(planVaultId.(string))
+					vaultId, err := backupvaultresources.ParseBackupVaultID(planVaultId.(string))
 					if err != nil {
 						return false
 					}
@@ -116,11 +117,11 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	defer cancel()
 
 	name := d.Get("name").(string)
-	vaultId, _ := backupinstances.ParseBackupVaultID(d.Get("vault_id").(string))
-	id := backupinstances.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
+	vaultId, _ := backupvaultresources.ParseBackupVaultID(d.Get("vault_id").(string))
+	id := backupinstanceresources.NewBackupInstanceID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, name)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.BackupInstancesGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing DataProtection BackupInstance (%q): %+v", id, err)
@@ -136,7 +137,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		return err
 	}
 	location := location.Normalize(d.Get("location").(string))
-	policyId, err := backuppolicies.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
+	policyId, err := basebackuppolicyresources.ParseBackupPolicyID(d.Get("backup_policy_id").(string))
 	if err != nil {
 		return err
 	}
@@ -147,9 +148,9 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	}
 	snapshotResourceGroupId := resourceParse.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
 
-	parameters := backupinstances.BackupInstanceResource{
-		Properties: &backupinstances.BackupInstance{
-			DataSourceInfo: backupinstances.Datasource{
+	parameters := backupinstanceresources.BackupInstanceResource{
+		Properties: &backupinstanceresources.BackupInstance{
+			DataSourceInfo: backupinstanceresources.Datasource{
 				DatasourceType:   pointer.To("Microsoft.Compute/disks"),
 				ObjectType:       pointer.To("Datasource"),
 				ResourceID:       diskId.ID(),
@@ -159,13 +160,13 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 				ResourceUri:      pointer.To(diskId.ID()),
 			},
 			FriendlyName: pointer.To(id.BackupInstanceName),
-			PolicyInfo: backupinstances.PolicyInfo{
+			PolicyInfo: backupinstanceresources.PolicyInfo{
 				PolicyId: policyId.ID(),
-				PolicyParameters: &backupinstances.PolicyParameters{
-					DataStoreParametersList: &[]backupinstances.DataStoreParameters{
-						backupinstances.AzureOperationalStoreParameters{
+				PolicyParameters: &backupinstanceresources.PolicyParameters{
+					DataStoreParametersList: &[]backupinstanceresources.DataStoreParameters{
+						backupinstanceresources.AzureOperationalStoreParameters{
 							ResourceGroupId: pointer.To(snapshotResourceGroupId.ID()),
-							DataStoreType:   backupinstances.DataStoreTypesOperationalStore,
+							DataStoreType:   backupinstanceresources.DataStoreTypesOperationalStore,
 						},
 					},
 				},
@@ -173,7 +174,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.BackupInstancesCreateOrUpdateThenPoll(ctx, id, parameters, backupinstanceresources.DefaultBackupInstancesCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
@@ -182,8 +183,8 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		return fmt.Errorf("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(backupinstances.StatusConfiguringProtection)},
-		Target:     []string{string(backupinstances.StatusProtectionConfigured)},
+		Pending:    []string{string(backupinstanceresources.StatusConfiguringProtection)},
+		Target:     []string{string(backupinstanceresources.StatusProtectionConfigured)},
 		Refresh:    policyProtectionStateRefreshFunc(ctx, client, id),
 		MinTimeout: 1 * time.Minute,
 		Timeout:    time.Until(deadline),
@@ -205,12 +206,12 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backupinstances.ParseBackupInstanceID(d.Id())
+	id, err := backupinstanceresources.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, *id)
+	resp, err := client.BackupInstancesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] dataprotection %q does not exist - removing from state", d.Id())
@@ -219,7 +220,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 		}
 		return fmt.Errorf("retrieving DataProtection BackupInstance (%q): %+v", id, err)
 	}
-	vaultId := backupinstances.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
+	vaultId := backupvaultresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 	d.Set("name", id.BackupInstanceName)
 	d.Set("vault_id", vaultId.ID())
 
@@ -231,7 +232,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 			d.Set("protection_state", pointer.FromEnum(props.CurrentProtectionState))
 			d.Set("backup_policy_id", props.PolicyInfo.PolicyId)
 			if props.PolicyInfo.PolicyParameters != nil && props.PolicyInfo.PolicyParameters.DataStoreParametersList != nil && len(*props.PolicyInfo.PolicyParameters.DataStoreParametersList) > 0 {
-				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstances.AzureOperationalStoreParameters)
+				parameter := (*props.PolicyInfo.PolicyParameters.DataStoreParametersList)[0].(backupinstanceresources.AzureOperationalStoreParameters)
 
 				if parameter.ResourceGroupId != nil {
 					resourceGroupId, err := resourceParse.ResourceGroupIDInsensitively(*parameter.ResourceGroupId)
@@ -252,12 +253,12 @@ func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := backupinstances.ParseBackupInstanceID(d.Id())
+	id, err := backupinstanceresources.ParseBackupInstanceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
+	err = client.BackupInstancesDeleteThenPoll(ctx, *id, backupinstanceresources.DefaultBackupInstancesDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}

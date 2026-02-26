@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
@@ -357,11 +357,8 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
 							Elem: &pluginsdk.Schema{
-								Type: pluginsdk.TypeString,
-								ValidateFunc: validation.StringInSlice([]string{
-									string(workspaces.ComplianceStandardHIPAA),
-									string(workspaces.ComplianceStandardPCIDSS),
-								}, false),
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringInSlice(validate.PossibleValuesForComplianceStandard(), false),
 							},
 						},
 						"enhanced_security_monitoring_enabled": {
@@ -666,16 +663,15 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = pointer.To(rotationEnabled)
 	}
 
-	// Including the Tags in the workspace parameters will update the tags on
-	// the workspace only
 	workspace := workspaces.Workspace{
 		Sku: &workspaces.Sku{
 			Name: skuName,
 		},
 		Location: location,
 		Properties: workspaces.WorkspaceProperties{
+			ComputeMode:            workspaces.ComputeModeHybrid,
 			PublicNetworkAccess:    &publicNetworkAccess,
-			ManagedResourceGroupId: managedResourceGroupID,
+			ManagedResourceGroupId: pointer.To(managedResourceGroupID),
 			Parameters:             customParams,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -801,7 +797,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("sku", sku.Name)
 		}
 
-		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(model.Properties.ManagedResourceGroupId)
+		managedResourceGroupID, err := resourcesParse.ResourceGroupIDInsensitively(pointer.From(model.Properties.ManagedResourceGroupId))
 		if err != nil {
 			return err
 		}
@@ -1262,17 +1258,6 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
-	if d.HasChange("tags") {
-		workspaceUpdate := workspaces.WorkspaceUpdate{
-			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-		}
-
-		err := client.UpdateThenPoll(ctx, *id, workspaceUpdate)
-		if err != nil {
-			return fmt.Errorf("updating %s Tags: %+v", id, err)
-		}
-	}
-
 	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
@@ -1519,10 +1504,10 @@ func flattenWorkspaceEnhancedSecurity(input *workspaces.EnhancedSecurityComplian
 
 		standards := pluginsdk.NewSet(pluginsdk.HashString, nil)
 		for _, s := range pointer.From(v.ComplianceStandards) {
-			if s == workspaces.ComplianceStandardNONE {
+			if s == string(validate.ComplianceStandardNONE) {
 				continue
 			}
-			standards.Add(string(s))
+			standards.Add(s)
 		}
 
 		enhancedSecurityCompliance["compliance_security_profile_standards"] = standards
@@ -1553,15 +1538,15 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 		complianceSecurityProfileEnabled = workspaces.ComplianceSecurityProfileValueEnabled
 	}
 
-	complianceStandards := []workspaces.ComplianceStandard{}
+	complianceStandards := make([]string, 0)
 	if standardSet, ok := config["compliance_security_profile_standards"].(*pluginsdk.Set); ok {
 		for _, s := range standardSet.List() {
-			complianceStandards = append(complianceStandards, workspaces.ComplianceStandard(s.(string)))
+			complianceStandards = append(complianceStandards, s.(string))
 		}
 	}
 
 	if complianceSecurityProfileEnabled == workspaces.ComplianceSecurityProfileValueEnabled && len(complianceStandards) == 0 {
-		complianceStandards = append(complianceStandards, workspaces.ComplianceStandardNONE)
+		complianceStandards = append(complianceStandards, string(validate.ComplianceStandardNONE))
 	}
 
 	return &workspaces.EnhancedSecurityComplianceDefinition{
