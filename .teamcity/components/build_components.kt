@@ -1,4 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
+import java.io.File
+import jetbrains.buildServer.configs.kotlin.buildFeatures.BuildCacheFeature
 import jetbrains.buildServer.configs.kotlin.buildFeatures.GolangFeature
 import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 import jetbrains.buildServer.configs.kotlin.triggers.schedule
@@ -18,6 +20,23 @@ fun BuildFeatures.Golang() {
             testFormat = "json"
         })
     }
+}
+
+// Requires a manual step of setting up a publishing build configuration for the main branch of the repo:
+// features {
+//     buildCache {
+//         name = "terraform-provider-azurerm-build-cache"
+//         rules = """
+//             %teamcity.agent.work.dir%/go-cache/build
+//             %teamcity.agent.work.dir%/go-cache/mod
+//         """.trimIndent()
+//     }
+// }
+fun BuildFeatures.BuildCacheFeature() {
+        feature(BuildCacheFeature {
+            name = "terraform-provider-azurerm-build-cache"
+            publish = false
+        })
 }
 
 fun BuildSteps.ConfigureGoEnv() {
@@ -58,14 +77,18 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
     } else {
         step(ScriptBuildStep {
             name = "Compile Test Binary"
-            scriptContent = "go test -c -o test-binary"
+            scriptContent = """
+                            mkdir -p %GOMODCACHE%
+                            mkdir -p %GOCACHE%
+                            go test -c -o test-binary
+                            """.trimIndent()
             workingDir = "%SERVICE_PATH%"
         })
 
         step(ScriptBuildStep {
             // ./test-binary -test.list=TestAccAzureRMResourceGroup_ | teamcity-go-test -test ./test-binary -timeout 1s
             name = "Run via jen20/teamcity-go-test"
-            scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\""
+            scriptContent = "./test-binary -test.list=\"%TEST_PREFIX%\" | teamcity-go-test -test ./test-binary -parallelism \"%PARALLELISM%\" -timeout \"%TIMEOUT%h\" | tee results.txt"
             workingDir = "%SERVICE_PATH%"
         })
     }
@@ -87,9 +110,18 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
 
         step(ScriptBuildStep {
             name = "Run Tests"
-            scriptContent = "GOFLAGS=\"-mod=vendor\" ./teamcity-go-test-json_linux_amd64 -scope \"$servicePath\" -prefix \"%TEST_PREFIX%\" -count=1 -parallelism=%PARALLELISM% -timeout %TIMEOUT%"
+            scriptContent = "GOFLAGS=\"-mod=vendor\" ./teamcity-go-test-json_linux_amd64 -scope \"$servicePath\" -prefix \"%TEST_PREFIX%\" -count=1 -parallelism=%PARALLELISM% -timeout %TIMEOUT% | tee results.txt"
         })
     }
+}
+
+
+fun BuildSteps.PostTestResultsToGitHubPullRequest(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Post Test Results to GitHub Pull Request"
+        scriptContent = File("scripts/post_github_comment.sh").readText()
+        workingDir = "%SERVICE_PATH%"
+    })
 }
 
 fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, prefix : String, timeout: Int) {

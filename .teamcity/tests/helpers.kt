@@ -8,5 +8,5 @@ package tests
 import ClientConfiguration
 
 fun TestConfiguration() : ClientConfiguration {
-    return ClientConfiguration("clientId", "clientSecret", "subscriptionId", "tenantId", "clientIdAlt", "clientSecretAlt", "subscriptionIdAlt", "subscriptionIdDevTest", "tenantIdAlt", "subscriptionIdAltTenant", "principalIdAltTenant", "vcsRootId", true, "terraformazuretestacc@example.com")
+    return ClientConfiguration("clientId", "clientSecret", "subscriptionId", "tenantId", "clientIdAlt", "clientSecretAlt", "subscriptionIdAlt", "subscriptionIdDevTest", "tenantIdAlt", "subscriptionIdAltTenant", "principalIdAltTenant", "vcsRootId", true, "terraformazuretestacc@example.com","hashicorp/terraform-provider-azurerm","asdf","%teamcity.agent.work.dir%/go-cache/mod","%teamcity.agent.work.dir%/go-cache/build")
 }

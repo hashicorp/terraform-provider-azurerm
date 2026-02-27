@@ -17,7 +17,12 @@ var principalIdAltTenant = DslContext.getParameter("principalIdAltTenant", "")
 var vcsRootId = DslContext.getParameter("vcsRootId", "TF_HashiCorp_AzureRM_Repository")
 var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 var emailAddressAccTests = DslContext.getParameter("emailAddressAccTests", "")
+var gitHubRepo = DslContext.getParameter("gitHubRepo", "")
+var gitPat = DslContext.getParameter("gitPat", "")
+var goModCache = DslContext.getParameter("goModCache", "")
+var goCache = DslContext.getParameter("goCache", "")
 
-var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, enableTestTriggersGlobally, emailAddressAccTests)
+
+var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, enableTestTriggersGlobally, emailAddressAccTests, gitHubRepo, gitPat, goModCache, goCache)
 
 project(AzureRM(environment, clientConfig))
