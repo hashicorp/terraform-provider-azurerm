@@ -97,6 +97,8 @@ The following arguments are supported:
 
 * `client_certificate_exclusion_paths` - (Optional) Paths to exclude when using client certificates, separated by ;
 
+~> **Note:**   TLS 1.3 and HTTP 2.0 don't support TLS renegotiation. These protocols will not work if your app is configured with client certificate settings that use TLS renegotiation. Either set `client_certificate_enabled` to `false`, or set `client_certificate_mode` to `Optional` or `Required` and remove all `client_certificate_exclusion_paths`.
+
 * `connection_string` - (Optional) One or more `connection_string` blocks as defined below.
 
 * `daily_memory_time_quota` - (Optional) The amount of memory in gigabyte-seconds that your application is allowed to consume per day. Setting this value only affects function apps under the consumption plan. Defaults to `0`.
@@ -704,6 +706,8 @@ A `site_config` block supports the following:
 * `managed_pipeline_mode` - (Optional) Managed pipeline mode. Possible values include: `Integrated`, `Classic`. Defaults to `Integrated`.
 
 * `minimum_tls_version` - (Optional) The configures the minimum version of TLS required for SSL requests. Possible values include: `1.0`, `1.1`, `1.2` and `1.3`. Defaults to `1.2`.
+
+* `minimum_tls_cipher_suite` - (Optional) The configures the minimum cipher suite of TLS required for SSL requests. Possible values include: `TLS_AES_128_GCM_SHA256`,`TLS_AES_256_GCM_SHA384"`,`TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256"`,`TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"`,`TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"`,`TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"`,`TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256"`,`TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"`,`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"`,`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"`,`TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"`, `TLS_RSA_WITH_AES_128_CBC_SHA"`,`TLS_RSA_WITH_AES_128_CBC_SHA256"`,`TLS_RSA_WITH_AES_128_GCM_SHA256"`,`TLS_RSA_WITH_AES_256_CBC_SHA"`,`TLS_RSA_WITH_AES_256_CBC_SHA256"`,`TLS_RSA_WITH_AES_256_GCM_SHA384"`.
 
 * `pre_warmed_instance_count` - (Optional) The number of pre-warmed instances for this function app. Only affects apps on an Elastic Premium plan.
 
