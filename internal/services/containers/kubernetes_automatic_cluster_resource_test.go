@@ -21,13 +21,6 @@ import (
 
 type KubernetesAutomaticClusterResource struct{}
 
-var (
-	olderKubernetesVersion        = "1.32.9"
-	currentKubernetesVersion      = "1.33.5"
-	olderKubernetesVersionAlias   = "1.32"
-	currentKubernetesVersionAlias = "1.33"
-)
-
 func TestAccKubernetesAutomaticCluster_automaticSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -348,12 +341,12 @@ func TestAccKubernetesAutomaticCluster_upgradeOverrideSetting(t *testing.T) {
 }
 
 func (t KubernetesAutomaticClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := commonids.ParseKubernetesAutomaticClusterID(state.ID)
+	id, err := commonids.ParseKubernetesClusterID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Containers.KubernetesAutomaticClustersClient.Get(ctx, *id)
+	resp, err := clients.Containers.KubernetesClustersClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
 	}
@@ -435,7 +428,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   kubernetes_version  = %q
 
   azure_policy_enabled = true
-  local_account_disabled = true
+  //local_account_disabled = true
 
   automatic_upgrade_channel = "stable"
 
