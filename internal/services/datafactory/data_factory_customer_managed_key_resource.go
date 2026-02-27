@@ -229,9 +229,7 @@ func (r DataFactoryCustomerManagedKeyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("user_assigned_identity_id") {
-				encryption.Identity = &factories.CMKIdentityDefinition{
-					UserAssignedIdentity: pointer.To(customerManagedKey.UserAssignedIdentityID),
-				}
+				encryption.Identity = expandDataFactoryEncryptionIdentity(customerManagedKey.UserAssignedIdentityID)
 			}
 
 			payload.Properties.Encryption = encryption
