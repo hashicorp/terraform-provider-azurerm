@@ -24,14 +24,14 @@ import (
 )
 
 type MsSqlFailoverGroupModel struct {
-	Databases                            []string             `tfschema:"databases"`
-	Name                                 string               `tfschema:"name"`
-	PartnerServers                       []PartnerServerModel `tfschema:"partner_server"`
-	ReadonlyEndpointFailurePolicyEnabled bool                 `tfschema:"readonly_endpoint_failover_policy_enabled"`
-	ServerId                             string               `tfschema:"server_id"`
-	Tags                                 map[string]string    `tfschema:"tags"`
-
-	ReadWriteEndpointFailurePolicy []ReadWriteEndpointFailurePolicyModel `tfschema:"read_write_endpoint_failover_policy"`
+	Databases                            []string                              `tfschema:"databases"`
+	Name                                 string                                `tfschema:"name"`
+	PartnerServers                       []PartnerServerModel                  `tfschema:"partner_server"`
+	ReadonlyEndpointFailurePolicyEnabled bool                                  `tfschema:"readonly_endpoint_failover_policy_enabled"`
+	ServerId                             string                                `tfschema:"server_id"`
+	Tags                                 map[string]string                     `tfschema:"tags"`
+	SecondaryType                        string                                `tfschema:"secondary_type"`
+	ReadWriteEndpointFailurePolicy       []ReadWriteEndpointFailurePolicyModel `tfschema:"read_write_endpoint_failover_policy"`
 }
 
 type PartnerServerModel struct {
@@ -140,6 +140,13 @@ func (r MsSqlFailoverGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"secondary_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice(
+				failovergroups.PossibleValuesForFailoverGroupDatabasesSecondaryType(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -222,6 +229,10 @@ func (r MsSqlFailoverGroupResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
+			if model.SecondaryType != "" {
+				properties.Properties.SecondaryType = pointer.To(failovergroups.FailoverGroupDatabasesSecondaryType(model.SecondaryType))
+			}
+
 			if rwPolicy := model.ReadWriteEndpointFailurePolicy; len(rwPolicy) > 0 {
 				properties.Properties.ReadWriteEndpoint.FailoverPolicy = failovergroups.ReadWriteEndpointFailoverPolicy(rwPolicy[0].Mode)
 				if rwPolicy[0].Mode == string(failovergroups.ReadWriteEndpointFailoverPolicyAutomatic) {
@@ -282,6 +293,10 @@ func (r MsSqlFailoverGroupResource) Update() sdk.ResourceFunc {
 				properties.Properties.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes = pointer.To(state.ReadWriteEndpointFailurePolicy[0].GraceMinutes)
 			}
 
+			if state.SecondaryType != "" {
+				properties.Properties.SecondaryType = pointer.To(failovergroups.FailoverGroupDatabasesSecondaryType(state.SecondaryType))
+			}
+
 			// client.Update doesn't support changing the PartnerServers
 			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
 			if err != nil {
@@ -340,6 +355,10 @@ func (r MsSqlFailoverGroupResource) Read() sdk.ResourceFunc {
 					}}
 
 					model.ReadWriteEndpointFailurePolicy[0].GraceMinutes = pointer.From(props.ReadWriteEndpoint.FailoverWithDataLossGracePeriodMinutes)
+
+					// The API does not return the value of secondary_type.
+					// Tracking issue:https://github.com/Azure/azure-rest-api-specs/issues/35500
+					model.SecondaryType = metadata.ResourceData.Get("secondary_type").(string)
 				}
 			}
 
