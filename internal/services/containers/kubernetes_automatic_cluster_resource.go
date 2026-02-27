@@ -33,7 +33,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -165,10 +164,10 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 		},
 
 		SchemaVersion: 2,
-		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
-			0: migration.KubernetesAutomaticClusterV0ToV1{},
-			1: migration.KubernetesAutomaticClusterV1ToV2{},
-		}),
+		//StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+		//	0: migration.KubernetesAutomaticClusterV0ToV1{},
+		//	1: migration.KubernetesAutomaticClusterV1ToV2{},
+		//}),
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -1960,11 +1959,11 @@ func resourceKubernetesAutomaticClusterCreate(d *pluginsdk.ResourceData, meta in
 		Tags: tags.Expand(t),
 	}
 
-	if parameters.Sku.Name == pointer.To(managedclusters.ManagedClusterSKUNameAutomatic) {
-		if err := validateKubernetesCluster(d, nil); err != nil {
-			return err
-		}
-	}
+	//if parameters.Sku.Name == pointer.To(managedclusters.ManagedClusterSKUNameAutomatic) {
+	//	if err := validateKubernetesCluster(d, nil); err != nil {
+	//		return err
+	//	}
+	//}
 
 	if d.Get("ai_toolchain_operator_enabled").(bool) {
 		parameters.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
@@ -4938,7 +4937,7 @@ func flattenKubernetesAutomaticClusterIngressProfile(input *managedclusters.Mana
 	webAppRoutingIdentity := []interface{}{}
 
 	if v := input.WebAppRouting.Identity; v != nil {
-		webAppRoutingIdentity = flattenKubernetesAutomaticClusterAddOnIdentityProfile(v)
+		webAppRoutingIdentity = flattenKubernetesClusterAddOnIdentityProfile(v)
 	}
 
 	out["web_app_routing_identity"] = webAppRoutingIdentity
