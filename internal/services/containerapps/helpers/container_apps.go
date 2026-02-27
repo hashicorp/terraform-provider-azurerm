@@ -404,7 +404,6 @@ func ExpandContainerAppIngress(input []Ingress, appName string) *containerapps.I
 		AllowInsecure:          pointer.To(ingress.AllowInsecure),
 		CustomDomains:          expandContainerAppIngressCustomDomain(ingress.CustomDomains),
 		External:               pointer.To(ingress.IsExternal),
-		Fqdn:                   pointer.To(ingress.FQDN),
 		TargetPort:             pointer.To(ingress.TargetPort),
 		ExposedPort:            pointer.To(ingress.ExposedPort),
 		Traffic:                expandContainerAppIngressTraffic(ingress.TrafficWeights, appName),
