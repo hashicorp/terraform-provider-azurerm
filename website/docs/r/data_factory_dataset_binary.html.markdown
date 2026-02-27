@@ -85,7 +85,11 @@ A `compression` block supports the following:
 
 * `type` - (Required) The type of compression used during transport. Possible values are `BZip2`, `Deflate`, `GZip`, `Tar`, `TarGZip` and `ZipDeflate`.
 
+* `dynamic_type_enabled` - (Optional) Is the `type` using dynamic expression, function or system variables? Defaults to `false`.
+
 * `level` - (Optional) The level of compression. Possible values are `Fastest` and `Optimal`.
+
+* `dynamic_level_enabled` - (Optional) Is the `level` using dynamic expression, function or system variables? Defaults to `false`.
 
 ---
 

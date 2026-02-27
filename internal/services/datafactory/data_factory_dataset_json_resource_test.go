@@ -124,6 +124,35 @@ func TestAccDataFactoryDatasetJSON_blobDynamicContainer(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryDatasetJSON_compression(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_dataset_json", "test")
+	r := DatasetJSONResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dynamicCompression(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t DatasetJSONResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataSetID(state.ID)
 	if err != nil {
@@ -236,6 +265,10 @@ resource "azurerm_data_factory_dataset_json" "test" {
     type        = "Byte"
     description = "description"
   }
+
+  compression {
+    type = "snappy"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -301,6 +334,11 @@ resource "azurerm_data_factory_dataset_json" "test" {
     name        = "test2"
     type        = "Byte"
     description = "description"
+  }
+
+  compression {
+    type  = "snappy"
+    level = "Optimal"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -473,4 +511,59 @@ resource "azurerm_data_factory_dataset_json" "test" {
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (DatasetJSONResource) dynamicCompression(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_web" "test" {
+  name                = "acctestlsweb%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  authentication_type = "Anonymous"
+  url                 = "http://www.bing.com"
+}
+
+resource "azurerm_data_factory_dataset_json" "test" {
+  name                = "acctestds%d"
+  data_factory_id     = azurerm_data_factory.test.id
+  linked_service_name = azurerm_data_factory_linked_service_web.test.name
+
+  http_server_location {
+    relative_url = "/fizz/buzz/"
+    path         = "foo/bar/"
+    filename     = "foo.json"
+  }
+
+  encoding = "UTF-8"
+
+  description = "test description 2"
+  annotations = ["test1", "test2"]
+  folder      = "testFolder"
+
+  parameters = {
+    level = "Optimal"
+  }
+
+  compression {
+    dynamic_type_enabled  = true
+    type                  = "@concat('Tar', 'GZip')"
+    dynamic_level_enabled = true
+    level                 = "@dataset().level"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
