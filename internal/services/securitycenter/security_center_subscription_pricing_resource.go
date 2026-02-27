@@ -237,8 +237,9 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 
 	// Update from `free` tier to `Standard`, we need to update it to `standard` tier first without extensions
 	// Then do an additional update for the `extensions`
+	// The service will enable extensions in the first update
 	requiredAdditionalUpdate := false
-	if d.HasChange("extension") && update.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
+	if update.Properties.PricingTier == pricings_v2023_01_01.PricingTierStandard {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		update.Properties.Extensions = extensions
 		requiredAdditionalUpdate = currentlyFreeTier
