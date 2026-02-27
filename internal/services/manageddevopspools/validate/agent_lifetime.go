@@ -18,7 +18,7 @@ func AgentLifetime(i interface{}, k string) (warnings []string, errors []error) 
 
 	days, hours, minutes, seconds, err := parseTimeSpan(v)
 	if err != nil {
-		errors = append(errors, fmt.Errorf("%q is not a valid timespan (expected format: dd.hh:mm:ss): %s", k, err))
+		errors = append(errors, fmt.Errorf("%q is not a valid timespan (expected format: dd.hh:mm:ss or hh:mm:ss): %s", k, err))
 		return
 	}
 

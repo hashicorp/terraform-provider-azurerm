@@ -325,7 +325,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   vmss_fabric {
     image {
-      well_known_image_name = "ubuntu-24.04"
+      well_known_image_name = "ubuntu-24.04/latest"
       buffer                = "*"
     }
     sku_name = "Standard_B1s"
@@ -356,7 +356,7 @@ resource "azurerm_managed_devops_pool" "import" {
 
   vmss_fabric {
     image {
-      well_known_image_name = "ubuntu-24.04"
+      well_known_image_name = "ubuntu-24.04/latest"
       buffer                = "*"
     }
     sku_name = "Standard_B1s"
@@ -440,7 +440,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
     image {
       aliases               = ["well known image", "22.04 version"]
-      well_known_image_name = "ubuntu-22.04"
+      well_known_image_name = "ubuntu-24.04/latest"
       buffer                = "100"
     }
     sku_name  = "Standard_B1ms"
@@ -561,7 +561,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
     image {
       aliases               = ["well known image", "22.04 version"]
-      well_known_image_name = "ubuntu-22.04"
+      well_known_image_name = "ubuntu-24.04/latest"
       buffer                = "100"
     }
     sku_name = "Standard_B1ms"
