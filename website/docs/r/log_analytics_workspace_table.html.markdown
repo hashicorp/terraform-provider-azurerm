@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `retention_in_days` - (Optional) The table's retention in days. Possible values are between `4` and `730`.
 
+-> **Note:** The `retention_in_days` is fixed to `30` when `plan` is `Basic`. More details could be found [here](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/data-retention-configure?tabs=portal%2Cportal-1#analytics-long-term-and-total-retention).
+
 * `total_retention_in_days` - (Optional) The table's total retention in days. Possible values range between `4` and `730`; or `1095`, `1460`, `1826`, `2191`, `2556`, `2922`, `3288`, `3653`, `4018`, or `4383`.
 
 -> **Note:** `retention_in_days` and `total_retention_in_days` will revert back to the value of azurerm_log_analytics_workspace retention_in_days when a azurerm_log_analytics_workspace_table is deleted.
