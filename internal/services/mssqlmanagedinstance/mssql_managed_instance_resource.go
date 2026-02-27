@@ -44,6 +44,7 @@ type MsSqlManagedInstanceModel struct {
 	DnsZone                           string                              `tfschema:"dns_zone"`
 	Fqdn                              string                              `tfschema:"fqdn"`
 	Identity                          []identity.SystemOrUserAssignedList `tfschema:"identity"`
+	IsGeneralPurposeV2                bool                                `tfschema:"is_general_purpose_v2"`
 	LicenseType                       string                              `tfschema:"license_type"`
 	Location                          string                              `tfschema:"location"`
 	MaintenanceConfigurationName      string                              `tfschema:"maintenance_configuration_name"`
@@ -255,6 +256,12 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"is_general_purpose_v2": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"maintenance_configuration_name": {
 			Type:     schema.TypeString,
@@ -474,6 +481,7 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 					Administrators:       expandMsSqlManagedInstanceExternalAdministrators(model.AzureActiveDirectoryAdministrator),
 					DatabaseFormat:       pointer.To(managedinstances.ManagedInstanceDatabaseFormat(model.DatabaseFormat)),
 					HybridSecondaryUsage: pointer.To(managedinstances.HybridSecondaryUsage(model.HybridSecondaryUsage)),
+					IsGeneralPurposeV2:   pointer.To(model.IsGeneralPurposeV2),
 				},
 				Tags: pointer.To(model.Tags),
 			}
@@ -688,6 +696,10 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
 			}
 
+			if metadata.ResourceData.HasChange("is_general_purpose_v2") {
+				props.IsGeneralPurposeV2 = pointer.To(state.IsGeneralPurposeV2)
+			}
+
 			err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
@@ -780,6 +792,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 					}
 					model.DatabaseFormat = string(pointer.From(props.DatabaseFormat))
 					model.HybridSecondaryUsage = string(pointer.From(props.HybridSecondaryUsage))
+					model.IsGeneralPurposeV2 = pointer.From(props.IsGeneralPurposeV2)
 				}
 			}
 			return metadata.Encode(&model)
