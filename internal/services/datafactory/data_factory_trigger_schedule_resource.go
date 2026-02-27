@@ -348,8 +348,7 @@ func resourceDataFactoryTriggerScheduleUpdate(d *pluginsdk.ResourceData, meta in
 		return err
 	}
 
-	_, err = client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
-	if err != nil {
+	if _, err = client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, ""); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 

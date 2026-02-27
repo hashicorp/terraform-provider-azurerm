@@ -273,8 +273,7 @@ func (AnomalyAlertResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.DeleteByScope(ctx, *id)
-			if err != nil {
+			if _, err = client.DeleteByScope(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

@@ -124,8 +124,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyCreateUpdate(d *pluginsdk.Resource
 
 	alertPolicy := expandSQLPoolSecurityAlertPolicy(d)
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, *alertPolicy)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, *alertPolicy); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -219,8 +218,7 @@ func resourceSynapseSqlPoolSecurityAlertPolicyDelete(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, disabledPolicy)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, disabledPolicy); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
