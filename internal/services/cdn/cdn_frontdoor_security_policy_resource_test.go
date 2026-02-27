@@ -6,6 +6,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -22,6 +23,7 @@ type CdnFrontDoorSecurityPolicyResource struct{}
 func TestAccCdnFrontDoorSecurityPolicy_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
+	r.preCheck(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -50,6 +52,7 @@ func TestAccCdnFrontDoorSecurityPolicy_basicEndpoint(t *testing.T) {
 func TestAccCdnFrontDoorSecurityPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
+	r.preCheck(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -78,6 +81,7 @@ func TestAccCdnFrontDoorSecurityPolicy_requiresImportEndpoint(t *testing.T) {
 func TestAccCdnFrontDoorSecurityPolicy_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
+	r.preCheck(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.update(data, "azurerm_cdn_frontdoor_custom_domain.update_test[0].id"),
@@ -99,6 +103,7 @@ func TestAccCdnFrontDoorSecurityPolicy_update(t *testing.T) {
 func TestAccCdnFrontDoorSecurityPolicy_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
 	r := CdnFrontDoorSecurityPolicyResource{}
+	r.preCheck(t)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -142,11 +147,48 @@ func (r CdnFrontDoorSecurityPolicyResource) Exists(ctx context.Context, clients 
 	return pointer.To(true), nil
 }
 
+func (r CdnFrontDoorSecurityPolicyResource) preCheck(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+	}
+	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+	}
+}
+
 func (r CdnFrontDoorSecurityPolicyResource) template(data acceptance.TestData) string {
+	dnsZoneName := os.Getenv("ARM_TEST_DNS_ZONE_NAME")
+	dnsZoneRG := os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME")
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cdn-afdx-%[1]d"
   location = "%s"
+}
+
+data "azurerm_dns_zone" "test" {
+  name                = "%[3]s"
+  resource_group_name = "%[4]s"
+}
+
+locals {
+  # Create a delegated child zone inside the test RG.
+  # NOTE: ARM_TEST_DNS_ZONE_NAME / ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME must refer to a real, delegated parent zone.
+  child_zone_label = "acctest%[1]d"
+  child_zone_name  = join(".", [local.child_zone_label, data.azurerm_dns_zone.test.name])
+}
+
+resource "azurerm_dns_zone" "child" {
+  name                = local.child_zone_name
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_dns_ns_record" "delegation" {
+  name                = local.child_zone_label
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  zone_name           = data.azurerm_dns_zone.test.name
+  ttl                 = 300
+
+  records = azurerm_dns_zone.child.name_servers
 }
 
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
@@ -199,11 +241,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   }
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%[1]d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "accTestProfile-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -214,15 +251,30 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   name                     = "accTestCustomDomain-%[1]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  dns_zone_id = azurerm_dns_zone.test.id
-  host_name   = join(".", ["fabrikam", azurerm_dns_zone.test.name])
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["fabrikam", azurerm_dns_zone.child.name])
 
   tls {
     certificate_type    = "ManagedCertificate"
     minimum_tls_version = "TLS12"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+
+resource "azurerm_dns_txt_record" "validation" {
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  name                = join(".", ["_dnsauth", split(".", azurerm_cdn_frontdoor_custom_domain.test.host_name)[0]])
+  zone_name           = azurerm_dns_zone.child.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.test.validation_token
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, dnsZoneName, dnsZoneRG)
 }
 
 func (r CdnFrontDoorSecurityPolicyResource) templateEndpoint(data acceptance.TestData) string {
@@ -282,11 +334,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   }
 }
 
-resource "azurerm_dns_zone" "test" {
-  name                = "acctestzone%[1]d.com"
-  resource_group_name = azurerm_resource_group.test.name
-}
-
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "accTestProfile-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -312,6 +359,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_security_policy" "test" {
   name                     = "accTestSecPol%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_txt_record.validation]
 
   security_policies {
     firewall {
@@ -369,6 +418,8 @@ resource "azurerm_cdn_frontdoor_security_policy" "import" {
   name                     = "accTestSecPol%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
+  depends_on = [azurerm_dns_txt_record.validation]
+
   security_policies {
     firewall {
       cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
@@ -425,15 +476,31 @@ resource "azurerm_cdn_frontdoor_custom_domain" "update_test" {
   name                     = "accTestCustomDomain${count.index}-%[2]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-  dns_zone_id = azurerm_dns_zone.test.id
-  host_name   = join(".", ["fabrikam${count.index}", azurerm_dns_zone.test.name])
+  depends_on = [azurerm_dns_ns_record.delegation]
+
+  dns_zone_id = azurerm_dns_zone.child.id
+  host_name   = join(".", ["fabrikam${count.index}", azurerm_dns_zone.child.name])
 
   tls { certificate_type = "ManagedCertificate" }
+}
+
+resource "azurerm_dns_txt_record" "validation_update" {
+  count               = 2
+  name                = join(".", ["_dnsauth", split(".", azurerm_cdn_frontdoor_custom_domain.update_test[count.index].host_name)[0]])
+  zone_name           = azurerm_dns_zone.child.name
+  resource_group_name = azurerm_resource_group.test.name
+  ttl                 = 300
+
+  record {
+    value = azurerm_cdn_frontdoor_custom_domain.update_test[count.index].validation_token
+  }
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "test" {
   name                     = "accTestSecPol%[2]d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_txt_record.validation_update]
 
   security_policies {
     firewall {
@@ -464,6 +531,8 @@ provider "azurerm" {
 resource "azurerm_cdn_frontdoor_security_policy" "test" {
   name                     = "accTestSecPol%d"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  depends_on = [azurerm_dns_txt_record.validation]
 
   security_policies {
     firewall {
