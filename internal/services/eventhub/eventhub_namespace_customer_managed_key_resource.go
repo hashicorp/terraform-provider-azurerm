@@ -12,13 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -76,7 +75,7 @@ func resourceEventHubNamespaceCustomerManagedKey() *pluginsdk.Resource {
 				Required: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
-					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 				},
 			},
 
@@ -252,14 +251,14 @@ func expandEventHubNamespaceKeyVaultKeyIds(input []interface{}) (*[]namespaces.K
 	results := make([]namespaces.KeyVaultProperties, 0)
 
 	for _, item := range input {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(item.(string))
+		keyId, err := keyvault.ParseNestedItemID(item.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 
 		results = append(results, namespaces.KeyVaultProperties{
 			KeyName:     pointer.To(keyId.Name),
-			KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+			KeyVaultUri: pointer.To(keyId.KeyVaultBaseURL),
 			KeyVersion:  pointer.To(keyId.Version),
 		})
 	}
@@ -289,7 +288,7 @@ func flattenEventHubNamespaceKeyVaultKeyIds(input *namespaces.Encryption) ([]str
 			keyVersion = *item.KeyVersion
 		}
 
-		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyId, err := keyvault.NewNestedItemID(keyVaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}

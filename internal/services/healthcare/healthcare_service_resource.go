@@ -8,18 +8,19 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	service "github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,7 +28,7 @@ import (
 )
 
 func resourceHealthcareService() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceHealthcareServiceCreateUpdate,
 		Read:   resourceHealthcareServiceRead,
 		Update: resourceHealthcareServiceCreateUpdate,
@@ -78,11 +79,10 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			},
 
 			"cosmosdb_key_vault_key_versionless_id": {
-				Type:             pluginsdk.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-				ValidateFunc:     keyVaultValidate.VersionlessNestedItemId,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
 			},
 
 			"access_policy_object_ids": {
@@ -216,6 +216,18 @@ func resourceHealthcareService() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["cosmosdb_key_vault_key_versionless_id"] = &pluginsdk.Schema{
+			Type:             pluginsdk.TypeString,
+			Optional:         true,
+			ForceNew:         true,
+			DiffSuppressFunc: suppress.DiffSuppressIgnoreKeyVaultKeyVersion,
+			ValidateFunc:     keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny),
+		}
+	}
+
+	return r
 }
 
 func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -243,7 +255,12 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("expanding cosmosdb_configuration: %+v", err)
 	}
 
-	healthcareServiceDescription := service.ServicesDescription{
+	publicNetworkAccess := service.PublicNetworkAccessEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccess = service.PublicNetworkAccessDisabled
+	}
+
+	payload := service.ServicesDescription{
 		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Kind:     service.Kind(d.Get("kind").(string)),
@@ -252,30 +269,24 @@ func resourceHealthcareServiceCreateUpdate(d *pluginsdk.ResourceData, meta inter
 			CosmosDbConfiguration:       cosmosDbConfiguration,
 			CorsConfiguration:           expandCorsConfiguration(d),
 			AuthenticationConfiguration: expandAuthentication(d),
+			PublicNetworkAccess:         pointer.To(publicNetworkAccess),
 		},
 	}
 
-	storageAcc, hasValues := d.GetOk("configuration_export_storage_account_name")
-	if hasValues {
-		healthcareServiceDescription.Properties.ExportConfiguration = &service.ServiceExportConfigurationInfo{
+	storageAcc, ok := d.GetOk("configuration_export_storage_account_name")
+	if ok {
+		payload.Properties.ExportConfiguration = &service.ServiceExportConfigurationInfo{
 			StorageAccountName: pointer.To(storageAcc.(string)),
 		}
 	}
 
-	identity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
+	expandedIdentity, err := identity.ExpandSystemAssigned(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
-	healthcareServiceDescription.Identity = identity
+	payload.Identity = expandedIdentity
 
-	publicNetworkAccess := d.Get("public_network_access_enabled").(bool)
-	if !publicNetworkAccess {
-		healthcareServiceDescription.Properties.PublicNetworkAccess = pointer.To(service.PublicNetworkAccessDisabled)
-	} else {
-		healthcareServiceDescription.Properties.PublicNetworkAccess = pointer.To(service.PublicNetworkAccessEnabled)
-	}
-
-	err = client.ServicesCreateOrUpdateThenPoll(ctx, id, healthcareServiceDescription)
+	err = client.ServicesCreateOrUpdateThenPoll(ctx, id, payload)
 	if err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
@@ -445,9 +456,14 @@ func expandsCosmosDBConfiguration(d *pluginsdk.ResourceData) (*service.ServiceCo
 	}
 
 	if keyVaultKeyIDRaw, ok := d.GetOk("cosmosdb_key_vault_key_versionless_id"); ok {
-		keyVaultKey, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyIDRaw.(string))
+		nestedItemType := keyvault.NestedItemTypeKey
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		keyVaultKey, err := keyvault.ParseNestedItemID(keyVaultKeyIDRaw.(string), keyvault.VersionTypeVersionless, nestedItemType)
 		if err != nil {
-			return nil, fmt.Errorf("could not parse Key Vault Key ID: %+v", err)
+			return nil, err
 		}
 		cosmosdb.KeyVaultKeyUri = pointer.To(keyVaultKey.ID())
 	}
