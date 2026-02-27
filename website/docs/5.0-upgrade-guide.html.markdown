@@ -303,6 +303,8 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_container_registry`
 
 * The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.  
+* The `zone_redundancy_enabled` property has been removed since it is now enabled by default in regions that support availability zones.
+* The `georeplications.*.zone_redundancy_enabled` property has been removed since it is now enabled by default in regions that support availability zones.
 
 ### `azurerm_cosmosdb_account`
 
