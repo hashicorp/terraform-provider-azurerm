@@ -74,15 +74,23 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(natgateways.NatGatewaySkuNameStandard),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(natgateways.NatGatewaySkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(natgateways.NatGatewaySkuNameStandard),
+			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			// NOTE: O+C Azure may return availability zones from the API when not specified by the user
+			Computed: true,
+			ForceNew: true,
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 
 		"resource_guid": {
 			Type:     pluginsdk.TypeString,
