@@ -98,6 +98,10 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_ai_services`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_automation_software_update_configuration`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
