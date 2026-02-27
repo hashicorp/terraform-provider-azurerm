@@ -254,7 +254,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 												Required: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
-													ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+													ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeSecret),
 												},
 											},
 
@@ -291,7 +291,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								"disk_size_in_gb": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 65536),
+									ValidateFunc: validation.IntBetween(1, 32767),
 								},
 
 								"drive_letter": {

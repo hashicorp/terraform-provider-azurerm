@@ -85,7 +85,7 @@ func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 }
 
 func dayScheduleSchemaOptional(conflictsWith ...string) *pluginsdk.Schema {
-	s := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -108,7 +108,6 @@ func dayScheduleSchemaOptional(conflictsWith ...string) *pluginsdk.Schema {
 		},
 		ConflictsWith: conflictsWith,
 	}
-	return s
 }
 
 func dayScheduleSchemaComputed() *pluginsdk.Schema {

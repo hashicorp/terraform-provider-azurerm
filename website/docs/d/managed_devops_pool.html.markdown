@@ -65,7 +65,7 @@ An `administrator_account` block exports the following:
 
 ---
 
-An `automatic_resource_predictions` block exports the following:
+An `automatic_resource_prediction` block exports the following:
 
 * `prediction_preference` - The desired balance between cost and performance.
 
