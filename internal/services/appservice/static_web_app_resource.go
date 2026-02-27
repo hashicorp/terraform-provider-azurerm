@@ -458,8 +458,14 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				model.Tags = pointer.To(config.Tags)
 			}
 
+			if metadata.ResourceData.HasChanges("repository_url", "repository_branch", "repository_token") {
+				model.Properties.RepositoryURL = pointer.To(config.RepositoryUrl)
+				model.Properties.Branch = pointer.To(config.RepositoryBranch)
+				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
+			}
+
 			if err := client.CreateOrUpdateStaticSiteThenPoll(ctx, *id, model); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			if metadata.ResourceData.HasChange("app_settings") {
@@ -493,12 +499,6 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				if _, err := sdkHackClient.CreateOrUpdateBasicAuth(ctx, *id, authProps); err != nil {
 					return fmt.Errorf("setting basic auth on %s: %+v", *id, err)
 				}
-			}
-
-			if metadata.ResourceData.HasChanges("repository_url", "repository_branch", "repository_token") {
-				model.Properties.RepositoryURL = pointer.To(config.RepositoryUrl)
-				model.Properties.Branch = pointer.To(config.RepositoryBranch)
-				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
 			}
 
 			return nil
