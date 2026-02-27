@@ -6,9 +6,11 @@ package client
 import (
 	"fmt"
 
+	v7_4 "github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 	vaults20230701 "github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/vaults"
 	resources20151101 "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2015-11-01/resources"
+	dataplaneClient "github.com/hashicorp/go-azure-sdk/sdk/client/dataplane"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 	dataplane "github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
@@ -22,7 +24,8 @@ type Client struct {
 	// As such this separation on our side is intentional to avoid code reuse given these differences.
 	VaultsClient *vaults.VaultsClient
 
-	ManagementClient *dataplane.BaseClient // TODO: we should rename this DataPlaneClient in time
+	ManagementClient        *dataplane.BaseClient // TODO: we should rename this DataPlaneClient in time
+	DataPlaneKeyvaultClient *v7_4.Client
 
 	// NOTE: @tombuildsstuff: this client is intentionally internal-only so that it's not used directly
 	resources20151101Client *resources20151101.ResourcesClient
@@ -57,9 +60,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	managementClient := dataplane.New()
 	o.ConfigureClient(&managementClient.Client, o.KeyVaultAuthorizer)
 
+	dataplaneKeyvaultClient, err := v7_4.NewClient(func(c *dataplaneClient.Client) {
+		o.Configure(c.Client, o.Authorizers.KeyVault)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("building data-plane KeyVault client: %+v", err)
+	}
+
 	return &Client{
 		ManagementClient: &managementClient,
 		VaultsClient:     &vaultsClient,
+
+		DataPlaneKeyvaultClient: dataplaneKeyvaultClient,
 
 		// intentionally internal to this package for now, see above.
 		resources20151101Client: resources20151101Client,
