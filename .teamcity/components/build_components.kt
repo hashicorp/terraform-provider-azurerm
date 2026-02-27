@@ -22,16 +22,7 @@ fun BuildFeatures.Golang() {
     }
 }
 
-// Requires a manual step of setting up a publishing build configuration for the main branch of the repo:
-// features {
-//     buildCache {
-//         name = "terraform-provider-azurerm-build-cache"
-//         rules = """
-//             %teamcity.agent.work.dir%/go-cache/build
-//             %teamcity.agent.work.dir%/go-cache/mod
-//         """.trimIndent()
-//     }
-// }
+// Requires the creation of build_config_cache for the project:
 fun BuildFeatures.BuildCacheFeature() {
         feature(BuildCacheFeature {
             name = "terraform-provider-azurerm-build-cache"
@@ -116,7 +107,7 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
 }
 
 
-fun BuildSteps.PostTestResultsToGitHubPullRequest(packageName: String) {
+fun BuildSteps.PostTestResultsToGitHubPullRequest() {
     step(ScriptBuildStep {
         name = "Post Test Results to GitHub Pull Request"
         scriptContent = File("scripts/post_github_comment.sh").readText()
@@ -149,6 +140,11 @@ fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
 
 fun ParametrizedWithType.WorkingDirectory(packageName: String) {
     text("SERVICE_PATH", servicePath(packageName), "", "The path at which to run - automatically updated", ParameterDisplay.HIDDEN)
+}
+
+fun ParametrizedWithType.GoCache() {
+    text("env.GOMODCACHE", "%teamcity.agent.work.dir%/go-cache/mod", "The location of the Go Module Cache")
+    text("env.GOCACHE", "%teamcity.agent.work.dir%/go-cache/build", "The location of the Go Cache")
 }
 
 fun ParametrizedWithType.hiddenVariable(name: String, value: String, description: String) {

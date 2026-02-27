@@ -42,6 +42,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 TerraformShouldPanicForSchemaErrors()
                 TerraformCoreBinaryTesting()
                 ReadOnlySettings()
+                GoCache()
 
                 text("SERVICES", "portal")
             }

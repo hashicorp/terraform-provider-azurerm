@@ -42,6 +42,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
+                GoCache()
             }
 
             triggers {
