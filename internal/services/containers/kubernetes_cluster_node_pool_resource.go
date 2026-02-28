@@ -323,6 +323,15 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"pod_ip_allocation_mode": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"pod_subnet_id"},
+			Default:      string(agentpools.PodIPAllocationModeDynamicIndividual),
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForPodIPAllocationMode(), false),
+			Description:  "The IP allocation mode for pods in the agent pool. Must be used with `pod_subnet_id`. Possible values are `DynamicIndividual` and `StaticBlock`. The default is `DynamicIndividual`.",
+		},
+
 		"pod_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -630,6 +639,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		subnetsToLock = append(subnetsToLock, podSubnetID.SubnetName)
 	}
 
+	if podIPAllocationMode := d.Get("pod_ip_allocation_mode").(string); podIPAllocationMode != "" {
+		profile.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](podIPAllocationMode)
+	}
+
 	if nodeSubnetID != nil {
 		// Lock node subnet to avoid race condition with AKS
 		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
@@ -871,6 +884,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("pod_subnet_id") {
 		props.PodSubnetID = pointer.To(d.Get("pod_subnet_id").(string))
+	}
+
+	if d.HasChange("pod_ip_allocation_mode") {
+		props.PodIPAllocationMode = pointer.ToEnum[agentpools.PodIPAllocationMode](d.Get("pod_ip_allocation_mode").(string))
 	}
 
 	if d.HasChange("ultra_ssd_enabled") {
@@ -1202,6 +1219,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			d.Set("os_sku", string(*v))
 		}
 		d.Set("pod_subnet_id", props.PodSubnetID)
+		d.Set("pod_ip_allocation_mode", pointer.FromEnum(props.PodIPAllocationMode))
 
 		// not returned from the API if not Spot
 		priority := string(managedclusters.ScaleSetPriorityRegular)
