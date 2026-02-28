@@ -18,7 +18,7 @@ type ExecuteOperationResponse struct {
 }
 
 // Execute ...
-func (c ExportsClient) Execute(ctx context.Context, id ScopedExportId) (result ExecuteOperationResponse, err error) {
+func (c ExportsClient) Execute(ctx context.Context, id ScopedExportId, input ExportRunRequest) (result ExecuteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -30,6 +30,10 @@ func (c ExportsClient) Execute(ctx context.Context, id ScopedExportId) (result E
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
