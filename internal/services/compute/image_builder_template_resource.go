@@ -1,7 +1,9 @@
 package compute
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -12,20 +14,125 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/imagebuilder/2024-02-01/virtualmachineimagetemplate"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+var (
+	_ sdk.Resource           = ImageBuilderTemplateResource{}
+	_ sdk.ResourceWithUpdate = ImageBuilderTemplateResource{}
+)
+
+type ImageBuilderTemplateResource struct{}
+
+func (ImageBuilderTemplateResource) ModelObject() interface{} {
+	return &ImageBuilderTemplateResourceModel{}
+}
+
+func (ImageBuilderTemplateResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return virtualmachineimagetemplate.ValidateImageTemplateID
+}
+
+func (ImageBuilderTemplateResource) ResourceType() string {
+	return "azurerm_image_builder_template"
+}
+
+type ImageBuilderTemplateResourceModel struct {
+	Name                       string                                    `tfschema:"name"`
+	ResourceGroupName          string                                    `tfschema:"resource_group_name"`
+	Location                   string                                    `tfschema:"location"`
+	Identity                   []identity.ModelUserAssigned              `tfschema:"identity"`
+	BuildTimeoutMinutes        int64                                     `tfschema:"build_timeout_minutes"`
+	Customizer                 []ImageBuilderTemplateCustomizer          `tfschema:"customizer"`
+	DiskSizeGb                 int64                                     `tfschema:"disk_size_gb"`
+	Distributions              []ImageBuilderTemplateDistributions       `tfschema:"distributions"`
+	Size                       string                                    `tfschema:"size"`
+	SourceManagedImageId       string                                    `tfschema:"source_managed_image_id"`
+	SourcePlatformImage        []ImageBuilderTemplateSourcePlatformImage `tfschema:"source_platform_image"`
+	SourceSharedImageVersionId string                                    `tfschema:"source_shared_image_version_id"`
+	SubnetId                   string                                    `tfschema:"subnet_id"`
+	Tags                       map[string]string                         `tfschema:"tags"`
+}
+
+type ImageBuilderTemplateCustomizer struct {
+	Type                        string   `tfschema:"type"`
+	FileDestinationPath         string   `tfschema:"file_destination_path"`
+	FileSha256Checksum          string   `tfschema:"file_sha256_checksum"`
+	FileSourceUri               string   `tfschema:"file_source_uri"`
+	Name                        string   `tfschema:"name"`
+	PowershellCommands          []string `tfschema:"powershell_commands"`
+	PowershellRunAsSystem       bool     `tfschema:"powershell_run_as_system"`
+	PowershellRunElevated       bool     `tfschema:"powershell_run_elevated"`
+	PowershellScriptUri         string   `tfschema:"powershell_script_uri"`
+	PowershellSha256Checksum    string   `tfschema:"powershell_sha256_checksum"`
+	PowershellValidExitCodes    []int64  `tfschema:"powershell_valid_exit_codes"`
+	ShellCommands               []string `tfschema:"shell_commands"`
+	ShellScriptUri              string   `tfschema:"shell_script_uri"`
+	ShellSha256Checksum         string   `tfschema:"shell_sha256_checksum"`
+	WindowsRestartCheckCommand  string   `tfschema:"windows_restart_check_command"`
+	WindowsRestartCommand       string   `tfschema:"windows_restart_command"`
+	WindowsRestartTimeout       string   `tfschema:"windows_restart_timeout"`
+	WindowsUpdateFilters        []string `tfschema:"windows_update_filters"`
+	WindowsUpdateSearchCriteria string   `tfschema:"windows_update_search_criteria"`
+	WindowsUpdateLimit          int64    `tfschema:"windows_update_limit"`
+}
+
+type ImageBuilderTemplateDistributions struct {
+	ManagedImage []ImageBuilderTemplateDistributionsManagedImage `tfschema:"managed_image"`
+	SharedImage  []ImageBuilderTemplateDistributionsSharedImage  `tfschema:"shared_image"`
+	Vhd          []ImageBuilderTemplateDistributionsVhd          `tfschema:"vhd"`
+}
+
+type ImageBuilderTemplateDistributionsManagedImage struct {
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	RunOutputName     string            `tfschema:"run_output_name"`
+	Tags              map[string]string `tfschema:"tags"`
+}
+type ImageBuilderTemplateDistributionsSharedImage struct {
+	Id                 string                                                       `tfschema:"id"`
+	ReplicaRegions     []ImageBuilderTemplateDistributionsSharedImageReplicaRegions `tfschema:"replica_regions"`
+	RunOutputName      string                                                       `tfschema:"run_output_name"`
+	ExcludeFromLatest  bool                                                         `tfschema:"exclude_from_latest"`
+	StorageAccountType string                                                       `tfschema:"storage_account_type"`
+	Tags               map[string]string                                            `tfschema:"tags"`
+	Versioning         []ImageBuilderTemplateDistributionsSharedImageVersioning     `tfschema:"versioning"`
+}
+
+type ImageBuilderTemplateDistributionsVhd struct {
+	RunOutputName string            `tfschema:"run_output_name"`
+	Tags          map[string]string `tfschema:"tags"`
+}
+
+type ImageBuilderTemplateDistributionsSharedImageReplicaRegions struct {
+	Name string `tfschema:"name"`
+}
+type ImageBuilderTemplateDistributionsSharedImageVersioning struct {
+	Scheme string `tfschema:"scheme"`
+	Major  int64  `tfschema:"major"`
+}
+
+type ImageBuilderTemplateSourcePlatformImage struct {
+	Publisher string                                        `tfschema:"publisher"`
+	Offer     string                                        `tfschema:"offer"`
+	Sku       string                                        `tfschema:"sku"`
+	Version   string                                        `tfschema:"version"`
+	Plan      []ImageBuilderTemplateSourcePlatformImagePlan `tfschema:"plan"`
+}
+
+type ImageBuilderTemplateSourcePlatformImagePlan struct {
+	Name      string `tfschema:"name"`
+	Product   string `tfschema:"product"`
+	Publisher string `tfschema:"publisher"`
+}
 
 // This is to serve input validation for the customizer block.
 var (
@@ -36,733 +143,714 @@ var (
 	fieldsOfWindowsUpdateCustomizer  = []string{"windows_update_filters", "windows_update_search_criteria", "windows_update_limit"}
 )
 
-func resourceImageBuilderTemplate() *schema.Resource {
-	return &schema.Resource{
-		Create: resourceArmImageBuilderTemplateCreate,
-		Read:   resourceArmImageBuilderTemplateRead,
-		Update: resourceArmImageBuilderTemplateUpdate,
-		Delete: resourceArmImageBuilderTemplateDelete,
-
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualmachineimagetemplate.ParseImageTemplateID(id)
-			return err
-		}),
-
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+func (ImageBuilderTemplateResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
+				"Image template name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters.",
+			),
 		},
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[-_.a-zA-Z0-9]{1,64}$"),
-					"Image template name can only include alphanumeric characters, periods, underscores, hyphens, has a maximum length of 64 characters.",
-				),
-			},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+		"location": commonschema.Location(),
 
-			"location": commonschema.Location(),
-
-			// Though the 'None' type identity is declared in swagger, passing it to service triggers error: "Removing identity is not supported when creating or updating an image template.". So not expose it to users.
-			"identity": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(identity.TypeUserAssigned),
-							}, false),
-						},
-						"identity_ids": {
-							Type:     schema.TypeSet,
-							Required: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-							},
+		// Though the 'None' type identity is declared in swagger, passing it to service triggers error: "Removing identity is not supported when creating or updating an image template.". So not expose it to users.
+		"identity": {
+			Type:     schema.TypeList,
+			Required: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(identity.TypeUserAssigned),
+						}, false),
+					},
+					"identity_ids": {
+						Type:     schema.TypeSet,
+						Required: true,
+						Elem: &schema.Schema{
+							Type:         schema.TypeString,
+							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 					},
 				},
 			},
+		},
 
-			"build_timeout_minutes": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      240,
-				ValidateFunc: validation.IntBetween(0, 960),
-			},
+		"build_timeout_minutes": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      240,
+			ValidateFunc: validation.IntBetween(0, 960),
+		},
 
-			// Fields in this block should not be assigned default values. Because fields mapped to Customizer Type A should not be specified when Customizer Type B is specified as the current customizer block type.
-			"customizer": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:     schema.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"File",
-								"PowerShell",
-								"Shell",
-								"WindowsRestart",
-								"WindowsUpdate",
-							}, false),
-						},
+		// Fields in this block should not be assigned default values. Because fields mapped to Customizer Type A should not be specified when Customizer Type B is specified as the current customizer block type.
+		"customizer": {
+			Type:     schema.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:     schema.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							"File",
+							"PowerShell",
+							"Shell",
+							"WindowsRestart",
+							"WindowsUpdate",
+						}, false),
+					},
 
-						"file_destination_path": {
+					"file_destination_path": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					// If not specify this property but only "file_source_uri" to the service, the service will calculate the sha256 of the file and return it.
+					// So set this property as Computed for possible future usage. So forth to other similar properties in the `customizer` block.
+					"file_sha256_checksum": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"file_source_uri": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"name": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"powershell_commands": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &schema.Schema{
 							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						// If not specify this property but only "file_source_uri" to the service, the service will calculate the sha256 of the file and return it.
-						// So set this property as Computed for possible future usage. So forth to other similar properties in the `customizer` block.
-						"file_sha256_checksum": {
+					"powershell_run_as_system": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						ForceNew: true,
+					},
+
+					"powershell_run_elevated": {
+						Type:     schema.TypeBool,
+						Optional: true,
+						ForceNew: true,
+					},
+
+					"powershell_script_uri": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"powershell_sha256_checksum": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"powershell_valid_exit_codes": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &schema.Schema{
+							Type: schema.TypeInt,
+						},
+					},
+
+					"shell_commands": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &schema.Schema{
 							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"file_source_uri": {
+					"shell_script_uri": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"shell_sha256_checksum": {
+						Type:         schema.TypeString,
+						Computed:     true,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"windows_restart_check_command": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"windows_restart_command": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"windows_restart_timeout": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"windows_update_filters": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &schema.Schema{
 							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
+					},
 
-						"name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
+					"windows_update_search_criteria": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-						"powershell_commands": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"powershell_run_as_system": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"powershell_run_elevated": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							ForceNew: true,
-						},
-
-						"powershell_script_uri": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"powershell_sha256_checksum": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"powershell_valid_exit_codes": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeInt,
-							},
-						},
-
-						"shell_commands": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"shell_script_uri": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"shell_sha256_checksum": {
-							Type:         schema.TypeString,
-							Computed:     true,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"windows_restart_check_command": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"windows_restart_command": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"windows_restart_timeout": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"windows_update_filters": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-
-						"windows_update_search_criteria": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"windows_update_limit": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							ForceNew: true,
-						},
+					"windows_update_limit": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						ForceNew: true,
 					},
 				},
 			},
+		},
 
-			"disk_size_gb": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.DiskSizeGB,
-			},
+		"disk_size_gb": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.DiskSizeGB,
+		},
 
-			"distributions": {
-				Type:     schema.TypeList,
-				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						// The array of this block is order insensitive. But there is a bug preventing using TypeSet for this block having a sub field `location` using StateFunc:
-						// https://github.com/hashicorp/terraform-plugin-sdk/issues/160.
-						// In detail, the symptom is specifying user friendly region say "West US 2" in the sub field `location` generated two blocks even if only specifying one block in .tf.
-						// Using normalized region say "westus2" does not have the symptom.
-						// Given this bug would break the core logic, use TypeList as a workaround.
-						// This justification also applies to the "distribution_shared_image" block below.
-						"managed_image": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"resource_group_name": commonschema.ResourceGroupName(),
-
-									"location": commonschema.Location(),
-
-									"run_output_name": distributionRunOutputNameSchema(),
-
-									"tags": commonschema.TagsForceNew(),
+		"distributions": {
+			Type:     schema.TypeList,
+			Required: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					// The array of this block is order insensitive. But there is a bug preventing using TypeSet for this block having a sub field `location` using StateFunc:
+					// https://github.com/hashicorp/terraform-plugin-sdk/issues/160.
+					// In detail, the symptom is specifying user friendly region say "West US 2" in the sub field `location` generated two blocks even if only specifying one block in .tf.
+					// Using normalized region say "westus2" does not have the symptom.
+					// Given this bug would break the core logic, use TypeList as a workaround.
+					// This justification also applies to the "distribution_shared_image" block below.
+					"managed_image": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         schema.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
+
+								"resource_group_name": commonschema.ResourceGroupName(),
+
+								"location": commonschema.Location(),
+
+								"run_output_name": distributionRunOutputNameSchema(),
+
+								"tags": commonschema.TagsForceNew(),
 							},
 						},
+					},
 
-						"shared_image": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: azure.ValidateResourceID,
-									},
+					"shared_image": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"id": {
+									Type:         schema.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: azure.ValidateResourceID,
+								},
 
-									// The latest swagger (ver: 2020-02-14) defines this type as []string. However, in native SIG Image Version, not only region name but replica count and storage type are supported for each region.
-									// So leave the type of this field as array of object here to serve future possible extensibility without bringing in breaking changes in user facing schema.
-									"replica_regions": {
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										ForceNew: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"name": {
-													Type:             schema.TypeString,
-													Required:         true,
-													ForceNew:         true,
-													ValidateFunc:     location.EnhancedValidate,
-													StateFunc:        location.StateFunc,
-													DiffSuppressFunc: location.DiffSuppressFunc,
-												},
+								// The latest swagger (ver: 2020-02-14) defines this type as []string. However, in native SIG Image Version, not only region name but replica count and storage type are supported for each region.
+								// So leave the type of this field as array of object here to serve future possible extensibility without bringing in breaking changes in user facing schema.
+								"replica_regions": {
+									Type:     schema.TypeList,
+									Required: true,
+									MinItems: 1,
+									ForceNew: true,
+									Elem: &schema.Resource{
+										Schema: map[string]*schema.Schema{
+											"name": {
+												Type:             schema.TypeString,
+												Required:         true,
+												ForceNew:         true,
+												ValidateFunc:     location.EnhancedValidate,
+												StateFunc:        location.StateFunc,
+												DiffSuppressFunc: location.DiffSuppressFunc,
 											},
 										},
 									},
+								},
 
-									"run_output_name": distributionRunOutputNameSchema(),
+								"run_output_name": distributionRunOutputNameSchema(),
 
-									"exclude_from_latest": {
-										Type:     schema.TypeBool,
-										Optional: true,
-										ForceNew: true,
-										Default:  false,
-									},
+								"exclude_from_latest": {
+									Type:     schema.TypeBool,
+									Optional: true,
+									ForceNew: true,
+									Default:  false,
+								},
 
-									"storage_account_type": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringInSlice(virtualmachineimagetemplate.PossibleValuesForSharedImageStorageAccountType(), false),
-									},
+								"storage_account_type": {
+									Type:         schema.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringInSlice(virtualmachineimagetemplate.PossibleValuesForSharedImageStorageAccountType(), false),
+								},
 
-									"tags": commonschema.TagsForceNew(),
+								"tags": commonschema.TagsForceNew(),
 
-									"versioning": {
-										Type:     schema.TypeList,
-										Required: true,
-										ForceNew: true,
-										MaxItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"scheme": {
-													Type:     schema.TypeString,
-													Required: true,
-													ForceNew: true,
-													ValidateFunc: validation.StringInSlice([]string{
-														"Source",
-														"Latest",
-													}, false),
-												},
-												"major": {
-													Type:     schema.TypeInt,
-													Optional: true,
-													ForceNew: true,
-												},
+								"versioning": {
+									Type:     schema.TypeList,
+									Required: true,
+									ForceNew: true,
+									MaxItems: 1,
+									Elem: &schema.Resource{
+										Schema: map[string]*schema.Schema{
+											"scheme": {
+												Type:     schema.TypeString,
+												Required: true,
+												ForceNew: true,
+												ValidateFunc: validation.StringInSlice([]string{
+													"Source",
+													"Latest",
+												}, false),
+											},
+											"major": {
+												Type:     schema.TypeInt,
+												Optional: true,
+												ForceNew: true,
 											},
 										},
 									},
 								},
 							},
 						},
+					},
 
-						"vhd": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"run_output_name": distributionRunOutputNameSchema(),
+					"vhd": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"run_output_name": distributionRunOutputNameSchema(),
 
-									"tags": commonschema.TagsForceNew(),
+								"tags": commonschema.TagsForceNew(),
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"size": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "Standard_D1_v2",
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"source_managed_image_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: images.ValidateImageID,
+			ExactlyOneOf: []string{"source_managed_image_id", "source_platform_image", "source_shared_image_version_id"},
+		},
+
+		"source_platform_image": {
+			Type:     schema.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"publisher": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"offer": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"sku": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					// If specify "Latest", the returned value is "latest ([a specific version])". I.e. in this situation the value returned by the service does not honor case sensitivity and adds more values.
+					// A rest api bug filed: https://github.com/Azure/azure-rest-api-specs/issues/11313
+					"version": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+							return strings.Contains(strings.ToLower(old), "latest (") && strings.EqualFold(new, "latest")
+						},
+					},
+
+					"plan": {
+						Type:     schema.TypeList,
+						Optional: true,
+						ForceNew: true,
+						MaxItems: 1,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"name": {
+									Type:         schema.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"product": {
+									Type:         schema.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+
+								"publisher": {
+									Type:         schema.TypeString,
+									Required:     true,
+									ForceNew:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
 					},
 				},
 			},
-
-			"size": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      "Standard_D1_v2",
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"source_managed_image_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: images.ValidateImageID,
-				ExactlyOneOf: []string{"source_managed_image_id", "source_platform_image", "source_shared_image_version_id"},
-			},
-
-			"source_platform_image": {
-				Type:     schema.TypeList,
-				Optional: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"publisher": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"offer": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						"sku": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-						},
-
-						// If specify "Latest", the returned value is "latest ([a specific version])". I.e. in this situation the value returned by the service does not honor case sensitivity and adds more values.
-						// A rest api bug filed: https://github.com/Azure/azure-rest-api-specs/issues/11313
-						"version": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
-							DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
-								return strings.Contains(strings.ToLower(old), "latest (") && strings.EqualFold(new, "latest")
-							},
-						},
-
-						"plan": {
-							Type:     schema.TypeList,
-							Optional: true,
-							ForceNew: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"product": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-
-									"publisher": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ForceNew:     true,
-										ValidateFunc: validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-					},
-				},
-				ExactlyOneOf: []string{"source_managed_image_id", "source_platform_image", "source_shared_image_version_id"},
-			},
-
-			"source_shared_image_version_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.SharedImageVersionID,
-				ExactlyOneOf: []string{"source_managed_image_id", "source_platform_image", "source_shared_image_version_id"},
-			},
-
-			"subnet_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: networkValidate.SubnetID,
-			},
-
-			"tags": commonschema.Tags(),
+			ExactlyOneOf: []string{"source_managed_image_id", "source_platform_image", "source_shared_image_version_id"},
 		},
+
+		"source_shared_image_version_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.SharedImageVersionID,
+			ExactlyOneOf: []string{"source_managed_image_id", "source_platform_image", "source_shared_image_version_id"},
+		},
+
+		"subnet_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: networkValidate.SubnetID,
+		},
+
+		"tags": commonschema.Tags(),
 	}
 }
 
-func resourceArmImageBuilderTemplateCreate(d *schema.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Compute.VirtualMachineImageTemplateClient
-	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	id := virtualmachineimagetemplate.NewImageTemplateID(subscriptionId, resourceGroup, name)
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("checking for the presence of existing Image Builder Template %q (Resource Group %q): %s", name, resourceGroup, err)
-		}
-	}
-
-	if !response.WasNotFound(resp.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_image_builder_template", id.ID())
-	}
-
-	location := d.Get("location").(string)
-
-	distribution, err := expandBasicImageTemplateDistributor(d.Get("distributions").([]interface{}), subscriptionId)
-	if err != nil {
-		return err
-	}
-
-	customizer, err := expandBasicImageTemplateCustomizer(d)
-	if err != nil {
-		return err
-	}
-	t := d.Get("tags").(map[string]interface{})
-
-	identityExpanded, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	parameters := virtualmachineimagetemplate.ImageTemplate{
-		Location: location,
-		Identity: *identityExpanded,
-		Properties: &virtualmachineimagetemplate.ImageTemplateProperties{
-			VMProfile: &virtualmachineimagetemplate.ImageTemplateVMProfile{
-				VMSize:       pointer.To(d.Get("size").(string)),
-				OsDiskSizeGB: pointer.To(int64(d.Get("disk_size_gb").(int))),
-			},
-
-			Source:                expandBasicImageTemplateSource(d.Get("source_managed_image_id").(string), d.Get("source_platform_image").([]interface{}), d.Get("source_shared_image_version_id").(string)),
-			Distribute:            *distribution,
-			Customize:             customizer,
-			BuildTimeoutInMinutes: pointer.To(int64(d.Get("build_timeout_minutes").(int))),
-		},
-
-		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("subnet_id"); ok {
-		parameters.Properties.VMProfile.VnetConfig = &virtualmachineimagetemplate.VirtualNetworkConfig{
-			SubnetId: pointer.To(v.(string)),
-		}
-	}
-
-	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating image builder template %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	d.SetId(id.ID())
-
-	return resourceArmImageBuilderTemplateRead(d, meta)
+func (ImageBuilderTemplateResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
 }
 
-func resourceArmImageBuilderTemplateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VirtualMachineImageTemplateClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ImageBuilderTemplateResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Compute.VirtualMachineImageTemplateClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	id, err := virtualmachineimagetemplate.ParseImageTemplateID(d.Id())
-	if err != nil {
-		return err
-	}
+			var model ImageBuilderTemplateResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
 
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("retrieving image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
-	}
-
-	d.Set("name", id.ImageTemplateName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-
-		identityFlattened, err := identity.FlattenUserAssignedMap(&model.Identity)
-		if err != nil {
-			return fmt.Errorf("flattening `identity`: %+v", err)
-		}
-		if err := d.Set("identity", identityFlattened); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
-		}
-
-		if imageTemplateProperties := resp.Model.Properties; imageTemplateProperties != nil {
-			managedImageId, platformImage, sharedImageVersionId := flattenBasicImageTemplateSource(imageTemplateProperties.Source)
-
-			// only one among managedImageId / platformImage / sharedImageVersionId would be returned.
-			if managedImageId != "" {
-				if err := d.Set("source_managed_image_id", managedImageId); err != nil {
-					return fmt.Errorf("setting image template managed image source: %+v", err)
+			id := virtualmachineimagetemplate.NewImageTemplateID(subscriptionId, model.ResourceGroupName, model.Name)
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("checking for the presence of existing Image Builder Template %q (Resource Group %q): %s", model.Name, model.ResourceGroupName, err)
 				}
 			}
 
-			if len(platformImage) > 0 {
-				if err := d.Set("source_platform_image", platformImage); err != nil {
-					return fmt.Errorf("setting image template platform image source: %+v", err)
-				}
+			if !response.WasNotFound(resp.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			if sharedImageVersionId != "" {
-				if err := d.Set("source_shared_image_version_id", sharedImageVersionId); err != nil {
-					return fmt.Errorf("setting image template shared image version source: %+v", err)
-				}
-			}
-
-			flattenedDistributions, err := flattenBasicImageTemplateDistributor(&imageTemplateProperties.Distribute)
+			distribution, err := expandBasicImageTemplateDistributor(model.Distributions, subscriptionId)
 			if err != nil {
 				return err
 			}
 
-			if err := d.Set("distributions", flattenedDistributions); err != nil {
-				return fmt.Errorf("setting image template distribution: %+v", err)
+			customizer, err := expandBasicImageTemplateCustomizer(metadata.ResourceData, model.Customizer)
+			if err != nil {
+				return err
 			}
 
-			if err := d.Set("customizer", flattenBasicImageTemplateCustomizer(imageTemplateProperties.Customize)); err != nil {
-				return fmt.Errorf("setting `customizer`: %+v", err)
+			identityExpanded, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			if err := d.Set("build_timeout_minutes", imageTemplateProperties.BuildTimeoutInMinutes); err != nil {
-				return fmt.Errorf("setting `build timeout minutes`: %+v", err)
+			parameters := virtualmachineimagetemplate.ImageTemplate{
+				Location: model.Location,
+				Identity: *identityExpanded,
+				Properties: &virtualmachineimagetemplate.ImageTemplateProperties{
+					VMProfile: &virtualmachineimagetemplate.ImageTemplateVMProfile{
+						VMSize:       &model.Size,
+						OsDiskSizeGB: &model.DiskSizeGb,
+					},
+
+					Source:                expandBasicImageTemplateSource(model.SourceManagedImageId, model.SourcePlatformImage, model.SourceSharedImageVersionId),
+					Distribute:            *distribution,
+					Customize:             customizer,
+					BuildTimeoutInMinutes: &model.BuildTimeoutMinutes,
+				},
+
+				Tags: &model.Tags,
 			}
 
-			if vmProfile := resp.Model.Properties.VMProfile; vmProfile != nil {
-				d.Set("size", vmProfile.VMSize)
-
-				d.Set("disk_size_gb", vmProfile.OsDiskSizeGB)
-
-				if vnetConfig := vmProfile.VnetConfig; vnetConfig != nil {
-					d.Set("subnet_id", vnetConfig.SubnetId)
+			if model.SubnetId != "" {
+				parameters.Properties.VMProfile.VnetConfig = &virtualmachineimagetemplate.VirtualNetworkConfig{
+					SubnetId: &model.SubnetId,
 				}
 			}
-		}
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
-		}
 
+			err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
+			if err != nil {
+				return fmt.Errorf("creating image builder template %q (Resource Group %q): %+v", model.Name, model.ResourceGroupName, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
+		},
 	}
-
-	return nil
 }
 
-func resourceArmImageBuilderTemplateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VirtualMachineImageTemplateClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ImageBuilderTemplateResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Compute.VirtualMachineImageTemplateClient
 
-	id, err := virtualmachineimagetemplate.ParseImageTemplateID(d.Id())
-	if err != nil {
-		return err
+			state := ImageBuilderTemplateResourceModel{}
+
+			id, err := virtualmachineimagetemplate.ParseImageTemplateID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					log.Printf("[DEBUG] %s was not found - removing from state!", *id)
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
+			}
+
+			state.Name = id.ImageTemplateName
+			state.ResourceGroupName = id.ResourceGroupName
+
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+
+				identityFlattened, err := identity.FlattenUserAssignedMapToModel(&model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = *identityFlattened
+
+				if imageTemplateProperties := resp.Model.Properties; imageTemplateProperties != nil {
+					managedImageId, platformImage, sharedImageVersionId := flattenBasicImageTemplateSource(imageTemplateProperties.Source)
+
+					// only one among managedImageId / platformImage / sharedImageVersionId would be returned.
+					if managedImageId != "" {
+						state.SourceManagedImageId = managedImageId
+					}
+					if len(platformImage) > 0 {
+						state.SourcePlatformImage = platformImage
+					}
+
+					if sharedImageVersionId != "" {
+						state.SourceSharedImageVersionId = sharedImageVersionId
+					}
+
+					flattenedDistributions, err := flattenBasicImageTemplateDistributor(&imageTemplateProperties.Distribute)
+					if err != nil {
+						return err
+					}
+
+					state.Distributions = flattenedDistributions
+					state.Customizer = flattenBasicImageTemplateCustomizer(imageTemplateProperties.Customize)
+					state.BuildTimeoutMinutes = *imageTemplateProperties.BuildTimeoutInMinutes
+
+					if vmProfile := resp.Model.Properties.VMProfile; vmProfile != nil {
+						state.Size = *vmProfile.VMSize
+						state.DiskSizeGb = *vmProfile.OsDiskSizeGB
+
+						if vnetConfig := vmProfile.VnetConfig; vnetConfig != nil {
+							state.SubnetId = *vnetConfig.SubnetId
+						}
+					}
+				}
+				state.Tags = pointer.From(model.Tags)
+			}
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	parameters := virtualmachineimagetemplate.ImageTemplateUpdateParameters{}
-
-	if d.HasChange("identity") {
-		identityExpanded, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-
-		parameters.Identity = identityExpanded
-	}
-
-	if d.HasChange("tags") {
-		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	err = client.UpdateThenPoll(ctx, *id, parameters)
-	if err != nil {
-		return fmt.Errorf("updating image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
-	}
-
-	return resourceArmImageBuilderTemplateRead(d, meta)
 }
 
-func resourceArmImageBuilderTemplateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VirtualMachineImageTemplateClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r ImageBuilderTemplateResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Compute.VirtualMachineImageTemplateClient
 
-	id, err := virtualmachineimagetemplate.ParseImageTemplateID(d.Id())
-	if err != nil {
-		return err
+			var model ImageBuilderTemplateResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+			id, err := virtualmachineimagetemplate.ParseImageTemplateID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			parameters := virtualmachineimagetemplate.ImageTemplateUpdateParameters{}
+
+			if metadata.ResourceData.HasChange("identity") {
+				identityExpanded, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding `identity`: %+v", err)
+				}
+
+				parameters.Identity = identityExpanded
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = &model.Tags
+			}
+
+			err = client.UpdateThenPoll(ctx, *id, parameters)
+			if err != nil {
+				return fmt.Errorf("updating image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
+			}
+
+			return nil
+		},
 	}
-
-	err = client.DeleteThenPoll(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("deleting image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
-	}
-
-	return nil
 }
 
-func expandBasicImageTemplateSource(managedImageId string, platformImage []interface{}, sharedImageId string) virtualmachineimagetemplate.ImageTemplateSource {
+func (r ImageBuilderTemplateResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Compute.VirtualMachineImageTemplateClient
+
+			id, err := virtualmachineimagetemplate.ParseImageTemplateID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			err = client.DeleteThenPoll(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("deleting image builder template %q (Resource Group %q): %+v", id.ImageTemplateName, id.ResourceGroupName, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandBasicImageTemplateSource(managedImageId string, platformImage []ImageBuilderTemplateSourcePlatformImage, sharedImageId string) virtualmachineimagetemplate.ImageTemplateSource {
 	if len(managedImageId) != 0 {
 		return &virtualmachineimagetemplate.ImageTemplateManagedImageSource{
 			ImageId: managedImageId,
 		}
 	}
 
-	if len(platformImage) != 0 && platformImage[0] != nil {
-		v := platformImage[0].(map[string]interface{})
+	if len(platformImage) != 0 {
+		v := platformImage[0]
 		result := &virtualmachineimagetemplate.ImageTemplatePlatformImageSource{
-			Publisher: pointer.To(v["publisher"].(string)),
-			Offer:     pointer.To(v["offer"].(string)),
-			Sku:       pointer.To(v["sku"].(string)),
-			Version:   pointer.To(v["version"].(string)),
+			Publisher: &v.Publisher,
+			Offer:     &v.Offer,
+			Sku:       &v.Sku,
+			Version:   &v.Version,
 		}
 
-		planRaw := v["plan"].([]interface{})
-		if len(planRaw) > 0 {
-			planTemp := planRaw[0].(map[string]interface{})
+		if len(v.Plan) > 0 {
+			planTemp := v.Plan[0]
 			result.PlanInfo = &virtualmachineimagetemplate.PlatformImagePurchasePlan{
-				PlanName:      planTemp["name"].(string),
-				PlanProduct:   planTemp["product"].(string),
-				PlanPublisher: planTemp["publisher"].(string),
+				PlanName:      planTemp.Name,
+				PlanProduct:   planTemp.Product,
+				PlanPublisher: planTemp.Publisher,
 			}
 		}
 
@@ -779,7 +867,7 @@ func expandBasicImageTemplateSource(managedImageId string, platformImage []inter
 	return nil
 }
 
-func flattenBasicImageTemplateSource(input virtualmachineimagetemplate.ImageTemplateSource) (string, []interface{}, string) {
+func flattenBasicImageTemplateSource(input virtualmachineimagetemplate.ImageTemplateSource) (string, []ImageBuilderTemplateSourcePlatformImage, string) {
 	if input != nil {
 		switch source := input.(type) {
 		case virtualmachineimagetemplate.ImageTemplateManagedImageSource:
@@ -802,69 +890,48 @@ func flattenSourceManagedImage(input *virtualmachineimagetemplate.ImageTemplateM
 	return ""
 }
 
-func flattenSourcePlatformImage(input *virtualmachineimagetemplate.ImageTemplatePlatformImageSource) []interface{} {
+func flattenSourcePlatformImage(input *virtualmachineimagetemplate.ImageTemplatePlatformImageSource) []ImageBuilderTemplateSourcePlatformImage {
 	if input == nil {
-		return []interface{}{}
+		return nil
 	}
 
-	publisher := ""
+	result := make([]ImageBuilderTemplateSourcePlatformImage, 0)
+
+	result = append(result, ImageBuilderTemplateSourcePlatformImage{
+		Plan: flattenImageBuilderTemplateSourcePlatformImagePlan(input.PlanInfo),
+	})
+
 	if input.Publisher != nil {
-		publisher = *input.Publisher
+		result[0].Publisher = *input.Publisher
 	}
 
-	offer := ""
 	if input.Offer != nil {
-		offer = *input.Offer
+		result[0].Offer = *input.Offer
 	}
 
-	sku := ""
 	if input.Sku != nil {
-		sku = *input.Sku
+		result[0].Sku = *input.Sku
 	}
 
-	version := ""
 	if input.Version != nil {
-		version = *input.Version
+		result[0].Version = *input.Version
 	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"publisher": publisher,
-			"offer":     offer,
-			"sku":       sku,
-			"version":   version,
-			"plan":      flattenImageBuilderTemplateSourcePlatformImagePlan(input.PlanInfo),
-		},
-	}
+	return result
 }
 
-func flattenImageBuilderTemplateSourcePlatformImagePlan(input *virtualmachineimagetemplate.PlatformImagePurchasePlan) []interface{} {
+func flattenImageBuilderTemplateSourcePlatformImagePlan(input *virtualmachineimagetemplate.PlatformImagePurchasePlan) []ImageBuilderTemplateSourcePlatformImagePlan {
 	if input == nil {
-		return []interface{}{}
+		return nil
 	}
 
-	name := ""
-	if input.PlanName != "" {
-		name = input.PlanName
-	}
+	result := make([]ImageBuilderTemplateSourcePlatformImagePlan, 0)
 
-	product := ""
-	if input.PlanProduct != "" {
-		product = input.PlanProduct
-	}
-
-	publisher := ""
-	if input.PlanPublisher != "" {
-		publisher = input.PlanPublisher
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"name":      name,
-			"product":   product,
-			"publisher": publisher,
-		},
-	}
+	result = append(result, ImageBuilderTemplateSourcePlatformImagePlan{
+		Name:      input.PlanName,
+		Product:   input.PlanProduct,
+		Publisher: input.PlanPublisher,
+	})
+	return result
 }
 
 func flattenSourceSharedImageVersion(input *virtualmachineimagetemplate.ImageTemplateSharedImageVersionSource) string {
@@ -875,88 +942,81 @@ func flattenSourceSharedImageVersion(input *virtualmachineimagetemplate.ImageTem
 	return ""
 }
 
-func expandBasicImageTemplateDistributor(distributions []interface{}, subscriptionId string) (*[]virtualmachineimagetemplate.ImageTemplateDistributor, error) {
+func expandBasicImageTemplateDistributor(distributions []ImageBuilderTemplateDistributions, subscriptionId string) (*[]virtualmachineimagetemplate.ImageTemplateDistributor, error) {
 	results := make([]virtualmachineimagetemplate.ImageTemplateDistributor, 0)
 	runOutputNameSet := make(map[string]bool)
 
 	if len(distributions) > 0 {
 		for _, v := range distributions {
-			if v != nil {
-				distributionItems := v.(map[string]interface{})
-				managedImages := distributionItems["managed_image"].([]interface{})
-				sharedImages := distributionItems["shared_image"].([]interface{})
-				vhds := distributionItems["vhd"].([]interface{})
+			managedImages := v.ManagedImage
+			sharedImages := v.SharedImage
+			vhds := v.Vhd
 
-				if len(managedImages) > 0 {
-					for _, managedImageRaw := range managedImages {
-						if managedImageRaw != nil {
-							managedImage := managedImageRaw.(map[string]interface{})
-							resourceGroupName := managedImage["resource_group_name"].(string)
-							runOutputName := managedImage["run_output_name"].(string)
-
-							_, existing := runOutputNameSet[runOutputName]
-							if existing {
-								return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
-							} else {
-								runOutputNameSet[runOutputName] = true
-
-								results = append(results, virtualmachineimagetemplate.ImageTemplateManagedImageDistributor{
-									ImageId:       "/subscriptions/" + subscriptionId + "/resourceGroups/" + resourceGroupName + "/providers/Microsoft.Compute/images/" + managedImage["name"].(string),
-									Location:      managedImage["location"].(string),
-									RunOutputName: runOutputName,
-									ArtifactTags:  tags.Expand(managedImage["tags"].(map[string]interface{})),
-								})
-							}
-						}
-					}
-				}
-
-				if len(sharedImages) > 0 {
-					for _, sharedImageRaw := range sharedImages {
-						if sharedImageRaw != nil {
-							sharedImage := sharedImageRaw.(map[string]interface{})
-							runOutputName := sharedImage["run_output_name"].(string)
-
-							_, existing := runOutputNameSet[runOutputName]
-							if existing {
-								return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
-							} else {
-								runOutputNameSet[runOutputName] = true
-								results = append(results, virtualmachineimagetemplate.ImageTemplateSharedImageDistributor{
-									GalleryImageId:     sharedImage["id"].(string),
-									ReplicationRegions: expandImageTemplateSharedImageDistributorReplicaRegions(sharedImage["replica_regions"].([]interface{})),
-									RunOutputName:      sharedImage["run_output_name"].(string),
-									ExcludeFromLatest:  pointer.To(sharedImage["exclude_from_latest"].(bool)),
-									StorageAccountType: pointer.To(virtualmachineimagetemplate.SharedImageStorageAccountType(sharedImage["storage_account_type"].(string))),
-									ArtifactTags:       tags.Expand(sharedImage["tags"].(map[string]interface{})),
-									Versioning:         expandImageTemplateSharedImageDistributorVersioning(sharedImage["versioning"].([]interface{})),
-								})
-							}
-						}
-					}
-				}
-
-				if len(vhds) > 0 {
-					for _, vhdRaw := range vhds {
-						if vhdRaw != nil {
-							vhd := vhdRaw.(map[string]interface{})
-							runOutputName := vhd["run_output_name"].(string)
-
-							_, existing := runOutputNameSet[runOutputName]
-							if existing {
-								return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
-							} else {
-								runOutputNameSet[runOutputName] = true
-								results = append(results, virtualmachineimagetemplate.ImageTemplateVhdDistributor{
-									RunOutputName: vhd["run_output_name"].(string),
-									ArtifactTags:  tags.Expand(vhd["tags"].(map[string]interface{})),
-								})
-							}
-						}
-					}
-				}
-			} else {
+			if len(managedImages) == 0 && len(sharedImages) == 0 && len(vhds) == 0 {
 				return &results, fmt.Errorf("at least one of `managed_image`, `shared_image` and `vhd` is required to specify in `distributions`")
+			}
+
+			if len(managedImages) > 0 {
+				for _, managedImage := range managedImages {
+					resourceGroupName := managedImage.ResourceGroupName
+					runOutputName := managedImage.RunOutputName
+
+					_, existing := runOutputNameSet[runOutputName]
+					if existing {
+						return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
+					} else {
+						runOutputNameSet[runOutputName] = true
+
+						results = append(results, virtualmachineimagetemplate.ImageTemplateManagedImageDistributor{
+							ImageId:       "/subscriptions/" + subscriptionId + "/resourceGroups/" + resourceGroupName + "/providers/Microsoft.Compute/images/" + managedImage.Name,
+							Location:      managedImage.Location,
+							RunOutputName: runOutputName,
+							ArtifactTags:  &managedImage.Tags,
+						})
+					}
+
+				}
+			}
+
+			if len(sharedImages) > 0 {
+				for _, sharedImage := range sharedImages {
+					// sharedImage := sharedImageRaw.(map[string]interface{})
+					runOutputName := sharedImage.RunOutputName
+
+					_, existing := runOutputNameSet[runOutputName]
+					if existing {
+						return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
+					} else {
+						runOutputNameSet[runOutputName] = true
+						results = append(results, virtualmachineimagetemplate.ImageTemplateSharedImageDistributor{
+							GalleryImageId:     sharedImage.Id,
+							ReplicationRegions: expandImageTemplateSharedImageDistributorReplicaRegions(sharedImage.ReplicaRegions),
+							RunOutputName:      sharedImage.RunOutputName,
+							ExcludeFromLatest:  &sharedImage.ExcludeFromLatest,
+							StorageAccountType: pointer.To(virtualmachineimagetemplate.SharedImageStorageAccountType(sharedImage.StorageAccountType)),
+							ArtifactTags:       &sharedImage.Tags,
+							Versioning:         expandImageTemplateSharedImageDistributorVersioning(sharedImage.Versioning),
+						})
+					}
+				}
+			}
+
+			if len(vhds) > 0 {
+				for _, vhd := range vhds {
+					// vhd := vhdRaw.(map[string]interface{})
+					runOutputName := vhd.RunOutputName
+
+					_, existing := runOutputNameSet[runOutputName]
+					if existing {
+						return &results, fmt.Errorf("`run_output_name` must be unique among all distribution destinations. %q already exists", runOutputName)
+					} else {
+						runOutputNameSet[runOutputName] = true
+						results = append(results, virtualmachineimagetemplate.ImageTemplateVhdDistributor{
+							RunOutputName: vhd.RunOutputName,
+							ArtifactTags:  &vhd.Tags,
+						})
+					}
+				}
 			}
 		}
 	}
@@ -964,12 +1024,12 @@ func expandBasicImageTemplateDistributor(distributions []interface{}, subscripti
 	return &results, nil
 }
 
-func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagetemplate.ImageTemplateDistributor) ([]interface{}, error) {
-	results := make([]interface{}, 0)
+func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagetemplate.ImageTemplateDistributor) ([]ImageBuilderTemplateDistributions, error) {
+	results := make([]ImageBuilderTemplateDistributions, 0)
 
-	distributionManagedImages := make([]interface{}, 0)
-	distributionSharedImages := make([]interface{}, 0)
-	distributionVhds := make([]interface{}, 0)
+	distributionManagedImages := make([]ImageBuilderTemplateDistributionsManagedImage, 0)
+	distributionSharedImages := make([]ImageBuilderTemplateDistributionsSharedImage, 0)
+	distributionVhds := make([]ImageBuilderTemplateDistributionsVhd, 0)
 
 	if input != nil {
 		for _, v := range *input {
@@ -989,61 +1049,61 @@ func flattenBasicImageTemplateDistributor(input *[]virtualmachineimagetemplate.I
 		}
 	}
 
-	output := map[string]interface{}{
-		"managed_image": distributionManagedImages,
-		"shared_image":  distributionSharedImages,
-		"vhd":           distributionVhds,
+	output := ImageBuilderTemplateDistributions{
+		ManagedImage: distributionManagedImages,
+		SharedImage:  distributionSharedImages,
+		Vhd:          distributionVhds,
 	}
 
 	results = append(results, output)
 	return results, nil
 }
 
-func expandImageTemplateSharedImageDistributorReplicaRegions(input []interface{}) *[]string {
+func expandImageTemplateSharedImageDistributorReplicaRegions(input []ImageBuilderTemplateDistributionsSharedImageReplicaRegions) *[]string {
 	if input == nil {
 		return nil
 	}
 
 	result := make([]string, 0)
 	for _, v := range input {
-		result = append(result, v.(map[string]interface{})["name"].(string))
+		result = append(result, v.Name)
 	}
 
 	return &result
 }
 
-func expandImageTemplateSharedImageDistributorVersioning(input []interface{}) virtualmachineimagetemplate.DistributeVersioner {
+func expandImageTemplateSharedImageDistributorVersioning(input []ImageBuilderTemplateDistributionsSharedImageVersioning) virtualmachineimagetemplate.DistributeVersioner {
 	var result virtualmachineimagetemplate.DistributeVersioner
 	if len(input) > 0 {
-		config := input[0].(map[string]interface{})
+		config := input[0]
 
-		if v := config["scheme"].(string); v == "Latest" {
+		if v := config.Scheme; v == "Latest" {
 			result = virtualmachineimagetemplate.DistributeVersionerLatest{
-				Scheme: config["scheme"].(string),
-				Major:  pointer.To(config["major"].(int64)),
+				Scheme: config.Scheme,
+				Major:  &config.Major,
 			}
 		}
 
-		if v := config["scheme"].(string); v == "Source" {
+		if v := config.Scheme; v == "Source" {
 			result = virtualmachineimagetemplate.DistributeVersionerSource{
-				Scheme: config["scheme"].(string),
+				Scheme: config.Scheme,
 			}
 		}
 	}
 	return result
 }
 
-func flattenImageTemplateSharedImageDistributorVersioning(input virtualmachineimagetemplate.DistributeVersioner) []interface{} {
-	results := make([]interface{}, 0)
-	output := make(map[string]interface{})
+func flattenImageTemplateSharedImageDistributorVersioning(input virtualmachineimagetemplate.DistributeVersioner) []ImageBuilderTemplateDistributionsSharedImageVersioning {
+	results := make([]ImageBuilderTemplateDistributionsSharedImageVersioning, 0)
+	output := ImageBuilderTemplateDistributionsSharedImageVersioning{}
 
 	switch versioner := input.(type) {
 	case virtualmachineimagetemplate.DistributeVersionerLatest:
-		output["scheme"] = versioner.Scheme
-		output["major"] = versioner.Major
+		output.Scheme = versioner.Scheme
+		output.Major = *versioner.Major
 
 	case virtualmachineimagetemplate.DistributeVersionerSource:
-		output["scheme"] = versioner.Scheme
+		output.Scheme = versioner.Scheme
 	}
 
 	results = append(results, output)
@@ -1051,22 +1111,22 @@ func flattenImageTemplateSharedImageDistributorVersioning(input virtualmachineim
 	return results
 }
 
-func flattenImageTemplateSharedImageDistributorReplicaRegions(input *[]string) []interface{} {
-	results := make([]interface{}, 0)
+func flattenImageTemplateSharedImageDistributorReplicaRegions(input *[]string) []ImageBuilderTemplateDistributionsSharedImageReplicaRegions {
+	results := make([]ImageBuilderTemplateDistributionsSharedImageReplicaRegions, 0)
 
 	if input != nil {
 		for _, v := range *input {
-			output := make(map[string]interface{})
-			output["name"] = v
-			results = append(results, output)
+			results = append(results, ImageBuilderTemplateDistributionsSharedImageReplicaRegions{
+				Name: v,
+			})
 		}
 	}
 
 	return results
 }
 
-func flattenDistributionManagedImage(input *virtualmachineimagetemplate.ImageTemplateManagedImageDistributor) (map[string]interface{}, error) {
-	result := make(map[string]interface{})
+func flattenDistributionManagedImage(input *virtualmachineimagetemplate.ImageTemplateManagedImageDistributor) (ImageBuilderTemplateDistributionsManagedImage, error) {
+	result := ImageBuilderTemplateDistributionsManagedImage{}
 	if input == nil {
 		return result, nil
 	}
@@ -1083,79 +1143,64 @@ func flattenDistributionManagedImage(input *virtualmachineimagetemplate.ImageTem
 		resourceGroupName = resourceGroupNameReturned
 	}
 
-	result["name"] = imageName
-	result["resource_group_name"] = resourceGroupName
-
-	if input.Location != "" {
-		result["location"] = input.Location
-	}
-
-	if input.RunOutputName != "" {
-		result["run_output_name"] = input.RunOutputName
-	}
-
-	if input.ArtifactTags != nil {
-		result["tags"] = tags.Flatten(input.ArtifactTags)
-	}
+	result.Name = imageName
+	result.ResourceGroupName = resourceGroupName
+	result.Location = input.Location
+	result.RunOutputName = input.RunOutputName
+	result.Tags = *input.ArtifactTags
 
 	return result, nil
 }
 
-func flattenDistributionSharedImage(input *virtualmachineimagetemplate.ImageTemplateSharedImageDistributor) map[string]interface{} {
-	results := make(map[string]interface{})
+func flattenDistributionSharedImage(input *virtualmachineimagetemplate.ImageTemplateSharedImageDistributor) ImageBuilderTemplateDistributionsSharedImage {
+	results := ImageBuilderTemplateDistributionsSharedImage{}
 	if input == nil {
 		return results
 	}
 
-	if input.GalleryImageId != "" {
-		results["id"] = input.GalleryImageId
-	}
+	results.Id = input.GalleryImageId
 
 	if input.ReplicationRegions != nil {
-		results["replica_regions"] = flattenImageTemplateSharedImageDistributorReplicaRegions(input.ReplicationRegions)
+		results.ReplicaRegions = flattenImageTemplateSharedImageDistributorReplicaRegions(input.ReplicationRegions)
 	}
 
-	if input.RunOutputName != "" {
-		results["run_output_name"] = input.RunOutputName
-	}
+	results.RunOutputName = input.RunOutputName
 
 	if input.ExcludeFromLatest != nil {
-		results["exclude_from_latest"] = *input.ExcludeFromLatest
+		results.ExcludeFromLatest = *input.ExcludeFromLatest
 	}
 
 	if input.StorageAccountType != nil {
-		results["storage_account_type"] = string(*input.StorageAccountType)
+		results.StorageAccountType = string(*input.StorageAccountType)
 	}
 
 	if input.ArtifactTags != nil {
-		results["tags"] = tags.Flatten(input.ArtifactTags)
+		results.Tags = *input.ArtifactTags
 	}
 
-	results["versioning"] = flattenImageTemplateSharedImageDistributorVersioning(input.Versioning)
+	results.Versioning = flattenImageTemplateSharedImageDistributorVersioning(input.Versioning)
 	return results
 }
 
-func flattenDistributionVhd(input *virtualmachineimagetemplate.ImageTemplateVhdDistributor) map[string]interface{} {
-	results := make(map[string]interface{})
+func flattenDistributionVhd(input *virtualmachineimagetemplate.ImageTemplateVhdDistributor) ImageBuilderTemplateDistributionsVhd {
+	results := ImageBuilderTemplateDistributionsVhd{}
 	if input == nil {
 		return results
 	}
 
 	if input.RunOutputName != "" {
-		results["run_output_name"] = input.RunOutputName
+		results.RunOutputName = input.RunOutputName
 	}
 
 	if input.ArtifactTags != nil {
-		results["tags"] = tags.Flatten(input.ArtifactTags)
+		results.Tags = *input.ArtifactTags
 	}
 
 	return results
 }
 
 // Passing d as input rather its business subset because this function needs d.GetOK() to verify users' input to the `customizer` block is valid.
-func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachineimagetemplate.ImageTemplateCustomizer, error) {
-	input := d.Get("customizer").([]interface{})
-
+func expandBasicImageTemplateCustomizer(d *schema.ResourceData, input []ImageBuilderTemplateCustomizer) (*[]virtualmachineimagetemplate.ImageTemplateCustomizer, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1165,9 +1210,8 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 	// This index serves identifying the invalid input customizer block from the customizer block list.
 	i := 0
 
-	for _, customizerRaw := range input {
-		customizer := customizerRaw.(map[string]interface{})
-		t := customizer["type"].(string)
+	for _, customizer := range input {
+		t := customizer.Type
 
 		switch t {
 		case "File":
@@ -1176,10 +1220,10 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 			}
 
 			results = append(results, virtualmachineimagetemplate.ImageTemplateFileCustomizer{
-				Name:           pointer.To(customizer["name"].(string)),
-				SourceUri:      pointer.To(customizer["file_source_uri"].(string)),
-				Sha256Checksum: pointer.To(customizer["file_sha256_checksum"].(string)),
-				Destination:    pointer.To(customizer["file_destination_path"].(string)),
+				Name:           pointer.To(customizer.Name),
+				SourceUri:      pointer.To(customizer.FileSourceUri),
+				Sha256Checksum: pointer.To(customizer.FileSha256Checksum),
+				Destination:    pointer.To(customizer.FileDestinationPath),
 			})
 
 			i++
@@ -1189,13 +1233,13 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 			}
 
 			results = append(results, virtualmachineimagetemplate.ImageTemplatePowerShellCustomizer{
-				Name:           pointer.To(customizer["name"].(string)),
-				ScriptUri:      pointer.To(customizer["powershell_script_uri"].(string)),
-				Sha256Checksum: pointer.To(customizer["powershell_sha256_checksum"].(string)),
-				Inline:         utils.ExpandStringSlice(customizer["powershell_commands"].([]interface{})),
-				RunAsSystem:    pointer.To(customizer["powershell_run_as_system"].(bool)),
-				RunElevated:    pointer.To(customizer["powershell_run_elevated"].(bool)),
-				ValidExitCodes: utils.ExpandInt64Slice(customizer["powershell_valid_exit_codes"].([]interface{})),
+				Name:           pointer.To(customizer.Name),
+				ScriptUri:      pointer.To(customizer.PowershellScriptUri),
+				Sha256Checksum: pointer.To(customizer.PowershellSha256Checksum),
+				Inline:         pointer.To(customizer.PowershellCommands),
+				RunAsSystem:    pointer.To(customizer.PowershellRunAsSystem),
+				RunElevated:    pointer.To(customizer.PowershellRunElevated),
+				ValidExitCodes: pointer.To(customizer.PowershellValidExitCodes),
 			})
 
 			i++
@@ -1205,10 +1249,10 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 			}
 
 			results = append(results, virtualmachineimagetemplate.ImageTemplateShellCustomizer{
-				Name:           pointer.To(customizer["name"].(string)),
-				ScriptUri:      pointer.To(customizer["shell_script_uri"].(string)),
-				Sha256Checksum: pointer.To(customizer["shell_sha256_checksum"].(string)),
-				Inline:         utils.ExpandStringSlice(customizer["shell_commands"].([]interface{})),
+				Name:           pointer.To(customizer.Name),
+				ScriptUri:      pointer.To(customizer.ShellScriptUri),
+				Sha256Checksum: pointer.To(customizer.ShellSha256Checksum),
+				Inline:         pointer.To(customizer.ShellCommands),
 			})
 
 			i++
@@ -1218,10 +1262,10 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 			}
 
 			results = append(results, virtualmachineimagetemplate.ImageTemplateRestartCustomizer{
-				Name:                pointer.To(customizer["name"].(string)),
-				RestartCommand:      pointer.To(customizer["windows_restart_command"].(string)),
-				RestartCheckCommand: pointer.To(customizer["windows_restart_check_command"].(string)),
-				RestartTimeout:      pointer.To(customizer["windows_restart_timeout"].(string)),
+				Name:                pointer.To(customizer.Name),
+				RestartCommand:      pointer.To(customizer.WindowsRestartCommand),
+				RestartCheckCommand: pointer.To(customizer.WindowsRestartCheckCommand),
+				RestartTimeout:      pointer.To(customizer.WindowsRestartTimeout),
 			})
 
 			i++
@@ -1231,10 +1275,10 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 			}
 
 			results = append(results, virtualmachineimagetemplate.ImageTemplateWindowsUpdateCustomizer{
-				Name:           pointer.To(customizer["name"].(string)),
-				SearchCriteria: pointer.To(customizer["windows_update_search_criteria"].(string)),
-				Filters:        utils.ExpandStringSlice(customizer["windows_update_filters"].([]interface{})),
-				UpdateLimit:    pointer.To(int64(customizer["windows_update_limit"].(int))),
+				Name:           pointer.To(customizer.Name),
+				SearchCriteria: pointer.To(customizer.WindowsUpdateSearchCriteria),
+				Filters:        pointer.To(customizer.WindowsUpdateFilters),
+				UpdateLimit:    pointer.To(customizer.WindowsUpdateLimit),
 			})
 
 			i++
@@ -1244,8 +1288,8 @@ func expandBasicImageTemplateCustomizer(d *schema.ResourceData) (*[]virtualmachi
 	return &results, nil
 }
 
-func flattenBasicImageTemplateCustomizer(input *[]virtualmachineimagetemplate.ImageTemplateCustomizer) []interface{} {
-	customizerList := make([]interface{}, 0)
+func flattenBasicImageTemplateCustomizer(input *[]virtualmachineimagetemplate.ImageTemplateCustomizer) []ImageBuilderTemplateCustomizer {
+	customizerList := make([]ImageBuilderTemplateCustomizer, 0)
 
 	if input != nil {
 		for _, v := range *input {
@@ -1269,163 +1313,149 @@ func flattenBasicImageTemplateCustomizer(input *[]virtualmachineimagetemplate.Im
 	return customizerList
 }
 
-func flattenCustomizerFile(input *virtualmachineimagetemplate.ImageTemplateFileCustomizer) map[string]interface{} {
+func flattenCustomizerFile(input *virtualmachineimagetemplate.ImageTemplateFileCustomizer) ImageBuilderTemplateCustomizer {
+	result := ImageBuilderTemplateCustomizer{}
+
 	if input == nil {
-		return nil
+		return result
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = "File"
+	result.Type = "File"
 
-	name := ""
 	if input.Name != nil {
-		name = *input.Name
+		result.Name = *input.Name
 	}
-
-	result["name"] = name
 
 	if input.SourceUri != nil {
-		result["file_source_uri"] = *input.SourceUri
+		result.FileSourceUri = *input.SourceUri
 	}
 
 	if input.Sha256Checksum != nil {
-		result["file_sha256_checksum"] = *input.Sha256Checksum
+		result.FileSha256Checksum = *input.Sha256Checksum
 	}
 
 	if input.Destination != nil {
-		result["file_destination_path"] = *input.Destination
+		result.FileDestinationPath = *input.Destination
 	}
 
 	return result
 }
 
-func flattenCustomizerShell(input *virtualmachineimagetemplate.ImageTemplateShellCustomizer) map[string]interface{} {
+func flattenCustomizerShell(input *virtualmachineimagetemplate.ImageTemplateShellCustomizer) ImageBuilderTemplateCustomizer {
+	result := ImageBuilderTemplateCustomizer{}
 	if input == nil {
-		return nil
+		return result
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = "Shell"
+	result.Type = "Shell"
 
-	name := ""
 	if input.Name != nil {
-		name = *input.Name
+		result.Name = *input.Name
 	}
-
-	result["name"] = name
 
 	if input.ScriptUri != nil {
-		result["shell_script_uri"] = *input.ScriptUri
+		result.ShellScriptUri = *input.ScriptUri
 	}
 
 	if input.Sha256Checksum != nil {
-		result["shell_sha256_checksum"] = *input.Sha256Checksum
+		result.ShellSha256Checksum = *input.Sha256Checksum
 	}
 
 	if input.Inline != nil {
-		result["shell_commands"] = *input.Inline
+		result.ShellCommands = *input.Inline
 	}
 
 	return result
 }
 
-func flattenCustomizerPowerShell(input *virtualmachineimagetemplate.ImageTemplatePowerShellCustomizer) map[string]interface{} {
+func flattenCustomizerPowerShell(input *virtualmachineimagetemplate.ImageTemplatePowerShellCustomizer) ImageBuilderTemplateCustomizer {
+	result := ImageBuilderTemplateCustomizer{}
 	if input == nil {
-		return nil
+		return result
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = "PowerShell"
+	result.Type = "PowerShell"
 
-	name := ""
 	if input.Name != nil {
-		name = *input.Name
+		result.Name = *input.Name
 	}
-
-	result["name"] = name
 
 	if input.ScriptUri != nil {
-		result["powershell_script_uri"] = *input.ScriptUri
+		result.PowershellScriptUri = *input.ScriptUri
 	}
 
 	if input.Sha256Checksum != nil {
-		result["powershell_sha256_checksum"] = *input.Sha256Checksum
+		result.PowershellSha256Checksum = *input.Sha256Checksum
 	}
 
 	if input.Inline != nil {
-		result["powershell_commands"] = *input.Inline
+		result.PowershellCommands = *input.Inline
 	}
 
 	if input.RunAsSystem != nil {
-		result["powershell_run_as_system"] = *input.RunAsSystem
+		result.PowershellRunAsSystem = pointer.From(input.RunAsSystem)
 	}
 
 	if input.RunElevated != nil {
-		result["powershell_run_elevated"] = *input.RunElevated
+		result.PowershellRunElevated = *input.RunElevated
 	}
 
 	if input.ValidExitCodes != nil {
-		result["powershell_valid_exit_codes"] = *input.ValidExitCodes
+		result.PowershellValidExitCodes = *input.ValidExitCodes
 	}
 
 	return result
 }
 
-func flattenCustomizerWindowsRestart(input *virtualmachineimagetemplate.ImageTemplateRestartCustomizer) map[string]interface{} {
+func flattenCustomizerWindowsRestart(input *virtualmachineimagetemplate.ImageTemplateRestartCustomizer) ImageBuilderTemplateCustomizer {
+	result := ImageBuilderTemplateCustomizer{}
 	if input == nil {
-		return nil
+		return result
 	}
 
-	result := make(map[string]interface{})
-	result["type"] = "WindowsRestart"
+	result.Type = "WindowsRestart"
 
-	name := ""
 	if input.Name != nil {
-		name = *input.Name
+		result.Name = *input.Name
 	}
-
-	result["name"] = name
 
 	if input.RestartCommand != nil {
-		result["windows_restart_command"] = *input.RestartCommand
+		result.WindowsRestartCommand = *input.RestartCommand
 	}
 
 	if input.RestartCheckCommand != nil {
-		result["windows_restart_check_command"] = *input.RestartCheckCommand
+		result.WindowsRestartCheckCommand = *input.RestartCheckCommand
 	}
 
 	if input.RestartTimeout != nil {
-		result["windows_restart_timeout"] = *input.RestartTimeout
+		result.WindowsRestartTimeout = *input.RestartTimeout
 	}
 
 	return result
 }
 
-func flattenCustomizerWindowsUpdate(input *virtualmachineimagetemplate.ImageTemplateWindowsUpdateCustomizer) map[string]interface{} {
+func flattenCustomizerWindowsUpdate(input *virtualmachineimagetemplate.ImageTemplateWindowsUpdateCustomizer) ImageBuilderTemplateCustomizer {
+	result := ImageBuilderTemplateCustomizer{}
 	if input == nil {
-		return nil
+		return result
 	}
-	result := make(map[string]interface{})
 
-	result["type"] = "WindowsUpdate"
+	result.Type = "WindowsUpdate"
 
-	name := ""
 	if input.Name != nil {
-		name = *input.Name
+		result.Name = *input.Name
 	}
-
-	result["name"] = name
 
 	if input.SearchCriteria != nil {
-		result["windows_update_search_criteria"] = *input.SearchCriteria
+		result.WindowsUpdateSearchCriteria = *input.SearchCriteria
 	}
 
 	if input.Filters != nil {
-		result["windows_update_filters"] = *input.Filters
+		result.WindowsUpdateFilters = *input.Filters
 	}
 
 	if input.UpdateLimit != nil {
-		result["windows_update_limit"] = *input.UpdateLimit
+		result.WindowsUpdateLimit = *input.UpdateLimit
 	}
 
 	return result
@@ -1446,13 +1476,13 @@ func distributionRunOutputNameSchema() *schema.Schema {
 // In the `customizer` block, when a certain `type` say "File" is specified, do not allow users to specify fields that do not belong to `File`.
 // Because once users specify those irrelevant fields, those values won't be sent to the backend service and they won't return from GET,
 // thus next time there will be diff shown which will force creating a new resource. So at the very beginning forbid users from doing this.
-func validateImageTemplateCustomizerInputForFileType(d *schema.ResourceData, customizer map[string]interface{}, index int) error {
-	sourceUri := customizer["file_source_uri"].(string)
+func validateImageTemplateCustomizerInputForFileType(d *schema.ResourceData, customizer ImageBuilderTemplateCustomizer, index int) error {
+	sourceUri := customizer.FileSourceUri
 	if sourceUri == "" {
 		return fmt.Errorf("`file_source_uri` must be specified if the customizer type is File")
 	}
 
-	destinationPath := customizer["file_destination_path"].(string)
+	destinationPath := customizer.FileDestinationPath
 	if destinationPath == "" {
 		return fmt.Errorf("`destination_path` must be specified if the customizer type is File")
 	}
@@ -1470,9 +1500,9 @@ func validateImageTemplateCustomizerInputForFileType(d *schema.ResourceData, cus
 	return nil
 }
 
-func validateImageTemplateCustomizerInputForPowerShellType(d *schema.ResourceData, customizer map[string]interface{}, index int) error {
-	scriptUri := customizer["powershell_script_uri"].(string)
-	commandsRaw := customizer["powershell_commands"].([]interface{})
+func validateImageTemplateCustomizerInputForPowerShellType(d *schema.ResourceData, customizer ImageBuilderTemplateCustomizer, index int) error {
+	scriptUri := customizer.PowershellScriptUri
+	commandsRaw := customizer.PowershellCommands
 
 	if (scriptUri == "" && len(commandsRaw) == 0) ||
 		(scriptUri != "" && len(commandsRaw) > 0) {
@@ -1492,9 +1522,9 @@ func validateImageTemplateCustomizerInputForPowerShellType(d *schema.ResourceDat
 	return nil
 }
 
-func validateImageTemplateCustomizerInputForShellType(d *schema.ResourceData, customizer map[string]interface{}, index int) error {
-	scriptUri := customizer["shell_script_uri"].(string)
-	commandsRaw := customizer["shell_commands"].([]interface{})
+func validateImageTemplateCustomizerInputForShellType(d *schema.ResourceData, customizer ImageBuilderTemplateCustomizer, index int) error {
+	scriptUri := customizer.ShellScriptUri
+	commandsRaw := customizer.ShellCommands
 
 	if (scriptUri == "" && len(commandsRaw) == 0) ||
 		(scriptUri != "" && len(commandsRaw) > 0) {
