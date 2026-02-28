@@ -42,6 +42,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		StorageMoverResource{},
 		StorageMoverAgentResource{},
+		StorageMoverNfsFileShareEndpointResource{},
 		StorageMoverSourceEndpointResource{},
 		StorageMoverTargetEndpointResource{},
 		StorageMoverProjectResource{},
