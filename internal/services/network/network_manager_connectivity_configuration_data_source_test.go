@@ -27,6 +27,9 @@ func testAccNetworkManagerConnectivityConfigurationDataSource_basic(t *testing.T
 				check.That(data.ResourceName).Key("hub.#").HasValue("1"),
 				check.That(data.ResourceName).Key("hub.0.resource_id").IsNotEmpty(),
 				check.That(data.ResourceName).Key("hub.0.resource_type").IsNotEmpty(),
+				check.That(data.ResourceName).Key("connected_group_address_overlap").HasValue("Allowed"),
+				check.That(data.ResourceName).Key("connected_group_private_endpoints_scale").HasValue("HighScale"),
+				check.That(data.ResourceName).Key("peering_enforcement").HasValue("Enforced"),
 			),
 		},
 	})
