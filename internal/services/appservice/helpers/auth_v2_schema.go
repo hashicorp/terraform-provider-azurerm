@@ -50,6 +50,35 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, o, n string, d *pluginsdk.ResourceData) bool {
+			// when `auth_settings_v2` block has been removed in the config, suppress any diff from the parent
+			// AND all child blocks/properties
+			if strings.HasPrefix(k, "auth_settings_v2.") {
+				oldAuthParentVal, _ := d.GetChange("auth_settings_v2")
+				if oldAuthParentVal == nil {
+					return false
+				}
+				oldAuthParent := oldAuthParentVal.([]any)
+
+				if len(oldAuthParent) > 0 {
+					if oldAuthParentMap, ok := oldAuthParent[0].(map[string]any); ok {
+						// due to the "new" count of auth_settings_v2 being incorrectly reported when child
+						// blocks report a diff, we will instead rely on raw config to determine if block is still removed
+						configAuthExists := false
+						if configAuthParent, ok := d.GetRawConfig().AsValueMap()["auth_settings_v2"]; ok {
+							configAuthExists = configAuthParent.LengthInt() > 0
+						}
+						// Suppress removal of `auth_settings_v2` and child blocks if `auth_settings_v2` was disabled (either explicitly or by omitting `auth_settings_v2` block)
+						if !oldAuthParentMap["auth_enabled"].(bool) && !configAuthExists {
+							return true
+						}
+					}
+				}
+			}
+
+			return false
+		},
+		DiffSuppressOnRefresh: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"auth_enabled": {
@@ -2168,4 +2197,101 @@ func FlattenAuthV2Settings(input webapps.SiteAuthSettingsV2) []AuthV2Settings {
 	}
 
 	return []AuthV2Settings{result}
+}
+
+// DefaultAuthV2SettingsProperties returns a `SiteAuthSettingsV2Properties` struct populated with "empty" and default values to clear previous configuration.
+func DefaultAuthV2SettingsProperties() *webapps.SiteAuthSettingsV2Properties {
+	return &webapps.SiteAuthSettingsV2Properties{
+		Platform: &webapps.AuthPlatform{
+			Enabled:        pointer.To(false),
+			RuntimeVersion: pointer.To("~1"),
+			ConfigFilePath: pointer.To(""),
+		},
+		GlobalValidation: &webapps.GlobalValidation{
+			RequireAuthentication:       pointer.To(false),
+			UnauthenticatedClientAction: pointer.To(webapps.UnauthenticatedClientActionV2(web.UnauthenticatedClientActionV2RedirectToLoginPage)),
+			ExcludedPaths:               pointer.To([]string{}),
+			RedirectToProvider:          pointer.To(""),
+		},
+		Login: &webapps.Login{
+			Routes: &webapps.LoginRoutes{},
+			TokenStore: &webapps.TokenStore{
+				Enabled:                    pointer.To(false),
+				TokenRefreshExtensionHours: pointer.To(72.0),
+				FileSystem:                 &webapps.FileSystemTokenStore{},
+				AzureBlobStorage:           &webapps.BlobStorageTokenStore{},
+			},
+			PreserveURLFragmentsForLogins: pointer.To(false),
+			Nonce: &webapps.Nonce{
+				ValidateNonce:           pointer.To(true),
+				NonceExpirationInterval: pointer.To("00:05:00"),
+			},
+			CookieExpiration: &webapps.CookieExpiration{
+				Convention:       pointer.To(webapps.CookieExpirationConvention(web.CookieExpirationConventionFixedTime)),
+				TimeToExpiration: pointer.To("08:00:00"),
+			},
+			AllowedExternalRedirectURLs: pointer.To([]string{}),
+		},
+		HTTPSettings: &webapps.HTTPSettings{
+			RequireHTTPS: pointer.To(true),
+			Routes: &webapps.HTTPSettingsRoutes{
+				ApiPrefix: pointer.To("/.auth"),
+			},
+			ForwardProxy: &webapps.ForwardProxy{
+				Convention: pointer.To(webapps.ForwardProxyConvention(web.ForwardProxyConventionNoProxy)),
+			},
+		},
+		IdentityProviders: &webapps.IdentityProviders{
+			AzureActiveDirectory: &webapps.AzureActiveDirectory{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AzureActiveDirectoryRegistration{},
+				Login: &webapps.AzureActiveDirectoryLogin{
+					DisableWWWAuthenticate: pointer.To(false),
+				},
+				Validation: &webapps.AzureActiveDirectoryValidation{
+					JwtClaimChecks: &webapps.JwtClaimChecks{},
+					DefaultAuthorizationPolicy: &webapps.DefaultAuthorizationPolicy{
+						AllowedPrincipals:   &webapps.AllowedPrincipals{},
+						AllowedApplications: pointer.To([]string{}),
+					},
+				},
+			},
+			Facebook: &webapps.Facebook{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AppRegistration{},
+				Login:        &webapps.LoginScopes{},
+			},
+			GitHub: &webapps.GitHub{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.ClientRegistration{},
+				Login:        &webapps.LoginScopes{},
+			},
+			Google: &webapps.Google{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.ClientRegistration{},
+				Login:        &webapps.LoginScopes{},
+				Validation:   &webapps.AllowedAudiencesValidation{},
+			},
+			Twitter: &webapps.Twitter{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.TwitterRegistration{},
+			},
+			CustomOpenIdConnectProviders: pointer.To(map[string]webapps.CustomOpenIdConnectProvider{}),
+			LegacyMicrosoftAccount: &webapps.LegacyMicrosoftAccount{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.ClientRegistration{},
+				Login:        &webapps.LoginScopes{},
+				Validation:   &webapps.AllowedAudiencesValidation{},
+			},
+			Apple: &webapps.Apple{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AppleRegistration{},
+				Login:        &webapps.LoginScopes{},
+			},
+			AzureStaticWebApps: &webapps.AzureStaticWebApps{
+				Enabled:      pointer.To(false),
+				Registration: &webapps.AzureStaticWebAppsRegistration{},
+			},
+		},
+	}
 }
