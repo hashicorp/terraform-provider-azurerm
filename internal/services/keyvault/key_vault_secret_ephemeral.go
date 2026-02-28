@@ -32,12 +32,16 @@ type KeyVaultSecretEphemeralResource struct {
 }
 
 type KeyVaultSecretEphemeralResourceModel struct {
-	Name           types.String `tfsdk:"name"`
-	KeyVaultID     types.String `tfsdk:"key_vault_id"`
-	Version        types.String `tfsdk:"version"`
-	ExpirationDate types.String `tfsdk:"expiration_date"`
-	NotBeforeDate  types.String `tfsdk:"not_before_date"`
-	Value          types.String `tfsdk:"value"`
+	Name                  types.String `tfsdk:"name"`
+	KeyVaultID            types.String `tfsdk:"key_vault_id"`
+	Version               types.String `tfsdk:"version"`
+	ExpirationDate        types.String `tfsdk:"expiration_date"`
+	NotBeforeDate         types.String `tfsdk:"not_before_date"`
+	Value                 types.String `tfsdk:"value"`
+	ID                    types.String `tfsdk:"id"`
+	VersionlessID         types.String `tfsdk:"versionless_id"`
+	ResourceID            types.String `tfsdk:"resource_id"`
+	ResourceVersionlessID types.String `tfsdk:"resource_versionless_id"`
 }
 
 func (e *KeyVaultSecretEphemeralResource) Metadata(_ context.Context, _ ephemeral.MetadataRequest, resp *ephemeral.MetadataResponse) {
@@ -90,6 +94,22 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 			"value": schema.StringAttribute{
 				Computed: true,
 			},
+
+			"id": schema.StringAttribute{
+				Computed: true,
+			},
+
+			"versionless_id": schema.StringAttribute{
+				Computed: true,
+			},
+
+			"resource_id": schema.StringAttribute{
+				Computed: true,
+			},
+
+			"resource_versionless_id": schema.StringAttribute{
+				Computed: true,
+			},
 		},
 	}
 }
@@ -137,6 +157,10 @@ func (e *KeyVaultSecretEphemeralResource) Open(ctx context.Context, req ephemera
 	}
 
 	data.Version = types.StringValue(id.Version)
+	data.ID = types.StringValue(id.ID())
+	data.VersionlessID = types.StringValue(id.VersionlessID())
+	data.ResourceID = types.StringValue(parse.NewSecretID(keyVaultID.SubscriptionId, keyVaultID.ResourceGroupName, keyVaultID.VaultName, id.Name, id.Version).ID())
+	data.ResourceVersionlessID = types.StringValue(parse.NewSecretVersionlessID(keyVaultID.SubscriptionId, keyVaultID.ResourceGroupName, keyVaultID.VaultName, id.Name).ID())
 
 	if attributes := response.Attributes; attributes != nil {
 		if expirationDate := attributes.Expires; expirationDate != nil {
