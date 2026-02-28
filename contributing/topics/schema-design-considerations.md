@@ -259,10 +259,7 @@ Would be better exposed as the following resources:
 
 ## Common Fields Excluded from the Schema
 
-The following top-level common fields of Azure APIs should not be exposed in the schema:
-* `type`
-* `state`
-* `provisioning_state`
+Fields that are not useful to customers, such as `type`, `state`, and `provisioning_state`, should not be exposed in the schema definition.
 
 ## Preview Fields
 
