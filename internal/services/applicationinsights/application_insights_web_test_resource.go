@@ -30,9 +30,9 @@ import (
 
 func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsWebTestsCreateUpdate,
+		Create: resourceApplicationInsightsWebTestsCreate,
 		Read:   resourceApplicationInsightsWebTestsRead,
-		Update: resourceApplicationInsightsWebTestsCreateUpdate,
+		Update: resourceApplicationInsightsWebTestsUpdate,
 		Delete: resourceApplicationInsightsWebTestsDelete,
 
 		Importer: pluginsdk.ImporterValidatingIdentity(&webtests.WebTestId{}),
@@ -141,9 +141,9 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
@@ -155,28 +155,18 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 
 	id := webtests.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.WebTestsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.WebTestsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
 
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+	}
+
 	kind := d.Get("kind").(string)
-	description := d.Get("description").(string)
-	frequency := int32(d.Get("frequency").(int))
-	timeout := int32(d.Get("timeout").(int))
-	isEnabled := d.Get("enabled").(bool)
-	retryEnabled := d.Get("retry_enabled").(bool)
-	geoLocationsRaw := d.Get("geo_locations").([]interface{})
-	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
-	testConf := d.Get("configuration").(string)
 
 	t := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
@@ -189,27 +179,93 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 		Properties: &webtests.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
-			Description:        &description,
-			Enabled:            &isEnabled,
-			Frequency:          pointer.To(int64(frequency)),
-			Timeout:            pointer.To(int64(timeout)),
+			Description:        pointer.To(d.Get("description").(string)),
+			Enabled:            pointer.To(d.Get("enabled").(bool)),
+			Frequency:          pointer.To(int64(d.Get("frequency").(int))),
+			Timeout:            pointer.To(int64(d.Get("timeout").(int))),
 			Kind:               webtests.WebTestKind(kind),
-			RetryEnabled:       &retryEnabled,
-			Locations:          geoLocations,
+			RetryEnabled:       pointer.To(d.Get("retry_enabled").(bool)),
+			Locations:          expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{})),
 			Configuration: &webtests.WebTestPropertiesConfiguration{
-				WebTest: &testConf,
+				WebTest: pointer.To(d.Get("configuration").(string)),
 			},
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if _, err = client.WebTestsCreateOrUpdate(ctx, id, webTest); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
+	}
+
+	return resourceApplicationInsightsWebTestsRead(d, meta)
+}
+
+func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppInsights.WebTestsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest update.")
+
+	appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
+	if err != nil {
+		return err
+	}
+
+	id, err := webtests.ParseWebTestID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	kind := d.Get("kind").(string)
+
+	t := d.Get("tags").(map[string]interface{})
+	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
+	t[tagKey] = "Resource"
+
+	webTest := webtests.WebTest{
+		Name:     pointer.To(id.WebTestName),
+		Location: location.Normalize(d.Get("location").(string)),
+		Kind:     pointer.To(webtests.WebTestKind(kind)),
+		Properties: &webtests.WebTestProperties{
+			SyntheticMonitorId: id.WebTestName,
+			Name:               id.WebTestName,
+			Kind:               webtests.WebTestKind(kind),
+			Locations:          expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{})),
+			Configuration: &webtests.WebTestPropertiesConfiguration{
+				WebTest: pointer.To(d.Get("configuration").(string)),
+			},
+		},
+		Tags: tags.Expand(t),
+	}
+
+	if d.HasChange("description") {
+		webTest.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("enabled") {
+		webTest.Properties.Enabled = pointer.To(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("frequency") {
+		webTest.Properties.Frequency = pointer.To(int64(d.Get("frequency").(int)))
+	}
+
+	if d.HasChange("timeout") {
+		webTest.Properties.Timeout = pointer.To(int64(d.Get("timeout").(int)))
+	}
+
+	if d.HasChange("retry_enabled") {
+		webTest.Properties.RetryEnabled = pointer.To(d.Get("retry_enabled").(bool))
+	}
+
+	if _, err = client.WebTestsCreateOrUpdate(ctx, *id, webTest); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
 	return resourceApplicationInsightsWebTestsRead(d, meta)

@@ -26,9 +26,9 @@ import (
 
 func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationDscConfigurationCreateUpdate,
+		Create: resourceAutomationDscConfigurationCreate,
 		Read:   resourceAutomationDscConfigurationRead,
-		Update: resourceAutomationDscConfigurationCreateUpdate,
+		Update: resourceAutomationDscConfigurationUpdate,
 		Delete: resourceAutomationDscConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -92,44 +92,37 @@ func resourceAutomationDscConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
 
 	id := dscconfiguration.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_dsc_configuration", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	contentEmbedded := d.Get("content_embedded").(string)
-	location := location.Normalize(d.Get("location").(string))
-	logVerbose := d.Get("log_verbose").(bool)
-	description := d.Get("description").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_dsc_configuration", id.ID())
+	}
 
 	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
 		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
-			LogVerbose:  pointer.To(logVerbose),
-			Description: pointer.To(description),
+			LogVerbose:  pointer.To(d.Get("log_verbose").(bool)),
+			Description: pointer.To(d.Get("description").(string)),
 			Source: dscconfiguration.ContentSource{
 				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
-				Value: pointer.To(contentEmbedded),
+				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
 		},
-		Location: pointer.To(location),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{}))),
 	}
 
@@ -138,6 +131,47 @@ func resourceAutomationDscConfigurationCreateUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationDscConfigurationRead(d, meta)
+}
+
+func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.DscConfiguration
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration update.")
+
+	id, err := dscconfiguration.ParseConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
+		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
+			Source: dscconfiguration.ContentSource{
+				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
+				Value: pointer.To(d.Get("content_embedded").(string)),
+			},
+		},
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+	}
+
+	if d.HasChange("log_verbose") {
+		parameters.Properties.LogVerbose = pointer.To(d.Get("log_verbose").(bool))
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("tags") {
+		parameters.Tags = pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{})))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return err
+	}
 
 	return resourceAutomationDscConfigurationRead(d, meta)
 }

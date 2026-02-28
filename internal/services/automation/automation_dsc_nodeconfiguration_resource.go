@@ -23,9 +23,9 @@ import (
 
 func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Create: resourceAutomationDscNodeConfigurationCreate,
 		Read:   resourceAutomationDscNodeConfigurationRead,
-		Update: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Update: resourceAutomationDscNodeConfigurationUpdate,
 		Delete: resourceAutomationDscNodeConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -71,57 +71,83 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Node Configuration creation.")
 
 	id := dscnodeconfiguration.NewNodeConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	content := d.Get("content_embedded").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
+	}
 
 	// configuration name is always the first part of the dsc node configuration
 	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 
-	configurationName := strings.Split(id.NodeConfigurationName, ".")[0]
-
-	contentSourceType := dscnodeconfiguration.ContentSourceTypeEmbeddedContent
-
 	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
 		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
 			Source: dscnodeconfiguration.ContentSource{
-				Type:  &contentSourceType,
-				Value: pointer.To(content),
+				Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
+				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
 			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
-				Name: pointer.To(configurationName),
+				Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
 			},
 		},
 		Name: pointer.To(id.NodeConfigurationName),
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationDscNodeConfigurationRead(d, meta)
+}
+
+func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.DscNodeConfiguration
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Node Configuration update.")
+
+	id, err := dscnodeconfiguration.ParseNodeConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// configuration name is always the first part of the dsc node configuration
+	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
+
+	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
+		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
+			Source: dscnodeconfiguration.ContentSource{
+				Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
+				Value: pointer.To(d.Get("content_embedded").(string)),
+			},
+			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
+				Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
+			},
+		},
+		Name: pointer.To(id.NodeConfigurationName),
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }

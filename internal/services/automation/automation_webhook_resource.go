@@ -25,9 +25,9 @@ import (
 
 func resourceAutomationWebhook() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationWebhookCreateUpdate,
+		Create: resourceAutomationWebhookCreate,
 		Read:   resourceAutomationWebhookRead,
-		Update: resourceAutomationWebhookCreateUpdate,
+		Update: resourceAutomationWebhookUpdate,
 		Delete: resourceAutomationWebhookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -108,65 +108,54 @@ func resourceAutomationWebhook() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationWebhookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.WebhookClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := webhook.NewWebHookID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
-	expiryTime := d.Get("expiry_time").(string)
-	enabled := d.Get("enabled").(bool)
-	runbookName := d.Get("runbook_name").(string)
-	runOn := d.Get("run_on_worker_group").(string)
-	webhookParameters := expandStringInterfaceMap(d.Get("parameters").(map[string]interface{}))
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
-		if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
-			return tf.ImportAsExistsError("azurerm_automation_webhook", *resp.Model.Id)
+	resp, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
+
+	if resp.Model != nil && resp.Model.Id != nil && *resp.Model.Id != "" {
+		return tf.ImportAsExistsError("azurerm_automation_webhook", *resp.Model.Id)
+	}
+
+	webhookParameters := expandStringInterfaceMap(d.Get("parameters").(map[string]interface{}))
 
 	parameters := webhook.WebhookCreateOrUpdateParameters{
 		Name: id.WebHookName,
 		Properties: webhook.WebhookCreateOrUpdateProperties{
-			IsEnabled:  pointer.To(enabled),
-			ExpiryTime: &expiryTime,
+			IsEnabled:  pointer.To(d.Get("enabled").(bool)),
+			ExpiryTime: pointer.To(d.Get("expiry_time").(string)),
 			Parameters: &webhookParameters,
 			Runbook: &webhook.RunbookAssociationProperty{
-				Name: pointer.To(runbookName),
+				Name: pointer.To(d.Get("runbook_name").(string)),
 			},
-			RunOn: pointer.To(runOn),
+			RunOn: pointer.To(d.Get("run_on_worker_group").(string)),
 		},
 	}
 
 	uri := ""
-	if d.IsNewResource() {
-		if v := d.Get("uri"); v != nil && v.(string) != "" {
-			uri = v.(string)
-			parameters.Properties.Uri = &uri
-		} else {
-			automationAccountId := webhook.NewAutomationAccountID(subscriptionId, id.ResourceGroupName, id.AutomationAccountName)
-			resp, err := client.GenerateUri(ctx, automationAccountId)
-			if err != nil {
-				return fmt.Errorf("unable to generate URI for %s: %+v", id, err)
-			}
-
-			parameters.Properties.Uri = resp.Model
-			if resp.Model != nil {
-				uri = *resp.Model
-			}
-		}
+	if v := d.Get("uri"); v != nil && v.(string) != "" {
+		uri = v.(string)
+		parameters.Properties.Uri = &uri
 	} else {
-		if d.Get("uri") != nil {
-			parameters.Properties.Uri = pointer.To(d.Get("uri").(string))
+		automationAccountId := webhook.NewAutomationAccountID(subscriptionId, id.ResourceGroupName, id.AutomationAccountName)
+		generateResp, err := client.GenerateUri(ctx, automationAccountId)
+		if err != nil {
+			return fmt.Errorf("unable to generate URI for %s: %+v", id, err)
+		}
+
+		parameters.Properties.Uri = generateResp.Model
+		if generateResp.Model != nil {
+			uri = *generateResp.Model
 		}
 	}
 
@@ -179,6 +168,50 @@ func resourceAutomationWebhookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	if uri != "" {
 		d.Set("uri", uri)
 	}
+	return resourceAutomationWebhookRead(d, meta)
+}
+
+func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.WebhookClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := webhook.ParseWebHookID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	parameters := webhook.WebhookCreateOrUpdateParameters{
+		Name: id.WebHookName,
+		Properties: webhook.WebhookCreateOrUpdateProperties{
+			ExpiryTime: pointer.To(d.Get("expiry_time").(string)),
+			Runbook: &webhook.RunbookAssociationProperty{
+				Name: pointer.To(d.Get("runbook_name").(string)),
+			},
+		},
+	}
+
+	if d.HasChange("enabled") {
+		parameters.Properties.IsEnabled = pointer.To(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("parameters") {
+		webhookParameters := expandStringInterfaceMap(d.Get("parameters").(map[string]interface{}))
+		parameters.Properties.Parameters = &webhookParameters
+	}
+
+	if d.HasChange("run_on_worker_group") {
+		parameters.Properties.RunOn = pointer.To(d.Get("run_on_worker_group").(string))
+	}
+
+	if d.Get("uri") != nil {
+		parameters.Properties.Uri = pointer.To(d.Get("uri").(string))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
 	return resourceAutomationWebhookRead(d, meta)
 }
 
