@@ -64,6 +64,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_policy_definition_built_in":                      dataSourceArmPolicyDefinitionBuiltIn(),
 		"azurerm_policy_set_definition":                           dataSourceArmPolicySetDefinition(),
 		"azurerm_policy_virtual_machine_configuration_assignment": dataSourcePolicyVirtualMachineConfigurationAssignment(),
+		"azurerm_policy_arc_machine_configuration_assignment":     dataSourcePolicyArcMachineConfigurationAssignment(),
 	}
 }
 
@@ -80,6 +81,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_resource_group_policy_remediation":               resourceArmResourceGroupPolicyRemediation(),
 		"azurerm_subscription_policy_remediation":                 resourceArmSubscriptionPolicyRemediation(),
 		"azurerm_policy_virtual_machine_configuration_assignment": resourcePolicyVirtualMachineConfigurationAssignment(),
+		"azurerm_policy_arc_machine_configuration_assignment":     resourcePolicyArcMachineConfigurationAssignment(),
 	}
 
 	if !features.FivePointOh() {
