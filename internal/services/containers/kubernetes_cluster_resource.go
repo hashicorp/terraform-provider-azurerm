@@ -5055,13 +5055,45 @@ func flattenKubernetesClusterMetricsProfile(input *managedclusters.ManagedCluste
 	return pointer.From(input.CostAnalysis.Enabled)
 }
 
+// isRetryableCapacityError checks if the error is related to Azure zonal capacity constraints
+// which are transient and may succeed on retry, more on that issue: https://app.azure.com/h/9SCL-FR8/c5a69c
+func isRetryableCapacityError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// Azure error codes related to capacity constraints:
+	// - OverconstrainedZonalAllocationRequest: VM allocation failed due to zonal capacity constraints
+
+	retryableErrors := []string{
+		"overconstrainedzonalallocationrequest",
+	}
+
+	for _, retryable := range retryableErrors {
+		if strings.Contains(
+			strings.ToLower(err.Error()), strings.ToLower(retryable)) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
 	// retries the creation of a node pool 3 times
 	var err error
-	for attempt := 0; attempt < 3; attempt++ {
+	var maxRetries = 3
+	for attempt := 0; attempt < maxRetries; attempt++ {
 		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
 			return nil
 		}
+
+		if !isRetryableCapacityError(err) {
+			log.Printf("[DEBUG] Node pool creation failed with non-retryable error: %+v", err)
+			return err
+		}
+
+		log.Printf("[DEBUG] Node pool creation attempt %d/%d failed with capacity error, retrying: %+v", attempt+1, maxRetries, err)
 	}
 
 	return err
