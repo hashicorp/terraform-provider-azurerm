@@ -23,8 +23,9 @@ func NewResourceProviderUnregistrationPoller(client *providers.ProvidersClient, 
 }
 
 type resourceProviderUnregistrationPoller struct {
-	client *providers.ProvidersClient
-	id     providers.SubscriptionProviderId
+	client                    *providers.ProvidersClient
+	id                        providers.SubscriptionProviderId
+	continuousTargetOccurence int
 }
 
 func (p *resourceProviderUnregistrationPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
@@ -39,12 +40,16 @@ func (p *resourceProviderUnregistrationPoller) Poll(ctx context.Context) (*polle
 	}
 
 	if strings.EqualFold(registrationState, "Unregistered") {
-		return &pollers.PollResult{
-			Status:       pollers.PollingStatusSucceeded,
-			PollInterval: 10 * time.Second,
-		}, nil
+		if p.continuousTargetOccurence == CONTINUOUS_TARGET_OCCURRENCE {
+			return &pollers.PollResult{
+				Status:       pollers.PollingStatusSucceeded,
+				PollInterval: 10 * time.Second,
+			}, nil
+		}
+		p.continuousTargetOccurence += 1
+	} else {
+		p.continuousTargetOccurence = 0
 	}
-
 	// Processing
 	return &pollers.PollResult{
 		Status:       pollers.PollingStatusInProgress,
