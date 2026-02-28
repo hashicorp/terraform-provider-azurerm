@@ -370,16 +370,28 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vm_backup_stop_protection_and_retain_data_on_destroy": {
-						Type:         pluginsdk.TypeBool,
-						Optional:     true,
-						Default:      false,
-						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
+						Type:          pluginsdk.TypeBool,
+						Optional:      true,
+						Default:       false,
+						ConflictsWith: []string{"features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"vm_backup_suspend_protection_and_retain_data_on_destroy": {
-						Type:         pluginsdk.TypeBool,
-						Optional:     true,
-						Default:      false,
-						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
+						Type:          pluginsdk.TypeBool,
+						Optional:      true,
+						Default:       false,
+						ConflictsWith: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy"},
+					},
+					"file_share_backup_suspend_protection_and_retain_data_on_destroy": {
+						Type:          pluginsdk.TypeBool,
+						Optional:      true,
+						Default:       false,
+						ConflictsWith: []string{"features.0.recovery_service.0.file_share_backup_stop_protection_and_retain_data_on_destroy"},
+					},
+					"file_share_backup_stop_protection_and_retain_data_on_destroy": {
+						Type:          pluginsdk.TypeBool,
+						Optional:      true,
+						Default:       false,
+						ConflictsWith: []string{"features.0.recovery_service.0.file_share_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"purge_protected_items_from_vault_on_destroy": {
 						Type:     pluginsdk.TypeBool,
@@ -695,6 +707,12 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
+			}
+			if v, ok := recoveryServicesRaw["file_share_backup_stop_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.FileShareBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
+			}
+			if v, ok := recoveryServicesRaw["file_share_backup_suspend_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.FileShareBackupSuspendProtectionAndRetainDataOnDestroy = v.(bool)
 			}
 		}
 	}
