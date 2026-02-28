@@ -304,6 +304,11 @@ service/iot-hub:
   - any-glob-to-any-file:
     - internal/services/iothub/**/*
 
+service/iot-operations:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/iotoperations/**/*
+
 service/key-vault:
 - changed-files:
   - any-glob-to-any-file:

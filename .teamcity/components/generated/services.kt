@@ -65,6 +65,7 @@ var services = mapOf(
         "hybridcompute" to "Hybrid Compute",
         "iotcentral" to "IoT Central",
         "iothub" to "IoT Hub",
+        "iotoperations" to "IoT Operations",
         "keyvault" to "KeyVault",
         "kusto" to "Kusto",
         "legacy" to "Legacy",
