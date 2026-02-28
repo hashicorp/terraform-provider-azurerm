@@ -35,7 +35,7 @@ More information on [how to pin the version of a Terraform Provider being used c
 
 ---
 
-## What's available in Version 5.0 of the Azure Provider?
+## What's changed in Version 5.0 of the Azure Provider?
 
 * [Resource Provider Registration Changes](#resource-provider-registration-changes)
 * [Removed Resources](#removed-resources)
@@ -43,11 +43,13 @@ More information on [how to pin the version of a Terraform Provider being used c
 * [Breaking Changes in Resources](#breaking-changes-in-resources)
 * [Breaking Changes in Data Sources](#breaking-changes-in-data-sources)
 
-## Resource Provider Registration Changes
+### Provider-Level Changes
+
+#### Resource Provider Registration Changes
 
 In version 5.0, the default behaviour for Resource Provider registration has changed. The `resource_provider_registrations` property now defaults to `none` instead of `legacy`.
 
-### What this means
+##### What this means
 
 Previously, the provider would automatically attempt to register a large set of Azure Resource Providers (~60 RPs) when initializing. This could:
 
@@ -57,7 +59,7 @@ Previously, the provider would automatically attempt to register a large set of 
 
 In v5.0, no Resource Providers are registered by default. This gives users full control over RP registration and avoids potential permission issues.
 
-### Registering specific Resource Providers
+##### Registering specific Resource Providers
 
 The recommendation is to only register the specific Resource Providers that your configuration requires, using the `resource_providers_to_register` property:
 
@@ -72,7 +74,7 @@ provider "azurerm" {
   features {}
 }
 ```
-### How to replicate the previous behaviour
+##### How to replicate the previous behaviour
 
 If you want to maintain the v4.x behaviour and automatically register the same set of Resource Providers as before, explicitly set `resource_provider_registrations` to the `legacy` resource provider set in your provider block:
 
@@ -85,8 +87,29 @@ provider "azurerm" {
 
 For more information, see the [Resource Provider Registrations](index.html#resource-provider-registrations) section in the provider documentation.
 
----
 
+#### Enhanced Validation Default Changed
+
+The enhanced validation feature, which caches supported Azure regions and Resource Providers from the Azure MetaData Service to validate `location` and Resource Provider arguments, now defaults to disabled in version 5.0.
+
+This is now controlled through the new `enhanced_validation` provider block:
+
+```hcl
+provider "azurerm" {
+  enhanced_validation {
+    locations          = true # Re-enable location validation at plan time
+    resource_providers = true # Re-enable resource provider validation at plan time
+  }
+}
+```
+
+**Timing Impact:** With enhanced validation enabled, invalid locations or resource providers are caught at `terraform plan` time. With it disabled (the new default in 5.0), these errors are caught at `terraform apply` time when Azure rejects the request.
+
+This change was made because:
+* A region may be functional even if not present in the ARM region list
+* The MetaData Service call adds latency to provider initialization
+
+The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, still works in version 4.x but has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
 
 ## Removed Resources
 
