@@ -76,9 +76,7 @@ Go does not require a specific function order, but for readability it is recomme
 
 ### ComposeTestCheckFunc
 
-Do not validate fields using `check.That(...).Key(...).Exists()`. The testing framework inherently assists in verifying field changes, making this explicit check unnecessary.
-
-
+Do not validate fields using `check.That(...).Key(...).Exists()`. The testing framework already verifies field changes, making this explicit check unnecessary. If you need to validate the value of a field, use `check.That(...).Key(...).HasValue()`, `check.That(...).Key(...).IsEmpty()` or `check.That(...).Key(...).IsNotEmpty()`.
 
 ### Test Package
 
