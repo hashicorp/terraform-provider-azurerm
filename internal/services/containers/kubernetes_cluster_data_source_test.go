@@ -5,7 +5,6 @@ package containers_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -92,13 +91,11 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	tenantId := os.Getenv("ARM_TENANT_ID")
+	clientData := data.Client()
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.roleBasedAccessControlAADConfig(data, clientId, clientSecret, tenantId),
+			Config: r.roleBasedAccessControlAADConfig(data, clientData.Default.ClientID, clientData.Default.ClientSecret, clientData.TenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),

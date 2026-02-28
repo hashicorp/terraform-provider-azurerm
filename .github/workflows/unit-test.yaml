@@ -42,6 +42,15 @@ jobs:
       - run: make test
         env:
           GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Unit Tests failed."
+          echo ""
+          echo "Run 'make test' locally to reproduce and fix the failing tests."
+          echo "If you have added a new resource or data source, ensure you have added"
+          echo "the corresponding unit tests. Check the test output above for details"
+          echo "on which tests failed and why."
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}

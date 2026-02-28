@@ -25,6 +25,13 @@ jobs:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make gencheck
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Generation Check failed."
+          echo ""
+          echo "Run 'make generate' locally to regenerate auto-generated code, then commit the changes."
+          echo "This check ensures that generated files are up to date with their source definitions."
   save-artifacts-on-fail:
     needs: gencheck
     if: ${{ failure() }}

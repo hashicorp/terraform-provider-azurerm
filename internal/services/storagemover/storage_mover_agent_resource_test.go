@@ -6,7 +6,6 @@ package storagemover_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -104,6 +103,7 @@ func (r StorageMoverAgentTestResource) Exists(ctx context.Context, clients *clie
 
 func (r StorageMoverAgentTestResource) template(data acceptance.TestData) string {
 	randomUUID, _ := uuid.GenerateUUID()
+	clientData := data.Client()
 	return fmt.Sprintf(`
 
 data "azurerm_client_config" "current" {}
@@ -244,7 +244,7 @@ data "azurerm_arc_machine" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, randomUUID, os.Getenv("ARM_CLIENT_SECRET"))
+`, data.RandomInteger, data.Locations.Primary, randomUUID, clientData.Default.ClientSecret)
 }
 
 func (r StorageMoverAgentTestResource) basic(data acceptance.TestData) string {

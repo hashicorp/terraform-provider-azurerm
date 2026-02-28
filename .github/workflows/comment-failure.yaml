@@ -16,9 +16,31 @@ jobs:
         with:
           result-encoding: string
           script: |
+            const workflowName = '${{ github.workflow }}';
+
+            const guidance = {
+              'Vendor Dependencies Check': 'Do not modify files in the `vendor/` directory directly. Instead, update dependencies in `go.mod` and run `go mod vendor` to sync the vendor directory. Then run `make depscheck` locally to verify.',
+              'Website Linting': 'Run `make website-lint` and `make document-validate` locally to check your documentation files under `website/` for formatting or validation issues.',
+              'Generation Check': 'Run `make generate` locally to regenerate any auto-generated code, then commit the resulting changes.',
+              'GoLang Linting': 'Run the Go linter locally with `golangci-lint run -v ./internal/...` and fix any reported issues.',
+              'Terraform Schema Linting': 'Run `make tflint` locally and fix any Terraform schema issues in your resource or data source definitions.',
+              'Unit Tests': 'Run `make test` locally to reproduce and fix the failing unit tests.',
+              'ShellCheck Scripts': 'Run `make shellcheck` locally to check shell scripts for issues and fix any warnings or errors.',
+              'Validate Examples': 'Run `make validate-examples` locally to check that your example Terraform configurations under `examples/` are valid.',
+              '32 Bit Build': 'The 32-bit build is failing. Run `GOARCH=386 GOOS=linux go build ./...` locally to diagnose the issue.',
+            };
+
+            let body = `<b>Build failure: ${workflowName}</b>\n\nThis pull request contains a build failure in the <b>${workflowName}</b> check which needs to be addressed [here](${{ env.gha_url }}).`;
+
+            if (guidance[workflowName]) {
+              body += `\n\n<b>How to fix:</b> ${guidance[workflowName]}`;
+            }
+
+            body += `\n\nFor more information, please refer to our [Contributing Guide](https://github.com/${{ github.repository }}/blob/main/contributing/README.md).`;
+
             github.rest.issues.createComment({
-             issue_number: ${{ github.event.number }},
-             owner: context.repo.owner,
-             repo: context.repo.repo,
-             body: '<b>Build failure</b> \n\n This pull request contains a build failure which needs addressed [here](${{ env.gha_url}}) .'
-             })
+              issue_number: ${{ github.event.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })

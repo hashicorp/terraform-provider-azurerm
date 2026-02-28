@@ -22,6 +22,14 @@ jobs:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make depscheck
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Vendor Dependencies Check failed."
+          echo ""
+          echo "Do not modify files in the vendor/ directory directly."
+          echo "Instead, update dependencies in go.mod and run 'go mod vendor' to sync the vendor directory."
+          echo "Then run 'make depscheck' locally to verify before pushing."
   save-artifacts-on-fail:
     needs: depscheck
     if: ${{ failure() }}

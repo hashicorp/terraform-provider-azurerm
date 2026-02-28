@@ -27,6 +27,15 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make tflint
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Terraform Schema Linting failed."
+          echo ""
+          echo "Run 'make tflint' locally to reproduce and fix the errors."
+          echo "This check validates Terraform schema definitions in your resource and data source code."
+          echo "Common issues include: missing descriptions, incorrect type definitions,"
+          echo "or schema validation rules that don't match the API."
   save-artifacts-on-fail:
     needs: tflint
     if: ${{ failure() }}

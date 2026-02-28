@@ -28,6 +28,16 @@ jobs:
         with:
           version: 'v2.4.0'
           args: -v ./internal/...
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::GoLang Linting failed."
+          echo ""
+          echo "Run the Go linter locally: golangci-lint run -v ./internal/..."
+          echo "Fix any reported issues before pushing. Common issues include:"
+          echo "  - Unused variables or imports"
+          echo "  - Error return values not checked"
+          echo "  - Formatting issues (run 'gofmt -w .')"
   save-artifacts-on-fail:
     needs: golint
     if: ${{ failure() }}

@@ -23,6 +23,14 @@ jobs:
         with:
           go-version-file: ./.go-version
       - run: bash ./scripts/run-gradually-deprecated.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::New usage of deprecated functionality detected."
+          echo ""
+          echo "Your changes introduce new usages of deprecated functions or patterns."
+          echo "Please use the recommended replacement instead. Check the output above"
+          echo "for details on which deprecated items were referenced."
   save-artifacts-on-fail:
     needs: test
     if: ${{ failure() }}

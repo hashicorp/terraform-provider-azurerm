@@ -27,6 +27,15 @@ jobs:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: GOARCH=386 GOOS=linux go build -o 32bitbuild .
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::32 Bit Build failed."
+          echo ""
+          echo "The provider must compile on 32-bit architectures."
+          echo "Run 'GOARCH=386 GOOS=linux go build ./...' locally to reproduce."
+          echo "Common causes: using int instead of int64 for large values,"
+          echo "or platform-specific code without build tags."
   save-artifacts-on-fail:
     needs: compatibility-32bit-test
     if: ${{ failure() }}
