@@ -385,7 +385,7 @@ func TestAccContainerAppEnvironment_publicNetworkAccessDisabledWithPrivateEndpoi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("workload_profile"),
 	})
 }
 
@@ -557,6 +557,10 @@ provider "azurerm" {
 
 %[1]s
 
+locals {
+  workload_profile_name = "D4-01"
+}
+
 resource "azurerm_container_app_environment" "test" {
   name                       = "acctest-CAEnv%[2]d"
   resource_group_name        = azurerm_resource_group.test.name
@@ -572,7 +576,7 @@ resource "azurerm_container_app_environment" "test" {
   workload_profile {
     maximum_count         = 3
     minimum_count         = 0
-    name                  = "D4-01"
+    name                  = local.workload_profile_name
     workload_profile_type = "D4"
   }
 
@@ -820,7 +824,7 @@ resource "azurerm_container_app_environment" "test" {
     secret = "sauce"
   }
 }
-`, r.templateVnetSubnetNotDelegated(data), data.RandomInteger)
+`, r.templateVNet(data), data.RandomInteger)
 }
 
 func (r ContainerAppEnvironmentResource) consumptionWorkloadProfile(data acceptance.TestData) string {
@@ -893,6 +897,10 @@ provider "azurerm" {
 
 %[1]s
 
+locals {
+  workload_profile_names = ["E4-01", "D4-02", "D4-01"]
+}
+
 resource "azurerm_container_app_environment" "test" {
   name                     = "acctest-CAEnv%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
@@ -905,21 +913,21 @@ resource "azurerm_container_app_environment" "test" {
   workload_profile {
     maximum_count         = 2
     minimum_count         = 0
-    name                  = "E4-01"
+    name                  = local.workload_profile_names[0]
     workload_profile_type = "E4"
   }
 
   workload_profile {
     maximum_count         = 2
     minimum_count         = 0
-    name                  = "D4-02"
+    name                  = local.workload_profile_names[1]
     workload_profile_type = "E4"
   }
 
   workload_profile {
     maximum_count         = 2
     minimum_count         = 0
-    name                  = "D4-01"
+    name                  = local.workload_profile_names[2]
     workload_profile_type = "D4"
   }
 
@@ -1148,27 +1156,6 @@ resource "azurerm_subnet" "control" {
 }
 
 
-`, r.template(data), data.RandomInteger)
-}
-
-func (r ContainerAppEnvironmentResource) templateVnetSubnetNotDelegated(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-%[1]s
-
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%[2]d"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_subnet" "control" {
-  name                 = "control-plane"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.0.0/23"]
-}
 `, r.template(data), data.RandomInteger)
 }
 
