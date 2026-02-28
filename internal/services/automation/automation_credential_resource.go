@@ -126,11 +126,14 @@ func resourceAutomationCredentialUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	parameters := credential.CredentialCreateOrUpdateParameters{
 		Properties: credential.CredentialCreateOrUpdateProperties{
-			UserName:    d.Get("username").(string),
-			Password:    d.Get("password").(string),
-			Description: pointer.To(d.Get("description").(string)),
+			UserName: d.Get("username").(string),
+			Password: d.Get("password").(string),
 		},
 		Name: id.CredentialName,
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {

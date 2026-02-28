@@ -149,15 +149,24 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 
 	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
 		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
-			LogVerbose:  pointer.To(d.Get("log_verbose").(bool)),
-			Description: pointer.To(d.Get("description").(string)),
 			Source: dscconfiguration.ContentSource{
 				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
 				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
 		},
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{}))),
+	}
+
+	if d.HasChange("log_verbose") {
+		parameters.Properties.LogVerbose = pointer.To(d.Get("log_verbose").(bool))
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("tags") {
+		parameters.Tags = pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{})))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {

@@ -228,9 +228,12 @@ func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta interface{
 	parameters := variable.VariableCreateOrUpdateParameters{
 		Name: id.VariableName,
 		Properties: variable.VariableCreateOrUpdateProperties{
-			Description: pointer.To(d.Get("description").(string)),
 			IsEncrypted: pointer.To(d.Get("encrypted").(bool)),
 		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if varTypeLower != "null" {

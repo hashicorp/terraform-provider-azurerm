@@ -181,19 +181,27 @@ func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	webhookParameters := expandStringInterfaceMap(d.Get("parameters").(map[string]interface{}))
-
 	parameters := webhook.WebhookCreateOrUpdateParameters{
 		Name: id.WebHookName,
 		Properties: webhook.WebhookCreateOrUpdateProperties{
-			IsEnabled:  pointer.To(d.Get("enabled").(bool)),
 			ExpiryTime: pointer.To(d.Get("expiry_time").(string)),
-			Parameters: &webhookParameters,
 			Runbook: &webhook.RunbookAssociationProperty{
 				Name: pointer.To(d.Get("runbook_name").(string)),
 			},
-			RunOn: pointer.To(d.Get("run_on_worker_group").(string)),
 		},
+	}
+
+	if d.HasChange("enabled") {
+		parameters.Properties.IsEnabled = pointer.To(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("parameters") {
+		webhookParameters := expandStringInterfaceMap(d.Get("parameters").(map[string]interface{}))
+		parameters.Properties.Parameters = &webhookParameters
+	}
+
+	if d.HasChange("run_on_worker_group") {
+		parameters.Properties.RunOn = pointer.To(d.Get("run_on_worker_group").(string))
 	}
 
 	if d.Get("uri") != nil {

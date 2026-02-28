@@ -235,18 +235,33 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 		Properties: &webtests.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
-			Description:        pointer.To(d.Get("description").(string)),
-			Enabled:            pointer.To(d.Get("enabled").(bool)),
-			Frequency:          pointer.To(int64(d.Get("frequency").(int))),
-			Timeout:            pointer.To(int64(d.Get("timeout").(int))),
 			Kind:               webtests.WebTestKind(kind),
-			RetryEnabled:       pointer.To(d.Get("retry_enabled").(bool)),
 			Locations:          expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{})),
 			Configuration: &webtests.WebTestPropertiesConfiguration{
 				WebTest: pointer.To(d.Get("configuration").(string)),
 			},
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if d.HasChange("description") {
+		webTest.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("enabled") {
+		webTest.Properties.Enabled = pointer.To(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("frequency") {
+		webTest.Properties.Frequency = pointer.To(int64(d.Get("frequency").(int)))
+	}
+
+	if d.HasChange("timeout") {
+		webTest.Properties.Timeout = pointer.To(int64(d.Get("timeout").(int)))
+	}
+
+	if d.HasChange("retry_enabled") {
+		webTest.Properties.RetryEnabled = pointer.To(d.Get("retry_enabled").(bool))
 	}
 
 	if _, err = client.WebTestsCreateOrUpdate(ctx, *id, webTest); err != nil {
