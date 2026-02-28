@@ -6,4 +6,5 @@ package virtualmachinescalesets
 type VirtualMachineScaleSetUpdatePublicIPAddressConfiguration struct {
 	Name       *string                                                             `json:"name,omitempty"`
 	Properties *VirtualMachineScaleSetUpdatePublicIPAddressConfigurationProperties `json:"properties,omitempty"`
+	Tags       *map[string]string                                                  `json:"tags,omitempty"`
 }

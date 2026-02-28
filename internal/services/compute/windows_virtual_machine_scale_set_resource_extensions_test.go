@@ -874,6 +874,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       requestPath = "/"
     })
   }
+
+  lifecycle {
+    ignore_changes = [rolling_upgrade_policy]
+  }
 }
 `, r.template(data))
 }

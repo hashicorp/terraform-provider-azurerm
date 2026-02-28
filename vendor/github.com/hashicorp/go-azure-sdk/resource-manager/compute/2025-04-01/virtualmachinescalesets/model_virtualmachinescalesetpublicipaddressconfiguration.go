@@ -7,4 +7,5 @@ type VirtualMachineScaleSetPublicIPAddressConfiguration struct {
 	Name       string                                                        `json:"name"`
 	Properties *VirtualMachineScaleSetPublicIPAddressConfigurationProperties `json:"properties,omitempty"`
 	Sku        *PublicIPAddressSku                                           `json:"sku,omitempty"`
+	Tags       *map[string]string                                            `json:"tags,omitempty"`
 }

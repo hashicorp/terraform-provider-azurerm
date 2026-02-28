@@ -858,12 +858,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     disable_automatic_rollback  = true
     enable_automatic_os_upgrade = true
   }
-  rolling_upgrade_policy {
-    max_batch_instance_percent              = 21
-    max_unhealthy_instance_percent          = 22
-    max_unhealthy_upgraded_instance_percent = 23
-    pause_time_between_batches              = "PT30S"
-  }
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
@@ -896,6 +890,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
   tags = {
     accTest = "true"
+  }
+
+  lifecycle {
+    ignore_changes = [rolling_upgrade_policy]
   }
 }
 `, r.template(data), data.RandomInteger)

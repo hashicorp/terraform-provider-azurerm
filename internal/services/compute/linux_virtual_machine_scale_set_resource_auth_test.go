@@ -32,12 +32,12 @@ func TestAccLinuxVirtualMachineScaleSet_authSSHKey(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -77,19 +77,19 @@ func TestAccLinuxVirtualMachineScaleSet_authUpdatingSSHKeys(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.authSSHKeyUpdated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -104,21 +104,21 @@ func TestAccLinuxVirtualMachineScaleSet_authEd25519SSHKeys(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 		{
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 		{
 			Config: r.authEd25519SSHKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("admin_password"),
 	})
 }
 
@@ -129,28 +129,28 @@ func TestAccLinuxVirtualMachineScaleSet_authDisablePasswordAuthUpdate(t *testing
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			// disable it
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep(),
 		{
 			// enable it
-			Config: r.authPassword(data),
+			Config: r.authSSHKey(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep(),
 		{
 			// disable it
-			Config: r.authSSHKey(data),
+			Config: r.authSSHKey(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password"),
+		data.ImportStep(),
 	})
 }
 
@@ -195,17 +195,18 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) authSSHKey(data acceptance.TestData) string {
+func (r LinuxVirtualMachineScaleSetResource) authSSHKey(data acceptance.TestData, disablePasswordAuth bool) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  disable_password_authentication = %[3]t
 
   admin_ssh_key {
     username   = "adminuser"
@@ -235,7 +236,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, disablePasswordAuth)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) authEd25519SSHKey(data acceptance.TestData) string {
