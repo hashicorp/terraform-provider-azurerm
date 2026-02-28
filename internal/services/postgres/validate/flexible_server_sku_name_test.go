@@ -111,6 +111,51 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			input: "MO_Standard_E96ds_v5",
 			valid: true,
 		},
+		{
+			name:  "GP_Standard_DC2eds_v5",
+			input: "GP_Standard_DC2eds_v5",
+			valid: true,
+		},
+		{
+			name:  "GP_Standard_DC96ads_v5",
+			input: "GP_Standard_DC96ads_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_EC2eds_v5",
+			input: "MO_Standard_EC2eds_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_EC128eds_v5",
+			input: "MO_Standard_EC128eds_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_EC20ads_v5",
+			input: "MO_Standard_EC20ads_v5",
+			valid: true,
+		},
+		{
+			name:  "MO_Standard_EC96as_v5",
+			input: "MO_Standard_EC96as_v5",
+			valid: true,
+		},
+		{
+			name:  "B_Standard_DC2eds_v5",
+			input: "B_Standard_DC2eds_v5",
+			valid: false,
+		},
+		{
+			name:  "GP_Standard_EC2eds_v5",
+			input: "GP_Standard_EC2eds_v5",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_DC2eds_v5",
+			input: "MO_Standard_DC2eds_v5",
+			valid: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
