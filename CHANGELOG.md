@@ -1,3 +1,12 @@
+## 4.63.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+
+BUG FIXES:
+* `azurerm_linux_function_app_slot` - fix an issue that prevented users from deploying a slot to a container-based function app [GH-31842]
+
 ## 4.62.0 (February 26, 2026)
 
 FEATURES:
