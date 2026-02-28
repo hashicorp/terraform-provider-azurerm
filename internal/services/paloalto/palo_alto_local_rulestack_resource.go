@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -137,7 +137,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRuleStackModel{}
 
@@ -149,7 +149,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.LocalRulestacksGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -197,7 +197,7 @@ func (r LocalRuleStack) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, localRuleStack); err != nil {
+			if err = client.LocalRulestacksCreateOrUpdateThenPoll(ctx, id, localRuleStack); err != nil {
 				return err
 			}
 
@@ -212,7 +212,7 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
 			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
@@ -221,7 +221,7 @@ func (r LocalRuleStack) Read() sdk.ResourceFunc {
 
 			var state LocalRuleStackModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.LocalRulestacksGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -268,13 +268,13 @@ func (r LocalRuleStack) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.LocalRulestacksDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -287,7 +287,7 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
 			id, err := localrulestacks.ParseLocalRulestackID(metadata.ResourceData.Id())
 			if err != nil {
@@ -303,7 +303,7 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.LocalRulestacksGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -372,11 +372,11 @@ func (r LocalRuleStack) Update() sdk.ResourceFunc {
 
 			localRuleStack.Properties = update
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, localRuleStack); err != nil {
+			if err = client.LocalRulestacksCreateOrUpdateThenPoll(ctx, *id, localRuleStack); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err = client.CommitThenPoll(ctx, *id); err != nil {
+			if err = client.LocalRulestackscommitThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("committing config for %s: %+v", *id, err)
 			}
 

@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/firewalls"
+	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
+	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -105,8 +105,8 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
-			localRulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.FirewallResources
+			localRulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			var model NextGenerationFirewallVnetLocalRulestackModel
 
@@ -116,7 +116,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.FirewallsGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -131,7 +131,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 				return err
 			}
 
-			ruleStack, err := localRulestackClient.Get(ctx, *ruleStackID)
+			ruleStack, err := localRulestackClient.LocalRulestacksGet(ctx, *ruleStackID)
 			if err != nil {
 				return fmt.Errorf("reading %s for %s: %+v", ruleStackID, id, err)
 			}
@@ -163,7 +163,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 			locks.ByID(ruleStackID.ID())
 			defer locks.UnlockByID(ruleStackID.ID())
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -178,7 +178,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -187,7 +187,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Read() sdk.ResourceFun
 
 			var state NextGenerationFirewallVnetLocalRulestackModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -226,14 +226,14 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Delete() sdk.ResourceF
 	return sdk.ResourceFunc{
 		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.FirewallsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -250,7 +250,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -263,7 +263,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -313,7 +313,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Update() sdk.ResourceF
 				firewall.Tags = tags.Expand(model.Tags)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
 				return err
 			}
 
