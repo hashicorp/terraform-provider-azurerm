@@ -95,7 +95,6 @@ func resourceKeyVaultManagedHardwareSecurityModule() *pluginsdk.Resource {
 			"purge_protection_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"soft_delete_retention_days": {
@@ -290,6 +289,12 @@ func resourceArmKeyVaultManagedHardwareSecurityModuleUpdate(d *pluginsdk.Resourc
 		}
 		model.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 	}
+
+	if d.HasChange("purge_protection_enabled") {
+		hasUpdate = true
+		model.Properties.EnablePurgeProtection = pointer.To(d.Get("purge_protection_enabled").(bool))
+	}
+
 	if hasUpdate {
 		if err := hsmClient.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 			return fmt.Errorf("updating %s tags: %+v", id, err)
@@ -548,6 +553,15 @@ func keyVaultHSMCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ in
 	if oldVal, newVal := d.GetChange("security_domain_quorum"); oldVal.(int) != 0 && newVal.(int) == 0 {
 		if err := d.ForceNew("security_domain_quorum"); err != nil {
 			return err
+		}
+	}
+
+	if oldVal, newVal := d.GetChange("purge_protection_enabled"); oldVal.(bool) != newVal.(bool) {
+		// force new only when changing from enabled to disabled purge protection
+		if oldVal.(bool) && !newVal.(bool) {
+			if err := d.ForceNew("purge_protection_enabled"); err != nil {
+				return err
+			}
 		}
 	}
 
