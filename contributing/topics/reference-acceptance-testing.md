@@ -74,6 +74,10 @@ func (ExampleResource) preCheck(t *testing.T) {
 
 Go does not require a specific function order, but for readability it is recommended to place `preCheck` close to the tests that call it (commonly after the `TestAcc...` functions and before the `Exists`/`Destroy` methods), following the pattern used throughout `internal/services/*/*_test.go`.
 
+### ComposeTestCheckFunc
+
+Do not validate fields using `check.That(...).Key(...).Exists()`. The testing framework already verifies field changes, making this explicit check unnecessary. If you need to validate the value of a field, use `check.That(...).Key(...).HasValue()`, `check.That(...).Key(...).IsEmpty()` or `check.That(...).Key(...).IsNotEmpty()`.
+
 ### Test Package
 
 While tests reside in the same folder as resource and data source .go files, they need to be in a separate test package to prevent circular references. i.e. for the file `./internal/services/aab2c/aadb2c_directory_data_source_test.go` the package should be:

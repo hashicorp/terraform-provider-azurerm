@@ -277,13 +277,46 @@ if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch
 }
 ```
 
-- Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
+- Use `pointer.ToEnum` to cast strings as an Enum type where API objects expect a pointer to the Enum value. For example: use `APIModel.SomeValue = pointer.ToEnum[someservice.SomeEnumType](model.SomeVariable)` instead of `APIModel.SomeValue = pointer.To(someservice.SomeEnumType(model.SomeVariable))`.
+
+- Use `pointer.FromEnum` to return a string from a pointer to an Enum without having to cast it. For example: use `myStruct.SomeStringValue = pointer.FromEnum(model.EnumValue)` instead of `myStruct.SomeStringValue = string(pointer.From(model.EnumValue))`.
+
+## Avoid Intermediate Variables
+
+Do not create a variable if it is used only once. For example, do not create a variable for the following `expandModelContent` and then assign it to `param.Content`, instead assign it directly.
 
 :white_check_mark: **DO**
 
 ```go
-return &managedclusters.ManagedClusterBootstrapProfile{
-    ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
+param.Content = expandModelContent(model.Content)
+```
+
+## Do Not Initialize Variables with Their Zero Value
+
+When initializing a variable or struct field, avoid explicitly setting it to its zero value. In Go, variables are automatically initialized to their zero value, so setting them explicitly is redundant.
+
+:no_entry_sign: **DON'T**
+
+```go
+model.Profile = &profiles.Profile{
+	storage_enabled: false, // redundant: `false` is the default value
+	rules:           nil,   // redundant: `nil` is the default value
+	description:     "",    // redundant: `""` is the default value
+	count:           0,     // redundant: `0` is the default value
 }
 ```
+
+## Slice and Map Initialization
+
+Use `make` to initialize a slice or a map.
+
+:white_check_mark: **DO**
+
+```go
+stringSlice := make([]string, 0)
+props := make(map[string]string)
+```
+
+
+
 
