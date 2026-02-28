@@ -368,8 +368,7 @@ func (br consumptionBudgetBaseResource) updateFunc() sdk.ResourceFunc {
 
 func (br consumptionBudgetBaseResource) importerFunc() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id())
-		if err != nil {
+		if _, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id()); err != nil {
 			return err
 		}
 
@@ -402,8 +401,7 @@ func createOrUpdateConsumptionBudget(ctx context.Context, client *budgets.Budget
 		parameters.ETag = pointer.To(v.(string))
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
@@ -419,8 +417,7 @@ func expandConsumptionBudgetTimePeriod(i []interface{}) (*budgets.BudgetTimePeri
 	timePeriod := budgets.BudgetTimePeriod{}
 
 	if startDateInput, ok := input["start_date"].(string); ok {
-		_, err := date.ParseTime(time.RFC3339, startDateInput)
-		if err != nil {
+		if _, err := date.ParseTime(time.RFC3339, startDateInput); err != nil {
 			return nil, fmt.Errorf("start_date '%s' was not in the correct format: %+v", startDateInput, err)
 		}
 		timePeriod.StartDate = input["start_date"].(string)
@@ -428,8 +425,7 @@ func expandConsumptionBudgetTimePeriod(i []interface{}) (*budgets.BudgetTimePeri
 
 	if endDateInput, ok := input["end_date"].(string); ok {
 		if endDateInput != "" {
-			_, err := date.ParseTime(time.RFC3339, endDateInput)
-			if err != nil {
+			if _, err := date.ParseTime(time.RFC3339, endDateInput); err != nil {
 				return nil, fmt.Errorf("end_date '%s' was not in the correct format: %+v", endDateInput, err)
 			}
 

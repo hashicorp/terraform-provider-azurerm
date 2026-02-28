@@ -425,8 +425,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		tags := networkinterfaces.TagsObject{
 			Tags: tags.Expand(tagsRaw),
 		}
-		_, err = client.UpdateTags(ctx, *id, tags)
-		if err != nil {
+		if _, err = client.UpdateTags(ctx, *id, tags); err != nil {
 			return fmt.Errorf("updating tags for %s: %+v", *id, err)
 		}
 	}

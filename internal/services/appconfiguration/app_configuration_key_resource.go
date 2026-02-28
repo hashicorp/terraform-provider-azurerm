@@ -224,8 +224,7 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Locked {
-				_, err = client.PutLock(ctx, model.Key, model.Label, "", "")
-				if err != nil {
+				if _, err = client.PutLock(ctx, model.Key, model.Label, "", ""); err != nil {
 					return fmt.Errorf("while locking key/label pair %q/%q: %+v", model.Key, model.Label, err)
 				}
 			}

@@ -122,8 +122,7 @@ func (s DataConnectorMicrosoftThreatIntelligenceResource) Create() sdk.ResourceF
 					TenantID: &tenantId,
 				},
 			}
-			_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, dataConnector)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, dataConnector); err != nil {
 				return fmt.Errorf("creating %+v", err)
 			}
 

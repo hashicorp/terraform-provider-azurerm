@@ -150,8 +150,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: &certificateProperties,
 	}
 
-	_, err := client.Create(ctx, id, parameters, certificate.CreateOperationOptions{})
-	if err != nil {
+	if _, err := client.Create(ctx, id, parameters, certificate.CreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -251,8 +250,7 @@ func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	_, err = client.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
