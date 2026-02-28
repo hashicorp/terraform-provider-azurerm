@@ -219,6 +219,17 @@ func resourceDataFactoryManagedPrivateEndpointDelete(d *pluginsdk.ResourceData, 
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Exists"},
+		Target:     []string{"NotFound"},
+		Refresh:    getManagedPrivateEndpointDeletionStatus(ctx, client, *id),
+		MinTimeout: 1 * time.Minute,
+		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be deleted: %+v", id.ID(), err)
+	}
+
 	return nil
 }
 
@@ -257,5 +268,20 @@ func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *manag
 		}
 
 		return resp, *resp.Model.Properties.ProvisioningState, nil
+	}
+}
+
+func getManagedPrivateEndpointDeletionStatus(ctx context.Context, client *managedprivateendpoints.ManagedPrivateEndpointsClient, id managedprivateendpoints.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, id, managedprivateendpoints.DefaultGetOperationOptions())
+		if err != nil && response.WasNotFound(resp.HttpResponse) {
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, "NotFound", nil
+			} else {
+				return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+		} else {
+			return resp, "Exists", nil
+		}
 	}
 }
