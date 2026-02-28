@@ -113,10 +113,11 @@ func resourceApiManagementApiReleaseUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	parameters := apirelease.ApiReleaseContract{
-		Properties: &apirelease.ApiReleaseContractProperties{
-			ApiId: pointer.To(d.Get("api_id").(string)),
-			Notes: pointer.To(d.Get("notes").(string)),
-		},
+		Properties: &apirelease.ApiReleaseContractProperties{},
+	}
+
+	if d.HasChange("notes") {
+		parameters.Properties.Notes = pointer.To(d.Get("notes").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, apirelease.CreateOrUpdateOperationOptions{IfMatch: pointer.To("*")}); err != nil {

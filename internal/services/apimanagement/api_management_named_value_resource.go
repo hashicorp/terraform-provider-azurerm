@@ -172,20 +172,27 @@ func resourceApiManagementNamedValueUpdate(d *pluginsdk.ResourceData, meta inter
 		Properties: &namedvalue.NamedValueCreateContractProperties{
 			DisplayName: d.Get("display_name").(string),
 			Secret:      pointer.To(d.Get("secret").(bool)),
-			KeyVault:    expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{})),
 		},
+	}
+
+	if d.HasChange("value_from_key_vault") {
+		parameters.Properties.KeyVault = expandApiManagementNamedValueKeyVault(d.Get("value_from_key_vault").([]interface{}))
 	}
 
 	if parameters.Properties.KeyVault != nil && (parameters.Properties.Secret == nil || !*parameters.Properties.Secret) {
 		return errors.New("`secret` must be true when `value_from_key_vault` is set")
 	}
 
-	if v, ok := d.GetOk("value"); ok {
-		parameters.Properties.Value = pointer.To(v.(string))
+	if d.HasChange("value") {
+		if v, ok := d.GetOk("value"); ok {
+			parameters.Properties.Value = pointer.To(v.(string))
+		}
 	}
 
-	if tags, ok := d.GetOk("tags"); ok {
-		parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
+	if d.HasChange("tags") {
+		if tags, ok := d.GetOk("tags"); ok {
+			parameters.Properties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
+		}
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, *id, parameters, namedvalue.CreateOrUpdateOperationOptions{})

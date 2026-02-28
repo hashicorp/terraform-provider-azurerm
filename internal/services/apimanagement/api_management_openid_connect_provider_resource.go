@@ -131,10 +131,13 @@ func resourceApiManagementOpenIDConnectProviderUpdate(d *pluginsdk.ResourceData,
 		Properties: &openidconnectprovider.OpenidConnectProviderContractProperties{
 			ClientId:         d.Get("client_id").(string),
 			ClientSecret:     pointer.To(d.Get("client_secret").(string)),
-			Description:      pointer.To(d.Get("description").(string)),
 			DisplayName:      d.Get("display_name").(string),
 			MetadataEndpoint: d.Get("metadata_endpoint").(string),
 		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, openidconnectprovider.CreateOrUpdateOperationOptions{}); err != nil {

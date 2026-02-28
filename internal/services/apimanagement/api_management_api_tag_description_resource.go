@@ -136,17 +136,20 @@ func resourceApiManagementApiTagDescriptionUpdate(d *pluginsdk.ResourceData, met
 	apiName := getApiName(id.ApiId)
 	newId := apitagdescription.NewTagDescriptionID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagDescriptionId)
 
-	tagDescParameter := apitagdescription.TagDescriptionCreateParameters{Properties: &apitagdescription.TagDescriptionBaseProperties{}}
-	if v, ok := d.GetOk("description"); ok {
-		tagDescParameter.Properties.Description = pointer.To(v.(string))
+	tagDescParameter := apitagdescription.TagDescriptionCreateParameters{
+		Properties: &apitagdescription.TagDescriptionBaseProperties{},
 	}
 
-	if v, ok := d.GetOk("external_documentation_url"); ok {
-		tagDescParameter.Properties.ExternalDocsURL = pointer.To(v.(string))
+	if d.HasChange("description") {
+		tagDescParameter.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
-	if v, ok := d.GetOk("external_documentation_description"); ok {
-		tagDescParameter.Properties.ExternalDocsDescription = pointer.To(v.(string))
+	if d.HasChange("external_documentation_url") {
+		tagDescParameter.Properties.ExternalDocsURL = pointer.To(d.Get("external_documentation_url").(string))
+	}
+
+	if d.HasChange("external_documentation_description") {
+		tagDescParameter.Properties.ExternalDocsDescription = pointer.To(d.Get("external_documentation_description").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, newId, tagDescParameter, apitagdescription.CreateOrUpdateOperationOptions{}); err != nil {

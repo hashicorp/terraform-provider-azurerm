@@ -130,13 +130,22 @@ func resourceApiManagementIdentityProviderAADUpdate(d *pluginsdk.ResourceData, m
 
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
-			ClientId:       d.Get("client_id").(string),
-			ClientLibrary:  pointer.To(d.Get("client_library").(string)),
-			ClientSecret:   d.Get("client_secret").(string),
-			Type:           pointer.To(identityprovider.IdentityProviderTypeAad),
-			AllowedTenants: utils.ExpandStringSlice(d.Get("allowed_tenants").([]interface{})),
-			SigninTenant:   pointer.To(d.Get("signin_tenant").(string)),
+			ClientId:     d.Get("client_id").(string),
+			ClientSecret: d.Get("client_secret").(string),
+			Type:         pointer.To(identityprovider.IdentityProviderTypeAad),
 		},
+	}
+
+	if d.HasChange("client_library") {
+		parameters.Properties.ClientLibrary = pointer.To(d.Get("client_library").(string))
+	}
+
+	if d.HasChange("allowed_tenants") {
+		parameters.Properties.AllowedTenants = utils.ExpandStringSlice(d.Get("allowed_tenants").([]interface{}))
+	}
+
+	if d.HasChange("signin_tenant") {
+		parameters.Properties.SigninTenant = pointer.To(d.Get("signin_tenant").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {

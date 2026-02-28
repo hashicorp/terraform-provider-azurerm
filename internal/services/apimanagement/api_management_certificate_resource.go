@@ -173,29 +173,33 @@ func resourceApiManagementCertificateUpdate(d *pluginsdk.ResourceData, meta inte
 		Properties: &certificate.CertificateCreateOrUpdateProperties{},
 	}
 
-	if keyVaultSecretId := d.Get("key_vault_secret_id").(string); keyVaultSecretId != "" {
-		nestedItemType := keyvault.NestedItemTypeSecret
-		if !features.FivePointOh() {
-			nestedItemType = keyvault.NestedItemTypeAny
-		}
+	if d.HasChanges("key_vault_secret_id", "key_vault_identity_client_id") {
+		if keyVaultSecretId := d.Get("key_vault_secret_id").(string); keyVaultSecretId != "" {
+			nestedItemType := keyvault.NestedItemTypeSecret
+			if !features.FivePointOh() {
+				nestedItemType = keyvault.NestedItemTypeAny
+			}
 
-		parsedSecretId, err := keyvault.ParseNestedItemID(keyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
-		if err != nil {
-			return err
-		}
+			parsedSecretId, err := keyvault.ParseNestedItemID(keyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
+			if err != nil {
+				return err
+			}
 
-		parameters.Properties.KeyVault = &certificate.KeyVaultContractCreateProperties{
-			SecretIdentifier: pointer.To(parsedSecretId.ID()),
-		}
+			parameters.Properties.KeyVault = &certificate.KeyVaultContractCreateProperties{
+				SecretIdentifier: pointer.To(parsedSecretId.ID()),
+			}
 
-		if keyVaultIdentity := d.Get("key_vault_identity_client_id").(string); keyVaultIdentity != "" {
-			parameters.Properties.KeyVault.IdentityClientId = pointer.To(keyVaultIdentity)
+			if keyVaultIdentity := d.Get("key_vault_identity_client_id").(string); keyVaultIdentity != "" {
+				parameters.Properties.KeyVault.IdentityClientId = pointer.To(keyVaultIdentity)
+			}
 		}
 	}
 
-	if data := d.Get("data").(string); data != "" {
-		parameters.Properties.Data = pointer.To(data)
-		parameters.Properties.Password = pointer.To(d.Get("password").(string))
+	if d.HasChanges("data", "password") {
+		if data := d.Get("data").(string); data != "" {
+			parameters.Properties.Data = pointer.To(data)
+			parameters.Properties.Password = pointer.To(d.Get("password").(string))
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, certificate.CreateOrUpdateOperationOptions{}); err != nil {

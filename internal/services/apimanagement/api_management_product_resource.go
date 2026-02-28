@@ -171,12 +171,18 @@ func resourceApiManagementProductUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	properties := product.ProductContract{
 		Properties: &product.ProductContractProperties{
-			Description:          pointer.To(d.Get("description").(string)),
 			DisplayName:          d.Get("display_name").(string),
 			State:                pointer.To(publishedVal),
 			SubscriptionRequired: pointer.To(subscriptionRequired),
-			Terms:                pointer.To(d.Get("terms").(string)),
 		},
+	}
+
+	if d.HasChange("description") {
+		properties.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("terms") {
+		properties.Properties.Terms = pointer.To(d.Get("terms").(string))
 	}
 
 	// Swagger says: Can be present only if subscriptionRequired property is present and has a value of false.

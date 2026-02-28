@@ -215,28 +215,37 @@ func resourceApiManagementApiOperationUpdate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	requestContract, err := expandApiManagementOperationRequestContract(d, "request", d.Get("request").([]interface{}))
-	if err != nil {
-		return err
-	}
-
-	responseContracts, err := expandApiManagementOperationResponseContract(d, "response", d.Get("response").([]interface{}))
-	if err != nil {
-		return err
-	}
-
-	templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", d.Get("template_parameter").([]interface{}))
-
 	parameters := apioperation.OperationContract{
 		Properties: &apioperation.OperationContractProperties{
-			Description:        pointer.To(d.Get("description").(string)),
-			DisplayName:        d.Get("display_name").(string),
-			Method:             d.Get("method").(string),
-			Request:            requestContract,
-			Responses:          responseContracts,
-			TemplateParameters: templateParameters,
-			UrlTemplate:        d.Get("url_template").(string),
+			DisplayName: d.Get("display_name").(string),
+			Method:      d.Get("method").(string),
+			UrlTemplate: d.Get("url_template").(string),
 		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("request") {
+		requestContract, err := expandApiManagementOperationRequestContract(d, "request", d.Get("request").([]interface{}))
+		if err != nil {
+			return err
+		}
+		parameters.Properties.Request = requestContract
+	}
+
+	if d.HasChange("response") {
+		responseContracts, err := expandApiManagementOperationResponseContract(d, "response", d.Get("response").([]interface{}))
+		if err != nil {
+			return err
+		}
+		parameters.Properties.Responses = responseContracts
+	}
+
+	if d.HasChange("template_parameter") {
+		templateParameters := schemaz.ExpandApiManagementOperationParameterContract(d, "template_parameter", d.Get("template_parameter").([]interface{}))
+		parameters.Properties.TemplateParameters = templateParameters
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, apioperation.CreateOrUpdateOperationOptions{}); err != nil {

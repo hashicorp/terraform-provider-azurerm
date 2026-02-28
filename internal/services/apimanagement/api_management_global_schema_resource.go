@@ -126,8 +126,7 @@ func resourceApiManagementGlobalSchemaUpdate(d *pluginsdk.ResourceData, meta int
 
 	payload := schema.GlobalSchemaContract{
 		Properties: &schema.GlobalSchemaContractProperties{
-			Description: pointer.To(d.Get("description").(string)),
-			SchemaType:  schema.SchemaType(d.Get("type").(string)),
+			SchemaType: schema.SchemaType(d.Get("type").(string)),
 		},
 	}
 
@@ -141,6 +140,10 @@ func resourceApiManagementGlobalSchemaUpdate(d *pluginsdk.ResourceData, meta int
 	if d.Get("type").(string) == string(schema.SchemaTypeXml) {
 		value := d.Get("value")
 		payload.Properties.Value = &value
+	}
+
+	if d.HasChange("description") {
+		payload.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if err := client.GlobalSchemaCreateOrUpdateThenPoll(ctx, *id, payload, schema.DefaultGlobalSchemaCreateOrUpdateOperationOptions()); err != nil {

@@ -289,60 +289,76 @@ func resourceApiManagementApiDiagnosticUpdate(d *pluginsdk.ResourceData, meta in
 		},
 	}
 
-	if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
-		if d.Get("identifier") == "applicationinsights" {
-			parameters.Properties.OperationNameFormat = pointer.To(apidiagnostic.OperationNameFormat(operationNameFormat.(string)))
+	if d.HasChange("operation_name_format") {
+		if operationNameFormat, ok := d.GetOk("operation_name_format"); ok {
+			if d.Get("identifier") == "applicationinsights" {
+				parameters.Properties.OperationNameFormat = pointer.To(apidiagnostic.OperationNameFormat(operationNameFormat.(string)))
+			}
 		}
 	}
 
-	samplingPercentage := d.GetRawConfig().AsValueMap()["sampling_percentage"]
-	if !samplingPercentage.IsNull() {
-		parameters.Properties.Sampling = &apidiagnostic.SamplingSettings{
-			SamplingType: pointer.To(apidiagnostic.SamplingTypeFixed),
-			Percentage:   pointer.To(d.Get("sampling_percentage").(float64)),
-		}
-	} else {
-		parameters.Properties.Sampling = nil
-	}
-
-	if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
-		parameters.Properties.AlwaysLog = pointer.To(apidiagnostic.AlwaysLogAllErrors)
-	}
-
-	if verbosity, ok := d.GetOk("verbosity"); ok {
-		parameters.Properties.Verbosity = pointer.To(apidiagnostic.Verbosity(verbosity.(string)))
-	}
-
-	//lint:ignore SA1019 SDKv2 migration  - staticcheck's own linter directives are currently being ignored under golanci-lint
-	if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:staticcheck
-		parameters.Properties.LogClientIP = pointer.To(logClientIP.(bool))
-	}
-
-	if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
-		parameters.Properties.HTTPCorrelationProtocol = pointer.To(apidiagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
-	}
-
-	frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
-	frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
-	if frontendRequestSet || frontendResponseSet {
-		parameters.Properties.Frontend = &apidiagnostic.PipelineDiagnosticSettings{}
-		if frontendRequestSet {
-			parameters.Properties.Frontend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
-		}
-		if frontendResponseSet {
-			parameters.Properties.Frontend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+	if d.HasChange("sampling_percentage") {
+		samplingPercentage := d.GetRawConfig().AsValueMap()["sampling_percentage"]
+		if !samplingPercentage.IsNull() {
+			parameters.Properties.Sampling = &apidiagnostic.SamplingSettings{
+				SamplingType: pointer.To(apidiagnostic.SamplingTypeFixed),
+				Percentage:   pointer.To(d.Get("sampling_percentage").(float64)),
+			}
+		} else {
+			parameters.Properties.Sampling = nil
 		}
 	}
 
-	backendRequest, backendRequestSet := d.GetOk("backend_request")
-	backendResponse, backendResponseSet := d.GetOk("backend_response")
-	if backendRequestSet || backendResponseSet {
-		parameters.Properties.Backend = &apidiagnostic.PipelineDiagnosticSettings{}
-		if backendRequestSet {
-			parameters.Properties.Backend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+	if d.HasChange("always_log_errors") {
+		if alwaysLogErrors, ok := d.GetOk("always_log_errors"); ok && alwaysLogErrors.(bool) {
+			parameters.Properties.AlwaysLog = pointer.To(apidiagnostic.AlwaysLogAllErrors)
 		}
-		if backendResponseSet {
-			parameters.Properties.Backend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+	}
+
+	if d.HasChange("verbosity") {
+		if verbosity, ok := d.GetOk("verbosity"); ok {
+			parameters.Properties.Verbosity = pointer.To(apidiagnostic.Verbosity(verbosity.(string)))
+		}
+	}
+
+	if d.HasChange("log_client_ip") {
+		//lint:ignore SA1019 SDKv2 migration  - staticcheck's own linter directives are currently being ignored under golanci-lint
+		if logClientIP, exists := d.GetOkExists("log_client_ip"); exists { //nolint:staticcheck
+			parameters.Properties.LogClientIP = pointer.To(logClientIP.(bool))
+		}
+	}
+
+	if d.HasChange("http_correlation_protocol") {
+		if httpCorrelationProtocol, ok := d.GetOk("http_correlation_protocol"); ok {
+			parameters.Properties.HTTPCorrelationProtocol = pointer.To(apidiagnostic.HTTPCorrelationProtocol(httpCorrelationProtocol.(string)))
+		}
+	}
+
+	if d.HasChanges("frontend_request", "frontend_response") {
+		frontendRequest, frontendRequestSet := d.GetOk("frontend_request")
+		frontendResponse, frontendResponseSet := d.GetOk("frontend_response")
+		if frontendRequestSet || frontendResponseSet {
+			parameters.Properties.Frontend = &apidiagnostic.PipelineDiagnosticSettings{}
+			if frontendRequestSet {
+				parameters.Properties.Frontend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendRequest.([]interface{}))
+			}
+			if frontendResponseSet {
+				parameters.Properties.Frontend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(frontendResponse.([]interface{}))
+			}
+		}
+	}
+
+	if d.HasChanges("backend_request", "backend_response") {
+		backendRequest, backendRequestSet := d.GetOk("backend_request")
+		backendResponse, backendResponseSet := d.GetOk("backend_response")
+		if backendRequestSet || backendResponseSet {
+			parameters.Properties.Backend = &apidiagnostic.PipelineDiagnosticSettings{}
+			if backendRequestSet {
+				parameters.Properties.Backend.Request = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendRequest.([]interface{}))
+			}
+			if backendResponseSet {
+				parameters.Properties.Backend.Response = expandApiManagementApiDiagnosticHTTPMessageDiagnostic(backendResponse.([]interface{}))
+			}
 		}
 	}
 

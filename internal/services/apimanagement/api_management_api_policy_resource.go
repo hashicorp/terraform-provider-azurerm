@@ -128,19 +128,21 @@ func resourceApiManagementAPIPolicyUpdate(d *pluginsdk.ResourceData, meta interf
 
 	parameters := apipolicy.PolicyContract{}
 
-	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
-		parameters.Properties = &apipolicy.PolicyContractProperties{
-			Format: pointer.To(apipolicy.PolicyContentFormatRawxmlNegativelink),
-			Value:  xmlLink,
-		}
-	} else if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
-		// this is intentionally an else-if since `xml_content` is computed
-		// clear out any existing value for xml_link
-		d.Set("xml_link", "")
+	if d.HasChanges("xml_content", "xml_link") {
+		if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
+			parameters.Properties = &apipolicy.PolicyContractProperties{
+				Format: pointer.To(apipolicy.PolicyContentFormatRawxmlNegativelink),
+				Value:  xmlLink,
+			}
+		} else if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
+			// this is intentionally an else-if since `xml_content` is computed
+			// clear out any existing value for xml_link
+			d.Set("xml_link", "")
 
-		parameters.Properties = &apipolicy.PolicyContractProperties{
-			Format: pointer.To(apipolicy.PolicyContentFormatRawxml),
-			Value:  xmlContent,
+			parameters.Properties = &apipolicy.PolicyContractProperties{
+				Format: pointer.To(apipolicy.PolicyContentFormatRawxml),
+				Value:  xmlContent,
+			}
 		}
 	}
 

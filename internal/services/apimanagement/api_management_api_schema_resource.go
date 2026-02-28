@@ -157,26 +157,30 @@ func resourceApiManagementApiSchemaUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if v, ok := d.GetOk("value"); ok {
-		parameters.Properties.Document.Value = pointer.To(v.(string))
+	if d.HasChange("value") {
+		if v, ok := d.GetOk("value"); ok {
+			parameters.Properties.Document.Value = pointer.To(v.(string))
+		}
 	}
 
-	if v, ok := d.GetOk("components"); ok {
-		var value interface{}
-		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
-			return fmt.Errorf("failed to unmarshal components %v: %+v", v.(string), err)
+	if d.HasChange("components") {
+		if v, ok := d.GetOk("components"); ok {
+			var value interface{}
+			if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+				return fmt.Errorf("failed to unmarshal components %v: %+v", v.(string), err)
+			}
+			parameters.Properties.Document.Components = pointer.To(value)
 		}
-
-		parameters.Properties.Document.Components = pointer.To(value)
 	}
 
-	if v, ok := d.GetOk("definitions"); ok {
-		var value interface{}
-		if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
-			return fmt.Errorf("failed to unmarshal definitions %v: %+v", v.(string), err)
+	if d.HasChange("definitions") {
+		if v, ok := d.GetOk("definitions"); ok {
+			var value interface{}
+			if err := json.Unmarshal([]byte(v.(string)), &value); err != nil {
+				return fmt.Errorf("failed to unmarshal definitions %v: %+v", v.(string), err)
+			}
+			parameters.Properties.Document.Definitions = pointer.To(value)
 		}
-
-		parameters.Properties.Document.Definitions = pointer.To(value)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters, apischema.CreateOrUpdateOperationOptions{}); err != nil {

@@ -265,40 +265,67 @@ func resourceApiManagementAuthorizationServerUpdate(d *pluginsdk.ResourceData, m
 	}
 
 	grantTypes := expandApiManagementAuthorizationServerGrantTypes(d.Get("grant_types").(*pluginsdk.Set).List())
-	clientAuthenticationMethods := expandApiManagementAuthorizationServerClientAuthenticationMethods(d.Get("client_authentication_method").(*pluginsdk.Set).List())
-	tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(d.Get("token_body_parameter").([]interface{}))
 
 	params := authorizationserver.AuthorizationServerContract{
 		Properties: &authorizationserver.AuthorizationServerContractProperties{
-			// Required
 			AuthorizationEndpoint:      d.Get("authorization_endpoint").(string),
 			ClientId:                   d.Get("client_id").(string),
 			ClientRegistrationEndpoint: d.Get("client_registration_endpoint").(string),
 			DisplayName:                d.Get("display_name").(string),
 			GrantTypes:                 pointer.From(grantTypes),
-
-			// Optional
-			ClientAuthenticationMethod: clientAuthenticationMethods,
-			ClientSecret:               pointer.To(d.Get("client_secret").(string)),
-			DefaultScope:               pointer.To(d.Get("default_scope").(string)),
-			Description:                pointer.To(d.Get("description").(string)),
-			ResourceOwnerPassword:      pointer.To(d.Get("resource_owner_password").(string)),
-			ResourceOwnerUsername:      pointer.To(d.Get("resource_owner_username").(string)),
-			SupportState:               pointer.To(d.Get("support_state").(bool)),
-			TokenBodyParameters:        tokenBodyParameters,
 		},
 	}
 
-	if authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List(); len(authorizationMethodsRaw) > 0 {
-		params.Properties.AuthorizationMethods = expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
+	if d.HasChange("client_authentication_method") {
+		clientAuthenticationMethods := expandApiManagementAuthorizationServerClientAuthenticationMethods(d.Get("client_authentication_method").(*pluginsdk.Set).List())
+		params.Properties.ClientAuthenticationMethod = clientAuthenticationMethods
 	}
 
-	if bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List(); len(bearerTokenSendingMethodsRaw) > 0 {
-		params.Properties.BearerTokenSendingMethods = expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
+	if d.HasChange("client_secret") {
+		params.Properties.ClientSecret = pointer.To(d.Get("client_secret").(string))
 	}
 
-	if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {
-		params.Properties.TokenEndpoint = pointer.To(tokenEndpoint)
+	if d.HasChange("default_scope") {
+		params.Properties.DefaultScope = pointer.To(d.Get("default_scope").(string))
+	}
+
+	if d.HasChange("description") {
+		params.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("resource_owner_password") {
+		params.Properties.ResourceOwnerPassword = pointer.To(d.Get("resource_owner_password").(string))
+	}
+
+	if d.HasChange("resource_owner_username") {
+		params.Properties.ResourceOwnerUsername = pointer.To(d.Get("resource_owner_username").(string))
+	}
+
+	if d.HasChange("support_state") {
+		params.Properties.SupportState = pointer.To(d.Get("support_state").(bool))
+	}
+
+	if d.HasChange("token_body_parameter") {
+		tokenBodyParameters := expandApiManagementAuthorizationServerTokenBodyParameters(d.Get("token_body_parameter").([]interface{}))
+		params.Properties.TokenBodyParameters = tokenBodyParameters
+	}
+
+	if d.HasChange("authorization_methods") {
+		if authorizationMethodsRaw := d.Get("authorization_methods").(*pluginsdk.Set).List(); len(authorizationMethodsRaw) > 0 {
+			params.Properties.AuthorizationMethods = expandApiManagementAuthorizationServerAuthorizationMethods(authorizationMethodsRaw)
+		}
+	}
+
+	if d.HasChange("bearer_token_sending_methods") {
+		if bearerTokenSendingMethodsRaw := d.Get("bearer_token_sending_methods").(*pluginsdk.Set).List(); len(bearerTokenSendingMethodsRaw) > 0 {
+			params.Properties.BearerTokenSendingMethods = expandApiManagementAuthorizationServerBearerTokenSendingMethods(bearerTokenSendingMethodsRaw)
+		}
+	}
+
+	if d.HasChange("token_endpoint") {
+		if tokenEndpoint := d.Get("token_endpoint").(string); tokenEndpoint != "" {
+			params.Properties.TokenEndpoint = pointer.To(tokenEndpoint)
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, params, authorizationserver.CreateOrUpdateOperationOptions{}); err != nil {

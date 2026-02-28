@@ -167,14 +167,22 @@ func resourceApiManagementUserUpdate(d *pluginsdk.ResourceData, meta interface{}
 		},
 	}
 
-	if v := d.Get("note").(string); v != "" {
-		properties.Properties.Note = pointer.To(v)
+	if d.HasChange("note") {
+		if v := d.Get("note").(string); v != "" {
+			properties.Properties.Note = pointer.To(v)
+		}
 	}
-	if v := d.Get("password").(string); v != "" {
-		properties.Properties.Password = pointer.To(v)
+
+	if d.HasChange("password") {
+		if v := d.Get("password").(string); v != "" {
+			properties.Properties.Password = pointer.To(v)
+		}
 	}
-	if v := d.Get("state").(string); v != "" {
-		properties.Properties.State = pointer.To(user.UserState(v))
+
+	if d.HasChange("state") {
+		if v := d.Get("state").(string); v != "" {
+			properties.Properties.State = pointer.To(user.UserState(v))
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, properties, user.CreateOrUpdateOperationOptions{Notify: pointer.To(false)}); err != nil {

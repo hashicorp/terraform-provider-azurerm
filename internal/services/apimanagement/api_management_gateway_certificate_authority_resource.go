@@ -108,9 +108,11 @@ func resourceApiManagementGatewayCertificateAuthorityUpdate(d *pluginsdk.Resourc
 	}
 
 	parameters := gatewaycertificateauthority.GatewayCertificateAuthorityContract{
-		Properties: &gatewaycertificateauthority.GatewayCertificateAuthorityContractProperties{
-			IsTrusted: pointer.To(d.Get("is_trusted").(bool)),
-		},
+		Properties: &gatewaycertificateauthority.GatewayCertificateAuthorityContractProperties{},
+	}
+
+	if d.HasChange("is_trusted") {
+		parameters.Properties.IsTrusted = pointer.To(d.Get("is_trusted").(bool))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, *id, parameters, gatewaycertificateauthority.CreateOrUpdateOperationOptions{}); err != nil {

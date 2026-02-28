@@ -143,13 +143,25 @@ func resourceApiManagementGatewayHostNameConfigurationUpdate(d *pluginsdk.Resour
 
 	parameters := gatewayhostnameconfiguration.GatewayHostnameConfigurationContract{
 		Properties: &gatewayhostnameconfiguration.GatewayHostnameConfigurationContractProperties{
-			Hostname:                   pointer.To(d.Get("host_name").(string)),
-			CertificateId:              pointer.To(d.Get("certificate_id").(string)),
-			NegotiateClientCertificate: pointer.To(d.Get("request_client_certificate_enabled").(bool)),
-			Tls10Enabled:               pointer.To(d.Get("tls10_enabled").(bool)),
-			Tls11Enabled:               pointer.To(d.Get("tls11_enabled").(bool)),
-			HTTP2Enabled:               pointer.To(d.Get("http2_enabled").(bool)),
+			Hostname:      pointer.To(d.Get("host").(string)),
+			CertificateId: pointer.To(d.Get("certificate_id").(string)),
 		},
+	}
+
+	if d.HasChange("request_client_certificate_enabled") {
+		parameters.Properties.NegotiateClientCertificate = pointer.To(d.Get("request_client_certificate_enabled").(bool))
+	}
+
+	if d.HasChange("http2_enabled") {
+		parameters.Properties.HTTP2Enabled = pointer.To(d.Get("http2_enabled").(bool))
+	}
+
+	if d.HasChange("tls10_enabled") {
+		parameters.Properties.Tls10Enabled = pointer.To(d.Get("tls10_enabled").(bool))
+	}
+
+	if d.HasChange("tls11_enabled") {
+		parameters.Properties.Tls11Enabled = pointer.To(d.Get("tls11_enabled").(bool))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, *id, parameters, gatewayhostnameconfiguration.CreateOrUpdateOperationOptions{}); err != nil {

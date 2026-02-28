@@ -233,22 +233,35 @@ func resourceApiManagementSubscriptionUpdate(d *pluginsdk.ResourceData, meta int
 
 	params := subscription.SubscriptionCreateParameters{
 		Properties: &subscription.SubscriptionCreateParameterProperties{
-			DisplayName:  d.Get("display_name").(string),
-			Scope:        scope,
-			State:        pointer.To(subscription.SubscriptionState(d.Get("state").(string))),
-			AllowTracing: pointer.To(d.Get("allow_tracing").(bool)),
+			DisplayName: d.Get("display_name").(string),
+			Scope:       scope,
 		},
 	}
-	if v, ok := d.GetOk("user_id"); ok {
-		params.Properties.OwnerId = pointer.To(v.(string))
+
+	if d.HasChange("state") {
+		params.Properties.State = pointer.To(subscription.SubscriptionState(d.Get("state").(string)))
 	}
 
-	if v, ok := d.GetOk("primary_key"); ok {
-		params.Properties.PrimaryKey = pointer.To(v.(string))
+	if d.HasChange("allow_tracing") {
+		params.Properties.AllowTracing = pointer.To(d.Get("allow_tracing").(bool))
 	}
 
-	if v, ok := d.GetOk("secondary_key"); ok {
-		params.Properties.SecondaryKey = pointer.To(v.(string))
+	if d.HasChange("user_id") {
+		if v, ok := d.GetOk("user_id"); ok {
+			params.Properties.OwnerId = pointer.To(v.(string))
+		}
+	}
+
+	if d.HasChange("primary_key") {
+		if v, ok := d.GetOk("primary_key"); ok {
+			params.Properties.PrimaryKey = pointer.To(v.(string))
+		}
+	}
+
+	if d.HasChange("secondary_key") {
+		if v, ok := d.GetOk("secondary_key"); ok {
+			params.Properties.SecondaryKey = pointer.To(v.(string))
+		}
 	}
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {

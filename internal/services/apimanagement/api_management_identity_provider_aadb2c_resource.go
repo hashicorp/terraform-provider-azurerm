@@ -164,18 +164,27 @@ func resourceArmApiManagementIdentityProviderAADB2CUpdate(d *pluginsdk.ResourceD
 
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
-			ClientId:                 d.Get("client_id").(string),
-			ClientLibrary:            pointer.To(d.Get("client_library").(string)),
-			ClientSecret:             d.Get("client_secret").(string),
-			Type:                     pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
-			AllowedTenants:           utils.ExpandStringSlice([]interface{}{d.Get("allowed_tenant").(string)}),
-			SigninTenant:             pointer.To(d.Get("signin_tenant").(string)),
-			Authority:                pointer.To(d.Get("authority").(string)),
-			SignupPolicyName:         pointer.To(d.Get("signup_policy").(string)),
-			SigninPolicyName:         pointer.To(d.Get("signin_policy").(string)),
-			ProfileEditingPolicyName: pointer.To(d.Get("profile_editing_policy").(string)),
-			PasswordResetPolicyName:  pointer.To(d.Get("password_reset_policy").(string)),
+			ClientId:         d.Get("client_id").(string),
+			ClientSecret:     d.Get("client_secret").(string),
+			Type:             pointer.To(identityprovider.IdentityProviderTypeAadBTwoC),
+			AllowedTenants:   utils.ExpandStringSlice([]interface{}{d.Get("allowed_tenant").(string)}),
+			SigninTenant:     pointer.To(d.Get("signin_tenant").(string)),
+			Authority:        pointer.To(d.Get("authority").(string)),
+			SignupPolicyName: pointer.To(d.Get("signup_policy").(string)),
+			SigninPolicyName: pointer.To(d.Get("signin_policy").(string)),
 		},
+	}
+
+	if d.HasChange("client_library") {
+		parameters.Properties.ClientLibrary = pointer.To(d.Get("client_library").(string))
+	}
+
+	if d.HasChange("profile_editing_policy") {
+		parameters.Properties.ProfileEditingPolicyName = pointer.To(d.Get("profile_editing_policy").(string))
+	}
+
+	if d.HasChange("password_reset_policy") {
+		parameters.Properties.PasswordResetPolicyName = pointer.To(d.Get("password_reset_policy").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, identityprovider.CreateOrUpdateOperationOptions{}); err != nil {

@@ -127,10 +127,19 @@ func resourceApiManagementGroupUpdate(d *pluginsdk.ResourceData, meta interface{
 	parameters := group.GroupCreateParameters{
 		Properties: &group.GroupCreateParametersProperties{
 			DisplayName: d.Get("display_name").(string),
-			Description: pointer.To(d.Get("description").(string)),
-			ExternalId:  pointer.To(d.Get("external_id").(string)),
-			Type:        pointer.To(group.GroupType(d.Get("type").(string))),
 		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("external_id") {
+		parameters.Properties.ExternalId = pointer.To(d.Get("external_id").(string))
+	}
+
+	if d.HasChange("type") {
+		parameters.Properties.Type = pointer.To(group.GroupType(d.Get("type").(string)))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, group.CreateOrUpdateOperationOptions{}); err != nil {

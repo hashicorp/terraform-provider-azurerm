@@ -133,9 +133,12 @@ func resourceApiManagementGatewayUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	parameters := gateway.GatewayContract{
 		Properties: &gateway.GatewayContractProperties{
-			Description:  pointer.To(d.Get("description").(string)),
 			LocationData: expandApiManagementGatewayLocationData(d.Get("location_data").([]interface{})),
 		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters, gateway.CreateOrUpdateOperationOptions{}); err != nil {

@@ -417,39 +417,54 @@ func resourceApiManagementBackendUpdate(d *pluginsdk.ResourceData, meta interfac
 		return err
 	}
 
-	credentials := expandApiManagementBackendCredentials(d.Get("credentials").([]interface{}))
-	proxy := expandApiManagementBackendProxy(d.Get("proxy").([]interface{}))
-	tls := expandApiManagementBackendTls(d.Get("tls").([]interface{}))
-
 	backendContract := backend.BackendContract{
 		Properties: &backend.BackendContractProperties{
-			Credentials: credentials,
-			Protocol:    pointer.To(backend.BackendProtocol(d.Get("protocol").(string))),
-			Proxy:       proxy,
-			Tls:         tls,
-			Url:         pointer.To(d.Get("url").(string)),
+			Protocol: pointer.To(backend.BackendProtocol(d.Get("protocol").(string))),
+			Url:      pointer.To(d.Get("url").(string)),
 		},
 	}
-	if v, ok := d.GetOk("circuit_breaker_rule"); ok {
-		backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
-	}
-	if description, ok := d.GetOk("description"); ok {
-		backendContract.Properties.Description = pointer.To(description.(string))
-	}
-	if resourceID, ok := d.GetOk("resource_id"); ok {
-		backendContract.Properties.ResourceId = pointer.To(resourceID.(string))
-	}
-	if title, ok := d.GetOk("title"); ok {
-		backendContract.Properties.Title = pointer.To(title.(string))
+
+	if d.HasChange("credentials") {
+		backendContract.Properties.Credentials = expandApiManagementBackendCredentials(d.Get("credentials").([]interface{}))
 	}
 
-	if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
-		serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
-		if err != nil {
-			return err
+	if d.HasChange("proxy") {
+		backendContract.Properties.Proxy = expandApiManagementBackendProxy(d.Get("proxy").([]interface{}))
+	}
+
+	if d.HasChange("tls") {
+		backendContract.Properties.Tls = expandApiManagementBackendTls(d.Get("tls").([]interface{}))
+	}
+
+	if d.HasChange("circuit_breaker_rule") {
+		if v, ok := d.GetOk("circuit_breaker_rule"); ok {
+			backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
 		}
-		backendContract.Properties.Properties = &backend.BackendProperties{
-			ServiceFabricCluster: serviceFabricCluster,
+	}
+
+	if d.HasChange("description") {
+		backendContract.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("resource_id") {
+		if resourceID, ok := d.GetOk("resource_id"); ok {
+			backendContract.Properties.ResourceId = pointer.To(resourceID.(string))
+		}
+	}
+
+	if d.HasChange("title") {
+		backendContract.Properties.Title = pointer.To(d.Get("title").(string))
+	}
+
+	if d.HasChange("service_fabric_cluster") {
+		if serviceFabricClusterRaw, ok := d.GetOk("service_fabric_cluster"); ok {
+			serviceFabricCluster, err := expandApiManagementBackendServiceFabricCluster(serviceFabricClusterRaw.([]interface{}))
+			if err != nil {
+				return err
+			}
+			backendContract.Properties.Properties = &backend.BackendProperties{
+				ServiceFabricCluster: serviceFabricCluster,
+			}
 		}
 	}
 

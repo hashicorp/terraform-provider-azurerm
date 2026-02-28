@@ -174,22 +174,39 @@ func resourceApiManagementApiVersionSetUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	versioningScheme := apiversionset.VersioningScheme(d.Get("versioning_scheme").(string))
+
 	parameters := apiversionset.ApiVersionSetContract{
 		Properties: &apiversionset.ApiVersionSetContractProperties{
 			DisplayName:      d.Get("display_name").(string),
 			VersioningScheme: versioningScheme,
-			Description:      pointer.To(d.Get("description").(string)),
 		},
 	}
 
-	var headerSet, querySet bool
-	if v, ok := d.GetOk("version_header_name"); ok {
-		headerSet = v.(string) != ""
-		parameters.Properties.VersionHeaderName = pointer.To(v.(string))
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
-	if v, ok := d.GetOk("version_query_name"); ok {
-		querySet = v.(string) != ""
-		parameters.Properties.VersionQueryName = pointer.To(v.(string))
+
+	var headerSet, querySet bool
+	if d.HasChange("version_header_name") {
+		if v, ok := d.GetOk("version_header_name"); ok {
+			headerSet = v.(string) != ""
+			parameters.Properties.VersionHeaderName = pointer.To(v.(string))
+		}
+	} else {
+		if v, ok := d.GetOk("version_header_name"); ok {
+			headerSet = v.(string) != ""
+		}
+	}
+
+	if d.HasChange("version_query_name") {
+		if v, ok := d.GetOk("version_query_name"); ok {
+			querySet = v.(string) != ""
+			parameters.Properties.VersionQueryName = pointer.To(v.(string))
+		}
+	} else {
+		if v, ok := d.GetOk("version_query_name"); ok {
+			querySet = v.(string) != ""
+		}
 	}
 
 	switch schema := versioningScheme; schema {

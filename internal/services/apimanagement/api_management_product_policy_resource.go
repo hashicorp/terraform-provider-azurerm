@@ -129,17 +129,19 @@ func resourceApiManagementProductPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	parameters := productpolicy.PolicyContract{}
 
-	if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
-		parameters.Properties = &productpolicy.PolicyContractProperties{
-			Format: pointer.To(productpolicy.PolicyContentFormatRawxml),
-			Value:  xmlContent,
+	if d.HasChanges("xml_content", "xml_link") {
+		if xmlContent := d.Get("xml_content").(string); xmlContent != "" {
+			parameters.Properties = &productpolicy.PolicyContractProperties{
+				Format: pointer.To(productpolicy.PolicyContentFormatRawxml),
+				Value:  xmlContent,
+			}
 		}
-	}
 
-	if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
-		parameters.Properties = &productpolicy.PolicyContractProperties{
-			Format: pointer.To(productpolicy.PolicyContentFormatRawxmlNegativelink),
-			Value:  xmlLink,
+		if xmlLink := d.Get("xml_link").(string); xmlLink != "" {
+			parameters.Properties = &productpolicy.PolicyContractProperties{
+				Format: pointer.To(productpolicy.PolicyContentFormatRawxmlNegativelink),
+				Value:  xmlLink,
+			}
 		}
 	}
 

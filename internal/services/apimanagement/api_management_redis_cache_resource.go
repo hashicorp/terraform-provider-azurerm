@@ -160,12 +160,16 @@ func resourceApiManagementRedisCacheUpdate(d *pluginsdk.ResourceData, meta inter
 		},
 	}
 
-	if v, ok := d.GetOk("description"); ok && v.(string) != "" {
-		parameters.Properties.Description = pointer.To(v.(string))
+	if d.HasChange("description") {
+		if v, ok := d.GetOk("description"); ok && v.(string) != "" {
+			parameters.Properties.Description = pointer.To(v.(string))
+		}
 	}
 
-	if v, ok := d.GetOk("redis_cache_id"); ok && v.(string) != "" {
-		parameters.Properties.ResourceId = pointer.To(*resourceManagerEndpoint + v.(string))
+	if d.HasChange("redis_cache_id") {
+		if v, ok := d.GetOk("redis_cache_id"); ok && v.(string) != "" {
+			parameters.Properties.ResourceId = pointer.To(*resourceManagerEndpoint + v.(string))
+		}
 	}
 
 	// here we use "PUT" for updating, because `description` is not allowed to be empty string, Then we could not update to remove `description` by `PATCH`
