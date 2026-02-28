@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -184,6 +185,8 @@ func resourcePointToSiteVPNGateway() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(pointToSiteVpnGatewayCustomizeDiff),
 	}
 }
 
@@ -549,4 +552,20 @@ func flattenPointToSiteVPNGatewayConnectionRouteConfigurationPropagatedRouteTabl
 			"labels": utils.FlattenStringSlice(input.Labels),
 		},
 	}
+}
+
+func pointToSiteVpnGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if rawConnectionConfigurations, ok := d.GetOk("connection_configuration"); ok {
+		var key string
+
+		for i := range rawConnectionConfigurations.([]interface{}) {
+			key = fmt.Sprintf("connection_configuration.%d.internet_security_enabled", i)
+
+			if d.HasChange(key) {
+				d.ForceNew(key)
+			}
+		}
+	}
+
+	return nil
 }
