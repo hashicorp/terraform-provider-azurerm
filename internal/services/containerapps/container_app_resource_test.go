@@ -123,6 +123,21 @@ func TestAccContainerAppResource_withUserAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppResource_queueScaleRuleWithManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
+	r := ContainerAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.queueScaleRuleWithManagedIdentity(data, "rev1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppResource_withSystemAndUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app", "test")
 	r := ContainerAppResource{}
@@ -720,6 +735,66 @@ resource "azurerm_container_app" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppResource) queueScaleRuleWithManagedIdentity(data acceptance.TestData, revisionSuffix string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "acctestqueue%[2]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "queue_data_contributor" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Queue Data Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_container_app" "test" {
+  name                         = "acctest-capp-%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  revision_mode                = "Single"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  template {
+    container {
+      name   = "acctest-cont-%[2]d"
+      image  = "mcr.microsoft.com/azuredocs/aci-helloworld"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+
+    azure_queue_scale_rule {
+      name         = "queue-scaler"
+      account_name = azurerm_storage_account.test.name
+      queue_name   = azurerm_storage_queue.test.name
+      queue_length = 1
+      identity     = azurerm_user_assigned_identity.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
 func (r ContainerAppResource) withSystemAndUserIdentity(data acceptance.TestData) string {
