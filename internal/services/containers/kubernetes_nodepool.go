@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -29,6 +29,30 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+func schemaSecurityProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"vtpm_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
+				},
+				"secure_boot_enabled": {
+					Type:        pluginsdk.TypeBool,
+					Optional:    true,
+					Default:     false,
+					Description: "Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see aka.ms/aks/trustedlaunch. If not specified, the default is false.",
+				},
+			},
+		},
+	}
+}
 
 func SchemaDefaultNodePool() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -279,6 +303,8 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 					},
+
+					"security_profile": schemaSecurityProfile(),
 				}
 			}(),
 		},
@@ -708,28 +734,27 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	agentpool := agentpools.AgentPool{
 		Name: &defaultCluster.Name,
 		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
-			CapacityReservationGroupID: defaultCluster.CapacityReservationGroupID,
-			Count:                      defaultCluster.Count,
-			VMSize:                     defaultCluster.VMSize,
-			OsDiskSizeGB:               defaultCluster.OsDiskSizeGB,
-			VnetSubnetID:               defaultCluster.VnetSubnetID,
-			MaxPods:                    defaultCluster.MaxPods,
-			MaxCount:                   defaultCluster.MaxCount,
-			MinCount:                   defaultCluster.MinCount,
-			EnableAutoScaling:          defaultCluster.EnableAutoScaling,
-			EnableEncryptionAtHost:     defaultCluster.EnableEncryptionAtHost,
-			EnableFIPS:                 defaultCluster.EnableFIPS,
-			EnableUltraSSD:             defaultCluster.EnableUltraSSD,
-			OrchestratorVersion:        defaultCluster.OrchestratorVersion,
-			ProximityPlacementGroupID:  defaultCluster.ProximityPlacementGroupID,
-			AvailabilityZones:          defaultCluster.AvailabilityZones,
-			EnableNodePublicIP:         defaultCluster.EnableNodePublicIP,
-			NodePublicIPPrefixID:       defaultCluster.NodePublicIPPrefixID,
-			SpotMaxPrice:               defaultCluster.SpotMaxPrice,
-			NodeLabels:                 defaultCluster.NodeLabels,
-			NodeTaints:                 defaultCluster.NodeTaints,
-			PodSubnetID:                defaultCluster.PodSubnetID,
-			Tags:                       defaultCluster.Tags,
+			Count:                     defaultCluster.Count,
+			VMSize:                    defaultCluster.VMSize,
+			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:              defaultCluster.VnetSubnetID,
+			MaxPods:                   defaultCluster.MaxPods,
+			MaxCount:                  defaultCluster.MaxCount,
+			MinCount:                  defaultCluster.MinCount,
+			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
+			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
+			EnableFIPS:                defaultCluster.EnableFIPS,
+			EnableUltraSSD:            defaultCluster.EnableUltraSSD,
+			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
+			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
+			AvailabilityZones:         defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:        defaultCluster.EnableNodePublicIP,
+			NodePublicIPPrefixID:      defaultCluster.NodePublicIPPrefixID,
+			SpotMaxPrice:              defaultCluster.SpotMaxPrice,
+			NodeLabels:                defaultCluster.NodeLabels,
+			NodeTaints:                defaultCluster.NodeTaints,
+			PodSubnetID:               defaultCluster.PodSubnetID,
+			Tags:                      defaultCluster.Tags,
 		},
 	}
 
@@ -1038,6 +1063,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 
 	if networkProfile := raw["node_network_profile"].([]interface{}); len(networkProfile) > 0 {
 		profile.NetworkProfile = expandClusterPoolNetworkProfile(networkProfile)
+	}
+
+	if securityProfile := raw["security_profile"].([]interface{}); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandManagedClusterSecurityProfile(securityProfile)
 	}
 
 	return &[]managedclusters.ManagedClusterAgentPoolProfile{
@@ -1398,6 +1427,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	}
 
 	networkProfile := flattenClusterPoolNetworkProfile(agentPool.NetworkProfile)
+	securityProfile := flattenManagedClusterSecurityProfile(agentPool.SecurityProfile)
 
 	out := map[string]interface{}{
 		"auto_scaling_enabled":          enableAutoScaling,
@@ -1437,6 +1467,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"linux_os_config":               linuxOSConfig,
 		"zones":                         zones.FlattenUntyped(agentPool.AvailabilityZones),
 		"capacity_reservation_group_id": capacityReservationGroupId,
+		"security_profile":              securityProfile,
 	}
 
 	return &[]interface{}{
@@ -1948,4 +1979,36 @@ func flattenClusterPoolNetworkProfileNodePublicIPTags(input *[]managedclusters.I
 	}
 
 	return out
+}
+
+func expandManagedClusterSecurityProfile(input []interface{}) *managedclusters.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &managedclusters.AgentPoolSecurityProfile{}
+
+	if vtpmEnabled, ok := v["vtpm_enabled"].(bool); ok {
+		result.EnableVTPM = pointer.To(vtpmEnabled)
+	}
+
+	if secureBootEnabled, ok := v["secure_boot_enabled"].(bool); ok {
+		result.EnableSecureBoot = pointer.To(secureBootEnabled)
+	}
+
+	return result
+}
+
+func flattenManagedClusterSecurityProfile(input *managedclusters.AgentPoolSecurityProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+		},
+	}
 }

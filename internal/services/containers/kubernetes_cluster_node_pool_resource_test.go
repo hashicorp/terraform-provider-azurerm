@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -143,6 +143,28 @@ func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfigPartial(t *testing.
 			Config: r.kubeletAndLinuxOSConfigPartial(data),
 			Check: acceptance.ComposeTestCheckFunc(
 
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_securityProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityProfileConfig(data, true, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.securityProfileConfig(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
@@ -2525,43 +2547,7 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.32.9"
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  windows_profile {
-    admin_username = "azureuser"
-    admin_password = "P@55W0rd1234!h@2h1C0rP"
-  }
-
-  network_profile {
-    network_plugin = "azure"
-    network_policy = "azure"
-    dns_service_ip = "10.10.0.10"
-    service_cidr   = "10.10.0.0/16"
-  }
-}
+%s
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
@@ -2577,7 +2563,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.templateWindowsConfig(data))
 }
 
 func (r KubernetesClusterNodePoolResource) windows2022Config(data acceptance.TestData) string {
@@ -3154,7 +3140,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   os_type               = "Windows"
-  os_sku                = "Windows2022"
+  os_sku                = "Windows2019"
   windows_profile {
     outbound_nat_enabled = true
   }
@@ -3695,4 +3681,46 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
 		data.RandomInteger,     // kubernetes_cluster name
 		data.RandomInteger,     // kubernetes_cluster dns_prefix
 	)
+}
+
+func (KubernetesClusterNodePoolResource) securityProfileConfig(data acceptance.TestData, vtpmEnabled bool, secureBootEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2s_v3"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D2s_v3"
+  node_count            = 1
+
+  security_profile {
+    vtpm_enabled        = %[3]t
+    secure_boot_enabled = %[4]t
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, vtpmEnabled, secureBootEnabled)
 }

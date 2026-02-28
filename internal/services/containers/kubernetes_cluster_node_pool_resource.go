@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2014, 2025
+// Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -433,6 +433,8 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
+
+		"security_profile": schemaSecurityProfile(),
 	}
 
 	return s
@@ -693,6 +695,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.NetworkProfile = expandAgentPoolNetworkProfile(networkProfile)
 	}
 
+	if securityProfile := d.Get("security_profile").([]interface{}); len(securityProfile) > 0 {
+		profile.SecurityProfile = expandAgentPoolSecurityProfile(securityProfile)
+	}
+
 	if snapshotId := d.Get("snapshot_id").(string); snapshotId != "" {
 		profile.CreationData = &agentpools.CreationData{
 			SourceResourceId: pointer.To(snapshotId),
@@ -922,6 +928,10 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("node_network_profile") {
 		props.NetworkProfile = expandAgentPoolNetworkProfile(d.Get("node_network_profile").([]interface{}))
+	}
+
+	if d.HasChange("security_profile") {
+		props.SecurityProfile = expandAgentPoolSecurityProfile(d.Get("security_profile").([]interface{}))
 	}
 
 	if d.HasChange("zones") {
@@ -1233,6 +1243,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if err := d.Set("node_network_profile", flattenAgentPoolNetworkProfile(props.NetworkProfile)); err != nil {
 			return fmt.Errorf("setting `node_network_profile`: %+v", err)
+		}
+
+		if err := d.Set("security_profile", flattenAgentPoolSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("setting `security_profile`: %+v", err)
 		}
 	}
 
@@ -1891,4 +1905,36 @@ func flattenAgentPoolNetworkProfileNodePublicIPTags(input *[]agentpools.IPTag) m
 	}
 
 	return out
+}
+
+func expandAgentPoolSecurityProfile(input []interface{}) *agentpools.AgentPoolSecurityProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	result := &agentpools.AgentPoolSecurityProfile{}
+
+	if vtpmEnabled, ok := v["vtpm_enabled"].(bool); ok {
+		result.EnableVTPM = pointer.To(vtpmEnabled)
+	}
+
+	if secureBootEnabled, ok := v["secure_boot_enabled"].(bool); ok {
+		result.EnableSecureBoot = pointer.To(secureBootEnabled)
+	}
+
+	return result
+}
+
+func flattenAgentPoolSecurityProfile(input *agentpools.AgentPoolSecurityProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"vtpm_enabled":        pointer.From(input.EnableVTPM),
+			"secure_boot_enabled": pointer.From(input.EnableSecureBoot),
+		},
+	}
 }
