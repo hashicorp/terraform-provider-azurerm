@@ -1405,7 +1405,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
@@ -1427,7 +1427,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = true
   min_count             = %d
   max_count             = %d
@@ -1458,7 +1458,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1472,7 +1472,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   upgrade_settings {
     max_surge = "10%%"
@@ -1553,7 +1553,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1567,7 +1567,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   upgrade_settings {
     max_surge = "10%%"
@@ -1611,7 +1611,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1625,7 +1625,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
 
   kubelet_config {
@@ -1681,7 +1681,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_DS2_v5"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
@@ -1701,7 +1701,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test.id
   zones                 = ["1"]
@@ -1800,7 +1800,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
 
   upgrade_settings {
@@ -1824,7 +1824,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
 
   lifecycle {
@@ -1850,7 +1850,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
 
   tags = {
@@ -1880,7 +1880,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "first" {
   name                  = "first"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   upgrade_settings {
     max_surge = "10%%"
@@ -1910,7 +1910,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "first" {
   name                  = "first"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = %d
   upgrade_settings {
     max_surge = "10%%"
@@ -1940,7 +1940,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = %d
   upgrade_settings {
     max_surge = "10%%"
@@ -1981,7 +1981,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   mode                  = "System"
   upgrade_settings {
@@ -2002,7 +2002,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   mode                  = "User"
   upgrade_settings {
@@ -2023,7 +2023,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "autoscale" {
   name                  = "autoscale"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
@@ -2060,7 +2060,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   node_labels = {
 %s
@@ -2088,7 +2088,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   node_taints = [
 %s
@@ -2118,7 +2118,7 @@ resource "azurerm_public_ip_prefix" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                     = "internal"
   kubernetes_cluster_id    = azurerm_kubernetes_cluster.test.id
-  vm_size                  = "Standard_DS2_v2"
+  vm_size                  = "Standard_DS2_v5"
   node_count               = 1
   node_public_ip_enabled   = true
   node_public_ip_prefix_id = azurerm_public_ip_prefix.test.id
@@ -2174,7 +2174,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_DS2_v5"
     pod_subnet_id  = azurerm_subnet.podsubnet.id
     vnet_subnet_id = azurerm_subnet.nodesubnet.id
     upgrade_settings {
@@ -2191,7 +2191,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   pod_subnet_id         = azurerm_subnet.podsubnet.id
   vnet_subnet_id        = azurerm_subnet.nodesubnet.id
@@ -2226,7 +2226,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   os_disk_size_gb       = 100
   upgrade_settings {
@@ -2253,7 +2253,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2273,7 +2273,7 @@ resource "azurerm_proximity_placement_group" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                         = "internal"
   kubernetes_cluster_id        = azurerm_kubernetes_cluster.test.id
-  vm_size                      = "Standard_DS2_v2"
+  vm_size                      = "Standard_DS2_v5"
   node_count                   = 1
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
   upgrade_settings {
@@ -2314,7 +2314,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   priority              = "Spot"
   eviction_policy       = "Delete"
@@ -2341,7 +2341,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 3
   upgrade_settings {
     max_surge                     = "%s"
@@ -2365,7 +2365,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 3
   upgrade_settings {
     max_unavailable               = %q
@@ -2389,7 +2389,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 3
   upgrade_settings {
     max_surge                 = "%s"
@@ -2412,7 +2412,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 3
   upgrade_settings {
     max_unavailable           = %q
@@ -2434,7 +2434,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 3
@@ -2457,7 +2457,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test.id
   upgrade_settings {
@@ -2485,7 +2485,7 @@ resource "azurerm_subnet" "test2" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   vnet_subnet_id        = azurerm_subnet.test2.id
   upgrade_settings {
@@ -2506,7 +2506,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   os_type               = "Windows"
   tags = {
@@ -2540,7 +2540,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2566,7 +2566,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2019"
@@ -2591,7 +2591,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
@@ -2616,7 +2616,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "linux" {
   name                  = "linux"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   upgrade_settings {
     max_surge = "10%%"
@@ -2626,7 +2626,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "linux" {
 resource "azurerm_kubernetes_cluster_node_pool" "windows" {
   name                  = "windoz"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   os_type               = "Windows"
   upgrade_settings {
@@ -2652,7 +2652,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2695,7 +2695,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_DS2_v5"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
@@ -2725,7 +2725,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2761,7 +2761,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = true
   min_count             = 0
   max_count             = 3
@@ -2784,7 +2784,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                    = "internal"
   kubernetes_cluster_id   = azurerm_kubernetes_cluster.test.id
-  vm_size                 = "Standard_DS2_v2"
+  vm_size                 = "Standard_DS2_v5"
   host_encryption_enabled = true
   node_count              = 1
   upgrade_settings {
@@ -2805,7 +2805,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 250
@@ -2828,7 +2828,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = true
   min_count             = 1
   max_count             = 1
@@ -2851,7 +2851,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 3
   fips_enabled          = true
   kubelet_disk_type     = "OS"
@@ -3029,7 +3029,7 @@ provider "azurerm" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   auto_scaling_enabled  = %t
   min_count             = %d
   max_count             = %d
@@ -3361,7 +3361,7 @@ data "azurerm_kubernetes_node_pool_snapshot" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "new"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   snapshot_id           = data.azurerm_kubernetes_node_pool_snapshot.test.id
   upgrade_settings {
@@ -3504,7 +3504,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_DS2_v5"
     vnet_subnet_id = azurerm_subnet.test["6"].id
     pod_subnet_id  = azurerm_subnet.test["7"].id
     upgrade_settings {
@@ -3651,7 +3651,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_DS2_v5"
     pod_subnet_id  = azurerm_subnet.podsubnet.id
     vnet_subnet_id = azurerm_subnet.nodesubnet.id
     upgrade_settings {
@@ -3669,7 +3669,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 resource "azurerm_kubernetes_cluster_node_pool" "pool1" {
   name                  = "pool1"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   pod_subnet_id         = azurerm_subnet.podsubnet.id
   vnet_subnet_id        = azurerm_subnet.nodesubnet.id
@@ -3681,7 +3681,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool1" {
 resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
   name                  = "pool2"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   pod_subnet_id         = azurerm_subnet.podsubnet.id
   vnet_subnet_id        = azurerm_subnet.nodesubnet.id

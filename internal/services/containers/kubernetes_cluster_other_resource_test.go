@@ -1252,7 +1252,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                 = "default"
     node_count           = 1
     auto_scaling_enabled = true
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     min_count            = 1
     max_count            = 1
     upgrade_settings {
@@ -1287,7 +1287,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                 = "default"
     node_count           = 2
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     auto_scaling_enabled = true
     max_count            = 10
     min_count            = 1
@@ -1323,7 +1323,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                 = "default"
     node_count           = 1
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     auto_scaling_enabled = true
     max_count            = 10
     min_count            = 1
@@ -1359,7 +1359,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                 = "default"
     node_count           = 11
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     auto_scaling_enabled = true
     max_count            = 10
     min_count            = 1
@@ -1394,7 +1394,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name                 = "default"
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     auto_scaling_enabled = true
     min_count            = 1
     max_count            = 100
@@ -1431,7 +1431,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                 = "default"
     node_count           = 1
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     auto_scaling_enabled = true
     max_count            = 10
     min_count            = 2
@@ -1467,7 +1467,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1493,7 +1493,7 @@ resource "azurerm_kubernetes_cluster" "import" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1527,7 +1527,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                         = "default"
     node_count                   = 1
     type                         = "VirtualMachineScaleSets"
-    vm_size                      = "Standard_DS2_v2"
+    vm_size                      = "Standard_DS2_v5"
     only_critical_addons_enabled = true
     upgrade_settings {
       max_surge = "10%%"
@@ -1561,7 +1561,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                        = "default"
     node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
+    vm_size                     = "Standard_DS2_v5"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       max_surge = "10%%"
@@ -1646,7 +1646,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                        = "default"
     node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
+    vm_size                     = "Standard_DS2_v5"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       max_surge = "10%%"
@@ -1693,7 +1693,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                        = "default"
     node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
+    vm_size                     = "Standard_DS2_v5"
     temporary_name_for_rotation = "temp"
     upgrade_settings {
       max_surge = "10%%"
@@ -1750,7 +1750,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1788,7 +1788,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1825,7 +1825,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1858,7 +1858,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name              = "default"
     node_count        = 1
-    vm_size           = "Standard_DS2_v2"
+    vm_size           = "Standard_DS2_v5"
     fips_enabled      = true
     kubelet_disk_type = "OS"
     workload_runtime  = "OCIContainer"
@@ -1895,7 +1895,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1953,7 +1953,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size        = "Standard_DS2_v2"
+    vm_size        = "Standard_DS2_v5"
     pod_subnet_id  = azurerm_subnet.podsubnet.id
     vnet_subnet_id = azurerm_subnet.nodesubnet.id
     upgrade_settings {
@@ -1990,7 +1990,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2023,7 +2023,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2060,7 +2060,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2106,7 +2106,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2157,7 +2157,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "np"
     node_count = 3
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2215,7 +2215,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "np"
     node_count = 3
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2270,7 +2270,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "np"
     node_count = 3
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2399,7 +2399,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "np"
     node_count = 3
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2453,7 +2453,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name       = "default"
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     node_count = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -2486,7 +2486,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2525,7 +2525,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2562,7 +2562,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2738,7 +2738,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2789,7 +2789,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2848,7 +2848,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2933,7 +2933,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name            = "default"
     node_count      = 1
-    vm_size         = "Standard_DS2_v2"
+    vm_size         = "Standard_DS2_v5"
     scale_down_mode = "%s"
     upgrade_settings {
       max_surge = "10%%"
@@ -2964,7 +2964,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3104,7 +3104,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3143,7 +3143,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3185,7 +3185,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3222,7 +3222,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3263,7 +3263,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3301,7 +3301,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3337,7 +3337,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3375,7 +3375,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3405,7 +3405,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   node_os_upgrade_channel = "%s"
   default_node_pool {
     name       = "default"
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     node_count = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -3437,7 +3437,7 @@ resource "azurerm_kubernetes_cluster" "source" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3468,7 +3468,7 @@ resource "azurerm_kubernetes_cluster" "source" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3491,7 +3491,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name        = "default"
     node_count  = 1
-    vm_size     = "Standard_DS2_v2"
+    vm_size     = "Standard_DS2_v5"
     snapshot_id = data.azurerm_kubernetes_node_pool_snapshot.test.id
     upgrade_settings {
       max_surge = "10%%"
@@ -3558,7 +3558,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name       = "default"
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     node_count = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -3590,7 +3590,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     node_count = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -3623,7 +3623,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     node_count = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -3691,7 +3691,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3727,7 +3727,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
