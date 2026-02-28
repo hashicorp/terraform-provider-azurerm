@@ -11,11 +11,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/bot/parse"
-	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -83,7 +84,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 		"cmk_key_vault_key_url": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 		},
 
 		"microsoft_app_msi_id": {
@@ -157,6 +158,10 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 
 	for k, v := range fields {
 		output[k] = v
+	}
+
+	if !features.FivePointOh() {
+		output["cmk_key_vault_key_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 	}
 
 	return output
