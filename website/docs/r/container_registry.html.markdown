@@ -168,6 +168,8 @@ The following arguments are supported:
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
+* `azuread_authentication_as_arm_policy_enabled` - (Optional) Whether to use Azure Resource Manager audience token for this Container Registry? Defaults to `true`.
+
 ~> **Note:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as defined below.
@@ -179,6 +181,10 @@ The following arguments are supported:
 * `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.
 
 * `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network-restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
+
+* `network_rule_bypass_for_tasks_enabled` - (Optional) Whether to allow Container Registry Tasks to access a network-restricted Container Registry? Defaults to `false`.
+
+* `role_assignment_mode` - (Optional) The role assignment mode of this Container Registry. Possible values are `AbacRepositoryPermissions` and `LegacyRegistryPermissions`. Defaults to `LegacyRegistryPermissions`.
 
 ---
 
