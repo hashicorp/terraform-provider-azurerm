@@ -212,6 +212,9 @@ service/maintenance:
 service/managed-apps:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_application((.|\n)*)###'
 
+service/managed-devops-pools:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_managed_devops_pool((.|\n)*)###'
+
 service/managed-hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_key_vault_managed_hardware_security_module((.|\n)*)###'
 
