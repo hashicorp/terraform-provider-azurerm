@@ -562,7 +562,7 @@ provider "azurerm" {
 resource "azurerm_management_group_policy_assignment" "test" {
   name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
-  policy_definition_id = azurerm_policy_definition.test.id
+  policy_definition_id = azurerm_management_group_policy_definition.test.id
 }
 `, template, data.RandomString)
 }
@@ -582,7 +582,7 @@ provider "azurerm" {
 resource "azurerm_management_group_policy_assignment" "test" {
   name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
-  policy_definition_id = azurerm_policy_definition.test.id
+  policy_definition_id = azurerm_management_group_policy_definition.test.id
   description          = "This is a policy assignment from an acceptance test"
   display_name         = "AccTest Policy %[2]s"
   enforce              = false
@@ -615,7 +615,7 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_policy_definition" "test" {
+resource "azurerm_management_group_policy_definition" "test" {
   name                = "acctestpol-mg-%[2]s"
   policy_type         = "Custom"
   mode                = "All"
@@ -715,7 +715,7 @@ POLICY_RULE
 resource "azurerm_management_group_policy_assignment" "test" {
   name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
-  policy_definition_id = azurerm_policy_definition.test.id
+  policy_definition_id = azurerm_management_group_policy_definition.test.id
 }
 `, template, data.RandomString, metadataValue)
 }
@@ -732,7 +732,7 @@ provider "azurerm" {
 resource "azurerm_management_group_policy_assignment" "test" {
   name                 = "acctestpol-mg-%[2]s"
   management_group_id  = azurerm_management_group.test.id
-  policy_definition_id = azurerm_policy_definition.test.id
+  policy_definition_id = azurerm_management_group_policy_definition.test.id
   metadata = jsonencode({
     "category" : "Testing"
   })
@@ -822,7 +822,7 @@ func (r ManagementGroupAssignmentTestResource) templateWithCustomPolicy(data acc
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_policy_definition" "test" {
+resource "azurerm_management_group_policy_definition" "test" {
   name                = "acctestpol-mg-%[2]s"
   policy_type         = "Custom"
   mode                = "All"
