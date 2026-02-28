@@ -278,7 +278,6 @@ func resourceContainerGroup() *pluginsdk.Resource {
 			"container": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
-				ForceNew: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -307,15 +306,25 @@ func resourceContainerGroup() *pluginsdk.Resource {
 							ForceNew: true,
 						},
 
+						"config_map": {
+							Type:     pluginsdk.TypeMap,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
+						},
+
 						"cpu_limit": {
 							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 
 						"memory_limit": {
 							Type:         pluginsdk.TypeFloat,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: validation.FloatAtLeast(0.0),
 						},
 
@@ -778,22 +787,16 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		return err
 	}
 
-	existing, err := client.ContainerGroupsGet(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("reading %s: %v", id, err)
-	}
-	if existing.Model == nil {
-		return fmt.Errorf("reading %s: `model` was nil", id)
-	}
-
-	model := *existing.Model
-
-	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if d.HasChange("identity") || d.HasChange("container") {
+		existing, err := client.ContainerGroupsGet(ctx, *id)
 		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
+			return fmt.Errorf("reading %s: %v", id, err)
 		}
-		model.Identity = expandedIdentity
+		if existing.Model == nil {
+			return fmt.Errorf("reading %s: `model` was nil", id)
+		}
+
+		model := *existing.Model
 
 		// As API doesn't return the value of StorageAccountKey, so it has to get the value from tf config and set it to request payload. Otherwise, the Update API call would fail
 		addedEmptyDirs := map[string]bool{}
@@ -801,7 +804,7 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		if err != nil {
 			return err
 		}
-		_, _, containerVolumes, err := expandContainerGroupContainers(d, addedEmptyDirs)
+		containers, _, containerVolumes, err := expandContainerGroupContainers(d, addedEmptyDirs)
 		if err != nil {
 			return err
 		}
@@ -819,7 +822,18 @@ func resourceContainerGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 			model.Properties.Diagnostics.LogAnalytics.WorkspaceKey = diagnostics.LogAnalytics.WorkspaceKey
 		}
 
-		// As Update API doesn't support to update identity, so it has to use CreateOrUpdate API to update identity
+		if d.HasChange("identity") {
+			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+			if err != nil {
+				return fmt.Errorf("expanding `identity`: %+v", err)
+			}
+			model.Identity = expandedIdentity
+		}
+
+		if d.HasChange("container") {
+			model.Properties.Containers = containers
+		}
+
 		if err := client.ContainerGroupsCreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 			return fmt.Errorf("updating %s: %+v", *id, err)
 		}
@@ -1171,6 +1185,7 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 					},
 				},
 				SecurityContext: expandContainerSecurityContext(data["security"].([]interface{})),
+				ConfigMap:       expandConfigMap(data["config_map"].(map[string]interface{})),
 			},
 		}
 
@@ -1306,6 +1321,17 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 	}
 
 	return containers, containerGroupPorts, containerGroupVolumes, nil
+}
+
+func expandConfigMap(input map[string]interface{}) *containerinstance.ConfigMap {
+	if len(input) == 0 {
+		return nil
+	}
+	kv := map[string]string{}
+	for k, v := range input {
+		kv[k] = v.(string)
+	}
+	return &containerinstance.ConfigMap{KeyValuePairs: &kv}
 }
 
 func expandContainerVolume(v interface{}, addedEmptyDirs map[string]bool, containerGroupVolumes []containerinstance.Volume) ([]containerinstance.Volume, error) {
@@ -1692,6 +1718,7 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 		containerConfig["name"] = name
 
 		containerConfig["image"] = container.Properties.Image
+		containerConfig["config_map"] = flattenConfigMap(container.Properties.ConfigMap)
 
 		resources := container.Properties.Resources
 		resourceRequests := resources.Requests
@@ -1741,6 +1768,17 @@ func flattenContainerGroupContainers(d *pluginsdk.ResourceData, containers *[]co
 	}
 
 	return containerCfg
+}
+
+func flattenConfigMap(input *containerinstance.ConfigMap) map[string]interface{} {
+	if input == nil || input.KeyValuePairs == nil {
+		return nil
+	}
+	out := map[string]interface{}{}
+	for k, v := range *input.KeyValuePairs {
+		out[k] = v
+	}
+	return out
 }
 
 func flattenContainerVolume(containerConfig map[string]interface{}, containersConfigRaw []interface{}, containerName string, volumeMounts *[]containerinstance.VolumeMount, containerGroupVolumes *[]containerinstance.Volume) {
