@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `customizer` - (Optional) A `customizer` block as defined below. Changing this forces a new resource to be created.
 
--> **Note** Azure Image Builder will run through the customizers in sequential order. Any failure in any customizer will fail the build process.
+-> **Note:** Azure Image Builder will run through the customizers in sequential order. Any failure in any customizer will fail the build process.
 
 * `disk_size_gb` - (Optional) Size of the OS disk in GB. Defaults to 0 to leave the same size as the source image. You can only increase the size of the OS Disk (Win and Linux) but cannot reduce the OS Disk size to smaller than the size from the source image. Changing this forces a new resource to be created.
 
@@ -112,11 +112,11 @@ The following arguments are supported:
 
 * `source_shared_image_version_id` - (Optional) The ID of an image source that is an image version in a shared image gallery. Changing this forces a new resource to be created.
 
--> **NOTE** Exactly one of `source_managed_image_id`, `source_platform_image` and `source_shared_image_version_id` is required to specify.
+-> **Note:** Exactly one of `source_managed_image_id`, `source_platform_image` and `source_shared_image_version_id` is required to specify.
 
 * `subnet_id` - (Optional) The ID of the subnet that the virtual machine used to build, customize and capture images. Changing this forces a new resource to be created.
 
--> **Note** If you specify a VNET, Azure Image Builder does not use a public IP address. Communication from Azure Image Builder Service to the build VM uses Azure Private Link technology. Private Link service requires an IP from the given VNET and subnet. Currently, Azure doesn’t support Network Policies on these IPs. Hence, network policies need to be disabled on the subnet, to do which, you need to ensure `enforce_private_link_service_network_policies` is set to `true` in your `azurerm_subnet` resource.
+-> **Note:** If you specify a VNET, Azure Image Builder does not use a public IP address. Communication from Azure Image Builder Service to the build VM uses Azure Private Link technology. Private Link service requires an IP from the given VNET and subnet. Currently, Azure doesn’t support Network Policies on these IPs. Hence, network policies need to be disabled on the subnet, to do which, you need to ensure `enforce_private_link_service_network_policies` is set to `true` in your `azurerm_subnet` resource.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -140,11 +140,11 @@ A `customizer` block supports the following:
 
 * `powershell_run_elevated` - (Optional) Whether the PowerShell script will be run with elevated privileges? Changing this forces a new resource to be created.
 
--> **Note** Setting `powershell_run_as_system` only takes effect when `powershell_run_elevated` is set to true when the customizer type is `PowerShell`.
+-> **Note:** Setting `powershell_run_as_system` only takes effect when `powershell_run_elevated` is set to true when the customizer type is `PowerShell`.
 
 * `powershell_script_uri` - (Optional) URI of the PowerShell script to be run for customizing. Changing this forces a new resource to be created.
 
--> **Note** Exactly one of `powershell_commands` and `powershell_script_uri` must be specified when the customizer type is `PowerShell`.
+-> **Note:** Exactly one of `powershell_commands` and `powershell_script_uri` must be specified when the customizer type is `PowerShell`.
 
 * `powershell_sha256_checksum` - (Optional) SHA256 checksum of the power shell script provided in the `powershell_script_uri` above. Changing this forces a new resource to be created.
 
@@ -154,7 +154,7 @@ A `customizer` block supports the following:
 
 * `shell_script_uri` - (Optional) URI of the shell script to be run for customizing. Changing this forces a new resource to be created.
 
--> **Note** Exactly one of `shell_commands` and `shell_script_uri` must be specified when the customizer type is `Shell`.
+-> **Note:** Exactly one of `shell_commands` and `shell_script_uri` must be specified when the customizer type is `Shell`.
 
 * `shell_sha256_checksum` - (Optional) SHA256 checksum of the shell script provided in the `shell_script_uri` above. Changing this forces a new resource to be created.
 
@@ -180,7 +180,7 @@ A `distributions` block supports the following:
 
 * `vhd` - (Optional) A `vhd` block as defined below. Changing this forces a new resource to be created.
 
--> **NOTE** At least one of `managed_image`, `shared_image` and `vhd` is required to specify in `distributions`.
+-> **Note:** At least one of `managed_image`, `shared_image` and `vhd` is required to specify in `distributions`.
 
 ---
 
@@ -291,3 +291,9 @@ Image Builder Templates can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_image_builder_template.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.VirtualMachineImages/imageTemplates/imagebuildertemplate1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.VirtualMachineImages` - 2024-02-01
