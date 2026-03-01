@@ -974,7 +974,6 @@ func expandBasicImageTemplateDistributor(distributions []ImageBuilderTemplateDis
 							ArtifactTags:  &managedImage.Tags,
 						})
 					}
-
 				}
 			}
 
@@ -1587,7 +1586,7 @@ func validateImageTemplateCustomizer(d *schema.ResourceData, exclude []string, i
 }
 
 func imageBuilderTemplateManagedImageNameAndResourceGroupName(input string) (string, string, error) {
-	imageName := ""
+	var imageName string
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return "", "", err
