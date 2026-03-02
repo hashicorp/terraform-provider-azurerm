@@ -687,7 +687,7 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 		}
 	}
 
-	// Update (potentially replace) replications that exists at both side.
+	// Update replications that exists at both side.
 	for loc, newRepl := range newReplications {
 		oldRepl, ok := oldReplications[loc]
 		if !ok {
@@ -698,17 +698,11 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 		// can happen in place, or need a recreation.
 
 		var (
-			needUpdate  bool
-			needReplace bool
+			needUpdate bool
 		)
 		// Since the replications here are all derived from expand function, where we guaranteed
 		// each properties are non-nil. Whilst we are still doing nil check here in case.
 		if oprop, nprop := oldRepl.Properties, newRepl.Properties; oprop != nil && nprop != nil {
-			// zoneRedundency can't be updated in place
-			if ov, nv := oprop.ZoneRedundancy, nprop.ZoneRedundancy; ov != nil && nv != nil && *ov != *nv {
-				needUpdate = true
-				needReplace = true
-			}
 			if ov, nv := oprop.RegionEndpointEnabled, nprop.RegionEndpointEnabled; ov != nil && nv != nil && *ov != *nv {
 				needUpdate = true
 			}
@@ -732,41 +726,6 @@ func applyGeoReplicationLocations(ctx context.Context, meta interface{}, registr
 
 		if !needUpdate {
 			continue
-		}
-
-		if needReplace {
-			id := replications.NewReplicationID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, loc)
-			if err := replicationClient.DeleteThenPoll(ctx, id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			// Following can be removed once https://github.com/Azure/azure-rest-api-specs/issues/18934 is resolved. Otherwise, the create right after delete will always fail.
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("context is missing a timeout")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending: []string{"InProgress"},
-				Target:  []string{"NotFound"},
-				Refresh: func() (interface{}, string, error) {
-					resp, err := replicationClient.Get(ctx, id)
-					if err != nil {
-						if response.WasNotFound(resp.HttpResponse) {
-							return resp, "NotFound", nil
-						}
-
-						return nil, "Error", err
-					}
-
-					return resp, "InProgress", nil
-				},
-				ContinuousTargetOccurence: 5,
-				PollInterval:              5 * time.Second,
-				Timeout:                   time.Until(deadline),
-			}
-			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("additional waiting for deletion of %s: %+v", id, err)
-			}
 		}
 
 		id := replications.NewReplicationID(registryId.SubscriptionId, registryId.ResourceGroupName, registryId.RegistryName, loc)
