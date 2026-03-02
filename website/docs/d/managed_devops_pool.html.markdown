@@ -105,23 +105,23 @@ A `manual_resource_prediction` block exports the following:
 
 * `all_week_schedule` - A number of agents available 24/7 all week.
 
-* `sunday_schedule` - One or more `sunday_schedule` blocks as defined below.
+* `sunday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `monday_schedule` - One or more `monday_schedule` blocks as defined below.
+* `monday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `tuesday_schedule` - One or more `tuesday_schedule` blocks as defined below.
+* `tuesday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `wednesday_schedule` - One or more `wednesday_schedule` blocks as defined below.
+* `wednesday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `thursday_schedule` - One or more `thursday_schedule` blocks as defined below.
+* `thursday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `friday_schedule` - One or more `friday_schedule` blocks as defined below.
+* `friday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `saturday_schedule` - One or more `saturday_schedule` blocks as defined below.
+* `saturday_schedule` - One or more `daily_schedule` blocks as defined below.
 
 ---
 
-Each schedule block (`sunday_schedule`, `monday_schedule`, `tuesday_schedule`, `wednesday_schedule`, `thursday_schedule`, `friday_schedule`, `saturday_schedule`) exports the following:
+A `daily_schedule` block exports the following:
 
 * `time` - The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
 

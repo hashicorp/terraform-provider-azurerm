@@ -13,12 +13,6 @@ Manages a Managed DevOps Pool.
 ## Example Usage
 
 ```hcl
-provider "azurerm" {
-  features {}
-}
-
-provider "azuread" {}
-
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -239,7 +233,7 @@ An `organization` block supports the following:
 
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
 
-* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`. Defaults to `0`.
+* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
 
 * `projects` - (Optional) List of projects in which the pool should be created. Each project name must comply with the following requirements:
   * Must be between 1 and 64 Unicode characters in length
@@ -285,7 +279,7 @@ A `key_vault_management` block supports the following:
 
 * `key_export_enabled` - (Optional) Defines if the key of the certificates should be exportable. Defaults to `false`.
 
-* `key_vault_certificate_ids` - (Required) Specifies the list of certificates from Azure Key vault to install on all machines in the pool.
+* `key_vault_certificate_ids` - (Required) A list of `versionless_id` from Azure Key vault certificates to install on all machines in the pool.
 
 ---
 
@@ -315,29 +309,29 @@ A `stateless_agent` block supports the following:
 
 A `manual_resource_prediction` block supports the following:
 
-* `time_zone_name` - (Optional) Specifies the time zone for the predictions data to be provisioned at. A list of possible values can be obtained by executing `[System.TimeZoneInfo]::GetSystemTimeZones()` in PowerShell. Defaults to `UTC`.
+* `time_zone_name` - (Optional) Specifies the time zone for the predictions data to be provisioned at. A list of possible values are available by executing `[System.TimeZoneInfo]::GetSystemTimeZones()` in PowerShell. Defaults to `UTC`.
 
 * `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are between `1` and `maximum_concurrency`.
 
-* `sunday_schedule` - (Optional) One or more `sunday_schedule` block as defined below.
+* `sunday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-* `monday_schedule` - (Optional) One or more `monday_schedule` block as defined below.
+* `monday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-* `tuesday_schedule` - (Optional) One or more `tuesday_schedule` block as defined below.
+* `tuesday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-* `wednesday_schedule` - (Optional) One or more `wednesday_schedule` block as defined below.
+* `wednesday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-* `thursday_schedule` - (Optional) One or more `thursday_schedule` block as defined below.
+* `thursday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-* `friday_schedule` - (Optional) One or more `friday_schedule` block as defined below.
+* `friday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-* `saturday_schedule` - (Optional) One or more `saturday_schedule` block as defined below.
+* `saturday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
 ~> **Note:** Exactly one of `all_week_schedule` or at least one individual daily schedule block must be specified. Agent counts cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
 ---
 
-Each schedule block (`sunday_schedule`, `monday_schedule`, `tuesday_schedule`, `wednesday_schedule`, `thursday_schedule`, `friday_schedule`, `saturday_schedule`) supports the following:
+A `daily_schedule` block supports the following:
 
 * `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
 

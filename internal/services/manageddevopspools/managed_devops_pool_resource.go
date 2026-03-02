@@ -392,7 +392,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -621,6 +621,8 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
+			maxConcurrency := model.MaximumConcurrency
+
 			for _, org := range model.AzureDevOpsOrganization {
 				for _, perm := range org.Permission {
 					if perm.Kind != string(pools.AzureDevOpsPermissionTypeSpecificAccounts) {
@@ -629,9 +631,19 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-			}
 
-			maxConcurrency := model.MaximumConcurrency
+				hasParallelism := false
+				var parallelismSum int64
+				for _, o := range org.Organizations {
+					if o.Parallelism > 0 {
+						hasParallelism = true
+						parallelismSum += o.Parallelism
+					}
+				}
+				if hasParallelism && parallelismSum != maxConcurrency {
+					return fmt.Errorf("the sum of `parallelism` across all organizations (%d) must equal `maximum_concurrency` (%d)", parallelismSum, maxConcurrency)
+				}
+			}
 
 			for _, stateful := range model.StatefulAgent {
 				for _, manualPredictions := range stateful.ManualResourcePrediction {
