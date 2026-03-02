@@ -26,6 +26,7 @@ ENHANCEMENTS:
 
 BUG FIXES:
 
+* `azurerm_managed_redis` - add top-level `primary_access_key` and `secondary_access_key` attributes to detect access key rotation when immutable database properties change ([#31723](https://github.com/hashicorp/terraform-provider-azurerm/issues/31723))
 * `azurerm_managed_redis_geo_replication` - fix an issue that prevented linking 3 or more clusters ([#31385](https://github.com/hashicorp/terraform-provider-azurerm/issues/31385))
 * `azurerm_signalr_service` - fix setting default values into state, preventing diffs on import for `connectivity_logs_enabled`, `http_request_logs_enabled`, and `messaging_logs_enabled` ([#31566](https://github.com/hashicorp/terraform-provider-azurerm/issues/31566))
 
