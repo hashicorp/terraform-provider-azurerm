@@ -109,7 +109,7 @@ This change was made because:
 * A region may be functional even if not present in the ARM region list
 * The MetaData Service call adds latency to provider initialization
 
-The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, still works in version 4.x but has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
+The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
 
 ## Removed Resources
 
