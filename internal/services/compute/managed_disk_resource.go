@@ -815,40 +815,25 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
 	if shouldShutDown {
-		diff --git a/internal/services/compute/managed_disk_resource.go b/internal/services/compute/managed_disk_resource.go
-index XXXXXXX..YYYYYYY 100644
---- a/internal/services/compute/managed_disk_resource.go
-+++ b/internal/services/compute/managed_disk_resource.go
-@@ -18,6 +18,7 @@ import (
-     "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-02/diskaccesses"
-     "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
-     "github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
-     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-     ...
- )
-@@ -XXX,17 +XXX,35 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-     // if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
-     if shouldShutDown {
-		 managedBy := *disk.Model.ManagedBy
-		 if virtualMachineId, err := virtualmachines.ParseVirtualMachineID(managedBy); err == nil {
-	        locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
-	        defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
-	
-	        err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach)
-	        if err != nil {
-	            return err
-	        }
-		 } else if _, vmssErr := virtualmachinescalesetvms.ParseVirtualMachineScaleSetVirtualMachineID(managedBy); vmssErr == nil {
-	        log.Printf("[INFO] managed disk %s is attached to VMSS instance %q; bypassing VM-only shutdown path", id.ID(), managedBy)
-	
-	        vmssErr := client.UpdateThenPoll(ctx, *id, diskUpdate)
-	        if vmssErr != nil {
-	            return fmt.Errorf("updating managed disk %q (Resource Group %q) for VMSS attachment: %+v", name, resourceGroup, vmssErr)
-	        }
-		 } else {
-	        return fmt.Errorf("parsing attached compute ID %q for disk attachment failed as VM and VMSS VM ID", managedBy)
-		 }
+		managedBy := *disk.Model.ManagedBy
+		if virtualMachineId, err := virtualmachines.ParseVirtualMachineID(managedBy); err == nil {
+		locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+		
+		err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach)
+		if err != nil {
+			return err
+		}
+		} else if _, vmssErr := virtualmachinescalesetvms.ParseVirtualMachineScaleSetVirtualMachineID(managedBy); vmssErr == nil {
+		log.Printf("[INFO] managed disk %s is attached to VMSS instance %q; bypassing VM-only shutdown path", id.ID(), managedBy)
+		
+		vmssErr := client.UpdateThenPoll(ctx, *id, diskUpdate)
+		if vmssErr != nil {
+			return fmt.Errorf("updating managed disk %q (Resource Group %q) for VMSS attachment: %+v", name, resourceGroup, vmssErr)
+		}
+		} else {
+		return fmt.Errorf("parsing attached compute ID %q for disk attachment failed as VM and VMSS VM ID", managedBy)
+		}
      } else { // otherwise, just update it
          err := client.UpdateThenPoll(ctx, *id, diskUpdate)
 	} else { // otherwise, just update it
