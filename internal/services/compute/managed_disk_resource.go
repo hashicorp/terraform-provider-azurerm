@@ -815,7 +815,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	// if we are attached to a VM we bring down the VM as necessary for the operations which are not allowed while it's online
 	if shouldShutDown {
-		managedBy := *disk.Model.ManagedBy
 		if virtualMachineId, err := virtualmachines.ParseVirtualMachineID(managedBy); err == nil {
 		locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
