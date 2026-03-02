@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -250,6 +251,42 @@ func TestAccContainerRegistry_networkAccessProfileUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_rule_set.0.default_action").HasValue("Allow"),
 				check.That(data.ResourceName).Key("network_rule_set.0.ip_rule.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_zoneRedundancy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `zone_redundancy_enabled ` is deprecated and will be removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.zoneRedundancy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerRegistry_geoReplicationZoneRedundancy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `zone_redundancy_enabled ` is deprecated and will be removed in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoReplicationZoneRedundancy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -735,6 +772,47 @@ resource "azurerm_container_registry" "test" {
   admin_enabled       = false
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
+}
+
+func (ContainerRegistryResource) zoneRedundancy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                    = "testacccr%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  location                = azurerm_resource_group.test.location
+  sku                     = "Premium"
+  zone_redundancy_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ContainerRegistryResource) geoReplicationZoneRedundancy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+  name                = "testacccr%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  georeplications {
+    location                = "%s"
+    zone_redundancy_enabled = true
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (ContainerRegistryResource) regionEndpoint(data acceptance.TestData) string {
