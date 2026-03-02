@@ -83,15 +83,17 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 			},
 
 			"database_name_override": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validate.DatabaseName,
+				ConflictsWith: []string{"database_name_prefix"},
 			},
 
 			"database_name_prefix": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				ValidateFunc:  validate.DatabaseName,
+				ConflictsWith: []string{"database_name_override"},
 			},
 
 			"attached_database_names": {

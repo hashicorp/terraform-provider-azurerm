@@ -95,6 +95,8 @@ The following arguments are supported:
 
 * `database_name_prefix` - (Optional) Adds a prefix to the attached databases name. When following an entire cluster, that prefix would be added to all of the databases original names from leader cluster.
 
+~> **Note:** Exactly one of  `database_name_override` and `database_name_prefix` can be specified.
+
 * `default_principal_modification_kind` - (Optional) The default principals modification kind. Valid values are: `None` (default), `Replace` and `Union`. Defaults to `None`.
 
 * `sharing` - (Optional) A `sharing` block as defined below.
