@@ -4,6 +4,8 @@ ENHANCEMENTS:
 
 FEATURES:
 
+* provider: added the `enhanced_validation` block with the `locations` and `resource_providers` properties to replace the `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable [GH-31678]
+
 BUG FIXES:
 
 
