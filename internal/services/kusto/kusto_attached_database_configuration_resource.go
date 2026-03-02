@@ -4,6 +4,7 @@
 package kusto
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -40,6 +41,16 @@ func resourceKustoAttachedDatabaseConfiguration() *pluginsdk.Resource {
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := attacheddatabaseconfigurations.ParseAttachedDatabaseConfigurationID(id)
 			return err
+		}),
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			databaseName := diff.Get("database_name").(string)
+			databaseNameOverride := diff.Get("database_name_override").(string)
+
+			if databaseName == "*" && databaseNameOverride != "" {
+				return fmt.Errorf("cannot set `database_name_override` when `database_name` is set to `*` (all databases)")
+			}
+			return nil
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
