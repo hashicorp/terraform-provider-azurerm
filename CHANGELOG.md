@@ -1,3 +1,12 @@
+## 4.62.1 (March 02, 2026)
+
+BUG FIXES:
+
+* `azurerm_data_factory` - fix removal of `customer_managed_key_identity_id` to no longer send an empty string to Azure, instead sending an empty object ([#31858](https://github.com/hashicorp/terraform-provider-azurerm/issues/31858))
+* `azurerm_data_factory_customer_managed_key` - fix a persistent ID parsing error on `user_assigned_identity_id` when Azure returned an empty string ([#31858](https://github.com/hashicorp/terraform-provider-azurerm/issues/31858))
+* `azurerm_data_factory_customer_managed_key` - fix removal of `user_assigned_identity_id` to no longer send an empty string to Azure, instead sending an empty object ([#31858](https://github.com/hashicorp/terraform-provider-azurerm/issues/31858))
+* `azurerm_linux_function_app_slot` - fix an issue that prevented users from deploying a slot to a container-based function app ([#31842](https://github.com/hashicorp/terraform-provider-azurerm/issues/31842))
+
 ## 4.62.0 (February 26, 2026)
 
 FEATURES:
