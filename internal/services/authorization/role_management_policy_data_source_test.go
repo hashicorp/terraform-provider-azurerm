@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization_test
@@ -71,7 +71,9 @@ func TestAccRoleManagementPolicyDataSource_resource(t *testing.T) {
 
 func (RoleManagementPolicyDataSource) managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 data "azurerm_client_config" "current" {
 }
@@ -94,7 +96,9 @@ data "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyDataSource) resourceGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]s"
@@ -115,7 +119,9 @@ data "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyDataSource) subscription(data acceptance.TestData) string {
 	return `
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 data "azurerm_subscription" "test" {}
 
@@ -133,7 +139,9 @@ data "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyDataSource) resource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]s"

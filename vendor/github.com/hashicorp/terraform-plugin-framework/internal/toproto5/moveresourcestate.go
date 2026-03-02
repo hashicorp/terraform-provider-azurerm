@@ -27,6 +27,11 @@ func MoveResourceStateResponse(ctx context.Context, fw *fwserver.MoveResourceSta
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
 	proto5.TargetPrivate = targetPrivate
 
+	targetIdentity, diags := ResourceIdentity(ctx, fw.TargetIdentity)
+
+	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)
+	proto5.TargetIdentity = targetIdentity
+
 	targetState, diags := State(ctx, fw.TargetState)
 
 	proto5.Diagnostics = append(proto5.Diagnostics, Diagnostics(ctx, diags)...)

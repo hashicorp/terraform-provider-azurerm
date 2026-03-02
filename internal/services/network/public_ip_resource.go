@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -19,17 +19,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name public_ip -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourcePublicIp() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -38,10 +38,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 		Update: resourcePublicIpUpdate,
 		Delete: resourcePublicIpDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParsePublicIPAddressID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.PublicIPAddressId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.PublicIPAddressId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -106,13 +107,8 @@ func resourcePublicIp() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default: func() interface{} {
-					// https://azure.microsoft.com/en-us/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/
-					if !features.FourPointOhBeta() {
-						return string(publicipaddresses.PublicIPAddressSkuNameBasic)
-					}
-					return string(publicipaddresses.PublicIPAddressSkuNameStandard)
-				}(),
+				Default:  string(publicipaddresses.PublicIPAddressSkuNameStandard),
+				// https://azure.microsoft.com/en-us/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/
 				ValidateFunc: validation.StringInSlice([]string{
 					string(publicipaddresses.PublicIPAddressSkuNameBasic),
 					string(publicipaddresses.PublicIPAddressSkuNameStandard),
@@ -187,7 +183,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta interface{}) bool {
-				return !(old.(string) == "" && new.(string) != "")
+				return old.(string) != "" || new.(string) == ""
 			}),
 		),
 	}
@@ -309,6 +305,10 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourcePublicIpRead(d, meta)
 }
 
@@ -362,14 +362,14 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("idle_timeout_in_minutes") {
-		payload.Properties.IdleTimeoutInMinutes = utils.Int64(int64(d.Get("idle_timeout_in_minutes").(int)))
+		payload.Properties.IdleTimeoutInMinutes = pointer.To(int64(d.Get("idle_timeout_in_minutes").(int)))
 	}
 
 	if d.HasChange("domain_name_label") {
 		if payload.Properties.DnsSettings == nil {
 			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
 		}
-		payload.Properties.DnsSettings.DomainNameLabel = utils.String(d.Get("domain_name_label").(string))
+		payload.Properties.DnsSettings.DomainNameLabel = pointer.To(d.Get("domain_name_label").(string))
 	}
 
 	if d.HasChange("domain_name_label_scope") {
@@ -383,7 +383,7 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if payload.Properties.DnsSettings == nil {
 			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
 		}
-		payload.Properties.DnsSettings.ReverseFqdn = utils.String(d.Get("reverse_fqdn").(string))
+		payload.Properties.DnsSettings.ReverseFqdn = pointer.To(d.Get("reverse_fqdn").(string))
 	}
 
 	if d.HasChanges("tags") {
@@ -417,10 +417,14 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	return resourcePublicIpFlatten(d, id, resp.Model)
+}
+
+func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAddressId, model *publicipaddresses.PublicIPAddress) error {
 	d.Set("name", id.PublicIPAddressesName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("edge_zone", flattenEdgeZoneNew(model.ExtendedLocation))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
@@ -458,9 +462,11 @@ func resourcePublicIpRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("ip_address", props.IPAddress)
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePublicIpDelete(d *pluginsdk.ResourceData, meta interface{}) error {

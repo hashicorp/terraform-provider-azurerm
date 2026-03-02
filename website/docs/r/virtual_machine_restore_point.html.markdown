@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Machine Restore Point.
 ---
 
-# azurerm_restore_point
+# azurerm_virtual_machine_restore_point
 
 Manages a Virtual Machine Restore Point.
 
@@ -84,20 +84,20 @@ resource "azurerm_virtual_machine_restore_point_collection" "example" {
 }
 
 resource "azurerm_virtual_machine_restore_point" "example" {
-  name                        = "example-restore-point"
-  restore_point_collection_id = azurerm_restore_point_collection.test.id
+  name                                        = "example-restore-point"
+  virtual_machine_restore_point_collection_id = azurerm_virtual_machine_restore_point_collection.example.id
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Virtual Machine Restore Point. Changing this forces a new resource to be created.
 
-* `restore_point_collection_id` - (Required) Specifies the name of the Virtual Machine Restore Point Collection the Virtual Machine Restore Point will be associated with. Changing this forces a new resource to be created.
+* `virtual_machine_restore_point_collection_id` - (Required) Specifies the ID of the Virtual Machine Restore Point Collection the Virtual Machine Restore Point will be associated with. Changing this forces a new resource to be created.
 
-* `crash_consistency_mode_enabled` - (Optional) Is Crash Consistent the Consistency Mode of the Virtual Machine Restore Point. Defaults to `false`. Changing this forces a new resource to be created.
+* `crash_consistency_mode_enabled` - (Optional) Whether the Consistency Mode of the Virtual Machine Restore Point is set to `CrashConsistent`. Defaults to `false`. Changing this forces a new resource to be created.
 
 * `excluded_disks` - (Optional) A list of disks that will be excluded from the Virtual Machine Restore Point. Changing this forces a new resource to be created.
 
@@ -109,12 +109,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Restore Point.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Restore Point.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Restore Point.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Restore Point.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Restore Point.
 
 ## Import
 
@@ -123,3 +122,9 @@ Virtual Machine Restore Point can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_machine_restore_point.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/restorePointCollections/collection1/restorePoints/restorePoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01

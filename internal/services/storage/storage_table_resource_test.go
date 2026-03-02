@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 type StorageTableResource struct{}
@@ -129,7 +129,7 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 	if err := tablesClient.Delete(ctx, id.TableName); err != nil {
 		return nil, fmt.Errorf("deleting Table %q (Account %q): %+v", id.TableName, id.AccountId.AccountName, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StorageTableResource) basic(data acceptance.TestData) string {

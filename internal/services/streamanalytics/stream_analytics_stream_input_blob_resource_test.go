@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/inputs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type StreamAnalyticsStreamInputBlobResource struct{}
@@ -85,6 +85,21 @@ func TestAccStreamAnalyticsStreamInputBlob_update(t *testing.T) {
 	})
 }
 
+func TestAccStreamAnalyticsStreamInputBlob_authenticationMode(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
+	r := StreamAnalyticsStreamInputBlobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.authenticationMode(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("storage_account_key"),
+	})
+}
+
 func TestAccStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_stream_analytics_stream_input_blob", "test")
 	r := StreamAnalyticsStreamInputBlobResource{}
@@ -109,11 +124,11 @@ func (r StreamAnalyticsStreamInputBlobResource) Exists(ctx context.Context, clie
 	resp, err := client.StreamAnalytics.InputsClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) avro(data acceptance.TestData) string {
@@ -223,6 +238,31 @@ resource "azurerm_stream_analytics_stream_input_blob" "test" {
   }
 }
 `, template, data.RandomString, data.RandomInteger)
+}
+
+func (r StreamAnalyticsStreamInputBlobResource) authenticationMode(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_stream_analytics_stream_input_blob" "test" {
+  name                      = "acctestinput-%d"
+  stream_analytics_job_name = azurerm_stream_analytics_job.test.name
+  resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
+  storage_account_name      = azurerm_storage_account.test.name
+  storage_account_key       = azurerm_storage_account.test.primary_access_key
+  storage_container_name    = azurerm_storage_container.test.name
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
+  authentication_mode       = "Msi"
+
+  serialization {
+    type     = "Json"
+    encoding = "UTF8"
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r StreamAnalyticsStreamInputBlobResource) requiresImport(data acceptance.TestData) string {

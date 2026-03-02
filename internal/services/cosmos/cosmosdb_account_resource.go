@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cosmos
@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"regexp"
 	"strings"
@@ -65,6 +66,7 @@ const (
 	databaseAccountCapabilitiesEnableMongo16MBDocumentSupport    databaseAccountCapabilities = "EnableMongo16MBDocumentSupport"
 	databaseAccountCapabilitiesMongoDBv34                        databaseAccountCapabilities = "MongoDBv3.4"
 	databaseAccountCapabilitiesMongoEnableDocLevelTTL            databaseAccountCapabilities = "mongoEnableDocLevelTTL"
+	databaseAccountCapabilitiesDeleteAllItemsByPartitionKey      databaseAccountCapabilities = "DeleteAllItemsByPartitionKey"
 	databaseAccountCapabilitiesDisableRateLimitingResponses      databaseAccountCapabilities = "DisableRateLimitingResponses"
 	databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36    databaseAccountCapabilities = "AllowSelfServeUpgradeToMongo36"
 	databaseAccountCapabilitiesEnableMongoRetryableWrites        databaseAccountCapabilities = "EnableMongoRetryableWrites"
@@ -87,6 +89,7 @@ EnableAggregationPipeline :      	GlobalDocumentDB, MongoDB, Parse
 EnableServerless :               	GlobalDocumentDB, MongoDB, Parse
 MongoDBv3.4 :                    	GlobalDocumentDB, MongoDB, Parse
 mongoEnableDocLevelTTL :         	GlobalDocumentDB, MongoDB, Parse
+DeleteAllItemsByPartitionKey :   	GlobalDocumentDB, MongoDB, Parse
 DisableRateLimitingResponses :   	GlobalDocumentDB, MongoDB, Parse
 AllowSelfServeUpgradeToMongo36 : 	GlobalDocumentDB, MongoDB, Parse
 EnableMongoRetryableWrites :		MongoDB
@@ -112,6 +115,7 @@ var capabilitiesToKindMap = map[string]interface{}{
 	strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)):         []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesMongoDBv34)):                        []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesMongoEnableDocLevelTTL)):            []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
+	strings.ToLower(string(databaseAccountCapabilitiesDeleteAllItemsByPartitionKey)):      []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)):      []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 	strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)):    []string{strings.ToLower(string(cosmosdb.DatabaseAccountKindGlobalDocumentDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindMongoDB)), strings.ToLower(string(cosmosdb.DatabaseAccountKindParse))},
 }
@@ -162,9 +166,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				for _, cap := range caps.(*pluginsdk.Set).List() {
 					m := cap.(map[string]interface{})
 					if v, ok := m["name"].(string); ok {
-						if v == "MongoDBv3.4" {
+						switch v {
+						case "MongoDBv3.4":
 							mongo34found = true
-						} else if v == "EnableMongo" {
+						case "EnableMongo":
 							enableMongo = true
 						}
 					}
@@ -186,7 +191,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(180 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(180 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(300 * time.Minute),
 		},
 
 		SchemaVersion: 1,
@@ -386,7 +391,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 							Optional:         true,
 							Default:          100,
 							DiffSuppressFunc: suppressConsistencyPolicyStalenessConfiguration,
-							ValidateFunc:     validation.IntBetween(10, 2147483647), // single region values
+							ValidateFunc:     validation.IntBetween(10, math.MaxInt32), // single region values
 						},
 					},
 				},
@@ -439,6 +444,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 								string(databaseAccountCapabilitiesEnableMongo16MBDocumentSupport),
 								string(databaseAccountCapabilitiesMongoDBv34),
 								string(databaseAccountCapabilitiesMongoEnableDocLevelTTL),
+								string(databaseAccountCapabilitiesDeleteAllItemsByPartitionKey),
 								string(databaseAccountCapabilitiesDisableRateLimitingResponses),
 								string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36),
 								string(databaseAccountCapabilitiesEnableMongoRetryableWrites),
@@ -771,7 +777,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["minimal_tls_version"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -864,24 +870,24 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: cosmosdb.DatabaseAccountCreateUpdateProperties{
 			DatabaseAccountOfferType:           cosmosdb.DatabaseAccountOfferType(offerType),
 			IPRules:                            ipRangeFilter,
-			IsVirtualNetworkFilterEnabled:      utils.Bool(isVirtualNetworkFilterEnabled),
-			EnableFreeTier:                     utils.Bool(enableFreeTier),
-			EnableAutomaticFailover:            utils.Bool(enableAutomaticFailover),
+			IsVirtualNetworkFilterEnabled:      pointer.To(isVirtualNetworkFilterEnabled),
+			EnableFreeTier:                     pointer.To(enableFreeTier),
+			EnableAutomaticFailover:            pointer.To(enableAutomaticFailover),
 			ConsistencyPolicy:                  expandAzureRmCosmosDBAccountConsistencyPolicy(d),
 			Locations:                          geoLocations,
 			Capabilities:                       capabilities,
 			MinimalTlsVersion:                  pointer.To(cosmosdb.MinimalTlsVersion(d.Get("minimal_tls_version").(string))),
 			VirtualNetworkRules:                expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
-			EnableMultipleWriteLocations:       utils.Bool(enableMultipleWriteLocations),
+			EnableMultipleWriteLocations:       pointer.To(enableMultipleWriteLocations),
 			EnablePartitionMerge:               pointer.To(partitionMergeEnabled),
 			EnableBurstCapacity:                pointer.To(burstCapacityEnabled),
 			PublicNetworkAccess:                pointer.To(publicNetworkAccess),
-			EnableAnalyticalStorage:            utils.Bool(enableAnalyticalStorage),
+			EnableAnalyticalStorage:            pointer.To(enableAnalyticalStorage),
 			Cors:                               common.ExpandCosmosCorsRule(d.Get("cors_rule").([]interface{})),
-			DisableKeyBasedMetadataWriteAccess: utils.Bool(!d.Get("access_key_metadata_writes_enabled").(bool)),
+			DisableKeyBasedMetadataWriteAccess: pointer.To(!d.Get("access_key_metadata_writes_enabled").(bool)),
 			NetworkAclBypass:                   pointer.To(networkByPass),
 			NetworkAclBypassResourceIds:        utils.ExpandStringSlice(d.Get("network_acl_bypass_ids").([]interface{})),
-			DisableLocalAuth:                   utils.Bool(disableLocalAuthentication),
+			DisableLocalAuth:                   pointer.To(disableLocalAuthentication),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -996,15 +1002,15 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	if existing.Model.Properties.Locations != nil {
 		for _, l := range *existing.Model.Properties.Locations {
-			location := cosmosdb.Location{
+			loc := cosmosdb.Location{
 				Id:               l.Id,
 				LocationName:     l.LocationName,
 				FailoverPriority: l.FailoverPriority,
 				IsZoneRedundant:  l.IsZoneRedundant,
 			}
 
-			cosmosLocations = append(cosmosLocations, location)
-			cosmosLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
+			cosmosLocations = append(cosmosLocations, loc)
+			cosmosLocationsMap[location.Normalize(*loc.LocationName)] = loc
 		}
 	}
 
@@ -1068,12 +1074,11 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		// 'DatabaseAccountCreateUpdateParameters' below or
 		// are included in the 'DatabaseAccountCreateUpdateParameters'
 		// later, however we need to know if they changed or not...
-		// TODO Post 4.0 remove `enable_automatic_failover` from this list
 		if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 			"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
 			"capacity", "create_mode", "restore", "key_vault_key_id", "managed_hsm_key_id", "mongo_server_version",
 			"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
-			"kind", "tags", "enable_automatic_failover", "automatic_failover_enabled", "analytical_storage_enabled",
+			"kind", "tags", "automatic_failover_enabled", "analytical_storage_enabled",
 			"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled") {
 			updateRequired = true
 		}
@@ -1630,8 +1635,7 @@ func resourceCosmosDbAccountApiUpdate(client *cosmosdb.CosmosDBClient, ctx conte
 
 	stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to update: %+v", id.DatabaseAccountName, id.ResourceGroupName, err)
 	}
 
@@ -1673,7 +1677,7 @@ func resourceCosmosDbAccountApiCreateOrUpdate(client *cosmosdb.CosmosDBClient, c
 
 				for _, desiredLocation := range account.Properties.Locations {
 					for index, l := range locations {
-						if azure.NormalizeLocation(*desiredLocation.LocationName) == azure.NormalizeLocation(*l.LocationName) {
+						if location.Normalize(*desiredLocation.LocationName) == location.Normalize(*l.LocationName) {
 							break
 						}
 
@@ -1694,8 +1698,7 @@ func resourceCosmosDbAccountApiCreateOrUpdate(client *cosmosdb.CosmosDBClient, c
 		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	_, err := stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for the CosmosDB Account %q (Resource Group %q) to provision: %+v", id.DatabaseAccountName, id.ResourceGroupName, err)
 	}
 
@@ -1718,13 +1721,13 @@ func expandAzureRmCosmosDBAccountConsistencyPolicy(d *pluginsdk.ResourceData) *c
 		if stalenessPrefix == 0 {
 			stalenessPrefix = 100
 		}
-		policy.MaxStalenessPrefix = pointer.FromInt64(int64(stalenessPrefix))
+		policy.MaxStalenessPrefix = pointer.To(int64(stalenessPrefix))
 	}
 	if maxInterval, ok := input["max_interval_in_seconds"].(int); ok {
 		if maxInterval == 0 {
 			maxInterval = 5
 		}
-		policy.MaxIntervalInSeconds = utils.Int64(int64(maxInterval))
+		policy.MaxIntervalInSeconds = pointer.To(int64(maxInterval))
 	}
 
 	return &policy
@@ -1736,9 +1739,9 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 		data := l.(map[string]interface{})
 
 		location := cosmosdb.Location{
-			LocationName:     pointer.To(azure.NormalizeLocation(data["location"].(string))),
-			FailoverPriority: utils.Int64(int64(data["failover_priority"].(int))),
-			IsZoneRedundant:  pointer.FromBool(data["zone_redundant"].(bool)),
+			LocationName:     pointer.To(location.Normalize(data["location"].(string))),
+			FailoverPriority: pointer.To(int64(data["failover_priority"].(int))),
+			IsZoneRedundant:  pointer.To(data["zone_redundant"].(bool)),
 		}
 
 		locations = append(locations, location)
@@ -1797,7 +1800,7 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *pluginsdk.ResourceData) 
 		m := r.(map[string]interface{})
 		s[i] = cosmosdb.VirtualNetworkRule{
 			Id:                               pointer.To(m["id"].(string)),
-			IgnoreMissingVNetServiceEndpoint: pointer.FromBool(m["ignore_missing_vnet_service_endpoint"].(bool)),
+			IgnoreMissingVNetServiceEndpoint: pointer.To(m["ignore_missing_vnet_service_endpoint"].(bool)),
 		}
 	}
 
@@ -1983,8 +1986,8 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 		// Mirror the behavior of the old SDK...
 		periodicModeBackupPolicy := cosmosdb.PeriodicModeBackupPolicy{
 			PeriodicModeProperties: &cosmosdb.PeriodicModeProperties{
-				BackupIntervalInMinutes:        utils.Int64(int64(attr["interval_in_minutes"].(int))),
-				BackupRetentionIntervalInHours: utils.Int64(int64(attr["retention_in_hours"].(int))),
+				BackupIntervalInMinutes:        pointer.To(int64(attr["interval_in_minutes"].(int))),
+				BackupRetentionIntervalInHours: pointer.To(int64(attr["retention_in_hours"].(int))),
 			},
 		}
 
@@ -2066,7 +2069,7 @@ func expandCosmosDBAccountCapacity(input []interface{}) *cosmosdb.Capacity {
 	v := input[0].(map[string]interface{})
 
 	return &cosmosdb.Capacity{
-		TotalThroughputLimit: utils.Int64(int64(v["total_throughput_limit"].(int))),
+		TotalThroughputLimit: pointer.To(int64(v["total_throughput_limit"].(int))),
 	}
 }
 
@@ -2220,6 +2223,7 @@ func flattenCosmosdbAccountGremlinDatabasesToRestore(input *[]cosmosdb.GremlinDa
 func checkCapabilitiesCanBeUpdated(kind string, oldCapabilities *[]cosmosdb.Capability, newCapabilities *[]cosmosdb.Capability) bool {
 	// The feedback from service team : capabilities that can be added to an existing account
 	canBeAddedCaps := []string{
+		strings.ToLower(string(databaseAccountCapabilitiesDeleteAllItemsByPartitionKey)),
 		strings.ToLower(string(databaseAccountCapabilitiesDisableRateLimitingResponses)),
 		strings.ToLower(string(databaseAccountCapabilitiesAllowSelfServeUpgradeToMongo36)),
 		strings.ToLower(string(databaseAccountCapabilitiesEnableAggregationPipeline)),

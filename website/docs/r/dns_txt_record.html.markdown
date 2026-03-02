@@ -10,7 +10,7 @@ description: |-
 
 Enables you to manage DNS TXT Records within Azure DNS.
 
-~> **Note:** [The Azure DNS API has a throttle limit of 500 read (GET) operations per 5 minutes](https://docs.microsoft.com/azure/azure-resource-manager/management/request-limits-and-throttling#network-throttling) - whilst the default read timeouts will work for most cases - in larger configurations you may need to set a larger [read timeout](https://www.terraform.io/language/resources/syntax#operation-timeouts) then the default 5min. Although, we'd generally recommend that you split the resources out into smaller Terraform configurations to avoid the problem entirely.
+~> **Note:** [The Azure DNS API has a throttle limit of 500 read (GET) operations per 5 minutes](https://docs.microsoft.com/azure/azure-resource-manager/management/request-limits-and-throttling#network-throttling) - whilst the default read timeouts will work for most cases - in larger configurations you may need to set a larger [read timeout](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) then the default 5min. Although, we'd generally recommend that you split the resources out into smaller Terraform configurations to avoid the problem entirely.
 
 ## Example Usage
 
@@ -45,7 +45,7 @@ resource "azurerm_dns_txt_record" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -77,13 +77,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS TXT Record.
 
-* `update` - (Defaults to 30 minutes) Used when updating the DNS TXT Record.
-
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS TXT Record.
+
+* `update` - (Defaults to 30 minutes) Used when updating the DNS TXT Record.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS TXT Record.
 
@@ -94,3 +94,9 @@ TXT records can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dns_txt_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/TXT/myrecord1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2018-05-01

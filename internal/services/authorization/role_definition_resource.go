@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -340,9 +340,6 @@ func (r RoleDefinitionResource) Update() sdk.ResourceFunc {
 			updatedOn := resp.Model.Properties.UpdatedOn
 			if updatedOn == nil {
 				return fmt.Errorf("updating Role Definition %q (Scope %q): `properties.UpdatedOn` was nil", stateId.RoleID, stateId.Scope)
-			}
-			if updatedOn == nil {
-				return fmt.Errorf("updating %s: `properties.UpdatedOn` was nil", stateId)
 			}
 
 			// "Updating" a role definition actually creates a new one and these get consolidated a few seconds later

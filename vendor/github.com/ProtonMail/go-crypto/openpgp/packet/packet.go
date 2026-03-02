@@ -4,7 +4,7 @@
 
 // Package packet implements parsing and serialization of OpenPGP packets, as
 // specified in RFC 4880.
-package packet // import "github.com/ProtonMail/go-crypto/v2/openpgp/packet"
+package packet // import "github.com/ProtonMail/go-crypto/openpgp/packet"
 
 import (
 	"bytes"

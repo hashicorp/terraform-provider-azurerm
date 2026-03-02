@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package databricks_test
@@ -10,12 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DatabricksAccessConnectorResource struct{}
@@ -83,6 +82,13 @@ func TestAccDatabricksAccessConnector_identityComplete(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.identitySystemAssignedUserAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -123,7 +129,7 @@ func (DatabricksAccessConnectorResource) Exists(ctx context.Context, clients *cl
 		return nil, fmt.Errorf("making Read request on Databricks %s: %+v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DatabricksAccessConnectorResource) template(data acceptance.TestData) string {
@@ -177,6 +183,35 @@ resource "azurerm_databricks_access_connector" "test" {
   location            = azurerm_resource_group.test.location
   identity {
     type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r DatabricksAccessConnectorResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestDBUAI-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_databricks_access_connector" "test" {
+  name                = "acctestDBAC%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  identity {
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]

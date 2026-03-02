@@ -9,7 +9,6 @@ import (
 	"compress/flate"
 	"compress/zlib"
 	"io"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/ProtonMail/go-crypto/openpgp/errors"
@@ -91,7 +90,7 @@ func (c *Compressed) parse(r io.Reader) error {
 		}
 		c.Body = newDecompressionReader(r, decompressor)
 	case 3:
-		c.Body = newDecompressionReader(r, ioutil.NopCloser(bzip2.NewReader(r)))
+		c.Body = newDecompressionReader(r, io.NopCloser(bzip2.NewReader(r)))
 	default:
 		err = errors.UnsupportedError("unknown compression algorithm: " + strconv.Itoa(int(buf[0])))
 	}

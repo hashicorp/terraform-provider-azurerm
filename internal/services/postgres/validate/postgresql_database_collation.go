@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -297,6 +297,5 @@ var databaseCollationDidNotMatchError = func(fieldName, value string) error {
 
 This value can optionally end in '.utf8'
 
-but got %[2]q
-`, fieldName, value, strings.Join(specialCasedValues, ", "))
+but got %[2]q`, fieldName, value, strings.Join(specialCasedValues, ", "))
 }

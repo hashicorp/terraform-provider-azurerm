@@ -130,8 +130,39 @@ func main() {
 	credentials := auth.Credentials{
 		Environment:                         environment,
 		EnableAuthenticationUsingGitHubOIDC: true,
-		GitHubOIDCTokenRequestURL:           os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"),
-		GitHubOIDCTokenRequestToken:         os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN"),
+		OIDCTokenRequestURL:                 os.Getenv("ACTIONS_ID_TOKEN_REQUEST_URL"),
+		OIDCTokenRequestToken:               os.Getenv("ACTIONS_ID_TOKEN_REQUEST_TOKEN"),
+	}
+	authorizer, err := auth.NewAuthorizerFromCredentials(context.TODO(), credentials, environment.MSGraph)
+	if err != nil {
+		log.Fatalf("building authorizer from credentials: %+v", err)
+	}
+	// ..
+}
+```
+
+## Example: Authenticating using ADO Pipeline OIDC
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	"github.com/hashicorp/go-azure-sdk/sdk/auth"
+	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+)
+
+func main() {
+	environment := environments.Public
+	credentials := auth.Credentials{
+		Environment:                              environment,
+		EnableAuthenticationUsingADOPipelineOIDC: true,
+		OIDCTokenRequestURL:                      os.Getenv("SYSTEM_OIDCREQUESTURI"),
+		OIDCTokenRequestToken:                    os.Getenv("SYSTEM_ACCESSTOKEN"),
+		ADOPipelineServiceConnectionID:           "<Service Connection ID>",
 	}
 	authorizer, err := auth.NewAuthorizerFromCredentials(context.TODO(), credentials, environment.MSGraph)
 	if err != nil {

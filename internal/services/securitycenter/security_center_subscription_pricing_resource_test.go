@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter_test
@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	pricings_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterSubscriptionPricingResource struct{}
@@ -98,6 +99,9 @@ func TestAccSecurityCenterSubscriptionPricing_cosmosDbs(t *testing.T) {
 }
 
 func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skipf("the `subplan` forces new in 4.0, but should be updated in 5.0.")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_security_center_subscription_pricing", "test")
 	r := SecurityCenterSubscriptionPricingResource{}
 
@@ -111,6 +115,14 @@ func testAccSecurityCenterSubscriptionPricing_storageAccountSubplan(t *testing.T
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.storageAccountSubplanV2(),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tier").HasValue("Standard"),
+				check.That(data.ResourceName).Key("subplan").HasValue("DefenderForStorageV2"),
+			),
+		},
 	})
 }
 
@@ -232,7 +244,7 @@ func (SecurityCenterSubscriptionPricingResource) Exists(ctx context.Context, cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree), nil
+	return pointer.To(resp.Model.Properties != nil && resp.Model.Properties.PricingTier != pricings_v2023_01_01.PricingTierFree), nil
 }
 
 func (SecurityCenterSubscriptionPricingResource) tier(tier string, resource_type string) string {
@@ -246,6 +258,20 @@ resource "azurerm_security_center_subscription_pricing" "test" {
   resource_type = "%s"
 }
 `, tier, resource_type)
+}
+
+func (SecurityCenterSubscriptionPricingResource) storageAccountSubplanV2() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_security_center_subscription_pricing" "test" {
+  tier          = "Standard"
+  resource_type = "StorageAccounts"
+  subplan       = "DefenderForStorageV2"
+}
+`
 }
 
 func (SecurityCenterSubscriptionPricingResource) storageAccountSubplan() string {

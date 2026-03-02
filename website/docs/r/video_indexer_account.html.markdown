@@ -45,7 +45,7 @@ resource "azurerm_video_indexer_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,6 +58,8 @@ The following arguments are supported:
 * `storage` - (Required) A `storage` block as defined below.
 
 * `identity` - (Required) An `identity` block as defined below.
+
+* `public_network_access` - (Optional) The public network access for the Video Indexer Account. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -87,12 +89,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Video Indexer Account.
+* `create` - (Defaults to 1 hour) Used when creating the Video Indexer Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Video Indexer Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Video Indexer Account.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Video Indexer Account.
+* `update` - (Defaults to 1 hour) Used when updating the Video Indexer Account.
+* `delete` - (Defaults to 1 hour) Used when deleting the Video Indexer Account.
 
 ## Import
 
@@ -101,3 +103,9 @@ Video Indexer Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_video_indexer_account.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/example-resource-group/providers/Microsoft.VideoIndexer/accounts/example-account-name
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.VideoIndexer` - 2025-04-01

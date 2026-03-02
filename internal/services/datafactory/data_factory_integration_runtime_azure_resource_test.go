@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IntegrationRuntimeAzureResource struct{}
@@ -141,8 +141,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -166,8 +166,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -192,8 +192,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -218,8 +218,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -244,8 +244,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_data_factory" "test" {
   name                = "acctestdfirm%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_data_factory_integration_runtime_azure" "test" {
@@ -285,15 +285,15 @@ resource "azurerm_data_factory_integration_runtime_azure" "test" {
 }
 
 func (t IntegrationRuntimeAzureResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationRuntimeID(state.ID)
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, *id, integrationruntimes.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }

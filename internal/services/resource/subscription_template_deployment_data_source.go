@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -41,7 +41,7 @@ func dataSourceSubscriptionTemplateDeployment() *pluginsdk.Resource {
 }
 
 func dataSourceSubscriptionTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()

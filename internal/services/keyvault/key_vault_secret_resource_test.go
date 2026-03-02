@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -9,13 +9,17 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -36,6 +40,77 @@ func TestAccKeyVaultSecret_basic(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccKeyVaultSecret_writeOnlyValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []acceptance.TestStep{
+			{
+				Config: r.writeOnlyValue(data, "rick-and-morty", 1),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").IsEmpty(),
+					check.That(data.ResourceName).Key("value_wo_version").HasValue("1"),
+				),
+			},
+			data.ImportStep("value", "value_wo_version"),
+			{
+				Config: r.writeOnlyValue(data, "szechuan", 2),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").IsEmpty(),
+					check.That(data.ResourceName).Key("value_wo_version").HasValue("2"),
+				),
+			},
+			data.ImportStep("value", "value_wo_version"),
+		},
+	})
+}
+
+func TestAccKeyVaultSecret_updateToWriteOnlyValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
+	r := KeyVaultSecretResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []acceptance.TestStep{
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				),
+			},
+			data.ImportStep(),
+			{
+				Config: r.writeOnlyValue(data, "szechuan", 1),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").IsEmpty(),
+					check.That(data.ResourceName).Key("value_wo_version").HasValue("1"),
+				),
+			},
+			data.ImportStep("value", "value_wo_version"),
+			{
+				Config: r.basic(data),
+				Check: acceptance.ComposeTestCheckFunc(
+					check.That(data.ResourceName).ExistsInAzure(r),
+					check.That(data.ResourceName).Key("value").HasValue("rick-and-morty"),
+				),
+			},
+			data.ImportStep(),
+		},
 	})
 }
 
@@ -251,7 +326,7 @@ func (KeyVaultSecretResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("making Read request on Azure KeyVault Secret %s: %+v", id.Name, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.ID != nil), nil
 }
 
 func (KeyVaultSecretResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -271,7 +346,7 @@ func (KeyVaultSecretResource) Destroy(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (KeyVaultSecretResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -303,7 +378,7 @@ func (r KeyVaultSecretResource) updateSecretValue(value string) acceptance.Clien
 		}
 
 		updated := keyvault.SecretSetParameters{
-			Value: utils.String(value),
+			Value: pointer.To(value),
 		}
 		if _, err = dataPlaneClient.SetSecret(ctx, *vaultBaseUrl, name, updated); err != nil {
 			return fmt.Errorf("updating secret: %+v", err)
@@ -326,6 +401,23 @@ resource "azurerm_key_vault_secret" "test" {
   key_vault_id = azurerm_key_vault.test.id
 }
 `, r.template(data), data.RandomString)
+}
+
+func (r KeyVaultSecretResource) writeOnlyValue(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault_secret" "test" {
+  name             = "secret-%s"
+  value_wo         = "%s"
+  value_wo_version = %d
+  key_vault_id     = azurerm_key_vault.test.id
+}
+`, r.template(data), data.RandomString, secret, version)
 }
 
 func (r KeyVaultSecretResource) updateTags(data acceptance.TestData) string {
@@ -559,7 +651,6 @@ resource "azurerm_key_vault" "test" {
       "Recover",
       "Set",
     ]
-
   }
 
   tags = {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package shim
@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 type DataPlaneStorageShareWrapper struct {

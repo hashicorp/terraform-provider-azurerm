@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare
@@ -357,7 +357,9 @@ func resourceHealthcareServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -370,7 +372,7 @@ func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	id, err := service.ParseServiceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Parsing Azure Resource ID: %+v", err)
+		return err
 	}
 
 	err = client.ServicesDeleteThenPoll(ctx, *id)

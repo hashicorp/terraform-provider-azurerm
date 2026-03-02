@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -11,18 +11,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/hostpool"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/scalingplan"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/hostpool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var scalingPlanResourceType = "azurerm_virtual_desktop_scaling_plan"
@@ -275,15 +275,15 @@ func resourceVirtualDesktopScalingPlanCreate(d *pluginsdk.ResourceData, meta int
 
 	hostPoolType := scalingplan.ScalingHostPoolTypePooled // Only one possible value for this
 	payload := scalingplan.ScalingPlan{
-		Name:     utils.String(d.Get("name").(string)),
-		Location: &location,
+		Name:     pointer.To(d.Get("name").(string)),
+		Location: location,
 		Tags:     tags.Expand(t),
-		Properties: &scalingplan.ScalingPlanProperties{
-			Description:        utils.String(d.Get("description").(string)),
-			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
-			TimeZone:           utils.String(d.Get("time_zone").(string)),
+		Properties: scalingplan.ScalingPlanProperties{
+			Description:        pointer.To(d.Get("description").(string)),
+			FriendlyName:       pointer.To(d.Get("friendly_name").(string)),
+			TimeZone:           d.Get("time_zone").(string),
 			HostPoolType:       &hostPoolType,
-			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
+			ExclusionTag:       pointer.To(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
 			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
 		},
@@ -315,10 +315,10 @@ func resourceVirtualDesktopScalingPlanUpdate(d *pluginsdk.ResourceData, meta int
 	payload := scalingplan.ScalingPlanPatch{
 		Tags: tags.Expand(t),
 		Properties: &scalingplan.ScalingPlanPatchProperties{
-			Description:        utils.String(d.Get("description").(string)),
-			FriendlyName:       utils.String(d.Get("friendly_name").(string)),
-			TimeZone:           utils.String(d.Get("time_zone").(string)),
-			ExclusionTag:       utils.String(d.Get("exclusion_tag").(string)),
+			Description:        pointer.To(d.Get("description").(string)),
+			FriendlyName:       pointer.To(d.Get("friendly_name").(string)),
+			TimeZone:           pointer.To(d.Get("time_zone").(string)),
+			ExclusionTag:       pointer.To(d.Get("exclusion_tag").(string)),
 			Schedules:          expandScalingPlanSchedule(d.Get("schedule").([]interface{})),
 			HostPoolReferences: expandScalingPlanHostpoolReference(d.Get("host_pool").([]interface{})),
 		},
@@ -355,16 +355,13 @@ func resourceVirtualDesktopScalingPlanRead(d *pluginsdk.ResourceData, meta inter
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-
-		if props := model.Properties; props != nil {
-			d.Set("description", props.Description)
-			d.Set("friendly_name", props.FriendlyName)
-			d.Set("time_zone", props.TimeZone)
-			d.Set("exclusion_tag", props.ExclusionTag)
-			d.Set("schedule", flattenScalingPlanSchedule(props.Schedules))
-			d.Set("host_pool", flattenScalingHostpoolReference(props.HostPoolReferences))
-		}
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("description", model.Properties.Description)
+		d.Set("friendly_name", model.Properties.FriendlyName)
+		d.Set("time_zone", model.Properties.TimeZone)
+		d.Set("exclusion_tag", model.Properties.ExclusionTag)
+		d.Set("schedule", flattenScalingPlanSchedule(model.Properties.Schedules))
+		d.Set("host_pool", flattenScalingHostpoolReference(model.Properties.HostPoolReferences))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return err
@@ -428,22 +425,22 @@ func expandScalingPlanSchedule(input []interface{}) *[]scalingplan.ScalingSchedu
 		offPeakLoadBalancingAlgorithm := scalingplan.SessionHostLoadBalancingAlgorithm(v["off_peak_load_balancing_algorithm"].(string))
 
 		results = append(results, scalingplan.ScalingSchedule{
-			Name:                           utils.String(name),
+			Name:                           pointer.To(name),
 			DaysOfWeek:                     &daysOfWeek,
 			RampUpStartTime:                expandScalingPlanScheduleTime(rampUpStartTime),
 			RampUpLoadBalancingAlgorithm:   &rampUpLoadBalancingAlgorithm,
-			RampUpMinimumHostsPct:          utils.Int64(int64(rampUpMinimumHostsPct)),
-			RampUpCapacityThresholdPct:     utils.Int64(int64(rampUpCapacityThresholdPct)),
+			RampUpMinimumHostsPct:          pointer.To(int64(rampUpMinimumHostsPct)),
+			RampUpCapacityThresholdPct:     pointer.To(int64(rampUpCapacityThresholdPct)),
 			PeakStartTime:                  expandScalingPlanScheduleTime(peakStartTime),
 			PeakLoadBalancingAlgorithm:     &peakLoadBalancingAlgorithm,
 			RampDownStartTime:              expandScalingPlanScheduleTime(rampDownStartTime),
 			RampDownLoadBalancingAlgorithm: &rampDownLoadBalancingAlgorithm,
-			RampDownMinimumHostsPct:        utils.Int64(int64(rampDownMinimumHostsPct)),
-			RampDownCapacityThresholdPct:   utils.Int64(int64(rampDownCapacityThresholdPct)),
-			RampDownForceLogoffUsers:       utils.Bool(rampDownForceLogoffUsers),
+			RampDownMinimumHostsPct:        pointer.To(int64(rampDownMinimumHostsPct)),
+			RampDownCapacityThresholdPct:   pointer.To(int64(rampDownCapacityThresholdPct)),
+			RampDownForceLogoffUsers:       pointer.To(rampDownForceLogoffUsers),
 			RampDownStopHostsWhen:          &rampDownStopHostsWhen,
-			RampDownWaitTimeMinutes:        utils.Int64(int64(rampDownWaitTimeMinutes)),
-			RampDownNotificationMessage:    utils.String(rampDownNotificationMessage),
+			RampDownWaitTimeMinutes:        pointer.To(int64(rampDownWaitTimeMinutes)),
+			RampDownNotificationMessage:    pointer.To(rampDownNotificationMessage),
 			OffPeakStartTime:               expandScalingPlanScheduleTime(offPeakStartTime),
 			OffPeakLoadBalancingAlgorithm:  &offPeakLoadBalancingAlgorithm,
 		})
@@ -483,8 +480,8 @@ func expandScalingPlanHostpoolReference(input []interface{}) *[]scalingplan.Scal
 		scalingPlanEnabled := v["scaling_plan_enabled"].(bool)
 
 		results = append(results, scalingplan.ScalingHostPoolReference{
-			HostPoolArmPath:    utils.String(hostPoolArmPath),
-			ScalingPlanEnabled: utils.Bool(scalingPlanEnabled),
+			HostPoolArmPath:    pointer.To(hostPoolArmPath),
+			ScalingPlanEnabled: pointer.To(scalingPlanEnabled),
 		})
 	}
 	return &results

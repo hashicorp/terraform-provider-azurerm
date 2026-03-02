@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,30 +12,32 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/routetables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/routetables"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_table -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var routeTableResourceName = "azurerm_route_table"
 
 func resourceRouteTable() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceRouteTableCreate,
 		Read:   resourceRouteTableRead,
 		Update: resourceRouteTableUpdate,
 		Delete: resourceRouteTableDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := routetables.ParseRouteTableID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&routetables.RouteTableId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&routetables.RouteTableId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -112,28 +114,6 @@ func resourceRouteTable() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["bgp_route_propagation_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-			ConflictsWith: []string{
-				"disable_bgp_route_propagation",
-			},
-		}
-		resource.Schema["disable_bgp_route_propagation"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
-			ConflictsWith: []string{
-				"bgp_route_propagation_enabled",
-			},
-			Deprecated: "The property `disable_bgp_route_propagation` has been superseded by the property `bgp_route_propagation_enabled` and will be removed in v4.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
 func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -172,6 +152,9 @@ func resourceRouteTableCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceRouteTableRead(d, meta)
 }
@@ -202,12 +185,6 @@ func resourceRouteTableUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if d.HasChange("route") {
 		payload.Properties.Routes = expandRouteTableRoutes(d)
-	}
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("disable_bgp_route_propagation") {
-			payload.Properties.DisableBgpRoutePropagation = pointer.To(d.Get("disable_bgp_route_propagation").(bool))
-		}
 	}
 
 	if d.HasChange("bgp_route_propagation_enabled") {
@@ -244,16 +221,21 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	if err := resourceRouteTableFlatten(d, id, resp.Model); err != nil {
+		return fmt.Errorf("flattening %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceRouteTableFlatten(d *pluginsdk.ResourceData, id *routetables.RouteTableId, table *routetables.RouteTable) error {
 	d.Set("name", id.RouteTableName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+	if table != nil {
+		d.Set("location", location.NormalizeNilable(table.Location))
 
-		if props := model.Properties; props != nil {
-			if !features.FourPointOhBeta() {
-				d.Set("disable_bgp_route_propagation", props.DisableBgpRoutePropagation)
-			}
+		if props := table.Properties; props != nil {
 			d.Set("bgp_route_propagation_enabled", !pointer.From(props.DisableBgpRoutePropagation))
 			if err := d.Set("route", flattenRouteTableRoutes(props.Routes)); err != nil {
 				return err
@@ -264,10 +246,12 @@ func resourceRouteTableRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, table.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteTableDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -295,9 +279,9 @@ func expandRouteTableRoutes(d *pluginsdk.ResourceData) *[]routetables.Route {
 		data := configRaw.(map[string]interface{})
 
 		route := routetables.Route{
-			Name: utils.String(data["name"].(string)),
+			Name: pointer.To(data["name"].(string)),
 			Properties: &routetables.RoutePropertiesFormat{
-				AddressPrefix: utils.String(data["address_prefix"].(string)),
+				AddressPrefix: pointer.To(data["address_prefix"].(string)),
 				NextHopType:   routetables.RouteNextHopType(data["next_hop_type"].(string)),
 			},
 		}

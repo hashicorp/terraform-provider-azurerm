@@ -5,14 +5,15 @@ package loadtestservice_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2022-12-01/loadtests"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LoadTestTestResource struct{}
@@ -106,6 +107,18 @@ func TestAccLoadTest_encryption(t *testing.T) {
 	})
 }
 
+func TestAccLoadTest_encryptionMissingIdentityID(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_load_test", "test")
+	r := LoadTestTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.encryptionMissingIdentityID(data),
+			ExpectError: regexp.MustCompile("when `encryption.identity.type` is set to `UserAssigned`, the `encryption.identity.identity_id` provided must also be specified in the `identity.identity_ids` list"),
+		},
+	})
+}
+
 func (r LoadTestTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := loadtests.ParseLoadTestID(state.ID)
 	if err != nil {
@@ -117,7 +130,7 @@ func (r LoadTestTestResource) Exists(ctx context.Context, clients *clients.Clien
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r LoadTestTestResource) basic(data acceptance.TestData) string {
@@ -270,6 +283,109 @@ resource "azurerm_load_test" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
+func (r LoadTestTestResource) encryptionMissingIdentityID(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "SetRotationPolicy",
+      "GetRotationPolicy",
+      "Rotate",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = ["Get", "WrapKey", "UnwrapKey"]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctestkey-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctest-${var.random_integer}2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_load_test" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestlt-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test2.id]
+  }
+
+  encryption {
+    key_url = azurerm_key_vault_key.test.id
+
+    identity {
+      type        = "UserAssigned"
+      identity_id = azurerm_user_assigned_identity.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
 func (r LoadTestTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "primary_location" {
@@ -286,7 +402,6 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestrg-${var.random_integer}"
   location = var.primary_location
 }
-
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest-${var.random_integer}"

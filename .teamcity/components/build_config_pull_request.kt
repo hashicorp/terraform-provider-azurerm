@@ -47,6 +47,6 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
     }
 
     fun uniqueID(provider : String) : String {
-        return "%s_PR_%s".format(provider.toUpperCase(), environment.toUpperCase())
+        return "%s_PR_%s".format(provider.uppercase(), environment.uppercase())
     }
 }

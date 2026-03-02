@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Relay Hybrid Connection Authorization Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Relay Hybrid Connection Authorization Rule.
@@ -101,3 +101,9 @@ Azure Relay Hybrid Connection Authorization Rules can be imported using the `res
 ```shell
 terraform import azurerm_relay_hybrid_connection_authorization_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Relay/namespaces/namespace1/hybridConnections/connection1/authorizationRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay` - 2021-11-01

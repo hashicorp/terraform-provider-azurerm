@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -118,11 +120,12 @@ func resourceCdnFrontDoorCustomDomain() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["tls"].Elem.(*pluginsdk.Resource).Schema["minimum_tls_version"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(cdn.AfdMinimumTLSVersionTLS12),
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Default:    string(cdn.AfdMinimumTLSVersionTLS12),
+			Deprecated: "As of March 1, 2025, support for 'TLS10' will be retired from Azure Front Door, therefore the 'TLS10' property value will be removed in v5.0 of the provider.",
 			ValidateFunc: validation.StringInSlice([]string{
 				string(cdn.AfdMinimumTLSVersionTLS12),
 				string(cdn.AfdMinimumTLSVersionTLS10),
@@ -138,12 +141,12 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	profileId, err := parse.FrontDoorProfileID(d.Get("cdn_frontdoor_profile_id").(string))
+	profileId, err := profiles.ParseProfileID(d.Get("cdn_frontdoor_profile_id").(string))
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewFrontDoorCustomDomainID(profileId.SubscriptionId, profileId.ResourceGroup, profileId.ProfileName, d.Get("name").(string))
+	id := parse.NewFrontDoorCustomDomainID(profileId.SubscriptionId, profileId.ResourceGroupName, profileId.ProfileName, d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName)
 	if err != nil {
@@ -161,12 +164,12 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 
 	props := cdn.AFDDomain{
 		AFDDomainProperties: &cdn.AFDDomainProperties{
-			HostName: utils.String(d.Get("host_name").(string)),
+			HostName: pointer.To(d.Get("host_name").(string)),
 		},
 	}
 
 	if dnsZone != "" {
-		props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
+		props.AzureDNSZone = expandResourceReference(dnsZone)
 	}
 
 	tlsSettings, err := expandTlsParameters(tls)
@@ -174,7 +177,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	props.AFDDomainProperties.TLSSettings = tlsSettings
+	props.TLSSettings = tlsSettings
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, props)
 	if err != nil {
@@ -211,7 +214,7 @@ func resourceCdnFrontDoorCustomDomainRead(d *pluginsdk.ResourceData, meta interf
 	}
 
 	d.Set("name", id.CustomDomainName)
-	d.Set("cdn_frontdoor_profile_id", parse.NewFrontDoorProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
+	d.Set("cdn_frontdoor_profile_id", profiles.NewProfileID(id.SubscriptionId, id.ResourceGroup, id.ProfileName).ID())
 
 	if props := resp.AFDDomainProperties; props != nil {
 		d.Set("host_name", props.HostName)
@@ -259,7 +262,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("dns_zone_id") {
 		if dnsZone := d.Get("dns_zone_id").(string); dnsZone != "" {
-			props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
+			props.AzureDNSZone = expandResourceReference(dnsZone)
 		}
 	}
 
@@ -294,7 +297,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
 		}
 
-		props.AFDDomainUpdatePropertiesParameters.TLSSettings = tls
+		props.TLSSettings = tls
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, props)

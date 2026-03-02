@@ -40,7 +40,7 @@ resource "azurerm_dev_test_virtual_network" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -98,11 +98,11 @@ A `subnet` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Virtual Network.
-* `update` - (Defaults to 30 minutes) Used when updating the DevTest Virtual Network.
 * `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Virtual Network.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Virtual Network.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Virtual Network.
 
 ## Import
@@ -112,3 +112,9 @@ DevTest Virtual Networks can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dev_test_virtual_network.network1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualNetworks/network1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevTestLab` - 2018-09-15

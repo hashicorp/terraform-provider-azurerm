@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name communication_service -service-package-name communication -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 import (
 	"context"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/migration"
@@ -23,9 +26,14 @@ import (
 var (
 	_ sdk.ResourceWithUpdate         = CommunicationServiceResource{}
 	_ sdk.ResourceWithStateMigration = CommunicationServiceResource{}
+	_ sdk.ResourceWithIdentity       = CommunicationServiceResource{}
 )
 
 type CommunicationServiceResource struct{}
+
+func (CommunicationServiceResource) Identity() resourceids.ResourceId {
+	return &communicationservices.CommunicationServiceId{}
+}
 
 type CommunicationServiceResourceModel struct {
 	Name              string            `tfschema:"name"`
@@ -37,6 +45,7 @@ type CommunicationServiceResourceModel struct {
 	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
 	PrimaryKey                string `tfschema:"primary_key"`
 	SecondaryKey              string `tfschema:"secondary_key"`
+	HostName                  string `tfschema:"hostname"`
 }
 
 func (CommunicationServiceResource) StateUpgraders() sdk.StateUpgradeData {
@@ -115,6 +124,11 @@ func (CommunicationServiceResource) Attributes() map[string]*pluginsdk.Schema {
 			Computed:  true,
 			Sensitive: true,
 		},
+
+		"hostname": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -163,6 +177,10 @@ func (r CommunicationServiceResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -246,6 +264,7 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.DataLocation = props.DataLocation
+					state.HostName = pointer.From(props.HostName)
 				}
 
 				state.Tags = pointer.From(model.Tags)
@@ -256,6 +275,10 @@ func (CommunicationServiceResource) Read() sdk.ResourceFunc {
 				state.SecondaryConnectionString = pointer.From(model.SecondaryConnectionString)
 				state.PrimaryKey = pointer.From(model.PrimaryKey)
 				state.SecondaryKey = pointer.From(model.SecondaryKey)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dataprotection
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -53,7 +53,7 @@ func dataSourceDataProtectionBackupVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"identity": commonschema.SystemAssignedIdentityComputed(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"tags": commonschema.TagsDataSource(),
 		},
@@ -69,9 +69,9 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	id := backupvaults.NewBackupVaultID(subscriptionId, resourceGroup, name)
+	id := backupvaultresources.NewBackupVaultID(subscriptionId, resourceGroup, name)
 
-	resp, err := client.Get(ctx, id)
+	resp, err := client.BackupVaultsGet(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
@@ -84,7 +84,7 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.NormalizeNilable(pointer.To(model.Location)))
 
 		props := model.Properties
 		if len(props.StorageSettings) > 0 {
@@ -92,9 +92,11 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 			d.Set("redundancy", string(pointer.From((props.StorageSettings)[0].Type)))
 		}
 
-		if err = d.Set("identity", dataSourceFlattenBackupVaultDppIdentityDetails(model.Identity)); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+		identity, err := dataSourceFlattenBackupVaultDppIdentityDetails(model.Identity)
+		if err != nil {
+			return err
 		}
+		d.Set("identity", identity)
 
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
@@ -103,23 +105,26 @@ func dataSourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta int
 	return nil
 }
 
-func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaults.DppIdentityDetails) []interface{} {
-	var config *identity.SystemAssigned
+func dataSourceFlattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentityDetails) (*[]interface{}, error) {
+	var config *identity.SystemAndUserAssignedMap
 	if input != nil {
-		principalId := ""
-		if input.PrincipalId != nil {
-			principalId = *input.PrincipalId
+		config = &identity.SystemAndUserAssignedMap{
+			Type: identity.Type(*input.Type),
 		}
 
-		tenantId := ""
-		if input.TenantId != nil {
-			tenantId = *input.TenantId
-		}
-		config = &identity.SystemAssigned{
-			Type:        identity.Type(*input.Type),
-			PrincipalId: principalId,
-			TenantId:    tenantId,
+		config.PrincipalId = pointer.From(input.PrincipalId)
+		config.TenantId = pointer.From(input.TenantId)
+
+		if len(pointer.From(input.UserAssignedIdentities)) > 0 {
+			config.IdentityIds = make(map[string]identity.UserAssignedIdentityDetails)
+			for k, v := range *input.UserAssignedIdentities {
+				config.IdentityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.ClientId,
+					PrincipalId: v.PrincipalId,
+				}
+			}
 		}
 	}
-	return identity.FlattenSystemAssigned(config)
+
+	return identity.FlattenSystemAndUserAssignedMap(config)
 }

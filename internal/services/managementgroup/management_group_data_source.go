@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managementgroup
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managementgroups/2020-05-01/managementgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/management/2020-05-01/managementgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
@@ -109,7 +109,7 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	})
 	if err != nil {
 		if response.WasForbidden(resp.HttpResponse) {
-			return fmt.Errorf("Management Group %q was not found", groupName)
+			return fmt.Errorf("the Management Group %q was not found", groupName)
 		}
 
 		return fmt.Errorf("reading Management Group %q: %+v", groupName, err)
@@ -187,7 +187,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 
 	// we found none
 	if len(results) == 0 {
-		return "", fmt.Errorf("Management Group (Display Name %q) was not found", displayName)
+		return "", fmt.Errorf("the Management Group (Display Name %q) was not found", displayName)
 	}
 
 	// we found more than one
@@ -211,13 +211,13 @@ func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]i
 		case managementgroups.ManagementGroupChildTypeMicrosoftPointManagementManagementGroups:
 			id, err := commonids.ParseManagementGroupID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Management Group ID %+v", err)
+				return fmt.Errorf("unable to parse child Management Group ID %+v", err)
 			}
 			*mgmtgroupIds = append(*mgmtgroupIds, id.ID())
 		case managementgroups.ManagementGroupChildTypeSubscriptions:
 			id, err := commonids.ParseSubscriptionID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Subscription ID %+v", err)
+				return fmt.Errorf("unable to parse child Subscription ID %+v", err)
 			}
 			*subscriptionIds = append(*subscriptionIds, id.SubscriptionId)
 		default:

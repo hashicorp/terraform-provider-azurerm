@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -42,8 +42,7 @@ func TestEmailAddress(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Value)
 
-		_, err := EmailAddress(v.Value, "unit test")
-		if err != nil && !v.Error {
+		if _, err := EmailAddress(v.Value, "unit test"); err != nil && !v.Error {
 			t.Fatalf("Expected pass but got an error: %s", err)
 		}
 	}

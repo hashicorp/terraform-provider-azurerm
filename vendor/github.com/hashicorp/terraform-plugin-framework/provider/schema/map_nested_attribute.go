@@ -223,6 +223,24 @@ func (a MapNestedAttribute) IsSensitive() bool {
 	return a.Sensitive
 }
 
+// IsWriteOnly returns false as write-only attributes are not relevant to provider schemas,
+// as these schemas describe data explicitly not saved to any artifact.
+func (a MapNestedAttribute) IsWriteOnly() bool {
+	return false
+}
+
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapNestedAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a MapNestedAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // MapValidators returns the Validators field value.
 func (a MapNestedAttribute) MapValidators() []validator.Map {
 	return a.Validators

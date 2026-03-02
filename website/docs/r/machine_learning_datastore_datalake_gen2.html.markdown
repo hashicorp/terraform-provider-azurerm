@@ -69,7 +69,7 @@ resource "azurerm_storage_container" "example" {
 resource "azurerm_machine_learning_datastore_datalake_gen2" "example" {
   name                 = "example-datastore"
   workspace_id         = azurerm_machine_learning_workspace.example.id
-  storage_container_id = azurerm_storage_container.example.resource_manager_id
+  storage_container_id = azurerm_storage_container.example.id
 }
 ```
 
@@ -108,7 +108,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning DataStore.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning DataStore.
@@ -122,3 +122,9 @@ Machine Learning DataStores can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_datastore_datalake_gen2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/dataStores/datastore1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -8,8 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -17,11 +19,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudBuildServiceBuilder() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_builder` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudBuildServiceBuilderCreateUpdate,
 		Read:   resourceSpringCloudBuildServiceBuilderRead,
 		Update: resourceSpringCloudBuildServiceBuilderCreateUpdate,
@@ -209,7 +213,7 @@ func expandBuildServiceBuilderBuildPacksGroupPropertiesArray(input []interface{}
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		results = append(results, appplatform.BuildpacksGroupProperties{
-			Name:       utils.String(v["name"].(string)),
+			Name:       pointer.To(v["name"].(string)),
 			Buildpacks: expandBuildServiceBuilderBuildPackPropertiesArray(v["build_pack_ids"].([]interface{})),
 		})
 	}
@@ -222,8 +226,8 @@ func expandBuildServiceBuilderStackProperties(input []interface{}) *appplatform.
 	}
 	v := input[0].(map[string]interface{})
 	return &appplatform.StackProperties{
-		ID:      utils.String(v["id"].(string)),
-		Version: utils.String(v["version"].(string)),
+		ID:      pointer.To(v["id"].(string)),
+		Version: pointer.To(v["version"].(string)),
 	}
 }
 
@@ -231,7 +235,7 @@ func expandBuildServiceBuilderBuildPackPropertiesArray(input []interface{}) *[]a
 	results := make([]appplatform.BuildpackProperties, 0)
 	for _, item := range input {
 		results = append(results, appplatform.BuildpackProperties{
-			ID: utils.String(item.(string)),
+			ID: pointer.To(item.(string)),
 		})
 	}
 	return &results

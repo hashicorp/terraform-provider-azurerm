@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -98,7 +99,7 @@ func managementGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				StateFunc: utils.NormalizeJson,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed
 			"output_content": {
@@ -112,7 +113,7 @@ func managementGroupTemplateDeploymentResource() *pluginsdk.Resource {
 }
 
 func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -134,7 +135,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 	}
 
 	deployment := resources.ScopedDeployment{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
@@ -152,7 +153,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 
 	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(templateSpecVersionID.(string)),
+			ID: pointer.To(templateSpecVersionID.(string)),
 		}
 	}
 
@@ -186,7 +187,7 @@ func managementGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, 
 }
 
 func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -245,7 +246,7 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(d.Get("template_spec_version_id").(string)),
+			ID: pointer.To(d.Get("template_spec_version_id").(string)),
 		}
 
 		if d.Get("template_spec_version_id").(string) != "" {
@@ -278,7 +279,7 @@ func managementGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, 
 }
 
 func managementGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -343,7 +344,7 @@ func managementGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, me
 }
 
 func managementGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

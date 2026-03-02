@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/objectreplicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/objectreplicationpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
@@ -308,12 +309,12 @@ func expandArmObjectReplicationRuleArray(input []interface{}) *[]objectreplicati
 			SourceContainer:      v["source_container_name"].(string),
 			DestinationContainer: v["destination_container_name"].(string),
 			Filters: &objectreplicationpolicies.ObjectReplicationPolicyFilter{
-				MinCreationTime: utils.String(expandArmObjectReplicationMinCreationTime(v["copy_blobs_created_after"].(string))),
+				MinCreationTime: pointer.To(expandArmObjectReplicationMinCreationTime(v["copy_blobs_created_after"].(string))),
 			},
 		}
 
 		if r, ok := v["name"].(string); ok && r != "" {
-			result.RuleId = utils.String(r)
+			result.RuleId = pointer.To(r)
 		}
 
 		if f, ok := v["filter_out_blobs_with_prefix"]; ok {

@@ -56,9 +56,16 @@ The following arguments are supported:
 
 * `job_agent_id` - (Required) The ID of the Elastic Job Agent. Changing this forces a new Elastic Job Credential to be created.
 
-* `username` - (Required) The username part of the credential.
+* `username` - (Required) The username to use for this Elastic Job credential.
 
-* `password` - (Required) The password part of the credential.
+* `password` - (Optional) The password to use for this Elastic Job credential.
+
+* `password_wo` - (Optional, Write-Only) The password to use for this Elastic Job credential.
+
+~> **Note:** One of `password` or `password_wo` must be specified.
+
+* `password_wo_version` - (Optional) An integer value used to trigger an update for `password_wo`. This property should be incremented when updating `password_wo`.
+
 
 ## Attributes Reference
 
@@ -68,7 +75,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Elastic Job Credential.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic Job Credential.
@@ -82,3 +89,9 @@ Elastic Job Credentials can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_job_credential.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Sql/servers/myserver1/jobAgents/myjobagent1/credentials/credential1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -12,11 +12,11 @@ resource "azurerm_resource_group" "example" {
 
 # NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "example" {
-  name                = "${var.prefix}-redis"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  capacity            = 0
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = false
+  name                 = "${var.prefix}-redis"
+  location             = azurerm_resource_group.example.location
+  resource_group_name  = azurerm_resource_group.example.name
+  capacity             = 0
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = false
 }

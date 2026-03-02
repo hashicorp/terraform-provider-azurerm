@@ -43,7 +43,7 @@ API Response:
 
 // parseErrorFromApiResponse parses the error from the API Response
 // into an Error type, which allows for better surfacing of errors
-func parseErrorFromApiResponse(response http.Response) (*Error, error) {
+func parseErrorFromApiResponse(response *http.Response) (*Error, error) {
 	respBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("parsing response body: %+v", err)
@@ -125,7 +125,6 @@ func parseErrorFromApiResponse(response http.Response) (*Error, error) {
 			if v.ActivityId != "" {
 				activityId = v.ActivityId
 			}
-			break
 		}
 		return &Error{
 			ActivityId:   activityId,

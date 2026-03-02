@@ -41,7 +41,9 @@ The following arguments are supported:
 
 * `schema_compatibility` - (Required) Specifies the compatibility of this schema group. Possible values are `None`, `Backward`, `Forward`. Changing this forces a new resource to be created.
 
-* `schema_type` - (Required) Specifies the Type of this schema group. Possible values are `Avro`, `Unknown`. Changing this forces a new resource to be created.
+* `schema_type` - (Required) Specifies the Type of this schema group. Possible values are `Avro`, `Unknown` and `Json`. Changing this forces a new resource to be created.
+
+~> **Note:** When `schema_type` is specified as `Json`, `schema_compatibility` must be set to `None`.
 
 ## Attributes Reference
 
@@ -51,7 +53,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub Namespace Schema Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Namespace Schema Group.
@@ -64,3 +66,9 @@ Schema Group for a EventHub Namespace can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_eventhub_namespace_schema_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/schemaGroups/group1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventHub` - 2024-01-01

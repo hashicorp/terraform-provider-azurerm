@@ -10,9 +10,9 @@ description: |-
 
 Manages a Blueprint Assignment resource
 
-~> **NOTE:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
+~> **Note:** Azure Blueprints are in Preview and potentially subject to breaking change without notice.
 
-~> **NOTE:** Azure Blueprint Assignments can only be applied to Subscriptions.  Assignments to Management Groups is not currently supported by the service or by Terraform.
+~> **Note:** Azure Blueprint Assignments can only be applied to Subscriptions.  Assignments to Management Groups is not currently supported by the service or by Terraform.
 
 ## Example Usage
 
@@ -104,7 +104,7 @@ resource "azurerm_blueprint_assignment" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The name of the Blueprint Assignment. Changing this forces a new resource to be created.
 
@@ -118,11 +118,11 @@ resource "azurerm_blueprint_assignment" "example" {
 
 * `parameter_values` - (Optional) a JSON string to supply Blueprint Assignment parameter values.
 
-~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
+~> **Note:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
 * `resource_groups` - (Optional) a JSON string to supply the Blueprint Resource Group information.
 
-~> **NOTE:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
+~> **Note:** Improperly formatted JSON, or missing values required by a Blueprint will cause the assignment to fail.
 
 * `lock_mode` - (Optional) The locking mode of the Blueprint Assignment. One of `None` (Default), `AllResourcesReadOnly`, or `AllResourcesDoNotDelete`. Defaults to `None`.
 
@@ -150,11 +150,11 @@ An `identity` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Blueprint Assignment.
-* `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Blueprint Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Blueprint Assignment.
 
 ## Import
@@ -164,3 +164,9 @@ Azure Blueprint Assignments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_blueprint_assignment.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprintAssignments/assignSimpleBlueprint"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Blueprint` - 2018-11-01-preview

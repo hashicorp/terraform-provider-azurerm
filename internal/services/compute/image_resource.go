@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -16,17 +16,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceImage() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceImageCreateUpdate,
 		Read:   resourceImageRead,
 		Update: resourceImageCreateUpdate,
@@ -55,10 +53,11 @@ func resourceImage() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"zone_resilient": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 			},
 
 			"hyper_v_generation": {
@@ -79,10 +78,11 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"os_disk": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				ForceNew: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
@@ -157,8 +157,9 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"data_disk": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"lun": {
@@ -219,13 +220,6 @@ func resourceImage() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		delete(resource.Schema["os_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
-		delete(resource.Schema["data_disk"].Elem.(*pluginsdk.Resource).Schema, "storage_type")
-	}
-
-	return resource
 }
 
 func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -260,7 +254,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	storageProfile := images.ImageStorageProfile{
 		OsDisk:        expandImageOSDisk(d.Get("os_disk").([]interface{})),
 		DataDisks:     expandImageDataDisks(d.Get("data_disk").([]interface{})),
-		ZoneResilient: utils.Bool(d.Get("zone_resilient").(bool)),
+		ZoneResilient: pointer.To(d.Get("zone_resilient").(bool)),
 	}
 
 	// either source VM or storage profile can be specified, but not both
@@ -403,9 +397,8 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 			}
 		}
 
-		if features.FourPointOhBeta() {
-			out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
-		}
+		out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+
 		return out
 	}
 
@@ -443,9 +436,7 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			}
 		}
 
-		if features.FourPointOhBeta() {
-			item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
-		}
+		item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
 
 		output = append(output, item)
 	}
@@ -490,13 +481,11 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 				"disk_encryption_set_id": diskEncryptionSetId,
 			}
 
-			if features.FourPointOhBeta() {
-				storageType := ""
-				if v.StorageAccountType != nil {
-					storageType = string(*v.StorageAccountType)
-				}
-				properties["storage_type"] = storageType
+			storageType := ""
+			if v.StorageAccountType != nil {
+				storageType = string(*v.StorageAccountType)
 			}
+			properties["storage_type"] = storageType
 
 			output = append(output, properties)
 		}
@@ -542,13 +531,11 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 					"disk_encryption_set_id": diskEncryptionSetId,
 				}
 
-				if features.FourPointOhBeta() {
-					storageType := ""
-					if disk.StorageAccountType != nil {
-						storageType = string(*disk.StorageAccountType)
-					}
-					properties["storage_type"] = storageType
+				storageType := ""
+				if disk.StorageAccountType != nil {
+					storageType = string(*disk.StorageAccountType)
 				}
+				properties["storage_type"] = storageType
 
 				output = append(output, properties)
 			}

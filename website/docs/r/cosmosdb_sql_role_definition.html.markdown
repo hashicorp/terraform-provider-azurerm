@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `assignable_scopes` - (Required) A list of fully qualified scopes at or below which Role Assignments may be created using this Cosmos DB SQL Role Definition. It will allow application of this Cosmos DB SQL Role Definition on the entire Database Account or any underlying Database/Collection. Scopes higher than Database Account are not enforceable as assignable scopes.
 
-~> **NOTE:** The resources referenced in assignable scopes need not exist.
+~> **Note:** The resources referenced in assignable scopes need not exist.
 
 * `name` - (Required) An user-friendly name for the Cosmos DB SQL Role Definition which must be unique for the Database Account.
 
@@ -86,7 +86,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cosmos DB SQL Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cosmos DB SQL Role Definition.

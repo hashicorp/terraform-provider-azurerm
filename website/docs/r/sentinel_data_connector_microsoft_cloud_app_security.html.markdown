@@ -10,7 +10,7 @@ description: |-
 
 Manages a Microsoft Cloud App Security Data Connector.
 
- !> **NOTE:** This resource requires that [Enterprise Mobility + Security E5](https://www.microsoft.com/en-us/microsoft-365/enterprise-mobility-security) is enabled on the tenant being connected to.
+!> **Note:** This resource requires that [Enterprise Mobility + Security E5](https://www.microsoft.com/en-us/microsoft-365/enterprise-mobility-security) is enabled on the tenant being connected to.
 
 ## Example Usage
 
@@ -51,11 +51,11 @@ The following arguments are supported:
 
 * `discovery_logs_enabled` - (Optional) Should the Discovery Logs be enabled? Defaults to `true`.
 
--> **NOTE:** One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
+-> **Note:** One of either `alerts_enabled` or `discovery_logs_enabled` has to be specified.
 
 * `tenant_id` - (Optional) The ID of the Tenant that this Microsoft Cloud App Security Data Connector connects to.
 
--> **NOTE** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
+-> **Note:** Currently, only the same tenant as the running account is allowed. Cross-tenant scenario is not supported yet.
 
 ## Attributes Reference
 
@@ -65,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Microsoft Cloud App Security Data Connector.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft Cloud App Security Data Connector.

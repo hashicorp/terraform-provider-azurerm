@@ -10,7 +10,7 @@ description: |-
 
 Manages an IotHub Route
 
-~> **NOTE:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
+~> **Note:** Routes can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_route` resource - but the two cannot be used together. If both are used against the same IoTHub, spurious changes will occur.
 
 ## Example Usage
 
@@ -74,7 +74,7 @@ resource "azurerm_iothub_route" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -100,11 +100,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Route.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub Route.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Route.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Route.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Route.
 
 ## Import

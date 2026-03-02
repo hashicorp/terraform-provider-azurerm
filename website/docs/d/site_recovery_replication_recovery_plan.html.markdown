@@ -6,7 +6,7 @@ description: |-
     Get information about an Azure Site Recovery Plan within a Recovery Services vault.
 ---
 
-# azurerm_site_recovery_replication_recovery_plan
+# Data Source: azurerm_site_recovery_replication_recovery_plan
 
 Get information about an Azure Site Recovery Plan within a Recovery Services vault. A recovery plan gathers machines into recovery groups for the purpose of failover.
 
@@ -24,7 +24,7 @@ data "azurerm_site_recovery_replication_recovery_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -80,6 +80,12 @@ An `action` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replication Plan.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices` - 2024-04-01

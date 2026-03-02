@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -126,7 +126,7 @@ func validateResourceTypeName(resourceType string) error {
 	}
 
 	// Role Assignments should be named `azurerm_{type}_role_assignment` for consistency
-	if strings.Contains(resourceType, "role_assignment") && !strings.HasSuffix(resourceType, "role_assignment") {
+	if strings.Contains(resourceType, "role_assignment") && (!strings.HasSuffix(resourceType, "role_assignment") && !strings.HasSuffix(resourceType, "role_assignments")) {
 		return fmt.Errorf("role assignment resources should be named `azurerm_{type}_role_assignment`")
 	}
 

@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package customproviders
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name custom_provider -service-package-name customproviders -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 import (
 	"fmt"
@@ -10,9 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders/validate"
@@ -27,10 +30,11 @@ func resourceCustomProvider() *pluginsdk.Resource {
 		Read:   resourceCustomProviderRead,
 		Update: resourceCustomProviderCreateUpdate,
 		Delete: resourceCustomProviderDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := customresourceprovider.ParseResourceProviderID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&customresourceprovider.ResourceProviderId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&customresourceprovider.ResourceProviderId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -125,7 +129,7 @@ func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	id := customresourceprovider.NewResourceProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	if d.IsNewResource() {
@@ -156,6 +160,10 @@ func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCustomProviderRead(d, meta)
 }
 
@@ -183,7 +191,7 @@ func resourceCustomProviderRead(d *pluginsdk.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", azure.NormalizeLocation(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("resource_type", flattenCustomProviderResourceType(props.ResourceTypes)); err != nil {
@@ -198,9 +206,12 @@ func resourceCustomProviderRead(d *pluginsdk.ResourceData, meta interface{}) err
 				return fmt.Errorf("setting `validation`: %+v", err)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCustomProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {

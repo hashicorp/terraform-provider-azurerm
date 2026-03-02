@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -39,10 +39,10 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(5 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(5 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(5 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -102,7 +102,7 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource.Schema["enabled_log"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
@@ -185,6 +185,13 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/38858 is resolved
+	pollerType := NewAadDiagnosticSettingCreatePoller(client, id)
+	poller := pollers.NewPoller(pollerType, 15*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -352,7 +359,7 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 		id:     *id,
 	}
 	initialDelayDuration := 15 * time.Second
-	poller := pollers.NewPoller(waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	poller := pollers.NewPoller(&waitForAADDiagnosticSettingToBeGone, initialDelayDuration, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be fully deleted: %+v", *id, err)
 	}
@@ -374,7 +381,7 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 			Enabled:  true,
 		}
 
-		if !features.FivePointOhBeta() {
+		if !features.FivePointOh() {
 			if len(v["retention_policy"].([]interface{})) != 0 && v["retention_policy"].([]interface{})[0] != nil {
 				policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
 				retentionDays := policyRaw["days"].(int)
@@ -412,7 +419,7 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 			"category": category,
 		}
 
-		if !features.FivePointOhBeta() {
+		if !features.FivePointOh() {
 			policies := make([]interface{}, 0)
 			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
 				if inputPolicy.Days != 0 || inputPolicy.Enabled {
@@ -432,27 +439,33 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 	return results
 }
 
-var _ pollers.PollerType = waitForAADDiagnosticSettingToBeGonePoller{}
+var _ pollers.PollerType = &waitForAADDiagnosticSettingToBeGonePoller{}
 
 type waitForAADDiagnosticSettingToBeGonePoller struct {
-	client *diagnosticsettings.DiagnosticSettingsClient
-	id     diagnosticsettings.DiagnosticSettingId
+	client                    *diagnosticsettings.DiagnosticSettingsClient
+	id                        diagnosticsettings.DiagnosticSettingId
+	continuousTargetOccurence int
 }
 
-func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+func (p *waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
 	resp, err := p.client.Get(ctx, p.id)
-	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return nil, fmt.Errorf("retrieving the deleted %s to check the deletion status: %+v", p.id, err)
-		}
+	if err != nil && !response.WasNotFound(resp.HttpResponse) {
+		return nil, fmt.Errorf("retrieving the deleted %s to check the deletion status: %+v", p.id, err)
+	}
 
-		return &pollers.PollResult{
-			HttpResponse: &client.Response{
-				Response: resp.HttpResponse,
-			},
-			PollInterval: 15 * time.Second,
-			Status:       pollers.PollingStatusSucceeded,
-		}, nil
+	if response.WasNotFound(resp.HttpResponse) {
+		if p.continuousTargetOccurence >= 3 {
+			return &pollers.PollResult{
+				HttpResponse: &client.Response{
+					Response: resp.HttpResponse,
+				},
+				PollInterval: 15 * time.Second,
+				Status:       pollers.PollingStatusSucceeded,
+			}, nil
+		}
+		p.continuousTargetOccurence++
+	} else {
+		p.continuousTargetOccurence = 0
 	}
 
 	return &pollers.PollResult{
@@ -461,5 +474,43 @@ func (p waitForAADDiagnosticSettingToBeGonePoller) Poll(ctx context.Context) (*p
 		},
 		PollInterval: 15 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
+	}, nil
+}
+
+var _ pollers.PollerType = &aadDiagnosticSettingCreatePoller{}
+
+type aadDiagnosticSettingCreatePoller struct {
+	client *diagnosticsettings.DiagnosticSettingsClient
+	id     diagnosticsettings.DiagnosticSettingId
+}
+
+func NewAadDiagnosticSettingCreatePoller(client *diagnosticsettings.DiagnosticSettingsClient, id diagnosticsettings.DiagnosticSettingId) *aadDiagnosticSettingCreatePoller {
+	return &aadDiagnosticSettingCreatePoller{
+		client: client,
+		id:     id,
+	}
+}
+
+func (p *aadDiagnosticSettingCreatePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+	resp, err := p.client.Get(ctx, p.id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
+			return &pollers.PollResult{
+				HttpResponse: &client.Response{
+					Response: resp.HttpResponse,
+				},
+				PollInterval: 15 * time.Second,
+				Status:       pollers.PollingStatusInProgress,
+			}, nil
+		}
+		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
+	}
+
+	return &pollers.PollResult{
+		HttpResponse: &client.Response{
+			Response: resp.HttpResponse,
+		},
+		PollInterval: 15 * time.Second,
+		Status:       pollers.PollingStatusSucceeded,
 	}, nil
 }

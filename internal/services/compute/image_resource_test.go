@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute_test
@@ -15,16 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ImageResource struct{}
@@ -203,7 +201,7 @@ func (ImageResource) Exists(ctx context.Context, clients *clients.Client, state 
 		return nil, fmt.Errorf("retrieving Compute Image %q", id)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
@@ -524,16 +522,6 @@ func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperV
     caching      = "None"
     storage_type = "StandardSSD_LRS"
   }`
-	if !features.FourPointOhBeta() {
-		osDisk = `
-    os_disk {
-      os_type  = "Linux"
-      os_state = "Generalized"
-      blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-      size_gb  = 30
-      caching  = "None"
-  }`
-	}
 
 	template := r.setupUnmanagedDisks(data)
 
@@ -569,16 +557,6 @@ func (r ImageResource) standaloneImageRequiresImport(data acceptance.TestData) s
     caching      = "None"
     storage_type = "StandardSSD_LRS"
   }`
-	if !features.FourPointOhBeta() {
-		osDisk = `
-    os_disk {
-      os_type  = "Linux"
-      os_state = "Generalized"
-      blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-      size_gb  = 30
-      caching  = "None"
-  }`
-	}
 
 	return fmt.Sprintf(`
 %[1]s
@@ -610,16 +588,6 @@ func (r ImageResource) customImageFromVMWithUnmanagedDisksProvision(data accepta
     caching      = "None"
     storage_type = "StandardSSD_LRS"
   }`
-	if !features.FourPointOhBeta() {
-		osDisk = `
-    os_disk {
-      os_type  = "Linux"
-      os_state = "Generalized"
-      blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-      size_gb  = 30
-      caching  = "None"
-  }`
-	}
 
 	return fmt.Sprintf(`
 %[1]s
@@ -764,16 +732,6 @@ func (r ImageResource) customImageFromVMSSWithUnmanagedDisksProvision(data accep
     caching      = "None"
     storage_type = "StandardSSD_LRS"
   }`
-	if !features.FourPointOhBeta() {
-		osDisk = `
-    os_disk {
-      os_type  = "Linux"
-      os_state = "Generalized"
-      blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-      size_gb  = 30
-      caching  = "None"
-  }`
-	}
 
 	return fmt.Sprintf(`
 %[1]s
@@ -846,17 +804,6 @@ func (r ImageResource) standaloneImageEncrypt(data acceptance.TestData) string {
     disk_encryption_set_id = azurerm_disk_encryption_set.test.id
     storage_type           = "StandardSSD_LRS"
     }`
-	if !features.FourPointOhBeta() {
-		osDisk = `
-    os_disk {
-      os_type                = "Linux"
-      os_state               = "Generalized"
-      blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-      size_gb                = 30
-      caching                = "None"
-      disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-  }`
-	}
 
 	dataDisk := `
   data_disk {
@@ -866,15 +813,6 @@ func (r ImageResource) standaloneImageEncrypt(data acceptance.TestData) string {
     disk_encryption_set_id = azurerm_disk_encryption_set.test.id
     storage_type           = "StandardSSD_LRS"
     }`
-	if !features.FourPointOhBeta() {
-		dataDisk = `
-    data_disk {
-      blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-      size_gb                = 30
-      caching                = "None"
-      disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-  }`
-	}
 
 	return fmt.Sprintf(`
 %[1]s
@@ -888,6 +826,7 @@ resource "azurerm_key_vault" "test" {
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
   enabled_for_disk_encryption = true
 }
 

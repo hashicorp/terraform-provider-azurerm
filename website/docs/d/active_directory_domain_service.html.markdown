@@ -10,7 +10,7 @@ description: |-
 
 Gets information about an Active Directory Domain Service.
 
--> **Supported Modes:** At present this data source only supports **User Forest** mode and _not_ **Resource Forest** mode. [Read more](https://docs.microsoft.com/azure/active-directory-domain-services/concepts-resource-forest) about the different operation modes for this service.
+-> **Note:** At present this data source only supports **User Forest** mode and _not_ **Resource Forest** mode. [Read more](https://docs.microsoft.com/azure/active-directory-domain-services/concepts-resource-forest) about the different operation modes for this service.
 
 ## Example Usage
 
@@ -21,7 +21,7 @@ data "azurerm_active_directory_domain_service" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) The display name for your managed Active Directory Domain Service resource. Changing this forces a new resource to be created.
 
@@ -111,6 +111,12 @@ A `security` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.AAD` - 2021-05-01

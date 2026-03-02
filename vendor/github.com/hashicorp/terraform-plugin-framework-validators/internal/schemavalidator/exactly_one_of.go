@@ -29,6 +29,7 @@ var (
 	_ validator.Object  = ExactlyOneOfValidator{}
 	_ validator.Set     = ExactlyOneOfValidator{}
 	_ validator.String  = ExactlyOneOfValidator{}
+	_ validator.Dynamic = ExactlyOneOfValidator{}
 )
 
 // ExactlyOneOfValidator is the underlying struct implementing ExactlyOneOf.
@@ -265,6 +266,20 @@ func (av ExactlyOneOfValidator) ValidateSet(ctx context.Context, req validator.S
 }
 
 func (av ExactlyOneOfValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	validateReq := ExactlyOneOfValidatorRequest{
+		Config:         req.Config,
+		ConfigValue:    req.ConfigValue,
+		Path:           req.Path,
+		PathExpression: req.PathExpression,
+	}
+	validateResp := &ExactlyOneOfValidatorResponse{}
+
+	av.Validate(ctx, validateReq, validateResp)
+
+	resp.Diagnostics.Append(validateResp.Diagnostics...)
+}
+
+func (av ExactlyOneOfValidator) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	validateReq := ExactlyOneOfValidatorRequest{
 		Config:         req.Config,
 		ConfigValue:    req.ConfigValue,

@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/logging"
 )
@@ -136,7 +137,7 @@ func AttributePathToPath(ap *tftypes.AttributePath) cty.Path {
 
 // PathToAttributePath takes a cty.Path and converts it to a proto-encoded path.
 func PathToAttributePath(p cty.Path) *tftypes.AttributePath {
-	if p == nil || len(p) < 1 {
+	if len(p) < 1 {
 		return nil
 	}
 	ap := tftypes.NewAttributePath()

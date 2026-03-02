@@ -98,7 +98,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -124,9 +124,9 @@ The following arguments are supported:
 
 * `database_routing_type` - (Optional) Indication for database routing information from the data connection, by default only database routing information is allowed. Allowed values: `Single`, `Multi`. Changing this forces a new resource to be created. Defaults to `Single`.
 
-* `eventgrid_resource_id` - (Optional) The resource ID of the event grid that is subscribed to the storage account events.
+* `eventgrid_event_subscription_id` - (Optional) The resource ID of the event grid that is subscribed to the storage account events.
 
-* `managed_identity_resource_id` - (Optional) Empty for non-managed identity based data connection. For system assigned identity, provide cluster resource Id. For user assigned identity (UAI) provide the UAI resource Id.
+* `managed_identity_id` - (Optional) Empty for non-managed identity based data connection. For system assigned identity, provide cluster resource Id. For user assigned identity (UAI) provide the UAI resource Id.
 
 * `mapping_rule_name` - (Optional) Specifies the mapping rule used for the message ingestion. Mapping rule must exist before resource is created.
 
@@ -142,12 +142,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kusto Event Grid Data Connection.
-* `update` - (Defaults to 60 minutes) Used when updating the Kusto Event Grid Data Connection.
+* `create` - (Defaults to 1 hour) Used when creating the Kusto Event Grid Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Event Grid Data Connection.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Event Grid Data Connection.
+* `update` - (Defaults to 1 hour) Used when updating the Kusto Event Grid Data Connection.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kusto Event Grid Data Connection.
 
 ## Import
 
@@ -156,3 +156,9 @@ Kusto Event Grid Data Connections can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_kusto_eventgrid_data_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/databases/database1/dataConnections/dataConnection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Kusto` - 2024-04-13

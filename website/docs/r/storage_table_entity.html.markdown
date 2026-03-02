@@ -43,11 +43,11 @@ resource "azurerm_storage_table_entity" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `storage_table_id` - (Required) The Storage Share ID in which this file will be placed into. Changing this forces a new resource to be created.
+* `storage_table_id` - (Required) The Storage Share ID in which this file will be placed into.
 
 * `partition_key` - (Required) The key for the partition where the entity will be inserted/merged. Changing this forces a new resource to be created.
 
@@ -63,11 +63,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Table Entity.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Table Entity.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Table Entity.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Table Entity.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Table Entity.
 
 ## Import

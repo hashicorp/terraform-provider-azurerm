@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -53,7 +53,7 @@ data "azurerm_ip_group" "test" {
   name                = azurerm_ip_group.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, IPGroupResource{}.basic(data))
+`, IpGroupResource{}.basic(data))
 }
 
 func (IPGroupDataSource) complete(data acceptance.TestData) string {
@@ -64,5 +64,5 @@ data "azurerm_ip_group" "test" {
   name                = azurerm_ip_group.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, IPGroupResource{}.complete(data))
+`, IpGroupResource{}.complete(data))
 }

@@ -13,10 +13,10 @@ type ApiConnectionDefinitionProperties struct {
 	Api                      *ApiReference                 `json:"api,omitempty"`
 	ChangedTime              *string                       `json:"changedTime,omitempty"`
 	CreatedTime              *string                       `json:"createdTime,omitempty"`
-	CustomParameterValues    *map[string]string            `json:"customParameterValues,omitempty"`
+	CustomParameterValues    *map[string]interface{}       `json:"customParameterValues,omitempty"`
 	DisplayName              *string                       `json:"displayName,omitempty"`
-	NonSecretParameterValues *map[string]string            `json:"nonSecretParameterValues,omitempty"`
-	ParameterValues          *map[string]string            `json:"parameterValues,omitempty"`
+	NonSecretParameterValues *map[string]interface{}       `json:"nonSecretParameterValues,omitempty"`
+	ParameterValues          *map[string]interface{}       `json:"parameterValues,omitempty"`
 	Statuses                 *[]ConnectionStatusDefinition `json:"statuses,omitempty"`
 	TestLinks                *[]ApiConnectionTestLink      `json:"testLinks,omitempty"`
 }

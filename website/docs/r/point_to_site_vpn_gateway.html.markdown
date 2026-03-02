@@ -85,7 +85,7 @@ resource "azurerm_point_to_site_vpn_gateway" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -119,7 +119,7 @@ A `connection_configuration` block supports the following:
 
 * `route` - (Optional) A `route` block as defined below.
 
-* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Changing this forces a new resource to be created. Defaults to `false`.
+* `internet_security_enabled` - (Optional) Should Internet Security be enabled to secure internet traffic? Defaults to `false`.
 
 ---
 
@@ -155,11 +155,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Point-to-Site VPN Gateway.
-* `update` - (Defaults to 90 minutes) Used when updating the Point-to-Site VPN Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Point-to-Site VPN Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Point-to-Site VPN Gateway.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Point-to-Site VPN Gateway.
 
 ## Import
@@ -169,3 +169,9 @@ Point-to-Site VPN Gateway's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_point_to_site_vpn_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/p2sVpnGateways/gateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

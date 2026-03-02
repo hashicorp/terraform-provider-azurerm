@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `cluster_node_count` - (Required) The count of the Azure VMware Solution Cluster nodes.
 
-* `sku_name` - (Required) The Cluster SKU to use. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av36pt`, `av52`, `av52t`, and `av64`. Changing this forces a new Azure VMware Solution Cluster to be created.
+* `sku_name` - (Required) The Cluster SKU to use. Possible values are `av20`, `av36`, `av36t`, `av36p`, `av48`, `av48t`, `av36pt`, `av52`, `av52t`, and `av64`. Changing this forces a new Azure VMware Solution Cluster to be created.
 
 ## Attributes Reference
 
@@ -71,7 +71,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 hours) Used when creating the Azure VMware Solution Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure VMware Solution Cluster.
@@ -85,3 +85,9 @@ Azure VMware Solution Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_vmware_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AVS/privateClouds/privateCloud1/clusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AVS` - 2022-05-01

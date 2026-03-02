@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -84,7 +84,7 @@ func (c *Client) populateCache(ctx context.Context, subscriptionId commonids.Sub
 			return fmt.Errorf("parsing %q as a Key Vault ID: %+v", *item.Id, err)
 		}
 		cacheKey := c.cacheKeyForKeyVault(id.VaultName)
-		if _, inCache := keyVaultsCache[cacheKey]; inCache {
+		if _, inCache := getCachedKeyVaule(cacheKey); inCache {
 			// don't bother caching it if we've already got it
 			continue
 		}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/azuresdkhacks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -21,7 +21,7 @@ import (
 )
 
 func resourceSecurityCenterContact() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSecurityCenterContactCreateUpdate,
 		Read:   resourceSecurityCenterContactRead,
 		Update: resourceSecurityCenterContactCreateUpdate,
@@ -40,11 +40,10 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			// This becomes Required and ForceNew in 4.0 - override happens further down
 			"name": {
 				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      "default1",
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -71,17 +70,6 @@ func resourceSecurityCenterContact() *pluginsdk.Resource {
 			},
 		},
 	}
-
-	if features.FourPointOh() {
-		resource.Schema["name"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		}
-	}
-
-	return resource
 }
 
 func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -108,8 +96,8 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	contact := security.Contact{
 		ContactProperties: &security.ContactProperties{
-			Email: utils.String(d.Get("email").(string)),
-			Phone: utils.String(d.Get("phone").(string)),
+			Email: pointer.To(d.Get("email").(string)),
+			Phone: pointer.To(d.Get("phone").(string)),
 		},
 	}
 
@@ -129,12 +117,12 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 		// TODO: switch back when the Swagger/API bug has been fixed:
 		// https://github.com/Azure/azure-rest-api-specs/issues/10717 (an undefined 201)
 		if _, err := azuresdkhacks.CreateSecurityCenterContact(ctx, client, id.SecurityContactName, contact); err != nil {
-			return fmt.Errorf("Creating Security Center Contact: %+v", err)
+			return fmt.Errorf("creating Security Center Contact: %+v", err)
 		}
 
 		d.SetId(id.ID())
 	} else if _, err := client.Update(ctx, id.SecurityContactName, contact); err != nil {
-		return fmt.Errorf("Updating Security Center Contact: %+v", err)
+		return fmt.Errorf("updating Security Center Contact: %+v", err)
 	}
 
 	return resourceSecurityCenterContactRead(d, meta)

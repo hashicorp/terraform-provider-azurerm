@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/expressroutecircuits"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -23,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var expressRouteCircuitResourceName = "azurerm_express_route_circuit"
@@ -140,6 +139,12 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				ValidateFunc:  expressrouteports.ValidateExpressRoutePortID,
 			},
 
+			"rate_limiting_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"service_provider_provisioning_state": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -197,6 +202,14 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
 	}
 
+	if v, ok := d.GetOk("allow_classic_operations"); ok {
+		erc.Properties.AllowClassicOperations = pointer.To(v.(bool))
+	}
+
+	if v, ok := d.GetOk("rate_limiting_enabled"); ok {
+		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
+	}
+
 	// ServiceProviderProperties and expressRoutePorts/bandwidthInGbps properties are mutually exclusive
 	if _, ok := d.GetOk("express_route_port_id"); ok {
 		erc.Properties.ExpressRoutePort = &expressroutecircuits.SubResource{}
@@ -210,7 +223,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		erc.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	} else {
 		erc.Properties.ExpressRoutePort.Id = pointer.To(d.Get("express_route_port_id").(string))
-		erc.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+		erc.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
@@ -220,7 +233,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	// API has bug, which appears to be eventually consistent on creation. Tracked by this issue: https://github.com/Azure/azure-rest-api-specs/issues/10148
 	log.Printf("[DEBUG] Waiting for %s to be able to be queried", id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"NotFound"},
+		Pending:                   []string{"NotFound", "Waiting"},
 		Target:                    []string{"Exists"},
 		Refresh:                   expressRouteCircuitCreationRefreshFunc(ctx, client, id),
 		PollInterval:              3 * time.Second,
@@ -235,7 +248,7 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 	//  authorization_key can only be set after Circuit is created
 	if erc.Properties.AuthorizationKey != nil && *erc.Properties.AuthorizationKey != "" {
 		if err := client.CreateOrUpdateThenPoll(ctx, id, erc); err != nil {
-			return fmt.Errorf("updating %s: %+v", id, err)
+			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 	}
 
@@ -294,8 +307,16 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Properties.AllowClassicOperations = pointer.To(d.Get("allow_classic_operations").(bool))
 	}
 
+	if d.HasChange("rate_limiting_enabled") {
+		payload.Properties.EnableDirectPortRateLimit = pointer.To(d.Get("rate_limiting_enabled").(bool))
+	}
+
 	if d.HasChange("bandwidth_in_gbps") {
-		payload.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+		payload.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
+	}
+
+	if d.HasChange("bandwidth_in_mbps") {
+		payload.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
@@ -373,6 +394,7 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("service_provider_provisioning_state", string(pointer.From(props.ServiceProviderProvisioningState)))
 			d.Set("service_key", props.ServiceKey)
 			d.Set("allow_classic_operations", props.AllowClassicOperations)
+			d.Set("rate_limiting_enabled", props.EnableDirectPortRateLimit)
 
 			if serviceProviderProps := props.ServiceProviderProperties; serviceProviderProps != nil {
 				d.Set("service_provider_name", serviceProviderProps.ServiceProviderName)
@@ -380,7 +402,9 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 				d.Set("bandwidth_in_mbps", serviceProviderProps.BandwidthInMbps)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -439,6 +463,17 @@ func expressRouteCircuitCreationRefreshFunc(ctx context.Context, client *express
 			}
 
 			return nil, "", fmt.Errorf("polling to check if the Express Route Circuit has been created: %+v", err)
+		}
+
+		if model := res.Model; model != nil && model.Properties != nil && model.Properties.ProvisioningState != nil {
+			switch *model.Properties.ProvisioningState {
+			case expressroutecircuits.ProvisioningStateFailed:
+				return nil, "", fmt.Errorf("%s failed to provision: %+v", id.ID(), res)
+			case expressroutecircuits.ProvisioningStateDeleting:
+				return nil, "", fmt.Errorf("%s is in a deleting state: %+v", id.ID(), res)
+			case expressroutecircuits.ProvisioningStateUpdating:
+				return nil, "Waiting", nil
+			}
 		}
 
 		return res, "Exists", nil

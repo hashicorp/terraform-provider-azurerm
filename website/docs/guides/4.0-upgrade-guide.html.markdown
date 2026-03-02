@@ -475,10 +475,6 @@ The Azure Database for MySQL Single Server will be retired on 2024-09-16 and wil
 
 The Azure Database for MySQL Single Server will be retired on 2024-09-16 and will migrate to using the Azure Database for MySQL Flexible Server, as a result this resource has been removed from the Azure Provider.
 
-### `azurerm_network_packet_capture`
-
-This deprecated resource has been superseded by `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` and has been removed from the Azure Provider.
-
 ### `azurerm_template_deployment`
 
 This deprecated resource has been superseded by `azurerm_resource_group_template_deployment` and has been removed from the Azure Provider.
@@ -642,7 +638,7 @@ The deprecated data source has been superseded by `azurerm_mssql_server` and has
 
 * The deprecated `tags` property has been removed.
 
-### `azurem_cdn_endpoint`
+### `azurerm_cdn_endpoint`
 
 * The `origin_path` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.
 * The `content_types_to_compress` property is no longer Computed. If you experience a diff as a result of this change you may need to add this to `ignore_changes`.

@@ -24,7 +24,7 @@ output "healthcare_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Healthcare Service.
 
@@ -36,7 +36,7 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the Service is located.
 
-~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
+~> **Note:** Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`.
 
 * `kind` - The type of the service.
 * `authentication_configuration` - An `authentication_configuration` block as defined below.
@@ -63,6 +63,12 @@ A `cors_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Service.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.HealthcareApis` - 2022-12-01

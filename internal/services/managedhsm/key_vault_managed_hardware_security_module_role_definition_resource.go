@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -32,9 +32,6 @@ type KeyVaultMHSMRoleDefinitionModel struct {
 	Permission        []Permission `tfschema:"permission"`
 	RoleType          string       `tfschema:"role_type"`
 	ResourceManagerId string       `tfschema:"resource_manager_id"`
-
-	// TODO: remove in 4.0
-	VaultBaseUrl string `tfschema:"vault_base_url,removedInNextMajorVersion"`
 }
 
 type Permission struct {
@@ -312,9 +309,6 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			state := KeyVaultMHSMRoleDefinitionModel{
 				Name:         pointer.From(result.Name),
 				ManagedHSMID: managedHsmId.ID(),
-
-				// TODO: remove in 4.0
-				VaultBaseUrl: id.BaseURI(),
 			}
 
 			if v := pointer.From(result.ID); v != "" {
@@ -326,7 +320,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Read() sdk.ResourceFunc {
 			}
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				state.Description = pointer.ToString(prop.Description)
+				state.Description = pointer.From(prop.Description)
 				state.RoleType = string(prop.RoleType)
 				state.RoleName = pointer.From(prop.RoleName)
 				state.Permission = flattenKeyVaultMHSMRolePermission(prop.Permissions)
@@ -387,8 +381,7 @@ func (r KeyVaultMHSMRoleDefinitionResource) Update() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName, payload); err != nil {
 				return fmt.Errorf("updating %s: %v", id.ID(), err)
 			}
 

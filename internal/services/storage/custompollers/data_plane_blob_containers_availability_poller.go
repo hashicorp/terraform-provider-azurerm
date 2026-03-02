@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package custompollers
@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	storageClients "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 )
 
 var _ pollers.PollerType = &DataPlaneBlobContainersAvailabilityPoller{}

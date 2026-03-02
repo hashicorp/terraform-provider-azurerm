@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	rawConfigFileName     = "terraform_plugin_test.tf"
-	rawConfigFileNameJSON = rawConfigFileName + ".json"
+	rawConfigFileName      = "terraform_plugin_test.tf"
+	rawConfigFileNameJSON  = rawConfigFileName + ".json"
+	rawQueryConfigFileName = "terraform_plugin_test.tfquery.hcl"
 )
 
 var (
@@ -45,6 +46,8 @@ type Config interface {
 	HasProviderBlock(context.Context) (bool, error)
 	HasTerraformBlock(context.Context) (bool, error)
 	Write(context.Context, string) error
+	Append(string) Config
+	WriteQuery(context.Context, string) error
 }
 
 // PrepareConfigurationRequest is used to simplify the generation of
@@ -151,7 +154,7 @@ func copyFiles(path string, dstPath string) error {
 		if info.IsDir() {
 			continue
 		} else {
-			err = copyFile(srcPath, dstPath)
+			_, err = copyFile(srcPath, dstPath)
 
 			if err != nil {
 				return err
@@ -164,11 +167,11 @@ func copyFiles(path string, dstPath string) error {
 
 // copyFile accepts a path to a file and a destination,
 // copying the file from path to destination.
-func copyFile(path string, dstPath string) error {
+func copyFile(path string, dstPath string) (string, error) {
 	srcF, err := os.Open(path)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	defer srcF.Close()
@@ -176,7 +179,7 @@ func copyFile(path string, dstPath string) error {
 	di, err := os.Stat(dstPath)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if di.IsDir() {
@@ -187,12 +190,28 @@ func copyFile(path string, dstPath string) error {
 	dstF, err := os.Create(dstPath)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	defer dstF.Close()
 
 	if _, err := io.Copy(dstF, srcF); err != nil {
+		return "", err
+	}
+
+	return dstPath, nil
+}
+
+// appendToFile accepts a path to a file and a string,
+// appending the file from path to destination.
+func appendToFile(path string, content string) error {
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if _, err := io.WriteString(f, content); err != nil {
 		return err
 	}
 

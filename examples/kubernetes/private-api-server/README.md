@@ -1,4 +1,4 @@
-## Example: Kubernetes Cluster with private API server
+## Example: Kubernetes Cluster with private API server
 
 This example creates a Kubernetes Cluster with private API server.
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -112,6 +113,11 @@ func dataSourceManagedDisk() *pluginsdk.Resource {
 				},
 			},
 
+			"location": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"image_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -176,6 +182,7 @@ func dataSourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if model := resp.Model; model != nil {
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		d.Set("location", location.Normalize(model.Location))
 
 		storageAccountType := ""
 		if sku := model.Sku; sku != nil {

@@ -170,6 +170,9 @@ var ElementFunc = function.New(&function.Spec{
 				return cty.DynamicPseudoType, errors.New("cannot use element function with an empty list")
 			}
 			index = index % len(etys)
+			if index < 0 {
+				index += len(etys)
+			}
 			return etys[index], nil
 		default:
 			return cty.DynamicPseudoType, fmt.Errorf("cannot read elements from %s", listTy.FriendlyName())

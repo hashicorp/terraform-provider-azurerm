@@ -39,7 +39,7 @@ resource "azurerm_storage_account" "example" {
 data "azurerm_storage_account_sas" "example" {
   connection_string = azurerm_storage_account.example.primary_connection_string
   https_only        = true
-  signed_version    = "2017-07-29"
+  signed_version    = "2022-11-02"
 
   resource_types {
     service   = true
@@ -76,18 +76,18 @@ output "sas_url_query_string" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `connection_string` - The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
 * `ip_addresses` - (Optional) IP address, or a range of IP addresses, from which to accept requests. When specifying a range, note that the range is inclusive.  
-* `signed_version` - (Optional) Specifies the signed storage service version to use to authorize requests made with this account SAS. Defaults to `2017-07-29`.
+* `signed_version` - (Optional) Specifies the signed storage service version to use to authorize requests made with this account SAS. Defaults to `2022-11-02`.
 * `resource_types` - A `resource_types` block as defined below.
 * `services` - A `services` block as defined below.
 * `start` - The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 * `expiry` - The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
 
--> **NOTE:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
+-> **Note:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
 
 * `permissions` - A `permissions` block as defined below.
 
@@ -138,6 +138,6 @@ for additional details on the fields above.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the SAS Token.

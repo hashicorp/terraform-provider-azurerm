@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -31,6 +31,11 @@ func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 			New:    "Integrated Security=False;Data Source=test;Initial Catalog=test;User ID=test;Password=test",
 			NoDiff: false,
 		},
+		{
+			Old:    "server=myserver.database.windows.net;database=mydatabase;user id=myuser",
+			New:    "Server=myserver.database.windows.net;Database=mydatabase;User ID=myuser;Password=mypassword;",
+			NoDiff: true,
+		},
 	}
 
 	for _, tc := range cases {
@@ -38,95 +43,6 @@ func TestDataFactoryLinkedServiceConnectionStringDiff(t *testing.T) {
 
 		if noDiff != tc.NoDiff {
 			t.Fatalf("Expected azureRmDataFactoryLinkedServiceConnectionStringDiff to be '%t' for '%s' '%s' - got '%t'", tc.NoDiff, tc.Old, tc.New, noDiff)
-		}
-	}
-}
-
-func TestDataFactoryDeserializePipelineActivities(t *testing.T) {
-	cases := []struct {
-		Json                string
-		ExpectActivityCount int
-		ExpectErr           bool
-	}{
-		{
-			Json:                "{}",
-			ExpectActivityCount: 0,
-			ExpectErr:           true,
-		},
-		{
-			Json: `[
-				{
-				  "type": "ForEach",
-				  "typeProperties": {
-					"isSequential": true,
-					"items": {
-					  "value": "@pipeline().parameters.OutputBlobNameList",
-					  "type": "Expression"
-					},
-					"activities": [
-					  {
-						"type": "Copy",
-						"typeProperties": {
-						  "source": {
-							"type": "BlobSource"
-						  },
-						  "sink": {
-							"type": "BlobSink"
-						  },
-						  "dataIntegrationUnits": 32
-						},
-						"inputs": [
-						  {
-							"referenceName": "exampleDataset",
-							"parameters": {
-							  "MyFolderPath": "examplecontainer",
-							  "MyFileName": "examplecontainer.csv"
-							},
-							"type": "DatasetReference"
-						  }
-						],
-						"outputs": [
-						  {
-							"referenceName": "exampleDataset",
-							"parameters": {
-							  "MyFolderPath": "examplecontainer",
-							  "MyFileName": {
-								"value": "@item()",
-								"type": "Expression"
-							  }
-							},
-							"type": "DatasetReference"
-						  }
-						],
-						"name": "ExampleCopyActivity"
-					  }
-					]
-				  },
-				  "name": "ExampleForeachActivity"
-				}
-			  ]`,
-			ExpectActivityCount: 1,
-			ExpectErr:           false,
-		},
-	}
-
-	for _, tc := range cases {
-		items, err := deserializeDataFactoryPipelineActivities(tc.Json)
-		if err != nil {
-			if tc.ExpectErr {
-				t.Log("Expected error and got error")
-				return
-			}
-
-			t.Fatal(err)
-		}
-
-		if items == nil && !tc.ExpectErr {
-			t.Fatal("Expected items got nil")
-		}
-
-		if len(*items) != tc.ExpectActivityCount {
-			t.Fatal("Failed to deserialise pipeline")
 		}
 	}
 }
@@ -203,6 +119,34 @@ func TestNormalizeJSON(t *testing.T) {
 
 		if suppress != tc.Suppress {
 			t.Fatalf("Expected JsonOrderingDifference to be '%t' for '%s' '%s' - got '%t'", tc.Suppress, tc.Old, tc.New, suppress)
+		}
+	}
+}
+
+func TestExpandCompressionType(t *testing.T) {
+	cases := []struct {
+		input          string
+		expectedOutput string
+	}{
+		{
+			input:          "Gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "gzip",
+			expectedOutput: "gzip",
+		},
+		{
+			input:          "TarGZip",
+			expectedOutput: "TarGZip",
+		},
+	}
+
+	for _, tc := range cases {
+		output := expandCompressionType(tc.input)
+
+		if output != tc.expectedOutput {
+			t.Fatalf("Expected expandCompressionType to be '%s' for '%s' - got '%s'", tc.expectedOutput, tc.input, output)
 		}
 	}
 }
