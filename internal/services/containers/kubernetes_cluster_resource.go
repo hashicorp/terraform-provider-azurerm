@@ -109,16 +109,23 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 				return true
 			}),
-			pluginsdk.ForceNewIfChange("network_profile.0.network_plugin", func(ctx context.Context, old, new, meta interface{}) bool {
-				oldStr := old.(string)
-				newStr := new.(string)
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if d.HasChange("network_profile.0.network_plugin") {
+					old, new := d.GetChange("network_profile.0.network_plugin")
+					oldStr := old.(string)
+					newStr := new.(string)
 
-				if oldStr == "kubenet" && newStr == "azure" {
-					return false
+					if oldStr == "kubenet" && newStr == "azure" {
+						networkPluginMode := d.Get("network_profile.0.network_plugin_mode").(string)
+						if strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
+							return nil
+						}
+					}
+
+					return d.ForceNew("network_profile.0.network_plugin")
 				}
-
-				return true
-			}),
+				return nil
+			},
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
 					d.SetNewComputed("oidc_issuer_url")
