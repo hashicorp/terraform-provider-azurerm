@@ -213,12 +213,6 @@ resource "azurerm_express_route_circuit_connection" "test" {
   peer_peering_id     = azurerm_express_route_circuit_peering.peer_test.id
   address_prefix_ipv4 = "192.169.8.0/29"
   authorization_key   = "%s"
-
-  lifecycle {
-    ignore_changes = [
-      "authorization_key"
-    ]
-  }
 }
 `, r.template(data), data.RandomInteger, authorizationKey)
 }
