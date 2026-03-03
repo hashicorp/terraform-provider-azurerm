@@ -184,6 +184,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"api_server_access_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -198,7 +199,6 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 						"virtual_network_integration_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
@@ -213,11 +213,9 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(managedclusters.UpgradeChannelPatch),
-					string(managedclusters.UpgradeChannelRapid),
 					string(managedclusters.UpgradeChannelStable),
-					string(managedclusters.UpgradeChannelNodeNegativeimage),
 				}, false),
+				Default: string(managedclusters.UpgradeChannelStable),
 			},
 
 			"auto_scaler_profile": {
@@ -368,6 +366,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"azure_active_directory_role_based_access_control": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -386,11 +385,13 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 						"azure_rbac_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 
 						"admin_group_object_ids": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							Computed: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.IsUUID,
@@ -407,6 +408,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"cost_analysis_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"custom_ca_trust_certificates_base64": {
@@ -419,7 +421,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"default_node_pool": SchemaDefaultNodePool(),
+			"default_node_pool": SchemaDefaultAutomaticClusterNodePool(),
 
 			"disk_encryption_set_id": {
 				Type:         pluginsdk.TypeString,
@@ -485,17 +487,20 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"image_cleaner_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"image_cleaner_interval_hours": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(24, 2160),
+				ValidateFunc: validation.IntBetween(168, 2160),
+				Default:      168,
 			},
 
 			"web_app_routing": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -751,9 +756,16 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"local_account_disabled": {
+			//"local_account_disabled": {
+			//	Type:     pluginsdk.TypeBool,
+			//	Optional: true,
+			//	Default:  true,
+			//},
+			"azure_policy_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Computed: true,
+				Default:  true,
 			},
 
 			"maintenance_window": {
@@ -1118,7 +1130,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 						"network_data_plane": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(managedclusters.NetworkDataplaneAzure),
+							Default:  string(managedclusters.NetworkDataplaneCilium),
 							ValidateFunc: validation.StringInSlice(
 								managedclusters.PossibleValuesForNetworkDataplane(),
 								false),
@@ -1184,7 +1196,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 						"outbound_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(managedclusters.OutboundTypeLoadBalancer),
+							Default:  string(managedclusters.OutboundTypeManagedNATGateway),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.OutboundTypeLoadBalancer),
 								string(managedclusters.OutboundTypeUserDefinedRouting),
@@ -1375,6 +1387,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"oidc_issuer_url": {
@@ -1652,6 +1665,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"workload_autoscaler_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -1702,12 +1716,12 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 		},
 	}
 
-	for k, v := range schemaKubernetesAddOns() {
+	for k, v := range schemaKubernetesAutomaticClusterAddOns() {
 		resource.Schema[k] = v
 	}
 
@@ -1948,7 +1962,7 @@ func resourceKubernetesAutomaticClusterCreate(d *pluginsdk.ResourceData, meta in
 			MetricsProfile:            metricsProfile,
 			NetworkProfile:            networkProfile,
 			NodeResourceGroup:         pointer.To(nodeResourceGroup),
-			DisableLocalAccounts:      pointer.To(d.Get("local_account_disabled").(bool)),
+			DisableLocalAccounts:      pointer.To(true), // pointer.To(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:           httpProxyConfig,
 			OidcIssuerProfile:         oidcIssuerProfile,
 			SecurityProfile:           securityProfile,
@@ -2220,10 +2234,10 @@ func resourceKubernetesAutomaticClusterUpdate(d *pluginsdk.ResourceData, meta in
 		existing.Model.Properties.LinuxProfile = linuxProfile
 	}
 
-	if d.HasChange("local_account_disabled") {
-		updateCluster = true
-		existing.Model.Properties.DisableLocalAccounts = pointer.To(d.Get("local_account_disabled").(bool))
-	}
+	//if d.HasChange("local_account_disabled") {
+	//	updateCluster = true
+	//	existing.Model.Properties.DisableLocalAccounts = pointer.To(d.Get("local_account_disabled").(bool))
+	//}
 
 	if d.HasChange("cost_analysis_enabled") {
 		updateCluster = true
@@ -2895,7 +2909,7 @@ func resourceKubernetesAutomaticClusterRead(d *pluginsdk.ResourceData, meta inte
 			d.Set("disk_encryption_set_id", props.DiskEncryptionSetID)
 			d.Set("kubernetes_version", props.KubernetesVersion)
 			d.Set("current_kubernetes_version", props.CurrentKubernetesVersion)
-			d.Set("local_account_disabled", props.DisableLocalAccounts)
+			// d.Set("local_account_disabled", props.DisableLocalAccounts)
 
 			nodeResourceGroup := ""
 			if v := props.NodeResourceGroup; v != nil {
