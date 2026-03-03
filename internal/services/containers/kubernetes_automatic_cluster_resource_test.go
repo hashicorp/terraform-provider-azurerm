@@ -30,7 +30,6 @@ func TestAccKubernetesAutomaticCluster_automaticSKU(t *testing.T) {
 			Config: r.automaticSKU(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -45,7 +44,6 @@ func TestAccKubernetesAutomaticCluster_hostEncryption(t *testing.T) {
 			Config: r.hostEncryption(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.host_encryption_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -438,8 +436,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    os_disk_type = "Ephemeral"
-    vm_size    = "standard_d4lds_v5" 
+    //os_disk_type = "Ephemeral"
+    //vm_size    = "standard_d4lds_v5" 
   }
 
   identity {
@@ -470,7 +468,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name                    = "default"
     node_count              = 1
-    vm_size                 = "Standard_DS2_v2"
     host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"

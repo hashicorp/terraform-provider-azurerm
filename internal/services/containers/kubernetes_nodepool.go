@@ -285,6 +285,275 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 	}
 }
 
+func SchemaDefaultAutomaticClusterNodePool() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Required: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: func() map[string]*pluginsdk.Schema {
+				return map[string]*pluginsdk.Schema{
+					// Required and conditionally ForceNew: updating `name` back to name when it's been set to the value
+					// of `temporary_name_for_rotation` during the resizing of the default node pool should be allowed and
+					// not force cluster recreation
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validate.KubernetesAgentPoolName,
+					},
+
+					"temporary_name_for_rotation": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validate.KubernetesAgentPoolName,
+					},
+
+					"type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						Default:  string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.AgentPoolTypeVirtualMachineScaleSets),
+						}, false),
+					},
+
+					"vm_size": {
+						Type: pluginsdk.TypeString,
+						// NOTE: O+C AKS RP provides a new feature that will automatically select an available vm size when it's omitted.
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"capacity_reservation_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
+					},
+
+					"kubelet_config": schemaNodePoolKubeletConfig(),
+
+					"linux_os_config": schemaNodePoolLinuxOSConfig(),
+
+					"fips_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"gpu_instance": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.GPUInstanceProfileMIGOneg),
+							string(managedclusters.GPUInstanceProfileMIGTwog),
+							string(managedclusters.GPUInstanceProfileMIGThreeg),
+							string(managedclusters.GPUInstanceProfileMIGFourg),
+							string(managedclusters.GPUInstanceProfileMIGSeveng),
+						}, false),
+					},
+
+					"gpu_driver": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
+					},
+
+					"kubelet_disk_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.KubeletDiskTypeOS),
+							string(managedclusters.KubeletDiskTypeTemporary),
+						}, false),
+					},
+
+					"max_count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Computed: true,
+						// NOTE: rather than setting `0` users should instead pass `null` here
+						ValidateFunc: validation.IntBetween(1, 1000),
+					},
+
+					"max_pods": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Computed: true,
+					},
+
+					"min_count": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+						Computed: true,
+						// NOTE: rather than setting `0` users should instead pass `null` here
+						ValidateFunc: validation.IntBetween(1, 1000),
+					},
+
+					"node_network_profile": schemaNodePoolNetworkProfile(),
+
+					"node_count": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntBetween(1, 1000),
+					},
+
+					"node_labels": {
+						Type:     pluginsdk.TypeMap,
+						Optional: true,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+
+					"node_public_ip_prefix_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
+						RequiredWith: []string{"default_node_pool.0.node_public_ip_enabled"},
+					},
+
+					"tags": commonschema.Tags(),
+
+					"os_disk_size_gb": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+
+					"os_disk_type": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  agentpools.OSDiskTypeEphemeral,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.OSDiskTypeEphemeral),
+						}, false),
+					},
+
+					"os_sku": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true, // defaults to AzureLinux if using Linux
+						ValidateFunc: validation.StringInSlice([]string{
+							string(agentpools.OSSKUAzureLinux),
+							string(agentpools.OSSKUAzureLinuxThree),
+							string(agentpools.OSSKUUbuntu),
+							string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+							string(agentpools.OSSKUWindowsTwoZeroOneNine),
+							string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
+						}, false),
+					},
+
+					"ultra_ssd_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  false,
+						Optional: true,
+					},
+
+					"vnet_subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+					"orchestrator_version": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"pod_subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+					"proximity_placement_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: proximityplacementgroups.ValidateProximityPlacementGroupID,
+					},
+					"only_critical_addons_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+
+					"scale_down_mode": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  string(managedclusters.ScaleDownModeDelete),
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.ScaleDownModeDeallocate),
+							string(managedclusters.ScaleDownModeDelete),
+						}, false),
+					},
+
+					"snapshot_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: snapshots.ValidateSnapshotID,
+					},
+
+					"host_group_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: computeValidate.HostGroupID,
+					},
+
+					"upgrade_settings": upgradeSettingsSchemaAutomaticClusterDefaultNodePool(),
+
+					"workload_runtime": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Computed: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(managedclusters.WorkloadRuntimeOCIContainer),
+						}, false),
+					},
+
+					"zones": {
+						Type:     schema.TypeSet,
+						Optional: true,
+						Computed: true,
+						Elem: &schema.Schema{
+							Type:         schema.TypeString,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+
+					"auto_scaling_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"node_public_ip_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"host_encryption_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				}
+			}(),
+		},
+	}
+}
+
 func schemaNodePoolKubeletConfig() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -666,6 +935,37 @@ func schemaNodePoolNetworkProfile() *pluginsdk.Schema {
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
 					},
+				},
+			},
+		},
+	}
+}
+
+func upgradeSettingsSchemaAutomaticClusterDefaultNodePool() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"max_surge": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+				"drain_timeout_in_minutes": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+				"node_soak_duration_in_minutes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 30),
+				},
+				"undrainable_node_behavior": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
 				},
 			},
 		},
