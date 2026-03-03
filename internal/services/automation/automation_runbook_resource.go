@@ -127,6 +127,7 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 					string(runbook.RunbookTypeEnumGraphPowerShellWorkflow),
 					string(runbook.RunbookTypeEnumPowerShell),
 					string(runbook.RunbookTypeEnumPowerShellSevenTwo),
+					string(runbook.RunbookTypeEnumPython),
 					string(runbook.RunbookTypeEnumPythonTwo),
 					string(runbook.RunbookTypeEnumPythonThree),
 					string(runbook.RunbookTypeEnumPowerShellWorkflow),
@@ -276,6 +277,12 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"runtime_environment_name": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -313,11 +320,12 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 		parameters := runbook.RunbookCreateOrUpdateParameters{
 			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:       pointer.To(d.Get("log_verbose").(bool)),
-				LogProgress:      pointer.To(d.Get("log_progress").(bool)),
-				RunbookType:      runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
-				Description:      pointer.To(d.Get("description").(string)),
-				LogActivityTrace: pointer.To(int64(d.Get("log_activity_trace_level").(int))),
+				LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
+				LogProgress:        pointer.To(d.Get("log_progress").(bool)),
+				RuntimeEnvironment: pointer.To(d.Get("runtime_environment_name").(string)),
+				RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+				Description:        pointer.To(d.Get("description").(string)),
+				LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
 			},
 
 			Location: &location,
@@ -408,6 +416,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 		d.Set("runbook_type", string(pointer.From(props.RunbookType)))
 		d.Set("description", props.Description)
 		d.Set("log_activity_trace_level", props.LogActivityTrace)
+		d.Set("runtime_environment_name", pointer.From(props.RuntimeEnvironment))
 	}
 
 	// GetContent need to use preview version client RunbookClientHack

@@ -39,5 +39,5 @@ data "azurerm_network_manager" "test" {
   name                = azurerm_network_manager.test.name
   resource_group_name = azurerm_network_manager.test.resource_group_name
 }
-`, ManagerResource{}.complete(data))
+`, NetworkManagerResource{}.complete(data))
 }

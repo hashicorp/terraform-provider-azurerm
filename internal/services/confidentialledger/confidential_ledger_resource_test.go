@@ -363,7 +363,7 @@ func (ConfidentialLedgerResource) template(data acceptance.TestData) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-ledger-%[1]d"
+  name     = "acctestrgledger%[1]d"
   location = "%[2]s"
 }
 

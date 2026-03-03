@@ -1,6 +1,6 @@
 # Provider Documentation Standards
 
-In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on. 
+In an effort to keep the [provider documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) consistent, this page documents some standards that have been agreed on.
 
 This page will grow over time, and suggestions are welcome!
 
@@ -24,13 +24,16 @@ Arguments in the documentation are expected to be ordered as follows:
 1. Any arguments that make up the resource's ID, with the last user specified segment (usually `name`) first. E.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`.
 2. The `location` field if present.
 3. Required arguments, sorted alphabetically.
-4. Optional arguments, sorted alphabetically.
+4. Optional arguments, sorted alphabetically, with the exception of `tags`, which must always be documented last.
+
+-> **Note:** This ordering applies to both `typed` and `untyped` implementations. Even when typed resources or data sources surface computed or optional fields via `Attributes()`/`model` structs, the published documentation must still follow the sequence described above.
 
 ### Descriptions
 
 The following conventions apply to argument descriptions:
 
 - Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a [note](#notes).
+- If an argument has `ForceNew: true`, its description must end with `Changing this forces a new <resource name> to be created.`
 - If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `value1`, `value2`, and `value3. ``. Other common entries include:
   - Arguments with a single allowed value: `` The only possible values is `value1`. ``
   - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
@@ -38,7 +41,7 @@ The following conventions apply to argument descriptions:
 
 Examples:
 
-- `` * `name` - (Required) The name which should be used for this resource. ``
+- `` * `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.``
 - `` * `public_network_access` - (Optional) The public network access setting for this resource. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`. ``
 - `` * `disk_size_in_gb` - (Optional) The disk size in gigabytes. Possible values range between `4` and `256`. ``
 
@@ -47,7 +50,7 @@ Examples:
 Block arguments must have two entries in the documentation:
 
 1. The initial entry, e.g. `` * `block_argument` - (Optional) A `block_argument` as defined below. ``
-2. A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. 
+2. A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
 
 Example:
 
@@ -92,7 +95,7 @@ Attribute descriptions should be concise, and must not include possible or defau
 Block attributes must have two entries in the documentation:
 
 1. The initial entry, e.g. `` * `block_attribute` - A `block_attribute` as defined below. ``
-2. A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. 
+2. A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically.
 
 Example:
 
@@ -113,11 +116,14 @@ A `block_attribute` exports the following:
 
 * `nested_attribute_2` - A much more monotonous attribute.
 
+```
+
 ## Timeouts
 
-...
+When documenting timeouts, use the updated link format for all new resources:
 
-```
+- **New resources**: Use `https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts`
+- **Existing resources**: Continue using `https://www.terraform.io/language/resources/syntax#operation-timeouts` to maintain consistency
 
 ## Notes
 
@@ -139,7 +145,7 @@ These should no longer be included, instead follow these guidelines:
 
 > We may revisit the guidelines above and/or add a specific place in the documentation for all breaking changes in minor versions.
 
-<!-- 
+<!--
     - TODO: Considerations for when to add notes? We probably don't want to overdo it (More relevant to informational notes)
 -->
 

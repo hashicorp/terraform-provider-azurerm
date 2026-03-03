@@ -1072,7 +1072,9 @@ func resourceVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta interfac
 				}
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

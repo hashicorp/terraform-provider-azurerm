@@ -92,6 +92,8 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.S
 						Computed: true,
 					},
 
+					"zone": commonschema.ZoneSingleComputed(),
+
 					"volume_spec_name": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
@@ -229,6 +231,21 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.S
 								},
 							},
 						},
+					},
+
+					"encryption_key_source": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"key_vault_private_endpoint_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"network_features": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},
