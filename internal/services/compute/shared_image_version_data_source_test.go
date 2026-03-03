@@ -171,7 +171,7 @@ resource "azurerm_shared_image_version" "test2" {
   }
 
   depends_on = [
-	azurerm_shared_image_version.test
+    azurerm_shared_image_version.test
   ]
 }
 
