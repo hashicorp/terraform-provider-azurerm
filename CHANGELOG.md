@@ -8,6 +8,9 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_analysis_services_server` - fix an issue that prevented creation of the resource with `power_bi_service_enabled` set to `false` and one or more `ipv4_firewall_rule` blocks defined [GH-31870]
+* `azurerm_analysis_services_server` - fix an issue that prevented adding or removing `ipv4_firewall_rule` blocks without also modifying `power_bi_service_enabled` [GH-31870]
+
 
 ## 4.62.1 (March 02, 2026)
 
