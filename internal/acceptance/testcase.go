@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/vcr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -62,6 +63,21 @@ func (td TestData) ResourceIdentityTest(t *testing.T, steps []TestStep, sequenti
 }
 
 func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, steps []TestStep) {
+
+	testCase := addStepsHelper(t, steps, td, testResource)
+	td.runAcceptanceTest(t, testCase)
+}
+
+// ResourceTestWithVCR is an opt-in test method that uses VCR for HTTP recording/playback.
+// Tests using this method will use a VCR-wrapped HTTP client for all Azure API calls.
+// This enables faster test execution by replaying recorded HTTP interactions.
+func (td TestData) ResourceTestWithVCR(t *testing.T, testResource types.TestResource, steps []TestStep) {
+
+	testCase := addStepsHelper(t, steps, td, testResource)
+	td.runAcceptanceTestWithVCR(t, testCase)
+}
+
+func addStepsHelper(t *testing.T, steps []TestStep, td TestData, testResource types.TestResource) resource.TestCase {
 	// Testing framework as of 1.6.0 no longer auto-refreshes state, so adding it back in here for all steps that update
 	// the config rather than having to modify 1000's of tests individually to add a refresh-only step
 	refreshStep := TestStep{
@@ -99,7 +115,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 		},
 		Steps: steps,
 	}
-	td.runAcceptanceTest(t, testCase)
+	return testCase
 }
 
 // ResourceTestIgnoreRecreate should be used when checking that a resource should be recreated during a test.
@@ -188,6 +204,16 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	testCase.ExternalProviders = td.externalProviders()
 	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm", "azurerm-alt")
+
+	resource.ParallelTest(t, testCase)
+}
+
+// runAcceptanceTestWithVCR runs acceptance test with a VCR-wrapped HTTP client for recording/playback.
+func (td TestData) runAcceptanceTestWithVCR(t *testing.T, testCase resource.TestCase) {
+	testCase.ExternalProviders = td.externalProviders()
+	// Get VCR HTTP client and create provider factories with it
+	httpClient := vcr.GetHTTPClient(t)
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithHTTPClient(context.Background(), httpClient, "azurerm", "azurerm-alt")
 
 	resource.ParallelTest(t, testCase)
 }
