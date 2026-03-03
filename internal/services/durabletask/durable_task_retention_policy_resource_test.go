@@ -100,8 +100,7 @@ func (r RetentionPolicyResource) Exists(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	_, err = client.DurableTask.RetentionPoliciesClient.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.DurableTask.RetentionPoliciesClient.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving retention policy for %s: %v", id, err)
 	}
 
