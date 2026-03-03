@@ -18,6 +18,18 @@ import (
 )
 
 func manualResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
+	basePath := parentPath + ".manual_resource_prediction.0."
+	allScheduleFields := []string{
+		basePath + "all_week_schedule",
+		basePath + "sunday_schedule",
+		basePath + "monday_schedule",
+		basePath + "tuesday_schedule",
+		basePath + "wednesday_schedule",
+		basePath + "thursday_schedule",
+		basePath + "friday_schedule",
+		basePath + "saturday_schedule",
+	}
+
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		Optional:      true,
@@ -33,33 +45,34 @@ func manualResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 				},
 
 				"all_week_schedule": {
-					Type:     pluginsdk.TypeInt,
-					Optional: true,
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					AtLeastOneOf: allScheduleFields,
 					ConflictsWith: []string{
-						parentPath + ".manual_resource_prediction.0.sunday_schedule",
-						parentPath + ".manual_resource_prediction.0.monday_schedule",
-						parentPath + ".manual_resource_prediction.0.tuesday_schedule",
-						parentPath + ".manual_resource_prediction.0.wednesday_schedule",
-						parentPath + ".manual_resource_prediction.0.thursday_schedule",
-						parentPath + ".manual_resource_prediction.0.friday_schedule",
-						parentPath + ".manual_resource_prediction.0.saturday_schedule",
+						basePath + "sunday_schedule",
+						basePath + "monday_schedule",
+						basePath + "tuesday_schedule",
+						basePath + "wednesday_schedule",
+						basePath + "thursday_schedule",
+						basePath + "friday_schedule",
+						basePath + "saturday_schedule",
 					},
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
-				"sunday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
+				"sunday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
 
-				"monday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
+				"monday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
 
-				"tuesday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
+				"tuesday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
 
-				"wednesday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
+				"wednesday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
 
-				"thursday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
+				"thursday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
 
-				"friday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
+				"friday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
 
-				"saturday_schedule": dayScheduleSchemaOptional(parentPath + ".manual_resource_prediction.0.all_week_schedule"),
+				"saturday_schedule": dayScheduleSchemaOptional(allScheduleFields, basePath+"all_week_schedule"),
 			},
 		},
 	}
@@ -84,7 +97,7 @@ func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 	}
 }
 
-func dayScheduleSchemaOptional(conflictsWith ...string) *pluginsdk.Schema {
+func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -106,6 +119,7 @@ func dayScheduleSchemaOptional(conflictsWith ...string) *pluginsdk.Schema {
 				},
 			},
 		},
+		AtLeastOneOf:  atLeastOneOf,
 		ConflictsWith: conflictsWith,
 	}
 }

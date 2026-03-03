@@ -1,7 +1,7 @@
 ---
 subcategory: "Managed DevOps Pools"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_managed_devops_pool"
+page_title: "Azure Resource Manager: azurerm_managed_devops_pool"
 description: |-
   Gets information about an existing Managed DevOps Pool.
 ---
@@ -81,19 +81,19 @@ An `azure_devops_organization` block exports the following:
 
 An `identity` block exports the following:
 
-* `type` - The type of Managed Service Identity that is configured on this Managed DevOps Pool
-
 * `identity_ids` - A list of User Assigned Identity IDs assigned to this Managed DevOps Pool.
+
+* `type` - The type of Managed Service Identity that is configured on this Managed DevOps Pool.
 
 ---
 
 An `image` block exports the following:
 
+* `id` - The resource id of the image.
+
 * `aliases` - A list of image aliases.
 
 * `buffer` - The percentage of the buffer allocated to this image.
-
-* `id` - The resource id of the image.
 
 * `well_known_image_name` - The image name from a well-known set of images made available to customers.
 
@@ -101,41 +101,41 @@ An `image` block exports the following:
 
 A `manual_resource_prediction` block exports the following:
 
-* `time_zone_name` - The time zone for the predictions data to be provisioned at.
-
 * `all_week_schedule` - A number of agents available 24/7 all week.
+
+* `friday_schedule` - One or more `daily_schedule` blocks as defined below.
+
+* `monday_schedule` - One or more `daily_schedule` blocks as defined below.
+
+* `saturday_schedule` - One or more `daily_schedule` blocks as defined below.
 
 * `sunday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `monday_schedule` - One or more `daily_schedule` blocks as defined below.
+* `thursday_schedule` - One or more `daily_schedule` blocks as defined below.
+
+* `time_zone_name` - The time zone for the predictions data to be provisioned at.
 
 * `tuesday_schedule` - One or more `daily_schedule` blocks as defined below.
 
 * `wednesday_schedule` - One or more `daily_schedule` blocks as defined below.
 
-* `thursday_schedule` - One or more `daily_schedule` blocks as defined below.
-
-* `friday_schedule` - One or more `daily_schedule` blocks as defined below.
-
-* `saturday_schedule` - One or more `daily_schedule` blocks as defined below.
-
 ---
 
 A `daily_schedule` block exports the following:
 
-* `time` - The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
-
 * `count` - The number of standby agents provisioned at this time.
+
+* `time` - The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
 
 ---
 
 An `organization` block exports the following:
 
-* `url` - The URL of  The Azure DevOps organization.
-
 * `parallelism` - Maximum numbers of machines in this organization out of the `maximum_concurrency` of the pool.
 
 * `projects` - A list of projects in which the pool should be created.
+
+* `url` - The URL of the Azure DevOps organization.
 
 ---
 
@@ -149,9 +149,9 @@ A `security` block exports the following:
 
 A `permission` block exports the following:
 
-* `kind` - The type of Azure DevOps pool permission.
+* `administrator_account` - An `administrator_account` block as defined below.
 
-* `administrator_account` - One or more `administrator_account` block as defined below.
+* `kind` - The type of Azure DevOps pool permission.
 
 ---
 
@@ -169,21 +169,21 @@ A `key_vault_management` block exports the following:
 
 A `stateful_agent` block exports the following:
 
-* `grace_period_time_span` - The amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete.
+* `automatic_resource_prediction` - An `automatic_resource_prediction` block as defined below.
 
-* `max_agent_lifetime` - The maximum duration an agent in a `stateful` pool can run before it is shut down and discarded.
+* `grace_period_time_span` - The amount of time an agent in a `stateful` pool waits for new jobs before shutting down after all current and queued jobs are complete.
 
 * `manual_resource_prediction` - A `manual_resource_prediction` block as defined below.
 
-* `automatic_resource_prediction` - An `automatic_resource_prediction` block as defined below.
+* `max_agent_lifetime` - The maximum duration an agent in a `stateful` pool can run before it is shut down and discarded.
 
 ---
 
 A `stateless_agent` block exports the following:
 
-* `manual_resource_prediction` - A `manual_resource_prediction` block as defined below.
-
 * `automatic_resource_prediction` - An `automatic_resource_prediction` block as defined below.
+
+* `manual_resource_prediction` - A `manual_resource_prediction` block as defined below.
 
 ---
 
@@ -203,15 +203,15 @@ A `vmss_fabric` block exports the following:
 
 * `image` - One or more `image` blocks as defined below.
 
-* `sku_name` - The Azure SKU of the machines in the pool.
-
-* `subnet_id` - The ID of the subnet associated with the Managed DevOps Pool.
+* `os_disk_storage_account_type` - The storage account type for the OS disk.
 
 * `security` - A `security` block as defined below.
 
-* `os_disk_storage_account_type` - The storage account type for the OS disk.
+* `sku_name` - The Azure SKU of the machines in the pool.
 
 * `storage` - A `storage` block as defined below.
+
+* `subnet_id` - The ID of the subnet associated with the Managed DevOps Pool.
 
 ## Timeouts
 

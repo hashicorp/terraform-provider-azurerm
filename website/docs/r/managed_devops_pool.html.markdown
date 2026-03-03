@@ -223,7 +223,7 @@ An `image` block supports the following:
 
 * `well_known_image_name` - (Optional) The image to use from a well-known set of images made available to customers.
 
-~> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=arm#azure-pipelines-images). You can optionally specify a version in your well_known_image_name, for example `windows-2022/latest` or `windows-2022/20250427.1.0`. If you don't specify a version, latest is used.
+~> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=arm#azure-pipelines-images). You can optionally specify a version in your `well_known_image_name`, for example `windows-2022/latest` or `windows-2022/20250427.1.0`. If you don't specify a version, latest is used.
 
 ~> **Note:** Exactly one of `id` or `well_known_image_name` are required per `image`
 
@@ -234,6 +234,8 @@ An `organization` block supports the following:
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
 
 * `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
+
+~> **Note:** When there are more than one organizations, total sum of `parallelism` across orgs should be equal to `maximum_concurrency`.
 
 * `projects` - (Optional) List of projects in which the pool should be created. Each project name must comply with the following requirements:
   * Must be between 1 and 64 Unicode characters in length
@@ -259,7 +261,7 @@ A `permission` block supports the following:
 
 * `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
 
-* `administrator_account` - (Optional) One or more `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
+* `administrator_account` - (Optional) An `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
 
 ---
 
@@ -269,17 +271,19 @@ An `administrator_account` block supports the following:
 
 * `users` - (Optional) Specifies a list of user email addresses.
 
+~> **Note:** At least one of `groups` and `users` must be specified.
+
 ---
 
 A `key_vault_management` block supports the following:
+
+* `key_vault_certificate_ids` - (Required) A list of `versionless_id` from Azure Key vault certificates to install on all machines in the pool.
 
 * `certificate_store_location` - (Optional) Specifies where to store certificates on the machine.
 
 * `certificate_store_name` - (Optional) Name of the certificate store to use on the machine. Possible values are `My` and `Root`.
 
 * `key_export_enabled` - (Optional) Defines if the key of the certificates should be exportable. Defaults to `false`.
-
-* `key_vault_certificate_ids` - (Required) A list of `versionless_id` from Azure Key vault certificates to install on all machines in the pool.
 
 ---
 
@@ -299,9 +303,9 @@ A `stateful_agent` block supports the following:
 
 A `stateless_agent` block supports the following:
 
-* `manual_resource_prediction` - (Optional) A `manual_resource_prediction` block as defined below.
-
 * `automatic_resource_prediction` - (Optional) An `automatic_resource_prediction` block as defined below.
+
+* `manual_resource_prediction` - (Optional) A `manual_resource_prediction` block as defined below.
 
 ~> **Note:** Exactly one of `manual_resource_prediction` or `automatic_resource_prediction` may be specified.
 
@@ -313,19 +317,19 @@ A `manual_resource_prediction` block supports the following:
 
 * `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are between `1` and `maximum_concurrency`.
 
-* `sunday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
+* `friday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
 * `monday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
+
+* `saturday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
+
+* `sunday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
+
+* `thursday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
 * `tuesday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
 * `wednesday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
-
-* `thursday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
-
-* `friday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
-
-* `saturday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
 ~> **Note:** Exactly one of `all_week_schedule` or at least one individual daily schedule block must be specified. Agent counts cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
@@ -333,17 +337,17 @@ A `manual_resource_prediction` block supports the following:
 
 A `daily_schedule` block supports the following:
 
-* `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
-
 * `count` - (Required) The number of standby agents to provision at this time.
+
+* `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
 
 ---
 
 A `storage` block supports the following:
 
-* `caching` - (Optional) The type of caching for the data disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
-
 * `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values are between `1` and `32767`.
+
+* `caching` - (Optional) The type of caching for the data disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
 * `drive_letter` - (Optional) The drive letter for the data disk.
 

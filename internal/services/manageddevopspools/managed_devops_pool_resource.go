@@ -398,6 +398,8 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			// Workaround for identity is assigned with a wrong type
+			// issue: https://github.com/Azure/azure-rest-api-specs/issues/40905
 			expandedIdentity, err := expandManagedDevopsToUserAssignedIdentity(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
@@ -632,16 +634,18 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 
-				hasParallelism := false
-				var parallelismSum int64
-				for _, o := range org.Organizations {
-					if o.Parallelism > 0 {
-						hasParallelism = true
-						parallelismSum += o.Parallelism
+				if len(org.Organizations) > 1 {
+					hasParallelism := false
+					var parallelismSum int64
+					for _, o := range org.Organizations {
+						if o.Parallelism > 0 {
+							hasParallelism = true
+							parallelismSum += o.Parallelism
+						}
 					}
-				}
-				if hasParallelism && parallelismSum != maxConcurrency {
-					return fmt.Errorf("the sum of `parallelism` across all organizations (%d) must equal `maximum_concurrency` (%d)", parallelismSum, maxConcurrency)
+					if hasParallelism && parallelismSum != maxConcurrency {
+						return fmt.Errorf("the sum of `parallelism` across all organizations (%d) must equal `maximum_concurrency` (%d)", parallelismSum, maxConcurrency)
+					}
 				}
 			}
 

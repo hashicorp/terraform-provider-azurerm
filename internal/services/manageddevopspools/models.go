@@ -3,11 +3,6 @@
 
 package manageddevopspools
 
-const (
-	AgentProfileKindStateless = "Stateless"
-	AgentProfileKindStateful  = "Stateful"
-)
-
 type StatefulAgentModel struct {
 	GracePeriodTimeSpan         string                             `tfschema:"grace_period_time_span"`
 	MaxAgentLifetime            string                             `tfschema:"max_agent_lifetime"`
