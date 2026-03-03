@@ -47,8 +47,7 @@ resource "azurerm_eventhub_namespace" "eventhub_ns" {
 
 resource "azurerm_eventhub" "eventhub" {
   name                = "my-eventhub"
-  namespace_name      = azurerm_eventhub_namespace.eventhub_ns.name
-  resource_group_name = azurerm_resource_group.example.name
+  namespace_id        = azurerm_eventhub_namespace.eventhub_ns.id
   partition_count     = 1
   message_retention   = 1
 }
