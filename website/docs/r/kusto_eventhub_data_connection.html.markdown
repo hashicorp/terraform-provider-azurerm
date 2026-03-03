@@ -46,10 +46,10 @@ resource "azurerm_eventhub_namespace" "eventhub_ns" {
 }
 
 resource "azurerm_eventhub" "eventhub" {
-  name                = "my-eventhub"
-  namespace_id        = azurerm_eventhub_namespace.eventhub_ns.id
-  partition_count     = 1
-  message_retention   = 1
+  name              = "my-eventhub"
+  namespace_id      = azurerm_eventhub_namespace.eventhub_ns.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "consumer_group" {

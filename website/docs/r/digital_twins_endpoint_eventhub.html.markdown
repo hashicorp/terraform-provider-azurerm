@@ -37,8 +37,8 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "example-eh"
-  namespace_id        = azurerm_eventhub_namespace.example.id
+  name         = "example-eh"
+  namespace_id = azurerm_eventhub_namespace.example.id
 
   partition_count   = 2
   message_retention = 1

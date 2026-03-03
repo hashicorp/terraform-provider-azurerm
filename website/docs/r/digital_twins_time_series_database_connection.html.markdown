@@ -36,10 +36,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "exampleEventHub"
-  namespace_id        = azurerm_eventhub_namespace.example.id
-  partition_count     = 2
-  message_retention   = 7
+  name              = "exampleEventHub"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 2
+  message_retention = 7
 }
 
 resource "azurerm_eventhub_consumer_group" "example" {
