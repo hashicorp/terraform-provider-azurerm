@@ -175,6 +175,7 @@ resource "azurerm_image" "test" {
     blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
     size_gb  = 30
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {
@@ -309,6 +310,7 @@ resource "azurerm_image" "abc" {
     blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
     size_gb  = 30
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {
@@ -328,6 +330,7 @@ resource "azurerm_image" "def" {
     blob_uri = azurerm_virtual_machine.testsource.storage_os_disk[0].vhd_uri
     size_gb  = 30
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 
   tags = {

@@ -11,6 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -21,7 +23,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesAutomaticUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -31,6 +33,11 @@ func TestAccLinuxVirtualMachineScaleSet_imagesAutomaticUpdate(t *testing.T) {
 		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesAutomaticUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -43,7 +50,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -53,6 +60,11 @@ func TestAccLinuxVirtualMachineScaleSet_imagesDisableAutomaticUpdate(t *testing.
 		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesDisableAutomaticUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -104,7 +116,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesManualUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -114,6 +126,11 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdate(t *testing.T) {
 		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesManualUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -126,7 +143,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testin
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesManualUpdateExternalRoll(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -136,6 +153,11 @@ func TestAccLinuxVirtualMachineScaleSet_imagesManualUpdateExternalRoll(t *testin
 		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesManualUpdateExternalRoll(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -148,7 +170,7 @@ func TestAccLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.imagesRollingUpdate(data, "0001-com-ubuntu-server-focal", "20_04-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -158,6 +180,11 @@ func TestAccLinuxVirtualMachineScaleSet_imagesRollingUpdate(t *testing.T) {
 		data.ImportStep("admin_password"),
 		{
 			Config: r.imagesRollingUpdate(data, "0001-com-ubuntu-server-jammy", "22_04-lts"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -450,6 +477,7 @@ resource "azurerm_image" "first" {
     blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
     size_gb  = 30
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 }
 
@@ -464,6 +492,7 @@ resource "azurerm_image" "second" {
     blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
     size_gb  = 30
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 
   depends_on = ["azurerm_image.first"]

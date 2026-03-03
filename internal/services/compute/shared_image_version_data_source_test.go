@@ -66,7 +66,7 @@ func TestAccDataSourceSharedImageVersion_excludeFromLatest(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_shared_image_version", "test")
 	r := SharedImageVersionDataSource{}
 
-	expectedVersion := "0.0.1"
+	expectedVersion := "1234567890.1234567890.1234567890"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -131,7 +131,7 @@ func TestAccDataSourceSharedImageVersion_sortVersionsBySemver(t *testing.T) {
 		{
 			Config: r.sortVersionsBySemver(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("0.0.10"),
+				check.That(data.ResourceName).Key("name").HasValue("1234567890.1234567890.1234567890"),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("target_region.0.storage_account_type").HasValue("Standard_LRS"),
@@ -169,6 +169,10 @@ resource "azurerm_shared_image_version" "test2" {
     name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
   }
+
+  depends_on = [
+	azurerm_shared_image_version.test
+  ]
 }
 
 data "azurerm_shared_image_version" "test" {
