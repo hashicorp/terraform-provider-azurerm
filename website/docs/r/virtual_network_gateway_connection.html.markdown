@@ -61,7 +61,7 @@ resource "azurerm_virtual_network_gateway" "example" {
   vpn_type = "RouteBased"
 
   active_active = false
-  enable_bgp    = false
+  bgp_enabled   = false
   sku           = "Basic"
 
   ip_configuration {
@@ -234,7 +234,7 @@ The following arguments are supported:
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`, values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. Changing this forces a new resource to be created.
 -> **Note:** Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`.
 
-* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
+* `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
 
 * `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` block which is documented below.
     The block can only be used on `IPSec` / `activeactive` connections,

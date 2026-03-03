@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/resourceguards"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/resourceguardresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,12 +100,12 @@ func TestAccDataProtectionResourceGuard_update(t *testing.T) {
 }
 
 func (r DataProtectionResourceGuardResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := resourceguards.ParseResourceGuardID(state.ID)
+	id, err := resourceguardresources.ParseResourceGuardID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.DataProtection.ResourceGuardClient.Get(ctx, *id)
+	resp, err := client.DataProtection.ResourceGuardClient.ResourceGuardsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
