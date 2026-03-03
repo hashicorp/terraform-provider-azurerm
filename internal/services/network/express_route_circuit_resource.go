@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressrouteports"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressroutecircuits"
-	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -157,21 +156,6 @@ func resourceExpressRouteCircuit() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 
-			"authorization_key_wo": {
-				Type:          pluginsdk.TypeString,
-				Optional:      true,
-				WriteOnly:     true,
-				RequiredWith:  []string{"authorization_key_wo_version"},
-				ConflictsWith: []string{"authorization_key"},
-				ValidateFunc:  validation.StringIsNotEmpty,
-			},
-
-			"authorization_key_wo_version": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
-				RequiredWith: []string{"authorization_key_wo"},
-			},
-
 			"service_key": {
 				Type:      pluginsdk.TypeString,
 				Computed:  true,
@@ -214,16 +198,8 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{}
-
-	if authorizationKey, ok := d.GetOk("authorization_key"); ok {
-		erc.Properties.AuthorizationKey = pointer.To(authorizationKey.(string))
-	}
-
-	if authorizationKeyWo, err := pluginsdk.GetWriteOnly(d, "authorization_key_wo", cty.String); err != nil {
-		return err
-	} else if !authorizationKeyWo.IsNull() {
-		erc.Properties.AuthorizationKey = pointer.To(authorizationKeyWo.AsString())
+	erc.Properties = &expressroutecircuits.ExpressRouteCircuitPropertiesFormat{
+		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
 	}
 
 	if v, ok := d.GetOk("allow_classic_operations"); ok {
@@ -343,18 +319,6 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 		payload.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	}
 
-	if v, ok := d.GetOk("authorization_key"); ok {
-		payload.Properties.AuthorizationKey = pointer.To(v.(string))
-	}
-
-	if d.HasChange("authorization_key_wo_version") {
-		if authorizationKeyWo, err := pluginsdk.GetWriteOnly(d, "authorization_key", cty.String); err != nil {
-			return err
-		} else if !authorizationKeyWo.IsNull() {
-			payload.Properties.AuthorizationKey = pointer.To(authorizationKeyWo.AsString())
-		}
-	}
-
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -409,7 +373,6 @@ func resourceExpressRouteCircuitRead(d *pluginsdk.ResourceData, meta interface{}
 
 	d.Set("name", id.ExpressRouteCircuitName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("authorization_key_wo_version", d.Get("authorization_key_wo_version"))
 
 	if model := resp.Model; model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
