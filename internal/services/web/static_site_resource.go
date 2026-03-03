@@ -241,7 +241,7 @@ func resourceStaticSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("making Read request for app settings on %s: %+v", id, err)
 	}
 
-	if err := d.Set("app_settings", appSettingsResp.Properties); err != nil {
+	if err := d.Set("app_settings", flattenStaticSiteAppSettings(appSettingsResp.Properties)); err != nil {
 		return fmt.Errorf("setting `app_settings`: %s", err)
 	}
 
@@ -326,6 +326,18 @@ func expandStaticSiteAppSettings(d *pluginsdk.ResourceData) map[string]*string {
 
 	for k, v := range input {
 		output[k] = pointer.To(v.(string))
+	}
+
+	return output
+}
+
+func flattenStaticSiteAppSettings(input map[string]*string) map[string]interface{} {
+	output := make(map[string]interface{}, len(input))
+
+	for k, v := range input {
+		if v != nil {
+			output[k] = *v
+		}
 	}
 
 	return output
