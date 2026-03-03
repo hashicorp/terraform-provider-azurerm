@@ -99,8 +99,7 @@ func (r SchedulerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, err
 	}
 
-	_, err = client.DurableTask.SchedulersClient.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.DurableTask.SchedulersClient.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 

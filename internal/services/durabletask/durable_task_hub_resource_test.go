@@ -54,8 +54,7 @@ func (r TaskHubResource) Exists(ctx context.Context, client *clients.Client, sta
 		return nil, err
 	}
 
-	_, err = client.DurableTask.TaskHubsClient.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.DurableTask.TaskHubsClient.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
