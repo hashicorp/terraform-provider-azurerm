@@ -147,7 +147,7 @@ resource "azurerm_image" "test2" {
   name                = "accteste2"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  
+
   os_disk {
     os_type      = "Linux"
     os_state     = "Generalized"
