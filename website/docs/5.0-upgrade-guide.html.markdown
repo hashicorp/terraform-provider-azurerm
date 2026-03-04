@@ -74,6 +74,7 @@ provider "azurerm" {
   features {}
 }
 ```
+
 ##### How to replicate the previous behaviour
 
 If you want to maintain the v4.x behaviour and automatically register the same set of Resource Providers as before, explicitly set `resource_provider_registrations` to the `legacy` resource provider set in your provider block:
@@ -86,7 +87,6 @@ provider "azurerm" {
 ```
 
 For more information, see the [Resource Provider Registrations](index.html#resource-provider-registrations) section in the provider documentation.
-
 
 #### Enhanced Validation Default Changed
 
@@ -110,6 +110,53 @@ This change was made because:
 * The MetaData Service call adds latency to provider initialization
 
 The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
+
+## AI Services migration to Cognitive Account
+
+The `azurerm_ai_services` resource has been removed and replaced by `azurerm_cognitive_account`. The tables below map every attribute from `azurerm_ai_services` to its equivalent in `azurerm_cognitive_account`.
+
+### Top-Level Arguments
+
+| `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
+| -----------------------| -----------------------------|-------|
+| `name` | `name` | Unchanged. |
+| `location` | `location` | Unchanged. |
+| `resource_group_name` | `resource_group_name` | Unchanged. |
+| `sku_name` | `sku_name` | Unchanged. |
+| (not present) | `kind` | Required. Set to `"AIServices"` to match the behaviour of `azurerm_ai_services`. |
+| `custom_subdomain_name` | `custom_subdomain_name` | Unchanged. |
+| `local_authentication_enabled` | `local_auth_enabled` | Renamed. Both default to `true`. |
+| `public_network_access` | `public_network_access_enabled` | Changed type. String (`"Enabled"` / `"Disabled"`) → Boolean (`true` / `false`). Defaults to `true`. |
+| `outbound_network_access_restricted` | `outbound_network_access_restricted` | Unchanged. |
+| `fqdns` | `fqdns` | Unchanged. |
+| `customer_managed_key` | `customer_managed_key` | See `customer_managed_key` block below. |
+| `identity` | `identity` | Unchanged. |
+| `network_acls` | `network_acls` | Unchanged. |
+| `storage` | `storage` | Note: the `storage` block was accepted by `azurerm_ai_services` but was not processed; values are now correctly applied by `azurerm_cognitive_account`. |
+| `tags` | `tags` | Unchanged. |
+
+~> **Note:** If your configuration included a `storage` block under `azurerm_ai_services`, `terraform plan` may show changes after migration even though the Azure resource itself has not changed. This occurs because `azurerm_ai_services` silently ignored the `storage` block and never sent those values to the API, so the imported state does not reflect them. Running `terraform apply` will reconcile the state by applying the storage configuration for the first time.
+
+### `customer_managed_key` Block
+
+| `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
+| -----------------------| -----------------------------|-------|
+| `key_vault_key_id` | `key_vault_key_id` | Unchanged. |
+| `managed_hsm_key_id` | (not present) | Removed. Use the `azurerm_cognitive_account_customer_managed_key` resource for managed HSM key encryption. |
+| `identity_client_id` | `identity_client_id` | Unchanged. |
+
+~> **Note:** In `azurerm_cognitive_account`, `key_vault_key_id` inside the `customer_managed_key` block is Required, whereas in `azurerm_ai_services` it was Optional (one of `key_vault_key_id` or `managed_hsm_key_id` was required).
+
+### Exported Attributes
+
+| `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
+| -----------------------| -----------------------------|-------|
+| `id` | `id` | Identical resource ID format. |
+| `endpoint` | `endpoint` | Unchanged. |
+| `primary_access_key` | `primary_access_key` | Available when `local_auth_enabled = true`. |
+| `secondary_access_key` | `secondary_access_key` | Available when `local_auth_enabled = true`. |
+| `identity.principal_id` | `identity.principal_id` | Unchanged. |
+| `identity.tenant_id` | `identity.tenant_id` | Unchanged. |
 
 ## Removed Resources
 
@@ -225,7 +272,6 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
-
 ## Removed Data Sources
 
 Please follow the format in the example below for adding removed data sources:
@@ -262,10 +308,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_api_management`
 
-* The deprecated `hostname_configuration.developer_portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.developer_portal.key_vault_certificate_id`` property. 
-* The deprecated `hostname_configuration.management.key_vault_id` property has been removed in favour of the ``hostname_configuration.management.key_vault_certificate_id`` property. 
-* The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.portal.key_vault_certificate_id`` property. 
-* The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the ``hostname_configuration.proxy.key_vault_certificate_id`` property. 
+* The deprecated `hostname_configuration.developer_portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.developer_portal.key_vault_certificate_id`` property.
+* The deprecated `hostname_configuration.management.key_vault_id` property has been removed in favour of the ``hostname_configuration.management.key_vault_certificate_id`` property.
+* The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the ``hostname_configuration.portal.key_vault_certificate_id`` property.
+* The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the ``hostname_configuration.proxy.key_vault_certificate_id`` property.
 * The deprecated `hostname_configuration.scm.key_vault_id` property has been removed in favour of the ``hostname_configuration.scm.key_vault_certificate_id`` property.
 * The deprecated `protocols.enable_http2` property has been removed in favour of the `protocols.http2_enabled` property.
 * The deprecated `security.enable_backend_ssl30` property has been removed in favour of the `security.backend_ssl30_enabled` property.
