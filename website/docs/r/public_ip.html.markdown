@@ -46,6 +46,8 @@ The following arguments are supported:
 
 ~> **Note:** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure. See `ip_address` argument.
 
+!> **Note:** `Dynamic` allocation is only available with `Basic` SKU public IP addresses. Since `Basic` SKU public IP addresses have been deprecated (see `sku` below), `Dynamic` allocation is no longer available for new public IP addresses.
+
 ---
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Public IP in. Changing this forces a new resource to be created.
@@ -72,7 +74,7 @@ The following arguments are supported:
 
 * `ip_version` - (Optional) The IP Version to use, IPv6 or IPv4. Changing this forces a new resource to be created. Defaults to `IPv4`.
 
--> **Note:** Only `static` IP address allocation is supported for IPv6.
+-> **Note:** Only `Static` IP address allocation is supported for IPv6.
 
 * `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource. Changing this forces a new resource to be created.
 
