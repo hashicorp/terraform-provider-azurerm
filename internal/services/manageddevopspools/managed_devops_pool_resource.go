@@ -88,9 +88,12 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 									),
 								},
 
+								// There's an issue with API that if parallelism is omitted, it's always set to `0` instead of being computed dynamically.
+								// To workaround this, mark it as Required which is also consistent with portal behavior.
+								// Relevant GH issue: https://github.com/Azure/azure-rest-api-specs/issues/40986
 								"parallelism": {
 									Type:         pluginsdk.TypeInt,
-									Optional:     true,
+									Required:     true,
 									ValidateFunc: validation.IntBetween(1, 10000),
 								},
 
@@ -634,18 +637,14 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 
-				if len(org.Organizations) > 1 {
-					hasParallelism := false
-					var parallelismSum int64
-					for _, o := range org.Organizations {
-						if o.Parallelism > 0 {
-							hasParallelism = true
-							parallelismSum += o.Parallelism
-						}
+				var parallelismSum int64
+				for _, o := range org.Organizations {
+					if o.Parallelism > 0 {
+						parallelismSum += o.Parallelism
 					}
-					if hasParallelism && parallelismSum != maxConcurrency {
-						return fmt.Errorf("the sum of `parallelism` across all organizations (%d) must equal `maximum_concurrency` (%d)", parallelismSum, maxConcurrency)
-					}
+				}
+				if parallelismSum != maxConcurrency {
+					return fmt.Errorf("the sum of `parallelism` across all organizations (%d) must equal `maximum_concurrency` (%d)", parallelismSum, maxConcurrency)
 				}
 			}
 

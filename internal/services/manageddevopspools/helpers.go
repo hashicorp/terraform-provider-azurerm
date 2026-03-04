@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
-	"sort"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -99,7 +98,7 @@ func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 
 func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -107,7 +106,7 @@ func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$`),
+						regexp.MustCompile(`^([01]\d|2[0-3]):00:00$`),
 						"must be a valid 24-hour time in format HH:MM:SS",
 					),
 				},
@@ -126,7 +125,7 @@ func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *
 
 func dayScheduleSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+		Type:     pluginsdk.TypeSet,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -317,10 +316,11 @@ func expandAzureDevOpsOrganizationModel(input []AzureDevOpsOrganizationModel) po
 	poolOrganizations := []pools.Organization{}
 	for _, org := range organizationProfile.Organizations {
 		poolOrganization := pools.Organization{
-			Parallelism: pointer.To(org.Parallelism),
-			Projects:    pointer.To(org.Projects),
 			Url:         org.Url,
+			Projects:    pointer.To(org.Projects),
+			Parallelism: pointer.To(org.Parallelism),
 		}
+
 		poolOrganizations = append(poolOrganizations, poolOrganization)
 	}
 
@@ -550,9 +550,6 @@ func flattenDaySchedule(input map[string]int64) []DayScheduleModel {
 	for t, count := range input {
 		output = append(output, DayScheduleModel{Time: t, Count: count})
 	}
-	sort.Slice(output, func(i, j int) bool {
-		return output[i].Time < output[j].Time
-	})
 	return output
 }
 
@@ -616,9 +613,15 @@ func flattenSecurityToModel(input *pools.OsProfile) []SecurityModel {
 		return []SecurityModel{}
 	}
 
+	interactiveLogonEnabled := pointer.From(input.LogonType) == pools.LogonTypeInteractive
+	keyVaultManagementSettings := flattenKeyVaultManagementSettingsToModel(input.SecretsManagementSettings)
+	if !interactiveLogonEnabled && len(keyVaultManagementSettings) == 0 {
+		return []SecurityModel{}
+	}
+
 	securityModel := SecurityModel{
-		InteractiveLogonEnabled:    pointer.From(input.LogonType) == pools.LogonTypeInteractive,
-		KeyVaultManagementSettings: flattenKeyVaultManagementSettingsToModel(input.SecretsManagementSettings),
+		InteractiveLogonEnabled:    interactiveLogonEnabled,
+		KeyVaultManagementSettings: keyVaultManagementSettings,
 	}
 
 	return []SecurityModel{securityModel}

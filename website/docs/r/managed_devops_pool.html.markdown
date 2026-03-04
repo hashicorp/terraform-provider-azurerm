@@ -233,9 +233,9 @@ An `organization` block supports the following:
 
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
 
-* `parallelism` - (Optional) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
+* `parallelism` - (Required) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
 
-~> **Note:** When there are more than one organizations, total sum of `parallelism` across orgs should be equal to `maximum_concurrency`.
+~> **Note:** The sum of `parallelism` across orgs should be equal to `maximum_concurrency`.
 
 * `projects` - (Optional) List of projects in which the pool should be created. Each project name must comply with the following requirements:
   * Must be between 1 and 64 Unicode characters in length
@@ -331,13 +331,13 @@ A `manual_resource_prediction` block supports the following:
 
 * `wednesday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-~> **Note:** Exactly one of `all_week_schedule` or at least one individual daily schedule block must be specified. Agent counts cannot exceed the `maximum_concurrency` value. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
+~> **Note:** Exactly one of `all_week_schedule` or at least one individual daily schedule block must be specified. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
 ---
 
 A `daily_schedule` block supports the following:
 
-* `count` - (Required) The number of standby agents to provision at this time.
+* `count` - (Required) The number of standby agents to provision at this time. Possible values are between `0` and `maximum_concurrency`.
 
 * `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
 

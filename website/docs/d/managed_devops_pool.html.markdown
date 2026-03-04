@@ -14,8 +14,8 @@ Use this data source to access information about an existing Managed DevOps Pool
 
 ```hcl
 data "azurerm_managed_devops_pool" "example" {
-  name                = "existing"
-  resource_group_name = "existing"
+  name                = "example-mdp"
+  resource_group_name = "example-rg"
 }
 
 output "id" {
