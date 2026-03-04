@@ -318,7 +318,7 @@ resource "azurerm_managed_devops_pool" "test" {
   azure_devops_organization {
     organization {
       parallelism = 1
-      url = "%s"
+      url         = "%s"
     }
   }
 
@@ -350,7 +350,7 @@ resource "azurerm_managed_devops_pool" "import" {
   azure_devops_organization {
     organization {
       parallelism = 1
-      url = "%s"
+      url         = "%s"
     }
   }
 
