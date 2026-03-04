@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -141,7 +142,7 @@ func resourceStaticSiteCreateOrUpdate(d *pluginsdk.ResourceData, meta interface{
 	siteEnvelope := web.StaticSiteARMResource{
 		Sku: &web.SkuDescription{
 			Name: &skuName,
-			Tier: utils.String(d.Get("sku_tier").(string)),
+			Tier: pointer.To(d.Get("sku_tier").(string)),
 		},
 		StaticSite: &web.StaticSite{},
 		Location:   &loc,
@@ -324,7 +325,7 @@ func expandStaticSiteAppSettings(d *pluginsdk.ResourceData) map[string]*string {
 	output := make(map[string]*string, len(input))
 
 	for k, v := range input {
-		output[k] = utils.String(v.(string))
+		output[k] = pointer.To(v.(string))
 	}
 
 	return output

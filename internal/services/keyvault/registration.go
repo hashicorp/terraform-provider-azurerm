@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,6 +63,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 }
 
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
+}
+
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		EncryptedValueDataSource{},
@@ -87,4 +92,8 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 		NewKeyVaultCertificateEphemeralResource,
 		NewKeyVaultSecretEphemeralResource,
 	}
+}
+
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{}
 }

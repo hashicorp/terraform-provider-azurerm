@@ -10,6 +10,8 @@ description: |-
 
 Manages an Automation Software Update Configuration.
 
+!> **Note:** The `azurerm_automation_software_update_configuration` resource has been deprecated because the Azure Automation Update Management was retired on 2024-08-31 and has been shutdown on 2025-02-28. This resource will be removed in v5.0 of the AzureRM Provider. Please migrate to Azure Update Manager, and use the `azurerm_maintenance_configuration` resource combined with the appropriate assignment resources instead. See https://techcommunity.microsoft.com/blog/azuregovernanceandmanagementblog/log-analytics-agent-based-azure-management-services-shut-down-starting-28-februa/4381853 for more information.
+
 ## Example Usage
 
 ```hcl
@@ -191,7 +193,11 @@ A `schedule` block supports the following:
 
 * `start_time` - (Optional) Start time of the schedule. Must be at least five minutes in the future. Defaults to seven minutes in the future from the time the resource is created.
 
+* `start_time_offset_minutes` - (Optional) The time offset in minutes for the start time.
+
 * `expiry_time` - (Optional) The end time of the schedule.
+
+* `expiry_time_offset_minutes` - (Optional) The time offset in minutes for the expiry time.
 
 * `time_zone` - (Optional) The timezone of the start time. Defaults to `Etc/UTC`. For possible values see: <https://docs.microsoft.com/en-us/rest/api/maps/timezone/gettimezoneenumwindows>
 
@@ -200,6 +206,8 @@ A `schedule` block supports the following:
 * `advanced_month_days` - (Optional) List of days of the month that the job should execute on. Must be between `1` and `31`. `-1` for last day of the month. Only valid when frequency is `Month`.
 
 * `monthly_occurrence` - (Optional) List of `monthly_occurrence` blocks as defined below to specifies occurrences of days within a month. Only valid when frequency is `Month`. The `monthly_occurrence` block supports fields as defined below.
+
+* `next_run_offset_minutes` - (Optional) The time offset in minutes for the next run time.
 
 ---
 
@@ -221,7 +229,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation.

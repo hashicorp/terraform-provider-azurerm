@@ -116,7 +116,7 @@ resource "azurerm_monitor_action_group" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -188,8 +188,8 @@ The `email_receiver` block supports the following:
 The `event_hub_receiver` block supports the following:
 
 * `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
-* `event_hub_name` - (Optional) The name of the specific Event Hub queue.
-* `event_hub_namespace` - (Optional) The namespace name of the Event Hub.
+* `event_hub_name` - (Required) The name of the specific Event Hub queue.
+* `event_hub_namespace` - (Required) The namespace name of the Event Hub.
 * `subscription_id` - (Optional) The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.
 * `tenant_id` - (Optional) The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - (Optional) Indicates whether to use common alert schema.
@@ -258,7 +258,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Action Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Action Group.

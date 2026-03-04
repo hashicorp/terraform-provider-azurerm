@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package streamanalytics
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/streamanalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type OutputTableResource struct{}
@@ -144,12 +144,12 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 			}
 
 			tableOutputProps := &outputs.AzureTableOutputDataSourceProperties{
-				AccountName:  utils.String(model.StorageAccount),
-				AccountKey:   utils.String(model.StorageAccountKey),
-				Table:        utils.String(model.Table),
-				PartitionKey: utils.String(model.PartitionKey),
-				RowKey:       utils.String(model.RowKey),
-				BatchSize:    utils.Int64(model.BatchSize),
+				AccountName:  pointer.To(model.StorageAccount),
+				AccountKey:   pointer.To(model.StorageAccountKey),
+				Table:        pointer.To(model.Table),
+				PartitionKey: pointer.To(model.PartitionKey),
+				RowKey:       pointer.To(model.RowKey),
+				BatchSize:    pointer.To(model.BatchSize),
 			}
 
 			if v := model.ColumnsToRemove; len(v) > 0 {
@@ -157,7 +157,7 @@ func (r OutputTableResource) Create() sdk.ResourceFunc {
 			}
 
 			props := outputs.Output{
-				Name: utils.String(model.Name),
+				Name: pointer.To(model.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.AzureTableOutputDataSource{
 						Properties: tableOutputProps,
@@ -275,12 +275,12 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 			}
 
 			props := &outputs.AzureTableOutputDataSourceProperties{
-				AccountName:  utils.String(state.StorageAccount),
-				AccountKey:   utils.String(state.StorageAccountKey),
-				Table:        utils.String(state.Table),
-				PartitionKey: utils.String(state.PartitionKey),
-				RowKey:       utils.String(state.RowKey),
-				BatchSize:    utils.Int64(state.BatchSize),
+				AccountName:  pointer.To(state.StorageAccount),
+				AccountKey:   pointer.To(state.StorageAccountKey),
+				Table:        pointer.To(state.Table),
+				PartitionKey: pointer.To(state.PartitionKey),
+				RowKey:       pointer.To(state.RowKey),
+				BatchSize:    pointer.To(state.BatchSize),
 			}
 
 			if metadata.ResourceData.HasChange("columns_to_remove") {
@@ -288,7 +288,7 @@ func (r OutputTableResource) Update() sdk.ResourceFunc {
 			}
 
 			output := outputs.Output{
-				Name: utils.String(state.Name),
+				Name: pointer.To(state.Name),
 				Properties: &outputs.OutputProperties{
 					Datasource: &outputs.AzureTableOutputDataSource{
 						Properties: props,

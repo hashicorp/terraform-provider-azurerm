@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package check
@@ -34,9 +34,9 @@ func newRequireDiff(checkBase checkBase, requiredMiss RequiredMiss) *requireDiff
 
 func (c requireDiff) String() string {
 	if c.RequiredMiss == ShouldBeComputed {
-		return fmt.Sprintf("%s Fields listed under Attributes Reference should not be marked Required/Optional", c.checkBase.Str())
+		return fmt.Sprintf("%s Fields listed under Attributes Reference should not be marked Required/Optional", c.Str())
 	}
-	str := fmt.Sprintf("%s should be %s", c.checkBase.Str(), util.Blue(c.RequiredMiss))
+	str := fmt.Sprintf("%s should be %s", c.Str(), util.Blue(c.RequiredMiss))
 	return str
 }
 

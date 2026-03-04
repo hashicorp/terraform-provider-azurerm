@@ -18,12 +18,18 @@ func GetMetadataResponse(ctx context.Context, fw *fwserver.GetMetadataResponse) 
 	}
 
 	protov6 := &tfprotov6.GetMetadataResponse{
+		Actions:            make([]tfprotov6.ActionMetadata, 0, len(fw.Actions)),
 		DataSources:        make([]tfprotov6.DataSourceMetadata, 0, len(fw.DataSources)),
 		Diagnostics:        Diagnostics(ctx, fw.Diagnostics),
 		EphemeralResources: make([]tfprotov6.EphemeralResourceMetadata, 0, len(fw.EphemeralResources)),
 		Functions:          make([]tfprotov6.FunctionMetadata, 0, len(fw.Functions)),
+		ListResources:      make([]tfprotov6.ListResourceMetadata, 0, len(fw.ListResources)),
 		Resources:          make([]tfprotov6.ResourceMetadata, 0, len(fw.Resources)),
 		ServerCapabilities: ServerCapabilities(ctx, fw.ServerCapabilities),
+	}
+
+	for _, action := range fw.Actions {
+		protov6.Actions = append(protov6.Actions, ActionMetadata(ctx, action))
 	}
 
 	for _, datasource := range fw.DataSources {
@@ -36,6 +42,10 @@ func GetMetadataResponse(ctx context.Context, fw *fwserver.GetMetadataResponse) 
 
 	for _, function := range fw.Functions {
 		protov6.Functions = append(protov6.Functions, FunctionMetadata(ctx, function))
+	}
+
+	for _, listResource := range fw.ListResources {
+		protov6.ListResources = append(protov6.ListResources, ListResourceMetadata(ctx, listResource))
 	}
 
 	for _, resource := range fw.Resources {

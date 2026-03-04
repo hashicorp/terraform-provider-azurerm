@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,18 +9,17 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkpeerings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkpeerings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualNetworkPeeringResource struct{}
 
 func TestAccVirtualNetworkPeering_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
 	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
@@ -39,7 +38,7 @@ func TestAccVirtualNetworkPeering_basic(t *testing.T) {
 }
 
 func TestAccVirtualNetworkPeering_withTriggers(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
 	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
@@ -62,7 +61,7 @@ func TestAccVirtualNetworkPeering_withTriggers(t *testing.T) {
 }
 
 func TestAccVirtualNetworkPeering_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
 	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
@@ -79,7 +78,7 @@ func TestAccVirtualNetworkPeering_requiresImport(t *testing.T) {
 }
 
 func TestAccVirtualNetworkPeering_disappears(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
 	r := VirtualNetworkPeeringResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -91,7 +90,7 @@ func TestAccVirtualNetworkPeering_disappears(t *testing.T) {
 }
 
 func TestAccVirtualNetworkPeering_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
 	r := VirtualNetworkPeeringResource{}
 	secondResourceName := "azurerm_virtual_network_peering.test2"
 
@@ -123,7 +122,7 @@ func TestAccVirtualNetworkPeering_update(t *testing.T) {
 }
 
 func TestAccVirtualNetworkPeering_subnetPeering(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test1")
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_peering", "test")
 	r := VirtualNetworkPeeringResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -160,7 +159,7 @@ func (r VirtualNetworkPeeringResource) Destroy(ctx context.Context, client *clie
 		return nil, fmt.Errorf("deleting on virtual network peering: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r VirtualNetworkPeeringResource) basic(data acceptance.TestData) string {
@@ -172,10 +171,10 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_virtual_network_peering" "test1" {
+resource "azurerm_virtual_network_peering" "test" {
   name                         = "acctestpeer-1-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test1.name
+  virtual_network_name         = azurerm_virtual_network.test.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id
   allow_virtual_network_access = true
 }
@@ -184,7 +183,7 @@ resource "azurerm_virtual_network_peering" "test2" {
   name                         = "acctestpeer-2-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test2.name
-  remote_virtual_network_id    = azurerm_virtual_network.test1.id
+  remote_virtual_network_id    = azurerm_virtual_network.test.id
   allow_virtual_network_access = true
 }
 `, template, data.RandomInteger)
@@ -199,10 +198,10 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_virtual_network_peering" "test1" {
+resource "azurerm_virtual_network_peering" "test" {
   name                         = "acctestpeer-1-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test1.name
+  virtual_network_name         = azurerm_virtual_network.test.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id
   allow_virtual_network_access = true
   triggers = {
@@ -214,10 +213,10 @@ resource "azurerm_virtual_network_peering" "test2" {
   name                         = "acctestpeer-2-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test2.name
-  remote_virtual_network_id    = azurerm_virtual_network.test1.id
+  remote_virtual_network_id    = azurerm_virtual_network.test.id
   allow_virtual_network_access = true
   triggers = {
-    remote_address_space = join(",", azurerm_virtual_network.test1.address_space)
+    remote_address_space = join(",", azurerm_virtual_network.test.address_space)
   }
 }
 `, template, data.RandomInteger)
@@ -228,11 +227,11 @@ func (r VirtualNetworkPeeringResource) requiresImport(data acceptance.TestData) 
 %s
 
 resource "azurerm_virtual_network_peering" "import" {
-  name                         = azurerm_virtual_network_peering.test1.name
-  resource_group_name          = azurerm_virtual_network_peering.test1.resource_group_name
-  virtual_network_name         = azurerm_virtual_network_peering.test1.virtual_network_name
-  remote_virtual_network_id    = azurerm_virtual_network_peering.test1.remote_virtual_network_id
-  allow_virtual_network_access = azurerm_virtual_network_peering.test1.allow_virtual_network_access
+  name                         = azurerm_virtual_network_peering.test.name
+  resource_group_name          = azurerm_virtual_network_peering.test.resource_group_name
+  virtual_network_name         = azurerm_virtual_network_peering.test.virtual_network_name
+  remote_virtual_network_id    = azurerm_virtual_network_peering.test.remote_virtual_network_id
+  allow_virtual_network_access = azurerm_virtual_network_peering.test.allow_virtual_network_access
 }
 `, r.basic(data))
 }
@@ -246,10 +245,10 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_virtual_network_peering" "test1" {
+resource "azurerm_virtual_network_peering" "test" {
   name                         = "acctestpeer-1-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
-  virtual_network_name         = azurerm_virtual_network.test1.name
+  virtual_network_name         = azurerm_virtual_network.test.name
   remote_virtual_network_id    = azurerm_virtual_network.test2.id
   allow_forwarded_traffic      = true
   allow_virtual_network_access = true
@@ -259,7 +258,7 @@ resource "azurerm_virtual_network_peering" "test2" {
   name                         = "acctestpeer-2-%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   virtual_network_name         = azurerm_virtual_network.test2.name
-  remote_virtual_network_id    = azurerm_virtual_network.test1.id
+  remote_virtual_network_id    = azurerm_virtual_network.test.id
   allow_forwarded_traffic      = true
   allow_virtual_network_access = true
 }
@@ -273,7 +272,7 @@ resource "azurerm_resource_group" "test" {
   location = %[2]q
 }
 
-resource "azurerm_virtual_network" "test1" {
+resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet-1-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   address_space       = ["10.0.1.0/24", "1001:1001::/64"]
@@ -297,10 +296,10 @@ provider "azurerm" {
 
 %[1]s
 
-resource "azurerm_subnet" "test1" {
+resource "azurerm_subnet" "test" {
   name                 = "internal1"
   resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test1.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.1.0/27", "1001:1001::/64"]
 }
 
@@ -311,16 +310,16 @@ resource "azurerm_subnet" "test2" {
   address_prefixes     = ["10.0.2.0/27", "1001:1002::/64"]
 }
 
-resource "azurerm_virtual_network_peering" "test1" {
+resource "azurerm_virtual_network_peering" "test" {
   name                                   = "acctestpeer-1-%[2]d"
   resource_group_name                    = azurerm_resource_group.test.name
-  virtual_network_name                   = azurerm_virtual_network.test1.name
+  virtual_network_name                   = azurerm_virtual_network.test.name
   remote_virtual_network_id              = azurerm_virtual_network.test2.id
   allow_forwarded_traffic                = true
   allow_virtual_network_access           = true
   peer_complete_virtual_networks_enabled = false
   only_ipv6_peering_enabled              = true
-  local_subnet_names                     = [azurerm_subnet.test1.name]
+  local_subnet_names                     = [azurerm_subnet.test.name]
   remote_subnet_names                    = [azurerm_subnet.test2.name]
 }
 `, r.template(data), data.RandomInteger)

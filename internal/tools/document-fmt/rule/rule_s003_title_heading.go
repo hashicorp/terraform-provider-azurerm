@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package rule
 
 import (
@@ -14,7 +17,7 @@ type S003 struct{}
 var _ Rule = S003{}
 
 func (r S003) ID() string {
-	return "G003"
+	return "S003"
 }
 
 func (r S003) Name() string {

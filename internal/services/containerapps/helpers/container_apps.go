@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
@@ -963,6 +963,8 @@ type ContainerTemplate struct {
 	Suffix                 string                `tfschema:"revision_suffix"`
 	MinReplicas            int64                 `tfschema:"min_replicas"`
 	MaxReplicas            int64                 `tfschema:"max_replicas"`
+	CooldownPeriod         int64                 `tfschema:"cooldown_period_in_seconds"`
+	PollingInterval        int64                 `tfschema:"polling_interval_in_seconds"`
 	AzureQueueScaleRules   []AzureQueueScaleRule `tfschema:"azure_queue_scale_rule"`
 	CustomScaleRules       []CustomScaleRule     `tfschema:"custom_scale_rule"`
 	HTTPScaleRules         []HTTPScaleRule       `tfschema:"http_scale_rule"`
@@ -996,6 +998,22 @@ func ContainerTemplateSchema() *pluginsdk.Schema {
 					Default:      10,
 					ValidateFunc: validation.IntBetween(1, 300),
 					Description:  "The maximum number of replicas for this container.",
+				},
+
+				"cooldown_period_in_seconds": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      300,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The number of seconds to wait before scaling down the number of instances again.",
+				},
+
+				"polling_interval_in_seconds": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      30,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchema(),
@@ -1047,6 +1065,18 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
 					Description: "The maximum number of replicas for this container.",
+				},
+
+				"cooldown_period_in_seconds": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The number of seconds to wait before scaling down the number of instances again.",
+				},
+
+				"polling_interval_in_seconds": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The interval in seconds used for polling KEDA.",
 				},
 
 				"azure_queue_scale_rule": AzureQueueScaleRuleSchemaComputed(),
@@ -1103,6 +1133,20 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		template.Scale.MinReplicas = pointer.To(config.MinReplicas)
 	}
 
+	if config.CooldownPeriod > 0 {
+		if template.Scale == nil {
+			template.Scale = &containerapps.Scale{}
+		}
+		template.Scale.CooldownPeriod = pointer.To(config.CooldownPeriod)
+	}
+
+	if config.PollingInterval > 0 {
+		if template.Scale == nil {
+			template.Scale = &containerapps.Scale{}
+		}
+		template.Scale.PollingInterval = pointer.To(config.PollingInterval)
+	}
+
 	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
@@ -1135,6 +1179,8 @@ func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTempl
 	if scale := input.Scale; scale != nil {
 		result.MaxReplicas = pointer.From(scale.MaxReplicas)
 		result.MinReplicas = pointer.From(scale.MinReplicas)
+		result.CooldownPeriod = pointer.From(scale.CooldownPeriod)
+		result.PollingInterval = pointer.From(scale.PollingInterval)
 		result.flattenContainerAppScaleRules(scale.Rules)
 	}
 
@@ -1181,14 +1227,14 @@ func ContainerAppContainerSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeFloat,
 					Required:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1250,13 +1296,13 @@ func ContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 				"cpu": {
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					Description: "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Description: "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1334,14 +1380,14 @@ func InitContainerAppContainerSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeFloat,
 					Optional:     true,
 					ValidateFunc: validation.FloatAtLeast(0.1),
-					Description:  "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`. When there's a workload profile specified, there's no such constraint.",
+					Description:  "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -1397,13 +1443,13 @@ func InitContainerAppContainerSchemaComputed() *pluginsdk.Schema {
 				"cpu": {
 					Type:        pluginsdk.TypeFloat,
 					Computed:    true,
-					Description: "The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`",
+					Description: "The amount of vCPU to allocate to the container.",
 				},
 
 				"memory": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
-					Description: "The amount of memory to allocate to the container. Possible values include `0.5Gi`, `1.0Gi`, `1.5Gi`, `2.0Gi`, `2.5Gi`, `3.0Gi`, `3.5Gi`, and `4.0Gi`. **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`",
+					Description: "The amount of memory to allocate to the container.",
 				},
 
 				"ephemeral_storage": {
@@ -3011,7 +3057,7 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 		}
 	}
 
-	return !(hasLiveness || hasReadiness || hasStartup)
+	return !hasLiveness && !hasReadiness && !hasStartup
 }
 
 type AzureQueueScaleRule struct {

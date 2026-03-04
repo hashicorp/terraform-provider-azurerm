@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/verifierworkspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/verifierworkspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
@@ -111,7 +111,7 @@ func (r ManagerVerifierWorkspaceResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if _, err := client.Create(ctx, id, payload); err != nil {
+			if _, err := client.Create(ctx, id, payload, verifierworkspaces.DefaultCreateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -190,7 +190,7 @@ func (r ManagerVerifierWorkspaceResource) Update() sdk.ResourceFunc {
 				parameters.Properties.Description = pointer.To(model.Description)
 			}
 
-			if _, err := client.Update(ctx, *id, parameters); err != nil {
+			if _, err := client.Update(ctx, *id, parameters, verifierworkspaces.DefaultUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -209,7 +209,7 @@ func (r ManagerVerifierWorkspaceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.DeleteThenPoll(ctx, *id, verifierworkspaces.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 

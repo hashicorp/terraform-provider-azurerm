@@ -9,36 +9,36 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ProvisioningState string
+type NetAppProvisioningState string
 
 const (
-	ProvisioningStateAccepted  ProvisioningState = "Accepted"
-	ProvisioningStateCreating  ProvisioningState = "Creating"
-	ProvisioningStateDeleting  ProvisioningState = "Deleting"
-	ProvisioningStateFailed    ProvisioningState = "Failed"
-	ProvisioningStateMoving    ProvisioningState = "Moving"
-	ProvisioningStatePatching  ProvisioningState = "Patching"
-	ProvisioningStateSucceeded ProvisioningState = "Succeeded"
+	NetAppProvisioningStateAccepted  NetAppProvisioningState = "Accepted"
+	NetAppProvisioningStateCreating  NetAppProvisioningState = "Creating"
+	NetAppProvisioningStateDeleting  NetAppProvisioningState = "Deleting"
+	NetAppProvisioningStateFailed    NetAppProvisioningState = "Failed"
+	NetAppProvisioningStateMoving    NetAppProvisioningState = "Moving"
+	NetAppProvisioningStatePatching  NetAppProvisioningState = "Patching"
+	NetAppProvisioningStateSucceeded NetAppProvisioningState = "Succeeded"
 )
 
-func PossibleValuesForProvisioningState() []string {
+func PossibleValuesForNetAppProvisioningState() []string {
 	return []string{
-		string(ProvisioningStateAccepted),
-		string(ProvisioningStateCreating),
-		string(ProvisioningStateDeleting),
-		string(ProvisioningStateFailed),
-		string(ProvisioningStateMoving),
-		string(ProvisioningStatePatching),
-		string(ProvisioningStateSucceeded),
+		string(NetAppProvisioningStateAccepted),
+		string(NetAppProvisioningStateCreating),
+		string(NetAppProvisioningStateDeleting),
+		string(NetAppProvisioningStateFailed),
+		string(NetAppProvisioningStateMoving),
+		string(NetAppProvisioningStatePatching),
+		string(NetAppProvisioningStateSucceeded),
 	}
 }
 
-func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
+func (s *NetAppProvisioningState) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseProvisioningState(decoded)
+	out, err := parseNetAppProvisioningState(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -46,22 +46,22 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseProvisioningState(input string) (*ProvisioningState, error) {
-	vals := map[string]ProvisioningState{
-		"accepted":  ProvisioningStateAccepted,
-		"creating":  ProvisioningStateCreating,
-		"deleting":  ProvisioningStateDeleting,
-		"failed":    ProvisioningStateFailed,
-		"moving":    ProvisioningStateMoving,
-		"patching":  ProvisioningStatePatching,
-		"succeeded": ProvisioningStateSucceeded,
+func parseNetAppProvisioningState(input string) (*NetAppProvisioningState, error) {
+	vals := map[string]NetAppProvisioningState{
+		"accepted":  NetAppProvisioningStateAccepted,
+		"creating":  NetAppProvisioningStateCreating,
+		"deleting":  NetAppProvisioningStateDeleting,
+		"failed":    NetAppProvisioningStateFailed,
+		"moving":    NetAppProvisioningStateMoving,
+		"patching":  NetAppProvisioningStatePatching,
+		"succeeded": NetAppProvisioningStateSucceeded,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := ProvisioningState(input)
+	out := NetAppProvisioningState(input)
 	return &out, nil
 }
 

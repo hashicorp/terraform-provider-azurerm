@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package logic
@@ -6,7 +6,6 @@ package logic
 import (
 	"fmt"
 	"log"
-	"math"
 	"strings"
 	"time"
 
@@ -23,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -521,117 +519,73 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 
 				"linux_fx_version": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
 					Computed: true,
 				},
 
 				"min_tls_version": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
 					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointTwo),
-					}, false),
 				},
 
 				"pre_warmed_instance_count": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 20),
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
 				},
 
 				"scm_ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Computed: true,
 				},
 
 				"scm_min_tls_version": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
 					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointTwo),
-					}, false),
 				},
 
 				"scm_type": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
 					Computed: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.ScmTypeBitbucketGit),
-						string(webapps.ScmTypeBitbucketHg),
-						string(webapps.ScmTypeCodePlexGit),
-						string(webapps.ScmTypeCodePlexHg),
-						string(webapps.ScmTypeDropbox),
-						string(webapps.ScmTypeExternalGit),
-						string(webapps.ScmTypeExternalHg),
-						string(webapps.ScmTypeGitHub),
-						string(webapps.ScmTypeLocalGit),
-						string(webapps.ScmTypeNone),
-						string(webapps.ScmTypeOneDrive),
-						string(webapps.ScmTypeTfs),
-						string(webapps.ScmTypeVSO),
-						string(webapps.ScmTypeVSTSRM),
-					}, false),
 				},
 
 				"use_32_bit_worker_process": {
 					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
+					Computed: true,
 				},
 
 				"websockets_enabled": {
 					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Computed: true,
 				},
 
 				"health_check_path": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Computed: true,
 				},
 
 				"elastic_instance_minimum": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 20),
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
 				},
 
 				"app_scale_limit": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntAtLeast(0),
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
 				},
 
 				"runtime_scale_monitoring_enabled": {
 					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  false,
+					Computed: true,
 				},
 
 				"dotnet_framework_version": {
 					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "v4.0",
-					ValidateFunc: validation.StringInSlice([]string{
-						"v4.0",
-						"v5.0",
-						"v6.0",
-						"v8.0",
-					}, false),
+					Computed: true,
 				},
 
 				"vnet_route_all_enabled": {
 					Type:     pluginsdk.TypeBool,
-					Optional: true,
 					Computed: true,
 				},
 
@@ -646,29 +600,16 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
-			Optional:   true,
 			Computed:   true,
 			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
-			Optional: true,
 			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-			}, false),
 		}
 		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
-			Optional: true,
 			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.SupportedTlsVersionsOnePointZero),
-				string(webapps.SupportedTlsVersionsOnePointOne),
-				string(webapps.SupportedTlsVersionsOnePointTwo),
-			}, false),
 		}
 	}
 
@@ -717,43 +658,30 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 				},
 
 				"name": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 
 				"priority": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
+					Type:     pluginsdk.TypeInt,
+					Computed: true,
 				},
 
 				"action": {
 					Type:     pluginsdk.TypeString,
-					Default:  "Allow",
-					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"Allow",
-						"Deny",
-					}, false),
+					Computed: true,
 				},
 
 				// lintignore:XS003
 				"headers": {
-					Type:       pluginsdk.TypeList,
-					Optional:   true,
-					Computed:   true,
-					MaxItems:   1,
-					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Type:     pluginsdk.TypeList,
+					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							// lintignore:S018
 							"x_forwarded_host": {
 								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 8,
+								Computed: true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
 								},
@@ -762,35 +690,27 @@ func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
 							// lintignore:S018
 							"x_forwarded_for": {
 								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 8,
+								Computed: true,
 								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsCIDR,
+									Type: pluginsdk.TypeString,
 								},
 							},
 
 							// lintignore:S018
 							"x_azure_fdid": {
 								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 8,
+								Computed: true,
 								Elem: &pluginsdk.Schema{
-									Type:         pluginsdk.TypeString,
-									ValidateFunc: validation.IsUUID,
+									Type: pluginsdk.TypeString,
 								},
 							},
 
 							// lintignore:S018
 							"x_fd_health_probe": {
 								Type:     pluginsdk.TypeSet,
-								Optional: true,
-								MaxItems: 1,
+								Computed: true,
 								Elem: &pluginsdk.Schema{
 									Type: pluginsdk.TypeString,
-									ValidateFunc: validation.StringInSlice([]string{
-										"1",
-									}, false),
 								},
 							},
 						},

@@ -65,21 +65,27 @@ resource "azurerm_static_web_app_function_app_registration" "example" {
 
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
-* `static_web_app_id` (Required) - The ID of the Static Web App to register the Function App to as a backend. Changing this forces a new resource to be created. 
+* `static_web_app_id` - (Required) - The ID of the Static Web App to register the Function App to as a backend. Changing this forces a new resource to be created. 
 
-* `function_app_id` (Required) - The ID of a Linux or Windows Function App to connect to the Static Web App as a Backend. Changing this forces a new resource to be created. 
+* `function_app_id` - (Required) - The ID of a Linux or Windows Function App to connect to the Static Web App as a Backend. Changing this forces a new resource to be created. 
 
 ~> **Note:** Only one Function App can be connected to a Static Web App. Multiple Function Apps are not currently supported.
 
 ~> **Note:** Connecting a Function App resource to a Static Web App resource updates the Function App to use AuthV2 and configures the `azure_static_web_app_v2` which may need to be accounted for by the use of `ignore_changes` depending on the existing `auth_settings_v2` configuration of the target Function App.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the App Service Static Web App Function App Registration.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Static Web App Function App Registration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App Function App Registration.

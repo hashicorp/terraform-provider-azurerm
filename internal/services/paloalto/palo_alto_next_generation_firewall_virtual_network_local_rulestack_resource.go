@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package paloalto
@@ -106,7 +106,7 @@ func (r NextGenerationFirewallVNetLocalRulestackResource) Create() sdk.ResourceF
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
-			localRulestackClient := metadata.Client.PaloAlto.Client.LocalRulestacks
+			localRulestackClient := metadata.Client.PaloAlto.LocalRulestacks
 
 			var model NextGenerationFirewallVnetLocalRulestackModel
 

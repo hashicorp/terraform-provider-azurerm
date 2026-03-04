@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azurestackhci
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -22,7 +23,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmStackHCICluster() *pluginsdk.Resource {
@@ -122,7 +122,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	cluster := clusters.Cluster{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &clusters.ClusterProperties{
-			AadClientId: utils.String(d.Get("client_id").(string)),
+			AadClientId: pointer.To(d.Get("client_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -132,10 +132,10 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
-		cluster.Properties.AadTenantId = utils.String(v.(string))
+		cluster.Properties.AadTenantId = pointer.To(v.(string))
 	} else {
 		tenantId := meta.(*clients.Client).Account.TenantId
-		cluster.Properties.AadTenantId = utils.String(tenantId)
+		cluster.Properties.AadTenantId = pointer.To(tenantId)
 	}
 
 	if _, err := client.Create(ctx, id, cluster); err != nil {
@@ -164,7 +164,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		if response.WasNotFound(assignmentsResp.HttpResponse) {
 			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
 				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
+					ConfigurationProfile: pointer.To(configurationProfileId.ID()),
 				},
 			}
 
@@ -280,7 +280,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 
 			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
 				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
+					ConfigurationProfile: pointer.To(configurationProfileId.ID()),
 				},
 			}
 

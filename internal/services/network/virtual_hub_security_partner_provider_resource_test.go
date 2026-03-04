@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/securitypartnerproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/securitypartnerproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,14 +65,14 @@ func TestAccVirtualHubSecurityPartnerProvider_update(t *testing.T) {
 	r := VirtualHubSecurityPartnerProviderResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.completeUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -170,6 +170,26 @@ resource "azurerm_virtual_hub_security_partner_provider" "test" {
 
   tags = {
     ENv = "Test"
+  }
+
+  depends_on = [azurerm_vpn_gateway.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r VirtualHubSecurityPartnerProviderResource) completeUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub_security_partner_provider" "test" {
+  name                   = "acctest-SPP-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  virtual_hub_id         = azurerm_virtual_hub.test.id
+  security_provider_name = "ZScaler"
+
+  tags = {
+    env = "Updated"
   }
 
   depends_on = [azurerm_vpn_gateway.test]

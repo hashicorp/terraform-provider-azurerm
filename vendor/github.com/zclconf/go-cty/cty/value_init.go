@@ -113,7 +113,7 @@ func NormalizeString(s string) string {
 // by the key names and value types in the given map.
 func ObjectVal(attrs map[string]Value) Value {
 	attrTypes := make(map[string]Type, len(attrs))
-	attrVals := make(map[string]interface{}, len(attrs))
+	attrVals := make(map[string]any, len(attrs))
 
 	for attr, val := range attrs {
 		attr = NormalizeString(attr)
@@ -131,7 +131,7 @@ func ObjectVal(attrs map[string]Value) Value {
 // defined by the value types in the given slice.
 func TupleVal(elems []Value) Value {
 	elemTypes := make([]Type, len(elems))
-	elemVals := make([]interface{}, len(elems))
+	elemVals := make([]any, len(elems))
 
 	for i, val := range elems {
 		elemTypes[i] = val.ty
@@ -156,7 +156,7 @@ func ListVal(vals []Value) Value {
 		panic("must not call ListVal with empty slice")
 	}
 	elementType := DynamicPseudoType
-	rawList := make([]interface{}, len(vals))
+	rawList := make([]any, len(vals))
 
 	for i, val := range vals {
 		if elementType == DynamicPseudoType {
@@ -181,7 +181,7 @@ func ListVal(vals []Value) Value {
 func ListValEmpty(element Type) Value {
 	return Value{
 		ty: List(element),
-		v:  []interface{}{},
+		v:  []any{},
 	}
 }
 
@@ -211,7 +211,7 @@ func MapVal(vals map[string]Value) Value {
 		panic("must not call MapVal with empty map")
 	}
 	elementType := DynamicPseudoType
-	rawMap := make(map[string]interface{}, len(vals))
+	rawMap := make(map[string]any, len(vals))
 
 	for key, val := range vals {
 		if elementType == DynamicPseudoType {
@@ -236,7 +236,7 @@ func MapVal(vals map[string]Value) Value {
 func MapValEmpty(element Type) Value {
 	return Value{
 		ty: Map(element),
-		v:  map[string]interface{}{},
+		v:  map[string]any{},
 	}
 }
 
@@ -266,7 +266,7 @@ func SetVal(vals []Value) Value {
 		panic("must not call SetVal with empty slice")
 	}
 	elementType := DynamicPseudoType
-	rawList := make([]interface{}, len(vals))
+	rawList := make([]any, len(vals))
 	var markSets []ValueMarks
 
 	for i, val := range vals {
@@ -286,7 +286,7 @@ func SetVal(vals []Value) Value {
 		rawList[i] = val.v
 	}
 
-	rawVal := set.NewSetFromSlice(set.Rules[interface{}](setRules{elementType}), rawList)
+	rawVal := set.NewSetFromSlice(set.Rules[any](setRules{elementType}), rawList)
 
 	return Value{
 		ty: Set(elementType),
@@ -333,7 +333,7 @@ func SetValFromValueSet(s ValueSet) Value {
 func SetValEmpty(element Type) Value {
 	return Value{
 		ty: Set(element),
-		v:  set.NewSet(set.Rules[interface{}](setRules{element})),
+		v:  set.NewSet(set.Rules[any](setRules{element})),
 	}
 }
 
@@ -344,7 +344,7 @@ func SetValEmpty(element Type) Value {
 // This function will panic if the given type is not a capsule type, if
 // the given wrapVal is not compatible with the given capsule type, or if
 // wrapVal is not a pointer.
-func CapsuleVal(ty Type, wrapVal interface{}) Value {
+func CapsuleVal(ty Type, wrapVal any) Value {
 	if !ty.IsCapsuleType() {
 		panic("not a capsule type")
 	}

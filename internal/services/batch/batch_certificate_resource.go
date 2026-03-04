@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package batch
@@ -23,6 +23,8 @@ import (
 
 func resourceBatchCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_batch_certificate` resource has been deprecated because the Azure Batch Certificates feature was retired on 2024-02-29. This resource will be removed in v5.0 of the AzureRM Provider.",
+
 		Create: resourceBatchCertificateCreate,
 		Read:   resourceBatchCertificateRead,
 		Update: resourceBatchCertificateUpdate,
@@ -148,8 +150,7 @@ func resourceBatchCertificateCreate(d *pluginsdk.ResourceData, meta interface{})
 		Properties: &certificateProperties,
 	}
 
-	_, err := client.Create(ctx, id, parameters, certificate.CreateOperationOptions{})
-	if err != nil {
+	if _, err := client.Create(ctx, id, parameters, certificate.CreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -249,8 +250,7 @@ func resourceBatchCertificateUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	_, err = client.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 

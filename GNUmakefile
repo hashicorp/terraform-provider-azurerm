@@ -16,7 +16,7 @@ tools:
 	go install github.com/katbyte/terrafmt@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install mvdan.cc/gofumpt@latest
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.64.6
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v2.4.0
 
 build: fmtcheck generate
 	go install
@@ -52,7 +52,12 @@ goimports:
 	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/goimport-file.sh "$$f"; done
 
 lint:
-	./scripts/run-lint.sh
+	@golangci-lint run -v ./...
+
+shellcheck:
+	@command -v shellcheck >/dev/null || (echo "shellcheck not installed. Install via: brew install shellcheck (macOS) or apt install shellcheck (Linux)" && exit 1)
+	@echo "==> Checking shell scripts with shellcheck..."
+	@shellcheck scripts/*.sh
 
 depscheck:
 	@echo "==> Checking dependencies.."
@@ -154,6 +159,9 @@ schemagen:
 resource-counts:
 	go test -v ./internal/provider -run=TestProvider_counts
 
+static-analysis:
+	./scripts/run-static-analysis.sh
+
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis

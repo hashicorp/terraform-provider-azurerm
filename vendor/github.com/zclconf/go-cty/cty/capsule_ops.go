@@ -14,7 +14,7 @@ type CapsuleOps struct {
 	// corresponding type. Conventionally this should return a string
 	// representation of an expression that would produce an equivalent
 	// value.
-	GoString func(val interface{}) string
+	GoString func(val any) string
 
 	// TypeGoString provides the GoString implementation for the corresponding
 	// capsule type itself.
@@ -37,7 +37,7 @@ type CapsuleOps struct {
 	//
 	// If RawEquals is nil then Equals must also be nil, selecting the default
 	// pointer-identity comparison instead.
-	Equals func(a, b interface{}) Value
+	Equals func(a, b any) Value
 
 	// RawEquals provides the implementation of the RawEquals operation.
 	// This is called only with known, non-null values of the corresponding
@@ -47,7 +47,7 @@ type CapsuleOps struct {
 	//
 	// If RawEquals is nil, values of the corresponding type are compared by
 	// pointer identity of the encapsulated value.
-	RawEquals func(a, b interface{}) bool
+	RawEquals func(a, b any) bool
 
 	// HashKey provides a hashing function for values of the corresponding
 	// capsule type. If defined, cty will use the resulting hashes as part
@@ -59,7 +59,7 @@ type CapsuleOps struct {
 	// RawEquals to return true when given those values. If a given type
 	// does not uphold that assumption then sets including this type will
 	// not behave correctly.
-	HashKey func(v interface{}) string
+	HashKey func(v any) string
 
 	// ConversionFrom can provide conversions from the corresponding type to
 	// some other type when values of the corresponding type are used with
@@ -68,7 +68,7 @@ type CapsuleOps struct {
 	// This function itself returns a function, allowing it to switch its
 	// behavior depending on the given source type. Return nil to indicate
 	// that no such conversion is available.
-	ConversionFrom func(src Type) func(interface{}, Path) (Value, error)
+	ConversionFrom func(src Type) func(any, Path) (Value, error)
 
 	// ConversionTo can provide conversions to the corresponding type from
 	// some other type when values of the corresponding type are used with
@@ -77,7 +77,7 @@ type CapsuleOps struct {
 	// This function itself returns a function, allowing it to switch its
 	// behavior depending on the given destination type. Return nil to indicate
 	// that no such conversion is available.
-	ConversionTo func(dst Type) func(Value, Path) (interface{}, error)
+	ConversionTo func(dst Type) func(Value, Path) (any, error)
 
 	// ExtensionData is an extension point for applications that wish to
 	// create their own extension features using capsule types.
@@ -99,7 +99,7 @@ type CapsuleOps struct {
 	// should do so defensively: if the result of ExtensionData is not valid,
 	// prefer to ignore it or gracefully produce an error rather than causing
 	// a panic.
-	ExtensionData func(key interface{}) interface{}
+	ExtensionData func(key any) any
 }
 
 // noCapsuleOps is a pointer to a CapsuleOps with no functions set, which
@@ -135,7 +135,7 @@ func (ty Type) CapsuleOps() *CapsuleOps {
 // on the purpose of and usage of this mechanism.
 //
 // If CapsuleExtensionData is called on a non-capsule type then it will panic.
-func (ty Type) CapsuleExtensionData(key interface{}) interface{} {
+func (ty Type) CapsuleExtensionData(key any) any {
 	ops := ty.CapsuleOps()
 	if ops.ExtensionData == nil {
 		return nil
