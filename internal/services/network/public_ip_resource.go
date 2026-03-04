@@ -182,36 +182,11 @@ func resourcePublicIp() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-				if !isPublicIPBasicSkuDeprecatedForCreation() {
-					return nil
-				}
-
-				sku := d.Get("sku").(string)
-				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "allocation_method", "edge_zone", "ip_version", "sku", "sku_tier", "public_ip_prefix_id", "ip_tags", "zones") {
-					return fmt.Errorf("%s", publicIPBasicSkuCreateDeprecationMessage)
-				}
-
-				return nil
-			}),
 			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) != "" || new.(string) == ""
 			}),
 		),
 	}
-}
-
-const publicIPBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU public IP addresses is no longer permitted following its deprecation on March 31, 2025. This also affects `allocation_method` set to `Dynamic`, as it is only available with the `Basic` SKU. Existing `Basic` SKU public IP addresses can continue to be used until September 30, 2025. For more information, see https://azure.microsoft.com/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/"
-
-func isPublicIPBasicSkuDeprecatedForCreation() bool {
-	losAngelesLocation, err := time.LoadLocation("America/Los_Angeles")
-	if err != nil {
-		losAngelesLocation = time.UTC
-	}
-
-	deprecationTime := time.Date(2025, time.April, 1, 0, 0, 0, 0, losAngelesLocation)
-	now := time.Now()
-	return now.After(deprecationTime.In(now.Location()))
 }
 
 func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {

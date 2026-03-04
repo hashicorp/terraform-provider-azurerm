@@ -56,7 +56,6 @@ func TestAccDataSourcePublicIPs_assigned(t *testing.T) {
 }
 
 func TestAccDataSourcePublicIPs_allocationType(t *testing.T) {
-	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ips", "test")
 	r := PublicIPsResource{}
 
@@ -165,7 +164,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Standard"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 30
 
   tags = {
@@ -179,7 +178,7 @@ resource "azurerm_public_ip" "test2" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Standard"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 30
 
   tags = {
@@ -231,7 +230,7 @@ resource "azurerm_public_ip" "static" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Standard"
+  sku                     = "Basic"
   idle_timeout_in_minutes = 30
 
   tags = {

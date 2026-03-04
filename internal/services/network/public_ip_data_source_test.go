@@ -40,7 +40,6 @@ func TestAccDataSourcePublicIP_static(t *testing.T) {
 }
 
 func TestAccDataSourcePublicIP_dynamic(t *testing.T) {
-	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ip", "test")
 	r := PublicIPDataSource{}
 
