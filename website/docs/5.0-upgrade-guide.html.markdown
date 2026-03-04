@@ -38,6 +38,7 @@ More information on [how to pin the version of a Terraform Provider being used c
 ## What's changed in Version 5.0 of the Azure Provider?
 
 * [Resource Provider Registration Changes](#resource-provider-registration-changes)
+* [Migration Guide for `azurerm_ai_services`](#migration-guide-for-removed-azurerm_ai_services-resource)
 * [Removed Resources](#removed-resources)
 * [Removed Data Sources](#removed-data-sources)
 * [Breaking Changes in Resources](#breaking-changes-in-resources)
@@ -111,7 +112,7 @@ This change was made because:
 
 The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previously controlled both location and resource provider validation, has been removed in version 5.0. Please migrate to either the `enhanced_validation` provider block or the specific environment variables: `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS`.
 
-## AI Services migration to Cognitive Account
+## Migration guide for removed `azurerm_ai_services` resource
 
 The `azurerm_ai_services` resource has been removed and replaced by `azurerm_cognitive_account`. The table below lists the attributes that have changed; all other attributes are carried over unchanged.
 
@@ -121,10 +122,9 @@ The `azurerm_ai_services` resource has been removed and replaced by `azurerm_cog
 | `local_authentication_enabled` | `local_auth_enabled` | **Renamed**. Both default to `true`. |
 | `public_network_access` | `public_network_access_enabled` | **Changed type**. String (`"Enabled"` / `"Disabled"`) → Boolean (`true` / `false`). Defaults to `true`. |
 | (not present) | `project_management_enabled` |**Required**. Set to `true` to match the behaviour of `azurerm_ai_services`. |
+| `customer_managed_key.managed_hsm_key_id`  | (not present) | `customer_managed_key.managed_hsm_key_id` is not present in `azurerm_cognitive_account`. Try update to use `customer_managed_key.key_vault_key_id` before migration. |
 
 ~> **Note:** If your configuration included a `storage` block under `azurerm_ai_services`, `terraform plan` may show changes after migration even though the Azure resource itself has not changed. This occurs because `azurerm_ai_services` silently ignored the `storage` block and never sent those values to the API, so the imported state does not reflect them. Running `terraform apply` will reconcile the state by applying the storage configuration for the first time.
-
-~> **Note:** The `managed_hsm_key_id` property inside the `customer_managed_key` block has been removed. Use the `azurerm_cognitive_account_customer_managed_key` resource for managed HSM key encryption instead. Additionally, `key_vault_key_id` inside the `customer_managed_key` block is now **Required** in `azurerm_cognitive_account`, whereas in `azurerm_ai_services` it was **Optional** (one of `key_vault_key_id` or `managed_hsm_key_id` was required).
 
 ## Removed Resources
 
