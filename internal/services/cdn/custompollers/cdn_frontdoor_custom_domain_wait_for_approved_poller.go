@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2025-04-15/afdcustomdomains"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
@@ -50,14 +51,12 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 		return &frontDoorCustomDomainWaitForApprovedInProgress, nil
 	}
 
-	deploymentStatus := ""
-	if model.Properties.DeploymentStatus != nil {
-		deploymentStatus = string(*model.Properties.DeploymentStatus)
-	}
+	deploymentStatus := pointer.From(model.Properties.DeploymentStatus)
+	provisioningState := pointer.From(model.Properties.ProvisioningState)
 
-	provisioningState := ""
-	if model.Properties.ProvisioningState != nil {
-		provisioningState = string(*model.Properties.ProvisioningState)
+	if provisioningState == afdcustomdomains.AfdProvisioningStateFailed {
+		log.Printf("[DEBUG] AFD Custom Domain %s provisioning failed (deploymentStatus=%q provisioningState=%q)", p.id, string(deploymentStatus), string(provisioningState))
+		return nil, fmt.Errorf("provisioning for %s failed with `provisioningState` `%s`", p.id, provisioningState)
 	}
 
 	if model.Properties.DomainValidationState == nil {
@@ -68,13 +67,18 @@ func (p frontDoorCustomDomainWaitForApprovedPoller) Poll(ctx context.Context) (*
 	state := *model.Properties.DomainValidationState
 	switch state {
 	case afdcustomdomains.DomainValidationStateApproved:
-		log.Printf("[DEBUG] AFD Custom Domain %s approved (deploymentStatus=%q provisioningState=%q)", p.id, deploymentStatus, provisioningState)
+		if deploymentStatus != afdcustomdomains.DeploymentStatusSucceeded {
+			log.Printf("[DEBUG] AFD Custom Domain %s validation approved but deployment not succeeded yet (deploymentStatus=%q provisioningState=%q)", p.id, string(deploymentStatus), string(provisioningState))
+			return &frontDoorCustomDomainWaitForApprovedInProgress, nil
+		}
+
+		log.Printf("[DEBUG] AFD Custom Domain %s approved and deployed (deploymentStatus=%q provisioningState=%q)", p.id, string(deploymentStatus), string(provisioningState))
 		return &frontDoorCustomDomainWaitForApprovedSuccess, nil
 	case afdcustomdomains.DomainValidationStateRejected, afdcustomdomains.DomainValidationStateTimedOut, afdcustomdomains.DomainValidationStateInternalError:
-		log.Printf("[DEBUG] AFD Custom Domain %s domain validation terminal state=%q (deploymentStatus=%q provisioningState=%q)", p.id, state, deploymentStatus, provisioningState)
+		log.Printf("[DEBUG] AFD Custom Domain %s domain validation terminal state=%q (deploymentStatus=%q provisioningState=%q)", p.id, state, string(deploymentStatus), string(provisioningState))
 		return nil, fmt.Errorf("domain validation for %s failed with `domainValidationState` `%s`", p.id, state)
 	default:
-		log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState=%q (deploymentStatus=%q provisioningState=%q)", p.id, state, deploymentStatus, provisioningState)
+		log.Printf("[DEBUG] AFD Custom Domain %s waiting for approval; domainValidationState=%q (deploymentStatus=%q provisioningState=%q)", p.id, state, string(deploymentStatus), string(provisioningState))
 		return &frontDoorCustomDomainWaitForApprovedInProgress, nil
 	}
 }
