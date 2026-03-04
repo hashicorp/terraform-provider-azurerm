@@ -93,7 +93,7 @@ github.com/bgentry/speakeasy
 # github.com/btubbs/datetime v0.1.1
 ## explicit
 github.com/btubbs/datetime
-# github.com/cloudflare/circl v1.6.1
+# github.com/cloudflare/circl v1.6.3
 ## explicit; go 1.22.0
 github.com/cloudflare/circl/dh/x25519
 github.com/cloudflare/circl/dh/x448
@@ -458,10 +458,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedg
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/orders
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/vnetpeering
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/apikey
