@@ -113,50 +113,18 @@ The legacy `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable, which previo
 
 ## AI Services migration to Cognitive Account
 
-The `azurerm_ai_services` resource has been removed and replaced by `azurerm_cognitive_account`. The tables below map every attribute from `azurerm_ai_services` to its equivalent in `azurerm_cognitive_account`.
-
-### Top-Level Arguments
+The `azurerm_ai_services` resource has been removed and replaced by `azurerm_cognitive_account`. The table below lists the attributes that have changed; all other attributes are carried over unchanged.
 
 | `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
-| -----------------------| -----------------------------|-------|
-| `name` | `name` | Unchanged. |
-| `location` | `location` | Unchanged. |
-| `resource_group_name` | `resource_group_name` | Unchanged. |
-| `sku_name` | `sku_name` | Unchanged. |
-| (not present) | `kind` | Required. Set to `"AIServices"` to match the behaviour of `azurerm_ai_services`. |
-| `custom_subdomain_name` | `custom_subdomain_name` | Unchanged. |
-| `local_authentication_enabled` | `local_auth_enabled` | Renamed. Both default to `true`. |
-| `public_network_access` | `public_network_access_enabled` | Changed type. String (`"Enabled"` / `"Disabled"`) → Boolean (`true` / `false`). Defaults to `true`. |
-| `outbound_network_access_restricted` | `outbound_network_access_restricted` | Unchanged. |
-| `fqdns` | `fqdns` | Unchanged. |
-| `customer_managed_key` | `customer_managed_key` | See `customer_managed_key` block below. |
-| `identity` | `identity` | Unchanged. |
-| `network_acls` | `network_acls` | Unchanged. |
-| `storage` | `storage` | Note: the `storage` block was accepted by `azurerm_ai_services` but was not processed; values are now correctly applied by `azurerm_cognitive_account`. |
-| `tags` | `tags` | Unchanged. |
+|-----------------------|-----------------------------|-------|
+| (not present) | `kind` | **Required**. Set to `"AIServices"` to match the behaviour of `azurerm_ai_services`. |
+| `local_authentication_enabled` | `local_auth_enabled` | **Renamed**. Both default to `true`. |
+| `public_network_access` | `public_network_access_enabled` | **Changed type**. String (`"Enabled"` / `"Disabled"`) → Boolean (`true` / `false`). Defaults to `true`. |
+| (not present) | `project_management_enabled` |**Required**. Set to `true` to match the behaviour of `azurerm_ai_services`. |
 
 ~> **Note:** If your configuration included a `storage` block under `azurerm_ai_services`, `terraform plan` may show changes after migration even though the Azure resource itself has not changed. This occurs because `azurerm_ai_services` silently ignored the `storage` block and never sent those values to the API, so the imported state does not reflect them. Running `terraform apply` will reconcile the state by applying the storage configuration for the first time.
 
-### `customer_managed_key` Block
-
-| `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
-| -----------------------| -----------------------------|-------|
-| `key_vault_key_id` | `key_vault_key_id` | Unchanged. |
-| `managed_hsm_key_id` | (not present) | Removed. Use the `azurerm_cognitive_account_customer_managed_key` resource for managed HSM key encryption. |
-| `identity_client_id` | `identity_client_id` | Unchanged. |
-
-~> **Note:** In `azurerm_cognitive_account`, `key_vault_key_id` inside the `customer_managed_key` block is Required, whereas in `azurerm_ai_services` it was Optional (one of `key_vault_key_id` or `managed_hsm_key_id` was required).
-
-### Exported Attributes
-
-| `azurerm_ai_services` | `azurerm_cognitive_account` | Notes |
-| -----------------------| -----------------------------|-------|
-| `id` | `id` | Identical resource ID format. |
-| `endpoint` | `endpoint` | Unchanged. |
-| `primary_access_key` | `primary_access_key` | Available when `local_auth_enabled = true`. |
-| `secondary_access_key` | `secondary_access_key` | Available when `local_auth_enabled = true`. |
-| `identity.principal_id` | `identity.principal_id` | Unchanged. |
-| `identity.tenant_id` | `identity.tenant_id` | Unchanged. |
+~> **Note:** The `managed_hsm_key_id` property inside the `customer_managed_key` block has been removed. Use the `azurerm_cognitive_account_customer_managed_key` resource for managed HSM key encryption instead. Additionally, `key_vault_key_id` inside the `customer_managed_key` block is now **Required** in `azurerm_cognitive_account`, whereas in `azurerm_ai_services` it was **Optional** (one of `key_vault_key_id` or `managed_hsm_key_id` was required).
 
 ## Removed Resources
 
