@@ -495,8 +495,8 @@ resource "azurerm_public_ip" "first" {
   name                = "acctpip1-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "first" {
@@ -516,8 +516,8 @@ resource "azurerm_public_ip" "second" {
   name                = "acctpip2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "second" {
@@ -898,7 +898,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = %q
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "test" {
@@ -925,7 +925,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = %q
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "test" {
