@@ -37,7 +37,7 @@ resource "azurerm_cognitive_account_rai_blocklist" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Cognitive Account Rai Blocklist. Changing this forces a new Cognitive Account Rai Blocklist to be created. This field must be between 2 and 64 characters long, start and end with an alphanumeric character, and contain only alphanumeric characters, hyphens(-) or underscores(_).
+* `name` - (Required) The name of the Cognitive Account Rai Blocklist. Changing this forces a new Cognitive Account Rai Blocklist to be created.
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new Cognitive Account Rai Blocklist to be created.
 
