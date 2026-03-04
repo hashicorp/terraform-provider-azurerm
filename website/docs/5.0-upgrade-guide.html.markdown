@@ -74,7 +74,6 @@ provider "azurerm" {
   features {}
 }
 ```
-
 ##### How to replicate the previous behaviour
 
 If you want to maintain the v4.x behaviour and automatically register the same set of Resource Providers as before, explicitly set `resource_provider_registrations` to the `legacy` resource provider set in your provider block:
