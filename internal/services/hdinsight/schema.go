@@ -12,14 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/extensions"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hdinsight/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -952,7 +951,7 @@ func SchemaHDInsightsDiskEncryptionProperties() *pluginsdk.Schema {
 				"key_vault_key_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: keyVault.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 				},
 			},
 		},
@@ -1038,13 +1037,13 @@ func ExpandHDInsightsDiskEncryptionProperties(input []interface{}) (*clusters.Di
 	}
 
 	if id, ok := v["key_vault_key_id"]; ok && id.(string) != "" {
-		keyVaultKeyId, err := parse.ParseNestedItemID(id.(string))
+		keyVaultKeyId, err := keyvault.ParseNestedItemID(id.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 		diskEncryptionProps.KeyName = &keyVaultKeyId.Name
 		diskEncryptionProps.KeyVersion = &keyVaultKeyId.Version
-		diskEncryptionProps.VaultUri = &keyVaultKeyId.KeyVaultBaseUrl
+		diskEncryptionProps.VaultUri = &keyVaultKeyId.KeyVaultBaseURL
 	}
 
 	return diskEncryptionProps, nil
@@ -1063,7 +1062,7 @@ func flattenHDInsightsDiskEncryptionProperties(input *clusters.DiskEncryptionPro
 	keyVersion := pointer.From(input.KeyVersion)
 	keyVaultKeyId := ""
 	if (keyName != "" || keyVersion != "") && input.VaultUri != nil {
-		keyVaultKeyIdRaw, err := parse.NewNestedItemID(*input.VaultUri, parse.NestedItemTypeKey, keyName, keyVersion)
+		keyVaultKeyIdRaw, err := keyvault.NewNestedItemID(*input.VaultUri, keyvault.NestedItemTypeKey, keyName, keyVersion)
 		if err != nil {
 			return nil, err
 		}
