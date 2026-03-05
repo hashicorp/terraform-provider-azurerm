@@ -86,7 +86,7 @@ data "azurerm_platform_image" "example" {
 }
 
 resource "azurerm_managed_devops_pool" "example" {
-  name                  = "example"
+  name                  = "example-manageddevopspools"
   resource_group_name   = azurerm_resource_group.example.name
   location              = azurerm_resource_group.example.location
   dev_center_project_id = azurerm_dev_center_project.example.id
@@ -175,7 +175,7 @@ The following arguments are supported:
 
 * `dev_center_project_id` - (Required) The ID of the Dev Center project.
 
-* `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time. Possible values are between `1` and `10000`.
+* `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time. Possible values range between `1` and `10000`.
 
 * `vmss_fabric` - (Required) A `vmss_fabric` block as defined below.
 
@@ -193,7 +193,7 @@ The following arguments are supported:
 
 An `automatic_resource_prediction` block supports the following:
 
-* `prediction_preference` - (Optional) Specifies the desired balance between cost and performance. Possible values are `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`. Defaults to `Balanced`.
+* `prediction_preference` - (Optional) Specifies the desired balance between cost and performance. Possible values include `MostCostEffective`, `MoreCostEffective`, `Balanced`, `MorePerformance`, and `BestPerformance`. Defaults to `Balanced`.
 
 ---
 
@@ -223,7 +223,7 @@ An `image` block supports the following:
 
 * `well_known_image_name` - (Optional) The image to use from a well-known set of images made available to customers.
 
-~> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=arm#azure-pipelines-images). You can optionally specify a version in your `well_known_image_name`, for example `windows-2022/latest` or `windows-2022/20250427.1.0`. If you don't specify a version, latest is used.
+-> **Note:** More information about supported images can be found in [list of Azure Pipelines image predefined aliases](https://learn.microsoft.com/azure/devops/managed-devops-pools/configure-images?view=azure-devops&tabs=arm#azure-pipelines-images). You can optionally specify a version in your `well_known_image_name`, for example `windows-2022/latest` or `windows-2022/20250427.1.0`. If you don't specify a version, latest is used.
 
 ~> **Note:** Exactly one of `id` or `well_known_image_name` are required per `image`
 
@@ -233,7 +233,7 @@ An `organization` block supports the following:
 
 * `url` - (Required) The Azure DevOps organization URL in which the pool should be created. It must end with a letter or number.
 
-* `parallelism` - (Required) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values are between `1` and `10000`.
+* `parallelism` - (Required) Specifies how many machines can be created at maximum in this organization out of the `maximum_concurrency` of the pool. Possible values range between `1` and `10000`.
 
 ~> **Note:** The sum of `parallelism` across orgs should be equal to `maximum_concurrency`.
 
@@ -245,7 +245,7 @@ An `organization` block supports the following:
   * Must not contain Unicode control characters or surrogate characters
   * Must not be a reserved name: `App_Browsers`, `App_Code`, `App_Data`, `App_GlobalResources`, `App_LocalResources`, `App_Themes`, `App_WebResources`, `bin`, or `web.config` (case-insensitive)
 
-~> **Note:** Please refer to [Azure DevOps Project Names](https://learn.microsoft.com/en-us/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#project-names) for more information.
+-> **Note:** Please refer to [Azure DevOps Project Names](https://learn.microsoft.com/azure/devops/organizations/settings/naming-restrictions?view=azure-devops#project-names) for more information.
 
 ---
 
@@ -259,7 +259,7 @@ A `security` block supports the following:
 
 A `permission` block supports the following:
 
-* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit` and `SpecificAccounts`.
+* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values include `CreatorOnly`, `Inherit`, and `SpecificAccounts`.
 
 * `administrator_account` - (Optional) An `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
 
@@ -281,7 +281,7 @@ A `key_vault_management` block supports the following:
 
 * `certificate_store_location` - (Optional) Specifies where to store certificates on the machine.
 
-* `certificate_store_name` - (Optional) Name of the certificate store to use on the machine. Possible values are `My` and `Root`.
+* `certificate_store_name` - (Optional) Name of the certificate store to use on the machine. Possible values include `My` and `Root`.
 
 * `key_export_enabled` - (Optional) Defines if the key of the certificates should be exportable. Defaults to `false`.
 
@@ -315,7 +315,7 @@ A `manual_resource_prediction` block supports the following:
 
 * `time_zone_name` - (Optional) Specifies the time zone for the predictions data to be provisioned at. A list of possible values are available by executing `[System.TimeZoneInfo]::GetSystemTimeZones()` in PowerShell. Defaults to `UTC`.
 
-* `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values are between `1` and `maximum_concurrency`.
+* `all_week_schedule` - (Optional) A number of agents available 24/7 all week. Possible values range between `1` and `maximum_concurrency`.
 
 * `friday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
@@ -331,13 +331,13 @@ A `manual_resource_prediction` block supports the following:
 
 * `wednesday_schedule` - (Optional) One or more `daily_schedule` blocks as defined below.
 
-~> **Note:** Exactly one of `all_week_schedule` or at least one individual daily schedule block must be specified. Please refer to [Microsoft documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
+~> **Note:** Exactly one of `all_week_schedule` or at least one individual daily schedule block must be specified. Please refer to [Microsoft documentation](https://learn.microsoft.com/azure/devops/managed-devops-pools/configure-scaling?view=azure-devops&tabs=azure-cli#manual) for more information about the manual predictions setup.
 
 ---
 
 A `daily_schedule` block supports the following:
 
-* `count` - (Required) The number of standby agents to provision at this time. Possible values are between `0` and `maximum_concurrency`.
+* `count` - (Required) The number of standby agents to provision at this time. Possible values range between `0` and `maximum_concurrency`.
 
 * `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
 
@@ -345,13 +345,13 @@ A `daily_schedule` block supports the following:
 
 A `storage` block supports the following:
 
-* `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values are between `1` and `32767`.
+* `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values range between `1` and `32767`.
 
-* `caching` - (Optional) The type of caching for the data disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+* `caching` - (Optional) The type of caching for the data disk. Possible values include `None`, `ReadOnly`, and `ReadWrite`.
 
 * `drive_letter` - (Optional) The drive letter for the data disk.
 
-* `storage_account_type` - (Optional) The storage account type of the data disk. Possible values are `Premium_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS` and `StandardSSD_ZRS`. Defaults to `Standard_LRS`.
+* `storage_account_type` - (Optional) The storage account type of the data disk. Possible values include `Premium_LRS`, `Premium_ZRS`, `Standard_LRS`, `StandardSSD_LRS`, and `StandardSSD_ZRS`. Defaults to `Standard_LRS`.
 
 ---
 
@@ -359,15 +359,15 @@ A `vmss_fabric` block supports the following:
 
 * `image` - (Required) One or more `image` blocks as defined below.
 
-* `sku_name` - (Required) The Azure SKU name of the machines in the pool. Please refer to the [Microsoft Documentation](https://learn.microsoft.com/en-us/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#agent-size) about available SKU.
+* `sku_name` - (Required) The Azure SKU name of the machines in the pool. Please refer to the [Microsoft Documentation](https://learn.microsoft.com/azure/devops/managed-devops-pools/configure-pool-settings?view=azure-devops&tabs=azure-portal#agent-size) about available SKU.
 
-* `subnet_id` - (Optional) The subnet ID on which to put all machines created in the pool.
+* `os_disk_storage_account_type` - (Optional) The storage account type for the OS disk. Possible values include `Premium`, `Standard`, and `StandardSSD`. Defaults to `Standard`.
 
 * `security` - (Optional) A `security` block as defined below.
 
-* `os_disk_storage_account_type` - (Optional) The storage account type for the OS disk. Possible values are `Premium`, `Standard` and `StandardSSD`. Defaults to `Standard`.
-
 * `storage` - (Optional) A `storage` block as defined below.
+
+* `subnet_id` - (Optional) The subnet ID on which to put all machines created in the pool.
 
 ## Attributes Reference
 
