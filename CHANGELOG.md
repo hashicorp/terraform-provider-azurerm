@@ -1,6 +1,7 @@
 ## 4.64.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `containerservice` - partial upgrade to API version `2025-10-01` [GH-31401]
 
 FEATURES:
 
