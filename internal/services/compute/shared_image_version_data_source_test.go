@@ -175,11 +175,47 @@ resource "azurerm_shared_image_version" "test2" {
   ]
 }
 
+resource "azurerm_shared_image_version" "test3" {
+  name                = "0.0.1"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  depends_on = [
+    azurerm_shared_image_version.test
+  ]
+}
+
+resource "azurerm_shared_image_version" "test4" {
+  name                = "0.0.3"
+  gallery_name        = azurerm_shared_image_gallery.test.name
+  image_name          = azurerm_shared_image.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  managed_image_id    = azurerm_image.test.id
+
+  target_region {
+    name                   = azurerm_resource_group.test.location
+    regional_replica_count = 1
+  }
+
+  depends_on = [
+    azurerm_shared_image_version.test
+  ]
+}
+
 data "azurerm_shared_image_version" "test" {
   name                = "latest"
-  gallery_name        = azurerm_shared_image_version.test2.gallery_name
-  image_name          = azurerm_shared_image_version.test2.image_name
-  resource_group_name = azurerm_shared_image_version.test2.resource_group_name
+  gallery_name        = azurerm_shared_image_version.test4.gallery_name
+  image_name          = azurerm_shared_image_version.test4.image_name
+  resource_group_name = azurerm_shared_image_version.test4.resource_group_name
 }
 `, SharedImageVersionResource{}.imageVersion(data))
 }

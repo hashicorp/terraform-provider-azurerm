@@ -182,10 +182,18 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 		// the last image in the list is the latest version
 		if len(images) > 0 {
 			if sortBySemVer {
+				fmt.Println("debug0")
 				var errs []error
 				images, errs = sortSharedImageVersions(images)
 				if len(errs) > 0 {
 					return nil, fmt.Errorf("parsing version(s): %v", errs)
+				}
+			}
+
+			for i := len(images) - 1; i >= 0; i-- {
+				fmt.Println("debug1", i)
+				if prop := images[i].Properties; prop == nil || prop.PublishingProfile == nil || prop.PublishingProfile.ExcludeFromLatest == nil || !*prop.PublishingProfile.ExcludeFromLatest {
+					fmt.Println("debug2", images[i].Name)
 				}
 			}
 
