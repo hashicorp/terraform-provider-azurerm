@@ -1,6 +1,7 @@
 ## 4.63.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_site_recovery_replicated_vm`- add support for `PremiumV2_LRS` in the `target_replica_disk_type` property [GH-31890]
 
 FEATURES:
 
