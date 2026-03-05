@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -233,9 +234,7 @@ func (r CommunicationsGatewayTestLineResource) flatten(metadata sdk.ResourceMeta
 		state.PhoneNumber = properties.PhoneNumber
 		state.Purpose = properties.Purpose
 	}
-	if model.Tags != nil {
-		state.Tags = *model.Tags
-	}
+	state.Tags = pointer.From(model.Tags)
 
 	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
 		return err
