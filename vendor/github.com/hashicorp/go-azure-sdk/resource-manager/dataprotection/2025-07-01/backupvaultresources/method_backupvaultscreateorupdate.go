@@ -23,7 +23,6 @@ type BackupVaultsCreateOrUpdateOperationResponse struct {
 
 type BackupVaultsCreateOrUpdateOperationOptions struct {
 	XMsAuthorizationAuxiliary *string
-	XMsDeletedVaultId         *string
 }
 
 func DefaultBackupVaultsCreateOrUpdateOperationOptions() BackupVaultsCreateOrUpdateOperationOptions {
@@ -34,9 +33,6 @@ func (o BackupVaultsCreateOrUpdateOperationOptions) ToHeaders() *client.Headers 
 	out := client.Headers{}
 	if o.XMsAuthorizationAuxiliary != nil {
 		out.Append("x-ms-authorization-auxiliary", fmt.Sprintf("%v", *o.XMsAuthorizationAuxiliary))
-	}
-	if o.XMsDeletedVaultId != nil {
-		out.Append("x-ms-deleted-vault-id", fmt.Sprintf("%v", *o.XMsDeletedVaultId))
 	}
 	return &out
 }
