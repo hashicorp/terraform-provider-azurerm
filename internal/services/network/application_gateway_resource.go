@@ -2600,7 +2600,12 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 				output["path"] = *path
 			}
 
-			output["certificate_chain_validation_enabled"] = pointer.From(props.ValidateCertChainAndExpiry)
+			certificateChainValidationEnabled := true
+			if props.ValidateCertChainAndExpiry != nil {
+				certificateChainValidationEnabled = *props.ValidateCertChainAndExpiry
+			}
+			output["certificate_chain_validation_enabled"] = certificateChainValidationEnabled
+
 			output["connection_draining"] = flattenApplicationGatewayConnectionDraining(props.ConnectionDraining)
 
 			if port := props.Port; port != nil {
@@ -2622,7 +2627,12 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.A
 			}
 
 			output["sni_name"] = pointer.From(props.SniName)
-			output["sni_validation_enabled"] = pointer.From(props.ValidateSNI)
+
+			sniValidationEnabled := true
+			if props.ValidateSNI != nil {
+				sniValidationEnabled = *props.ValidateSNI
+			}
+			output["sni_validation_enabled"] = sniValidationEnabled
 
 			authenticationCertificates := make([]interface{}, 0)
 			if certs := props.AuthenticationCertificates; certs != nil {
