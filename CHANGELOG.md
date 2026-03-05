@@ -8,6 +8,7 @@ FEATURES:
 * provider: added the `enhanced_validation` block with the `locations` and `resource_providers` properties to replace the `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable [GH-31678]
 
 BUG FIXES:
+* dependencies: `dataprotection` - downgrade to API version `2025-07-01` due to new validation introduced by Azure on `2025-09-01` that is blocking deployments [GH-31877]
 * `azurerm_linux_web_app`, `azurerm_windows_web_app`, `azurerm_windows_function_app`, `azurerm_linux_function_app`, `azurerm_function_app_flex_consumption` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice [GH-31821] [GH-31821]
 
 * `azurerm_analysis_services_server` - fix an issue that prevented creation of the resource with `power_bi_service_enabled` set to `false` and one or more `ipv4_firewall_rule` blocks defined [GH-31870]
