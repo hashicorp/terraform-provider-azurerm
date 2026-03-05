@@ -193,7 +193,7 @@ func obtainImage(client *galleryimageversions.GalleryImageVersionsClient, ctx co
 			for i := len(images) - 1; i >= 0; i-- {
 				fmt.Println("debug1", i)
 				if prop := images[i].Properties; prop == nil || prop.PublishingProfile == nil || prop.PublishingProfile.ExcludeFromLatest == nil || !*prop.PublishingProfile.ExcludeFromLatest {
-					fmt.Println("debug2", images[i].Name)
+					fmt.Println("debug2", pointer.From(images[i].Name))
 				}
 			}
 
