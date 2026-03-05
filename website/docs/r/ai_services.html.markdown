@@ -10,7 +10,7 @@ description: |-
 
 Manages an AI Services Account.
 
-~> **Note:** The `azurerm_ai_services` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use [`azurerm_cognitive_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account) resource instead.
+~> **Note:** The `azurerm_ai_services` resource has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use [`azurerm_cognitive_account`](cognitive_account.html.markdown) resource instead.
 
 
 ## Example Usage
