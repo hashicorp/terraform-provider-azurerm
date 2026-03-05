@@ -11,11 +11,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -48,13 +47,10 @@ func (r CustomCertWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"custom_certificate_id": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.Any(
-				keyVaultValidate.NestedItemId,
-				keyVaultValidate.NestedItemIdWithOptionalVersion,
-			),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate),
 		},
 	}
 }
@@ -91,12 +87,12 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing web pubsub service id error: %+v", err)
 			}
 
-			keyVaultCertificateId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(metadata.ResourceData.Get("custom_certificate_id").(string))
+			keyVaultCertificateId, err := keyvault.ParseNestedItemID(metadata.ResourceData.Get("custom_certificate_id").(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate)
 			if err != nil {
 				return fmt.Errorf("parsing custom certificate id error: %+v", err)
 			}
 
-			keyVaultUri := keyVaultCertificateId.KeyVaultBaseUrl
+			keyVaultUri := keyVaultCertificateId.KeyVaultBaseURL
 			keyVaultSecretName := keyVaultCertificateId.Name
 
 			id := webpubsub.NewCustomCertificateID(webPubsubId.SubscriptionId, webPubsubId.ResourceGroupName, webPubsubId.WebPubSubName, customCertWebPubsub.Name)
@@ -174,7 +170,7 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 			if resp.Model.Properties.KeyVaultSecretVersion != nil {
 				certVersion = *resp.Model.Properties.KeyVaultSecretVersion
 			}
-			nestedItem, err := keyVaultParse.NewNestedItemID(vaultBasedUri, keyVaultParse.NestedItemTypeCertificate, certName, certVersion)
+			nestedItem, err := keyvault.NewNestedItemID(vaultBasedUri, keyvault.NestedItemTypeCertificate, certName, certVersion)
 			if err != nil {
 				return err
 			}

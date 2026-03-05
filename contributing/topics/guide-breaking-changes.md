@@ -100,8 +100,12 @@ The steps outlined below uses an example resource that is deprecated, but the sa
     }
     ```
 
-3. Skip all tests related to the deprecated resource.
+3. Handle tests for the deprecated resource.
 
+    **Option A: Skip tests (when API still works)**
+    
+    If the Azure API can still provision the resource, conditionally skip the tests using the major release feature flag, this allows the tests to run until the next major release is published:
+    
     ```go
     func TestAccExample_basic(t *testing.T) {
         if features.FivePointOh() {
@@ -121,6 +125,12 @@ The steps outlined below uses an example resource that is deprecated, but the sa
         })
     }
     ```
+
+    **Option B: Remove tests (when API no longer works)**
+    
+    If the Azure API can no longer provision new instances of the resource (e.g., the service is retired, the API returns errors, or provisioning is blocked), **remove the test file entirely** rather than skipping the tests.
+    
+    > **Why remove instead of skip?** Skipped tests still need to compile and maintain valid references. When the API no longer works, keeping tests around adds maintenance burden with no benefit. Removing them keeps the codebase clean and avoids confusion about why tests exist but never execute.
 
 4. Update the upgrade guide under `website/docs/5.0-upgrade-guide.markdown`.
 

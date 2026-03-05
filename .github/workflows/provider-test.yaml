@@ -39,12 +39,17 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Install Go
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: ./.go-version
 
-#      - name: Azure CLI login
-#        run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
+      - name: Azure CLI login (using OIDC)
+        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ secrets.ARM_TENANT_ID }}
+          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          allow-no-subscriptions: true
 
       - name: Set OIDC Token
         run: |

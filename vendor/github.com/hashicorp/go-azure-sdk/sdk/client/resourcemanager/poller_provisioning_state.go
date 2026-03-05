@@ -177,7 +177,7 @@ func resourceManagerResourcePathFromUri(input string) (*string, error) {
 		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	segments := strings.Split(strings.TrimPrefix(parsed.Path, "/"), "/")
+	segments := strings.Split(strings.TrimLeft(parsed.Path, "/"), "/")
 	if len(segments) == 0 {
 		return nil, fmt.Errorf("polling uri was empty")
 	}

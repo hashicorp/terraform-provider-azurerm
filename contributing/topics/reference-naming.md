@@ -29,6 +29,9 @@ Here are some general guidelines you can turn to when naming properties:
 * Time properties that are not in the format of RFC3339 or are specified as UTC in the documentation should have that appended e.g.
  > `timestamp_in_utc`
 
+* Properties that represent percentage values should be appended with `_percentage` e.g.
+> `sampling_percentage`
+
 ## Boolean Property Naming Conventions
 
 * As a general rule, booleans should be appended with `_enabled` e.g.

@@ -321,8 +321,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
-	if err != nil {
+	if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
 		return err
 	}
 
@@ -533,8 +532,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
-	if err != nil {
+	if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
 		return err
 	}
 
@@ -654,7 +652,9 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("classic_vmware_replication_enabled", classicVmwareReplicationEnabled)
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

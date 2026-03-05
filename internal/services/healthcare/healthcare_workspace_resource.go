@@ -140,7 +140,9 @@ func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("private_endpoint_connection", flattenWorkspacePrivateEndpoint(props.PrivateEndpointConnections))
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

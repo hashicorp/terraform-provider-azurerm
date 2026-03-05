@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2023-05-01/containerinstance"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerinstance/2025-09-01/containerinstance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -648,7 +648,22 @@ func TestAccContainerGroup_encryptionWithUserAssignedIdentity(t *testing.T) {
 	})
 }
 
-func TestAccContainerGroup_securityContext(t *testing.T) {
+func TestAccContainerGroup_securityContextPrivilegedEnabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.securityContextPrivileged(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerGroup_securityContextPrivilegedDisabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
 
@@ -660,17 +675,10 @@ func TestAccContainerGroup_securityContext(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.securityContextPrivileged(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
-func TestAccContainerGroup_priority(t *testing.T) {
+func TestAccContainerGroup_priorityRegular(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
 
@@ -682,6 +690,14 @@ func TestAccContainerGroup_priority(t *testing.T) {
 			),
 		},
 		data.ImportStep("ip_address_type"),
+	})
+}
+
+func TestAccContainerGroup_prioritySpot(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.priority(data, "Spot"),
 			Check: acceptance.ComposeTestCheckFunc(

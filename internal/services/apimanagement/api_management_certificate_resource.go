@@ -11,19 +11,19 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceApiManagementCertificate() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceApiManagementCertificateCreateUpdate,
 		Read:   resourceApiManagementCertificateRead,
 		Update: resourceApiManagementCertificateCreateUpdate,
@@ -66,7 +66,7 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 			"key_vault_secret_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
-				ValidateFunc:  keyVaultValidate.NestedItemIdWithOptionalVersion,
+				ValidateFunc:  keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 				AtLeastOneOf:  []string{"data", "key_vault_secret_id"},
 				ConflictsWith: []string{"data", "password"},
 			},
@@ -94,6 +94,12 @@ func resourceApiManagementCertificate() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -127,7 +133,12 @@ func resourceApiManagementCertificateCreateUpdate(d *pluginsdk.ResourceData, met
 	}
 
 	if keyVaultSecretId != "" {
-		parsedSecretId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultSecretId)
+		nestedItemType := keyvault.NestedItemTypeSecret
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		parsedSecretId, err := keyvault.ParseNestedItemID(keyVaultSecretId, keyvault.VersionTypeAny, nestedItemType)
 		if err != nil {
 			return err
 		}

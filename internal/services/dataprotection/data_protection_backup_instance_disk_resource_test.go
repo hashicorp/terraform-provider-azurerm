@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -143,11 +143,11 @@ func altSubscriptionCheck() *DataProtectionBackupInstanceDiskAlternateSubscripti
 }
 
 func (r DataProtectionBackupInstanceDiskResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := backupinstances.ParseBackupInstanceID(state.ID)
+	id, err := backupinstanceresources.ParseBackupInstanceID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.DataProtection.BackupInstanceClient.Get(ctx, *id)
+	resp, err := client.DataProtection.BackupInstanceClient.BackupInstancesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

@@ -953,7 +953,7 @@ func TestAccStorageAccount_hnsWithPremiumStorage(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
+func TestAccStorageAccount_azureFilesAuthentication(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1008,7 +1008,7 @@ func TestAccAzureRMStorageAccount_azureFilesAuthentication(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_routing(t *testing.T) {
+func TestAccStorageAccount_routing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1054,7 +1054,7 @@ func TestAccAzureRMStorageAccount_routing(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_shareProperties(t *testing.T) {
+func TestAccStorageAccount_shareProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1069,7 +1069,7 @@ func TestAccAzureRMStorageAccount_shareProperties(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_sharePropertiesUpdate(t *testing.T) {
+func TestAccStorageAccount_sharePropertiesUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1112,7 +1112,7 @@ func TestAccAzureRMStorageAccount_sharePropertiesUpdate(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMStorageAccount_shareSoftDelete(t *testing.T) {
+func TestAccStorageAccount_shareSoftDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 	sourceBlob, err := os.CreateTemp("", "")
@@ -1202,6 +1202,10 @@ func TestAccStorageAccount_sharedKeyAccess(t *testing.T) {
 }
 
 func TestAccStorageAccount_sharedKeyAccessUnsupported(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as this test is no longer relevant in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
@@ -1577,12 +1581,20 @@ func TestAccStorageAccount_customerManagedKeyForHSM(t *testing.T) {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
 	}
+
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
 	r := StorageAccountResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.customerManagedKeyForHSM(data),
+			Config: r.customerManagedKeyForHSM(data, "id"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.customerManagedKeyForHSM(data, "versioned_id"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1613,6 +1625,13 @@ func TestAccStorageAccount_storageV1StandardZRS(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.storageV1StandardZRS(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.storageV1StandardZRSUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -4007,14 +4026,14 @@ func (r StorageAccountResource) shareSoftDeleteWithShareFile(data acceptance.Tes
 %s
 
 resource "azurerm_storage_share" "test" {
-  name                 = "testshare%s"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "testshare%s"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 resource "azurerm_storage_share_file" "test" {
-  name             = "dir"
-  storage_share_id = azurerm_storage_share.test.id
+  name              = "dir"
+  storage_share_url = azurerm_storage_share.test.url
 
   source = "%s"
 
@@ -4616,7 +4635,38 @@ resource "azurerm_storage_account" "test" {
 `, r.cmkTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) customerManagedKeyForHSM(data acceptance.TestData) string {
+func (r StorageAccountResource) customerManagedKeyForHSM(data acceptance.TestData, keyAttribute string) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  customer_managed_key {
+    managed_hsm_key_id        = azurerm_key_vault_managed_hardware_security_module_key.test.%[3]s
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  depends_on = [
+    azurerm_key_vault_managed_hardware_security_module_role_assignment.user,
+  ]
+}
+`, r.hsmKeyTemplate(data), data.RandomString, keyAttribute)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -4636,7 +4686,7 @@ resource "azurerm_storage_account" "test" {
   }
 
   customer_managed_key {
-    managed_hsm_key_id        = azurerm_key_vault_managed_hardware_security_module_key.test.id
+    key_vault_key_id          = azurerm_key_vault_managed_hardware_security_module_key.test.%[3]s
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 
@@ -4644,7 +4694,7 @@ resource "azurerm_storage_account" "test" {
     azurerm_key_vault_managed_hardware_security_module_role_assignment.user,
   ]
 }
-`, r.hsmKeyTemplate(data), data.RandomString)
+`, r.hsmKeyTemplate(data), data.RandomString, keyAttribute)
 }
 
 func (r StorageAccountResource) customerManagedKeyRemoteKeyVault(data acceptance.TestData) string {
@@ -4804,6 +4854,32 @@ resource "azurerm_storage_account" "test" {
   account_kind             = "Storage"
   account_tier             = "Standard"
   account_replication_type = "ZRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) storageV1StandardZRSUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                 = azurerm_resource_group.test.location
+  account_kind             = "Storage"
+  account_tier             = "Standard"
+  account_replication_type = "ZRS"
+  tags = {
+    environment = "production"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -5324,8 +5400,11 @@ resource "azurerm_storage_account" "test" {
 
 func (r StorageAccountResource) hsmKeyTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-data "azurerm_client_config" "current" {
+provider "azurerm" {
+  features {}
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-KV-%[1]s"
@@ -5369,6 +5448,7 @@ resource "azurerm_key_vault" "test" {
     environment = "Production"
   }
 }
+
 resource "azurerm_key_vault_certificate" "cert" {
   count        = 3
   name         = "acchsmcert${count.index}"
@@ -5409,6 +5489,7 @@ resource "azurerm_key_vault_certificate" "cert" {
     }
   }
 }
+
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
   name                       = "kvHsm%[3]d"
   resource_group_name        = azurerm_resource_group.test.name

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -21,7 +22,7 @@ import (
 )
 
 func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceVirtualNetworkGatewayRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -49,8 +50,7 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -245,6 +245,16 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["enable_bgp"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: " the `enable_bgp` property has been deprecated in favour of the `bgp_enabled` property and will be removed in 5.0 of the AzureRM provider",
+		}
+	}
+
+	return resource
 }
 
 func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
