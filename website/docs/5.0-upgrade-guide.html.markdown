@@ -122,7 +122,7 @@ The `azurerm_ai_services` resource has been removed and replaced by `azurerm_cog
 | `local_authentication_enabled` | `local_auth_enabled` | **Renamed**. Both default to `true`. |
 | `public_network_access` | `public_network_access_enabled` | **Changed type**. String (`"Enabled"` / `"Disabled"`) → Boolean (`true` / `false`). Defaults to `true`. |
 | (not present) | `project_management_enabled` |**Required**. Set to `true` to match the behaviour of `azurerm_ai_services`. |
-| `customer_managed_key.managed_hsm_key_id`  | (not present) | `customer_managed_key.managed_hsm_key_id` is not present in `azurerm_cognitive_account`. Try update to use `customer_managed_key.key_vault_key_id` before migration. |
+| `customer_managed_key.managed_hsm_key_id`  | `customer_managed_key.key_vault_key_id` | **Migrated**. Apply value of `customer_managed_key.managed_hsm_key_id` from `azurerm_ai_services` to `customer_managed_key.key_vault_key_id` in `azurerm_cognitive_account`. |
 
 ~> **Note:** If your configuration included a `storage` block under `azurerm_ai_services`, `terraform plan` may show changes after migration even though the Azure resource itself has not changed. This occurs because `azurerm_ai_services` silently ignored the `storage` block and never sent those values to the API, so the imported state does not reflect them. Running `terraform apply` will reconcile the state by applying the storage configuration for the first time.
 
