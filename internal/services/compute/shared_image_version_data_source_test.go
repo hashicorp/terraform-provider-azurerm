@@ -189,7 +189,7 @@ resource "azurerm_shared_image_version" "test3" {
   }
 
   depends_on = [
-    azurerm_shared_image_version.test
+    azurerm_shared_image_version.test2
   ]
 }
 
@@ -207,7 +207,7 @@ resource "azurerm_shared_image_version" "test4" {
   }
 
   depends_on = [
-    azurerm_shared_image_version.test
+    azurerm_shared_image_version.test3
   ]
 }
 
