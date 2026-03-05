@@ -355,6 +355,18 @@ func TestAccVirtualNetworkGateway_expressRoute(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetworkGateway_expressRouteWithPublicIPAddressId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:   r.expressRouteWithPublicIPAddressId(data),
+			PlanOnly: true,
+		},
+	})
+}
+
 func TestAccVirtualNetworkGateway_expressRouteErGwScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}
@@ -1413,6 +1425,57 @@ resource "azurerm_virtual_network_gateway" "test" {
   sku      = "Standard"
 
   ip_configuration {
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayResource) expressRouteWithPublicIPAddressId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip1-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctestvng-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  type     = "ExpressRoute"
+  vpn_type = "PolicyBased"
+  sku      = "Standard"
+
+  ip_configuration {
+    public_ip_address_id          = azurerm_public_ip.test.id
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = azurerm_subnet.test.id
   }
