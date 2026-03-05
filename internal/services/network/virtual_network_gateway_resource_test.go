@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -358,10 +359,29 @@ func TestAccVirtualNetworkGateway_expressRoute(t *testing.T) {
 func TestAccVirtualNetworkGateway_expressRouteWithPublicIPAddressId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}
+	legacyGatewayID := os.Getenv("ARM_TEST_LEGACY_EXPRESSROUTE_GATEWAY_ID")
+
+	if legacyGatewayID == "" {
+		t.Skip("Skipping as `ARM_TEST_LEGACY_EXPRESSROUTE_GATEWAY_ID` was not specified")
+	}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:   r.expressRouteWithPublicIPAddressId(data),
+			Config:            r.expressRouteWithPublicIPAddressIdBrownfield(legacyGatewayID),
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateId:     legacyGatewayID,
+			ImportStateVerify: true,
+		},
+		{
+			Config: r.expressRouteWithPublicIPAddressIdBrownfield(legacyGatewayID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("type").HasValue("ExpressRoute"),
+				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").Exists(),
+			),
+		},
+		{
+			Config:   r.expressRouteWithPublicIPAddressIdBrownfield(legacyGatewayID),
 			PlanOnly: true,
 		},
 	})
@@ -1432,55 +1452,41 @@ resource "azurerm_virtual_network_gateway" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (VirtualNetworkGatewayResource) expressRouteWithPublicIPAddressId(data acceptance.TestData) string {
+func (VirtualNetworkGatewayResource) expressRouteWithPublicIPAddressIdBrownfield(existingGatewayID string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+locals {
+  gateway_id          = "%s"
+  gateway_name        = split("/", local.gateway_id)[8]
+  resource_group_name = split("/", local.gateway_id)[4]
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctestvn-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "test" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpip1-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
+data "azurerm_virtual_network_gateway" "existing" {
+  name                = local.gateway_name
+  resource_group_name = local.resource_group_name
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name                = "acctestvng-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  name                = local.gateway_name
+  location            = data.azurerm_virtual_network_gateway.existing.location
+  resource_group_name = local.resource_group_name
 
   type     = "ExpressRoute"
-  vpn_type = "PolicyBased"
-  sku      = "Standard"
+  vpn_type = data.azurerm_virtual_network_gateway.existing.vpn_type
+  sku      = data.azurerm_virtual_network_gateway.existing.sku
+  generation = data.azurerm_virtual_network_gateway.existing.generation
 
   ip_configuration {
-    public_ip_address_id          = azurerm_public_ip.test.id
-    private_ip_address_allocation = "Dynamic"
-    subnet_id                     = azurerm_subnet.test.id
+    name                          = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].name
+    public_ip_address_id          = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].public_ip_address_id
+    private_ip_address_allocation = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].private_ip_address_allocation
+    subnet_id                     = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].subnet_id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, existingGatewayID)
 }
 
 func (VirtualNetworkGatewayResource) expressRouteErGwScale(data acceptance.TestData) string {
