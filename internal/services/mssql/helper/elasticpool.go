@@ -298,7 +298,18 @@ func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
 	// Convert Bytes to Gigabytes only if
 	// 'max_size_bytes' has changed
 	if diff.HasChange("max_size_bytes") {
-		s.MaxSizeGb = float64(maxSizeBytes.(int) / 1024 / 1024 / 1024)
+		switch t := maxSizeBytes.(type) {
+		case nil:
+			s.MaxSizeGb = 0
+		case int:
+			s.MaxSizeGb = float64(t) / 1073741824
+		case int64:
+			s.MaxSizeGb = float64(t) / 1073741824
+		case float64:
+			s.MaxSizeGb = t / 1073741824
+		default:
+			return fmt.Errorf("unexpected type for max_size_bytes: %T", maxSizeBytes)
+		}
 	}
 
 	// Check to see if the name describes a vCore type SKU
