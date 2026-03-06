@@ -510,14 +510,15 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	connection := serverconnectionpolicies.ServerConnectionPolicy{
-		Properties: &serverconnectionpolicies.ServerConnectionPolicyProperties{
-			ConnectionType: serverconnectionpolicies.ServerConnectionType(d.Get("connection_policy").(string)),
-		},
-	}
-
-	if err = connectionClient.CreateOrUpdateThenPoll(ctx, *id, connection); err != nil {
-		return fmt.Errorf("updating Connection Policy for %s: %+v", id, err)
+	if d.HasChange("connection_policy") {
+		connection := serverconnectionpolicies.ServerConnectionPolicy{
+			Properties: &serverconnectionpolicies.ServerConnectionPolicyProperties{
+				ConnectionType: serverconnectionpolicies.ServerConnectionType(d.Get("connection_policy").(string)),
+			},
+		}
+		if err = connectionClient.CreateOrUpdateThenPoll(ctx, *id, connection); err != nil {
+			return fmt.Errorf("updating Connection Policy for %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("express_vulnerability_assessment_enabled") {
