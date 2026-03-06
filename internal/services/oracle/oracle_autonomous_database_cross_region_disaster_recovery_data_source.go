@@ -49,7 +49,7 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryDataModel struct {
 	DataBaseType                                  string   `tfschema:"database_type"`
 	DataStorageSizeInGb                           int64    `tfschema:"data_storage_size_in_gb"`
 	DataStorageSizeInTb                           int64    `tfschema:"data_storage_size_in_tb"`
-	DbVersion                                     string   `tfschema:"database_version"`
+	DatabaseWorkload                              string   `tfschema:"database_workload"`
 	DatabaseVersion                               string   `tfschema:"database_version"`
 	DisplayName                                   string   `tfschema:"display_name"`
 	FailedDataRecoveryInSeconds                   int64    `tfschema:"failed_data_recovery_in_seconds"`
@@ -62,13 +62,13 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryDataModel struct {
 	MemoryPerOracleComputeUnitInGb                int64    `tfschema:"memory_per_oracle_compute_unit_in_gb"`
 	MtlsConnectionRequired                        bool     `tfschema:"mtls_connection_required"`
 	NcharacterSet                                 string   `tfschema:"national_character_set"`
-	NextLongTermBackupTimeStampInUtc              string   `tfschema:"next_long_term_backup_time_stamp_in_utc"`
+	NextLongTermBackupTimeStampInUtc              string   `tfschema:"next_long_term_backup_timestamp_in_utc"`
 	Ocid                                          string   `tfschema:"ocid"`
 	OciUrl                                        string   `tfschema:"oci_url"`
 	PeerDbIds                                     []string `tfschema:"peer_database_ids"`
 	Preview                                       bool     `tfschema:"preview"`
 	PreviewVersionWithServiceTermsAccepted        bool     `tfschema:"preview_version_with_service_terms_accepted"`
-	PrivateEndpoint                               string   `tfschema:"private_endpoint"`
+	PrivateEndpointUrl                            string   `tfschema:"private_endpoint_url"`
 	PrivateEndpointIP                             string   `tfschema:"private_endpoint_ip"`
 	PrivateEndpointLabel                          string   `tfschema:"private_endpoint_label"`
 	ProvisionableCPUs                             []int64  `tfschema:"provisionable_cpus"`
@@ -170,8 +170,8 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-		"database_node_storage_size_in_gb": {
-			Type:     pluginsdk.TypeInt,
+		"database_type": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 		"database_version": {
@@ -321,11 +321,11 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"time_deletion_of_free_autonomous_database": {
+		"time_deletion_of_free_autonomous_database_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"time_local_data_guard_enabled_on_in_utc": {
+		"time_local_data_guard_enabled_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -434,10 +434,11 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 				state.CustomerContacts = flattenAdbsCustomerContacts(adbsProps.CustomerContacts)
 				state.DataStorageSizeInGb = pointer.From(adbsProps.DataStorageSizeInGbs)
 				state.DataStorageSizeInTb = pointer.From(adbsProps.DataStorageSizeInTbs)
-				state.DbVersion = pointer.From(adbsProps.DbVersion)
+				state.DatabaseWorkload = pointer.FromEnum(adbsProps.DbWorkload)
 				state.DatabaseVersion = pointer.From(adbsProps.DbVersion)
 				state.DisplayName = pointer.From(adbsProps.DisplayName)
 				state.FailedDataRecoveryInSeconds = pointer.From(adbsProps.FailedDataRecoveryInSeconds)
+				state.LicenseModel = pointer.FromEnum(adbsProps.LicenseModel)
 				state.LifecycleDetails = pointer.From(adbsProps.LifecycleDetails)
 				state.LifecycleState = pointer.FromEnum(adbsProps.LifecycleState)
 				state.LocalAdgAutoFailoverMaxDataLossLimitInSeconds = pointer.From(adbsProps.LocalAdgAutoFailoverMaxDataLossLimit)
@@ -452,7 +453,7 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 				state.PeerDbIds = pointer.From(adbsProps.PeerDbIds)
 				state.Preview = pointer.From(adbsProps.IsPreview)
 				state.PreviewVersionWithServiceTermsAccepted = pointer.From(adbsProps.IsPreviewVersionWithServiceTermsAccepted)
-				state.PrivateEndpoint = pointer.From(adbsProps.PrivateEndpoint)
+				state.PrivateEndpointUrl = pointer.From(adbsProps.PrivateEndpoint)
 				state.PrivateEndpointIP = pointer.From(adbsProps.PrivateEndpointIP)
 				state.PrivateEndpointLabel = pointer.From(adbsProps.PrivateEndpointLabel)
 				state.ProvisionableCPUs = pointer.From(adbsProps.ProvisionableCPUs)

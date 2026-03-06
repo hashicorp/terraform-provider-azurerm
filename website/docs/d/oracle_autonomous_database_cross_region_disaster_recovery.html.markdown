@@ -61,8 +61,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `data_storage_size_in_tb` - The maximum storage that can be allocated for the database in terabytes.
 
-* `database_node_storage_size_in_gb` - The Database node storage size in Gigabytes.
-
 * `database_version` - The Oracle Database version for Autonomous Database.
 
 * `database_workload` - The Autonomous Database workload type.

@@ -33,7 +33,6 @@ resource "azurerm_subnet" "example_subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-
 resource "azurerm_oracle_autonomous_database" "primary" {
   name                             = "example-primary"
   display_name                     = "example-primary"

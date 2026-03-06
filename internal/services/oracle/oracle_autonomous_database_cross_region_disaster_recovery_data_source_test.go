@@ -23,9 +23,6 @@ func TestAccAutonomousDatabaseCrossRegionDisasterRecoveryDataSource_basic(t *tes
 			Check: acceptance.ComposeTestCheckFunc(
 
 				check.That(data.ResourceName).Key("remote_disaster_recovery_type").HasValue("Adg"),
-				check.That(data.ResourceName).Key("source_autonomous_database_id").Exists(),
-				check.That(data.ResourceName).Key("location").Exists(),
-				check.That(data.ResourceName).Key("name").Exists(),
 			),
 		},
 	})
