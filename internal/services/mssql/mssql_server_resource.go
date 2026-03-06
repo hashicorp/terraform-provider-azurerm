@@ -384,12 +384,14 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	existing, err := client.Get(ctx, *id, servers.DefaultGetOperationOptions())
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", id, err)
-	}
+	if d.HasChanges("tags", "identity", "transparent_data_encryption_key_vault_key_id", "primary_user_assigned_identity_id",
+		"public_network_access_enabled", "outbound_network_restriction_enabled",
+		"administrator_login_password", "administrator_login_password_wo_version", "minimum_tls_version") {
 
-	if payload := existing.Model; payload != nil {
+		payload := &servers.ServerUpdate{
+			Properties: &servers.ServerProperties{},
+		}
+
 		if d.HasChange("tags") {
 			payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 		}
@@ -410,19 +412,24 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			payload.Properties.KeyId = pointer.To(keyId.ID())
 		}
 
-		if primaryUserAssignedIdentityID, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
-			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityID.(string))
+		if d.HasChange("primary_user_assigned_identity_id") {
+			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(d.Get("primary_user_assigned_identity_id").(string))
 		}
 
-		payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
-		payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagDisabled)
-
-		if v := d.Get("public_network_access_enabled"); v.(bool) {
-			payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagEnabled)
+		if d.HasChange("public_network_access_enabled") {
+			if d.Get("public_network_access_enabled").(bool) {
+				payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagEnabled)
+			} else {
+				payload.Properties.PublicNetworkAccess = pointer.To(servers.ServerPublicNetworkAccessFlagDisabled)
+			}
 		}
 
-		if v := d.Get("outbound_network_restriction_enabled"); v.(bool) {
-			payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
+		if d.HasChange("outbound_network_restriction_enabled") {
+			if d.Get("outbound_network_restriction_enabled").(bool) {
+				payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagEnabled)
+			} else {
+				payload.Properties.RestrictOutboundNetworkAccess = pointer.To(servers.ServerNetworkAccessFlagDisabled)
+			}
 		}
 
 		if d.HasChange("administrator_login_password") {
@@ -443,8 +450,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			payload.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(d.Get("minimum_tls_version").(string)))
 		}
 
-		err := client.CreateOrUpdateThenPoll(ctx, *id, *payload)
-		if err != nil {
+		if err := client.UpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
