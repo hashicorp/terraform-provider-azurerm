@@ -384,14 +384,11 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	if d.HasChanges("tags", "identity", "transparent_data_encryption_key_vault_key_id", "primary_user_assigned_identity_id",
-		"public_network_access_enabled", "outbound_network_restriction_enabled",
-		"administrator_login_password", "administrator_login_password_wo_version", "minimum_tls_version") {
+	payload := &servers.ServerUpdate{}
+	requireUpdate := false
 
-		payload := &servers.ServerUpdate{
-			Properties: &servers.ServerProperties{},
-		}
-
+	if d.HasChanges("tags", "identity") {
+		requireUpdate = true
 		if d.HasChange("tags") {
 			payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 		}
@@ -403,6 +400,13 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			}
 			payload.Identity = expanded
 		}
+	}
+
+	if d.HasChanges("transparent_data_encryption_key_vault_key_id", "primary_user_assigned_identity_id",
+		"public_network_access_enabled", "outbound_network_restriction_enabled",
+		"administrator_login_password", "administrator_login_password_wo_version", "minimum_tls_version") {
+		requireUpdate = true
+		payload.Properties = &servers.ServerProperties{}
 
 		if d.HasChange("transparent_data_encryption_key_vault_key_id") {
 			keyId, err := keyvault.ParseNestedItemID(d.Get("transparent_data_encryption_key_vault_key_id").(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
@@ -413,7 +417,9 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 
 		if d.HasChange("primary_user_assigned_identity_id") {
-			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(d.Get("primary_user_assigned_identity_id").(string))
+			if v, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
+				payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(v.(string))
+			}
 		}
 
 		if d.HasChange("public_network_access_enabled") {
@@ -449,7 +455,9 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if d.HasChange("minimum_tls_version") {
 			payload.Properties.MinimalTlsVersion = pointer.To(servers.MinimalTlsVersion(d.Get("minimum_tls_version").(string)))
 		}
+	}
 
+	if requireUpdate {
 		if err := client.UpdateThenPoll(ctx, *id, *payload); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
