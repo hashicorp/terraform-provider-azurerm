@@ -53,7 +53,7 @@ func TestAccDataSourceSharedImageVersion_latest(t *testing.T) {
 		{
 			Config: r.latest(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("1234567890.1234567890.1234567890-alpha"),
+				check.That(data.ResourceName).Key("name").HasValue("1234567890.1234567890.1234567890"),
 				check.That(data.ResourceName).Key("managed_image_id").Exists(),
 				check.That(data.ResourceName).Key("target_region.#").HasValue("1"),
 				check.That(data.ResourceName).Key("target_region.0.storage_account_type").HasValue("Standard_LRS"),
@@ -158,7 +158,7 @@ func (SharedImageVersionDataSource) latest(data acceptance.TestData) string {
 %s
 
 resource "azurerm_shared_image_version" "test2" {
-  name                = "1234567890.1234567890.1234567890-alpha"
+  name                = "0.0.2"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -189,7 +189,7 @@ func (SharedImageVersionDataSource) excludeFromLatest(data acceptance.TestData) 
 %s
 
 resource "azurerm_shared_image_version" "test2" {
-  name                = "0.0.2"
+  name                = "2234567890.1234567890.1234567890"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -262,7 +262,7 @@ func (SharedImageVersionDataSource) sortVersionsBySemver(data acceptance.TestDat
 %s
 
 resource "azurerm_shared_image_version" "test2" {
-  name                = "1234567890.1234567890.1234567890-beta"
+  name                = "0.0.9"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
   resource_group_name = azurerm_resource_group.test.name
@@ -273,10 +273,14 @@ resource "azurerm_shared_image_version" "test2" {
     name                   = azurerm_resource_group.test.location
     regional_replica_count = 1
   }
+
+  depends_on = [
+    azurerm_shared_image_version.test
+  ]
 }
 
 resource "azurerm_shared_image_version" "test3" {
-  name                = "1234567890.1234567890.1234567890-alpha"
+  name                = "0.0.10"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
   resource_group_name = azurerm_resource_group.test.name
