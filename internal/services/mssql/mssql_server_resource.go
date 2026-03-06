@@ -416,10 +416,10 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 			payload.Properties.KeyId = pointer.To(keyId.ID())
 		}
 
+		// The `primary_user_assigned_identity_id` is an `O+C` property, when it's being removed from configuration.
+		// `HasChange()` will be `true`, but `GetOk()` will be `false`. So use `d.Get()` to read the value.
 		if d.HasChange("primary_user_assigned_identity_id") {
-			if v, ok := d.GetOk("primary_user_assigned_identity_id"); ok {
-				payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(v.(string))
-			}
+			payload.Properties.PrimaryUserAssignedIdentityId = pointer.To(d.Get("primary_user_assigned_identity_id").(string))
 		}
 
 		if d.HasChange("public_network_access_enabled") {
