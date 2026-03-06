@@ -569,8 +569,7 @@ func (a MetadataResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
 			}
 
-			_, err = client.Get(ctx, *id)
-			if err != nil {
+			if _, err = client.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -651,8 +650,7 @@ func (a MetadataResource) Update() sdk.ResourceFunc {
 				update.Properties.Version = &plan.Version
 			}
 
-			_, err = client.Update(ctx, *id, update)
-			if err != nil {
+			if _, err = client.Update(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
