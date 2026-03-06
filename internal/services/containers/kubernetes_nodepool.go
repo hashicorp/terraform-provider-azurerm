@@ -16,9 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -708,27 +708,28 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 	agentpool := agentpools.AgentPool{
 		Name: &defaultCluster.Name,
 		Properties: &agentpools.ManagedClusterAgentPoolProfileProperties{
-			Count:                     defaultCluster.Count,
-			VMSize:                    defaultCluster.VMSize,
-			OsDiskSizeGB:              defaultCluster.OsDiskSizeGB,
-			VnetSubnetID:              defaultCluster.VnetSubnetID,
-			MaxPods:                   defaultCluster.MaxPods,
-			MaxCount:                  defaultCluster.MaxCount,
-			MinCount:                  defaultCluster.MinCount,
-			EnableAutoScaling:         defaultCluster.EnableAutoScaling,
-			EnableEncryptionAtHost:    defaultCluster.EnableEncryptionAtHost,
-			EnableFIPS:                defaultCluster.EnableFIPS,
-			EnableUltraSSD:            defaultCluster.EnableUltraSSD,
-			OrchestratorVersion:       defaultCluster.OrchestratorVersion,
-			ProximityPlacementGroupID: defaultCluster.ProximityPlacementGroupID,
-			AvailabilityZones:         defaultCluster.AvailabilityZones,
-			EnableNodePublicIP:        defaultCluster.EnableNodePublicIP,
-			NodePublicIPPrefixID:      defaultCluster.NodePublicIPPrefixID,
-			SpotMaxPrice:              defaultCluster.SpotMaxPrice,
-			NodeLabels:                defaultCluster.NodeLabels,
-			NodeTaints:                defaultCluster.NodeTaints,
-			PodSubnetID:               defaultCluster.PodSubnetID,
-			Tags:                      defaultCluster.Tags,
+			CapacityReservationGroupID: defaultCluster.CapacityReservationGroupID,
+			Count:                      defaultCluster.Count,
+			VMSize:                     defaultCluster.VMSize,
+			OsDiskSizeGB:               defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:               defaultCluster.VnetSubnetID,
+			MaxPods:                    defaultCluster.MaxPods,
+			MaxCount:                   defaultCluster.MaxCount,
+			MinCount:                   defaultCluster.MinCount,
+			EnableAutoScaling:          defaultCluster.EnableAutoScaling,
+			EnableEncryptionAtHost:     defaultCluster.EnableEncryptionAtHost,
+			EnableFIPS:                 defaultCluster.EnableFIPS,
+			EnableUltraSSD:             defaultCluster.EnableUltraSSD,
+			OrchestratorVersion:        defaultCluster.OrchestratorVersion,
+			ProximityPlacementGroupID:  defaultCluster.ProximityPlacementGroupID,
+			AvailabilityZones:          defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:         defaultCluster.EnableNodePublicIP,
+			NodePublicIPPrefixID:       defaultCluster.NodePublicIPPrefixID,
+			SpotMaxPrice:               defaultCluster.SpotMaxPrice,
+			NodeLabels:                 defaultCluster.NodeLabels,
+			NodeTaints:                 defaultCluster.NodeTaints,
+			PodSubnetID:                defaultCluster.PodSubnetID,
+			Tags:                       defaultCluster.Tags,
 		},
 	}
 

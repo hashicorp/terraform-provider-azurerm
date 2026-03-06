@@ -203,8 +203,7 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 		Tags: tags.Expand(t),
 	}
 
-	_, err = client.WebTestsCreateOrUpdate(ctx, id, webTest)
-	if err != nil {
+	if _, err = client.WebTestsCreateOrUpdate(ctx, id, webTest); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 

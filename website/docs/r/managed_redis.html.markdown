@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_managed_redis
 
-Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes [azurerm_redis_enterprise_cluster](azurerm_redis_enterprise_cluster.html) and [azurerm_redis_enterprise_database](azurerm_redis_enterprise_database.html) resources. Please refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
+Manages a [Managed Redis](https://learn.microsoft.com/azure/redis/overview). This resource supersedes [azurerm_redis_enterprise_cluster](redis_enterprise_cluster.html) and [azurerm_redis_enterprise_database](redis_enterprise_database.html) resources. Please refer to the migration guide for more information on migrating from Redis Enterprise to Managed Redis: [Migrating from Redis Enterprise to Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
 
 ## Example Usage
 
@@ -126,11 +126,17 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Managed Redis instance should exist. Refer to "Redis Cache" on the [product availability documentation](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table) for supported locations. Changing this forces a new Managed Redis instance to be created.
 
-* `sku_name` - (Required) The features and specification of the Managed Redis instance to deploy. Possible values are `Balanced_B0`, `Balanced_B1`, `Balanced_B10`, `Balanced_B100`, `Balanced_B1000`, `Balanced_B150`, `Balanced_B20`, `Balanced_B250`, `Balanced_B3`, `Balanced_B350`, `Balanced_B5`, `Balanced_B50`, `Balanced_B500`, `Balanced_B700`, `ComputeOptimized_X10`, `ComputeOptimized_X100`, `ComputeOptimized_X150`, `ComputeOptimized_X20`, `ComputeOptimized_X250`, `ComputeOptimized_X3`, `ComputeOptimized_X350`, `ComputeOptimized_X5`, `ComputeOptimized_X50`, `ComputeOptimized_X500`, `ComputeOptimized_X700`, `FlashOptimized_A1000`, `FlashOptimized_A1500`, `FlashOptimized_A2000`, `FlashOptimized_A250`, `FlashOptimized_A4500`, `FlashOptimized_A500`, `FlashOptimized_A700`, `MemoryOptimized_M10`, `MemoryOptimized_M100`, `MemoryOptimized_M1000`, `MemoryOptimized_M150`, `MemoryOptimized_M1500`, `MemoryOptimized_M20`, `MemoryOptimized_M2000`, `MemoryOptimized_M250`, `MemoryOptimized_M350`, `MemoryOptimized_M50`, `MemoryOptimized_M500` and `MemoryOptimized_M700`. `Balanced_B3` SKU or higher is required for geo-replication. Changing this forces a new Managed Redis instance to be created.
+* `sku_name` - (Required) The features and specification of the Managed Redis instance to deploy. Possible values are `Balanced_B0`, `Balanced_B1`, `Balanced_B10`, `Balanced_B100`, `Balanced_B1000`, `Balanced_B150`, `Balanced_B20`, `Balanced_B250`, `Balanced_B3`, `Balanced_B350`, `Balanced_B5`, `Balanced_B50`, `Balanced_B500`, `Balanced_B700`, `ComputeOptimized_X10`, `ComputeOptimized_X100`, `ComputeOptimized_X150`, `ComputeOptimized_X20`, `ComputeOptimized_X250`, `ComputeOptimized_X3`, `ComputeOptimized_X350`, `ComputeOptimized_X5`, `ComputeOptimized_X50`, `ComputeOptimized_X500`, `ComputeOptimized_X700`, `FlashOptimized_A1000`, `FlashOptimized_A1500`, `FlashOptimized_A2000`, `FlashOptimized_A250`, `FlashOptimized_A4500`, `FlashOptimized_A500`, `FlashOptimized_A700`, `MemoryOptimized_M10`, `MemoryOptimized_M100`, `MemoryOptimized_M1000`, `MemoryOptimized_M150`, `MemoryOptimized_M1500`, `MemoryOptimized_M20`, `MemoryOptimized_M2000`, `MemoryOptimized_M250`, `MemoryOptimized_M350`, `MemoryOptimized_M50`, `MemoryOptimized_M500` and `MemoryOptimized_M700`. `Balanced_B3` SKU or higher is required for geo-replication.
 
 ~> **Note:** `Enterprise_` and `EnterpriseFlash_` prefixed SKUs were previously used by Redis Enterprise, and [not supported by Managed Redis](https://learn.microsoft.com/azure/redis/migrate/migrate-overview).
 
-* `default_database` - (Optional) A `default_database` block as defined below. A Managed Redis instance will not be functional without a database. This block is intentionally optional to allow removal and re-creation of the database for troubleshooting purposes. A default database can be created or deleted in-place, however most properties will trigger an entire cluster replacement if changed.
+~> **Note:** Changing `sku_name` to a lower tier is restricted by Azure under certain conditions, in which case the resource will be marked for recreation. Validation for this is on a best-effort basis, if the provider is unable to determine whether it can change the SKU in-place, it will attempt to do regardless and this request may fail. Please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/redis/how-to-scale) for more information.
+
+* `default_database` - (Optional) A `default_database` block as defined below.
+
+~> **Note:** `default_database` is Required when creating a new Managed Redis.
+
+~> **Note:** A `default_database` can be deleted or recreated in-place but most properties will trigger an entire cluster replacement if changed. Data will be lost and Managed Redis will be unavailable during recreation.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 
@@ -158,7 +164,7 @@ A `default_database` block supports the following:
 
 * `eviction_policy` - (Optional) Specifies the Redis eviction policy. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Defaults to `VolatileLRU`.
 
-* `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_database_geo_replication`](azurerm_managed_redis_database_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information.
+* `geo_replication_group_name` - (Optional) The name of the geo-replication group. If provided, a geo-replication group will be created for this database with itself as the only member. Use [`azurerm_managed_redis_geo_replication`](managed_redis_geo_replication.html) resource to manage group membership, linking and unlinking. All databases to be linked have to have the same group name. Refer to the [Managed Redis geo-replication documentation](https://learn.microsoft.com/azure/redis/how-to-active-geo-replication) for more information.
 
 !> **Note:** Changing `geo_replication_group_name` forces database recreation. Data will be lost and Managed Redis will be unavailable during the operation.
 

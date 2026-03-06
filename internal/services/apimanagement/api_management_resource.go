@@ -1043,8 +1043,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	_, err := client.Get(ctx, id)
-	if err != nil {
+	if _, err := client.Get(ctx, id); err != nil {
 		return fmt.Errorf("checking for presence of an existing %s: %+v", id, err)
 	}
 
@@ -1138,6 +1137,7 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if d.HasChange("additional_location") {
+		var err error
 		props.AdditionalLocations, err = expandAzureRmApiManagementAdditionalLocations(d, sku)
 		if err != nil {
 			return err

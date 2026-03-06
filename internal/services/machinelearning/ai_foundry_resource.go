@@ -14,15 +14,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -100,7 +100,7 @@ var _ sdk.ResourceWithUpdate = AIFoundry{}
 var _ sdk.ResourceWithCustomImporter = AIFoundry{}
 
 func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -147,7 +147,7 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 					"key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyvaultValidate.NestedItemId,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 					"user_assigned_identity_id": {
 						Type:         pluginsdk.TypeString,
@@ -216,6 +216,12 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["encryption"].Elem.(*pluginsdk.Resource).Schema["key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (r AIFoundry) Attributes() map[string]*pluginsdk.Schema {
@@ -584,7 +590,12 @@ func flattenEncryption(input *workspaces.EncryptionProperty) ([]Encryption, erro
 		encryption.KeyVaultID = keyVaultId.ID()
 	}
 	if v := input.KeyVaultProperties.KeyIdentifier; v != "" {
-		keyId, err := keyvaultParse.ParseNestedItemID(v)
+		nestedItemType := keyvault.NestedItemTypeKey
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		keyId, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeVersioned, nestedItemType)
 		if err != nil {
 			return nil, err
 		}

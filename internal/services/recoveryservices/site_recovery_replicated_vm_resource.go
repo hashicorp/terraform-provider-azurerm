@@ -230,17 +230,10 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						},
 
 						"target_replica_disk_type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ForceNew: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(replicationprotecteditems.DiskAccountTypeStandardLRS),
-								string(replicationprotecteditems.DiskAccountTypePremiumLRS),
-								string(replicationprotecteditems.DiskAccountTypeStandardSSDLRS),
-								string(replicationprotecteditems.DiskAccountTypeUltraSSDLRS),
-								string(replicationprotecteditems.DiskAccountTypeStandardSSDZRS),
-								string(replicationprotecteditems.DiskAccountTypePremiumZRS),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
 						"target_disk_encryption_set_id": {
