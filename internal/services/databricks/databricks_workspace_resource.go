@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
@@ -27,8 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/databricks/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	resourcesParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -281,7 +280,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"managed_services_cmk_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 
 			"managed_services_cmk_key_vault_id": {
@@ -293,7 +292,7 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 			"managed_disk_cmk_key_vault_key_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ValidateFunc: keyVaultValidate.KeyVaultChildID,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 			},
 			"managed_disk_cmk_key_vault_id": {
 				Type:         pluginsdk.TypeString,
@@ -604,14 +603,14 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	if servicesKeyId != "" {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(servicesKeyId)
+		key, err := keyvault.ParseNestedItemID(servicesKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
 
 		// make sure the key vault exists
-		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseUrl, err)
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseURL, err)
 		}
 
 		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
@@ -619,7 +618,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 			KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
 				KeyName:     key.Name,
 				KeyVersion:  key.Version,
-				KeyVaultUri: key.KeyVaultBaseUrl,
+				KeyVaultUri: key.KeyVaultBaseURL,
 			},
 		}
 	}
@@ -637,14 +636,14 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 
 	if diskKeyId != "" {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(diskKeyId)
+		key, err := keyvault.ParseNestedItemID(diskKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
 
 		// make sure the key vault exists
-		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseUrl, err)
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseURL, err)
 		}
 
 		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
@@ -652,7 +651,7 @@ func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface
 			KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
 				KeyName:     key.Name,
 				KeyVersion:  key.Version,
-				KeyVaultUri: key.KeyVaultBaseUrl,
+				KeyVaultUri: key.KeyVaultBaseURL,
 			},
 		}
 	}
@@ -869,7 +868,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedServices; encryptionProps != nil {
 				if encryptionProps.KeyVaultProperties.KeyVaultUri != "" {
-					key, err := keyVaultParse.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
+					key, err := keyvault.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyvault.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
 					if err == nil {
 						servicesKeyId = key.ID()
 					}
@@ -882,7 +881,7 @@ func resourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}
 		if encryption := model.Properties.Encryption; encryption != nil {
 			if encryptionProps := encryption.Entities.ManagedDisk; encryptionProps != nil {
 				if encryptionProps.KeyVaultProperties.KeyVaultUri != "" {
-					key, err := keyVaultParse.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
+					key, err := keyvault.NewNestedItemID(encryptionProps.KeyVaultProperties.KeyVaultUri, keyvault.NestedItemTypeKey, encryptionProps.KeyVaultProperties.KeyName, encryptionProps.KeyVaultProperties.KeyVersion)
 					if err == nil {
 						diskKeyId = key.ID()
 					}
@@ -1184,14 +1183,14 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if servicesKeyId != "" {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(servicesKeyId)
+		key, err := keyvault.ParseNestedItemID(servicesKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
 
 		// make sure the key vault exists
-		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseUrl, err)
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseURL, err)
 		}
 
 		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
@@ -1199,7 +1198,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 			KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
 				KeyName:     key.Name,
 				KeyVersion:  key.Version,
-				KeyVaultUri: key.KeyVaultBaseUrl,
+				KeyVaultUri: key.KeyVaultBaseURL,
 			},
 		}
 	}
@@ -1217,14 +1216,14 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 
 	if diskKeyId != "" {
 		setEncrypt = true
-		key, err := keyVaultParse.ParseNestedItemID(diskKeyId)
+		key, err := keyvault.ParseNestedItemID(diskKeyId, keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return err
 		}
 
 		// make sure the key vault exists
-		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl); err != nil {
-			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseUrl, err)
+		if _, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseURL); err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseURL, err)
 		}
 
 		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
@@ -1232,7 +1231,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 			KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
 				KeyName:     key.Name,
 				KeyVersion:  key.Version,
-				KeyVaultUri: key.KeyVaultBaseUrl,
+				KeyVaultUri: key.KeyVaultBaseURL,
 			},
 		}
 	}
