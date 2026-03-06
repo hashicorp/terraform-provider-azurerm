@@ -33,7 +33,7 @@ func DefaultUpdateTagsOperationOptions() UpdateTagsOperationOptions {
 func (o UpdateTagsOperationOptions) ToHeaders() *client.Headers {
 	out := client.Headers{}
 	if o.IfMatch != nil {
-		out.Append("If-Match", fmt.Sprintf("%v", *o.IfMatch))
+		out.Append("if-match", fmt.Sprintf("%v", *o.IfMatch))
 	}
 	return &out
 }
@@ -55,6 +55,7 @@ func (c ManagedClustersClient) UpdateTags(ctx context.Context, id commonids.Kube
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusAccepted,
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
