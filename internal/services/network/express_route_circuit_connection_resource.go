@@ -189,6 +189,8 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 			authorizationKey := ""
 			if props.AuthorizationKey != nil && *props.AuthorizationKey != "*****************" {
 				authorizationKey = *props.AuthorizationKey
+			} else {
+				authorizationKey = d.Get("authorization_key").(string)
 			}
 			d.Set("authorization_key", authorizationKey)
 

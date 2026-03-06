@@ -259,7 +259,13 @@ func resourceExpressRouteConnectionRead(d *pluginsdk.ResourceData, meta interfac
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("routing_weight", props.RoutingWeight)
-			d.Set("authorization_key", props.AuthorizationKey)
+
+			if props.AuthorizationKey != nil && *props.AuthorizationKey != "*****************" {
+				d.Set("authorization_key", props.AuthorizationKey)
+			} else {
+				// Preserve the existing value in state to avoid perpetual difference
+				d.Set("authorization_key", d.Get("authorization_key").(string))
+			}
 
 			d.Set("internet_security_enabled", props.EnableInternetSecurity)
 			if !features.FivePointOh() {
