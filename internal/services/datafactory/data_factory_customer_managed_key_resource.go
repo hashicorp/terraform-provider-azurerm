@@ -168,7 +168,7 @@ func (r DataFactoryCustomerManagedKeyResource) Read() sdk.ResourceFunc {
 				customerManagedKeyId = keyId.ID()
 			}
 
-			if encIdentity := encryption.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil {
+			if encIdentity := encryption.Identity; encIdentity != nil && pointer.From(encIdentity.UserAssignedIdentity) != "" {
 				parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encIdentity.UserAssignedIdentity))
 				if err != nil {
 					return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
@@ -229,9 +229,7 @@ func (r DataFactoryCustomerManagedKeyResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("user_assigned_identity_id") {
-				encryption.Identity = &factories.CMKIdentityDefinition{
-					UserAssignedIdentity: pointer.To(customerManagedKey.UserAssignedIdentityID),
-				}
+				encryption.Identity = expandDataFactoryEncryptionIdentity(customerManagedKey.UserAssignedIdentityID)
 			}
 
 			payload.Properties.Encryption = encryption

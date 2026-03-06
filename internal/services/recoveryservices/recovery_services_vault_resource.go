@@ -376,10 +376,9 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 		}
 
-		_, err = cfgsClient.Update(ctx, cfgId, cfg)
-		if err != nil {
-			return err
-		}
+	if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
+		return err
+	}
 
 		// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
 		stateConf := &pluginsdk.StateChangeConf{
@@ -601,10 +600,9 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 			StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 		}
 
-		_, err = cfgsClient.Update(ctx, cfgId, cfg)
-		if err != nil {
-			return err
-		}
+	if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
+		return err
+	}
 
 		// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
 		// tracked by https://github.com/Azure/azure-rest-api-specs/issues/21548
