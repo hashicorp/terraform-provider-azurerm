@@ -402,14 +402,13 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 }
 
 func TestAccKubernetesCluster_kataVmIsolation(t *testing.T) {
-	// regression test case for issue #20806
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dnsPrefix(data, currentKubernetesVersion),
+			Config: r.kataVmIsolation(data, currentKubernetesVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1121,6 +1120,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
 
   default_node_pool {
@@ -1138,7 +1138,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, controlPlaneVersion)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
 func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData, isUpgradeOverrideSettingEnabled bool) string {

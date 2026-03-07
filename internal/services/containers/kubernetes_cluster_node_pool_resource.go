@@ -973,6 +973,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		"ultra_ssd_enabled",
 		"vm_size",
 		"vnet_subnet_id",
+		"workload_runtime",
 		"zones",
 	}
 
