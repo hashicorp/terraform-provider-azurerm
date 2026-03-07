@@ -171,8 +171,10 @@ Schema fields should be ordered as follows:
 1. Any fields that make up the resource's ID, with the last user specified segment (usually the resource's name) first. (e.g. `name` then `resource_group_name`, or `name` then `parent_resource_id`)
 2. The `location` field.
 3. Required fields, sorted alphabetically.
-4. Optional fields, sorted alphabetically.
+4. Optional fields, sorted alphabetically. (The `tags` field is a special case and must always be listed last even though it's an `optional` field.)
 5. Computed fields, sorted alphabetically. (Although in a typed resource these are always added within the `Attributes` method)
+
+-> **Note:** This ordering applies to both `typed` and `untyped` resources; typed implementations still need their documentation to follow this sequence even if the schema wiring differs.
 
 ---
 
@@ -596,6 +598,8 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 Things worth noting here:
 
+- An argument must either be marked `ForceNew: true`, or added to `Update()` function.
+
 - In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
 
 For example, in this case:
@@ -606,36 +610,81 @@ For example, in this case:
 var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
 ```
 
-:no_entry: **DO NOT**
+- Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
-```
-var (
-	_ sdk.Resource           = ResourceGroupExampleResource{}
-	_ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
-)
-```
-
-- Sometimes, for complex data types like `pluginsdk.TypeList`, we need to define `expand` and `flatten` methods. When defining such methods, please make sure to define them as global methods.
+- Argument names must be wrapped in backticks in error messages.
 
 For example, in this case:
 
 :white_check_mark: **DO**
 
 ```
-func expandComplexResource(input []ComplexResource) *resource.ComplexResource {
-	...
+"name": {
+	Type:     pluginsdk.TypeString,
+	Required: true,
+	ForceNew: true,
+	ValidateFunc: validation.StringMatch(
+		regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
+		"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
+	),
+},
+```
+
+- Wrap `model` and `properties` in backticks in error messages.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        ...
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            ...
+
+            if existing.Model == nil {
+               return fmt.Errorf("retrieving %s: `model` was nil", id)
+            }
+
+            if existing.Model.Properties == nil {
+               return fmt.Errorf("retrieving %s: `properties` was nil", id)
+            }
+            
+            ...
+            return nil
+        },
+    }
 }
 ```
 
-:no_entry: **DO NOT**
+- Avoid returning errors in `Update` or `CustomizeDiff` for valid configurations that cannot be updated in-place. Instead, use `ForceNew` in `CustomizeDiff` to trigger resource recreation.
 
-```
-func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResource) *resource.ComplexResource {
-	...
+:white_check_mark: **DO**
+
+```go
+func (r ExampleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			...
+			o, n := metadata.ResourceDiff.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
+						return err
+					}
+				}
+			}
+
+			...
+
+			return nil
+		},
+	}
 }
 ```
-
-- Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
 ### Step 4: Adding Resource Identity
 
@@ -752,7 +801,7 @@ type ResourceGroupExampleTestResource struct{}
 func TestAccResourceGroupExample_basic(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
@@ -767,7 +816,7 @@ func TestAccResourceGroupExample_basic(t *testing.T) {
 func TestAccResourceGroupExample_requiresImport(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
@@ -782,7 +831,7 @@ func TestAccResourceGroupExample_requiresImport(t *testing.T) {
 func TestAccResourceGroupExample_complete(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.complete(data),
@@ -797,7 +846,7 @@ func TestAccResourceGroupExample_complete(t *testing.T) {
 func TestAccResourceGroupExample_update(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
     r := ResourceGroupExampleTestResource{}
-    
+
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config: r.basic(data),
