@@ -118,13 +118,6 @@ A `block_attribute` exports the following:
 
 ```
 
-## Timeouts
-
-When documenting timeouts, use the updated link format for all new resources:
-
-- **New resources**: Use `https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts`
-- **Existing resources**: Continue using `https://www.terraform.io/language/resources/syntax#operation-timeouts` to maintain consistency
-
 ## Notes
 
 Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.
