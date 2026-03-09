@@ -222,39 +222,39 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     For typed resources:
     ```go
     func (ExampleListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
-    client := metadata.Client.Example.ExampleResourceClient
+        client := metadata.Client.Example.ExampleResourceClient
 
-    var data sdk.DefaultListModel
-    diags := request.Config.Get(ctx, &data)
-    if diags.HasError() {
-        stream.Results = list.ListResultsStreamDiagnostics(diags)
-        return
-    }
+        var data sdk.DefaultListModel
+        diags := request.Config.Get(ctx, &data)
+        if diags.HasError() {
+            stream.Results = list.ListResultsStreamDiagnostics(diags)
+            return
+        }
 
-    var results []example.ExampleModel
+        var results []example.ExampleModel
 
-    subscriptionID := metadata.SubscriptionId
-    if !data.SubscriptionId.IsNull() {
-        subscriptionID = data.SubscriptionId.ValueString()
-    }
+        subscriptionID := metadata.SubscriptionId
+        if !data.SubscriptionId.IsNull() {
+            subscriptionID = data.SubscriptionId.ValueString()
+        }
 
-    r := ExampleResource{}
+        r := ExampleResource{}
    
-    switch {
-    case !data.ResourceGroupName.IsNull():
-        resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
-        if err != nil {
-            sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", r.ResourceType()), err)
-            return
-        }
+        switch {
+        case !data.ResourceGroupName.IsNull():
+            resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
+            if err != nil {
+                sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", r.ResourceType()), err)
+                return
+            }
 
-        results = resp.Items
-    default:
-        resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
-        if err != nil {
-            sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", r.ResourceType()), err)
-            return
-        }
+            results = resp.Items
+        default:
+            resp, err := client.ListComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
+            if err != nil {
+                sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", r.ResourceType()), err)
+                return
+            }
 
         results = resp.Items
     }
@@ -379,38 +379,11 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     
     // Prerequisite Resources ....
     
-    resource "azurerm_network_profile" "test1" {
-      name                = "acctestnetprofile-%[1]d"
-      location            = azurerm_resource_group.test.location
-      resource_group_name = azurerm_resource_group.test.name
-    
-      container_network_interface {
-        name = "acctesteth-%[1]d"
-    
-        ip_configuration {
-          name      = "acctestipconfig-%[1]d"
-          subnet_id = azurerm_subnet.test.id
-        }
-      }
-    }
-    
-    resource "azurerm_network_profile" "test2" {
-      name                = "acctestnetprofile2-%[1]d"
-      location            = azurerm_resource_group.test.location
-      resource_group_name = azurerm_resource_group.test.name
-    
-      container_network_interface {
-        name = "acctesteth-%[1]d"
-    
-        ip_configuration {
-          name      = "acctestipconfig-%[1]d"
-          subnet_id = azurerm_subnet.test.id
-        }
-      }
-    }
-    
-    resource "azurerm_network_profile" "test3" {
-      name                = "acctestnetprofile3-%[1]d"
+    resource "azurerm_network_profile" "test" {
+      // Where possible, use the `count` meta argument to provision multiple resources to query
+      count = 3
+   
+      name                = "acctestnetprofile${count.index}-%[1]d"
       location            = azurerm_resource_group.test.location
       resource_group_name = azurerm_resource_group.test.name
     

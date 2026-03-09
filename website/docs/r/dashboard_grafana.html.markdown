@@ -22,7 +22,7 @@ resource "azurerm_dashboard_grafana" "example" {
   name                              = "example-dg"
   resource_group_name               = azurerm_resource_group.example.name
   location                          = "West Europe"
-  grafana_major_version             = 11
+  grafana_major_version             = 12
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
-* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`.
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `11`, `12`.
 
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 

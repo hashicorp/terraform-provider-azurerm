@@ -161,12 +161,15 @@ func resourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, met
 		}
 		return fmt.Errorf("reading %s: %+v", *id, err)
 	}
+	return resourcePrivateDnsZoneVirtualNetworkLinkFlatten(d, id, resp.Model)
+}
 
+func resourcePrivateDnsZoneVirtualNetworkLinkFlatten(d *pluginsdk.ResourceData, id *virtualnetworklinks.VirtualNetworkLinkId, model *virtualnetworklinks.VirtualNetworkLink) error {
 	d.Set("name", id.VirtualNetworkLinkName)
 	d.Set("private_dns_zone_name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("registration_enabled", props.RegistrationEnabled)
 			d.Set("resolution_policy", pointer.From(props.ResolutionPolicy))
