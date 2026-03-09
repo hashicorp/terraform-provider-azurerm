@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
@@ -148,8 +149,11 @@ func TestAccProvider_resourceProviders_legacy(t *testing.T) {
 	}
 }
 
-// TODO: Remove this test in v5.0
 func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("`skip_provider_registration` was removed in 5.0, this test is no longer valid")
+	}
+
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}

@@ -49,6 +49,8 @@ More information on [how to pin the version of a Terraform Provider being used c
 
 In version 5.0, the default behaviour for Resource Provider registration has changed. The `resource_provider_registrations` property now defaults to `none` instead of `legacy`.
 
+Additionally, the `skip_provider_registration` (and its associated environment variable `ARM_SKIP_PROVIDER_REGISTRATION`) argument has been removed.
+
 ##### What this means
 
 Previously, the provider would automatically attempt to register a large set of Azure Resource Providers (~60 RPs) when initializing. This could:

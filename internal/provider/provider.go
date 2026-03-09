@@ -361,15 +361,6 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				},
 			},
 
-			// TODO: Remove `skip_provider_registration` in v5.0
-			"skip_provider_registration": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", nil),
-				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
-				Deprecated:  "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
-			},
-
 			"storage_use_azuread": {
 				Type:        schema.TypeBool,
 				Optional:    true,
@@ -408,6 +399,13 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 
 	if !features.FivePointOh() {
 		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
+		p.Schema["skip_provider_registration"] = &schema.Schema{
+			Type:        schema.TypeBool,
+			Optional:    true,
+			DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", nil),
+			Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
+			Deprecated:  "This property is deprecated and will be removed in v5.0 of the AzureRM provider. Please use the `resource_provider_registrations` property instead.",
+		}
 	}
 
 	return p
@@ -530,12 +528,13 @@ func providerConfigure(p *schema.Provider) schema.ConfigureContextFunc {
 func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData, authConfig *auth.Credentials) (*clients.Client, diag.Diagnostics) {
 	providerRegistrations := d.Get("resource_provider_registrations").(string)
 
-	// TODO: Remove in v5.0
-	if d.Get("skip_provider_registration").(bool) {
-		if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
-			return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
+	if !features.FivePointOh() {
+		if d.Get("skip_provider_registration").(bool) {
+			if providerRegistrations != resourceproviders.ProviderRegistrationsLegacy {
+				return nil, diag.Errorf("provider property `skip_provider_registration` cannot be set at the same time as `resource_provider_registrations`, please remove `skip_provider_registration` from your configuration or unset the `ARM_SKIP_PROVIDER_REGISTRATION` environment variable")
+			}
+			providerRegistrations = resourceproviders.ProviderRegistrationsNone
 		}
-		providerRegistrations = resourceproviders.ProviderRegistrationsNone
 	}
 
 	requiredResourceProviders, err := resourceproviders.GetResourceProvidersSet(providerRegistrations)
