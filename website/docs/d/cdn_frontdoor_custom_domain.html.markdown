@@ -14,9 +14,9 @@ Use this data source to access information about an existing Front Door (standar
 
 ```hcl
 data "azurerm_cdn_frontdoor_custom_domain" "example" {
-  name                = azurerm_cdn_frontdoor_custom_domain.example.name
-  profile_name        = azurerm_cdn_frontdoor_profile.example.name
-  resource_group_name = azurerm_cdn_frontdoor_profile.example.resource_group_name
+  name                = "existing-cdn-frontdoor-custom-domain"
+  profile_name        = "existing-cdn-frontdoor-profile"
+  resource_group_name = "existing-resource-group"
 }
 ```
 
@@ -38,7 +38,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `cdn_frontdoor_profile_id` - The ID of the Front Door Profile which the Front Door Custom Domain is bound to.
 
-* `expiration_date` - The date time that the token expires.
+* `dns_zone_id` - The ID of the Azure DNS Zone which should be used for this Front Door Custom Domain.
+
+* `expiration_date` - The date and time that the token expires.
 
 * `host_name` - The host name of the domain.
 
@@ -54,17 +56,17 @@ A `tls` block exports the following:
 
 * `certificate_type` - The SSL certificate type.
 
-* `minimum_version` - The TLS protocol version that will be used for Https connections.
-
 * `cipher_suite` - A `cipher_suite` block as defined below.
+
+* `minimum_version` - The TLS protocol version that will be used for Https connections.
 
 ---
 
 A `cipher_suite` block exports the following:
 
-* `type` - The TLS policy type used for this Front Door Custom Domain.
-
 * `custom_ciphers` - A `custom_ciphers` block as defined below.
+
+* `type` - The TLS policy type used for this Front Door Custom Domain.
 
 ---
 
