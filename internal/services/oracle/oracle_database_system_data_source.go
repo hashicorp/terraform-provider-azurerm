@@ -164,8 +164,7 @@ func (d DatabaseSystemDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"memory_size_in_gb" +
-			"": {
+		"memory_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},

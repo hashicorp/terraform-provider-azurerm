@@ -404,10 +404,10 @@ func (DatabaseSystemResource) Read() sdk.ResourceFunc {
 					state.ComputeCount = pointer.From(props.ComputeCount)
 					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 					state.DatabaseEdition = string(props.DatabaseEdition)
-					state.DatabaseVersion = metadata.ResourceData.Get("database_version").(string)
+					state.DatabaseVersion = props.DbVersion
 					state.Hostname = props.Hostname
 					state.NetworkAnchorId = props.NetworkAnchorId
-					state.ResourceAnchorId = metadata.ResourceData.Get("resource_anchor_id").(string)
+					state.ResourceAnchorId = props.ResourceAnchorId
 					state.Shape = props.Shape
 					state.Zones = pointer.From(model.Zones)
 

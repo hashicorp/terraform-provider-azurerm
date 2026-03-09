@@ -53,7 +53,7 @@ resource "azurerm_oracle_resource_anchor" "example" {
 resource "azurerm_oracle_network_anchor" "example" {
   name                = "example-na"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "eastus"
+  location            = azurerm_resource_group.example.location
   resource_anchor_id  = azurerm_oracle_resource_anchor.example.id
   subnet_id           = azurerm_subnet.example.id
   zones               = ["2"]
@@ -62,7 +62,7 @@ resource "azurerm_oracle_network_anchor" "example" {
 resource "azurerm_oracle_database_system" "example" {
   name                = "example-dbSystems"
   resource_group_name = azurerm_resource_group.example.name
-  location            = "eastus"
+  location            = azurerm_resource_group.example.location
   zones               = ["1"]
   admin_password      = "BEstrO0ng_#11"
   compute_count       = 2.0
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `compute_count` - (Required) The number of compute servers for the Database system. Changing this forces a new Database system to be created.
 
-* `compute_model` - (Required) The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy. Possible values are `ECPU` , `OCPU` Changing this forces a new Database system to be created.
+* `compute_model` - (Required) The compute model for Base Database Service. This is required if using the `computeCount` parameter. If using `cpuCoreCount` then it is an error to specify `computeModel` to a non-null value. The ECPU compute model is the recommended model, and the OCPU compute model is legacy. Possible values are `ECPU` and `OCPU`. Changing this forces a new Database system to be created.
 
 * `database_edition` - (Required) The Oracle Database Edition that applies to all the databases on the Database system. Exadata Database systems and 2-node RAC Database systems require EnterpriseEditionExtremePerformance. Possible values are `EnterpriseEdition`, `EnterpriseEditionDeveloper`, `EnterpriseEditionExtreme`, `EnterpriseEditionHighPerformance` and `StandardEdition`. Changing this forces a new Database System to be created.
 
@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Optional) The cluster name for Exadata and 2-node RAC virtual machine Database systems. The cluster name must begin with an alphabetic character, and may contain hyphens (-). Underscores (_) are not permitted. The cluster name can be no longer than 11 characters and is not case sensitive. Changing this forces a new Database system to be created.
 
-* `disk_redundancy` - (Optional) The type of redundancy configured for the Database system.  Possible values are `High` and `Normal`. NORMAL is 2-way redundancy. HIGH is 3-way redundancy. Changing this forces a new Database system to be created.
+* `disk_redundancy` - (Optional) The type of redundancy configured for the Database system. Possible values are `High` and `Normal`. NORMAL is 2-way redundancy. HIGH is 3-way redundancy. Changing this forces a new Database system to be created.
 
 * `display_name` - (Optional) The user-friendly name for the Database system. Changing this forces a new Database system to be created. The name does not need to be unique.
 

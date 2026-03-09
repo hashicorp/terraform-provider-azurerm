@@ -95,10 +95,6 @@ func (a DatabaseSystemResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_oracle_database_system" "test" {
   name                = "acctest%[2]d"
   resource_group_name = "terraform2"
@@ -124,10 +120,6 @@ resource "azurerm_oracle_database_system" "test" {
 func (a DatabaseSystemResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_oracle_database_system" "test" {
   name                = "acctest%[2]d"
@@ -165,10 +157,6 @@ resource "azurerm_oracle_database_system" "test" {
 func (a DatabaseSystemResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_oracle_database_system" "test" {
   name                = "acctest%[2]d"
@@ -221,6 +209,10 @@ resource "azurerm_oracle_database_system" "import" {
 
 func (a DatabaseSystemResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
 
 data "azurerm_client_config" "current" {}
 
