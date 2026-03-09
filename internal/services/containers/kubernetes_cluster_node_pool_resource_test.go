@@ -1686,15 +1686,15 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%%[1]d"
-  location = "%%[2]s"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%%[1]d"
+  name                = "acctestaks%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%%[1]d"
+  dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
     name       = "default"
