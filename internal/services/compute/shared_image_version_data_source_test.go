@@ -189,7 +189,7 @@ func (SharedImageVersionDataSource) excludeFromLatest(data acceptance.TestData) 
 %s
 
 resource "azurerm_shared_image_version" "test2" {
-  name                = "2234567890.1234567890.1234567890"
+  name                = "2000000000.0.0"
   gallery_name        = azurerm_shared_image_gallery.test.name
   image_name          = azurerm_shared_image.test.name
   resource_group_name = azurerm_resource_group.test.name
