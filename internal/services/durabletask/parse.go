@@ -10,9 +10,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
-// RetentionPolicyID represents the unique identifier for a Durable Task Scheduler Retention Policy
-// Note: The retention policy doesn't have a separate resource ID in Azure - it uses the scheduler ID
-// with a "default" retention policy name, but we create a synthetic ID for Terraform state management
+// RetentionPolicyID is a synthetic Terraform ID since Azure uses the scheduler ID
+// with a fixed "default" retention policy name.
 type RetentionPolicyID struct {
 	SubscriptionId    string
 	ResourceGroupName string

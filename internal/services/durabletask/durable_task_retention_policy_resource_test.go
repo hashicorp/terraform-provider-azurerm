@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletask"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -93,15 +94,15 @@ func TestAccDurableTaskRetentionPolicy_update(t *testing.T) {
 }
 
 func (r RetentionPolicyResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	// The retention policy uses the scheduler ID for API calls
-	// Parse our synthetic retention policy ID to get the scheduler details
-	id, err := retentionpolicies.ParseSchedulerID(state.Attributes["scheduler_id"])
+	id, err := durabletask.ParseRetentionPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err = client.DurableTask.RetentionPoliciesClient.Get(ctx, *id); err != nil {
-		return nil, fmt.Errorf("retrieving retention policy for %s: %v", id, err)
+	schedulerId := retentionpolicies.NewSchedulerID(id.SubscriptionId, id.ResourceGroupName, id.SchedulerName)
+
+	if _, err = client.DurableTask.RetentionPoliciesClient.Get(ctx, schedulerId); err != nil {
+		return nil, fmt.Errorf("retrieving retention policy for %s: %v", schedulerId, err)
 	}
 
 	return pointer.To(true), nil

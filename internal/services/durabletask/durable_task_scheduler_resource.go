@@ -187,19 +187,12 @@ func (r SchedulerResource) Read() sdk.ResourceFunc {
 				Location:          location.Normalize(model.Location),
 			}
 
-			if model.Tags != nil {
-				state.Tags = *model.Tags
-			}
+			state.Tags = pointer.From(model.Tags)
 
 			if props := model.Properties; props != nil {
 				state.SkuName = string(props.Sku.Name)
-
-				if props.Sku.Capacity != nil {
-					state.Capacity = *props.Sku.Capacity
-				}
-
+				state.Capacity = pointer.From(props.Sku.Capacity)
 				state.IpAllowList = props.IPAllowlist
-
 				state.Endpoint = pointer.From(props.Endpoint)
 
 				if props.Sku.RedundancyState != nil {

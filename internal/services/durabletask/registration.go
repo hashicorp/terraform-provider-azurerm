@@ -20,7 +20,9 @@ func (r Registration) AssociatedGitHubLabel() string {
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		SchedulerDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
