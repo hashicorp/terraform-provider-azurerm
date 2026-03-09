@@ -61,8 +61,6 @@ The `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Purview Account. Possible values are `SystemAssigned` and `SystemAssigned, UserAssigned`.
 
-~> **Note:** `UserAssigned` on its own is not a valid value, if you need to assign identities please use `SystemAssigned, UserAssigned`.
-
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Purview Account.
 
 ~> **Note:** This is required when `type` is set to `SystemAssigned, UserAssigned`.

@@ -357,6 +357,7 @@ func flattenPurviewAccountManagedResources(managedResources *account.ManagedReso
 
 // resourcePurviewAccountIdentitySchema will take the common `SystemAssignedUserAssignedIdentityRequired` schema and make
 // small changes to match this purview resource schemas with what is supported by API.
+// The API inconsistency has been reported: https://github.com/Azure/azure-rest-api-specs/issues/22257
 func resourcePurviewAccountIdentitySchema() *schema.Schema {
 	customSchema := commonschema.SystemAssignedUserAssignedIdentityRequired()
 
