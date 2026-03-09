@@ -161,8 +161,12 @@ func TestAccApiManagementProduct_approvalRequiredError(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.approvalRequiredError(data),
-			ExpectError: regexp.MustCompile("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`"),
+			Config:      r.approvalRequiredError(data, "false"),
+			ExpectError: regexp.MustCompile("`subscription_required` must be true to use `approval_required`"),
+		},
+		{
+			Config:      r.approvalRequiredError(data, "true"),
+			ExpectError: regexp.MustCompile("`subscriptions_limit` must be greater than 0 to use `approval_required`"),
 		},
 	})
 }
@@ -390,19 +394,19 @@ resource "azurerm_api_management_product" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (ApiManagementProductResource) approvalRequiredError(data acceptance.TestData) string {
+func (ApiManagementProductResource) approvalRequiredError(data acceptance.TestData, subscriptionRequired string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_api_management" "test" {
-  name                = "acctestAM-%d"
+  name                = "acctestAM-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   publisher_name      = "pub1"
@@ -416,12 +420,12 @@ resource "azurerm_api_management_product" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   display_name          = "Test Product"
   approval_required     = true
-  subscription_required = false
+  subscription_required = %[3]s
   published             = true
   description           = "This is an example description"
   terms                 = "These are some example terms and conditions"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, subscriptionRequired)
 }
 
 func (ApiManagementProductResource) subscriptionRequiredDefault(data acceptance.TestData) string {
