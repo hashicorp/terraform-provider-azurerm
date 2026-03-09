@@ -174,7 +174,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
-  name                 = "accdatastore%[2]d"
+  name                 = "acctestds%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   account_key          = azurerm_storage_account.test.primary_access_key
@@ -194,7 +194,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
-  name                       = "accdatastore%[2]d"
+  name                       = "acctestds%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
   storage_container_id       = azurerm_storage_container.test.resource_manager_id
   service_data_auth_identity = "WorkspaceSystemAssignedIdentity"
@@ -250,12 +250,11 @@ data "azurerm_storage_account_sas" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
-  name                       = "accdatastore%[2]d"
+  name                       = "acctestds%[2]d"
   workspace_id               = azurerm_machine_learning_workspace.test.id
   storage_container_id       = azurerm_storage_container.test.resource_manager_id
   service_data_auth_identity = "WorkspaceUserAssignedIdentity"
   shared_access_signature    = data.azurerm_storage_account_sas.test.sas
-  account_key                = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
 }
@@ -307,7 +306,7 @@ data "azurerm_storage_account_sas" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
-  name                    = "accdatastore%[2]d"
+  name                    = "acctestds%[2]d"
   workspace_id            = azurerm_machine_learning_workspace.test.id
   storage_container_id    = azurerm_storage_container.test.resource_manager_id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
@@ -327,7 +326,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
-  name                 = "accdatastore%[2]d"
+  name                 = "acctestds%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   client_id            = data.azurerm_client_config.current.client_id
@@ -349,7 +348,7 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_machine_learning_datastore_blobstorage" "test" {
-  name                 = "accdatastore%[2]d"
+  name                 = "acctestds%[2]d"
   workspace_id         = azurerm_machine_learning_workspace.test.id
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   client_id            = "00000000-0000-0000-0000-000000000000"

@@ -159,10 +159,10 @@ func (r MachineLearningDataStoreBlobStorage) CustomizeDiff() sdk.ResourceFunc {
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			accountKey := metadata.ResourceDiff.GetRawConfig().AsValueMap()["account_key"]
 			sharedAccessSignature := metadata.ResourceDiff.GetRawConfig().AsValueMap()["shared_access_signature"]
-			client_id := metadata.ResourceDiff.GetRawConfig().AsValueMap()["client_id"]
+			clientId := metadata.ResourceDiff.GetRawConfig().AsValueMap()["client_id"]
 
 			if metadata.ResourceDiff.Get("service_data_auth_identity").(string) == string(datastore.ServiceDataAccessAuthIdentityNone) {
-				if accountKey.IsNull() && sharedAccessSignature.IsNull() && client_id.IsNull() {
+				if accountKey.IsNull() && sharedAccessSignature.IsNull() && clientId.IsNull() {
 					return fmt.Errorf("one of `account_key`, `shared_access_signature`, or `client_id` must be specified when `service_data_auth_identity` is set to `None`")
 				}
 			}
