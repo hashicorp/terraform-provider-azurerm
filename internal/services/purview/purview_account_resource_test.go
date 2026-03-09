@@ -27,11 +27,12 @@ func TestAccPurviewAccountSequential(t *testing.T) {
 			"complete":                     testAccPurviewAccount_complete,
 			"update":                       testAccPurviewAccount_update,
 			"withManagedResourceGroupName": testAccPurviewAccount_withManagedResourceGroupName,
+			"updateWithUserIdentity":       testAccPurviewAccount_updateWithUserIdentity,
 		},
 	})
 }
 
-func TestAccPurviewAccount_updateWithUserIdentity(t *testing.T) {
+func testAccPurviewAccount_updateWithUserIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_purview_account", "test")
 	r := PurviewAccountResource{}
 
