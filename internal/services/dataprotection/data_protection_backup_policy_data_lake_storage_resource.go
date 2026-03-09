@@ -76,8 +76,8 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile("^[-a-zA-Z0-9]{3,150}$"),
-				"`name` must be 3 - 150 characters long, contain only letters, numbers and hyphens(-).",
+				regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{2,149}$"),
+				"`name` must be 3 - 150 characters long, contain only letters, numbers and hyphens(-), and cannot start with a number or hyphen.",
 			),
 		},
 
@@ -282,9 +282,9 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 			}
 
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
-			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureBackupRules(model.BackupRepeatingTimeIntervals, model.TimeZone, expandBackupPolicyDataLakeStorageTaggingCriteria(model.RetentionRules))...)
-			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(model.DefaultRetentionRule))
 			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureRetentionRules(model.RetentionRules)...)
+			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(model.DefaultRetentionRule))
+			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureBackupRules(model.BackupRepeatingTimeIntervals, model.TimeZone, expandBackupPolicyDataLakeStorageTaggingCriteria(model.RetentionRules))...)
 
 			parameters := basebackuppolicyresources.BaseBackupPolicyResource{
 				Properties: &basebackuppolicyresources.BackupPolicy{

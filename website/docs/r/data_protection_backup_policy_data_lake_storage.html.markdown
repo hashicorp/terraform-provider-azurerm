@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backup Policy for the Azure Backup Policy Data Lake Storage. Changing this forces a new resource to be created.
 
-* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval. It supports weekly backup. It should follow `ISO 8601` repeating time interval format. Changing this forces a new resource to be created.
+* `backup_repeating_time_intervals` - (Required) Specifies a list of repeating time interval, also known as the Backup Schedule. It supports weekly backup. It should follow `ISO 8601` repeating time interval format. Changing this forces a new resource to be created.
 
 * `default_retention_rule` - (Required) A `default_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
