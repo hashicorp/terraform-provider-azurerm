@@ -511,7 +511,7 @@ func (r DashboardGrafanaResource) Read() sdk.ResourceFunc {
 			if model.Sku != nil {
 				state.Sku = model.Sku.Name
 				if model.Sku.Size != nil {
-					state.SkuSize = string(*model.Sku.Size)
+					state.SkuSize = string(pointer.From(model.Sku.Size))
 				}
 			}
 
