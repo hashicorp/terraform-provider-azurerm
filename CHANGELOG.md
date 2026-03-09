@@ -1,3 +1,29 @@
+## 4.63.0 (March 05, 2026)
+
+FEATURES:
+
+* provider: added the `enhanced_validation` block with the `locations` and `resource_providers` properties to replace the `ARM_PROVIDER_ENHANCED_VALIDATION` environment variable ([#31678](https://github.com/hashicorp/terraform-provider-azurerm/issues/31678))
+
+ENHANCEMENTS:
+
+* `azurerm_site_recovery_replicated_vm`- add support for `PremiumV2_LRS` in the `target_replica_disk_type` property ([#31890](https://github.com/hashicorp/terraform-provider-azurerm/issues/31890))
+
+BUG FIXES:
+
+* `azurerm_analysis_services_server` - fix an issue that prevented creation of the resource with `power_bi_service_enabled` set to `false` and one or more `ipv4_firewall_rule` blocks defined ([#31870](https://github.com/hashicorp/terraform-provider-azurerm/issues/31870))
+* `azurerm_analysis_services_server` - fix an issue that prevented adding or removing `ipv4_firewall_rule` blocks without also modifying `power_bi_service_enabled` ([#31870](https://github.com/hashicorp/terraform-provider-azurerm/issues/31870))
+* `azurerm_linux_web_app`, `azurerm_windows_web_app`, `azurerm_windows_function_app`, `azurerm_linux_function_app`, `azurerm_function_app_flex_consumption` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice ([#31821](https://github.com/hashicorp/terraform-provider-azurerm/issues/31821)) ([#31821](https://github.com/hashicorp/terraform-provider-azurerm/issues/31821))
+* dependencies: `dataprotection` - downgrade to API version `2025-07-01` due to new validation introduced by Azure on `2025-09-01` that is blocking deployments ([#31877](https://github.com/hashicorp/terraform-provider-azurerm/issues/31877))
+
+## 4.62.1 (March 02, 2026)
+
+BUG FIXES:
+
+* `azurerm_data_factory` - fix removal of `customer_managed_key_identity_id` to no longer send an empty string to Azure, instead sending an empty object ([#31858](https://github.com/hashicorp/terraform-provider-azurerm/issues/31858))
+* `azurerm_data_factory_customer_managed_key` - fix a persistent ID parsing error on `user_assigned_identity_id` when Azure returned an empty string ([#31858](https://github.com/hashicorp/terraform-provider-azurerm/issues/31858))
+* `azurerm_data_factory_customer_managed_key` - fix removal of `user_assigned_identity_id` to no longer send an empty string to Azure, instead sending an empty object ([#31858](https://github.com/hashicorp/terraform-provider-azurerm/issues/31858))
+* `azurerm_linux_function_app_slot` - fix an issue that prevented users from deploying a slot to a container-based function app ([#31842](https://github.com/hashicorp/terraform-provider-azurerm/issues/31842))
+
 ## 4.62.0 (February 26, 2026)
 
 FEATURES:
