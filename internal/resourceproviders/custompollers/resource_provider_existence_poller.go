@@ -30,7 +30,6 @@ type ResourceProviderExistencePoller struct {
 	client     *providers.ProvidersClient
 	id         providers.SubscriptionProviderId
 	maxRetries int
-	lastState  string
 }
 
 func (p *ResourceProviderExistencePoller) Poll(ctx context.Context) (*pollers.PollResult, error) {

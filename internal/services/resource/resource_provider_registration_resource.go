@@ -370,7 +370,15 @@ func (r ResourceProviderRegistrationResource) CustomImporter() sdk.ResourceRunFu
 		}
 
 		if !strings.EqualFold(registrationState, "Registered") {
-			return fmt.Errorf("importing %s: Resource Provider must be registered to be imported", id.ProviderName)
+			// Account for API inconsistency before erroring
+			pollerType := custompollers.NewResourceProviderExistencePoller(client, *id, 10)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				if errors.As(err, &pollers.PollingCancelledError{}) {
+					return fmt.Errorf("importing %s: Resource Provider must be registered to be imported", id.ProviderName)
+				}
+				return fmt.Errorf("polling %s: %+v", id, err)
+			}
 		}
 
 		if err := r.checkIfManagedByTerraform(id.ProviderName, account); err != nil {
