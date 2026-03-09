@@ -38,16 +38,14 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
 
   default_retention_rule {
     life_cycle {
-      duration        = "P4M"
-      data_store_type = "VaultStore"
+      duration = "P4M"
     }
   }
 
   retention_rule {
     name = "weekly"
     life_cycle {
-      duration        = "P6M"
-      data_store_type = "VaultStore"
+      duration = "P6M"
     }
     priority = 20
 
@@ -59,8 +57,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   retention_rule {
     name = "thursday"
     life_cycle {
-      duration        = "P1W"
-      data_store_type = "VaultStore"
+      duration = "P1W"
     }
     priority = 25
 
@@ -73,8 +70,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   retention_rule {
     name = "monthly"
     life_cycle {
-      duration        = "P1D"
-      data_store_type = "VaultStore"
+      duration = "P1D"
     }
     priority = 15
 
@@ -124,8 +120,6 @@ A `retention_rule` block supports the following:
 ---
 
 A `life_cycle` block supports the following:
-
-* `data_store_type` - (Required) The type of data store. The only possible value is `VaultStore`. Changing this forces a new resource to be created.
 
 * `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 

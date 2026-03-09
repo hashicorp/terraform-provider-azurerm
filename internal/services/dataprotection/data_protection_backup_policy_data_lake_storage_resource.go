@@ -34,8 +34,7 @@ type BackupPolicyDataLakeStorageDefaultRetentionRule struct {
 }
 
 type BackupPolicyDataLakeStorageLifeCycle struct {
-	DataStoreType string `tfschema:"data_store_type"`
-	Duration      string `tfschema:"duration"`
+	Duration string `tfschema:"duration"`
 }
 
 type BackupPolicyDataLakeStorageRetentionRule struct {
@@ -105,17 +104,6 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 						ForceNew: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"data_store_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										// Confirmed with the service team that current possible value only support `VaultStore`.
-										// However, considering that `ArchiveStore` will be supported in the future, it would be exposed for user specification.
-										string(basebackuppolicyresources.DataStoreTypesVaultStore),
-									}, false),
-								},
-
 								"duration": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
@@ -211,16 +199,6 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 						ForceNew: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-								"data_store_type": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ForceNew: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										// Confirmed with the service team that currently only `VaultStore` is supported.
-										// However, considering that `ArchiveStore` will be supported in the future, it would be exposed for user specification.
-										string(basebackuppolicyresources.DataStoreTypesVaultStore),
-									}, false),
-								},
 
 								"duration": {
 									Type:         pluginsdk.TypeString,
@@ -419,12 +397,14 @@ func expandBackupPolicyDataLakeStorageLifeCycle(input []BackupPolicyDataLakeStor
 	results := make([]basebackuppolicyresources.SourceLifeCycle, 0)
 
 	for _, item := range input {
+		// NOTE: currently only `VaultStore` is supported by the service team. When `ArchiveStore` is supported
+		// in the future, export `data_store_type` as a schema field and use `VaultStore` as the default value.
 		sourceLifeCycle := basebackuppolicyresources.SourceLifeCycle{
 			DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
 				Duration: item.Duration,
 			},
 			SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
-				DataStoreType: basebackuppolicyresources.DataStoreTypes(item.DataStoreType),
+				DataStoreType: basebackuppolicyresources.DataStoreTypesVaultStore,
 				ObjectType:    "DataStoreInfoBase",
 			},
 			TargetDataStoreCopySettings: &[]basebackuppolicyresources.TargetCopySetting{},
@@ -630,17 +610,13 @@ func flattenBackupPolicyDataLakeStorageLifeCycles(input []basebackuppolicyresour
 
 	for _, item := range input {
 		var duration string
-		var dataStoreType string
 
 		if deleteOption, ok := item.DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 			duration = deleteOption.Duration
 		}
 
-		dataStoreType = string(item.SourceDataStore.DataStoreType)
-
 		results = append(results, BackupPolicyDataLakeStorageLifeCycle{
-			Duration:      duration,
-			DataStoreType: dataStoreType,
+			Duration: duration,
 		})
 	}
 

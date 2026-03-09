@@ -107,8 +107,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 
   default_retention_rule {
     life_cycle {
-      duration        = "P4M"
-      data_store_type = "VaultStore"
+      duration = "P4M"
     }
   }
 }
@@ -126,8 +125,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "import" {
 
   default_retention_rule {
     life_cycle {
-      duration        = "P4M"
-      data_store_type = "VaultStore"
+      duration = "P4M"
     }
   }
 }
@@ -150,8 +148,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 
   default_retention_rule {
     life_cycle {
-      duration        = "P4M"
-      data_store_type = "VaultStore"
+      duration = "P4M"
     }
   }
 
@@ -160,8 +157,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
     priority = 20
 
     life_cycle {
-      duration        = "P6M"
-      data_store_type = "VaultStore"
+      duration = "P6M"
     }
 
     criteria {
@@ -174,8 +170,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
     priority = 25
 
     life_cycle {
-      duration        = "P1W"
-      data_store_type = "VaultStore"
+      duration = "P1W"
     }
 
     criteria {
@@ -190,8 +185,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
     priority = 30
 
     life_cycle {
-      duration        = "P1D"
-      data_store_type = "VaultStore"
+      duration = "P1D"
     }
 
     criteria {
