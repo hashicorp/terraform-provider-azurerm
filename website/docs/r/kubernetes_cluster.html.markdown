@@ -726,7 +726,7 @@ An `advanced_networking` block supports the following:
 
 * `observability_enabled` - (Optional) Is observability enabled? Defaults to `false`.
 
-* `security_enabled` - (Optional) Is security enabled? Defaults to `false`. This can only be specified when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
+* `security_enabled` - (Optional) Is security enabled? Defaults to `false`. This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
 
 ---
 
