@@ -66,14 +66,9 @@ func (r RetentionPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"orchestration_state": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							"Completed",
-							"Failed",
-							"Terminated",
-							"Canceled",
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(retentionpolicies.PossibleValuesForPurgeableOrchestrationState(), false),
 					},
 				},
 			},

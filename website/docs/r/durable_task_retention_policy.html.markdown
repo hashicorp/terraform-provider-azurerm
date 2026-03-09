@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_durable_task_scheduler" "example" {
-  name                = "example-scheduler"
+  name                = "example-durable-task-scheduler"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
   sku_name            = "Consumption"
@@ -55,7 +55,7 @@ A `retention_policy` block supports the following:
 
 * `retention_period_in_days` - (Required) The number of days to retain orchestration data.
 
-* `orchestration_state` - (Optional) The orchestration state to which this retention policy applies. Possible values are `Completed`, `Failed`, `Terminated`, and `Canceled`.
+* `orchestration_state` - (Optional) The orchestration state to which this retention policy applies. Possible values include `Canceled`, `Completed`, `Failed`, and `Terminated`.
 
 ## Attributes Reference
 

@@ -498,7 +498,7 @@ resource "azurerm_managed_redis" "test" {
   high_availability_enabled = true
 
   tags = {
-    ENV    = "Test",
+    ENV    = "Test"
     Method = "Update"
   }
 }
