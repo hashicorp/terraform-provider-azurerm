@@ -9,6 +9,7 @@ FEATURES:
 * **New List Resource**: `azurerm_storage_account_customer_managed_key` [GH-31805] [GH-31805]
 
 BUG FIXES:
+* `azurerm_purview_account` - use correct API values for identity type [GH-31905] [GH-31905]
 
 ## 4.63.0 (March 05, 2026)
 
