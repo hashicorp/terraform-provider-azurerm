@@ -19,6 +19,34 @@ CLOSE_DAYS=14
 IGNORE_LABEL="ci-ignore-failure"
 WARNING_MARKER="<!-- ci-failure-warning -->"
 
+# Only these CI checks are considered when deciding whether to warn/close.
+# Process workflows (label bots, triage, comment actions, etc.) are excluded
+# so they cannot accidentally trigger PR closures.
+MONITORED_CHECKS=(
+  "detect"                     # breaking-change-detection + static-analysis job name
+  "depscheck"                  # Vendor Dependencies Check
+  "gencheck"                   # Generation Check
+  "golint"                     # GoLang Linting
+  "test"                       # Unit Tests + gradually-deprecated job name
+  "preview-api-version-linter" # Preview ARM API Version Linter
+  "shellcheck"                 # ShellCheck Scripts
+  "compatibility-32bit-test"   # 32 Bit Build
+  "tflint"                     # Terraform Schema Linting
+  "website-lint"               # Website Linting + Validate Examples job name
+  "provider-tests"             # Provider Tests
+)
+
+# Returns 0 (true) if the check name is in MONITORED_CHECKS, 1 otherwise.
+is_monitored_check() {
+  local name=$1
+  for monitored in "${MONITORED_CHECKS[@]}"; do
+    if [[ "$name" == "$monitored" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 while getopts o:r:t:d flag
 do
   case "${flag}" in
@@ -99,25 +127,28 @@ check_ci_status() {
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "${API_BASE}/commits/${sha}/status")
 
-  local combined_state
-  combined_state=$(echo "$status_json" | jq -r '.state')
-
-  # Collect failure timestamps and names from legacy statuses
-  if [[ "$combined_state" == "failure" ]]; then
+  # Collect failure timestamps and names from legacy statuses, filtered to monitored checks
+  local failed_statuses
+  failed_statuses=$(echo "$status_json" | jq -r '.statuses[] | select(.state == "failure" or .state == "error") | .context' 2>/dev/null || true)
+  while IFS= read -r ctx; do
+    [[ -z "$ctx" ]] && continue
+    is_monitored_check "$ctx" || continue
     has_failure=true
-    local status_failure_time
-    status_failure_time=$(echo "$status_json" | jq -r '[.statuses[] | select(.state == "failure" or .state == "error") | .updated_at] | sort | first // empty')
-    if [[ -n "$status_failure_time" ]]; then
-      earliest_failure="$status_failure_time"
+    local ts
+    ts=$(echo "$status_json" | jq -r --arg c "$ctx" '[.statuses[] | select(.context == $c) | .updated_at] | first // empty')
+    if [[ -n "$ts" ]]; then
+      if [[ -z "$earliest_failure" ]] || [[ "$ts" < "$earliest_failure" ]]; then
+        earliest_failure="$ts"
+      fi
     fi
-    local status_names
-    status_names=$(echo "$status_json" | jq -r '[.statuses[] | select(.state == "failure" or .state == "error") | .context] | join(",")')
-    if [[ -n "$status_names" ]]; then
-      failed_names="$status_names"
+    if [[ -n "$failed_names" ]]; then
+      failed_names="${failed_names},${ctx}"
+    else
+      failed_names="$ctx"
     fi
-  fi
+  done <<< "$failed_statuses"
 
-  # Check check runs (checks API) with pagination
+  # Check check runs (checks API) with pagination, filtered to monitored checks
   local check_page=1
   while :; do
     local check_runs_json
@@ -133,28 +164,28 @@ check_ci_status() {
       break
     fi
 
-    # Find failed check runs - times and names
-    local failed_time
-    failed_time=$(echo "$check_runs_json" | jq -r '[.check_runs[] | select(.conclusion == "failure" or .conclusion == "cancelled") | .completed_at // empty] | map(select(. != "")) | sort | first // empty')
-
-    local check_names
-    check_names=$(echo "$check_runs_json" | jq -r '[.check_runs[] | select(.conclusion == "failure" or .conclusion == "cancelled") | .name] | join(",")')
-
-    if [[ -n "$failed_time" ]]; then
+    # Iterate failed/cancelled check runs — only consider monitored ones
+    local failed_run_names
+    failed_run_names=$(echo "$check_runs_json" | jq -r '.check_runs[] | select(.conclusion == "failure" or .conclusion == "cancelled") | .name')
+    while IFS= read -r run_name; do
+      [[ -z "$run_name" ]] && continue
+      is_monitored_check "$run_name" || continue
       has_failure=true
-      if [[ -z "$earliest_failure" ]] || [[ "$failed_time" < "$earliest_failure" ]]; then
-        earliest_failure="$failed_time"
+
+      local run_time
+      run_time=$(echo "$check_runs_json" | jq -r --arg n "$run_name" '[.check_runs[] | select(.name == $n and (.conclusion == "failure" or .conclusion == "cancelled")) | .completed_at // empty] | map(select(. != "")) | first // empty')
+      if [[ -n "$run_time" ]]; then
+        if [[ -z "$earliest_failure" ]] || [[ "$run_time" < "$earliest_failure" ]]; then
+          earliest_failure="$run_time"
+        fi
       fi
-    fi
 
-    if [[ -n "$check_names" ]]; then
-      has_failure=true
       if [[ -n "$failed_names" ]]; then
-        failed_names="${failed_names},${check_names}"
+        failed_names="${failed_names},${run_name}"
       else
-        failed_names="$check_names"
+        failed_names="$run_name"
       fi
-    fi
+    done <<< "$failed_run_names"
 
     if [[ "$page_count" -lt 100 ]]; then
       break
