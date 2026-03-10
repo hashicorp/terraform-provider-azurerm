@@ -77,6 +77,10 @@ A `enhanced_security_compliance` block supports the following:
 
 * `enhanced_security_monitoring_enabled` - (Optional) Enables enhanced security monitoring for the Databricks Serverless Workspace. Defaults to `false`.
 
+## Example HCL Configurations
+
+* [Databricks Serverless Workspace with Private Endpoint](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/private-endpoint/databricks/serverless)
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
