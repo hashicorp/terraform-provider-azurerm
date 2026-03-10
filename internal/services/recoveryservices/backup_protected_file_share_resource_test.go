@@ -158,8 +158,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_file_share" "test1" {
@@ -324,8 +322,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_file_share" "test" {
