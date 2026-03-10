@@ -20,7 +20,7 @@ import (
 )
 
 func TestAccKubernetesAutomaticCluster_updateVmSize(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -42,7 +42,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSize(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempAndDefault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -100,7 +100,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempAndDefaul
 }
 
 func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempWithoutDefault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -164,7 +164,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempWithoutDe
 }
 
 func TestAccKubernetesAutomaticCluster_cycleSystemNodePool(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -200,7 +200,7 @@ func TestAccKubernetesAutomaticCluster_cycleSystemNodePool(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_cycleSystemNodePoolFipsEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -222,7 +222,7 @@ func TestAccKubernetesAutomaticCluster_cycleSystemNodePoolFipsEnabled(t *testing
 }
 
 func TestAccKubernetesAutomaticCluster_addAgent(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -243,7 +243,7 @@ func TestAccKubernetesAutomaticCluster_addAgent(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_manualScaleIgnoreChanges(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -266,7 +266,7 @@ func TestAccKubernetesAutomaticCluster_manualScaleIgnoreChanges(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_removeAgent(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -287,7 +287,7 @@ func TestAccKubernetesAutomaticCluster_removeAgent(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -309,7 +309,7 @@ func TestAccKubernetesAutomaticCluster_autoScalingError(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingErrorMax(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -324,7 +324,7 @@ func TestAccKubernetesAutomaticCluster_autoScalingErrorMax(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingWithMaxCount(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -339,7 +339,7 @@ func TestAccKubernetesAutomaticCluster_autoScalingWithMaxCount(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingErrorMin(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -354,7 +354,7 @@ func TestAccKubernetesAutomaticCluster_autoScalingErrorMin(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingNodeCountUnset(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -381,7 +381,7 @@ func TestAccKubernetesAutomaticCluster_autoScalingNodeCountUnset(t *testing.T) {
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingNoAvailabilityZones(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -400,7 +400,7 @@ func TestAccKubernetesAutomaticCluster_autoScalingNoAvailabilityZones(t *testing
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingWithAvailabilityZones(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -415,7 +415,7 @@ func TestAccKubernetesAutomaticCluster_autoScalingWithAvailabilityZones(t *testi
 }
 
 func TestAccKubernetesAutomaticCluster_autoScalingProfile(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -466,7 +466,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -504,7 +504,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -543,7 +543,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -581,7 +581,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -620,7 +620,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -660,7 +660,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -713,7 +713,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -766,7 +766,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -806,7 +806,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -847,7 +847,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -885,7 +885,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -924,7 +924,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -967,7 +967,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1002,7 +1002,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1037,7 +1037,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1079,7 +1079,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -1119,7 +1119,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
