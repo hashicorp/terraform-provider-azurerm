@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	providerfeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -549,11 +550,39 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
+	features := expandFeatures(d.Get("features").([]interface{}))
+	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
+	if !providerfeatures.FivePointOh() {
+		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
+			return nil, diag.FromErr(err)
+		}
+	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
+	}
+
+	// Read enhanced_validation block
+	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
+	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
+	if raw, ok := d.GetOk("enhanced_validation"); ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			evRaw := items[0].(map[string]interface{})
+			if v, ok := evRaw["locations"]; ok {
+				enhancedValidationLocations = v.(bool)
+			}
+			if v, ok := evRaw["resource_providers"]; ok {
+				enhancedValidationResourceProviders = v.(bool)
+			}
+		}
+	}
+	features.EnhancedValidation.Locations = enhancedValidationLocations
+	features.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
+
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,
 		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 		DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
-		Features:                    expandFeatures(d.Get("features").([]interface{})),
+		Features:                    features,
 		MetadataHost:                d.Get("metadata_host").(string),
 		PartnerID:                   d.Get("partner_id").(string),
 		RegisteredResourceProviders: requiredResourceProviders,
@@ -564,29 +593,6 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 		// this field is intentionally not exposed in the provider block, since it's only used for
 		// platform level tracing
 		CustomCorrelationRequestID: os.Getenv("ARM_CORRELATION_REQUEST_ID"),
-	}
-
-	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
-	if !features.FivePointOh() {
-		if err := features.ValidateEnhancedValidationEnvVars(); err != nil {
-			return nil, diag.FromErr(err)
-		}
-	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
-		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
-	}
-
-	// Read enhanced_validation block
-	if raw, ok := d.GetOk("enhanced_validation"); ok {
-		items := raw.([]interface{})
-		if len(items) > 0 && items[0] != nil {
-			evRaw := items[0].(map[string]interface{})
-			if v, ok := evRaw["locations"]; ok {
-				clientBuilder.Features.EnhancedValidation.Locations = v.(bool)
-			}
-			if v, ok := evRaw["resource_providers"]; ok {
-				clientBuilder.Features.EnhancedValidation.ResourceProviders = v.(bool)
-			}
-		}
 	}
 
 	//lint:ignore SA1019 SDKv2 migration - staticcheck's own linter directives are currently being ignored under golangci-lint
