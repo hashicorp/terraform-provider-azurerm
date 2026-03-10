@@ -199,7 +199,6 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 						ForceNew: true,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
-
 								"duration": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
