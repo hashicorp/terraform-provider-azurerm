@@ -49,7 +49,7 @@ The following arguments are supported:
 
 -> **Note:** Public IP Prefix can be created with the `Standard` and `StandardV2` SKUs.
 
-* `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
+* `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP Prefix. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
 * `ip_version` - (Optional) The IP Version to use, `IPv6` or `IPv4`. Changing this forces a new resource to be created. Default is `IPv4`.
 

@@ -5,6 +5,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -186,7 +187,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 				sku := d.Get("sku").(string)
 				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "allocation_method", "edge_zone", "ip_version", "sku", "sku_tier", "public_ip_prefix_id", "ip_tags", "zones") {
-					return fmt.Errorf("%s", publicIPBasicSkuCreateDeprecationMessage)
+					return errors.New(publicIPBasicSkuCreateDeprecationMessage)
 				}
 
 				return nil
