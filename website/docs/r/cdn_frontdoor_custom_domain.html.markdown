@@ -10,7 +10,7 @@ description: |-
 
 Manages a Front Door (standard/premium) Custom Domain.
 
-~> **Note:** If you are using Terraform to manage your DNS Auth and DNS CNAME records for your Custom Domain, you will need to add configuration blocks for both the `azurerm_dns_txt_record` (see the `Example DNS Auth TXT Record Usage` below) and the `azurerm_dns_cname_record` (see the `Example CNAME Record Usage` below).
+~> **Note:** If you are using Terraform to manage your DNS Auth and DNS CNAME records for your Custom Domain you will need to add configuration blocks for both the `azurerm_dns_txt_record` (see the `Example DNS Auth TXT Record Usage` below) and the `azurerm_dns_cname_record` (see the `Example CNAME Record Usage` below) to your configuration file.
 
 ## Example Usage
 
@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_dns_zone" "example" {
-  name                = "example.com"
+  name                = "fabrikam.com"
   resource_group_name = azurerm_resource_group.example.name
 }
 
@@ -44,10 +44,9 @@ resource "azurerm_cdn_frontdoor_origin_group" "example" {
 }
 
 resource "azurerm_cdn_frontdoor_origin" "example" {
-  name                          = "example-cdn-frontdoor-origin"
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
-  host_name                      = "contoso.com"
-
+  name                           = "example-cdn-frontdoor-origin"
+  cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.example.id
+  host_name                      = "contoso.fabrikam.com"
   certificate_name_check_enabled = false
 }
 
@@ -55,7 +54,7 @@ resource "azurerm_cdn_frontdoor_custom_domain" "example" {
   name                     = "example-cdn-frontdoor-custom-domain"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.example.id
   dns_zone_id              = azurerm_dns_zone.example.id
-  host_name                = "contoso.example.com"
+  host_name                = azurerm_cdn_frontdoor_origin.example.host_name
 
   tls {
     certificate_type = "ManagedCertificate"
@@ -68,9 +67,11 @@ resource "azurerm_cdn_frontdoor_route" "example" {
   cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.example.id
   cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.example.id
   cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.example.id]
+
   cdn_frontdoor_custom_domain_ids = [
     azurerm_cdn_frontdoor_custom_domain.example.id,
   ]
+
   patterns_to_match   = ["/*"]
   supported_protocols = ["Http", "Https"]
 }
@@ -78,8 +79,8 @@ resource "azurerm_cdn_frontdoor_route" "example" {
 resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   name                = "examplecdnfrontdoorfirewallpolicy"
   resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "Standard_AzureFrontDoor"
-  mode                = "Detection"
+  sku_name            = azurerm_cdn_frontdoor_profile.example.sku_name
+  mode                = "Prevention"
 }
 
 resource "azurerm_cdn_frontdoor_security_policy" "example" {
@@ -104,7 +105,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
 ## Example DNS Auth TXT Record Usage
 
-The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the Front Door Custom Domain's `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.
+The name of your DNS TXT record should be in the format of `_dnsauth.<your_subdomain>`. So, for example, if we use the `host_name` in the example usage above you would create a DNS TXT record with the name of `_dnsauth.contoso` which contains the value of the Front Door Custom Domains `validation_token` field. See the [product documentation](https://learn.microsoft.com/azure/frontdoor/standard-premium/how-to-add-custom-domain) for more information.
 
 -> **Note:** Domain ownership validation is performed asynchronously by the Azure Front Door service (the domain typically transitions through states like `Submitting` and `Pending` before becoming `Approved`). If validation appears to be taking longer than expected, refer to the Azure Front Door documentation on [domain validation](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation) and [domain validation states](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation).
 
@@ -143,7 +144,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Front Door Custom Domain. Changing this forces a new resource to be created.
 
--> **Note:** Possible values must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number, and contain only letters, numbers, and hyphens.
+-> **Note:** `name` must be between 2 and 260 characters in length, must begin with a letter or number, end with a letter or number, and contain only letters, numbers, and hyphens.
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile. Changing this forces a new resource to be created.
 
@@ -151,15 +152,15 @@ The following arguments are supported:
 
 -> **Note:** The `host_name` field must be the FQDN of your domain (e.g. `contoso.fabrikam.com`).
 
-<!-- * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated Front Door Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
-
--> **Note:** Currently `pre_validated_cdn_frontdoor_custom_domain_id` only supports domains validated by Static Web App. -->
-
 * `tls` - (Required) A `tls` block as defined below.
 
 * `dns_zone_id` - (Optional) The ID of the Azure DNS Zone which should be used for this Front Door Custom Domain.
 
-~> **Note:** If you are using Azure to host your DNS domains, you must delegate your domain to the Azure DNS Zone. Otherwise, if you are using a third-party DNS provider, you must validate the Front Door Custom Domain by creating the DNS TXT records manually.
+-> **Note:** If you are using Azure to host your [DNS domains](https://learn.microsoft.com/azure/dns/dns-overview), you must delegate the domain provider's domain name system (DNS) to an Azure DNS Zone. For more information, see [Delegate a domain to Azure DNS](https://learn.microsoft.com/azure/dns/dns-delegate-domain-azure-dns). Otherwise, if you're using your own domain provider to handle your DNS, you must validate the Front Door Custom Domain by creating the DNS TXT records manually.
+
+<!-- * `pre_validated_cdn_frontdoor_custom_domain_id` - (Optional) The resource ID of the pre-validated Front Door Custom Domain. This domain type is used when you wish to onboard a validated Azure service domain, and then configure the Azure service behind an Azure Front Door.
+
+-> **Note:** Currently `pre_validated_cdn_frontdoor_custom_domain_id` only supports domains validated by Static Web App. -->
 
 ---
 
@@ -167,7 +168,7 @@ A `tls` block supports the following:
 
 * `cdn_frontdoor_secret_id` - (Optional) Resource ID of the Front Door Secret.
 
-~> **Note:** The `cdn_frontdoor_secret_id` field is required when `certificate_type` is set to `CustomerCertificate` and is not supported when `certificate_type` is set to `ManagedCertificate`.
+~> **Note:** `cdn_frontdoor_secret_id` must be specified when `certificate_type` is `CustomerCertificate` and must not be specified when `certificate_type` is `ManagedCertificate`.
 
 * `certificate_type` - (Optional) Defines the source of the SSL certificate. Possible values are `CustomerCertificate` and `ManagedCertificate`. Defaults to `ManagedCertificate`.
 
@@ -175,21 +176,17 @@ A `tls` block supports the following:
 
 * `cipher_suite` - (Optional) A `cipher_suite` block as defined below.
 
-* `minimum_version` - (Optional) TLS protocol version that will be used for HTTPS. Possible values are `TLS12`. Defaults to `TLS12`.
-
-~> **Note:** As of March 1, 2025, support for Transport Layer Security (TLS) 1.0 and 1.1 has been retired for Azure Front Door, all connections to Azure Front Door must employ `TLS 1.2` or later, please see the product [announcement](https://azure.microsoft.com/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
+* `minimum_version` - (Optional) TLS protocol version that will be used for HTTPS. The only possible value is `TLS12`. Defaults to `TLS12`.
 
 ---
 
 A `cipher_suite` block supports the following:
 
-* `type` - (Required) The TLS policy type for the Custom Domain. Possible values are `Customized`, `TLS12_2022`, and `TLS12_2023`.
+* `type` - (Required) The cipher suite set type. Possible values are `Customized`, `TLS12_2022`, and `TLS12_2023`.
 
 * `custom_ciphers` - (Optional) A `custom_ciphers` block as defined below.
 
-~> **Note:** The `custom_ciphers` block is required when `type` is set to `Customized` and must not be specified when `type` is not set to `Customized`.
-
-~> **Note:** When `type` is set to `Customized`, at least one cipher suite must be specified in `custom_ciphers`. When `minimum_version` is set to `TLS12`, at least one TLS 1.2 cipher suite must be specified in `custom_ciphers.tls12`.
+~> **Note:** The `custom_ciphers` block is required when `type` is set to `Customized` and must not be specified otherwise.
 
 ---
 
@@ -197,9 +194,11 @@ A `custom_ciphers` block supports the following:
 
 * `tls12` - (Optional) A set of TLS 1.2 cipher suites. Possible values are `DHE_RSA_AES128_GCM_SHA256`, `DHE_RSA_AES256_GCM_SHA384`, `ECDHE_RSA_AES128_GCM_SHA256`, `ECDHE_RSA_AES128_SHA256`, `ECDHE_RSA_AES256_GCM_SHA384`, and `ECDHE_RSA_AES256_SHA384`.
 
+~> **Note:** At least one TLS 1.2 cipher suite must be specified in `tls12` when `minimum_version` is `TLS12` and `type` is `Customized`.
+
 * `tls13` - (Optional) A set of TLS 1.3 cipher suites. Possible values are `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
 
-~> **Note:** The `tls13` field must contain both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384` when specified.
+~> **Note:** When `tls13` is specified, it must include both `TLS_AES_128_GCM_SHA256` and `TLS_AES_256_GCM_SHA384`.
 
 ---
 
@@ -217,7 +216,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
--> **Note:** Deleting a Front Door Custom Domain can take a significant amount of time while the Azure Front Door service performs backend synchronization. During this period, the domain may remain visible in the Azure Portal with a provisioning state of `Deleting`. If you encounter `context deadline exceeded` during deletion, increase the `delete` timeout accordingly.
+~> **Note:** Deleting a Front Door Custom Domain can take a significant amount of time while the Azure Front Door service performs backend synchronization. During this period, the domain may remain visible in the Azure Portal with a provisioning state of `Deleting`. If you encounter `context deadline exceeded` during deletion, increase the `delete` timeout accordingly.
 
 * `create` - (Defaults to 12 hours) Used when creating the Front Door Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain.
