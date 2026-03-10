@@ -86,6 +86,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			Required: true,
 			ForceNew: true,
 			MinItems: 1,
+			MaxItems: 5,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: azValidate.ISO8601RepeatingTime,
