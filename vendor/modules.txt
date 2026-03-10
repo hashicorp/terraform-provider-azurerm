@@ -166,6 +166,24 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
+# github.com/hashicorp/go-azure-sdk/data-plane v0.20260212.1143955
+## explicit; go 1.25.5
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/certificates
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedcertificates
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedkeys
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedsecrets
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/deletedstorage
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/fullbackup
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/fullrestore
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/hsmsecuritydomain
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/keys
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/rng
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/roleassignments
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/roledefinitions
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/settings
+github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage
 # github.com/hashicorp/go-azure-sdk/resource-manager v0.20260212.1143955
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
