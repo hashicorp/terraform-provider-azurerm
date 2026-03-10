@@ -3,6 +3,8 @@
 
 package vmware
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name vmware_netapp_volume_attachment -service-package-name vmware -properties "name" -compare-values "subscription_id:vmware_cluster_id,resource_group_name:vmware_cluster_id,private_cloud_name:vmware_cluster_id,cluster_name:vmware_cluster_id"
+
 import (
 	"context"
 	"fmt"
@@ -10,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/clusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/datastores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,6 +28,12 @@ type NetappFileVolumeAttachment struct {
 }
 
 type NetappFileVolumeAttachmentResource struct{}
+
+var _ sdk.ResourceWithIdentity = NetappFileVolumeAttachmentResource{}
+
+func (NetappFileVolumeAttachmentResource) Identity() resourceids.ResourceId {
+	return &datastores.DataStoreId{}
+}
 
 func (r NetappFileVolumeAttachmentResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -109,6 +118,10 @@ func (r NetappFileVolumeAttachmentResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+
 			return nil
 		},
 		Timeout: 30 * time.Minute,
@@ -123,7 +136,6 @@ func (r NetappFileVolumeAttachmentResource) Read() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-			clusterId := datastores.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName, id.ClusterName)
 
 			metadata.Logger.Infof("retrieving %s", *id)
 			resp, err := client.Get(ctx, *id)
@@ -135,22 +147,33 @@ func (r NetappFileVolumeAttachmentResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var netAppVolumeId string
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if props.NetAppVolume != nil {
-						netAppVolumeId = props.NetAppVolume.Id
-					}
-				}
-			}
-			return metadata.Encode(&NetappFileVolumeAttachment{
-				Name:            id.DataStoreName,
-				NetAppVolumeId:  netAppVolumeId,
-				VmwareClusterId: clusterId.ID(),
-			})
+			return r.flatten(metadata, id, resp.Model)
 		},
 		Timeout: 5 * time.Minute,
 	}
+}
+
+func (r NetappFileVolumeAttachmentResource) flatten(metadata sdk.ResourceMetaData, id *datastores.DataStoreId, model *datastores.Datastore) error {
+	clusterId := datastores.NewClusterID(id.SubscriptionId, id.ResourceGroupName, id.PrivateCloudName, id.ClusterName)
+
+	state := NetappFileVolumeAttachment{
+		Name:            id.DataStoreName,
+		VmwareClusterId: clusterId.ID(),
+	}
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			if props.NetAppVolume != nil {
+				state.NetAppVolumeId = props.NetAppVolume.Id
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r NetappFileVolumeAttachmentResource) Delete() sdk.ResourceFunc {

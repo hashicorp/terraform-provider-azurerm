@@ -15,12 +15,17 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/vmware/2022-05-01/privateclouds"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name vmware_private_cloud -service-package-name vmware -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+const azureVmwarePrivateCloudResourceName = "azurerm_vmware_private_cloud"
 
 func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -36,10 +41,11 @@ func resourceVmwarePrivateCloud() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(10 * time.Hour),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := privateclouds.ParsePrivateCloudID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&privateclouds.PrivateCloudId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privateclouds.PrivateCloudId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -261,6 +267,9 @@ func resourceVmwarePrivateCloudCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 	return resourceVmwarePrivateCloudRead(d, meta)
 }
 
@@ -284,10 +293,15 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
+	return resourceVmwarePrivateCloudFlatten(d, id, resp.Model)
+}
+
+func resourceVmwarePrivateCloudFlatten(d *pluginsdk.ResourceData, id *privateclouds.PrivateCloudId, model *privateclouds.PrivateCloud) error {
 	d.Set("name", id.PrivateCloudName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		props := model.Properties
 
@@ -321,7 +335,7 @@ func resourceVmwarePrivateCloudRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVmwarePrivateCloudUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
