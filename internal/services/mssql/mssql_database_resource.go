@@ -711,8 +711,7 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("retrieving %s: %+q", id, err)
 	}
 
-	_, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions())
-	if err != nil {
+	if _, err = serversClient.Get(ctx, pointer.From(serverId), servers.DefaultGetOperationOptions()); err != nil {
 		return fmt.Errorf("retrieving %s: %q", serverId, err)
 	}
 
