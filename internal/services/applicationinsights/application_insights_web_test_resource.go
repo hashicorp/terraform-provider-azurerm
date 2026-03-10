@@ -166,6 +166,11 @@ func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta i
 		return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
 	}
 
+	// Azure uses a special "hidden-link" tag to associate a web test with its parent Application Insights
+	// component. The tag key is "hidden-link:<resource_id>" where <resource_id> is the full ARM resource ID
+	// of the Application Insights component, and the value is "Resource". This tag is injected into the
+	// user-supplied tags map before sending the request. It is genreally undocumented but can be seen in
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=standard
 	t := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 	t[tagKey] = "Resource"
@@ -259,6 +264,11 @@ func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
+	// Azure uses a special "hidden-link" tag to associate a web test with its parent Application Insights
+	// component. The tag key is "hidden-link:<resource_id>" where <resource_id> is the full ARM resource ID
+	// of the Application Insights component, and the value is "Resource". This tag is injected into the
+	// user-supplied tags map before sending the request. It is genreally undocumented but can be seen in
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=standard
 	if d.HasChange("tags") {
 		appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
 		if err != nil {
