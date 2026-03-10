@@ -755,19 +755,6 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			//"local_account_disabled": {
-			//	Type:     pluginsdk.TypeBool,
-			//	Optional: true,
-			//	Default:  true,
-			//},
-			"azure_policy_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-				Default:  true,
-			},
-
 			"maintenance_window": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -1085,12 +1072,11 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"network_plugin": {
 							Type:     pluginsdk.TypeString,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
+							Default:  managedclusters.NetworkPluginAzure,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginAzure),
-								string(managedclusters.NetworkPluginKubenet),
-								string(managedclusters.NetworkPluginNone),
 							}, false),
 						},
 
@@ -1113,7 +1099,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 							Optional: true,
 							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.NetworkPolicyCalico),
+								// string(managedclusters.NetworkPolicyCalico),
 								string(managedclusters.NetworkPolicyAzure),
 								string(managedclusters.NetworkPolicyCilium),
 							}, false),
@@ -1139,6 +1125,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 						"network_plugin_mode": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginModeOverlay),
 							}, false),
@@ -1409,7 +1396,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"private_cluster_public_fqdn_enabled": {
@@ -1537,7 +1524,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 			"sku_tier": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(managedclusters.ManagedClusterSKUTierFree),
+				Default:  string(managedclusters.ManagedClusterSKUTierStandard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(managedclusters.ManagedClusterSKUTierStandard),
 					string(managedclusters.ManagedClusterSKUTierPremium),
@@ -1672,12 +1659,12 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 						"keda_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  true,
 						},
 						"vertical_pod_autoscaler_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 					},
 				},
@@ -1698,7 +1685,7 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 						"mode": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Default:      managedclusters.NodeProvisioningModeManual,
+							Default:      managedclusters.NodeProvisioningModeAuto,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
 							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
 						},
@@ -2194,7 +2181,7 @@ func resourceKubernetesAutomaticClusterUpdate(d *pluginsdk.ResourceData, meta in
 		}
 	}
 
-	if d.HasChange("aci_connector_linux") || d.HasChange("azure_policy_enabled") || d.HasChange("confidential_computing") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
+	if d.HasChange("aci_connector_linux") || d.HasChange("confidential_computing") || d.HasChange("http_application_routing_enabled") || d.HasChange("oms_agent") || d.HasChange("ingress_application_gateway") || d.HasChange("open_service_mesh_enabled") || d.HasChange("key_vault_secrets_provider") {
 		updateCluster = true
 		addOns := collectKubernetesAddons(d)
 		addonProfiles, err := expandKubernetesAddOns(d, addOns, env)
@@ -2522,7 +2509,7 @@ func resourceKubernetesAutomaticClusterUpdate(d *pluginsdk.ResourceData, meta in
 		if workloadAutoscalerProfile == nil {
 			existing.Model.Properties.WorkloadAutoScalerProfile = &managedclusters.ManagedClusterWorkloadAutoScalerProfile{
 				Keda: &managedclusters.ManagedClusterWorkloadAutoScalerProfileKeda{
-					Enabled: false,
+					Enabled: true,
 				},
 			}
 		} else {
