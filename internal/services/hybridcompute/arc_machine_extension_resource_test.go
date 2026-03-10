@@ -6,6 +6,7 @@ package hybridcompute_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
@@ -190,7 +191,7 @@ resource "azurerm_arc_machine_extension" "test" {
 }
 
 func (r ArcMachineExtensionResource) template(data acceptance.TestData) string {
-	clientData := data.Client()
+	secret := os.Getenv("ARM_CLIENT_SECRET")
 	randomUUID, _ := uuid.GenerateUUID()
 	password := generateRandomPassword(10)
 	return fmt.Sprintf(`
@@ -334,5 +335,5 @@ data "azurerm_arc_machine" "test" {
     azurerm_linux_virtual_machine.test
   ]
 }
-`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, clientData.Default.ClientSecret)
+`, randomUUID, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, password, password, secret)
 }

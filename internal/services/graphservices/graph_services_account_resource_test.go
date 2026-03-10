@@ -6,6 +6,7 @@ package graphservices_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -120,7 +121,6 @@ func (r AccountTestResource) Exists(ctx context.Context, clients *clients.Client
 }
 
 func (r AccountTestResource) basic(data acceptance.TestData) string {
-	clientData := data.Client()
 	return fmt.Sprintf(`
 %s
 
@@ -129,7 +129,7 @@ resource "azurerm_graph_services_account" "test" {
   application_id      = "%[3]s"
   resource_group_name = azurerm_resource_group.test.name
 }
-`, r.template(data), data.RandomInteger, clientData.Default.ClientID)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
 }
 
 func (r AccountTestResource) requiresImport(data acceptance.TestData) string {
@@ -145,7 +145,6 @@ resource "azurerm_graph_services_account" "import" {
 }
 
 func (r AccountTestResource) complete(data acceptance.TestData) string {
-	clientData := data.Client()
 	return fmt.Sprintf(`
 %s
 
@@ -158,7 +157,7 @@ resource "azurerm_graph_services_account" "test" {
     some_key    = "some-value"
   }
 }
-`, r.template(data), data.RandomInteger, clientData.Default.ClientID)
+`, r.template(data), data.RandomInteger, os.Getenv("ARM_CLIENT_ID"))
 }
 
 func (r AccountTestResource) template(data acceptance.TestData) string {

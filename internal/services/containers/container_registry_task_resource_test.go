@@ -947,7 +947,6 @@ resource "azurerm_container_registry_task" "test" {
 
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialPassword(data acceptance.TestData) string {
 	template := r.template(data)
-	clientData := data.Client()
 	return fmt.Sprintf(`
 %s
 
@@ -980,7 +979,7 @@ resource "azurerm_container_registry_task" "test" {
     }
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.url, r.token, clientData.Default.ClientID, clientData.Default.ClientSecret)
+`, template, data.RandomInteger, data.RandomInteger, r.url, r.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData, tag string) string {
