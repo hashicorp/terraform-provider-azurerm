@@ -1,6 +1,7 @@
 ## 4.64.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `containerservice` - partial upgrade to `2025-03-01` [GH-31838]
 * dependencies: `containerservice` - partial upgrade to API version `2025-10-01` [GH-31401]
 * `azurerm_subnet` - add support for the `PureStorage.Block/storagePools` value in the `delegation.service_delegation.name` property [GH-31878]
 * `azurerm_virtual_network` - add support for the `PureStorage.Block/storagePools` value in the `subnet.delegation.service_delegation.name` property [GH-31878]
