@@ -6,6 +6,7 @@ ENHANCEMENTS:
 * `azurerm_virtual_network` - add support for the `PureStorage.Block/storagePools` value in the `subnet.delegation.service_delegation.name` property [GH-31878]
 
 FEATURES:
+* **New List Resource**: `azurerm_storage_account_customer_managed_key` [GH-31805] [GH-31805]
 
 BUG FIXES:
 
