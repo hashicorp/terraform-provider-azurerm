@@ -20,20 +20,8 @@ Each resource/data source must include an example, general guidelines for exampl
 The following conventions apply to code fences:
 
 - Use the most specific code fence language that matches the snippet.
-- Avoid unlabeled fences unless there is a strong reason to omit the language.
 - Terraform configuration should use `hcl` code fences. Do not use `terraform` code fences for HCL configuration blocks.
-- Terraform CLI commands (`terraform init`, `terraform plan`, `terraform apply`, `terraform import`, `terraform state`, etc.) should use `shell` code fences.
-- CLI transcripts containing commands and output together should use `shell` or `bash`.
-- Bash scripts and POSIX shell examples should use `bash`.
-- PowerShell snippets should use `powershell`.
-- JSON snippets should use `json`.
-- YAML snippets should use `yaml`.
-- Markdown examples should use `markdown`.
-- Generic plain text output or logs where no language fits should use `text`.
-
 - Keep Terraform examples copy/pasteable and self-contained.
-- Use `hcl` for the configuration itself and `shell` for the commands used to run it.
-- Do not default everything to `shell` when a more specific fence language fits the content.
 
 ## Arguments
 
@@ -53,7 +41,7 @@ Arguments in the documentation are expected to be ordered as follows:
 The following conventions apply to argument descriptions:
 
 - Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a [note](#notes).
-- If an argument has `ForceNew: true`, its description must end with `Changing this forces a new <resource name> to be created.`
+- If an argument has `ForceNew: true`, its description must end with `Changing this forces a new resource to be created.`
 - If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `value1`, `value2`, and `value3. ``. Other common entries include:
   - Arguments with a single allowed value: `` The only possible value is `value1`. ``
   - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
