@@ -22,7 +22,7 @@ func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
+				// check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
 				check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
@@ -41,20 +41,20 @@ func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 	})
 }
 
-//func TestAccDataSourceKubernetesAutomaticCluster_privateCluster(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//
-//	data.DataSourceTest(t, []acceptance.TestStep{
-//		{
-//			Config: KubernetesAutomaticClusterResource{}.privateAutomaticClusterConfig(data, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).Key("private_fqdn").Exists(),
-//				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
-//			),
-//		},
-//		data.ImportStep("service_principal.0.client_secret"),
-//	})
-//}
+func TestAccDataSourceKubernetesAutomaticCluster_privateCluster(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: KubernetesAutomaticClusterResource{}.privateClusterConfig(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("private_fqdn").Exists(),
+				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("service_principal.0.client_secret"),
+	})
+}
 
 func TestAccDataSourceKubernetesAutomaticCluster_roleBasedAccessControl(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")

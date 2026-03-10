@@ -321,6 +321,7 @@ func schemaKubernetesAutomaticClusterAddOns() map[string]*pluginsdk.Schema {
 		"azure_policy_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  true,
 		},
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
