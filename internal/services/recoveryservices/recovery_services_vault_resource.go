@@ -300,10 +300,11 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("updating Recovery Service %s: %+v, but recovery vault was created, a manually import might be required", id.String(), err)
 		}
 	}
-	// an update on the vault will reset the vault config to default, so we handle it at last.
+
 	// Fetch current config once for all AlwaysON checks.
 	currentCfg, _ := cfgsClient.Get(ctx, cfgId)
 
+	// an update on the vault will reset the vault config to default, so we handle it at last.
 	enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
 	cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
 		Properties: &backupresourcevaultconfigs.BackupResourceVaultConfig{
@@ -553,7 +554,6 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
 	// Fetch current config once for all AlwaysON checks.
 	currentVaultCfg, _ := cfgsClient.Get(ctx, cfgId)
 
@@ -565,6 +565,8 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+  // An update on vault will cause the vault config to reset to default, so the config
+  // must be re-applied after any vault update. AlwaysON fields are skipped — see guards above.
 	var StateRefreshPendingStrings []string
 	var StateRefreshTargetStrings []string
 	skipSoftDeletePoller := false
