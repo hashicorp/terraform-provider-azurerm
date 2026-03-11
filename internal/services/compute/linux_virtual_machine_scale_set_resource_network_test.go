@@ -1309,8 +1309,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
 
     ip_configuration {
-      name    = "second"
-      version = "IPv6"
+      name      = "second"
+      subnet_id = azurerm_subnet.test.id
+      version   = "IPv6"
     }
   }
 }

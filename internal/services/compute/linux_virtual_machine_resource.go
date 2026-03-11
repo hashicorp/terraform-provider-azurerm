@@ -1006,6 +1006,9 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			}
 			d.Set("platform_fault_domain", platformFaultDomain)
 
+			// defaulted to false to avoid missing attribute during import
+			d.Set("bypass_platform_safety_checks_on_user_schedule_enabled", false)
+
 			if profile := props.OsProfile; profile != nil {
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
