@@ -406,28 +406,23 @@ provider "azurerm-alt" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-databricks-pri-sub-services-%[1]d"
+  name     = "acctest-rg-dbws-pri-sub-services-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_resource_group" "keyVault" {
   provider = azurerm-alt
 
-  name     = "acctestRG-databricks-alt-sub-services-%[1]d"
+  name     = "acctest-rg-dbws-alt-sub-services-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_databricks_workspace_serverless" "test" {
-  name                                  = "acctest-databricks-pri-sub-%[1]d"
+  name                                  = "acctest-dbws-pri-sub-%[1]d"
   resource_group_name                   = azurerm_resource_group.test.name
   location                              = azurerm_resource_group.test.location
   managed_services_cmk_key_vault_id     = azurerm_key_vault.keyVault.id
   managed_services_cmk_key_vault_key_id = azurerm_key_vault_key.services.id
-
-  tags = {
-    Environment = "Sandbox"
-    Label       = "Test"
-  }
 
   depends_on = [azurerm_key_vault_access_policy.managed]
 }
@@ -436,7 +431,7 @@ resource "azurerm_databricks_workspace_serverless" "test" {
 resource "azurerm_key_vault" "keyVault" {
   provider = azurerm-alt
 
-  name                = "kv-altsub-%[3]s"
+  name                = "acctest-kv-altsub-%[3]s"
   location            = azurerm_resource_group.keyVault.location
   resource_group_name = azurerm_resource_group.keyVault.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
