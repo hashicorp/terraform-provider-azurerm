@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
@@ -49,17 +48,15 @@ func resourceStorageTableEntity() *pluginsdk.Resource {
 			},
 
 			"partition_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"row_key": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"entity": {

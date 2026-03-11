@@ -35,14 +35,6 @@ func (c Client) InsertOrReplace(ctx context.Context, tableName string, input Ins
 		return result, fmt.Errorf("`tableName` cannot be an empty string")
 	}
 
-	if input.PartitionKey == "" {
-		return result, fmt.Errorf("`input.PartitionKey` cannot be an empty string")
-	}
-
-	if input.RowKey == "" {
-		return result, fmt.Errorf("`input.RowKey` cannot be an empty string")
-	}
-
 	opts := client.RequestOptions{
 		ContentType: "application/json",
 		ExpectedStatusCodes: []int{
