@@ -142,9 +142,10 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			},
 
 			"soft_delete_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  true,
+				Type:       pluginsdk.TypeBool,
+				Optional:   true,
+				Default:    true,
+				Deprecated: "Azure now enforces soft delete as 'Always On' in regions where secure-by-default is enabled. Setting `soft_delete_enabled` to `false` will result in an error in those regions.",
 			},
 
 			"monitoring": {
@@ -313,8 +314,17 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
 		cfg.Properties.SoftDeleteFeatureState = &state
 		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{
+			string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled),
+			string(backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON),
+		}
 	} else {
+		existing, err := cfgsClient.Get(ctx, cfgId)
+		if err == nil && existing.Model != nil && existing.Model.Properties != nil {
+			if editable := existing.Model.Properties.IsSoftDeleteFeatureStateEditable; editable != nil && !*editable {
+				return fmt.Errorf("soft delete cannot be disabled for %s: Azure has enforced 'Always On' soft delete in this region", id)
+			}
+		}
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
 		cfg.Properties.SoftDeleteFeatureState = &state
 		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
@@ -524,8 +534,17 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
 		cfg.Properties.SoftDeleteFeatureState = &state
 		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+		StateRefreshTargetStrings = []string{
+			string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled),
+			string(backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON),
+		}
 	} else {
+		existingCfg, err := cfgsClient.Get(ctx, cfgId)
+		if err == nil && existingCfg.Model != nil && existingCfg.Model.Properties != nil {
+			if editable := existingCfg.Model.Properties.IsSoftDeleteFeatureStateEditable; editable != nil && !*editable {
+				return fmt.Errorf("soft delete cannot be disabled for %s: Azure has enforced 'Always On' soft delete in this region", id)
+			}
+		}
 		state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
 		cfg.Properties.SoftDeleteFeatureState = &state
 		StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
@@ -620,7 +639,9 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 
 		softDeleteEnabled := false
 		if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-			softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+			state := *cfg.Model.Properties.SoftDeleteFeatureState
+			softDeleteEnabled = state == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled ||
+				state == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON
 		}
 
 		d.Set("soft_delete_enabled", softDeleteEnabled)
