@@ -130,6 +130,15 @@ func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, me
 		return err
 	}
 
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: model or properties was nil", *id)
+	}
+
 	parameters := connection.ConnectionUpdateParameters{
 		Name:       pointer.To(id.ConnectionName),
 		Properties: &connection.ConnectionUpdateProperties{},
@@ -139,14 +148,26 @@ func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
-	// automation_certificate_name and subscription_id are both entries in the single
-	// FieldDefinitionValues map. The API replaces this map atomically, so if either
-	// field changes we must send the complete map with both current values.
+	// GET the current FieldDefinitionValues from the server, then overlay only the
+	// changed fields. This preserves externally-modified values when the user has
+	// ignore_changes set on individual fields.
 	if d.HasChanges("automation_certificate_name", "subscription_id") {
-		parameters.Properties.FieldDefinitionValues = &map[string]string{
-			"AutomationCertificateName": d.Get("automation_certificate_name").(string),
-			"SubscriptionID":            d.Get("subscription_id").(string),
+		fieldValues := make(map[string]string)
+		if existing.Model.Properties.FieldDefinitionValues != nil {
+			for k, v := range *existing.Model.Properties.FieldDefinitionValues {
+				fieldValues[k] = v
+			}
 		}
+
+		if d.HasChange("automation_certificate_name") {
+			fieldValues["AutomationCertificateName"] = d.Get("automation_certificate_name").(string)
+		}
+
+		if d.HasChange("subscription_id") {
+			fieldValues["SubscriptionID"] = d.Get("subscription_id").(string)
+		}
+
+		parameters.Properties.FieldDefinitionValues = &fieldValues
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
