@@ -775,9 +775,14 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_marketplace_agreement" "barracuda" {
-  publisher = "paloaltonetworks"
-  offer     = "panorama"
-  plan      = "byol"
+  publisher = "micro-focus"
+  offer     = "arcsight-logger"
+  plan      = "arcsight_logger_72_byol"
+}
+
+import {
+  to = azurerm_marketplace_agreement.barracuda
+  id = "/subscriptions/%[3]s/providers/Microsoft.MarketplaceOrdering/agreements/micro-focus/offers/arcsight-logger/plans/arcsight_logger_72_byol"
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
@@ -822,21 +827,22 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   data_disk {
     caching              = "ReadWrite"
     disk_size_gb         = 900
+    create_option        = "FromImage"
     storage_account_type = "Standard_LRS"
   }
 
   source_image_reference {
-    publisher = "paloaltonetworks"
-    offer     = "panorama"
-    sku       = "byol"
-    version   = "latest"
+    publisher = "micro-focus"
+    offer     = "arcsight-logger"
+    sku       = "arcsight_logger_72_byol"
+    version   = "7.2.0"
   }
 
   plan {
-    name      = "byol"
-    product   = "panorama"
-    publisher = "paloaltonetworks"
+    name      = "arcsight_logger_72_byol"
+    product   = "arcsight-logger"
+    publisher = "micro-focus"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.Subscriptions.Primary)
 }
