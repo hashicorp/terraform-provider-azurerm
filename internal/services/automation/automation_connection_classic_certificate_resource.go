@@ -139,7 +139,6 @@ func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceD
 		return err
 	}
 
-	// GET existing resource to preserve unchanged fields (API is PUT-based)
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("reading existing %s: %+v", *id, err)
