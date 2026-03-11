@@ -10,6 +10,7 @@ TRUNK="main"
 
 # Uncomment to print commands instead of executing them
 #debug="echo "
+debug="${debug:-}"
 
 usage() {
   echo "Usage: $0 -y [-C] [-f]" >&2
@@ -81,7 +82,7 @@ if [[ "${NOTEST}" == "1" ]]; then
   echo "Warning: Skipping tests"
 else
   echo "Running tests..."
-  ( set -x; TF_ACC= scripts/run-test.sh )
+  ( set -x; TF_ACC='' scripts/run-test.sh )
 fi
 
 # Get the next release
@@ -92,6 +93,7 @@ if [[ "${RELEASE}" == "" ]]; then
 fi
 
 # Ensure latest changes are checked out
+# shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
 ( set -x; ${debug}git pull --rebase origin "${TRUNK}" )
 
 if [[ "${NOTAG}" == "1" ]]; then
@@ -101,6 +103,7 @@ fi
 
 echo "Releasing v${RELEASE}..."
 
+# shellcheck disable=SC2086 # debug is intentionally unquoted for command prefix pattern
 (
   set -x
   ${debug}git tag v"${RELEASE}"

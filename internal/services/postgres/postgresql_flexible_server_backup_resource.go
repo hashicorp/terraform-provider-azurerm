@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupsautomaticandondemand"
+	backupsautomaticandondemand "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2025-08-01/backupautomaticandondemands"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
@@ -84,7 +84,7 @@ func (r PostgresqlFlexibleServerBackupResource) Create() sdk.ResourceFunc {
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.BackupsAutomaticAndOnDemandGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -92,7 +92,7 @@ func (r PostgresqlFlexibleServerBackupResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			if err := client.CreateThenPoll(ctx, id); err != nil {
+			if err := client.BackupsAutomaticAndOnDemandCreateThenPoll(ctx, id); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -113,7 +113,7 @@ func (r PostgresqlFlexibleServerBackupResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupsAutomaticAndOnDemandGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -151,7 +151,7 @@ func (r PostgresqlFlexibleServerBackupResource) Delete() sdk.ResourceFunc {
 			locks.ByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 			defer locks.UnlockByName(id.FlexibleServerName, postgresqlFlexibleServerResourceName)
 
-			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+			if err := client.BackupsAutomaticAndOnDemandDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

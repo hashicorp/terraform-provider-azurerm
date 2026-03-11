@@ -570,7 +570,9 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

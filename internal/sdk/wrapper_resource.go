@@ -38,6 +38,10 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	modelObj := rw.resource.ModelObject()
+	// TODO: this should probably return an error when modelObj is nil, but currently 16 typed resources
+	// return nil because they use metadata.ResourceData directly instead of a typed model.
+	// Once those resources are migrated to use metadata.Decode/Encode with a proper model struct,
+	// this nil check should be replaced with an error.
 	if modelObj != nil {
 		if err := ValidateModelObject(modelObj); err != nil {
 			return nil, fmt.Errorf("validating model for %q: %+v", rw.resource.ResourceType(), err)
@@ -230,4 +234,14 @@ func diagnosticsWrapper(in func(ctx context.Context, d *schema.ResourceData, met
 
 		return out
 	}
+}
+
+func WrappedResource(resource Resource) *pluginsdk.Resource {
+	wrapper := NewResourceWrapper(resource)
+	wrappedResource, err := wrapper.Resource()
+	if err != nil {
+		panic(err)
+	}
+
+	return wrappedResource
 }

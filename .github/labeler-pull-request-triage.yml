@@ -369,11 +369,6 @@ service/maps:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
 
-service/mobile-network:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mobilenetwork/**/*
-
 service/mongo-cluster:
 - changed-files:
   - any-glob-to-any-file:
