@@ -302,10 +302,33 @@ func TestAccLinuxVirtualMachine_networkPublicStaticPrivateUpdate(t *testing.T) {
 
 func (r LinuxVirtualMachineResource) networkIPv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%[2]d"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24", "ace:cab:deca::/64"]
+}
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctestni-%d"
+  name                = "acctestni-%[2]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -325,7 +348,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
+  name                = "acctestVM-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   size                = "Standard_F2"
@@ -351,7 +374,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.templateBase(data), data.RandomInteger, data.RandomInteger)
+`, r.templateBasePublicKey(), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LinuxVirtualMachineResource) networkMultipleTemplate(data acceptance.TestData) string {

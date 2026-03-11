@@ -1272,10 +1272,35 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
 func (r LinuxVirtualMachineScaleSetResource) networkMultipleIPConfigurationsIPv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vmss-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name = "acctestnw-%[2]d"
+  # address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  # address_prefixes     = ["10.0.2.0/24", "ace:cab:deca::/64"]
+  address_prefixes = ["10.0.2.0/24"]
+}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
+  name                = "acctestvmss-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_D2s_v3"
@@ -1315,7 +1340,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templatePublicKey(), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) networkMultipleNICs(data acceptance.TestData) string {
