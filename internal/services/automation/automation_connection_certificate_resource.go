@@ -132,42 +132,33 @@ func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, me
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 	}
 
-	if existing.Model == nil || existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: model or properties was nil", *id)
+	// Start from the existing field definition values so that fields managed
+	// via ignore_changes retain their server-side value.
+	fieldDefinitionValues := make(map[string]string)
+	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.FieldDefinitionValues != nil {
+		fieldDefinitionValues = *existing.Model.Properties.FieldDefinitionValues
+	}
+
+	if d.HasChange("automation_certificate_name") {
+		fieldDefinitionValues["AutomationCertificateName"] = d.Get("automation_certificate_name").(string)
+	}
+
+	if d.HasChange("subscription_id") {
+		fieldDefinitionValues["SubscriptionID"] = d.Get("subscription_id").(string)
 	}
 
 	parameters := connection.ConnectionUpdateParameters{
-		Name:       pointer.To(id.ConnectionName),
-		Properties: &connection.ConnectionUpdateProperties{},
+		Name: &id.ConnectionName,
+		Properties: &connection.ConnectionUpdateProperties{
+			FieldDefinitionValues: &fieldDefinitionValues,
+		},
 	}
 
 	if d.HasChange("description") {
 		parameters.Properties.Description = pointer.To(d.Get("description").(string))
-	}
-
-	// GET the current FieldDefinitionValues from the server, then overlay only the
-	// changed fields. This preserves externally-modified values when the user has
-	// ignore_changes set on individual fields.
-	if d.HasChanges("automation_certificate_name", "subscription_id") {
-		fieldValues := make(map[string]string)
-		if existing.Model.Properties.FieldDefinitionValues != nil {
-			for k, v := range *existing.Model.Properties.FieldDefinitionValues {
-				fieldValues[k] = v
-			}
-		}
-
-		if d.HasChange("automation_certificate_name") {
-			fieldValues["AutomationCertificateName"] = d.Get("automation_certificate_name").(string)
-		}
-
-		if d.HasChange("subscription_id") {
-			fieldValues["SubscriptionID"] = d.Get("subscription_id").(string)
-		}
-
-		parameters.Properties.FieldDefinitionValues = &fieldValues
 	}
 
 	if _, err := client.Update(ctx, *id, parameters); err != nil {
