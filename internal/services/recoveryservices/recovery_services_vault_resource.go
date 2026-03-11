@@ -185,7 +185,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Default:    true,
-			Deprecated: "`soft_delete_enabled` will be removed in v5.0 of the AzureRM Provider",
+			Deprecated: "`soft_delete_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Soft delete is always enabled by default as part of Azure's secure by default policy",
 		}
 	}
 
@@ -660,7 +660,8 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		if !features.FivePointOh() {
 			softDeleteEnabled := false
 			if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-				softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled ||
+					*cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON
 			}
 
 			d.Set("soft_delete_enabled", softDeleteEnabled)
