@@ -5435,6 +5435,9 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 		}
 		if customErrorConfiguration, ok := m["custom_error_configuration"].([]interface{}); ok {
 			for _, customErrorAttrs := range customErrorConfiguration {
+				if customErrorAttrs == nil {
+					continue
+				}
 				customError := customErrorAttrs.(map[string]interface{})
 				if statusCode, ok := customError["status_code"]; ok {
 					buf.WriteString(statusCode.(string))
@@ -5479,12 +5482,18 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 		}
 		if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
 			for _, ac := range authCert {
+				if ac == nil {
+					continue
+				}
 				config := ac.(map[string]interface{})
 				buf.WriteString(config["name"].(string))
 			}
 		}
 		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
 			for _, ac := range connectionDraining {
+				if ac == nil {
+					continue
+				}
 				config := ac.(map[string]interface{})
 				buf.WriteString(fmt.Sprintf("%t", config["enabled"].(bool)))
 				buf.WriteString(fmt.Sprintf("%d", config["drain_timeout_sec"].(int)))
@@ -5556,7 +5565,7 @@ func applicationGatewayProbeHash(v interface{}) int {
 			buf.WriteString(fmt.Sprintf("%d", v.(int)))
 		}
 		if match, ok := m["match"]; ok {
-			if attrs := match.([]interface{}); len(attrs) == 1 {
+			if attrs := match.([]interface{}); len(attrs) == 1 && attrs[0] != nil {
 				attr := attrs[0].(map[string]interface{})
 				body := attr["body"].(string)
 				statusCodes := attr["status_code"].([]interface{})

@@ -8017,7 +8017,6 @@ resource "azurerm_application_gateway" "test" {
 
   routing_rule {
     name                      = local.routing_rule_name
-    rule_type                 = "Basic"
     listener_name             = local.tcp_listener_name
     backend_address_pool_name = local.backend_address_pool_name
     backend_name              = local.backend_name
