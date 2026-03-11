@@ -103,11 +103,11 @@ func (r FederatedIdentityCredentialTestResource) basic(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience                   = ["foo"]
-  issuer                     = "https://foo"
-  name                       = "acctest-${local.random_integer}"
-  user_assigned_identity_id  = azurerm_user_assigned_identity.test.id
-  subject                    = "foo"
+  audience                  = ["foo"]
+  issuer                    = "https://foo"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo"
 }
 `, r.template(data))
 }
@@ -116,11 +116,11 @@ func (r FederatedIdentityCredentialTestResource) update(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience                   = ["foo-updated"]
-  issuer                     = "https://foo-updated"
-  name                       = "acctest-${local.random_integer}"
-  user_assigned_identity_id  = azurerm_user_assigned_identity.test.id
-  subject                    = "foo-updated"
+  audience                  = ["foo-updated"]
+  issuer                    = "https://foo-updated"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo-updated"
 }
 `, r.template(data))
 }
@@ -129,11 +129,11 @@ func (r FederatedIdentityCredentialTestResource) requiresImport(data acceptance.
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "import" {
-  audience                   = ["foo"]
-  issuer                     = "https://foo"
-  name                       = "acctest-${local.random_integer}"
-  user_assigned_identity_id  = azurerm_user_assigned_identity.test.id
-  subject                    = "foo"
+  audience                  = ["foo"]
+  issuer                    = "https://foo"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo"
 }
 `, r.basic(data))
 }
