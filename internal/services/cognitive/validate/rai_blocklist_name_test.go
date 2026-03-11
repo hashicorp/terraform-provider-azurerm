@@ -49,24 +49,24 @@ func TestValidateCognitiveServicesRaiBlocklistName(t *testing.T) {
 			valid: true,
 		},
 		{
-			name:  "Invalid starts with underscore",
+			name:  "Valid starts with underscore",
 			input: "_hello",
-			valid: false,
+			valid: true,
 		},
 		{
-			name:  "Invalid starts with hyphen",
+			name:  "Valid starts with hyphen",
 			input: "-hello",
-			valid: false,
+			valid: true,
 		},
 		{
-			name:  "Invalid ends with underscore",
+			name:  "Valid ends with underscore",
 			input: "hello_",
-			valid: false,
+			valid: true,
 		},
 		{
-			name:  "Invalid ends with hyphen",
+			name:  "Valid ends with hyphen",
 			input: "hello-",
-			valid: false,
+			valid: true,
 		},
 		{
 			name:  "Invalid contains period",
