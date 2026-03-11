@@ -819,6 +819,12 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     caching              = "ReadWrite"
   }
 
+  data_disk {
+    caching              = "ReadWrite"
+    disk_size_gb         = 900
+    storage_account_type = "Standard_LRS"
+  }
+
   source_image_reference {
     publisher = "paloaltonetworks"
     offer     = "panorama"
