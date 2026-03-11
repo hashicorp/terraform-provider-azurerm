@@ -24,7 +24,6 @@ resource "azurerm_recovery_services_vault" "vault" {
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
 
-  soft_delete_enabled = true
 }
 ```
 
@@ -56,7 +55,9 @@ The following arguments are supported:
 
 -> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
 
-* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
+* `soft_delete_enabled` - (Optional, **Deprecated**) Is soft delete enabled for this Vault? Defaults to `true`. Azure now enforces soft delete as 'Always On' in regions where secure-by-default is enabled (e.g. Australia East); in those regions this field has no effect and setting it to `false` will produce an error.
+
+-> **Note:** In regions where Azure enforces 'Always On' soft delete (such as `australiaeast`), the value of `soft_delete_enabled` is ignored and soft delete cannot be disabled. Attempting to set `soft_delete_enabled = false` in such a region will return an error.
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
