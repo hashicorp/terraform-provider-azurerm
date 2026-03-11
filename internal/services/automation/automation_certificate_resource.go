@@ -147,7 +147,7 @@ func resourceAutomationCertificateUpdate(d *pluginsdk.ResourceData, meta interfa
 		Properties: certificate.CertificateCreateOrUpdateProperties{
 			Description:  existing.Model.Properties.Description,
 			IsExportable: existing.Model.Properties.IsExportable,
-			Base64Value:  d.Get("base64").(string),
+			Base64Value:  d.Get("base64").(string), // value is sensitive so we must grab it with a d.get
 		},
 	}
 
