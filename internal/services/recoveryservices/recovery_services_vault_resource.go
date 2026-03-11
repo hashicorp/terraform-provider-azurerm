@@ -307,46 +307,59 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !features.FivePointOh() {
-		// an update on the vault will reset the vault config to default, so we handle it at last.
-		enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
-		cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
-			Properties: &backupresourcevaultconfigs.BackupResourceVaultConfig{
-				EnhancedSecurityState: &enhancedSecurityState, // always enabled
-			},
+		defaultcfg, err := cfgsClient.Get(ctx, cfgId)
+		if err != nil {
+			return fmt.Errorf("retrieving backup config for %s: %+v", id.String(), err)
 		}
 
-		var StateRefreshPendingStrings []string
-		var StateRefreshTargetStrings []string
-
-		if sd := d.Get("soft_delete_enabled").(bool); sd {
-			state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
-			cfg.Properties.SoftDeleteFeatureState = &state
-			StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-			StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-		} else {
-			state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
-			cfg.Properties.SoftDeleteFeatureState = &state
-			StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-			StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		currentSoftDeleteState := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		if defaultcfg.Model != nil && defaultcfg.Model.Properties != nil && defaultcfg.Model.Properties.SoftDeleteFeatureState != nil {
+			currentSoftDeleteState = *defaultcfg.Model.Properties.SoftDeleteFeatureState
 		}
 
-		if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
-			return err
-		}
+		// Only non-AlwaysOn allows update, otherwise, API will throw `BMSUserErrorSoftDeleteStateAlwaysOn` error
+		if currentSoftDeleteState != backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+			// an update on the vault will reset the vault config to default, so we handle it at last.
+			enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
+			cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
+				Properties: &backupresourcevaultconfigs.BackupResourceVaultConfig{
+					EnhancedSecurityState: &enhancedSecurityState, // always enabled
+				},
+			}
 
-		// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:                   StateRefreshPendingStrings,
-			Target:                    StateRefreshTargetStrings,
-			MinTimeout:                30 * time.Second,
-			ContinuousTargetOccurence: 3,
-			Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
-		}
+			var StateRefreshPendingStrings []string
+			var StateRefreshTargetStrings []string
 
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+			if sd := d.Get("soft_delete_enabled").(bool); sd {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+			} else {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+			}
 
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
+				return err
+			}
+
+			// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   StateRefreshPendingStrings,
+				Target:                    StateRefreshTargetStrings,
+				MinTimeout:                30 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
+			}
+
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutCreate)
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			}
 		}
 	}
 
@@ -528,40 +541,53 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !features.FivePointOh() {
-		// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
-		var StateRefreshPendingStrings []string
-		var StateRefreshTargetStrings []string
-
-		if sd := d.Get("soft_delete_enabled").(bool); sd {
-			state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
-			cfg.Properties.SoftDeleteFeatureState = &state
-			StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
-			StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-		} else {
-			state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
-			cfg.Properties.SoftDeleteFeatureState = &state
-			StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
-			StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+		defaultcfg, err := cfgsClient.Get(ctx, cfgId)
+		if err != nil {
+			return fmt.Errorf("retrieving backup config for %s: %+v", id.String(), err)
 		}
 
-		if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
-			return err
+		currentSoftDeleteState := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+		if defaultcfg.Model != nil && defaultcfg.Model.Properties != nil && defaultcfg.Model.Properties.SoftDeleteFeatureState != nil {
+			currentSoftDeleteState = *defaultcfg.Model.Properties.SoftDeleteFeatureState
 		}
 
-		// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
-		// tracked by https://github.com/Azure/azure-rest-api-specs/issues/21548
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:                   StateRefreshPendingStrings,
-			Target:                    StateRefreshTargetStrings,
-			MinTimeout:                30 * time.Second,
-			ContinuousTargetOccurence: 3,
-			Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
-		}
+		// Only non-AlwaysOn allows update, otherwise, API will throw `BMSUserErrorSoftDeleteStateAlwaysOn` error
+		if currentSoftDeleteState != backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+			// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
+			var StateRefreshPendingStrings []string
+			var StateRefreshTargetStrings []string
 
-		stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+			if sd := d.Get("soft_delete_enabled").(bool); sd {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+			} else {
+				state := backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled
+				cfg.Properties.SoftDeleteFeatureState = &state
+				StateRefreshPendingStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled)}
+				StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
+			}
 
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			if _, err = cfgsClient.Update(ctx, cfgId, cfg); err != nil {
+				return err
+			}
+
+			// sometimes update sync succeed but READ returns with old value, so we refresh till the value is correct.
+			// tracked by https://github.com/Azure/azure-rest-api-specs/issues/21548
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending:                   StateRefreshPendingStrings,
+				Target:                    StateRefreshTargetStrings,
+				MinTimeout:                30 * time.Second,
+				ContinuousTargetOccurence: 3,
+				Refresh:                   resourceRecoveryServicesVaultSoftDeleteRefreshFunc(ctx, cfgsClient, cfgId),
+			}
+
+			stateConf.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
+
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for on update for Recovery Service %s: %+v", id.String(), err)
+			}
 		}
 	}
 
