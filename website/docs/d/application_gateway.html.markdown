@@ -149,11 +149,11 @@ A `backend` block exports the following:
 
 * `id` - The ID of the Backend Settings.
 
+* `client_ip_preservation_enabled` - Whether client IP preservation is enabled for the Backend Settings.
+
 * `host_name` - The Host Header to use for the Backend Settings.
 
 * `name` - The Name of the Backend Settings.
-
-* `pick_host_name_from_backend_address` - Whether the host header is picked from the backend address.
 
 * `port` - The port which is used for the Backend Settings.
 
@@ -163,7 +163,7 @@ A `backend` block exports the following:
 
 * `protocol` - The Protocol which is used for the Backend Settings.
 
-* `timeout` - The request timeout in seconds for the Backend Settings.
+* `timeout_in_seconds` - The request timeout in seconds for the Backend Settings.
 
 * `trusted_root_certificate_names` - A list of `trusted_root_certificate` names.
 
@@ -476,8 +476,6 @@ A `routing_rule` block exports the following:
 * `name` - The Name of this Routing Rule.
 
 * `priority` - The Priority of this Routing Rule.
-
-* `rule_type` - The Type of Routing that is used for this Rule.
 
 ---
 

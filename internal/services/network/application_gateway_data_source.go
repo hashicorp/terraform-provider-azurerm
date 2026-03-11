@@ -191,6 +191,11 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"client_ip_preservation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
 						"host_name": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
@@ -203,11 +208,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 
 						"name": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"pick_host_name_from_backend_address": {
-							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
@@ -231,7 +231,7 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"timeout": {
+						"timeout_in_seconds": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
@@ -744,11 +744,6 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 
 						"priority": {
 							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"rule_type": {
-							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 					},

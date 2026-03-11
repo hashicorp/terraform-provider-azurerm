@@ -4252,9 +4252,6 @@ resource "azurerm_application_gateway" "test" {
     interval            = 300
     unhealthy_threshold = 8
     minimum_servers     = 0
-    match {
-      status_code = ["200-399"]
-    }
   }
 
   probe {
@@ -4265,9 +4262,6 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
-    match {
-      status_code = ["200-399"]
-    }
   }
 
   http_listener {
@@ -4361,9 +4355,6 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
-    match {
-      status_code = ["200-399"]
-    }
   }
 
   probe {
@@ -4462,9 +4453,6 @@ resource "azurerm_application_gateway" "test" {
     interval                                  = 300
     unhealthy_threshold                       = 8
     pick_host_name_from_backend_http_settings = true
-    match {
-      status_code = ["200-399"]
-    }
   }
 
   http_listener {
@@ -4557,9 +4545,6 @@ resource "azurerm_application_gateway" "test" {
     timeout             = 120
     interval            = 300
     unhealthy_threshold = 8
-    match {
-      status_code = ["200-399"]
-    }
   }
 
   http_listener {
@@ -7828,10 +7813,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend {
-    name     = local.backend_name
-    port     = 8443
-    protocol = "Tcp"
-    timeout  = 30
+    name               = local.backend_name
+    port               = 8443
+    protocol           = "Tcp"
+    timeout_in_seconds = 30
   }
 
   http_listener {
@@ -7925,28 +7910,25 @@ resource "azurerm_application_gateway" "test" {
     interval            = 30
     timeout             = 30
     unhealthy_threshold = 3
-    match {
-      status_code = ["200-399"]
-    }
   }
 
   backend {
-    name                                = local.second_backend_name
-    port                                = 8443
-    protocol                            = "Tcp"
-    timeout                             = 30
-    pick_host_name_from_backend_address = false
+    name                           = local.second_backend_name
+    port                           = 8443
+    protocol                       = "Tcp"
+    timeout_in_seconds             = 30
+    client_ip_preservation_enabled = true
   }
 
   backend {
-    name                                = local.backend_name
-    port                                = 8443
-    protocol                            = "Tls"
-    timeout                             = 60
-    host_name                           = "example.com"
-    pick_host_name_from_backend_address = false
-    trusted_root_certificate_names      = [local.trusted_root_cert_name]
-    probe_name                          = local.probe_name
+    name                           = local.backend_name
+    port                           = 8443
+    protocol                       = "Tls"
+    timeout_in_seconds             = 60
+    host_name                      = "example.com"
+    client_ip_preservation_enabled = true
+    trusted_root_certificate_names = [local.trusted_root_cert_name]
+    probe_name                     = local.probe_name
   }
 
   http_listener {
@@ -8020,10 +8002,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend {
-    name     = local.backend_name
-    port     = 8443
-    protocol = "Tcp"
-    timeout  = 30
+    name               = local.backend_name
+    port               = 8443
+    protocol           = "Tcp"
+    timeout_in_seconds = 30
   }
 
   listener {
@@ -8114,10 +8096,10 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend {
-    name     = local.backend_name
-    port     = 8443
-    protocol = "Tcp"
-    timeout  = 30
+    name               = local.backend_name
+    port               = 8443
+    protocol           = "Tcp"
+    timeout_in_seconds = 30
   }
 
   http_listener {
@@ -8152,7 +8134,6 @@ resource "azurerm_application_gateway" "test" {
 
   routing_rule {
     name                      = local.routing_rule_name_2
-    rule_type                 = "Basic"
     listener_name             = local.tcp_listener_name_2
     backend_address_pool_name = local.backend_address_pool_name
     backend_name              = local.backend_name
@@ -8161,7 +8142,6 @@ resource "azurerm_application_gateway" "test" {
 
   routing_rule {
     name                      = local.routing_rule_name
-    rule_type                 = "Basic"
     listener_name             = local.tcp_listener_name
     backend_address_pool_name = local.backend_address_pool_name
     backend_name              = local.backend_name

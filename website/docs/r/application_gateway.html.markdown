@@ -206,8 +206,6 @@ The following arguments are supported:
 
 ---
 
----
-
 An `authentication_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Authentication Certificate to use.
@@ -250,13 +248,13 @@ A `backend` block supports the following:
 
 * `protocol` - (Required) The Protocol which should be used. Possible values are `Tcp` and `Tls`.
 
-* `host_name` - (Optional) Host header to be sent to the backend servers for TLS protocol. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
+* `client_ip_preservation_enabled` - (Optional) Whether client IP preservation is enabled for this Backend Settings Collection. Defaults to `false`.
 
-* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server for TLS protocol. Defaults to `false`.
+* `host_name` - (Optional) Host header to be sent to the backend servers. Can only be set when `protocol` is `Tls`.
 
 * `probe_name` - (Optional) The name of an associated Probe.
 
-* `timeout` - (Optional) The connection timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
+* `timeout_in_seconds` - (Optional) The connection timeout in seconds. Possible values range between `1` and `86400`. Defaults to `30`.
 
 * `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
@@ -460,7 +458,7 @@ A `probe` block supports the following:
 
 * `path` - (Optional) The Path used for this Probe.
 
-!> **Note:** `path` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+~> **Note:** `path` cannot be set when `protocol` is set to `Tcp` or `Tls`.
 
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
@@ -512,9 +510,7 @@ A `routing_rule` block supports the following:
 
 * `listener_name` - (Required) The Name of the Listener which should be used for this Routing Rule.
 
-* `priority` - (Required) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
-
-* `rule_type` - (Required) The Type of Routing that should be used for this Rule. The only possible value is `Basic`.
+* `priority` - (Required) The routing rule priority, indicating the order in which rules are evaluated. Possible values range between `1` and `20000`, with `1` being the highest priority and `20000` being the lowest priority.
 
 ---
 
@@ -823,6 +819,8 @@ A `backend` block exports the following:
 
 * `id` - The ID of the Backend Settings Configuration.
 
+* `client_ip_preservation_enabled` - Whether client IP preservation is enabled for this Backend Settings Configuration.
+
 * `probe_id` - The ID of the associated Probe.
 
 ---
@@ -937,11 +935,11 @@ A `request_routing_rule` block exports the following:
 
 A `routing_rule` block exports the following:
 
+* `id` - The ID of the Routing Rule.
+
 * `backend_address_pool_id` - The ID of the associated Backend Address Pool.
 
 * `backend_id` - The ID of the associated Backend Settings.
-
-* `id` - The ID of the Routing Rule.
 
 * `listener_id` - The ID of the associated Listener.
 
@@ -996,7 +994,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Application Gateway's can be imported using the `resource id`, e.g.
+An Application Gateway can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
