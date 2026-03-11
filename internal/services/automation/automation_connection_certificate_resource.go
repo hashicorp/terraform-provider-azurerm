@@ -139,6 +139,9 @@ func resourceAutomationConnectionCertificateUpdate(d *pluginsdk.ResourceData, me
 		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
+	// automation_certificate_name and subscription_id are both entries in the single
+	// FieldDefinitionValues map. The API replaces this map atomically, so if either
+	// field changes we must send the complete map with both current values.
 	if d.HasChanges("automation_certificate_name", "subscription_id") {
 		parameters.Properties.FieldDefinitionValues = &map[string]string{
 			"AutomationCertificateName": d.Get("automation_certificate_name").(string),
