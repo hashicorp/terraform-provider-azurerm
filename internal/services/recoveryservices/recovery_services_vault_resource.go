@@ -565,8 +565,8 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-  // An update on vault will cause the vault config to reset to default, so the config
-  // must be re-applied after any vault update. AlwaysON fields are skipped — see guards above.
+	// An update on vault will cause the vault config to reset to default, so the config
+	// must be re-applied after any vault update. AlwaysON fields are skipped — see guards above.
 	var StateRefreshPendingStrings []string
 	var StateRefreshTargetStrings []string
 	skipSoftDeletePoller := false
