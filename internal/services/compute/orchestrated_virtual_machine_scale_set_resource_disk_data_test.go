@@ -780,11 +780,6 @@ resource "azurerm_marketplace_agreement" "barracuda" {
   plan      = "arcsight_logger_72_byol"
 }
 
-import {
-  to = azurerm_marketplace_agreement.barracuda
-  id = "/subscriptions/%[3]s/providers/Microsoft.MarketplaceOrdering/agreements/micro-focus/offers/arcsight-logger/plans/arcsight_logger_72_byol"
-}
-
 resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   name                = "acctestOVMSS-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -844,5 +839,5 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
     publisher = "micro-focus"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Subscriptions.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
