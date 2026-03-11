@@ -1284,7 +1284,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "acctestnw-%[2]d"
+  name                = "acctestnw-%[2]d"
   address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
