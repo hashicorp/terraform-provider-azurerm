@@ -318,6 +318,31 @@ func TestAccRecoveryServicesVault_softDelete(t *testing.T) {
 	})
 }
 
+func TestAccRecoveryServicesVault_softDeleteAlwaysOn(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
+	r := RecoveryServicesVaultResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Create in an AlwaysON region — provider must not attempt to downgrade
+			// EnhancedSecurityState or SoftDeleteFeatureState (Azure rejects both).
+			Config: r.softDeleteAlwaysOnEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
+			),
+		},
+		// ImportStep verifies the Read path: AlwaysON state must map to soft_delete_enabled=true
+		// so there is no perpetual diff after import.
+		data.ImportStep(),
+		{
+			// Attempting to disable soft delete in an AlwaysON region must return a clear error.
+			Config:      r.softDeleteAlwaysOnDisabled(data),
+			ExpectError: regexp.MustCompile(`soft delete cannot be disabled for .+: Azure has enforced 'Always On' soft delete in this region`),
+		},
+	})
+}
+
 func TestAccRecoveryServicesVault_storageModeType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
@@ -1242,6 +1267,50 @@ resource "azurerm_recovery_services_vault" "test" {
   soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) softDeleteAlwaysOnEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "australiaeast"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = true
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (RecoveryServicesVaultResource) softDeleteAlwaysOnDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%d"
+  location = "australiaeast"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-Vault-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Standard"
+
+  soft_delete_enabled = false
+}
+`, data.RandomInteger, data.RandomInteger)
 }
 
 func (RecoveryServicesVaultResource) crossRegionRestoreDefault(data acceptance.TestData) string {
