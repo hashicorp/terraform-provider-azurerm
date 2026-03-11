@@ -97,6 +97,9 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 					"azurerm_key_vault_key":         true,
 					"azurerm_key_vault_secret":      true,
 					"azurerm_key_vault_certificate": true,
+					// The `azurerm_resource_provider_registration` resource has a longer read timeout due to extensive polling being required to work around
+					// API inconsistency issues
+					"azurerm_resource_provider_registration": true,
 				}
 				if !exceptionResources[resourceName] {
 					t.Fatalf("Read timeouts shouldn't be more than 5 minutes, this indicates a bug which needs to be fixed")
