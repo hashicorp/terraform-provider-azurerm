@@ -95,7 +95,7 @@ func TestAccExampleResource_RemoveContent(t *testing.T) {
 			Config: r.removeContent(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-                                // NOTE: `content` is Optional+Computed; verify it reverts to the default when removed
+                // NOTE: `content` is Optional+Computed; verify it reverts to the default when removed
 				check.That(data.ResourceName).Key("content").HasValue("default"),
 			),
 		},
