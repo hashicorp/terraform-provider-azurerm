@@ -185,7 +185,7 @@ func resourceRecoveryServicesVault() *pluginsdk.Resource {
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Default:    true,
-			Deprecated: "`soft_delete_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Soft delete is always enabled by default as part of Azure's secure by default policy",
+			Deprecated: "`soft_delete_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Soft delete is always enabled by default as part of Azure's secure by default policy (https://learn.microsoft.com/en-us/azure/backup/secure-by-default)",
 		}
 	}
 
