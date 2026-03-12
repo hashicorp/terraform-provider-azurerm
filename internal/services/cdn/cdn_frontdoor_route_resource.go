@@ -291,7 +291,7 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
-		props.RouteProperties.OriginPath = pointer.To(originPath)
+		props.OriginPath = pointer.To(originPath)
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
