@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement_test
@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
@@ -148,6 +148,51 @@ func TestAccApiManagement_complete(t *testing.T) {
 				"hostname_configuration.0.proxy.2.certificate_password",            // not returned from API, sensitive
 			},
 		},
+	})
+}
+
+func TestAccApiManagement_premiumV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumV2Sku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_standardV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standardV2Sku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_basicV2(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicV2Sku(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -351,7 +396,7 @@ func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVers
 	})
 }
 
-func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultId(t *testing.T) {
+func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsUpdateKeyVaultCertificateId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
 	r := ApiManagementResource{}
 
@@ -367,6 +412,48 @@ func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsVers
 			Config: r.identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultIdUpdateCD(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssignedUpdateHostnameConfigurationsReplaceCertificate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.key_vault_certificate_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestKVCert-2-%d", data.RandomInteger))),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagement_identitySystemAssignedUpdateHostnameConfigurationsUpdateKeyVaultCertificateIdFourPointOh(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this test is no longer functional in 5.x")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_api_management", "test")
+	r := ApiManagementResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identitySystemAssignedUpdateHostnameConfigurationsKeyVaultId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssignedUpdateHostnameConfigurationsVersionlessKeyVaultIdUpdateCD(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.identitySystemAssignedUpdateHostnameConfigurationsReplaceCertificateFourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("hostname_configuration.0.proxy.1.key_vault_id").MatchesRegex(regexp.MustCompile(fmt.Sprintf("acctestKVCert-2-%d", data.RandomInteger))),
 			),
 		},
 		data.ImportStep(),
@@ -2252,6 +2339,160 @@ resource "azurerm_api_management" "test" {
 `, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger, data.RandomInteger)
 }
 
+func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsReplaceCertificate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_certificate" "test2" {
+  depends_on   = [azurerm_key_vault_access_policy.test]
+  name         = "acctestKVCert-2-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject_alternative_names {
+        dns_names = ["api.pluginsdk.io"]
+      }
+
+      subject            = "CN=api.pluginsdk.io"
+      validity_in_months = 1
+    }
+  }
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  hostname_configuration {
+    proxy {
+      host_name                    = "acctestAM-%[2]d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
+      host_name                    = "api.pluginsdk.io"
+      key_vault_certificate_id     = azurerm_key_vault_certificate.test2.secret_id
+      default_ssl_binding          = true
+      negotiate_client_certificate = false
+    }
+  }
+}
+`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
+}
+
+func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsReplaceCertificateFourPointOh(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_key_vault_certificate" "test2" {
+  depends_on   = [azurerm_key_vault_access_policy.test]
+  name         = "acctestKVCert-2-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject_alternative_names {
+        dns_names = ["api.pluginsdk.io"]
+      }
+
+      subject            = "CN=api.pluginsdk.io"
+      validity_in_months = 1
+    }
+  }
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  hostname_configuration {
+    proxy {
+      host_name                    = "acctestAM-%[2]d.azure-api.net"
+      negotiate_client_certificate = true
+    }
+
+    proxy {
+      host_name                    = "api.pluginsdk.io"
+      key_vault_id                 = azurerm_key_vault_certificate.test2.secret_id
+      default_ssl_binding          = true
+      negotiate_client_certificate = false
+    }
+  }
+}
+`, r.identitySystemAssignedUpdateHostnameConfigurationsTemplate(data), data.RandomInteger)
+}
+
 func (r ApiManagementResource) identitySystemAssignedUpdateHostnameConfigurationsVersionedKeyVaultIdUpdateCD(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -2840,6 +3081,66 @@ resource "azurerm_api_management" "test" {
   tenant_access {
     enabled = true
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) standardV2Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "StandardV2_1"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (ApiManagementResource) premiumV2Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "PremiumV2_1"
+}
+`, data.RandomInteger, data.Locations.Secondary, data.RandomInteger)
+}
+
+func (ApiManagementResource) basicV2Sku(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+  sku_name            = "BasicV2_1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

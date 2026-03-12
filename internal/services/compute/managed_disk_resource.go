@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -31,6 +30,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name managed_disk -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "empty"
 
 func resourceManagedDisk() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -44,10 +45,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			0: migration.ManagedDiskV0ToV1{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseManagedDiskID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.ManagedDiskId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.ManagedDiskId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -338,7 +340,7 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
+	location := location.Normalize(d.Get("location").(string))
 	createOption := disks.DiskCreateOption(d.Get("create_option").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := disks.OperatingSystemTypes(d.Get("os_type").(string))
@@ -591,6 +593,9 @@ func resourceManagedDiskCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceManagedDiskRead(d, meta)
 }
@@ -948,7 +953,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) error {

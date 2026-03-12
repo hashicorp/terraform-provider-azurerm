@@ -196,6 +196,8 @@ A `git_repository` block supports the following:
 
 * `https_key_base64` - (Optional) Specifies the Base64-encoded HTTPS personal access token or password that will be used to access the repository.
 
+* `provider` - (Optional) Specifies the OIDC provider used for workload identity federation authentication against git repositories. Possible values are `Azure`, `Generic`.
+
 * `local_auth_reference` - (Optional) Specifies the name of a local secret on the Kubernetes cluster to use as the authentication secret rather than the managed or user-provided configuration secrets. It must be between 1 and 63 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.
 
 * `ssh_private_key_base64` - (Optional) Specifies the Base64-encoded SSH private key in PEM format.
@@ -232,7 +234,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Flux Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Flux Configuration.
@@ -251,4 +253,4 @@ terraform import azurerm_kubernetes_flux_configuration.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KubernetesConfiguration`: 2023-05-01
+* `Microsoft.KubernetesConfiguration` - 2024-11-01

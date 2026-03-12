@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssqlmanagedinstance
@@ -25,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssqlmanagedinstance/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -135,7 +134,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"storage_size_in_gb": {
 			Type:         schema.TypeInt,
 			Required:     true,
-			ValidateFunc: validation.IntBetween(32, 16384),
+			ValidateFunc: validation.IntBetween(32, 32768),
 		},
 
 		"subnet_id": {
@@ -168,8 +167,11 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_login": {
-			Type:         schema.TypeString,
-			Optional:     true,
+			Type:     schema.TypeString,
+			Optional: true,
+			// Note: O+C because Azure returns a generated value if `azure_active_directory_administrator.azuread_authentication_only_enabled` is `true`.
+			// which leads to unnecessary resource recreation on subsequent plans where Terraform tries to remove it.
+			Computed:     true,
 			ForceNew:     true,
 			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
 			RequiredWith: []string{"administrator_login", "administrator_login_password"},
@@ -278,9 +280,8 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		"proxy_override": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  string(managedinstances.ManagedInstanceProxyOverrideDefault),
+			Default:  string(managedinstances.ManagedInstanceProxyOverrideRedirect),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(managedinstances.ManagedInstanceProxyOverrideDefault),
 				string(managedinstances.ManagedInstanceProxyOverrideRedirect),
 				string(managedinstances.ManagedInstanceProxyOverrideProxy),
 			}, false),
@@ -326,7 +327,7 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 
 	if !features.FivePointOh() {
@@ -340,7 +341,20 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 				"1.2",
 			}, false),
 		}
+
+		args["proxy_override"] = &pluginsdk.Schema{
+			Type:     schema.TypeString,
+			Optional: true,
+			// Note: O+C while in 4.x because the value returned by Azure depends on when the resource was created if provisioned with `Default`.
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedinstances.ManagedInstanceProxyOverrideDefault),
+				string(managedinstances.ManagedInstanceProxyOverrideRedirect),
+				string(managedinstances.ManagedInstanceProxyOverrideProxy),
+			}, false),
+		}
 	}
+
 	return args
 }
 
@@ -429,6 +443,13 @@ func (r MsSqlManagedInstanceResource) Create() sdk.ResourceFunc {
 
 			maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(subscriptionId, model.MaintenanceConfigurationName)
 
+			if !features.FivePointOh() {
+				// Preserve previous Default value for `proxy_override`
+				if model.ProxyOverride == "" {
+					model.ProxyOverride = string(managedinstances.ManagedInstanceProxyOverrideDefault)
+				}
+			}
+
 			parameters := managedinstances.ManagedInstance{
 				Sku:      sku,
 				Identity: r.expandIdentity(model.Identity),
@@ -502,56 +523,106 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Updating %s", *id)
-
-			sku, err := r.expandSkuName(state.SkuName)
+			existing, err := client.Get(ctx, *id, managedinstances.DefaultGetOperationOptions())
 			if err != nil {
-				return fmt.Errorf("expanding `sku_name` for SQL Managed Instance Server %q: %v", *id, err)
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 
-			properties := managedinstances.ManagedInstance{
-				Sku:      sku,
-				Identity: r.expandIdentity(state.Identity),
-				Location: location.Normalize(state.Location),
-				Properties: &managedinstances.ManagedInstanceProperties{
-					DnsZonePartner:                   pointer.To(state.DnsZonePartnerId),
-					LicenseType:                      pointer.To(managedinstances.ManagedInstanceLicenseType(state.LicenseType)),
-					MinimalTlsVersion:                pointer.To(state.MinimumTlsVersion),
-					ProxyOverride:                    pointer.To(managedinstances.ManagedInstanceProxyOverride(state.ProxyOverride)),
-					PublicDataEndpointEnabled:        pointer.To(state.PublicDataEndpointEnabled),
-					StorageSizeInGB:                  pointer.To(state.StorageSizeInGb),
-					RequestedBackupStorageRedundancy: pointer.To(storageAccTypeToBackupStorageRedundancy(state.StorageAccountType)),
-					VCores:                           pointer.To(state.VCores),
-					ZoneRedundant:                    pointer.To(state.ZoneRedundantEnabled),
-					AdministratorLogin:               pointer.To(state.AdministratorLogin),
-					AdministratorLoginPassword:       pointer.To(state.AdministratorLoginPassword),
-					SubnetId:                         pointer.To(state.SubnetId),
-				},
-				Tags: pointer.To(state.Tags),
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
-			if properties.Identity != nil && len(properties.Identity.IdentityIds) > 0 {
-				for k := range properties.Identity.IdentityIds {
-					properties.Properties.PrimaryUserAssignedIdentityId = pointer.To(k)
-					break
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+			props := existing.Model.Properties
+
+			// `Administrators` is only valid when specified during creation
+			// This not ideal, but matches previous behaviour (when the request body was built from scratch rather than modifying a returned one)
+			// Without this, we receive this error: `Invalid value given for parameter AzureADOnlyAuthentication`
+			props.Administrators = nil
+
+			if metadata.ResourceData.HasChange("sku_name") {
+				sku, err := r.expandSkuName(state.SkuName)
+				if err != nil {
+					return fmt.Errorf("expanding `sku_name` for SQL Managed Instance Server %q: %v", *id, err)
 				}
+				existing.Model.Sku = sku
+			}
+
+			if metadata.ResourceData.HasChange("license_type") {
+				props.LicenseType = pointer.ToEnum[managedinstances.ManagedInstanceLicenseType](state.LicenseType)
+			}
+
+			if metadata.ResourceData.HasChange("storage_size_in_gb") {
+				props.StorageSizeInGB = pointer.To(state.StorageSizeInGb)
+			}
+
+			if metadata.ResourceData.HasChange("subnet_id") {
+				props.SubnetId = pointer.To(state.SubnetId)
+			}
+
+			if metadata.ResourceData.HasChange("vcores") {
+				props.VCores = pointer.To(state.VCores)
+			}
+
+			if metadata.ResourceData.HasChange("administrator_login_password") {
+				props.AdministratorLoginPassword = pointer.To(state.AdministratorLoginPassword)
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				existing.Model.Identity = r.expandIdentity(state.Identity)
+
+				// @sreallymatt: This is pre-existing logic that is technically broken, but no one seems to be complaining about it ¯\_(ツ)_/¯
+				// TODO: revisit, we'll likely want to introduce a `primary_user_assigned_identity_id` property
+				// rather than grabbing the ID from the first loop iteration given maps are unordered...
+				if existing.Model.Identity != nil && len(existing.Model.Identity.IdentityIds) > 0 {
+					for k := range existing.Model.Identity.IdentityIds {
+						props.PrimaryUserAssignedIdentityId = pointer.To(k)
+						break
+					}
+				}
+			}
+
+			if metadata.ResourceData.HasChange("minimum_tls_version") {
+				props.MinimalTlsVersion = pointer.To(state.MinimumTlsVersion)
+			}
+
+			if metadata.ResourceData.HasChange("proxy_override") {
+				props.ProxyOverride = pointer.ToEnum[managedinstances.ManagedInstanceProxyOverride](state.ProxyOverride)
+			}
+
+			if metadata.ResourceData.HasChange("public_data_endpoint_enabled") {
+				props.PublicDataEndpointEnabled = pointer.To(state.PublicDataEndpointEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("storage_account_type") {
+				props.RequestedBackupStorageRedundancy = pointer.To(storageAccTypeToBackupStorageRedundancy(state.StorageAccountType))
+			}
+
+			if metadata.ResourceData.HasChange("zone_redundant_enabled") {
+				props.ZoneRedundant = pointer.To(state.ZoneRedundantEnabled)
+			}
+
+			if metadata.ResourceData.HasChange("dns_zone_partner_id") {
+				props.DnsZonePartner = pointer.To(state.DnsZonePartnerId)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				existing.Model.Tags = pointer.To(state.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("maintenance_configuration_name") {
 				maintenanceConfigId := publicmaintenanceconfigurations.NewPublicMaintenanceConfigurationID(id.SubscriptionId, state.MaintenanceConfigurationName)
-				properties.Properties.MaintenanceConfigurationId = pointer.To(maintenanceConfigId.ID())
-			}
-
-			if metadata.ResourceData.HasChange("administrator_login_password") {
-				properties.Properties.AdministratorLoginPassword = pointer.To(state.AdministratorLoginPassword)
+				props.MaintenanceConfigurationId = pointer.To(maintenanceConfigId.ID())
 			}
 
 			if metadata.ResourceData.HasChange("service_principal_type") {
-				properties.Properties.ServicePrincipal = &managedinstances.ServicePrincipal{}
+				props.ServicePrincipal = &managedinstances.ServicePrincipal{}
 				if state.ServicePrincipalType == "" {
-					properties.Properties.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalTypeNone)
+					props.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalTypeNone)
 				} else {
-					properties.Properties.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalType(state.ServicePrincipalType))
+					props.ServicePrincipal.Type = pointer.To(managedinstances.ServicePrincipalType(state.ServicePrincipalType))
 				}
 			}
 
@@ -610,14 +681,14 @@ func (r MsSqlManagedInstanceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("database_format") {
-				properties.Properties.DatabaseFormat = pointer.To(managedinstances.ManagedInstanceDatabaseFormat(state.DatabaseFormat))
+				props.DatabaseFormat = pointer.To(managedinstances.ManagedInstanceDatabaseFormat(state.DatabaseFormat))
 			}
 
 			if metadata.ResourceData.HasChange("hybrid_secondary_usage") {
-				properties.Properties.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
+				props.HybridSecondaryUsage = pointer.To(managedinstances.HybridSecondaryUsage(state.HybridSecondaryUsage))
 			}
 
-			err = client.CreateOrUpdateThenPoll(ctx, *id, properties)
+			err = client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -656,7 +727,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			if existing.Model != nil {
 				model = MsSqlManagedInstanceModel{
 					Name:              id.ManagedInstanceName,
-					Location:          location.NormalizeNilable(&existing.Model.Location),
+					Location:          location.Normalize(existing.Model.Location),
 					ResourceGroupName: id.ResourceGroupName,
 					Identity:          r.flattenIdentity(existing.Model.Identity),
 					Tags:              pointer.From(existing.Model.Tags),
@@ -680,6 +751,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 
 					// read from state since when `azuread_authentication_only` is enabled via resource `azurerm_mssql_managed_instance_active_directory_administrator`,
 					// the API returns the value of `AzureActiveDirectoryAdministrator` which causes diff.
+					// TODO: revisit this (on migration to Framework?), currently this resource cannot determine drift on `azure_active_directory_administrator`
 					model.AzureActiveDirectoryAdministrator = state.AzureActiveDirectoryAdministrator
 
 					model.Collation = pointer.From(props.Collation)

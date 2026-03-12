@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package videoindexer_test
@@ -90,8 +90,7 @@ func (r AccountResource) Exists(ctx context.Context, client *clients.Client, sta
 		return nil, err
 	}
 
-	_, err = client.VideoIndexer.AccountClient.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.VideoIndexer.AccountClient.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retreiving %s: %v", id, err)
 	}
 
@@ -157,9 +156,10 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_video_indexer_account" "test" {
-  name                = "acctestvi-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                  = "acctestvi-%[2]s"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  public_network_access = "Disabled"
 
   storage {
     storage_account_id = azurerm_storage_account.test.id

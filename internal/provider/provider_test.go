@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
@@ -96,6 +97,9 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 					"azurerm_key_vault_key":         true,
 					"azurerm_key_vault_secret":      true,
 					"azurerm_key_vault_certificate": true,
+					// The `azurerm_resource_provider_registration` resource has a longer read timeout due to extensive polling being required to work around
+					// API inconsistency issues
+					"azurerm_resource_provider_registration": true,
 				}
 				if !exceptionResources[resourceName] {
 					t.Fatalf("Read timeouts shouldn't be more than 5 minutes, this indicates a bug which needs to be fixed")
@@ -307,6 +311,255 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 
 	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
 		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_enhancedValidation(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	var cases []struct {
+		name     string
+		setupEnv func(*testing.T)
+		config   map[string]any
+		expect   features.EnhancedValidationFeatures
+	}
+
+	if features.FivePointOh() {
+		cases = []struct {
+			name     string
+			setupEnv func(*testing.T)
+			config   map[string]any
+			expect   features.EnhancedValidationFeatures
+		}{
+			{
+				name: "default",
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "New env vars enabled",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name: "New env vars disabled",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config disabled",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          false,
+							"resource_providers": false,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config enabled",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          true,
+							"resource_providers": true,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+		}
+	} else {
+		cases = []struct {
+			name     string
+			setupEnv func(*testing.T)
+			config   map[string]any
+			expect   features.EnhancedValidationFeatures
+		}{
+			{
+				name: "default v4",
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name:     "default v5",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name:     "Legacy env var enabled v4",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "true") },
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name:     "Legacy env var disabled v4",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION", "false") },
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "New env vars enabled v4",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name: "New env vars enabled v5",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "true")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name: "New env vars disabled v4",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "New env vars disabled v5",
+				setupEnv: func(t *testing.T) {
+					t.Setenv("ARM_FIVEPOINTZERO_BETA", "true")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", "false")
+					t.Setenv("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", "false")
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config disabled v4",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          false,
+							"resource_providers": false,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name: "Provider config enabled v4",
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          true,
+							"resource_providers": true,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+			{
+				name:     "Provider config disabled v5",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          false,
+							"resource_providers": false,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         false,
+					ResourceProviders: false,
+				},
+			},
+			{
+				name:     "Provider config enabled v5",
+				setupEnv: func(t *testing.T) { t.Setenv("ARM_FIVEPOINTZERO_BETA", "true") },
+				config: map[string]any{
+					"enhanced_validation": []any{
+						map[string]any{
+							"locations":          true,
+							"resource_providers": true,
+						},
+					},
+				},
+				expect: features.EnhancedValidationFeatures{
+					Locations:         true,
+					ResourceProviders: true,
+				},
+			},
+		}
+	}
+
+	for _, tt := range cases {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.setupEnv != nil {
+				tt.setupEnv(t)
+			}
+			provider := TestAzureProvider()
+			if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(tt.config)); diags != nil && diags.HasError() {
+				t.Fatalf("provider failed to configure: %v", diags)
+			}
+			if v := provider.Meta().(*clients.Client).Features.EnhancedValidation; !reflect.DeepEqual(v, tt.expect) {
+				t.Fatalf("unexpected value for `Features.EnhancedValidation`: %#v", v)
+			}
+		})
 	}
 }
 

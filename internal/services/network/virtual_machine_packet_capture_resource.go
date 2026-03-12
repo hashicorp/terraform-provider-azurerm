@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -12,14 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/packetcaptures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceVirtualMachinePacketCapture() *pluginsdk.Resource {
@@ -186,9 +185,9 @@ func resourceVirtualMachinePacketCaptureCreate(d *pluginsdk.ResourceData, meta i
 			Target:                  targetResourceId,
 			TargetType:              pointer.To(packetcaptures.PacketCaptureTargetTypeAzureVM),
 			StorageLocation:         storageLocation,
-			BytesToCapturePerPacket: utils.Int64(int64(bytesToCapturePerPacket)),
-			TimeLimitInSeconds:      utils.Int64(int64(timeLimitInSeconds)),
-			TotalBytesPerSession:    utils.Int64(int64(totalBytesPerSession)),
+			BytesToCapturePerPacket: pointer.To(int64(bytesToCapturePerPacket)),
+			TimeLimitInSeconds:      pointer.To(int64(timeLimitInSeconds)),
+			TotalBytesPerSession:    pointer.To(int64(totalBytesPerSession)),
 			Filters:                 expandVirtualMachinePacketCaptureFilters(d.Get("filter").([]interface{})),
 		},
 	}
@@ -307,11 +306,11 @@ func expandVirtualMachinePacketCaptureFilters(input []interface{}) *[]packetcapt
 		remotePort := inputFilter["remote_port"].(string)
 
 		filter := packetcaptures.PacketCaptureFilter{
-			LocalIPAddress:  utils.String(localIPAddress),
-			LocalPort:       utils.String(localPort),
+			LocalIPAddress:  pointer.To(localIPAddress),
+			LocalPort:       pointer.To(localPort),
 			Protocol:        pointer.To(packetcaptures.PcProtocol(protocol)),
-			RemoteIPAddress: utils.String(remoteIPAddress),
-			RemotePort:      utils.String(remotePort),
+			RemoteIPAddress: pointer.To(remoteIPAddress),
+			RemotePort:      pointer.To(remotePort),
 		}
 		filters = append(filters, filter)
 	}

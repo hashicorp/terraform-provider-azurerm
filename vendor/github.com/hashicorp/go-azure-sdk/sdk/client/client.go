@@ -394,7 +394,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 		req.Header.Add("X-Ms-Correlation-Request-Id", c.CorrelationId)
 	}
 
-	path := strings.TrimPrefix(input.Path, "/")
+	path := strings.TrimLeft(input.Path, "/")
 	u, err := url.ParseRequestURI(fmt.Sprintf("%s/%s", c.BaseUri, path))
 	if err != nil {
 		return nil, err
@@ -706,7 +706,7 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 	// This results into the following N(t) (by guaranteeing T(n) <= t):
 	// - n = floor(log(t+1)) - 1 		(0<=t<=63)
 	// - n = (t - 63)/61 + 6 			(t > 63)
-	var safeRetryNumber = func(t time.Duration) int {
+	safeRetryNumber := func(t time.Duration) int {
 		sec := t.Seconds()
 		if sec <= 63 {
 			return int(math.Floor(math.Log2(sec+1))) - 1
@@ -720,7 +720,7 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 	// In case the context has deadline defined, adjust the retry count to a value
 	// that the total time spent for retrying is right before the deadline exceeded.
 	if deadline, ok := ctx.Deadline(); ok {
-		r.RetryMax = safeRetryNumber(deadline.Sub(time.Now()))
+		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
 	tlsConfig := tls.Config{

@@ -12,6 +12,8 @@ var _ CopySource = OracleSource{}
 
 type OracleSource struct {
 	AdditionalColumns *interface{}             `json:"additionalColumns,omitempty"`
+	NumberPrecision   *int64                   `json:"numberPrecision,omitempty"`
+	NumberScale       *int64                   `json:"numberScale,omitempty"`
 	OracleReaderQuery *interface{}             `json:"oracleReaderQuery,omitempty"`
 	PartitionOption   *interface{}             `json:"partitionOption,omitempty"`
 	PartitionSettings *OraclePartitionSettings `json:"partitionSettings,omitempty"`

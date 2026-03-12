@@ -24,7 +24,7 @@ jobs:
       - name: Get Artifact
         id: get_artifact
         continue-on-error: true
-        uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe # v3.1.4
+        uses: dawidd6/action-download-artifact@07ab29fd4a977ae4d2b275087cf67563dfdf0295 # v9
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
           workflow: pull-request-reviewed.yaml

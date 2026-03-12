@@ -10,6 +10,8 @@ description: |-
 
 Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 
+~> **Note:** The `azurerm_postgresql_configuration` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server_configuration` resource instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.
+
 ## Disclaimers
 
 ~> **Note:** Since this resource is provisioned by default, the Azure Provider will not check for the presence of an existing resource prior to attempting to create it.
@@ -48,7 +50,7 @@ resource "azurerm_postgresql_configuration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -68,7 +70,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Configuration.
@@ -86,4 +88,4 @@ terraform import azurerm_postgresql_configuration.backslash_quote /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2017-12-01
+* `Microsoft.DBforPostgreSQL` - 2017-12-01

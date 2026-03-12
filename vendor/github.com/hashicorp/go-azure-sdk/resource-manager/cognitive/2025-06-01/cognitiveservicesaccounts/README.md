@@ -1,0 +1,329 @@
+
+## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts` Documentation
+
+The `cognitiveservicesaccounts` SDK allows for interaction with Azure Resource Manager `cognitive` (API Version `2025-06-01`).
+
+This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
+
+### Import Path
+
+```go
+import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+```
+
+
+### Client Initialization
+
+```go
+client := cognitiveservicesaccounts.NewCognitiveServicesAccountsClientWithBaseURI("https://management.azure.com")
+client.Client.Authorizer = authorizer
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsCreate`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+payload := cognitiveservicesaccounts.Account{
+	// ...
+}
+
+
+if err := client.AccountsCreateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsDelete`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+if err := client.AccountsDeleteThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsGet`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+read, err := client.AccountsGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsList`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+// alternatively `client.AccountsList(ctx, id)` can be used to do batched pagination
+items, err := client.AccountsListComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsListByResourceGroup`
+
+```go
+ctx := context.TODO()
+id := commonids.NewResourceGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group")
+
+// alternatively `client.AccountsListByResourceGroup(ctx, id)` can be used to do batched pagination
+items, err := client.AccountsListByResourceGroupComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsListKeys`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+read, err := client.AccountsListKeys(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsListModels`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+// alternatively `client.AccountsListModels(ctx, id)` can be used to do batched pagination
+items, err := client.AccountsListModelsComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsListSkus`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+read, err := client.AccountsListSkus(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsListUsages`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+// alternatively `client.AccountsListUsages(ctx, id, cognitiveservicesaccounts.DefaultAccountsListUsagesOperationOptions())` can be used to do batched pagination
+items, err := client.AccountsListUsagesComplete(ctx, id, cognitiveservicesaccounts.DefaultAccountsListUsagesOperationOptions())
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsRegenerateKey`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+payload := cognitiveservicesaccounts.RegenerateKeyParameters{
+	// ...
+}
+
+
+read, err := client.AccountsRegenerateKey(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.AccountsUpdate`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "accountName")
+
+payload := cognitiveservicesaccounts.Account{
+	// ...
+}
+
+
+if err := client.AccountsUpdateThenPoll(ctx, id, payload); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.CalculateModelCapacity`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+payload := cognitiveservicesaccounts.CalculateModelCapacityParameter{
+	// ...
+}
+
+
+read, err := client.CalculateModelCapacity(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.CheckDomainAvailability`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+payload := cognitiveservicesaccounts.CheckDomainAvailabilityParameter{
+	// ...
+}
+
+
+read, err := client.CheckDomainAvailability(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.CheckSkuAvailability`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
+
+payload := cognitiveservicesaccounts.CheckSkuAvailabilityParameter{
+	// ...
+}
+
+
+read, err := client.CheckSkuAvailability(ctx, id, payload)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.DeletedAccountsGet`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationName", "example-resource-group", "deletedAccountName")
+
+read, err := client.DeletedAccountsGet(ctx, id)
+if err != nil {
+	// handle the error
+}
+if model := read.Model; model != nil {
+	// do something with the model/response object
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.DeletedAccountsList`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+// alternatively `client.DeletedAccountsList(ctx, id)` can be used to do batched pagination
+items, err := client.DeletedAccountsListComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.DeletedAccountsPurge`
+
+```go
+ctx := context.TODO()
+id := cognitiveservicesaccounts.NewDeletedAccountID("12345678-1234-9876-4563-123456789012", "locationName", "example-resource-group", "deletedAccountName")
+
+if err := client.DeletedAccountsPurgeThenPoll(ctx, id); err != nil {
+	// handle the error
+}
+```
+
+
+### Example Usage: `CognitiveServicesAccountsClient.ResourceSkusList`
+
+```go
+ctx := context.TODO()
+id := commonids.NewSubscriptionID("12345678-1234-9876-4563-123456789012")
+
+// alternatively `client.ResourceSkusList(ctx, id)` can be used to do batched pagination
+items, err := client.ResourceSkusListComplete(ctx, id)
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```

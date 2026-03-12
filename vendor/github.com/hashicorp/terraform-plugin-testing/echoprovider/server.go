@@ -406,3 +406,19 @@ func (e *echoProviderServer) CloseEphemeralResource(ctx context.Context, req *tf
 func (e *echoProviderServer) ValidateEphemeralResourceConfig(ctx context.Context, req *tfprotov6.ValidateEphemeralResourceConfigRequest) (*tfprotov6.ValidateEphemeralResourceConfigResponse, error) {
 	return &tfprotov6.ValidateEphemeralResourceConfigResponse{}, nil
 }
+
+func (e *echoProviderServer) GetResourceIdentitySchemas(context.Context, *tfprotov6.GetResourceIdentitySchemasRequest) (*tfprotov6.GetResourceIdentitySchemasResponse, error) {
+	return &tfprotov6.GetResourceIdentitySchemasResponse{}, nil
+}
+
+func (e *echoProviderServer) UpgradeResourceIdentity(context.Context, *tfprotov6.UpgradeResourceIdentityRequest) (*tfprotov6.UpgradeResourceIdentityResponse, error) {
+	return &tfprotov6.UpgradeResourceIdentityResponse{
+		Diagnostics: []*tfprotov6.Diagnostic{
+			{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Unsupported UpgradeResourceIdentity Operation",
+				Detail:   "Resource Identity is not supported by this provider.",
+			},
+		},
+	}, nil
+}

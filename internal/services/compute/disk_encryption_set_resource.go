@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -31,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
@@ -172,7 +171,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			activeKey.SourceVault = &diskencryptionsets.SourceVault{
-				Id: utils.String(keyVaultDetails.keyVaultId),
+				Id: pointer.To(keyVaultDetails.keyVaultId),
 			}
 		}
 
@@ -213,7 +212,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &diskencryptionsets.EncryptionSetProperties{
 			ActiveKey:                         activeKey,
-			RotationToLatestKeyVersionEnabled: utils.Bool(rotationToLatestKeyVersionEnabled),
+			RotationToLatestKeyVersionEnabled: pointer.To(rotationToLatestKeyVersionEnabled),
 			EncryptionType:                    &encryptionType,
 		},
 		Identity: expandedIdentity,
@@ -221,7 +220,7 @@ func resourceDiskEncryptionSetCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if v, ok := d.GetOk("federated_client_id"); ok {
-		params.Properties.FederatedClientId = utils.String(v.(string))
+		params.Properties.FederatedClientId = pointer.To(v.(string))
 	}
 
 	err = client.CreateOrUpdateThenPoll(ctx, id, params)
@@ -289,7 +288,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
 			keyVaultURI := props.ActiveKey.KeyURL
 
-			isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+			isHSMURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
 				return err
 			}
@@ -442,7 +441,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			update.Properties.ActiveKey.SourceVault = &diskencryptionsets.SourceVault{
-				Id: utils.String(keyVaultDetails.keyVaultId),
+				Id: pointer.To(keyVaultDetails.keyVaultId),
 			}
 		}
 	} else if managedHsmKeyId, ok := d.GetOk("managed_hsm_key_id"); ok && d.HasChange("managed_hsm_key_id") {
@@ -458,7 +457,7 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 			update.Properties = &diskencryptionsets.DiskEncryptionSetUpdateProperties{}
 		}
 
-		update.Properties.RotationToLatestKeyVersionEnabled = utils.Bool(rotationToLatestKeyVersionEnabled)
+		update.Properties.RotationToLatestKeyVersionEnabled = pointer.To(rotationToLatestKeyVersionEnabled)
 	}
 
 	if d.HasChange("federated_client_id") {
@@ -468,9 +467,9 @@ func resourceDiskEncryptionSetUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 		v, ok := d.GetOk("federated_client_id")
 		if ok {
-			update.Properties.FederatedClientId = utils.String(v.(string))
+			update.Properties.FederatedClientId = pointer.To(v.(string))
 		} else {
-			update.Properties.FederatedClientId = utils.String("None") // this is the only way to remove the federated client id
+			update.Properties.FederatedClientId = pointer.To("None") // this is the only way to remove the federated client id
 		}
 	}
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package orbital
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile"
@@ -16,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var _ sdk.ResourceWithDeprecationAndNoReplacement = ContactResource{}
@@ -132,8 +132,8 @@ func (r ContactResource) Create() sdk.ResourceFunc {
 			}
 
 			contact := contact.Contact{
-				Id:         utils.String(id.ID()),
-				Name:       utils.String(model.Name),
+				Id:         pointer.To(id.ID()),
+				Name:       pointer.To(model.Name),
 				Properties: contactProperties,
 			}
 			if _, err = client.Create(ctx, id, contact); err != nil {

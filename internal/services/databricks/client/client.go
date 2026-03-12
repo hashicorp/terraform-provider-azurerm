@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,9 +6,9 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/vnetpeering"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

@@ -92,6 +92,8 @@ type Plan struct {
 	// Timestamp contains the static timestamp that Terraform considers to be
 	// the time this plan executed, in UTC.
 	Timestamp string `json:"timestamp,omitempty"`
+
+	ActionInvocations []*ActionInvocation `json:"action_invocations,omitempty"`
 }
 
 // ResourceAttribute describes a full path to a resource attribute
@@ -138,15 +140,6 @@ func (p *Plan) Validate() error {
 	}
 
 	return nil
-}
-
-func isStringInSlice(slice []string, s string) bool {
-	for _, el := range slice {
-		if el == s {
-			return true
-		}
-	}
-	return false
 }
 
 func (p *Plan) UnmarshalJSON(b []byte) error {
@@ -266,6 +259,11 @@ type Change struct {
 	// is either an integer pointing to a child of a set/list, or a string
 	// pointing to the child of a map, object, or block.
 	ReplacePaths []interface{} `json:"replace_paths,omitempty"`
+
+	// BeforeIdentity and AfterIdentity are representations of the resource
+	// identity value both before and after the action.
+	BeforeIdentity interface{} `json:"before_identity,omitempty"`
+	AfterIdentity  interface{} `json:"after_identity,omitempty"`
 }
 
 // Importing is a nested object for the resource import metadata.
@@ -273,6 +271,16 @@ type Importing struct {
 	// The original ID of this resource used to target it as part of planned
 	// import operation.
 	ID string `json:"id,omitempty"`
+
+	// Unknown indicates the ID or identity was unknown at the time of
+	// planning. This would have led to the overall change being deferred, as
+	// such this should only be true when processing changes from the deferred
+	// changes list.
+	Unknown bool `json:"unknown,omitempty"`
+
+	// The identity can be used instead of the ID to target the resource as part
+	// of the planned import operation.
+	Identity interface{} `json:"identity,omitempty"`
 }
 
 // PlanVariable is a top-level variable in the Terraform plan.
@@ -290,3 +298,35 @@ type DeferredResourceChange struct {
 	// Change contains any information we have about the deferred change.
 	ResourceChange *ResourceChange `json:"resource_change,omitempty"`
 }
+
+type ActionInvocation struct {
+	// Address is the absolute action address
+	Address string `json:"address,omitempty"`
+	// Type is the type of the action
+	Type string `json:"type,omitempty"`
+	// Name is the name of the action
+	Name string `json:"name,omitempty"`
+
+	// ConfigValues is the JSON representation of the values in the config block of the action
+	ConfigValues    interface{} `json:"config_values,omitempty"`
+	ConfigSensitive interface{} `json:"config_sensitive,omitempty"`
+	ConfigUnknown   interface{} `json:"config_unknown,omitempty"`
+
+	// ProviderName allows the property "type" to be interpreted unambiguously
+	// in the unusual situation where a provider offers a type whose
+	// name does not start with its own name, such as the "googlebeta" provider
+	// offering "google_compute_instance".
+	ProviderName string `json:"provider_name,omitempty"`
+
+	LifecycleActionTrigger *LifecycleActionTrigger `json:"lifecycle_action_trigger,omitempty"`
+	InvokeActionTrigger    *InvokeActionTrigger    `json:"invoke_action_trigger,omitempty"`
+}
+
+type LifecycleActionTrigger struct {
+	TriggeringResourceAddress string `json:"triggering_resource_address,omitempty"`
+	ActionTriggerEvent        string `json:"action_trigger_event,omitempty"`
+	ActionTriggerBlockIndex   int    `json:"action_trigger_block_index"`
+	ActionsListIndex          int    `json:"actions_list_index"`
+}
+
+type InvokeActionTrigger struct{}

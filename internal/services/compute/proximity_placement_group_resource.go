@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name proximity_placement_group -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceProximityPlacementGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceProximityPlacementGroupCreateUpdate,
@@ -30,10 +32,11 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 		Update: resourceProximityPlacementGroupCreateUpdate,
 		Delete: resourceProximityPlacementGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := proximityplacementgroups.ParseProximityPlacementGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&proximityplacementgroups.ProximityPlacementGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&proximityplacementgroups.ProximityPlacementGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -127,6 +130,9 @@ func resourceProximityPlacementGroupCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceProximityPlacementGroupRead(d, meta)
 }
@@ -177,7 +183,7 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {

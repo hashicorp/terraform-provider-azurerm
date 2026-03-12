@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &ManagedHSMId{}
 
-// ManagedHSMId is a struct representing the Resource ID for a Managed H S M
+// ManagedHSMId is a struct representing the Resource ID for a Managed HSM
 type ManagedHSMId struct {
 	SubscriptionId    string
 	ResourceGroupName string
@@ -84,7 +84,7 @@ func (id *ManagedHSMId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateManagedHSMID checks that 'input' can be parsed as a Managed H S M ID
+// ValidateManagedHSMID checks that 'input' can be parsed as a Managed HSM ID
 func ValidateManagedHSMID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateManagedHSMID(input interface{}, key string) (warnings []string, err
 	return
 }
 
-// ID returns the formatted Managed H S M ID
+// ID returns the formatted Managed HSM ID
 func (id ManagedHSMId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.KeyVault/managedHSMs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ManagedHSMName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Managed H S M ID
+// Segments returns a slice of Resource ID Segments which comprise this Managed HSM ID
 func (id ManagedHSMId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id ManagedHSMId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Managed H S M ID
+// String returns a human-readable description of this Managed HSM ID
 func (id ManagedHSMId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Managed H S M Name: %q", id.ManagedHSMName),
+		fmt.Sprintf("Managed HSM Name: %q", id.ManagedHSMName),
 	}
-	return fmt.Sprintf("Managed H S M (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Managed HSM (%s)", strings.Join(components, "\n"))
 }

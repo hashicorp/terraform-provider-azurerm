@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceImage() *pluginsdk.Resource {
@@ -54,10 +53,11 @@ func resourceImage() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"zone_resilient": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 			},
 
 			"hyper_v_generation": {
@@ -78,10 +78,11 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"os_disk": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				ForceNew: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
@@ -156,8 +157,9 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"data_disk": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"lun": {
@@ -252,7 +254,7 @@ func resourceImageCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	storageProfile := images.ImageStorageProfile{
 		OsDisk:        expandImageOSDisk(d.Get("os_disk").([]interface{})),
 		DataDisks:     expandImageDataDisks(d.Get("data_disk").([]interface{})),
-		ZoneResilient: utils.Bool(d.Get("zone_resilient").(bool)),
+		ZoneResilient: pointer.To(d.Get("zone_resilient").(bool)),
 	}
 
 	// either source VM or storage profile can be specified, but not both

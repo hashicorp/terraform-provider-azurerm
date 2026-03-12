@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
@@ -24,16 +25,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name shared_image_gallery -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceSharedImageGallery() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSharedImageGalleryCreate,
-		Read:   resourceSharedImageGalleryRead,
-		Update: resourceSharedImageGalleryUpdate,
-		Delete: resourceSharedImageGalleryDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSharedImageGalleryID(id)
-			return err
-		}),
+		Create:   resourceSharedImageGalleryCreate,
+		Read:     resourceSharedImageGalleryRead,
+		Update:   resourceSharedImageGalleryUpdate,
+		Delete:   resourceSharedImageGalleryDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SharedImageGalleryId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SharedImageGalleryId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -176,6 +180,9 @@ func resourceSharedImageGalleryCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceSharedImageGalleryRead(d, meta)
 }
@@ -224,7 +231,7 @@ func resourceSharedImageGalleryRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceSharedImageGalleryUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

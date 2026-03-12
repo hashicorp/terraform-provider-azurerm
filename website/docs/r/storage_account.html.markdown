@@ -74,7 +74,7 @@ resource "azurerm_storage_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
+* `provisioned_billing_model_version` - (Optional) Specifies the version of the **provisioned** billing model (e.g. when `account_kind = "FileStorage"` for Storage File). Possible value is `V2`. Changing this forces a new resource to be created.
+
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `false`.
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot`, `Cool`, `Cold` and `Premium`. Defaults to `Hot`.
@@ -102,7 +104,7 @@ The following arguments are supported:
 
 * `https_traffic_only_enabled` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, `TLS1_2` and `TLS1_3`. Defaults to `TLS1_2` for new storage accounts.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -247,13 +249,13 @@ A `custom_domain` block supports the following:
 
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
+~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
+
 ---
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
-
-* `managed_hsm_key_id` -  (Optional) The ID of the managed HSM Key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
@@ -313,7 +315,7 @@ An `immutability_policy` block supports the following:
 
 * `allow_protected_append_writes` - (Required) When enabled, new blocks can be written to an append blob while maintaining immutability protection and compliance. Only new blocks can be added and any existing blocks cannot be modified or deleted.
 
-* `state` - (Required) Defines the mode of the policy. `Disabled` state disables the policy, `Unlocked` state allows increase and decrease of immutability retention time and also allows toggling allowProtectedAppendWrites property, `Locked` state only allows the increase of the immutability retention time. A policy can only be created in a Disabled or Unlocked state and can be toggled between the two states. Only a policy in an Unlocked state can transition to a Locked state which cannot be reverted. Changing from `Locked` forces a new resource to be created.
+* `state` - (Required) Defines the mode of the policy. `Disabled` state disables the policy, `Unlocked` state allows increase and decrease of immutability retention time and also allows toggling allowProtectedAppendWrites property, `Locked` state only allows the increase of the immutability retention time. A policy can only be created in a Disabled or Unlocked state and can be toggled between the two states. Only a policy in an Unlocked state can transition to a Locked state which cannot be reverted.
 
 * `period_since_creation_in_days` - (Required) The immutability period for the blobs in the container since the policy creation, in days.
 
@@ -361,8 +363,6 @@ A `network_rules` block supports the following:
 
 ~> **Note:** The prefix of `ip_rules` must be between 0 and 30 and only supports public IP addresses.
 
-~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
-
 ---
 
 A `private_link_access` block supports the following:
@@ -379,7 +379,7 @@ A `azure_files_authentication` block supports the following:
 
 * `active_directory` - (Optional) A `active_directory` block as defined below. Required when `directory_type` is `AD`.
 
-* `default_share_level_permission` - (Optional) Specifies the default share level permissions applied to all users. Possible values are `StorageFileDataSmbShareReader`, `StorageFileDataSmbShareContributor`, `StorageFileDataSmbShareElevatedContributor`, or `None`.
+* `default_share_level_permission` - (Optional) Specifies the default share level permissions applied to all users. Possible values are `StorageFileDataSmbShareReader`, `StorageFileDataSmbShareContributor`, `StorageFileDataSmbShareElevatedContributor`, or `None`. Defaults to `None`.
 
 ---
 
@@ -425,7 +425,7 @@ A `sas_policy` block supports the following:
 
 * `expiration_period` - (Required) The SAS expiration period in format of `DD.HH:MM:SS`.
 
-* `expiration_action` - (Optional) The SAS expiration action. The only possible value is `Log` at this moment. Defaults to `Log`.
+* `expiration_action` - (Optional) The SAS expiration action. Possible values are `Log` and `Block`. Defaults to `Log`.
 
 ---
 
@@ -633,7 +633,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Storage Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
@@ -652,4 +652,4 @@ terraform import azurerm_storage_account.storageAcc1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage`: 2023-05-01
+* `Microsoft.Storage` - 2023-05-01

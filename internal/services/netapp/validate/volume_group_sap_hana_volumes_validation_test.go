@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
 )
 
 func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
@@ -410,7 +410,7 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 			Errors: 2,
 		},
 		{
-			Name: "ValidateRequiredPpgForNonBackupVolumes",
+			Name: "ValidateRequiredPpgOrZoneForNonBackupVolumes",
 			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
 				{ // data
 					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaData))),
@@ -438,6 +438,165 @@ func TestValidateNetAppVolumeGroupSAPHanaVolumes(t *testing.T) {
 				},
 			},
 			Errors: 3,
+		},
+		{
+			Name: "ValidateCorrectSettingsWithZoneInsteadOfPpg",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaData))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: pointer.To(true),
+								},
+							},
+						},
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameSAPHanaData)),
+					},
+				},
+				{ // log
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaLog))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: pointer.To(true),
+								},
+							},
+						},
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameSAPHanaLog)),
+					},
+				},
+				{ // shared
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaShared))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ExportPolicy: &volumegroups.VolumePropertiesExportPolicy{
+							Rules: &[]volumegroups.ExportPolicyRule{
+								{
+									Nfsv3:  pointer.To(false),
+									Nfsv41: pointer.To(true),
+								},
+							},
+						},
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameSAPHanaShared)),
+					},
+				},
+			},
+			Errors: 0,
+		},
+		{
+			Name: "ValidateZoneAndPpgCannotBeSpecifiedTogether",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaData))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:          pointer.To(string(VolumeSpecNameSAPHanaData)),
+					},
+				},
+				{ // log
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaLog))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
+						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
+						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:          pointer.To(string(VolumeSpecNameSAPHanaLog)),
+					},
+				},
+			},
+			Errors: 2,
+		},
+		{
+			Name: "ValidateAllVolumesMustBeInSameZone",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaData))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameSAPHanaData)),
+					},
+				},
+				{ // log
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaLog))),
+					Zones: pointer.To([]string{"2"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:  pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:  pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName: pointer.To(string(VolumeSpecNameSAPHanaLog)),
+					},
+				},
+			},
+			Errors: 1,
+		},
+		{
+			Name: "ValidateCmkRequiresKeyVaultEndpoint",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaData))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:       pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:       pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:      pointer.To(string(VolumeSpecNameSAPHanaData)),
+						EncryptionKeySource: pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
+					},
+				},
+				{ // log
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaLog))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:       pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:       pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:      pointer.To(string(VolumeSpecNameSAPHanaLog)),
+						EncryptionKeySource: pointer.To(volumegroups.EncryptionKeySourceMicrosoftPointKeyVault),
+					},
+				},
+			},
+			Errors: 2,
+		},
+		{
+			Name: "ValidateKeyVaultEndpointRequiresEncryptionKeySource",
+			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
+				{ // data
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaData))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:                     pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:                     pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:                    pointer.To(string(VolumeSpecNameSAPHanaData)),
+						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/pe1"),
+					},
+				},
+				{ // log
+					Name:  pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameSAPHanaLog))),
+					Zones: pointer.To([]string{"1"}),
+					Properties: volumegroups.VolumeProperties{
+						ProtocolTypes:                     pointer.To([]string{"NFSv4.1"}),
+						SecurityStyle:                     pointer.To(volumegroups.SecurityStyleUnix),
+						VolumeSpecName:                    pointer.To(string(VolumeSpecNameSAPHanaLog)),
+						KeyVaultPrivateEndpointResourceId: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/pe1"),
+					},
+				},
+			},
+			Errors: 2,
 		},
 		{
 			Name: "ValidateVolumeSpecCantRepeat",

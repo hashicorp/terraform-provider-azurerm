@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2018, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package commonids
@@ -62,7 +62,6 @@ func ParseBotServiceIDInsensitively(input string) (*BotServiceId, error) {
 }
 
 func (id *BotServiceId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 
 	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {

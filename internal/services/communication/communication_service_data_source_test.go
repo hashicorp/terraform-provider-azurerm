@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication_test
@@ -27,6 +27,7 @@ func TestAccCommunicationServiceDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("primary_key").Exists(),
 				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("hostname").Exists(),
+				check.That(data.ResourceName).Key("immutable_resource_id").Exists(),
 			),
 		},
 	})
@@ -55,7 +56,7 @@ data "azurerm_communication_service" "test" {
   name                = azurerm_communication_service.test.name
   resource_group_name = azurerm_communication_service.test.resource_group_name
 }
-`, CommunicationServiceTestResource{}.basic(data))
+`, CommunicationServiceResource{}.basic(data))
 }
 
 func (d CommunicationServiceDataSource) complete(data acceptance.TestData) string {
@@ -66,5 +67,5 @@ data "azurerm_communication_service" "test" {
   name                = azurerm_communication_service.test.name
   resource_group_name = azurerm_communication_service.test.resource_group_name
 }
-`, CommunicationServiceTestResource{}.complete(data))
+`, CommunicationServiceResource{}.complete(data))
 }

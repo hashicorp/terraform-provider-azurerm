@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -29,12 +29,14 @@ type ProviderModel struct {
 	UseOIDC                        types.Bool   `tfsdk:"use_oidc"`
 	UseMSI                         types.Bool   `tfsdk:"use_msi"`
 	MSIEndpoint                    types.String `tfsdk:"msi_endpoint"`
+	MSIAPIVersion                  types.String `tfsdk:"msi_api_version"`
 	UseCLI                         types.Bool   `tfsdk:"use_cli"`
 	UseAKSWorkloadIdentity         types.Bool   `tfsdk:"use_aks_workload_identity"`
 	PartnerId                      types.String `tfsdk:"partner_id"`
 	DisableCorrelationRequestId    types.Bool   `tfsdk:"disable_correlation_request_id"`
 	DisableTerraformPartnerId      types.Bool   `tfsdk:"disable_terraform_partner_id"`
 	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
+	EnhancedValidation             types.List   `tfsdk:"enhanced_validation"`
 	Features                       types.List   `tfsdk:"features"`
 	SkipProviderRegistration       types.Bool   `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
@@ -279,4 +281,14 @@ type DatabricksWorkspace struct {
 
 var DatabricksWorkspaceAttributes = map[string]attr.Type{
 	"force_delete": types.BoolType,
+}
+
+type EnhancedValidationModel struct {
+	Locations         types.Bool `tfsdk:"locations"`
+	ResourceProviders types.Bool `tfsdk:"resource_providers"`
+}
+
+var EnhancedValidationModelAttributes = map[string]attr.Type{
+	"locations":          types.BoolType,
+	"resource_providers": types.BoolType,
 }

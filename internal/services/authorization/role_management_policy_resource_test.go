@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization_test
@@ -63,6 +63,21 @@ func TestAccRoleManagementPolicy_resourceGroup(t *testing.T) {
 				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("true"),
 				check.That(data.ResourceName).Key("activation_rules.0.approval_stage.0.primary_approver.0.type").HasValue("Group"),
 				check.That(data.ResourceName).Key("notification_rules.0.eligible_assignments.0.approver_notifications.0.notification_level").HasValue("Critical"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccRoleManagementPolicy_resourceGroup_activationRules(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_management_policy", "test")
+	r := RoleManagementPolicyResource{}
+
+	data.ResourceTestSkipCheckDestroyed(t, []acceptance.TestStep{
+		{
+			Config: r.resourceGroupMinimalActivationRules(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -483,6 +498,21 @@ resource "azurerm_role_management_policy" "test" {
         additional_recipients = ["someone@example.com"]
       }
     }
+  }
+}
+`, r.resourceGroupTemplate(data), data.RandomString, requireApproval)
+}
+
+func (r RoleManagementPolicyResource) resourceGroupMinimalActivationRules(data acceptance.TestData, requireApproval bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = data.azurerm_role_definition.contributor.id
+
+  activation_rules {
+    maximum_duration = "PT1H"
   }
 }
 `, r.resourceGroupTemplate(data), data.RandomString, requireApproval)

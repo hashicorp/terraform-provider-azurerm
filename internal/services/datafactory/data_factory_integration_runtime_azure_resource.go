@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -23,9 +23,9 @@ import (
 
 func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
+		Create: resourceDataFactoryIntegrationRuntimeAzureCreate,
 		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
-		Update: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
+		Update: resourceDataFactoryIntegrationRuntimeAzureUpdate,
 		Delete: resourceDataFactoryIntegrationRuntimeAzureDelete,
 
 		SchemaVersion: 1,
@@ -54,11 +54,6 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 					regexp.MustCompile(`^([a-zA-Z0-9](-|-?[a-zA-Z0-9]+)+[a-zA-Z0-9])$`),
 					`Invalid name for Azure Integration Runtime: minimum 3 characters, must start and end with a number or a letter, may only consist of letters, numbers and dashes and no consecutive dashes.`,
 				),
-			},
-
-			"description": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
 			},
 
 			"data_factory_id": {
@@ -106,6 +101,11 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 				}),
 			},
 
+			"description": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+			},
+
 			"time_to_live_min": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
@@ -123,10 +123,11 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDataFactoryIntegrationRuntimeAzureCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	dataFactoryId, err := factories.ParseFactoryID(d.Get("data_factory_id").(string))
@@ -136,24 +137,28 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.Resourc
 
 	id := integrationruntimes.NewIntegrationRuntimeID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
+	existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
+	if err != nil && !response.WasNotFound(existing.HttpResponse) {
+		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+	}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_azure", id.ID())
-		}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_azure", id.ID())
 	}
 
 	managedIntegrationRuntime := integrationruntimes.ManagedIntegrationRuntime{
 		Description: pointer.To(d.Get("description").(string)),
 		Type:        integrationruntimes.IntegrationRuntimeTypeManaged,
 		TypeProperties: integrationruntimes.ManagedIntegrationRuntimeTypeProperties{
-			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureComputeProperties(d),
+			ComputeProperties: &integrationruntimes.IntegrationRuntimeComputeProperties{
+				Location: pointer.To(location.Normalize(d.Get("location").(string))),
+				DataFlowProperties: &integrationruntimes.IntegrationRuntimeDataFlowProperties{
+					ComputeType: pointer.ToEnum[integrationruntimes.DataFlowComputeType](d.Get("compute_type").(string)),
+					CoreCount:   pointer.To(int64(d.Get("core_count").(int))),
+					TimeToLive:  pointer.To(int64(d.Get("time_to_live_min").(int))),
+					Cleanup:     pointer.To(d.Get("cleanup_enabled").(bool)),
+				},
+			},
 		},
 	}
 
@@ -177,10 +182,74 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.Resourc
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, integrationRuntime, integrationruntimes.DefaultCreateOrUpdateOperationOptions()); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
+}
+
+func resourceDataFactoryIntegrationRuntimeAzureUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, integrationruntimes.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `Model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `Properties` was nil", id)
+	}
+
+	props, ok := existing.Model.Properties.(integrationruntimes.ManagedIntegrationRuntime)
+	if !ok {
+		return fmt.Errorf("retrieving %s: asserting `IntegrationRuntime` as `ManagedIntegrationRuntime`", id)
+	}
+
+	if props.TypeProperties.ComputeProperties == nil {
+		props.TypeProperties.ComputeProperties = &integrationruntimes.IntegrationRuntimeComputeProperties{}
+	}
+
+	if props.TypeProperties.ComputeProperties.DataFlowProperties == nil {
+		props.TypeProperties.ComputeProperties.DataFlowProperties = &integrationruntimes.IntegrationRuntimeDataFlowProperties{}
+	}
+	dfProps := props.TypeProperties.ComputeProperties.DataFlowProperties
+
+	if d.HasChange("cleanup_enabled") {
+		dfProps.Cleanup = pointer.To(d.Get("cleanup_enabled").(bool))
+	}
+
+	if d.HasChange("compute_type") {
+		dfProps.ComputeType = pointer.ToEnum[integrationruntimes.DataFlowComputeType](d.Get("compute_type").(string))
+	}
+
+	if d.HasChange("core_count") {
+		dfProps.CoreCount = pointer.To(int64(d.Get("core_count").(int)))
+	}
+
+	if d.HasChange("description") {
+		props.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("time_to_live_min") {
+		dfProps.TimeToLive = pointer.To(int64(d.Get("time_to_live_min").(int)))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model, integrationruntimes.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceDataFactoryIntegrationRuntimeAzureRead(d, meta)
 }
@@ -252,16 +321,4 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData,
 	}
 
 	return nil
-}
-
-func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.ResourceData) *integrationruntimes.IntegrationRuntimeComputeProperties {
-	return &integrationruntimes.IntegrationRuntimeComputeProperties{
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		DataFlowProperties: &integrationruntimes.IntegrationRuntimeDataFlowProperties{
-			ComputeType: pointer.To(integrationruntimes.DataFlowComputeType(d.Get("compute_type").(string))),
-			CoreCount:   pointer.To(int64(d.Get("core_count").(int))),
-			TimeToLive:  pointer.To(int64(d.Get("time_to_live_min").(int))),
-			Cleanup:     pointer.To(d.Get("cleanup_enabled").(bool)),
-		},
-	}
 }

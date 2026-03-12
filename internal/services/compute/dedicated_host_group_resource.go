@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -8,20 +8,23 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dedicated_host_group -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceDedicatedHostGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -30,10 +33,11 @@ func resourceDedicatedHostGroup() *pluginsdk.Resource {
 		Update: resourceDedicatedHostGroupUpdate,
 		Delete: resourceDedicatedHostGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseDedicatedHostGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.DedicatedHostGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.DedicatedHostGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -111,7 +115,7 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("automatic_placement_enabled"); ok {
-		payload.Properties.SupportAutomaticPlacement = utils.Bool(v.(bool))
+		payload.Properties.SupportAutomaticPlacement = pointer.To(v.(bool))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
@@ -119,6 +123,10 @@ func resourceDedicatedHostGroupCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceDedicatedHostGroupRead(d, meta)
 }
 
@@ -165,7 +173,7 @@ func resourceDedicatedHostGroupRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDedicatedHostGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

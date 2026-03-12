@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy_test
@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -92,11 +93,11 @@ func (r SubscriptionPolicyExemptionResource) Exists(ctx context.Context, client 
 	resp, err := client.Policy.ExemptionsClient.Get(ctx, subscriptionId.ID(), id.PolicyExemptionName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SubscriptionPolicyExemptionResource) basic(data acceptance.TestData) string {

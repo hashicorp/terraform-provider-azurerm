@@ -126,9 +126,15 @@ The following arguments are supported:
 
 -> **Note:** Only one key can actively encrypt a workspace. When performing a key rotation, setting a new key as the active key will disable existing keys.
 
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Synapse Workspace Key.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Synapse Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Synapse Workspace.

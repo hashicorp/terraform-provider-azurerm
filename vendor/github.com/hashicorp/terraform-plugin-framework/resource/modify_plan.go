@@ -35,6 +35,10 @@ type ModifyPlanRequest struct {
 	// State is the current state of the resource.
 	State tfsdk.State
 
+	// Identity is the current identity of the resource. If the resource does not
+	// support identity, this value will not be set.
+	Identity *tfsdk.ResourceIdentity
+
 	// Plan is the planned new state for the resource. Terraform 1.3 and later
 	// supports resource destroy planning, in which this will contain a null
 	// value.
@@ -64,6 +68,13 @@ type ModifyPlanRequest struct {
 type ModifyPlanResponse struct {
 	// Plan is the planned new state for the resource.
 	Plan tfsdk.Plan
+
+	// Identity is the planned new identity of the resource.
+	// This field is pre-populated from ModifyPlanRequest.Identity.
+	//
+	// If the resource does not support identity, this value will not be set and will
+	// raise a diagnostic if set.
+	Identity *tfsdk.ResourceIdentity
 
 	// RequiresReplace is a list of attribute paths that require the
 	// resource to be replaced. They should point to the specific field

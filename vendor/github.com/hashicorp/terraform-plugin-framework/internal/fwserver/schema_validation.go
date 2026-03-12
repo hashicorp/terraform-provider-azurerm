@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -20,6 +21,11 @@ type ValidateSchemaRequest struct {
 	// interpolation or other functionality that would prevent Terraform
 	// from knowing the value at request time.
 	Config tfsdk.Config
+
+	// ClientCapabilities defines optionally supported protocol features for
+	// schema validation RPCs, such as forward-compatible Terraform
+	// behavior changes.
+	ClientCapabilities validator.ValidateSchemaClientCapabilities
 }
 
 // ValidateSchemaResponse represents a response to a
@@ -43,6 +49,7 @@ func SchemaValidate(ctx context.Context, s fwschema.Schema, req ValidateSchemaRe
 			AttributePath:           path.Root(name),
 			AttributePathExpression: path.MatchRoot(name),
 			Config:                  req.Config,
+			ClientCapabilities:      req.ClientCapabilities,
 		}
 		// Instantiate a new response for each request to prevent validators
 		// from modifying or removing diagnostics.
@@ -58,6 +65,7 @@ func SchemaValidate(ctx context.Context, s fwschema.Schema, req ValidateSchemaRe
 			AttributePath:           path.Root(name),
 			AttributePathExpression: path.MatchRoot(name),
 			Config:                  req.Config,
+			ClientCapabilities:      req.ClientCapabilities,
 		}
 		// Instantiate a new response for each request to prevent validators
 		// from modifying or removing diagnostics.

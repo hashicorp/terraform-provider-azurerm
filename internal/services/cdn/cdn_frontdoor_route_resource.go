@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -291,7 +291,11 @@ func resourceCdnFrontDoorRouteCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	if originPath := d.Get("cdn_frontdoor_origin_path").(string); originPath != "" {
+<<<<<<< HEAD
 		props.RouteProperties.OriginPath = pointer.To(originPath)
+=======
+		props.OriginPath = pointer.To(originPath)
+>>>>>>> 2dd770f5b60c92e78643f20e61ff9ae22db5d496
 	}
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.AfdEndpointName, id.RouteName, props)
@@ -458,9 +462,9 @@ func resourceCdnFrontDoorRouteUpdate(d *pluginsdk.ResourceData, meta interface{}
 	// NOTE: You need to always pass these three on update else you will
 	// disable your cache, disassociate your custom domains or remove your origin path...
 	updateProps := azuresdkhacks.RouteUpdatePropertiesParameters{
-		CustomDomains:      existing.RouteProperties.CustomDomains,
-		CacheConfiguration: existing.RouteProperties.CacheConfiguration,
-		OriginPath:         existing.RouteProperties.OriginPath,
+		CustomDomains:      existing.CustomDomains,
+		CacheConfiguration: existing.CacheConfiguration,
+		OriginPath:         existing.OriginPath,
 	}
 
 	if d.HasChange("cache") {

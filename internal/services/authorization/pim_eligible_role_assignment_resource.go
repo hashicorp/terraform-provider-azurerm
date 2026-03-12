@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization
@@ -685,7 +685,7 @@ func findRoleEligibilitySchedule(ctx context.Context, client *roleeligibilitysch
 	}
 
 	schedulesResult, err := client.ListForScopeComplete(ctx, *scopeId, roleeligibilityschedules.ListForScopeOperationOptions{
-		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
+		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s') and atScope()", id.PrincipalId)),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("listing Role Eligiblity Schedules for %s: %+v", scopeId, err)
@@ -731,7 +731,7 @@ func findRoleEligibilityScheduleRequest(ctx context.Context, client *roleeligibi
 		}
 
 		requestsResult, err := client.ListForScopeComplete(ctx, *scopeId, roleeligibilityschedulerequests.ListForScopeOperationOptions{
-			Filter: pointer.To(fmt.Sprintf("principalId eq '%s'", *principalId)),
+			Filter: pointer.To(fmt.Sprintf("principalId eq '%s' and atScope()", *principalId)),
 		})
 		if err != nil {
 			return nil, fmt.Errorf("listing Role Eligibility Requests for principal_id %q: %+v", *principalId, err)

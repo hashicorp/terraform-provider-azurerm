@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicebus
@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusQueue() *pluginsdk.Resource {
@@ -255,16 +254,16 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	userConfig["enableBatchOps"] = enableBatchedOperations
 
 	parameters := queues.SBQueue{
-		Name: utils.String(id.QueueName),
+		Name: pointer.To(id.QueueName),
 		Properties: &queues.SBQueueProperties{
-			DeadLetteringOnMessageExpiration: utils.Bool(deadLetteringOnMesExp),
-			EnableBatchedOperations:          utils.Bool(enableBatchedOperations),
-			EnableExpress:                    utils.Bool(enableExpress),
-			EnablePartitioning:               utils.Bool(enablePartitioning),
-			MaxDeliveryCount:                 utils.Int64(int64(maxDeliveryCount)),
-			MaxSizeInMegabytes:               utils.Int64(int64(maxSizeInMB)),
-			RequiresDuplicateDetection:       utils.Bool(requireDuplicateDetection),
-			RequiresSession:                  utils.Bool(requireSession),
+			DeadLetteringOnMessageExpiration: pointer.To(deadLetteringOnMesExp),
+			EnableBatchedOperations:          pointer.To(enableBatchedOperations),
+			EnableExpress:                    pointer.To(enableExpress),
+			EnablePartitioning:               pointer.To(enablePartitioning),
+			MaxDeliveryCount:                 pointer.To(int64(maxDeliveryCount)),
+			MaxSizeInMegabytes:               pointer.To(int64(maxSizeInMB)),
+			RequiresDuplicateDetection:       pointer.To(requireDuplicateDetection),
+			RequiresSession:                  pointer.To(requireSession),
 			Status:                           &status,
 		},
 	}
@@ -324,7 +323,7 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		if sku != namespaces.SkuNamePremium {
 			return fmt.Errorf("%s does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", id, sku)
 		}
-		parameters.Properties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+		parameters.Properties.MaxMessageSizeInKilobytes = pointer.To(int64(v.(int)))
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {

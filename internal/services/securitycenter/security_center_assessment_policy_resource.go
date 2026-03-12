@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -306,7 +306,7 @@ func resourceArmSecurityCenterAssessmentPolicyUpdate(d *pluginsdk.ResourceData, 
 	}
 
 	if d.HasChange("remediation_description") {
-		existing.Model.Properties.RemediationDescription = utils.String(d.Get("remediation_description").(string))
+		existing.Model.Properties.RemediationDescription = pointer.To(d.Get("remediation_description").(string))
 	}
 
 	if d.HasChange("user_impact") {

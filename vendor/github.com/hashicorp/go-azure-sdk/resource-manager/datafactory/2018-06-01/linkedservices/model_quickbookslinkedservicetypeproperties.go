@@ -17,6 +17,7 @@ type QuickBooksLinkedServiceTypeProperties struct {
 	ConsumerSecret        SecretBase   `json:"consumerSecret"`
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 	Endpoint              *interface{} `json:"endpoint,omitempty"`
+	RefreshToken          SecretBase   `json:"refreshToken"`
 	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
 }
 
@@ -69,6 +70,14 @@ func (s *QuickBooksLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 			return fmt.Errorf("unmarshaling field 'ConsumerSecret' for 'QuickBooksLinkedServiceTypeProperties': %+v", err)
 		}
 		s.ConsumerSecret = impl
+	}
+
+	if v, ok := temp["refreshToken"]; ok {
+		impl, err := UnmarshalSecretBaseImplementation(v)
+		if err != nil {
+			return fmt.Errorf("unmarshaling field 'RefreshToken' for 'QuickBooksLinkedServiceTypeProperties': %+v", err)
+		}
+		s.RefreshToken = impl
 	}
 
 	return nil
