@@ -666,12 +666,17 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if !features.FivePointOh() {
-			// When soft delete is AlwaysON (Azure's secure-by-default policy), treat it as false to match the
-			// user's config (`soft_delete_enabled = false`) and avoid perpetual diffs. The update function
-			// already handles AlwaysON by warning and skipping the update.
+			// When soft delete is AlwaysON (Azure's secure-by-default policy), read the value from config
+			// to avoid perpetual diffs regardless of the user's setting. The update function already handles
+			// AlwaysON by warning and skipping the update.
+			// For non-AlwaysON states, read the actual value from API.
 			softDeleteEnabled := false
 			if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-				softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				if *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+					softDeleteEnabled = d.Get("soft_delete_enabled").(bool)
+				} else {
+					softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				}
 			}
 			d.Set("soft_delete_enabled", softDeleteEnabled)
 		}
