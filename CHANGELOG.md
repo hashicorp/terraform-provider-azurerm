@@ -1,20 +1,23 @@
-## 4.64.0 (Unreleased)
-
-ENHANCEMENTS:
-* Data Source: `azurerm_kubernetes_cluster` - export the `bootstrap_profile` and `network_profile.outbound_type` attributes [GH-30983]
-* dependencies: `paloalto` - update to API version `2025-10-08` [GH-31570]
-* dependencies: `containerservice` - partial upgrade to API version `2025-03-01` [GH-31838]
-* dependencies: `containerservice` - partial upgrade to API version `2025-10-01` [GH-31401]
-* `azurerm_subnet` - add support for the `PureStorage.Block/storagePools` value in the `delegation.service_delegation.name` property [GH-31878]
-* `azurerm_virtual_network` - add support for the `PureStorage.Block/storagePools` value in the `subnet.delegation.service_delegation.name` property [GH-31878]
+## 4.64.0 (March 12, 2026)
 
 FEATURES:
-* **New List Resource**: `azurerm_storage_account_customer_managed_key` [GH-31805] [GH-31805]
+
+* **New List Resource**: `azurerm_storage_account_customer_managed_key` ([#31805](https://github.com/hashicorp/terraform-provider-azurerm/issues/31805)) ([#31805](https://github.com/hashicorp/terraform-provider-azurerm/issues/31805))
+
+ENHANCEMENTS:
+
+* dependencies: `containerservice` - partial upgrade to API version `2025-03-01` ([#31838](https://github.com/hashicorp/terraform-provider-azurerm/issues/31838))
+* dependencies: `containerservice` - partial upgrade to API version `2025-10-01` ([#31401](https://github.com/hashicorp/terraform-provider-azurerm/issues/31401))
+* dependencies: `paloalto` - update to API version `2025-10-08` ([#31570](https://github.com/hashicorp/terraform-provider-azurerm/issues/31570))
+* Data Source: `azurerm_kubernetes_cluster` - export the `bootstrap_profile` and `network_profile.outbound_type` attributes ([#30983](https://github.com/hashicorp/terraform-provider-azurerm/issues/30983))
+* `azurerm_subnet` - add support for the `PureStorage.Block/storagePools` value in the `delegation.service_delegation.name` property ([#31878](https://github.com/hashicorp/terraform-provider-azurerm/issues/31878))
+* `azurerm_virtual_network` - add support for the `PureStorage.Block/storagePools` value in the `subnet.delegation.service_delegation.name` property ([#31878](https://github.com/hashicorp/terraform-provider-azurerm/issues/31878))
 
 BUG FIXES:
+
+* `azurerm_purview_account` - use correct API values for identity type ([#31905](https://github.com/hashicorp/terraform-provider-azurerm/issues/31905)) ([#31905](https://github.com/hashicorp/terraform-provider-azurerm/issues/31905))
 * `azurerm_recovery_services_vault` - skip request to modify soft delete state for vaults that are currently set to `AlwaysON` due to Azure's new `secure-by-default` policy
-* `azurerm_resource_provider_registration` - add additional polling logic to prevent errors due to inconsistent API behaviour [GH-31909]
-* `azurerm_purview_account` - use correct API values for identity type [GH-31905] [GH-31905]
+* `azurerm_resource_provider_registration` - add additional polling logic to prevent errors due to inconsistent API behaviour ([#31909](https://github.com/hashicorp/terraform-provider-azurerm/issues/31909))
 
 ## 4.63.0 (March 05, 2026)
 
