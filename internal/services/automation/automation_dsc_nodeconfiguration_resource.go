@@ -95,12 +95,10 @@ func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, met
 	// configuration name is always the first part of the dsc node configuration
 	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 
-	contentSourceType := dscnodeconfiguration.ContentSourceTypeEmbeddedContent
-
 	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
 		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
 			Source: dscnodeconfiguration.ContentSource{
-				Type:  &contentSourceType,
+				Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
 				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
 			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
