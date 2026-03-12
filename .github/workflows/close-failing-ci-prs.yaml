@@ -1,0 +1,19 @@
+name: 'Close PRs With Failing CI'
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * MON,WED,FRI'
+
+permissions:
+  issues: write
+  pull-requests: write
+  checks: read
+  statuses: read
+
+jobs:
+  close-failing-ci-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Process PRs with failing CI
+        run: ./scripts/close-failing-ci-prs.sh -o "${{ github.repository_owner }}" -r "${{ github.event.repository.name }}" -t "${{ secrets.GITHUB_TOKEN }}"
