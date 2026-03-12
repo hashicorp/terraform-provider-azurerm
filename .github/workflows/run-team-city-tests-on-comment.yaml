@@ -135,11 +135,11 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            await github.rest.issues.createComment({
+            await github.rest.reactions.createForIssueComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: '✅ TeamCity tests triggered successfully!'
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
             });
 
       - name: Comment on failure
