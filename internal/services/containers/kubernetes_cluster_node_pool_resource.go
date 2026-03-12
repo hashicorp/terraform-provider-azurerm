@@ -1404,20 +1404,16 @@ func expandAgentPoolUpgradeSettings(input []interface{}, priority string) *agent
 	}
 
 	v := input[0].(map[string]interface{})
-	isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
-
 	maxSurgeRaw := v["max_surge"].(string)
 	maxUnavailableRaw := v["max_unavailable"].(string)
 
-	if !isSpot {
-		if maxSurgeRaw != "" {
-			setting.MaxSurge = pointer.To(maxSurgeRaw)
-			setting.MaxUnavailable = pointer.To("0")
-		}
-		if maxUnavailableRaw != "" {
-			setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
-			setting.MaxSurge = pointer.To("0")
-		}
+	if maxSurgeRaw != "" {
+		setting.MaxSurge = pointer.To(maxSurgeRaw)
+		setting.MaxUnavailable = pointer.To("0")
+	}
+	if maxUnavailableRaw != "" {
+		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		setting.MaxSurge = pointer.To("0")
 	}
 
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
