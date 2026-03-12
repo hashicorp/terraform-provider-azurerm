@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-07-01/credentialsets"
 	containerregistry "github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2019-08-01/containerservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/autoupgradeprofiles"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
@@ -27,8 +28,9 @@ import (
 )
 
 type Client struct {
-	AgentPoolsClient        *agentpools.AgentPoolsClient
-	ContainerInstanceClient *containerinstance.ContainerInstanceClient
+	AgentPoolsClient              *agentpools.AgentPoolsClient
+	ContainerInstanceClient       *containerinstance.ContainerInstanceClient
+	FleetAutoUpgradeProfilesClient *autoupgradeprofiles.AutoUpgradeProfilesClient
 	CacheRulesClient        *cacherules.CacheRulesClient
 	CredentialSetsClient    *credentialsets.CredentialSetsClient
 	ContainerRegistryClient *containerregistry.Client
@@ -79,7 +81,12 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(credentialSetsClient.Client, o.Authorizers.ResourceManager)
 
-	// AKS
+	fleetAutoUpgradeProfilesClient, err := autoupgradeprofiles.NewAutoUpgradeProfilesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Fleet Auto Upgrade Profiles Client: %+v", err)
+	}
+	o.Configure(fleetAutoUpgradeProfilesClient.Client, o.Authorizers.ResourceManager)
+
 	fleetUpdateRunsClient, err := updateruns.NewUpdateRunsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Fleet Update Runs Client: %+v", err)
@@ -143,6 +150,7 @@ func NewContainersClient(o *common.ClientOptions) (*Client, error) {
 	return &Client{
 		AgentPoolsClient:                            agentPoolsClient,
 		ContainerInstanceClient:                     containerInstanceClient,
+		FleetAutoUpgradeProfilesClient:              fleetAutoUpgradeProfilesClient,
 		CacheRulesClient:                            cacheRulesClient,
 		CredentialSetsClient:                        credentialSetsClient,
 		ContainerRegistryClient:                     containerRegistryClient,
