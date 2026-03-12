@@ -83,6 +83,12 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"alerts_for_all_job_failures_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"cross_region_restore_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -193,6 +199,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
+	alertsForAllJobFailures := backupvaultresources.AlertsStateDisabled
+	if d.Get("alerts_for_all_job_failures_enabled").(bool) {
+		alertsForAllJobFailures = backupvaultresources.AlertsStateEnabled
+	}
+	parameters.Properties.MonitoringSettings = &backupvaultresources.MonitoringSettings{
+		AzureMonitorAlertSettings: &backupvaultresources.AzureMonitorAlertSettings{
+			AlertsForAllJobFailures: pointer.To(alertsForAllJobFailures),
+		},
+	}
+
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
 		parameters.Properties.FeatureSettings = &backupvaultresources.FeatureSettings{
 			CrossRegionRestoreSettings: &backupvaultresources.CrossRegionRestoreSettings{},
@@ -264,6 +280,16 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 			}
 		}
 		d.Set("immutability", string(immutability))
+
+		alertsForAllJobFailures := true
+		if monitoringSetting := model.Properties.MonitoringSettings; monitoringSetting != nil {
+			if alertSettings := monitoringSetting.AzureMonitorAlertSettings; alertSettings != nil {
+				if pointer.From(alertSettings.AlertsForAllJobFailures) == backupvaultresources.AlertsStateDisabled {
+					alertsForAllJobFailures = false
+				}
+			}
+		}
+		d.Set("alerts_for_all_job_failures_enabled", alertsForAllJobFailures)
 
 		crossRegionStoreEnabled := false
 		if featureSetting := model.Properties.FeatureSettings; featureSetting != nil {
