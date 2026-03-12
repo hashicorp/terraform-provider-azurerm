@@ -281,6 +281,14 @@ if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch
 
 - Use `pointer.FromEnum` to return a string from a pointer to an Enum without having to cast it. For example: use `myStruct.SomeStringValue = pointer.FromEnum(model.EnumValue)` instead of `myStruct.SomeStringValue = string(pointer.From(model.EnumValue))`.
 
+:white_check_mark: **DO**
+
+```go
+if containerAppEnvironment.PublicNetworkAccess != "" {
+	managedEnvironment.Properties.PublicNetworkAccess = pointer.ToEnum[managedenvironments.PublicNetworkAccess](containerAppEnvironment.PublicNetworkAccess)
+}
+```
+
 ## Avoid Intermediate Variables
 
 Do not create a variable if it is used only once. For example, do not create a variable for the following `expandModelContent` and then assign it to `param.Content`, instead assign it directly.
@@ -295,7 +303,7 @@ param.Content = expandModelContent(model.Content)
 
 When initializing a variable or struct field, avoid explicitly setting it to its zero value. In Go, variables are automatically initialized to their zero value, so setting them explicitly is redundant.
 
-:no_entry_sign: **DON'T**
+:x: **DON'T**
 
 ```go
 model.Profile = &profiles.Profile{

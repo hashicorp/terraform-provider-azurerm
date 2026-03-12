@@ -76,7 +76,33 @@ Go does not require a specific function order, but for readability it is recomme
 
 ### ComposeTestCheckFunc
 
-Do not validate fields using `check.That(...).Key(...).Exists()`. The testing framework already verifies field changes, making this explicit check unnecessary. If you need to validate the value of a field, use `check.That(...).Key(...).HasValue()`, `check.That(...).Key(...).IsEmpty()` or `check.That(...).Key(...).IsNotEmpty()`.
+Generally, if you use `data.ImportStep()` in a test case, you do not need to define `check.That(...).Key(...)...` in the `acceptance.ComposeTestCheckFunc` of the preceding step, because `data.ImportStep()` automatically performs these verifications. However, there are special cases — for example, if you have an `Optional` + `Computed` argument and you remove it from the config, there should be a test that verifies the correct behavior for the API is being followed, in which case `check.That(...).Key(...)...` would be needed. For such special cases, please add a comment at the corresponding location to explain the reasoning. The comment should start with `// NOTE:`.
+
+:white_check_mark: **DO**
+
+```go
+func TestAccExampleResource_RemoveContent(t *testing.T) {
+	...
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.removeContent(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+                                // NOTE: `content` is Optional+Computed; verify it reverts to the default when removed
+				check.That(data.ResourceName).Key("content").HasValue("default"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+```
 
 ### Test Package
 

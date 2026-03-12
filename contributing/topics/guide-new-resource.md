@@ -940,7 +940,7 @@ resource "azurerm_resource_group_example" "test" {
 
 Things worth noting here:
 
-- The `name` argument for each resource definition should start with `acctest`, unless the API backend imposes naming restrictions preventing this.
+- The `name` argument within each resource definition should be prefixed with `acctest-` (unless this is disallowed by the API naming restrictions), avoid overly complex naming, and ensure any naming restrictions are followed. e.g. `name = "acctest-server"`.
 
 There's a more detailed breakdown of how this works [in the Acceptance Testing reference](reference-acceptance-testing.md) - but to summarize what's going on here:
 
