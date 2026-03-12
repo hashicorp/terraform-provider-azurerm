@@ -378,7 +378,11 @@ A `listener` block supports the following:
 
 * `host_names` - (Optional) A list of Hostname(s) should be used for this Listener. It allows special wildcard characters.
 
+~> **Note:** `host_names` cannot be set when `protocol` is set to `Tcp`.
+
 * `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this Listener.
+
+~> **Note:** `ssl_certificate_name` must be set when `protocol` is set to `Tls`.
 
 * `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this Listener.
 
@@ -448,29 +452,43 @@ A `path_rule` block supports the following:
 
 A `probe` block supports the following:
 
-* `host` - (Optional) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as `127.0.0.1`, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
+* `interval` - (Required) The interval between two consecutive probes in seconds. Possible values range from `1` to `86400`.
 
-* `interval` - (Required) The Interval between two consecutive probes in seconds. Possible values range from 1 second to a maximum of 86,400 seconds.
+* `name` - (Required) The name of the Probe.
 
-* `name` - (Required) The Name of the Probe.
+* `protocol` - (Required) The protocol used for this Probe. Possible values are `Http`, `Https`, `Tcp`, and `Tls`.
 
-* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http`, `Https`, `Tcp` and `Tls`.
+* `timeout` - (Required) The timeout in seconds used for this Probe, which indicates when a Probe becomes unhealthy. Possible values range from `1` to `86400`.
 
-* `path` - (Optional) The Path used for this Probe.
+~> **Note:** The `timeout` value should not be greater than the `interval` value.
 
-~> **Note:** `path` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+* `unhealthy_threshold` - (Required) The unhealthy threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values range from `1` to `20`.
 
-* `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
+* `host` - (Optional) The hostname used for this Probe. If the Application Gateway is configured for a single site, by default the hostname should be specified as `127.0.0.1`, unless otherwise configured in custom Probe. 
 
-* `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
-
-* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Basic, Standard_v2 and WAF_v2 only.
-
-* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
+~> **Note:** Exactly one of `host` or `pick_host_name_from_backend_http_settings` must be set when `protocol` is `Http` or `Https`. Neither can be set when `protocol` is `Tcp` or `Tls`.
 
 * `match` - (Optional) A `match` block as defined above.
 
+~> **Note:** `match` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+
 * `minimum_servers` - (Optional) The minimum number of servers that are always marked as healthy. Defaults to `0`.
+
+* `path` - (Optional) The relative URL path of the Probe. Valid value starts with `/`.
+
+~> **Note:** `path` cannot be set when `protocol` is set to `Tcp` or `Tls`. `path` must be specified when `protocol` is `Http` or `Https`.
+
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
+
+~> **Note:** `pick_host_name_from_backend_http_settings` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+
+* `port` - (Optional) Custom port which will be used for probing the backend servers. Possible values range from `1` to `65535`.
+
+-> **Note:** In case `port` is not set, the port from the backend settings will be used. This property is valid for `Basic`, `Standard_v2`, and `WAF_v2` SKUs only.
+
+* `proxy_protocol_header_enabled` - (Optional) Whether the proxy protocol header is enabled for this Probe. Defaults to `false`.
+
+~> **Note:** `proxy_protocol_header_enabled` can only be set when `protocol` is `Tcp` or `Tls`.
 
 ---
 

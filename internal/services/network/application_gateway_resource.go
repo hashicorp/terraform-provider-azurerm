@@ -1151,9 +1151,16 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Optional: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"interval": {
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 86400),
+						},
+
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"protocol": {
@@ -1167,47 +1174,22 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							}, false),
 						},
 
-						"path": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"host": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-						},
-
-						"interval": {
-							Type:     pluginsdk.TypeInt,
-							Required: true,
-						},
-
 						"timeout": {
-							Type:     pluginsdk.TypeInt,
-							Required: true,
+							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 86400),
 						},
 
 						"unhealthy_threshold": {
-							Type:     pluginsdk.TypeInt,
-							Required: true,
-						},
-
-						"port": {
 							Type:         pluginsdk.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 20),
+						},
+
+						"host": {
+							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.PortNumber,
-						},
-
-						"pick_host_name_from_backend_http_settings": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"minimum_servers": {
-							Type:     pluginsdk.TypeInt,
-							Optional: true,
-							Default:  0,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						// lintignore:XS003
@@ -1231,6 +1213,36 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 									},
 								},
 							},
+						},
+
+						"minimum_servers": {
+							Type:     pluginsdk.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+
+						"path": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringStartsWithOneOf("/"),
+						},
+
+						"pick_host_name_from_backend_http_settings": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"port": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validate.PortNumber,
+						},
+
+						"proxy_protocol_header_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 
 						"id": {
@@ -3630,6 +3642,7 @@ func expandApplicationGatewayProbes(input []interface{}) *[]applicationgateways.
 				Timeout:                             pointer.To(timeout),
 				UnhealthyThreshold:                  pointer.To(unhealthyThreshold),
 				PickHostNameFromBackendHTTPSettings: pointer.To(pickHostNameFromBackendHTTPSettings),
+				EnableProbeProxyProtocolHeader:      pointer.To(v["proxy_protocol_header_enabled"].(bool)),
 			},
 		}
 
@@ -3710,6 +3723,8 @@ func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGat
 			if pickHostNameFromBackendHTTPSettings := props.PickHostNameFromBackendHTTPSettings; pickHostNameFromBackendHTTPSettings != nil {
 				output["pick_host_name_from_backend_http_settings"] = *pickHostNameFromBackendHTTPSettings
 			}
+
+			output["proxy_protocol_header_enabled"] = pointer.From(props.EnableProbeProxyProtocolHeader)
 
 			if minServers := props.MinServers; minServers != nil {
 				output["minimum_servers"] = int(*minServers)
@@ -5391,16 +5406,44 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 		if v["host_names"].(*pluginsdk.Set).Len() > 0 && strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTcp)) {
 			return fmt.Errorf("`host_names` cannot be set when `protocol` is `Tcp` for `listener` %q", v["name"].(string))
 		}
+		if strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTls)) && v["ssl_certificate_name"].(string) == "" {
+			return fmt.Errorf("`ssl_certificate_name` must be set when `protocol` is `Tls` for `listener` %q", v["name"].(string))
+		}
 	}
 
 	for _, raw := range d.Get("probe").(*schema.Set).List() {
 		v := raw.(map[string]interface{})
-		if v["host"].(string) != "" && v["pick_host_name_from_backend_http_settings"].(bool) {
-			return fmt.Errorf("only one of `host` or `pick_host_name_from_backend_http_settings` can be set for `probe` %q", v["name"].(string))
+		protocol := v["protocol"].(string)
+		isHTTPProtocol := strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolHTTP)) || strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolHTTPS))
+		isTcpTlsProtocol := strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTcp)) || strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTls))
+
+		hasHost := v["host"].(string) != ""
+		hasPickHost := v["pick_host_name_from_backend_http_settings"].(bool)
+		if isHTTPProtocol && (hasHost == hasPickHost) {
+			return fmt.Errorf("exactly one of `host` or `pick_host_name_from_backend_http_settings` must be set when `protocol` is `Http` or `Https` for `probe` %q", v["name"].(string))
 		}
 
-		if v["path"].(string) != "" && (strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTcp)) || strings.EqualFold(v["protocol"].(string), string(applicationgateways.ApplicationGatewayProtocolTls))) {
-			return fmt.Errorf("`path` cannot be set when `protocol` is `Tcp` or `Tls` for `probe` %q", v["name"].(string))
+		if isHTTPProtocol && v["path"].(string) == "" {
+			return fmt.Errorf("`path` must be specified when `protocol` is `Http` or `Https` for `probe` %q", v["name"].(string))
+		}
+
+		if isTcpTlsProtocol {
+			hasPath := v["path"].(string) != ""
+			matchConfigs := v["match"].([]interface{})
+			hasMatch := len(matchConfigs) > 0 && matchConfigs[0] != nil
+			if hasHost || hasPickHost || hasPath || hasMatch {
+				return fmt.Errorf("`host`, `pick_host_name_from_backend_http_settings`, `path`, and `match` cannot be set when `protocol` is `Tcp` or `Tls` for `probe` %q", v["name"].(string))
+			}
+		}
+
+		if v["proxy_protocol_header_enabled"].(bool) && !isTcpTlsProtocol {
+			return fmt.Errorf("`proxy_protocol_header_enabled` can only be set when `protocol` is `Tcp` or `Tls` for `probe` %q", v["name"].(string))
+		}
+
+		timeout := v["timeout"].(int)
+		interval := v["interval"].(int)
+		if timeout > interval {
+			return fmt.Errorf("`timeout` must not be greater than `interval` for `probe` %q", v["name"].(string))
 		}
 	}
 
@@ -5563,6 +5606,9 @@ func applicationGatewayProbeHash(v interface{}) int {
 		}
 		if v, ok := m["minimum_servers"]; ok {
 			buf.WriteString(fmt.Sprintf("%d", v.(int)))
+		}
+		if v, ok := m["proxy_protocol_header_enabled"]; ok {
+			buf.WriteString(fmt.Sprintf("%t", v.(bool)))
 		}
 		if match, ok := m["match"]; ok {
 			if attrs := match.([]interface{}); len(attrs) == 1 && attrs[0] != nil {

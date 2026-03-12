@@ -401,23 +401,25 @@ A `probe` block exports the following:
 
 * `interval` - The Interval between two consecutive probes in seconds.
 
+* `match` - A `match` block as defined above.
+
+* `minimum_servers` - The minimum number of servers that are always marked as healthy.
+
 * `name` - The Name of the Probe.
+
+* `path` - The Path used for this Probe.
+
+* `pick_host_name_from_backend_http_settings` - Whether the host header is picked from the backend HTTP settings.
+
+* `port` - Custom port which is used for probing the backend servers.
 
 * `protocol` - The Protocol used for this Probe.
 
-* `path` - The Path used for this Probe.
+* `proxy_protocol_header_enabled` - Whether the proxy protocol header is enabled for this Probe.
 
 * `timeout` - The Timeout used for this Probe, indicating when a probe becomes unhealthy.
 
 * `unhealthy_threshold` - The Unhealthy Threshold for this Probe, which indicates the amount of retries which will be attempted before a node is deemed unhealthy.
-
-* `port` - Custom port which is used for probing the backend servers.
-
-* `pick_host_name_from_backend_http_settings` - Whether the host header is picked from the backend HTTP settings.
-
-* `match` - A `match` block as defined above.
-
-* `minimum_servers` - The minimum number of servers that are always marked as healthy.
 
 ---
 

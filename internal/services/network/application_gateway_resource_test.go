@@ -1060,7 +1060,7 @@ func TestAccApplicationGateway_backendSettingsComplete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("ssl_certificate", "trusted_root_certificate"),
+		data.ImportStep("ssl_certificate.0.data", "trusted_root_certificate.0.data"),
 	})
 }
 
@@ -1082,7 +1082,7 @@ func TestAccApplicationGateway_backendSettingsUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("ssl_certificate", "trusted_root_certificate"),
+		data.ImportStep("ssl_certificate.0.data", "trusted_root_certificate.0.data"),
 		{
 			Config: r.backendSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1126,7 +1126,7 @@ func TestAccApplicationGateway_routingRuleUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("ssl_certificate.0.data", "trusted_root_certificate.0.data"),
 		{
 			Config: r.routingRule(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -1163,7 +1163,7 @@ func TestAccApplicationGateway_listenerComplete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("ssl_certificate"),
+		data.ImportStep("ssl_certificate.0.data"),
 	})
 }
 
@@ -1185,7 +1185,7 @@ func TestAccApplicationGateway_listenerUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("ssl_certificate"),
+		data.ImportStep("ssl_certificate.0.data"),
 		{
 			Config: r.listener(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -7812,6 +7812,14 @@ resource "azurerm_application_gateway" "test" {
     protocol              = "Http"
   }
 
+  probe {
+    name                = local.probe_name
+    protocol            = "Tls"
+    interval            = 30
+    timeout             = 30
+    unhealthy_threshold = 3
+  }
+
   backend {
     name               = local.backend_name
     port               = 8443
@@ -7855,6 +7863,7 @@ locals {
   trusted_root_cert_name         = "${azurerm_virtual_network.test.name}-trusted-root-cert"
   ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl-cert"
   probe_name                     = "${azurerm_virtual_network.test.name}-probe"
+  second_probe_name              = "${azurerm_virtual_network.test.name}-probe2"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -7905,19 +7914,30 @@ resource "azurerm_application_gateway" "test" {
   }
 
   probe {
-    name                = local.probe_name
-    protocol            = "Tls"
-    interval            = 30
-    timeout             = 30
-    unhealthy_threshold = 3
+    name                          = local.probe_name
+    protocol                      = "Tls"
+    interval                      = 30
+    timeout                       = 30
+    unhealthy_threshold           = 3
+    proxy_protocol_header_enabled = true
+  }
+
+  probe {
+    name                          = local.second_probe_name
+    protocol                      = "Tcp"
+    interval                      = 30
+    timeout                       = 30
+    unhealthy_threshold           = 3
+    proxy_protocol_header_enabled = true
   }
 
   backend {
     name                           = local.second_backend_name
-    port                           = 8443
+    port                           = 8445
     protocol                       = "Tcp"
     timeout_in_seconds             = 30
     client_ip_preservation_enabled = true
+    probe_name                     = local.second_probe_name
   }
 
   backend {
@@ -8042,9 +8062,15 @@ locals {
   tcp_listener_name_2            = "${azurerm_virtual_network.test.name}-tcplstn2"
   tcp_frontend_port_name         = "${azurerm_virtual_network.test.name}-tcpport"
   tcp_frontend_port_name_2       = "${azurerm_virtual_network.test.name}-tcpport2"
+  tls_frontend_port_name         = "${azurerm_virtual_network.test.name}-tlsport"
   backend_name                   = "${azurerm_virtual_network.test.name}-besettings"
+  tls_backend_name               = "${azurerm_virtual_network.test.name}-tlsbesettings"
   routing_rule_name              = "${azurerm_virtual_network.test.name}-routingrule"
   routing_rule_name_2            = "${azurerm_virtual_network.test.name}-routingrule2"
+  routing_rule_name_3            = "${azurerm_virtual_network.test.name}-routingrule3"
+  ssl_certificate_name           = "${azurerm_virtual_network.test.name}-ssl-cert"
+  tls_listener_name              = "${azurerm_virtual_network.test.name}-tlslstn"
+  trusted_root_cert_name         = "${azurerm_virtual_network.test.name}-trusted-root-cert"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -8078,6 +8104,11 @@ resource "azurerm_application_gateway" "test" {
     port = 8444
   }
 
+  frontend_port {
+    name = local.tls_frontend_port_name
+    port = 8445
+  }
+
   frontend_ip_configuration {
     name                 = local.frontend_ip_configuration_name
     public_ip_address_id = azurerm_public_ip.test.id
@@ -8101,6 +8132,25 @@ resource "azurerm_application_gateway" "test" {
     timeout_in_seconds = 30
   }
 
+  backend {
+    name                           = local.tls_backend_name
+    port                           = 8443
+    protocol                       = "Tls"
+    timeout_in_seconds             = 60
+    host_name                      = "example.com"
+    trusted_root_certificate_names = [local.trusted_root_cert_name]
+  }
+
+  ssl_certificate {
+    name = local.ssl_certificate_name
+    data = filebase64("testdata/application_gateway_test_3.pfx")
+  }
+
+  trusted_root_certificate {
+    name = local.trusted_root_cert_name
+    data = filebase64("testdata/application_gateway_test.cer")
+  }
+
   http_listener {
     name                           = local.http_listener_name
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
@@ -8120,6 +8170,14 @@ resource "azurerm_application_gateway" "test" {
     frontend_ip_configuration_name = local.frontend_ip_configuration_name
     frontend_port_name             = local.tcp_frontend_port_name_2
     protocol                       = "Tcp"
+  }
+
+  listener {
+    name                           = local.tls_listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.tls_frontend_port_name
+    protocol                       = "Tls"
+    ssl_certificate_name           = local.ssl_certificate_name
   }
 
   request_routing_rule {
@@ -8145,6 +8203,14 @@ resource "azurerm_application_gateway" "test" {
     backend_address_pool_name = local.backend_address_pool_name
     backend_name              = local.backend_name
     priority                  = 20
+  }
+
+  routing_rule {
+    name                      = local.routing_rule_name_3
+    listener_name             = local.tls_listener_name
+    backend_address_pool_name = local.backend_address_pool_name
+    backend_name              = local.tls_backend_name
+    priority                  = 40
   }
 }
 `, r.template(data), data.RandomInteger)

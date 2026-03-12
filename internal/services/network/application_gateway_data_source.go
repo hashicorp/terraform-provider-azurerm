@@ -932,52 +932,17 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"name": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"protocol": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"path": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
 						"host": {
 							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
+						"id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
 						"interval": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"timeout": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"unhealthy_threshold": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"port": {
-							Type:     pluginsdk.TypeInt,
-							Computed: true,
-						},
-
-						"pick_host_name_from_backend_http_settings": {
-							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-
-						"minimum_servers": {
 							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
@@ -1003,8 +968,48 @@ func dataSourceApplicationGateway() *pluginsdk.Resource {
 							},
 						},
 
-						"id": {
+						"minimum_servers": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"name": {
 							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"path": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"pick_host_name_from_backend_http_settings": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"port": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"protocol": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+
+						"proxy_protocol_header_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						"timeout": {
+							Type:     pluginsdk.TypeInt,
+							Computed: true,
+						},
+
+						"unhealthy_threshold": {
+							Type:     pluginsdk.TypeInt,
 							Computed: true,
 						},
 					},
