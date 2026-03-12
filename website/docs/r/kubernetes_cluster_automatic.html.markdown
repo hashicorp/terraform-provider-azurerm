@@ -115,4 +115,4 @@ terraform import azurerm_kubernetes_cluster_automatic.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-07-01
+* `Microsoft.ContainerService` - 2025-10-01

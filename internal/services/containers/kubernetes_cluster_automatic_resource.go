@@ -218,7 +218,7 @@ func (r KubernetesClusterAutomaticResource) Read() sdk.ResourceFunc {
 				if kubeconfigs := credentialsModel.Kubeconfigs; kubeconfigs != nil && len(*kubeconfigs) > 0 {
 					adminKubeConfigRaw := (*kubeconfigs)[0].Value
 					if adminKubeConfigRaw != nil {
-						state.CurrentKubeConfig = string(*adminKubeConfigRaw)
+						state.CurrentKubeConfig = *adminKubeConfigRaw
 					}
 				}
 			}
