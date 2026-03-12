@@ -24,8 +24,6 @@ resource "azurerm_data_protection_backup_vault" "example" {
   location            = azurerm_resource_group.example.location
   datastore_type      = "VaultStore"
   redundancy          = "LocallyRedundant"
-
-  alerts_for_all_job_failures_enabled = true
 }
 ```
 
@@ -45,7 +43,7 @@ The following arguments are supported:
 
 * `redundancy` - (Required) Specifies the backup storage redundancy. Possible values are `GeoRedundant`, `LocallyRedundant` and `ZoneRedundant`. Changing this forces a new Backup Vault to be created.
 
-* `alerts_for_all_job_failures_enabled` - (Optional) Whether to enable alerts for all job failures. Defaults to `true`.
+* `alerts_for_all_job_failures_enabled` - (Optional) Whether to enable alerts for all job failures. 
 
 * `cross_region_restore_enabled` - (Optional) Whether to enable cross-region restore for the Backup Vault.
  

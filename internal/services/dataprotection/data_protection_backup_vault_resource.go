@@ -86,7 +86,6 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 			"alerts_for_all_job_failures_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
 			},
 
 			"cross_region_restore_enabled": {
@@ -199,14 +198,17 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
-	alertsForAllJobFailures := backupvaultresources.AlertsStateDisabled
-	if d.Get("alerts_for_all_job_failures_enabled").(bool) {
-		alertsForAllJobFailures = backupvaultresources.AlertsStateEnabled
-	}
-	parameters.Properties.MonitoringSettings = &backupvaultresources.MonitoringSettings{
-		AzureMonitorAlertSettings: &backupvaultresources.AzureMonitorAlertSettings{
-			AlertsForAllJobFailures: pointer.To(alertsForAllJobFailures),
-		},
+	// When `AlertsForAllJobFailures` is not set explicitly, the response does not include the property.
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "alerts_for_all_job_failures_enabled") {
+		alertsForAllJobFailures := backupvaultresources.AlertsStateDisabled
+		if d.Get("alerts_for_all_job_failures_enabled").(bool) {
+			alertsForAllJobFailures = backupvaultresources.AlertsStateEnabled
+		}
+		parameters.Properties.MonitoringSettings = &backupvaultresources.MonitoringSettings{
+			AzureMonitorAlertSettings: &backupvaultresources.AzureMonitorAlertSettings{
+				AlertsForAllJobFailures: pointer.To(alertsForAllJobFailures),
+			},
+		}
 	}
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
@@ -281,11 +283,11 @@ func resourceDataProtectionBackupVaultRead(d *pluginsdk.ResourceData, meta inter
 		}
 		d.Set("immutability", string(immutability))
 
-		alertsForAllJobFailures := true
+		alertsForAllJobFailures := false
 		if monitoringSetting := model.Properties.MonitoringSettings; monitoringSetting != nil {
 			if alertSettings := monitoringSetting.AzureMonitorAlertSettings; alertSettings != nil {
-				if pointer.From(alertSettings.AlertsForAllJobFailures) == backupvaultresources.AlertsStateDisabled {
-					alertsForAllJobFailures = false
+				if pointer.From(alertSettings.AlertsForAllJobFailures) == backupvaultresources.AlertsStateEnabled {
+					alertsForAllJobFailures = true
 				}
 			}
 		}
