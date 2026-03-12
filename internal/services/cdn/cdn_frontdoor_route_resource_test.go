@@ -111,6 +111,13 @@ func TestAccCdnFrontDoorRoute_update(t *testing.T) {
 			),
 		},
 		data.ImportStep("cdn_frontdoor_origin_group_id", "cdn_frontdoor_origin_ids"),
+		{
+			Config: r.updateDependsOn(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("cdn_frontdoor_origin_group_id"),
 	})
 }
 
@@ -348,6 +355,33 @@ resource "azurerm_cdn_frontdoor_route" "test" {
     query_strings                 = ["bar"]
     query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
   }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorRouteResource) updateDependsOn(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_route" "test" {
+  name                          = "accTestRoute-%d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+
+  enabled                    = true
+  forwarding_protocol        = "HttpOnly"
+  https_redirect_enabled     = false
+  patterns_to_match          = ["/*"]
+  cdn_frontdoor_rule_set_ids = [azurerm_cdn_frontdoor_rule_set.test.id]
+  supported_protocols        = ["Https"]
+
+  cache {
+    query_strings                 = ["bar"]
+    query_string_caching_behavior = "IncludeSpecifiedQueryStrings"
+  }
+
+  depends_on = [azurerm_cdn_frontdoor_origin.test]
 }
 `, template, data.RandomInteger)
 }
