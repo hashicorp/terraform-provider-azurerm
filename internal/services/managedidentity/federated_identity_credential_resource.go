@@ -85,21 +85,21 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 		schema["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
 
 		schema["parent_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			ForceNew:      true,
-			Optional:      true,
-			Computed:      true,
-			Deprecated:    "`parent_id` has been renamed to `user_assigned_identity_id` and will be removed in v5.0 of the AzureRM Provider",
-			ConflictsWith: []string{"user_assigned_identity_id"},
-			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Computed:     true,
+			Deprecated:   "`parent_id` has been renamed to `user_assigned_identity_id` and will be removed in v5.0 of the AzureRM Provider",
+			ExactlyOneOf: []string{"user_assigned_identity_id", "parent_id"},
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		}
 		schema["user_assigned_identity_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			ForceNew:      true,
-			Optional:      true,
-			Computed:      true,
-			ConflictsWith: []string{"parent_id"},
-			ValidateFunc:  commonids.ValidateUserAssignedIdentityID,
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"user_assigned_identity_id", "parent_id"},
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		}
 	}
 
