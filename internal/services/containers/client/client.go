@@ -28,12 +28,12 @@ import (
 )
 
 type Client struct {
-	AgentPoolsClient              *agentpools.AgentPoolsClient
-	ContainerInstanceClient       *containerinstance.ContainerInstanceClient
+	AgentPoolsClient               *agentpools.AgentPoolsClient
+	ContainerInstanceClient        *containerinstance.ContainerInstanceClient
 	FleetAutoUpgradeProfilesClient *autoupgradeprofiles.AutoUpgradeProfilesClient
-	CacheRulesClient        *cacherules.CacheRulesClient
-	CredentialSetsClient    *credentialsets.CredentialSetsClient
-	ContainerRegistryClient *containerregistry.Client
+	CacheRulesClient               *cacherules.CacheRulesClient
+	CredentialSetsClient           *credentialsets.CredentialSetsClient
+	ContainerRegistryClient        *containerregistry.Client
 	// v2019_06_01_preview is needed for container registry agent pools and tasks
 	ContainerRegistryClient_v2019_06_01_preview *containerregistry_v2019_06_01_preview.Client
 	FleetUpdateRunsClient                       *updateruns.UpdateRunsClient
