@@ -297,25 +297,15 @@ func TestAccRecoveryServicesVault_softDelete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
 	r := RecoveryServicesVaultResource{}
 
+	// Note: In regions where Azure's secure-by-default policy is enforced, soft delete
+	// is AlwaysON and cannot be disabled. This test only validates the default (enabled)
+	// behavior, as disabling soft delete is no longer supported in those regions.
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.softDeleteDefault(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.softDeleteDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.softDeleteDisabledWithEncryption(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("soft_delete_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),

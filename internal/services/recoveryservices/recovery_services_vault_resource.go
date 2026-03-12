@@ -318,7 +318,11 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		// Only non-AlwaysOn allows update, otherwise, API will throw `BMSUserErrorSoftDeleteStateAlwaysOn` error
-		if currentSoftDeleteState != backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+		if currentSoftDeleteState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+			if !d.Get("soft_delete_enabled").(bool) {
+				log.Printf("[WARN] Soft delete is set to AlwaysON for %s due to Azure's secure-by-default policy. Ignoring `soft_delete_enabled = false`.", id.String())
+			}
+		} else {
 			// an update on the vault will reset the vault config to default, so we handle it at last.
 			enhancedSecurityState := backupresourcevaultconfigs.EnhancedSecurityStateEnabled
 			cfg := backupresourcevaultconfigs.BackupResourceVaultConfigResource{
@@ -552,7 +556,11 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		// Only non-AlwaysOn allows update, otherwise, API will throw `BMSUserErrorSoftDeleteStateAlwaysOn` error
-		if currentSoftDeleteState != backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+		if currentSoftDeleteState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+			if !d.Get("soft_delete_enabled").(bool) {
+				log.Printf("[WARN] Soft delete is set to AlwaysON for %s due to Azure's secure-by-default policy. Ignoring `soft_delete_enabled = false`.", id.String())
+			}
+		} else {
 			// an update on vault will cause the vault config reset to default, so whether the config has change or not, it needs to be updated.
 			var StateRefreshPendingStrings []string
 			var StateRefreshTargetStrings []string
