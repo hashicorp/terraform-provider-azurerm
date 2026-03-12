@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualmachinetemplates"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name system_center_virtual_machine_manager_virtual_machine_template -service-package-name systemcentervirtualmachinemanager -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
 
 type SystemCenterVirtualMachineManagerVirtualMachineTemplateModel struct {
 	Name                                                   string            `tfschema:"name"`
@@ -31,8 +34,9 @@ type SystemCenterVirtualMachineManagerVirtualMachineTemplateModel struct {
 }
 
 var (
-	_ sdk.Resource           = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
-	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
+	_ sdk.Resource             = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
+	_ sdk.ResourceWithUpdate   = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
+	_ sdk.ResourceWithIdentity = SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
 )
 
 type SystemCenterVirtualMachineManagerVirtualMachineTemplateResource struct{}
@@ -47,6 +51,10 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) IDValid
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) ResourceType() string {
 	return "azurerm_system_center_virtual_machine_manager_virtual_machine_template"
+}
+
+func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Identity() resourceids.ResourceId {
+	return &virtualmachinetemplates.VirtualMachineTemplateId{}
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Arguments() map[string]*pluginsdk.Schema {
@@ -122,6 +130,9 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Create(
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -146,21 +157,32 @@ func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Read() 
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SystemCenterVirtualMachineManagerVirtualMachineTemplateModel{
-				Name:              id.VirtualMachineTemplateName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-
-			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.SystemCenterVirtualMachineManagerServerInventoryItemId = pointer.From(model.Properties.InventoryItemId)
-				state.Tags = pointer.From(model.Tags)
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) flatten(metadata sdk.ResourceMetaData, id *virtualmachinetemplates.VirtualMachineTemplateId, model *virtualmachinetemplates.VirtualMachineTemplate) error {
+	state := SystemCenterVirtualMachineManagerVirtualMachineTemplateModel{
+		Name:              id.VirtualMachineTemplateName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
+		state.Tags = pointer.From(model.Tags)
+
+		if model.Properties != nil {
+			state.SystemCenterVirtualMachineManagerServerInventoryItemId = pointer.From(model.Properties.InventoryItemId)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualMachineTemplateResource) Update() sdk.ResourceFunc {

@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerCloudSequential(t *testing.T) {
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmCloud": {
-			"basic":          testAccSystemCenterVirtualMachineManagerCloud_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerCloud_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerCloud_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerCloud_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerCloud_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerCloud_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerCloud_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerCloud_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerCloud_resourceIdentity,
 		},
 	})
 }

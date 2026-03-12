@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name system_center_virtual_machine_manager_availability_set -service-package-name systemcentervirtualmachinemanager -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
 
 type SystemCenterVirtualMachineManagerAvailabilitySetModel struct {
 	Name                                      string            `tfschema:"name"`
@@ -30,8 +33,9 @@ type SystemCenterVirtualMachineManagerAvailabilitySetModel struct {
 }
 
 var (
-	_ sdk.Resource           = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
-	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+	_ sdk.Resource             = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+	_ sdk.ResourceWithUpdate   = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
+	_ sdk.ResourceWithIdentity = SystemCenterVirtualMachineManagerAvailabilitySetResource{}
 )
 
 type SystemCenterVirtualMachineManagerAvailabilitySetResource struct{}
@@ -46,6 +50,10 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) IDValidationFu
 
 func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) ResourceType() string {
 	return "azurerm_system_center_virtual_machine_manager_availability_set"
+}
+
+func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Identity() resourceids.ResourceId {
+	return &availabilitysets.AvailabilitySetId{}
 }
 
 func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Arguments() map[string]*pluginsdk.Schema {
@@ -120,6 +128,9 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Create() sdk.R
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -144,24 +155,36 @@ func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Read() sdk.Res
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SystemCenterVirtualMachineManagerAvailabilitySetModel{}
-			if model := resp.Model; model != nil {
-				state.Name = id.AvailabilitySetName
-				state.ResourceGroupName = id.ResourceGroupName
-				state.Location = location.Normalize(model.Location)
-				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.Tags = pointer.From(model.Tags)
-
-				scvmmServerId, err := vmmservers.ParseVMmServerIDInsensitively(pointer.From(model.Properties.VMmServerId))
-				if err != nil {
-					return err
-				}
-				state.SystemCenterVirtualMachineManagerServerId = scvmmServerId.ID()
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) flatten(metadata sdk.ResourceMetaData, id *availabilitysets.AvailabilitySetId, model *availabilitysets.AvailabilitySet) error {
+	state := SystemCenterVirtualMachineManagerAvailabilitySetModel{
+		Name:              id.AvailabilitySetName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
+		state.Tags = pointer.From(model.Tags)
+
+		if model.Properties != nil {
+			scvmmServerId, err := vmmservers.ParseVMmServerIDInsensitively(pointer.From(model.Properties.VMmServerId))
+			if err != nil {
+				return err
+			}
+			state.SystemCenterVirtualMachineManagerServerId = scvmmServerId.ID()
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r SystemCenterVirtualMachineManagerAvailabilitySetResource) Update() sdk.ResourceFunc {
