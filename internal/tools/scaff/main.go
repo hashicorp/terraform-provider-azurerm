@@ -34,6 +34,16 @@ func realMain(args []string) int {
 				Ui: ui,
 			}, nil
 		},
+		"list-documentation": func() (cli.Command, error) {
+			return &commands.ListDocumentationCommand{
+				Ui: ui,
+			}, nil
+		},
+		"list-resource": func() (cli.Command, error) {
+			return &commands.ListResourceCommand{
+				Ui: ui,
+			}, nil
+		},
 	}
 
 	gen := cli.CLI{
