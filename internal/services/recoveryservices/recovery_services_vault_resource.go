@@ -666,13 +666,13 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 		}
 
 		if !features.FivePointOh() {
-			softDeleteEnabled := false
-			if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-				softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled ||
-					*cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON
+			// When soft delete is AlwaysON (Azure's secure-by-default policy), skip setting `soft_delete_enabled`
+			// to avoid state drift for users who have `soft_delete_enabled = false` in their config.
+			if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil &&
+				*cfg.Model.Properties.SoftDeleteFeatureState != backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
+				softDeleteEnabled := *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
+				d.Set("soft_delete_enabled", softDeleteEnabled)
 			}
-
-			d.Set("soft_delete_enabled", softDeleteEnabled)
 		}
 
 		flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
