@@ -164,12 +164,19 @@ func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceD
 	parameters := connection.ConnectionCreateOrUpdateParameters{
 		Name: id.ConnectionName,
 		Properties: connection.ConnectionCreateOrUpdateProperties{
-			Description: pointer.To(d.Get("description").(string)),
 			ConnectionType: connection.ConnectionTypeAssociationProperty{
 				Name: pointer.To("AzureClassicCertificate"),
 			},
 			FieldDefinitionValues: &fieldDefinitionValues,
 		},
+	}
+
+	if existing.Model != nil && existing.Model.Properties != nil {
+		parameters.Properties.Description = existing.Model.Properties.Description
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
