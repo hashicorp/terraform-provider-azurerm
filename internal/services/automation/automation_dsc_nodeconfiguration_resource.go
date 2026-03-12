@@ -130,24 +130,24 @@ func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, met
 	// configuration name is always the first part of the dsc node configuration
 	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 
-	contentSourceType := dscnodeconfiguration.ContentSourceTypeEmbeddedContent
-
 	// content_embedded is not returned by the API, so it must be read from state via d.Get
-	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
-		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
-			Source: dscnodeconfiguration.ContentSource{
-				Type:  &contentSourceType,
-				Value: pointer.To(d.Get("content_embedded").(string)),
+	if d.HasChange("content_embedded") {
+		parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
+			Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
+				Source: dscnodeconfiguration.ContentSource{
+					Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
+					Value: pointer.To(d.Get("content_embedded").(string)),
+				},
+				Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
+					Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
+				},
 			},
-			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
-				Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
-			},
-		},
-		Name: pointer.To(id.NodeConfigurationName),
-	}
+			Name: pointer.To(id.NodeConfigurationName),
+		}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
-		return fmt.Errorf("updating %s: %+v", *id, err)
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
 	}
 
 	return resourceAutomationDscNodeConfigurationRead(d, meta)
