@@ -463,6 +463,7 @@ resource "azurerm_image" "first" {
     blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
     size_gb  = 128
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 }
 
@@ -477,6 +478,7 @@ resource "azurerm_image" "second" {
     blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/osdisk.vhd"
     size_gb  = 128
     caching  = "None"
+    storage_type = "Standard_LRS"
   }
 
   depends_on = ["azurerm_image.first"]
