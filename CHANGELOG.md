@@ -1,6 +1,7 @@
 ## 4.64.0 (Unreleased)
 
 ENHANCEMENTS:
+Data Source: `azurerm_kubernetes_cluster` - export the `bootstrap_profile` and `network_profile.outbound_type` attributes [GH-30983]
 * dependencies: `paloalto` - update to API version `2025-10-08` [GH-31570]
 * dependencies: `containerservice` - partial upgrade to API version `2025-03-01` [GH-31838]
 * dependencies: `containerservice` - partial upgrade to API version `2025-10-01` [GH-31401]
