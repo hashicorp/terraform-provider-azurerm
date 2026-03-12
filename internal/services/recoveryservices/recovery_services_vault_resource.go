@@ -670,7 +670,7 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 			// to avoid perpetual diffs regardless of the user's setting. The update function already handles
 			// AlwaysON by warning and skipping the update.
 			// For non-AlwaysON states, read the actual value from API.
-			softDeleteEnabled := false
+			softDeleteEnabled := true
 			if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
 				if *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
 					softDeleteEnabled = d.Get("soft_delete_enabled").(bool)
