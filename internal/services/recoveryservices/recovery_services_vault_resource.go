@@ -605,7 +605,6 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 
 func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
-	cfgsClient := meta.(*clients.Client).RecoveryServices.VaultsConfigsClient
 	vaultSettingsClient := meta.(*clients.Client).RecoveryServices.VaultsSettingsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -660,25 +659,8 @@ func resourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface
 			d.Set("storage_mode_type", string(storageModeType))
 		}
 
-		cfg, err := cfgsClient.Get(ctx, cfgId)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", cfgId, err)
-		}
-
-		if !features.FivePointOh() {
-			// When soft delete is AlwaysON (Azure's secure-by-default policy), read the value from config
-			// to avoid perpetual diffs regardless of the user's setting. The update function already handles
-			// AlwaysON by warning and skipping the update.
-			// For non-AlwaysON states, read the actual value from API.
-			softDeleteEnabled := true
-			if cfg.Model != nil && cfg.Model.Properties != nil && cfg.Model.Properties.SoftDeleteFeatureState != nil {
-				if *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateAlwaysON {
-					softDeleteEnabled = d.Get("soft_delete_enabled").(bool)
-				} else {
-					softDeleteEnabled = *cfg.Model.Properties.SoftDeleteFeatureState == backupresourcevaultconfigs.SoftDeleteFeatureStateEnabled
-				}
-			}
-			d.Set("soft_delete_enabled", softDeleteEnabled)
 		}
 
 		flattenIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
