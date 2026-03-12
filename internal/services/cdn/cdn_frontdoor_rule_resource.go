@@ -765,6 +765,22 @@ func resourceCdnFrontDoorRuleDelete(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
+		result, err := client.Get(ctx, *id)
+		if err != nil {
+			if response.WasNotFound(result.HttpResponse) {
+				return nil
+			}
+
+			return pluginsdk.NonRetryableError(fmt.Errorf("checking deletion of %s: %+v", *id, err))
+		}
+
+		return pluginsdk.RetryableError(fmt.Errorf("waiting for deletion of %s", *id))
+	})
+	if err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
 	return nil
 }
 
