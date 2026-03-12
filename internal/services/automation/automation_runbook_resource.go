@@ -81,9 +81,9 @@ func contentLinkSchema(isDraft bool) *pluginsdk.Schema {
 
 func resourceAutomationRunbook() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationRunbookCreateUpdate,
+		Create: resourceAutomationRunbookCreate,
 		Read:   resourceAutomationRunbookRead,
-		Update: resourceAutomationRunbookCreateUpdate,
+		Update: resourceAutomationRunbookUpdate,
 		Delete: resourceAutomationRunbookDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -288,11 +288,11 @@ func resourceAutomationRunbook() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationRunbookCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	autoCli := meta.(*clients.Client).Automation
 	client := autoCli.Runbook
 	jsClient := autoCli.JobSchedule
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
@@ -300,82 +300,187 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 
 	id := runbook.NewRunbookID(subscriptionID, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	// for existing runbook, if only job_schedule field updated, then skip update runbook
-	if d.IsNewResource() || d.HasChangeExcept("job_schedule") {
-		location := location.Normalize(d.Get("location").(string))
-		t := d.Get("tags").(map[string]interface{})
-
-		parameters := runbook.RunbookCreateOrUpdateParameters{
-			Properties: runbook.RunbookCreateOrUpdateProperties{
-				LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
-				LogProgress:        pointer.To(d.Get("log_progress").(bool)),
-				RuntimeEnvironment: pointer.To(d.Get("runtime_environment_name").(string)),
-				RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
-				Description:        pointer.To(d.Get("description").(string)),
-				LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
-			},
-
-			Location: &location,
-		}
-		if tagsVal := expandStringInterfaceMap(t); tagsVal != nil {
-			parameters.Tags = &tagsVal
-		}
-
-		contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
-		if contentLink != nil {
-			parameters.Properties.PublishContentLink = contentLink
-		} else {
-			parameters.Properties.Draft = &runbook.RunbookDraft{}
-			if draft := expandDraft(d.Get("draft").([]interface{})); draft != nil {
-				parameters.Properties.Draft = draft
-			}
-		}
-
-		if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-			return fmt.Errorf("creating/updating %s: %+v", id, err)
-		}
-
-		if v, ok := d.GetOk("content"); ok {
-			content := v.(string)
-			draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
-			if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(content)); err != nil {
-				return fmt.Errorf("setting the draft for %s: %+v", id, err)
-			}
-
-			if err := autoCli.Runbook.PublishThenPoll(ctx, id); err != nil {
-				return fmt.Errorf("publishing the updated %s: %+v", id, err)
-			}
-		}
-
-		d.SetId(id.ID())
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_runbook", id.ID())
 	}
 
-	// **don't need** to list job schedules and delete all of them. update the runbook will recreate these job schedules automatically,
-	// but with a different job schedule id
+	loc := location.Normalize(d.Get("location").(string))
+
+	parameters := runbook.RunbookCreateOrUpdateParameters{
+		Properties: runbook.RunbookCreateOrUpdateProperties{
+			LogVerbose:         pointer.To(d.Get("log_verbose").(bool)),
+			LogProgress:        pointer.To(d.Get("log_progress").(bool)),
+			RuntimeEnvironment: pointer.To(d.Get("runtime_environment_name").(string)),
+			RunbookType:        runbook.RunbookTypeEnum(d.Get("runbook_type").(string)),
+			Description:        pointer.To(d.Get("description").(string)),
+			LogActivityTrace:   pointer.To(int64(d.Get("log_activity_trace_level").(int))),
+		},
+		Location: &loc,
+	}
+	if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+		parameters.Tags = &tagsVal
+	}
+
+	contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
+	if contentLink != nil {
+		parameters.Properties.PublishContentLink = contentLink
+	} else {
+		parameters.Properties.Draft = &runbook.RunbookDraft{}
+		if draft := expandDraft(d.Get("draft").([]interface{})); draft != nil {
+			parameters.Properties.Draft = draft
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	if v, ok := d.GetOk("content"); ok {
+		draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+		if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(v.(string))); err != nil {
+			return fmt.Errorf("setting the draft for %s: %+v", id, err)
+		}
+
+		if err := autoCli.Runbook.PublishThenPoll(ctx, id); err != nil {
+			return fmt.Errorf("publishing the updated %s: %+v", id, err)
+		}
+	}
+
+	d.SetId(id.ID())
+
 	// crosscheck these existing jobs and jobs from tf, delete the ones not in tf, and create the ones not in api
 	// Fix issue: https://github.com/hashicorp/terraform-provider-azurerm/issues/8634
-	jsValue, ok := d.GetOk("job_schedule")
-	if ok && d.HasChange("job_schedule") {
+	if jsValue, ok := d.GetOk("job_schedule"); ok {
 		jsMap, err := helper.ExpandAutomationJobSchedule(jsValue.(*pluginsdk.Set).List(), id.RunbookName)
 		if err != nil {
 			return err
 		}
 
 		if err := updatedLinkedJobSchedules(ctx, subscriptionID, jsClient, &id, *jsMap); err != nil {
-			return fmt.Errorf("update job schedule links: %v", err)
+			return fmt.Errorf("creating job schedule links for %s: %v", id, err)
+		}
+	}
+
+	return resourceAutomationRunbookRead(d, meta)
+}
+
+func resourceAutomationRunbookUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	autoCli := meta.(*clients.Client).Automation
+	client := autoCli.Runbook
+	jsClient := autoCli.JobSchedule
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook update.")
+	subscriptionID := meta.(*clients.Client).Account.SubscriptionId
+
+	id, err := runbook.ParseRunbookID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// If only job_schedule changed, skip the runbook update — the PUT replaces the whole
+	// resource and job schedules are managed via a separate API.
+	if d.HasChangeExcept("job_schedule") {
+		existing, err := client.Get(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+		}
+
+		// The PATCH endpoint (RunbookUpdateProperties) doesn't support RuntimeEnvironment,
+		// PublishContentLink, or Draft — so we must use the PUT (CreateOrUpdate) with a
+		// GET-then-overlay approach to avoid resetting unspecified properties.
+		props := existing.Model.Properties
+		loc := location.Normalize(existing.Model.Location)
+
+		parameters := runbook.RunbookCreateOrUpdateParameters{
+			Properties: runbook.RunbookCreateOrUpdateProperties{
+				LogVerbose:         props.LogVerbose,
+				LogProgress:        props.LogProgress,
+				RuntimeEnvironment: props.RuntimeEnvironment,
+				RunbookType:        pointer.From(props.RunbookType),
+				Description:        props.Description,
+				LogActivityTrace:   props.LogActivityTrace,
+				PublishContentLink: props.PublishContentLink,
+				Draft:              props.Draft,
+			},
+			Location: &loc,
+			Tags:     existing.Model.Tags,
+		}
+
+		if d.HasChange("log_verbose") {
+			parameters.Properties.LogVerbose = pointer.To(d.Get("log_verbose").(bool))
+		}
+
+		if d.HasChange("log_progress") {
+			parameters.Properties.LogProgress = pointer.To(d.Get("log_progress").(bool))
+		}
+
+		if d.HasChange("runtime_environment_name") {
+			parameters.Properties.RuntimeEnvironment = pointer.To(d.Get("runtime_environment_name").(string))
+		}
+
+		if d.HasChange("description") {
+			parameters.Properties.Description = pointer.To(d.Get("description").(string))
+		}
+
+		if d.HasChange("log_activity_trace_level") {
+			parameters.Properties.LogActivityTrace = pointer.To(int64(d.Get("log_activity_trace_level").(int)))
+		}
+
+		if d.HasChange("tags") {
+			if tagsVal := expandStringInterfaceMap(d.Get("tags").(map[string]interface{})); tagsVal != nil {
+				parameters.Tags = &tagsVal
+			}
+		}
+
+		if d.HasChanges("publish_content_link", "draft") {
+			contentLink := expandContentLink(d.Get("publish_content_link").([]interface{}))
+			if contentLink != nil {
+				parameters.Properties.PublishContentLink = contentLink
+			} else {
+				parameters.Properties.Draft = &runbook.RunbookDraft{}
+				if draft := expandDraft(d.Get("draft").([]interface{})); draft != nil {
+					parameters.Properties.Draft = draft
+				}
+			}
+		}
+
+		if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
+
+		if v, ok := d.GetOk("content"); ok && d.HasChange("content") {
+			draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
+			if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(v.(string))); err != nil {
+				return fmt.Errorf("setting the draft for %s: %+v", *id, err)
+			}
+
+			if err := autoCli.Runbook.PublishThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("publishing the updated %s: %+v", *id, err)
+			}
+		}
+	}
+
+	// **don't need** to list job schedules and delete all of them. update the runbook will recreate these job schedules automatically,
+	// but with a different job schedule id
+	// crosscheck these existing jobs and jobs from tf, delete the ones not in tf, and create the ones not in api
+	// Fix issue: https://github.com/hashicorp/terraform-provider-azurerm/issues/8634
+	if jsValue, ok := d.GetOk("job_schedule"); ok && d.HasChange("job_schedule") {
+		jsMap, err := helper.ExpandAutomationJobSchedule(jsValue.(*pluginsdk.Set).List(), id.RunbookName)
+		if err != nil {
+			return err
+		}
+
+		if err := updatedLinkedJobSchedules(ctx, subscriptionID, jsClient, id, *jsMap); err != nil {
+			return fmt.Errorf("updating job schedule links for %s: %v", *id, err)
 		}
 	}
 
