@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -15,7 +17,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.disksOSDiskEphemeral(data, "CacheDisk"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -25,6 +27,11 @@ func TestAccOrchestratedVirtualMachineScaleSet_disksOSDiskCaching(t *testing.T) 
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password"),
 		{
 			Config: r.disksOSDiskEphemeral(data, "ResourceDisk"),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
