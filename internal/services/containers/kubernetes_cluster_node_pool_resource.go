@@ -703,7 +703,8 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Properties: &profile,
 	}
 
-	err = poolsClient.CreateOrUpdateThenPoll(ctx, id, parameters, agentpools.DefaultCreateOrUpdateOperationOptions())
+	// Use retryNodePoolCreation to handle transient Azure zonal capacity constraints, retries 3 times
+	err = retryNodePoolCreation(ctx, poolsClient, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
