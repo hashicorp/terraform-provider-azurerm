@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2025-08-01/vaults"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -281,35 +281,6 @@ func TestAccRecoveryServicesVault_immutability(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.basicWithImmutability(data, "Locked"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccRecoveryServicesVault_softDelete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_recovery_services_vault", "test")
-	r := RecoveryServicesVaultResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.softDeleteDefault(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.softDeleteDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.softDeleteDisabledWithEncryption(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -625,8 +596,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -648,8 +617,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku                           = "Standard"
   public_network_access_enabled = %t
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
@@ -672,8 +639,6 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   cross_region_restore_enabled = %t
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
 }
@@ -698,8 +663,6 @@ resource "azurerm_recovery_services_vault" "test" {
   storage_mode_type = "ZoneRedundant"
 
   cross_region_restore_enabled = true
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -724,9 +687,6 @@ resource "azurerm_recovery_services_vault" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  soft_delete_enabled = false
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -760,8 +720,6 @@ resource "azurerm_recovery_services_vault" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -795,8 +753,6 @@ resource "azurerm_recovery_services_vault" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -818,8 +774,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   immutability        = "%s"
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, immutability)
 }
@@ -843,10 +797,11 @@ resource "azurerm_recovery_services_vault" "test" {
 
   monitoring {
     alerts_for_all_job_failures_enabled            = false
+    alerts_for_all_failover_issues_enabled         = false
+    alerts_for_all_replication_issues_enabled      = false
     alerts_for_critical_operation_failures_enabled = false
+    email_notifications_for_site_recovery_enabled  = false
   }
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -868,8 +823,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-  storage_mode_type   = "LocallyRedundant"
+  storage_mode_type = "LocallyRedundant"
   tags = {
     ENV = "test"
   }
@@ -1108,138 +1062,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-  storage_mode_type   = "ZoneRedundant"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (RecoveryServicesVaultResource) softDeleteDefault(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d"
-  location = "%s"
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-Vault-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (RecoveryServicesVaultResource) softDeleteDisabledWithEncryption(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {
-    key_vault {
-      purge_soft_delete_on_destroy       = true
-      purge_soft_deleted_keys_on_destroy = false
-    }
-  }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%[1]d"
-  location = "%[2]s"
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_key_vault" "test" {
-  name                        = "acctest-key-vault-%[3]s"
-  location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.name
-  enabled_for_disk_encryption = true
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  soft_delete_retention_days  = 7
-  purge_protection_enabled    = false
-
-  sku_name = "standard"
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "Create",
-      "Decrypt",
-      "Encrypt",
-      "Delete",
-      "Get",
-      "List",
-      "Purge",
-      "UnwrapKey",
-      "WrapKey",
-      "Verify",
-      "GetRotationPolicy"
-    ]
-    secret_permissions = [
-      "Set",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "acctest-key-vault-key"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-Vault-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-
-  soft_delete_enabled = false
-
-  encryption {
-    key_id                            = azurerm_key_vault_key.test.id
-    infrastructure_encryption_enabled = false
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
-}
-
-func (RecoveryServicesVaultResource) softDeleteDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-recovery-%d"
-  location = "%s"
-}
-
-resource "azurerm_recovery_services_vault" "test" {
-  name                = "acctest-Vault-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Standard"
-
-  soft_delete_enabled = false
+  storage_mode_type = "ZoneRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1559,7 +1382,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name                = azurerm_resource_group.test.name
   sku                                = "Standard"
   classic_vmware_replication_enabled = true
-  soft_delete_enabled                = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
