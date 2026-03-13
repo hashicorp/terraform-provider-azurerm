@@ -39,7 +39,9 @@ The following arguments are supported:
 
 * `global_parameter` - (Optional) A list of `global_parameter` blocks as defined above.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `identity` - A list of `identity` blocks as defined below.
+
+-> **Note:** `identity` is a list with a single item (MaxItems = 1). Use `identity[0].principal_id` (or `identity.0.principal_id`) to reference the exported values.
 
 * `vsts_configuration` - (Optional) A `vsts_configuration` block as defined below.
 
