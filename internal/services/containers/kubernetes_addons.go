@@ -282,6 +282,246 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 	return out
 }
 
+func schemaKubernetesAutomaticClusterAddOns() map[string]*pluginsdk.Schema {
+	out := map[string]*pluginsdk.Schema{
+		"aci_connector_linux": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"connector_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"azure_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
+		"confidential_computing": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"sgx_quote_helper_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+				},
+			},
+		},
+		"http_application_routing_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"http_application_routing_zone_name": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+		"oms_agent": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"log_analytics_workspace_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: workspaces.ValidateWorkspaceID,
+					},
+					"msi_auth_for_monitoring_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+					},
+					"oms_agent_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"ingress_application_gateway": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"gateway_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ConflictsWith: []string{
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						AtLeastOneOf: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
+					},
+					"gateway_name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"subnet_cidr": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ConflictsWith: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						AtLeastOneOf: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						ValidateFunc: commonValidate.CIDR,
+					},
+					"subnet_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ConflictsWith: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+						},
+						AtLeastOneOf: []string{
+							"ingress_application_gateway.0.gateway_id",
+							"ingress_application_gateway.0.subnet_cidr",
+							"ingress_application_gateway.0.subnet_id",
+						},
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+					"effective_gateway_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"ingress_application_gateway_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		"open_service_mesh_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+		"key_vault_secrets_provider": {
+			Type:     pluginsdk.TypeList,
+			MaxItems: 1,
+			Optional: true,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"secret_rotation_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  false,
+						Optional: true,
+						AtLeastOneOf: []string{
+							"key_vault_secrets_provider.0.secret_rotation_enabled",
+							"key_vault_secrets_provider.0.secret_rotation_interval",
+						},
+					},
+					"secret_rotation_interval": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  "2m",
+						AtLeastOneOf: []string{
+							"key_vault_secrets_provider.0.secret_rotation_enabled",
+							"key_vault_secrets_provider.0.secret_rotation_interval",
+						},
+						ValidateFunc: containerValidate.Duration,
+					},
+					"secret_identity": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"client_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"object_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"user_assigned_identity_id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	return out
+}
+
 func expandKubernetesAddOns(d *pluginsdk.ResourceData, input map[string]interface{}, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	disabled := managedclusters.ManagedClusterAddonProfile{
 		Enabled: false,
