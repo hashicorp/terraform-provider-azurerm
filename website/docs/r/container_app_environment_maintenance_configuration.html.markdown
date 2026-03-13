@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "acctest-01"
+  name                = "example-01"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
@@ -36,13 +36,12 @@ resource "azurerm_container_app_environment" "example" {
 }
 
 resource "azurerm_container_app_environment_maintenance_configuration" "example" {
-  name                         = "default"
   container_app_environment_id = azurerm_container_app_environment.example.id
 
-  scheduled_entry {
-    week_day       = "Sunday"
-    start_hour_utc = 1
-    duration_hours = 8
+  maintenance_window {
+    day_of_week       = "Sunday"
+    start_hour_in_utc = 1
+    duration_hours    = 8
   }
 }
 ```
@@ -51,19 +50,17 @@ resource "azurerm_container_app_environment_maintenance_configuration" "example"
 
 The following arguments are supported:
 
-* `name` - (Required) The name for this Maintenance Configuration. The only allowed value is `default`. Changing this forces a new resource to be created.
-
 * `container_app_environment_id` - (Required) The ID of the Container App Environment to which this Maintenance Configuration belongs. Changing this forces a new resource to be created.
 
-* `scheduled_entry` - (Required) One or more `scheduled_entry` blocks as defined below.
+* `maintenance_window` - (Required) A `maintenance_window` block as defined below.
 
 ---
 
-A `scheduled_entry` block supports the following:
+A `maintenance_window` block supports the following:
 
-* `week_day` - (Required) The day of the week for the maintenance window. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday`, and `Wednesday`.
+* `day_of_week` - (Required) The day of the week for the maintenance window. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday`, and `Wednesday`.
 
-* `start_hour_utc` - (Required) The start hour of the maintenance window in UTC. Possible values are between `0` and `23`.
+* `start_hour_in_utc` - (Required) The start hour of the maintenance window in UTC. Possible values are between `0` and `23`.
 
 * `duration_hours` - (Required) The duration of the maintenance window in hours. Possible values are between `8` and `24`.
 

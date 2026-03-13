@@ -18,14 +18,13 @@ import (
 type ContainerAppEnvironmentMaintenanceConfigurationResource struct{}
 
 type ContainerAppEnvironmentMaintenanceConfigurationModel struct {
-	Name                      string           `tfschema:"name"`
-	ContainerAppEnvironmentId string           `tfschema:"container_app_environment_id"`
-	ScheduledEntries          []ScheduledEntry `tfschema:"scheduled_entry"`
+	ContainerAppEnvironmentId string              `tfschema:"container_app_environment_id"`
+	MaintenanceWindows        []MaintenanceWindow `tfschema:"maintenance_window"`
 }
 
-type ScheduledEntry struct {
-	WeekDay       string `tfschema:"week_day"`
-	StartHourUtc  int64  `tfschema:"start_hour_utc"`
+type MaintenanceWindow struct {
+	DayOfWeek     string `tfschema:"day_of_week"`
+	StartHourInUtc int64  `tfschema:"start_hour_in_utc"`
 	DurationHours int64  `tfschema:"duration_hours"`
 }
 
@@ -45,14 +44,6 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) IDValidationFun
 
 func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The name for this Maintenance Configuration. The only allowed value is `default`.",
-		},
-
 		"container_app_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -61,20 +52,21 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Arguments() map
 			Description:  "The ID of the Container App Environment to which this Maintenance Configuration belongs.",
 		},
 
-		"scheduled_entry": {
+		"maintenance_window": {
 			Type:        pluginsdk.TypeList,
 			Required:    true,
 			MinItems:    1,
-			Description: "A list of scheduled entries specifying the maintenance windows.",
+			MaxItems:    1,
+			Description: "A `maintenance_window` block as defined below.",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"week_day": {
+					"day_of_week": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringInSlice(maintenanceconfigurations.PossibleValuesForWeekDay(), false),
 						Description:  "The day of the week for the maintenance window. Possible values are `Friday`, `Monday`, `Saturday`, `Sunday`, `Thursday`, `Tuesday`, and `Wednesday`.",
 					},
-					"start_hour_utc": {
+					"start_hour_in_utc": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
 						ValidateFunc: validation.IntBetween(0, 23),
@@ -105,7 +97,7 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Create() sdk.Re
 			var model ContainerAppEnvironmentMaintenanceConfigurationModel
 
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			containerAppEnvironmentId, err := maintenanceconfigurations.ParseManagedEnvironmentID(model.ContainerAppEnvironmentId)
@@ -113,7 +105,7 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Create() sdk.Re
 				return err
 			}
 
-			id := maintenanceconfigurations.NewMaintenanceConfigurationID(metadata.Client.Account.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.ManagedEnvironmentName, model.Name)
+			id := maintenanceconfigurations.NewMaintenanceConfigurationID(metadata.Client.Account.SubscriptionId, containerAppEnvironmentId.ResourceGroupName, containerAppEnvironmentId.ManagedEnvironmentName, "default")
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -127,7 +119,7 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Create() sdk.Re
 
 			maintenanceConfig := maintenanceconfigurations.MaintenanceConfigurationResource{
 				Properties: &maintenanceconfigurations.ScheduledEntries{
-					ScheduledEntries: expandScheduledEntries(model.ScheduledEntries),
+					ScheduledEntries: expandMaintenanceWindow(model.MaintenanceWindows),
 				},
 			}
 
@@ -158,17 +150,16 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Read() sdk.Reso
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			var state ContainerAppEnvironmentMaintenanceConfigurationModel
 
-			state.Name = id.MaintenanceConfigurationName
 			state.ContainerAppEnvironmentId = maintenanceconfigurations.NewManagedEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.ManagedEnvironmentName).ID()
 
 			if model := existing.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.ScheduledEntries = flattenScheduledEntries(props.ScheduledEntries)
+					state.MaintenanceWindows = flattenMaintenanceWindow(props.ScheduledEntries)
 				}
 			}
 
@@ -208,15 +199,23 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Update() sdk.Re
 				return err
 			}
 
-			var model ContainerAppEnvironmentMaintenanceConfigurationModel
-			if err := metadata.Decode(&model); err != nil {
-				return err
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+			if existing.Model == nil || existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: model or properties was nil", *id)
 			}
 
-			maintenanceConfig := maintenanceconfigurations.MaintenanceConfigurationResource{
-				Properties: &maintenanceconfigurations.ScheduledEntries{
-					ScheduledEntries: expandScheduledEntries(model.ScheduledEntries),
-				},
+			maintenanceConfig := *existing.Model
+
+			var model ContainerAppEnvironmentMaintenanceConfigurationModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if metadata.ResourceData.HasChange("maintenance_window") {
+				maintenanceConfig.Properties.ScheduledEntries = expandMaintenanceWindow(model.MaintenanceWindows)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, maintenanceConfig); err != nil {
@@ -228,30 +227,32 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Update() sdk.Re
 	}
 }
 
-func expandScheduledEntries(input []ScheduledEntry) []maintenanceconfigurations.ScheduledEntry {
-	result := make([]maintenanceconfigurations.ScheduledEntry, 0)
-
-	for _, v := range input {
-		result = append(result, maintenanceconfigurations.ScheduledEntry{
-			WeekDay:       maintenanceconfigurations.WeekDay(v.WeekDay),
-			StartHourUtc:  v.StartHourUtc,
-			DurationHours: v.DurationHours,
-		})
+func expandMaintenanceWindow(input []MaintenanceWindow) []maintenanceconfigurations.ScheduledEntry {
+	if len(input) == 0 {
+		return []maintenanceconfigurations.ScheduledEntry{}
 	}
 
-	return result
+	v := input[0]
+	return []maintenanceconfigurations.ScheduledEntry{
+		{
+			WeekDay:       maintenanceconfigurations.WeekDay(v.DayOfWeek),
+			StartHourUtc:  v.StartHourInUtc,
+			DurationHours: v.DurationHours,
+		},
+	}
 }
 
-func flattenScheduledEntries(input []maintenanceconfigurations.ScheduledEntry) []ScheduledEntry {
-	result := make([]ScheduledEntry, 0)
-
-	for _, v := range input {
-		result = append(result, ScheduledEntry{
-			WeekDay:       string(v.WeekDay),
-			StartHourUtc:  v.StartHourUtc,
-			DurationHours: v.DurationHours,
-		})
+func flattenMaintenanceWindow(input []maintenanceconfigurations.ScheduledEntry) []MaintenanceWindow {
+	if len(input) == 0 {
+		return []MaintenanceWindow{}
 	}
 
-	return result
+	v := input[0]
+	return []MaintenanceWindow{
+		{
+			DayOfWeek:      string(v.WeekDay),
+			StartHourInUtc: v.StartHourUtc,
+			DurationHours:  v.DurationHours,
+		},
+	}
 }
