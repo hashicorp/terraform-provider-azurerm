@@ -22,7 +22,7 @@ func TestAccPlaywrightWorkspaceDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Primary)),
+				check.That(data.ResourceName).Key("location").HasValue(location.Normalize(data.Locations.Secondary)),
 				check.That(data.ResourceName).Key("dataplane_uri").Exists(),
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("regional_affinity_enabled").HasValue("true"),
