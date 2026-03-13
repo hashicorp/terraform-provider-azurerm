@@ -6,6 +6,7 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -351,6 +352,37 @@ func TestAccVirtualNetworkGateway_expressRoute(t *testing.T) {
 				check.That(data.ResourceName).Key("type").HasValue("ExpressRoute"),
 				check.That(data.ResourceName).Key("bgp_settings.#").HasValue("0"),
 			),
+		},
+	})
+}
+
+func TestAccVirtualNetworkGateway_expressRouteWithPublicIPAddressId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
+	r := VirtualNetworkGatewayResource{}
+	legacyGatewayID := os.Getenv("ARM_TEST_LEGACY_EXPRESSROUTE_GATEWAY_ID")
+
+	if legacyGatewayID == "" {
+		t.Skip("Skipping as `ARM_TEST_LEGACY_EXPRESSROUTE_GATEWAY_ID` was not specified")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:            r.expressRouteWithPublicIPAddressIdBrownfield(legacyGatewayID),
+			ResourceName:      data.ResourceName,
+			ImportState:       true,
+			ImportStateId:     legacyGatewayID,
+			ImportStateVerify: true,
+		},
+		{
+			Config: r.expressRouteWithPublicIPAddressIdBrownfield(legacyGatewayID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("type").HasValue("ExpressRoute"),
+				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").Exists(),
+			),
+		},
+		{
+			Config:   r.expressRouteWithPublicIPAddressIdBrownfield(legacyGatewayID),
+			PlanOnly: true,
 		},
 	})
 }
@@ -1418,6 +1450,43 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (VirtualNetworkGatewayResource) expressRouteWithPublicIPAddressIdBrownfield(existingGatewayID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  gateway_id          = "%s"
+  gateway_name        = split("/", local.gateway_id)[8]
+  resource_group_name = split("/", local.gateway_id)[4]
+}
+
+data "azurerm_virtual_network_gateway" "existing" {
+  name                = local.gateway_name
+  resource_group_name = local.resource_group_name
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = local.gateway_name
+  location            = data.azurerm_virtual_network_gateway.existing.location
+  resource_group_name = local.resource_group_name
+
+  type     = "ExpressRoute"
+  vpn_type = data.azurerm_virtual_network_gateway.existing.vpn_type
+  sku      = data.azurerm_virtual_network_gateway.existing.sku
+  generation = data.azurerm_virtual_network_gateway.existing.generation
+
+  ip_configuration {
+    name                          = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].name
+    public_ip_address_id          = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].public_ip_address_id
+    private_ip_address_allocation = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].private_ip_address_allocation
+    subnet_id                     = data.azurerm_virtual_network_gateway.existing.ip_configuration[0].subnet_id
+  }
+}
+`, existingGatewayID)
 }
 
 func (VirtualNetworkGatewayResource) expressRouteErGwScale(data acceptance.TestData) string {
