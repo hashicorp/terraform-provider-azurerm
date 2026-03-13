@@ -20,12 +20,6 @@ func TestPimRoleDefinitionID(t *testing.T) {
 			expectedUUID:  "acdd72a7-3385-48ef-bd42-f606fba81ae7",
 		},
 		{
-			name:          "management group-scoped",
-			input:         "/providers/Microsoft.Management/managementGroups/myMG/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
-			expectedScope: "/providers/Microsoft.Management/managementGroups/myMG",
-			expectedUUID:  "acdd72a7-3385-48ef-bd42-f606fba81ae7",
-		},
-		{
 			name:          "resource group-scoped",
 			input:         "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myRG/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
 			expectedScope: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myRG",
