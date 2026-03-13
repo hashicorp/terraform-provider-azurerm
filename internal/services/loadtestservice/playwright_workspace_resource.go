@@ -169,12 +169,7 @@ func (r PlaywrightWorkspaceResource) Update() sdk.ResourceFunc {
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
-			/*
-				model := resp.Model
-				if model == nil {
-					return fmt.Errorf("retrieving %s: model is nil", id)
-				}
-			*/
+
 			param := playwrightworkspaces.PlaywrightWorkspaceUpdate{
 				Properties: &playwrightworkspaces.PlaywrightWorkspaceUpdateProperties{},
 			}
