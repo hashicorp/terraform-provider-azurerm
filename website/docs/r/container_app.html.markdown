@@ -196,6 +196,16 @@ A `volume` block supports the following:
 
 * `mount_options` - (Optional) Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
 
+* `secrets` - (Optional) A `secrets` block as detailed below. Used to selectively mount specific secrets in a `Secret` volume. If not specified when `storage_type` is `Secret`, all secrets will be mounted.
+
+---
+
+A `secrets` block supports the following:
+
+* `secret_name` - (Required) The name of the secret to include in the volume. This must match the name of a secret defined at the app level.
+
+* `path` - (Required) The path at which to mount the secret within the volume.
+
 ---
 
 An `init_container` block supports:
