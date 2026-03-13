@@ -209,6 +209,7 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_size": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			Default:  managedgrafanas.SizeXOne,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(managedgrafanas.SizeXOne),
