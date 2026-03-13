@@ -53,10 +53,11 @@ func TestAccVirtualMachineRunCommand_recreate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_run_command", "test")
 	r := VirtualMachineRunCommandTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config:      r.basicWithScriptError(data),
 			ExpectError: regexp.MustCompile("running the command"),
+			Destroy:     false, // do not destroy the resource group to be used for resource creation in next step
 		},
 		{
 			Config: r.basic(data),
