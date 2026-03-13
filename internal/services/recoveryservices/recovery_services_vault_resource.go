@@ -372,7 +372,6 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 					EnhancedSecurityState: &enhancedSecurityState, // always enabled
 				},
 			}
-		
 
 			var StateRefreshPendingStrings []string
 			var StateRefreshTargetStrings []string
