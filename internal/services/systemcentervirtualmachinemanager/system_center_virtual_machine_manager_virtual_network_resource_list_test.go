@@ -16,10 +16,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestAccSystemCenterVirtualMachineManagerVirtualNetwork_list_basic(t *testing.T) {
+func TestAccSystemCenterVirtualMachineManagerVirtualNetworkListSequential(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests because only one System Center Virtual Machine Manager Server can be onboarded at a time on a given Custom Location
+
 	if os.Getenv("ARM_TEST_CUSTOM_LOCATION_ID") == "" || os.Getenv("ARM_TEST_FQDN") == "" || os.Getenv("ARM_TEST_USERNAME") == "" || os.Getenv("ARM_TEST_PASSWORD") == "" {
 		t.Skip("Skipping as one of `ARM_TEST_CUSTOM_LOCATION_ID`, `ARM_TEST_FQDN`, `ARM_TEST_USERNAME`, `ARM_TEST_PASSWORD` was not specified")
 	}
+
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"scvmmVirtualNetworkList": {
+			"basic": testAccSystemCenterVirtualMachineManagerVirtualNetwork_list_basic,
+		},
+	})
+}
+
+func testAccSystemCenterVirtualMachineManagerVirtualNetwork_list_basic(t *testing.T) {
 
 	r := SystemCenterVirtualMachineManagerVirtualNetworkResource{}
 	listResourceAddress := "azurerm_system_center_virtual_machine_manager_virtual_network.list"
