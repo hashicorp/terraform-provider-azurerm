@@ -10,9 +10,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 )
 
@@ -103,12 +102,11 @@ func (metadata virtualMachineScaleSetUpdateMetaData) updateVmss(ctx context.Cont
 }
 
 func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForAutomaticUpgradePolicy(ctx context.Context) error {
-	rollingUpgradesClient := metadata.Client.VirtualMachineScaleSetRollingUpgradesClient
+	rollingUpgradesClient := metadata.Client.VirtualMachineScaleSetsClient
 	id := metadata.ID
-	virtualMachineScaleSetId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
 
 	log.Printf("[DEBUG] Updating instances for %s %s", metadata.OSType, id)
-	if err := rollingUpgradesClient.StartOSUpgradeThenPoll(ctx, virtualMachineScaleSetId); err != nil {
+	if err := rollingUpgradesClient.VirtualMachineScaleSetRollingUpgradesStartOSUpgradeThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("updating instances for %s %s: %+v", metadata.OSType, id, err)
 	}
 	log.Printf("[DEBUG] Updated instances for %s %s.", metadata.OSType, id)
