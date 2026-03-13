@@ -87,13 +87,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: cloudexadatainfrastructures.ValidateCloudExadataInfrastructureID,
 		},
 
-		"cpu_core_count": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.CpuCoreCount,
-		},
-
 		"data_storage_size_in_tbs": {
 			Type:         pluginsdk.TypeFloat,
 			Optional:     true,
@@ -118,13 +111,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.CloudVMClusterName,
-		},
-
 		"gi_version": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -137,27 +123,11 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ForceNew: true,
 		},
 
-		"license_model": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.LicenseModel,
-		},
-
 		"memory_size_in_gbs": {
 			Type:     pluginsdk.TypeInt,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
-		},
-
-		"ssh_public_keys": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeString,
-			},
 		},
 
 		"subnet_id": {
@@ -187,6 +157,15 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
+		},
+
+		"cpu_core_count": {
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C To prevent configuration drift caused by updates to multicloud resources via the OCI Terraform provider, we are making this property O+C to ensure consistency and accuracy
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.CpuCoreCount,
 		},
 
 		"data_collection_options": {
@@ -230,11 +209,28 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.DataStoragePercentage,
 		},
 
+		"display_name": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C To prevent configuration drift caused by updates to multicloud resources via the OCI Terraform provider, we are making this property O+C to ensure consistency and accuracy
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.CloudVMClusterName,
+		},
+
 		"domain": {
 			Type:     schema.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
+		},
+		"license_model": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C To prevent configuration drift caused by updates to multicloud resources via the OCI Terraform provider, we are making this property O+C to ensure consistency and accuracy
+			Computed:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.LicenseModel,
 		},
 
 		"local_backup_enabled": {
@@ -267,6 +263,17 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1024, 8999),
 		},
 
+		"ssh_public_keys": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			// NOTE: O+C To prevent configuration drift caused by updates to multicloud resources via the OCI Terraform provider, we are making this property O+C to ensure consistency and accuracy
+			Computed: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
 		"system_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -294,6 +301,8 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"file_system_configuration": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			// NOTE: O+C To prevent configuration drift caused by updates to multicloud resources via the OCI Terraform provider, we are making this property O+C to ensure consistency and accuracy
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mount_point": {
