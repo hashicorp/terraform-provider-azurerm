@@ -10,7 +10,7 @@ description: |-
 
 Manages a PIM Eligible Role Assignment.
 
-## Example Usage (Subscription)
+## Example Usage (Subscription, Resource Group, or Resource)
 
 ```hcl
 data "azurerm_subscription" "primary" {}
@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `scope` - (Required) The scope for this eligible role assignment, should be a valid resource ID. Changing this forces a new resource to be created.
 
+~> **Note:** If `scope` is a management group, then `role_definition_id` must NOT include a `/subscriptions` part. If `scope` is a subscription, resource group, or resource, then `role_definition_id` MUST include the `/subscriptions` part. See the examples above for working syntax.
+
 ---
 
 * `justification` - (Optional) The justification of the role assignment. Changing this forces a new resource to be created.
@@ -97,7 +99,6 @@ The following arguments are supported:
 * `schedule` - (Optional) A `schedule` block as defined below. Changing this forces a new resource to be created.
 
 * `ticket` - (Optional) A `ticket` block as defined below. Changing this forces a new resource to be created.
-
 
 * `condition` - (Optional) The condition that limits the resources that the role can be assigned to. See the [official conditions documentation](https://learn.microsoft.com/en-us/azure/role-based-access-control/conditions-overview#what-are-role-assignment-conditions) for details. Changing this forces a new resource to be created.
 
@@ -157,6 +158,19 @@ terraform import azurerm_pim_eligible_role_assignment.example /subscriptions/000
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{scope}|{roleDefinitionId}|{principalId}`, where the first segment is the scope of the role assignment, the second segment is the role definition ID, and the last segment is the principal object ID.
+
+~> **Note:** The format of `resource id` could be different for different kinds of `scope`:
+
+* for scope `Subscription`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000`
+* for scope `Resource Group`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1`
+* for scope `Key Vault`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.KeyVault/vaults/vault1`
+* for scope `Storage Account`, the id format is `/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageAccount1`
+
+~> **Note:** The format of `role definition id` could be different for different kinds of `scope`:
+
+* for scope `Subscription`, `Resource Group`, or any type of `Resource`, the role definition id format is `/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000`
+* for scope `Management Group`, the role definition id format is `/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000`
+
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
