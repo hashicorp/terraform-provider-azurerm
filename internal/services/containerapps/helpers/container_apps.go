@@ -3063,7 +3063,9 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 type AzureQueueScaleRule struct {
 	Name            string                    `tfschema:"name"`
 	QueueLength     int64                     `tfschema:"queue_length"`
+	AccountName     string                    `tfschema:"account_name"`
 	QueueName       string                    `tfschema:"queue_name"`
+	Identity        string                    `tfschema:"identity"`
 	Authentications []ScaleRuleAuthentication `tfschema:"authentication"`
 }
 
@@ -3071,6 +3073,7 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -3085,16 +3088,30 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
+				"account_name": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name of the Azure Storage Account for the queue.",
+				},
+
 				"queue_name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 
+				"identity": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The user-assigned managed identity resource ID to use for queue access.",
+				},
+
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Required: true,
-					MinItems: 1,
+					Optional: true,
+					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"secret_name": {
@@ -3139,6 +3156,7 @@ func AzureQueueScaleRuleSchemaComputed() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3170,6 +3188,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -3208,7 +3227,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 				"authentication": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					MinItems: 1,
+					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"secret_name": {
@@ -3256,6 +3275,7 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3303,7 +3323,7 @@ func HTTPScaleRuleSchema() *pluginsdk.Schema {
 				"authentication": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					MinItems: 1,
+					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"secret_name": {
@@ -3343,6 +3363,7 @@ func HTTPScaleRuleSchemaComputed() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3373,6 +3394,7 @@ func TCPScaleRuleSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -3390,7 +3412,7 @@ func TCPScaleRuleSchema() *pluginsdk.Schema {
 				"authentication": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					MinItems: 1,
+					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"secret_name": {
@@ -3430,6 +3452,7 @@ func TCPScaleRuleSchemaComputed() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
+					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3464,8 +3487,10 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 		r := containerapps.ScaleRule{
 			Name: pointer.To(v.Name),
 			AzureQueue: &containerapps.QueueScaleRule{
+				AccountName: pointer.To(v.AccountName),
 				QueueLength: pointer.To(v.QueueLength),
 				QueueName:   pointer.To(v.QueueName),
+				Identity:    pointer.To(v.Identity),
 			},
 		}
 
