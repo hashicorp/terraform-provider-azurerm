@@ -31,7 +31,6 @@ func TestAccSystemCenterVirtualMachineManagerAvailabilitySetListSequential(t *te
 }
 
 func testAccSystemCenterVirtualMachineManagerAvailabilitySet_list_basic(t *testing.T) {
-
 	r := SystemCenterVirtualMachineManagerAvailabilitySetResource{}
 	listResourceAddress := "azurerm_system_center_virtual_machine_manager_availability_set.list"
 

@@ -31,7 +31,6 @@ func TestAccSystemCenterVirtualMachineManagerVirtualMachineTemplateListSequentia
 }
 
 func testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_list_basic(t *testing.T) {
-
 	r := SystemCenterVirtualMachineManagerVirtualMachineTemplateResource{}
 	listResourceAddress := "azurerm_system_center_virtual_machine_manager_virtual_machine_template.list"
 

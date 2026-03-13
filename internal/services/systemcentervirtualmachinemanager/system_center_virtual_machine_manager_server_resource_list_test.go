@@ -31,7 +31,6 @@ func TestAccSystemCenterVirtualMachineManagerServerListSequential(t *testing.T) 
 }
 
 func testAccSystemCenterVirtualMachineManagerServer_list_basic(t *testing.T) {
-
 	r := SystemCenterVirtualMachineManagerServerResource{}
 	listResourceAddress := "azurerm_system_center_virtual_machine_manager_server.list"
 

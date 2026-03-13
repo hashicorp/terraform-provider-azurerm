@@ -31,7 +31,6 @@ func TestAccSystemCenterVirtualMachineManagerCloudListSequential(t *testing.T) {
 }
 
 func testAccSystemCenterVirtualMachineManagerCloud_list_basic(t *testing.T) {
-
 	r := SystemCenterVirtualMachineManagerCloudResource{}
 	listResourceAddress := "azurerm_system_center_virtual_machine_manager_cloud.list"
 
