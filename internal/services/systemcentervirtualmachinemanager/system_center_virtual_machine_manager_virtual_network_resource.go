@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/virtualnetworks"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/systemcentervirtualmachinemanager/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name system_center_virtual_machine_manager_virtual_network -service-package-name systemcentervirtualmachinemanager -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
 
 type SystemCenterVirtualMachineManagerVirtualNetworkModel struct {
 	Name                                                   string            `tfschema:"name"`
@@ -31,8 +34,9 @@ type SystemCenterVirtualMachineManagerVirtualNetworkModel struct {
 }
 
 var (
-	_ sdk.Resource           = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
-	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
+	_ sdk.Resource             = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
+	_ sdk.ResourceWithUpdate   = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
+	_ sdk.ResourceWithIdentity = SystemCenterVirtualMachineManagerVirtualNetworkResource{}
 )
 
 type SystemCenterVirtualMachineManagerVirtualNetworkResource struct{}
@@ -47,6 +51,10 @@ func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) IDValidationFun
 
 func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) ResourceType() string {
 	return "azurerm_system_center_virtual_machine_manager_virtual_network"
+}
+
+func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Identity() resourceids.ResourceId {
+	return &virtualnetworks.VirtualNetworkId{}
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Arguments() map[string]*pluginsdk.Schema {
@@ -122,6 +130,9 @@ func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Create() sdk.Re
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -146,20 +157,32 @@ func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Read() sdk.Reso
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SystemCenterVirtualMachineManagerVirtualNetworkModel{
-				Name:              id.VirtualNetworkName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
-			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.SystemCenterVirtualMachineManagerServerInventoryItemId = pointer.From(model.Properties.InventoryItemId)
-				state.Tags = pointer.From(model.Tags)
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) flatten(metadata sdk.ResourceMetaData, id *virtualnetworks.VirtualNetworkId, model *virtualnetworks.VirtualNetwork) error {
+	state := SystemCenterVirtualMachineManagerVirtualNetworkModel{
+		Name:              id.VirtualNetworkName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
+		state.Tags = pointer.From(model.Tags)
+
+		if model.Properties != nil {
+			state.SystemCenterVirtualMachineManagerServerInventoryItemId = pointer.From(model.Properties.InventoryItemId)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r SystemCenterVirtualMachineManagerVirtualNetworkResource) Update() sdk.ResourceFunc {

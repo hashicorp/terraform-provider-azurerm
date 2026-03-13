@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerAvailabilitySetSequential(t *testin
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmAvailabilitySet": {
-			"basic":          testAccSystemCenterVirtualMachineManagerAvailabilitySet_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerAvailabilitySet_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerAvailabilitySet_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerAvailabilitySet_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerAvailabilitySet_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerAvailabilitySet_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerAvailabilitySet_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerAvailabilitySet_resourceIdentity,
 		},
 	})
 }
