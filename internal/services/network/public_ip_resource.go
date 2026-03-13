@@ -244,9 +244,9 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	sku := d.Get("sku").(string)
 	ipAllocationMethod := d.Get("allocation_method").(string)
 
-	if strings.EqualFold(sku, "standard") {
-		if !strings.EqualFold(ipAllocationMethod, "static") {
-			return fmt.Errorf("static IP allocation must be used when creating Standard SKU public IP addresses")
+	if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) || strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)) {
+		if !strings.EqualFold(ipAllocationMethod, string(publicipaddresses.IPAllocationMethodStatic)) {
+			return fmt.Errorf("`allocation_method` must be set to `Static` when `sku` is set to `Standard` or `StandardV2`")
 		}
 	}
 

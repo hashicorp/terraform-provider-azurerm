@@ -82,7 +82,7 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU of the Public IP. Possible values are `Basic`, `Standard`, and `StandardV2`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
--> **Note:** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
+-> **Note:** Public IP `Standard` and `StandardV2` SKUs require `allocation_method` to be set to `Static`.
 
 !> **Note:** **On 30 September 2025, `Basic` SKU public IP addresses will be retired in Azure.** You can continue to use your existing `Basic` SKU public IP addresses until then, however, you will no longer be able to create new ones after 31 March 2025. Please see the Azure Update [retirement notification](https://azure.microsoft.com/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/) for more information.
 
