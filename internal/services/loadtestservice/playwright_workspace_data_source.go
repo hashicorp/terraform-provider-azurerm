@@ -39,9 +39,8 @@ func (PlaywrightWorkspaceDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
-				regexp.MustCompile(`[a-zA-Z0-9-]{3,24}`),
+				regexp.MustCompile(`^[a-zA-Z0-9-]{3,24}$`),
 				"length of `name` must be between 3 and 24 characters (inclusive) and contain only numbers, letters, and hyphens (-)"),
 		},
 
@@ -78,7 +77,7 @@ func (PlaywrightWorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (PlaywrightWorkspaceDataSource) ModelObject() interface{} {
-	return nil
+	return &PlaywrightWorkspaceDataSourceModel{}
 }
 
 func (PlaywrightWorkspaceDataSource) ResourceType() string {

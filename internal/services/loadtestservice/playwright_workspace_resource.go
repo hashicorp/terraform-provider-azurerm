@@ -14,9 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/loadtestservice/2025-09-01/playwrightworkspaces"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -66,14 +64,7 @@ func (PlaywrightWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  true,
 		},
 
-		"tags": {
-			Type:         schema.TypeMap,
-			Optional:     true,
-			ValidateFunc: tags.Validate,
-			Elem: &schema.Schema{
-				Type: schema.TypeString,
-			},
-		},
+		"tags": commonschema.Tags(),
 	}
 }
 
