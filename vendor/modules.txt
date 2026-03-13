@@ -166,7 +166,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260306.1182644
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260312.1165223
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -644,6 +644,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/priv
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/privatelinkscopes
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters
+github.com/hashicorp/go-azure-sdk/resource-manager/imagebuilder/2024-02-01/virtualmachineimagetemplate
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules
@@ -1244,7 +1245,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20260306.1182644
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260312.1165223
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
