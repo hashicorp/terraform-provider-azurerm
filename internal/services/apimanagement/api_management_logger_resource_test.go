@@ -22,7 +22,7 @@ func TestAccApiManagementLogger_basicEventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestWithVCR(t, r, []acceptance.TestStep{
 		{
 			Config: r.basicEventHub(data),
 			Check: acceptance.ComposeTestCheckFunc(
