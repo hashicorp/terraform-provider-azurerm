@@ -108,10 +108,8 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 					if maxUnavailableRaw != "" {
 						return fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
 					}
-				} else {
-					if maxSurgeRaw == "" && maxUnavailableRaw == "" {
-						return fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
-					}
+				} else if maxSurgeRaw == "" && maxUnavailableRaw == "" {
+					return fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
 				}
 
 				return nil
@@ -564,7 +562,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		Tags:                   tags.Expand(t),
 		Type:                   pointer.To(agentpools.AgentPoolTypeVirtualMachineScaleSets),
 		VMSize:                 pointer.To(d.Get("vm_size").(string)),
-		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{}), priority),
+		UpgradeSettings:        expandAgentPoolUpgradeSettings(d.Get("upgrade_settings").([]interface{})),
 		WindowsProfile:         expandAgentPoolWindowsProfile(d.Get("windows_profile").([]interface{})),
 
 		// this must always be sent during creation, but is optional for auto-scaled clusters during update
@@ -908,7 +906,7 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 	if d.HasChange("upgrade_settings") {
 		upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
 		priority := d.Get("priority").(string)
-		props.UpgradeSettings = expandAgentPoolUpgradeSettings(upgradeSettingsRaw, priority)
+		props.UpgradeSettings = expandAgentPoolUpgradeSettings(upgradeSettingsRaw)
 	}
 
 	if d.HasChange("scale_down_mode") {
@@ -1397,7 +1395,7 @@ func expandAgentPoolKubeletConfig(input []interface{}) *agentpools.KubeletConfig
 	return result
 }
 
-func expandAgentPoolUpgradeSettings(input []interface{}, priority string) *agentpools.AgentPoolUpgradeSettings {
+func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUpgradeSettings {
 	setting := &agentpools.AgentPoolUpgradeSettings{}
 	if len(input) == 0 || input[0] == nil {
 		return nil
