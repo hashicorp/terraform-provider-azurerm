@@ -5,7 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
-`azurerm_log_analytics_workspace_table` - fix validation for `basic` plan  [GH-30925]
+* `azurerm_log_analytics_workspace_table` - fix validation for `basic` plan  [GH-30925]
 
 ## 4.64.0 (March 12, 2026)
 
