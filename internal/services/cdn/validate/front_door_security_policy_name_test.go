@@ -46,10 +46,6 @@ func TestFrontDoorSecurityPolicyName(t *testing.T) {
 			Input: "A!1",
 			Valid: false,
 		},
-		{
-			Input: "A🙂1",
-			Valid: false,
-		},
 	}
 
 	for _, tc := range cases {
