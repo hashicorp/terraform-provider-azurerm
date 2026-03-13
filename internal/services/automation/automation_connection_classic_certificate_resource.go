@@ -22,9 +22,9 @@ import (
 
 func resourceAutomationConnectionClassicCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionClassicCertificateCreateUpdate,
+		Create: resourceAutomationConnectionClassicCertificateCreate,
 		Read:   resourceAutomationConnectionClassicCertificateRead,
-		Update: resourceAutomationConnectionClassicCertificateCreateUpdate,
+		Update: resourceAutomationConnectionClassicCertificateUpdate,
 		Delete: resourceAutomationConnectionClassicCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
@@ -82,33 +82,25 @@ func resourceAutomationConnectionClassicCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionClassicCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionClassicCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
 
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_connection_classic_certificate", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	fieldDefinitionValues := map[string]string{
-		"SubscriptionName":     d.Get("subscription_name").(string),
-		"SubscriptionId":       d.Get("subscription_id").(string),
-		"CertificateAssetName": d.Get("certificate_asset_name").(string),
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_connection_classic_certificate", id.ID())
 	}
 
 	parameters := connection.ConnectionCreateOrUpdateParameters{
@@ -118,15 +110,78 @@ func resourceAutomationConnectionClassicCertificateCreateUpdate(d *pluginsdk.Res
 			ConnectionType: connection.ConnectionTypeAssociationProperty{
 				Name: pointer.To("AzureClassicCertificate"),
 			},
-			FieldDefinitionValues: &fieldDefinitionValues,
+			FieldDefinitionValues: &map[string]string{
+				"SubscriptionName":     d.Get("subscription_name").(string),
+				"SubscriptionId":       d.Get("subscription_id").(string),
+				"CertificateAssetName": d.Get("certificate_asset_name").(string),
+			},
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationConnectionClassicCertificateRead(d, meta)
+}
+
+func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Connection
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection update.")
+
+	id, err := connection.ParseConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("reading existing %s: %+v", *id, err)
+	}
+
+	fieldDefinitionValues := map[string]string{}
+	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.FieldDefinitionValues != nil {
+		fieldDefinitionValues = *existing.Model.Properties.FieldDefinitionValues
+	}
+
+	if d.HasChange("subscription_name") {
+		fieldDefinitionValues["SubscriptionName"] = d.Get("subscription_name").(string)
+	}
+
+	if d.HasChange("subscription_id") {
+		fieldDefinitionValues["SubscriptionId"] = d.Get("subscription_id").(string)
+	}
+
+	if d.HasChange("certificate_asset_name") {
+		fieldDefinitionValues["CertificateAssetName"] = d.Get("certificate_asset_name").(string)
+	}
+
+	parameters := connection.ConnectionCreateOrUpdateParameters{
+		Name: id.ConnectionName,
+		Properties: connection.ConnectionCreateOrUpdateProperties{
+			ConnectionType: connection.ConnectionTypeAssociationProperty{
+				Name: pointer.To("AzureClassicCertificate"),
+			},
+			FieldDefinitionValues: &fieldDefinitionValues,
+		},
+	}
+
+	if existing.Model != nil && existing.Model.Properties != nil {
+		parameters.Properties.Description = existing.Model.Properties.Description
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationConnectionClassicCertificateRead(d, meta)
 }
@@ -186,8 +241,7 @@ func resourceAutomationConnectionClassicCertificateDelete(d *pluginsdk.ResourceD
 		return err
 	}
 
-	resp, err := client.Delete(ctx, *id)
-	if err != nil {
+	if resp, err := client.Delete(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil
 		}
