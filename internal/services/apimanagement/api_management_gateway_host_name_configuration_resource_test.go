@@ -124,7 +124,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Premium_1"
 }
 
 resource "azurerm_api_management_gateway" "test" {
@@ -189,7 +189,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Premium_1"
 }
 
 resource "azurerm_api_management_gateway" "test" {
@@ -242,7 +242,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku_name = "Developer_1"
+  sku_name = "Premium_1"
 }
 
 resource "azurerm_api_management_gateway" "test" {
