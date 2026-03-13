@@ -109,7 +109,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-pww-%d"
   location = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
 
 func (r PlaywrightWorkspaceResource) basic(data acceptance.TestData) string {

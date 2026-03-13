@@ -61,5 +61,5 @@ data "azurerm_playwright_workspace" "test" {
   name                = azurerm_playwright_workspace.test.name
   resource_group_name = azurerm_playwright_workspace.test.resource_group_name
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+`, data.RandomInteger, data.Locations.Secondary, data.RandomIntOfLength(8))
 }
