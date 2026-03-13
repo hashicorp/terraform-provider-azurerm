@@ -29,14 +29,6 @@ func (c Client) Get(ctx context.Context, tableName string, input GetEntityInput)
 		return result, fmt.Errorf("`tableName` cannot be an empty string")
 	}
 
-	if input.PartitionKey == "" {
-		return result, fmt.Errorf("`input.PartitionKey` cannot be an empty string")
-	}
-
-	if input.RowKey == "" {
-		return result, fmt.Errorf("`input.RowKey` cannot be an empty string")
-	}
-
 	opts := client.RequestOptions{
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
