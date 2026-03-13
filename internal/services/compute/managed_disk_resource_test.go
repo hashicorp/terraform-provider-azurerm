@@ -2413,7 +2413,7 @@ resource "azurerm_disk_access" "test" {
 }
 
 resource "azurerm_disk_access" "test2" {
-  name                = "accda2%d"
+  name                = "acctest2%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
