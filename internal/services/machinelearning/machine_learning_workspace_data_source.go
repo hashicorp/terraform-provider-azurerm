@@ -38,6 +38,11 @@ func dataSourceMachineLearningWorkspace() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
+			"system_datastores_auth_mode": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
@@ -70,6 +75,10 @@ func dataSourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta inte
 	}
 	if err := d.Set("identity", flattenedIdentity); err != nil {
 		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if resp.Model.Properties != nil {
+		d.Set("system_datastores_auth_mode", pointer.From(resp.Model.Properties.SystemDatastoresAuthMode))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
