@@ -1,3 +1,13 @@
+## 4.65.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+
+BUG FIXES:
+* `azurerm_managed_disk` - fix `nil` pointer dereference when updating `disk_access_id`  [GH-31955]
+* `azurerm_log_analytics_workspace_table` - fix validation for `basic` plan  [GH-30925]
+
 ## 4.64.0 (March 12, 2026)
 
 FEATURES:
