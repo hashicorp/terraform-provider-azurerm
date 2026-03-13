@@ -162,8 +162,8 @@ resource "azurerm_kubernetes_cluster_automatic" "test" {
 func (r KubernetesClusterAutomaticResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%[2]d"
-  location = "%[1]s"
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
