@@ -92,7 +92,7 @@ func (PlaywrightWorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (PlaywrightWorkspaceResource) ModelObject() interface{} {
-	return &PlaywrightWorkspaceResource{}
+	return &PlaywrightWorkspaceModel{}
 }
 
 func (PlaywrightWorkspaceResource) ResourceType() string {

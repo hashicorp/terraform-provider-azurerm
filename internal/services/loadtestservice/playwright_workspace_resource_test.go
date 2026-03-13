@@ -104,8 +104,9 @@ func (PlaywrightWorkspaceResource) template(data acceptance.TestData) string {
 provider "azurerm" {
   features {}
 }
+
 resource "azurerm_resource_group" "test" {
-  name     = "acctest-lts-%d"
+  name     = "acctest-rg-pww-%d"
   location = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -118,6 +119,7 @@ resource "azurerm_playwright_workspace" "test" {
   name                = "acctest-pww-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+
   tags = {
     env = "prod"
   }
@@ -145,6 +147,7 @@ resource "azurerm_playwright_workspace" "test" {
   location                  = azurerm_resource_group.test.location
   local_auth_enabled        = true
   regional_affinity_enabled = false
+
   tags = {
     Environment = "Sandbox"
     Label       = "Test"

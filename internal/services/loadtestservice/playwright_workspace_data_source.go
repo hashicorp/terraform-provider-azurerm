@@ -29,7 +29,7 @@ type PlaywrightWorkspaceDataSourceModel struct {
 	Location                string            `tfschema:"location"`
 	LocalAuthEnabled        bool              `tfschema:"local_auth_enabled"`
 	RegionalAffinityEnabled bool              `tfschema:"regional_affinity_enabled"`
-	DataplaneUri            string            `tfschema:"dataplance_uri"`
+	DataplaneUri            string            `tfschema:"dataplane_uri"`
 	WorkspaceId             string            `tfschema:"workspace_id"`
 	Tags                    map[string]string `tfschema:"tags"`
 }
