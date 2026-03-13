@@ -123,6 +123,8 @@ The following arguments are supported:
 
 ~> **Note:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
+* `sticky_settings` - (Optional) a `sticky_settings` block as detailed below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Windows Function App Slot.
 
 * `virtual_network_backup_restore_enabled` - (Optional) Whether backup and restore operations over the linked virtual network are enabled. Defaults to `false`.
@@ -724,6 +726,14 @@ A `storage_account` block supports the following:
 * `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles`.
 
 * `mount_path` - (Optional) The path at which to mount the storage share.
+
+---
+
+A `sticky_settings` block supports the following:
+
+* `app_setting_names` - (Optional) A list of `app_setting` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
+
+* `connection_string_names` - (Optional) A list of `connection_string` names that the Windows Function App will not swap between Slots when a swap operation is triggered.
 
 ## Attributes Reference
 
