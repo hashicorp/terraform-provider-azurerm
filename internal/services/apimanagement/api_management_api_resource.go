@@ -400,7 +400,7 @@ func resourceApiManagementApiCreate(d *pluginsdk.ResourceData, meta interface{})
 	// First we execute import and then updated the other props.
 	if importVs, ok := d.GetOk("import"); ok {
 		if apiParams := expandApiManagementApiImport(importVs.([]interface{}), apiType, soapApiType,
-			path, d.Get("service_url").(string), version, versionSetId); apiParams != nil {
+			path, d.Get("service_url").(string), version, versionSetId, displayName); apiParams != nil {
 			result, err := client.CreateOrUpdate(ctx, id, *apiParams, api.CreateOrUpdateOperationOptions{})
 			if err != nil {
 				return fmt.Errorf("creating with import of %s: %+v", id, err)
@@ -527,7 +527,7 @@ func resourceApiManagementApiUpdate(d *pluginsdk.ResourceData, meta interface{})
 		if vs, hasImport := d.GetOk("import"); hasImport {
 			d.Partial(true)
 			if apiParams := expandApiManagementApiImport(vs.([]interface{}), apiType, soapApiType,
-				path, serviceUrl, version, versionSetId); apiParams != nil {
+				path, serviceUrl, version, versionSetId, displayName); apiParams != nil {
 				result, err := client.CreateOrUpdate(ctx, *id, *apiParams, api.CreateOrUpdateOperationOptions{})
 				if err != nil {
 					return fmt.Errorf("creating with import of %s: %+v", id, err)
@@ -799,7 +799,7 @@ func soapApiTypeFromApiType(apiType api.ApiType) api.SoapApiType {
 	}[apiType]
 }
 
-func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, soapApiType api.SoapApiType, path, serviceUrl, version, versionSetId string) *api.ApiCreateOrUpdateParameter {
+func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, soapApiType api.SoapApiType, path, serviceUrl, version, versionSetId string, displayName string) *api.ApiCreateOrUpdateParameter {
 	if len(importVs) == 0 || importVs[0] == nil {
 		return nil
 	}
@@ -814,11 +814,12 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 
 	apiParams := api.ApiCreateOrUpdateParameter{
 		Properties: &api.ApiCreateOrUpdateProperties{
-			Type:    pointer.To(apiType),
-			ApiType: pointer.To(soapApiType),
-			Format:  pointer.To(api.ContentFormat(contentFormat)),
-			Value:   pointer.To(contentValue),
-			Path:    path,
+			Type:        pointer.To(apiType),
+			ApiType:     pointer.To(soapApiType),
+			Format:      pointer.To(api.ContentFormat(contentFormat)),
+			Value:       pointer.To(contentValue),
+			Path:        path,
+			DisplayName: pointer.To(displayName),
 		},
 	}
 
