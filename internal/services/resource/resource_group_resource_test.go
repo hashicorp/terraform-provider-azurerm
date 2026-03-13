@@ -198,7 +198,6 @@ provider "azurerm" {
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
-
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
