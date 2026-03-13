@@ -108,14 +108,10 @@ func (r KubernetesClusterAutomaticResource) Exists(ctx context.Context, clients 
 
 func (r KubernetesClusterAutomaticResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
+%[1]s
 
 resource "azurerm_kubernetes_cluster_automatic" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
@@ -144,17 +140,12 @@ resource "azurerm_kubernetes_cluster_automatic" "import" {
 
 func (r KubernetesClusterAutomaticResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
-
-provider "azurerm" {
-  features {}
-}
+%[1]s
 
 resource "azurerm_kubernetes_cluster_automatic" "test" {
-  name                = "acctestaks%d"
+  name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  node_resource_group = "acctestaks%d-nodes"
 
   identity {
     type = "SystemAssigned"
@@ -165,14 +156,14 @@ resource "azurerm_kubernetes_cluster_automatic" "test" {
     some_key    = "some-value"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r KubernetesClusterAutomaticResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
