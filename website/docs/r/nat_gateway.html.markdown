@@ -3,7 +3,7 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nat_gateway"
 description: |-
-  Manages a Azure NAT Gateway.
+  Manages an Azure NAT Gateway.
 ---
 # azurerm_nat_gateway
 
@@ -41,13 +41,15 @@ The following arguments are supported:
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout which should be used in minutes. Defaults to `4`.
 
-* `sku_name` - (Optional) The SKU which should be used. At this time the only supported value is `Standard`. Defaults to `Standard`.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource. 
+* `sku_name` - (Optional) The SKU which should be used. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
 * `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
 
--> **Note:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
+-> **Note:** For `Standard`, `zones` may be omitted for a no-zone deployment or set to a single Availability Zone. For more information, please see the [Azure documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#availability-zones).
+
+~> **Note:** For `StandardV2`, `zones` should usually be omitted. `StandardV2` NAT Gateway is zone-redundant by default, and Azure may return `zones` as `1`, `2`, and `3` in state even when `zones` is not specified, see [MS learn documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#standardv2-nat-gateway) for more info.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource. 
 
 ## Attributes Reference
 
@@ -68,7 +70,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-NAT Gateway can be imported using the `resource id`, e.g.
+A NAT Gateway can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nat_gateway.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1

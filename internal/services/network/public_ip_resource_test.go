@@ -22,6 +22,7 @@ import (
 type PublicIpResource struct{}
 
 func TestAccPublicIpStatic_basic(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 
@@ -41,6 +42,7 @@ func TestAccPublicIpStatic_basic(t *testing.T) {
 }
 
 func TestAccPublicIpStatic_requiresImport(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 
@@ -96,6 +98,7 @@ func TestAccPublicIp_zonesMultiple(t *testing.T) {
 }
 
 func TestAccPublicIpStatic_basic_withDNSLabel(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 	dnl := fmt.Sprintf("acctestdnl-%d", data.RandomInteger)
@@ -131,6 +134,7 @@ func TestAccPublicIpStatic_standard_withIPv6(t *testing.T) {
 }
 
 func TestAccPublicIpDynamic_basic_withIPv6(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 	ipVersion := "IPv6"
@@ -148,6 +152,7 @@ func TestAccPublicIpDynamic_basic_withIPv6(t *testing.T) {
 }
 
 func TestAccPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 
@@ -164,6 +169,7 @@ func TestAccPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {
 }
 
 func TestAccPublicIpStatic_basic_withIPv4(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 	ipVersion := "IPv4"
@@ -180,13 +186,13 @@ func TestAccPublicIpStatic_basic_withIPv4(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpStatic_standard(t *testing.T) {
+func TestAccPublicIpStatic_standardVTwo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standard(data),
+			Config: r.standardVTwo(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -221,6 +227,7 @@ func TestAccPublicIpStatic_standard_withDDoS(t *testing.T) {
 }
 
 func TestAccPublicIpStatic_disappears(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 
@@ -285,7 +292,7 @@ func TestAccPublicIpStatic_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.static_basic(data),
+			Config: r.static_standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -341,6 +348,7 @@ func TestAccPublicIpStatic_standardPrefixWithTags(t *testing.T) {
 }
 
 func TestAccPublicIpDynamic_basic(t *testing.T) {
+	skipIfBasicSkuPublicIPDeprecated(t)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
 
@@ -394,12 +402,12 @@ func TestAccPublicIpStatic_globalTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.globalTier(data),
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandard), string(publicipaddresses.PublicIPAddressSkuTierGlobal)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("sku").HasValue("Standard"),
-				check.That(data.ResourceName).Key("sku_tier").HasValue("Global"),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandard)),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipaddresses.PublicIPAddressSkuTierGlobal)),
 			),
 		},
 		data.ImportStep(),
@@ -412,12 +420,30 @@ func TestAccPublicIpStatic_regionalTier(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.regionalTier(data),
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandard), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("sku").HasValue("Basic"),
-				check.That(data.ResourceName).Key("sku_tier").HasValue("Regional"),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandard)),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccPublicIpStatic_standardV2RegionalTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
+	r := PublicIpResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo), string(publicipaddresses.PublicIPAddressSkuTierRegional)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
+				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)),
+				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipaddresses.PublicIPAddressSkuTierRegional)),
 			),
 		},
 		data.ImportStep(),
@@ -469,7 +495,28 @@ func (PublicIpResource) Destroy(ctx context.Context, client *clients.Client, sta
 }
 
 func (r PublicIpResource) basic(data acceptance.TestData) string {
-	return r.static_basic(data)
+	return r.static_standard(data)
+}
+
+func (PublicIpResource) static_standard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpublicip-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (PublicIpResource) static_basic(data acceptance.TestData) string {
@@ -551,7 +598,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
 }
 
-func (PublicIpResource) standard(data acceptance.TestData) string {
+func (PublicIpResource) standardVTwo(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -567,7 +614,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
+  sku                 = "StandardV2"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -754,7 +801,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Basic"
+  sku                     = "Standard"
   domain_name_label       = "acctest-%d"
   domain_name_label_scope = "TenantReuse"
   idle_timeout_in_minutes = 30
@@ -778,7 +825,7 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  sku                     = "Basic"
+  sku                     = "Standard"
   idle_timeout_in_minutes = %d
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, idleTimeout)
@@ -844,7 +891,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   tags = {
     environment = "Production"
@@ -870,7 +917,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Basic"
+  sku                 = "Standard"
 
   tags = {
     environment = "staging"
@@ -896,7 +943,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   allocation_method = "Static"
-  sku               = "Basic"
+  sku               = "Standard"
   domain_name_label = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, fmt.Sprintf("test%s", strings.ToLower(data.RandomStringOfLength(59)))) // prepend with test (4+59) to ensure the string starts with a letter
@@ -928,7 +975,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIpResource) globalTier(data acceptance.TestData) string {
+func (PublicIpResource) skuTier(data acceptance.TestData, sku string, tier string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -944,32 +991,10 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
-  sku_tier            = "Global"
+  sku                 = "%s"
+  sku_tier            = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (PublicIpResource) regionalTier(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctestpublicip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "Basic"
-  sku_tier            = "Regional"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, tier)
 }
 
 func (PublicIpResource) zonesSingle(data acceptance.TestData) string {
@@ -1043,4 +1068,16 @@ resource "azurerm_public_ip" "test" {
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func skipIfBasicSkuPublicIPDeprecated(t *testing.T) {
+	losAngelesLocation, err := time.LoadLocation("America/Los_Angeles")
+	if err != nil {
+		losAngelesLocation = time.UTC
+	}
+
+	deprecationTime := time.Date(2025, time.April, 1, 0, 0, 0, 0, losAngelesLocation)
+	if !time.Now().In(losAngelesLocation).Before(deprecationTime) {
+		t.Skip("skipping as Basic SKU public IP creation is no longer permitted after March 31, 2025")
+	}
 }
