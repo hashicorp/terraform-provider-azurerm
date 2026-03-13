@@ -45,6 +45,7 @@ func TestAccSecurityCenterStorageDefender_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("malware_scanning_blob_scan_results_options").HasValue("blobIndexTags"),
 			),
 		},
 		data.ImportStep(),
@@ -141,6 +142,21 @@ func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterStorageDefender_blobScanResultsOptionsNone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_storage_defender", "test")
+	r := SecurityCenterStorageDefenderResource{}
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blobScanResultsOptionsNone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("malware_scanning_blob_scan_results_options").HasValue("None"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -195,6 +211,7 @@ resource "azurerm_security_center_storage_defender" "test" {
   override_subscription_settings_enabled      = true
   malware_scanning_on_upload_enabled          = true
   malware_scanning_on_upload_cap_gb_per_month = 4
+  malware_scanning_blob_scan_results_options  = "blobIndexTags"
   sensitive_data_discovery_enabled            = true
 }
 `, r.template(data))
@@ -227,4 +244,17 @@ resource "azurerm_security_center_storage_defender" "test" {
   scan_results_event_grid_topic_id       = azurerm_eventgrid_topic.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SecurityCenterStorageDefenderResource) blobScanResultsOptionsNone(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_security_center_storage_defender" "test" {
+  storage_account_id                        = azurerm_storage_account.test.id
+  override_subscription_settings_enabled    = true
+  malware_scanning_on_upload_enabled        = true
+  malware_scanning_blob_scan_results_options = "None"
+}
+`, r.template(data))
 }
