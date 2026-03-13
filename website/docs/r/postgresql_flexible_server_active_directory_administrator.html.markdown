@@ -80,7 +80,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Flexible Server Active Directory Administrator.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Flexible Server Active Directory Administrator.
-* `delete` - (Defaults to 30 minutes) Used when deleting the PostgreSQL Flexible Server Active Directory Administrator.
+* `delete` - (Defaults to 45 minutes) Used when deleting the PostgreSQL Flexible Server Active Directory Administrator.
 
 ## Import
 
