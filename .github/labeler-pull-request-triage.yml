@@ -219,6 +219,11 @@ service/domain-services:
   - any-glob-to-any-file:
     - internal/services/domainservices/**/*
 
+service/durable-task:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/durabletask/**/*
+
 service/dynatrace:
 - changed-files:
   - any-glob-to-any-file:
