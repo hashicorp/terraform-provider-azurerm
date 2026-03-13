@@ -143,19 +143,29 @@ A `backend_http_settings` block exports the following:
 
 * `id` - The ID of the Backend HTTP Settings Configuration.
 
-* `probe_id` - The ID of the associated Probe.
+* `affinity_cookie_name` - The name of the affinity cookie.
+
+* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
+
+* `certificate_chain_validation_enabled` - Is `certificate chain validation` enabled.
+
+* `connection_draining` - A `connection_draining` block as defined below.
 
 * `cookie_based_affinity` - Is Cookie-Based Affinity enabled?
 
-* `affinity_cookie_name` - The name of the affinity cookie.
-
 * `dedicated_backend_connection_enabled` - Whether a dedicated backend connection is used.
+
+* `host_name` - Host header to be sent to the backend servers.
 
 * `name` - The name of the Backend HTTP Settings Collection.
 
 * `path` - The path which is used as a prefix for all HTTP requests.
 
+* `pick_host_name_from_backend_address` - Whether host header will be picked from the host name of the backend server.
+
 * `port` - The port which is used for this Backend HTTP Settings Collection.
+
+* `probe_id` - The ID of the associated Probe.
 
 * `probe_name` - The name of the associated HTTP Probe.
 
@@ -163,15 +173,11 @@ A `backend_http_settings` block exports the following:
 
 * `request_timeout` - The request timeout in seconds.
 
-* `host_name` - Host header to be sent to the backend servers.
+* `sni_name` - The SNI host name sent to the backend server for TLS negotiation.
 
-* `pick_host_name_from_backend_address` - Whether host header will be picked from the host name of the backend server.
-
-* `authentication_certificate` - One or more `authentication_certificate` blocks as defined below.
+* `sni_validation_enabled` - Is `SNI validation` enabled.
 
 * `trusted_root_certificate_names` - A list of `trusted_root_certificate` names.
-
-* `connection_draining` - A `connection_draining` block as defined below.
 
 ---
 
