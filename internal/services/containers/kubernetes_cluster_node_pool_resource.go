@@ -905,7 +905,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("upgrade_settings") {
 		upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
-		priority := d.Get("priority").(string)
 		props.UpgradeSettings = expandAgentPoolUpgradeSettings(upgradeSettingsRaw)
 	}
 
