@@ -3,6 +3,8 @@ package commands
 import (
 	"bufio"
 	"bytes"
+	"errors"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -21,11 +23,17 @@ type ListDocumentationCommand struct {
 	Ui cli.Ui
 }
 
+type ListDocumentationConfig struct {
+	Path             string
+	SubCategory      string
+	AddSectionToName bool
+}
+
 var _ cli.Command = &ListDocumentationCommand{}
 
 type ListDocumentationData struct {
 	Resource      string
-	Section       string
+	SubCategory   string
 	FriendlyTitle string
 	Examples      []Example
 	Arguments     []Argument
@@ -60,14 +68,14 @@ var defaultListAttributes = []Attribute{
 }
 
 func (c ListDocumentationCommand) Run(args []string) int {
-	if len(args) < 1 {
-		c.Ui.Error("usage: scaff list-documentation <directory>")
+	config := &ListDocumentationConfig{}
+
+	if err := config.parseArgs(args); err != nil {
+		c.Ui.Error(err.Error())
 		return 1
 	}
 
-	root := args[0]
-
-	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+	err := filepath.WalkDir(config.Path, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -77,7 +85,7 @@ func (c ListDocumentationCommand) Run(args []string) int {
 		}
 
 		if strings.HasSuffix(d.Name(), "_resource_list.go") {
-			if err := c.processFile(path); err != nil {
+			if err := c.processFile(path, config); err != nil {
 				c.Ui.Error(fmt.Sprintf("❌ %s: %v", path, err))
 			} else {
 				c.Ui.Info(fmt.Sprintf("✅ processed %s", path))
@@ -95,26 +103,56 @@ func (c ListDocumentationCommand) Run(args []string) int {
 	return 0
 }
 
+func (config *ListDocumentationConfig) parseArgs(args []string) error {
+	argSet := flag.NewFlagSet("list-documentation", flag.ContinueOnError)
+
+	argSet.StringVar(&config.Path, "path", "", "(Required) Path to file or directory to scan")
+	argSet.StringVar(&config.SubCategory, "subcategory", "", "(Optional) Subcategory to override section mapping")
+	argSet.BoolVar(&config.AddSectionToName, "addsectiontoname", false, "(Optional) Prepend section name to attribute names")
+
+	if err := argSet.Parse(args); err != nil {
+		return err
+	}
+
+	if config.Path == "" {
+		return errors.New("path is required")
+	}
+
+	return nil
+}
+
 func (c ListDocumentationCommand) Synopsis() string {
 	return "Generate list resource documentation from Go source files"
 }
 
 func (c ListDocumentationCommand) Help() string {
 	return `
-Usage: scaff list-documentation <file>
+Usage: scaff list-documentation [options]
 
   Generates documentation for list resources by scanning Go source files
-  in the specified directory for files ending with '_resource_list.go'.
+  for files ending with '_resource_list.go'.
 
-Parameters:
-  <directory> (Required) The file or directory to scan for list resource files.
+Options:
+  -path=<path>              Path to file or directory to scan (required)
+  -subcategory=<name>       Override the subcategory/section (e.g., "Network", "Database")
+  -addsectiontoname         Prepend section name to attribute names (boolean flag)
 
-Example:
+Examples:
+  # Basic usage (backward compatible)
   scaff list-documentation internal/services/network
+
+  # Using flags
+  scaff list-documentation -path=internal/services/network
+
+  # With subcategory override
+  scaff list-documentation -path=internal/services/mssql -subcategory=Database
+
+  # With section name prefixing enabled
+  scaff list-documentation -path=internal/services/mssql -addsectiontoname
 `
 }
 
-func (c ListDocumentationCommand) processFile(filename string) error {
+func (c ListDocumentationCommand) processFile(filename string, config *ListDocumentationConfig) error {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, filename, nil, 0)
 	if err != nil {
@@ -244,31 +282,31 @@ func (c ListDocumentationCommand) processFile(filename string) error {
 		attributes = defaultListAttributes
 	}
 
-	md, err := renderMarkdown(resourceName, attributes, filename)
+	md, err := config.renderMarkdown(resourceName, attributes, filename)
 	if err != nil {
 		return err
 	}
 
-	base := strings.TrimSuffix(filepath.Base(filename), "_resource_list.go")
-
-	out, err := markdownPathFromGo(filename, "", true)
+	docsDirectory, err := markdownPathFromGo(filename, "", true)
 	if err != nil {
 		return err
 	}
-	out = filepath.Join(out, base+".html.markdown")
 
-	if err := os.WriteFile("/"+out, []byte(md), 0644); err != nil {
+	baseFileName := strings.TrimSuffix(filepath.Base(filename), "_resource_list.go")
+	outputPath := filepath.Join(docsDirectory, baseFileName+".html.markdown")
+
+	if err := os.WriteFile("/"+outputPath, []byte(md), 0644); err != nil {
 		return err
 	}
 
-	c.Ui.Info(fmt.Sprintf("✅ generated %s", out))
+	c.Ui.Info(fmt.Sprintf("✅ generated %s", outputPath))
 	return nil
 }
 
-func renderMarkdown(resource string, attrs []Attribute, filename string) (string, error) {
+func (config *ListDocumentationConfig) renderMarkdown(resource string, attrs []Attribute, filename string) (string, error) {
 	tmpl := template.Must(template.New("list_document.html.markdown.gotpl").Funcs(templatehelpers.TplFuncMap).ParseFS(Templatedir, "templates/list_document.html.markdown.gotpl"))
 
-	data, err := buildTemplateData(resource, attrs, filename)
+	data, err := config.buildTemplateData(resource, attrs, filename)
 	if err != nil {
 		return "", err
 	}
@@ -280,92 +318,100 @@ func renderMarkdown(resource string, attrs []Attribute, filename string) (string
 	return b.String(), nil
 }
 
-func buildExampleForAttribute(a Attribute, friendlyTitleValue, sectionFromName, filename string) (Example, error) {
-	exampleNameBit := ""
+func (config *ListDocumentationConfig) buildExampleForAttribute(a Attribute, resourceTitle string, section string, filename string) (Example, error) {
+	exampleNameSuffix := ""
 	if a.Name == "resource_group_name" {
-		exampleNameBit = "-rg"
+		exampleNameSuffix = "-rg"
 	}
+	attributeName := config.checkAddSectionToName(section, a.Name)
 
 	switch {
 	case a.Name == "subscription_id":
 		return Example{
-			Heading: fmt.Sprintf("List all %ss in the subscription", friendlyTitleValue),
+			Heading: fmt.Sprintf("List all %ss in the subscription", resourceTitle),
 		}, nil
 
 	case isNameAttribute(a.Name):
 		return Example{
-			Heading:               fmt.Sprintf("List all %ss in a %s", friendlyTitleValue, nameFriendlyName(a.Name)),
+			Heading:               fmt.Sprintf("List all %ss in a %s", resourceTitle, nameTitle(a.Name)),
 			AttributeName:         a.Name,
-			AttributeExampleValue: fmt.Sprintf(`"example%s"`, exampleNameBit),
+			AttributeExampleValue: fmt.Sprintf(`"example%s"`, exampleNameSuffix),
 		}, nil
 
 	default:
-		idExamplePath, err := markdownPathFromGo(filename, idRemoveID(checkAddSectionToName(sectionFromName, a.Name)), false)
+		idExamplePath, err := markdownPathFromGo(filename, idRemoveID(attributeName), false)
 		if err != nil {
 			return Example{}, fmt.Errorf("failed to derive markdown path for example value for attribute `%s`: %w", a.Name, err)
 		}
 		idExample := getExampleValueForIDAttribute(idExamplePath)
 
 		return Example{
-			Heading:               fmt.Sprintf("List %ss in a %s", friendlyTitleValue, idFriendlyName(checkAddSectionToName(sectionFromName, a.Name))),
+			Heading:               fmt.Sprintf("List %ss in a %s", resourceTitle, idTitle(attributeName)),
 			AttributeName:         a.Name,
 			AttributeExampleValue: idExample,
 		}, nil
 	}
 }
 
-func buildArgumentForAttribute(a Attribute, sectionFromName string) (Argument, bool) {
+func (config *ListDocumentationConfig) buildArgumentForAttribute(a Attribute, sectionFromName string) (Argument, error) {
 	req := "Required"
 	if a.Optional {
 		req = "Optional"
 	}
 
-	extraBit := ""
+	extraDescription := ""
 	if a.Name == "subscription_id" {
-		extraBit = " Defaults to the value specified in the Provider Configuration."
+		extraDescription = " Defaults to the value specified in the Provider Configuration."
 	}
+
+	friendlyName := config.checkAddSectionToName(sectionFromName, a.Name)
 
 	if isIDAttribute(a.Name) {
 		return Argument{
 			Name:        a.Name,
 			Requirement: req,
-			Description: fmt.Sprintf("The ID of the %s to query.%s", idFriendlyName(checkAddSectionToName(sectionFromName, a.Name)), extraBit),
-		}, true
+			Description: fmt.Sprintf("The ID of the %s to query.%s", idTitle(friendlyName), extraDescription),
+		}, nil
 	}
 
 	if isNameAttribute(a.Name) {
 		return Argument{
 			Name:        a.Name,
 			Requirement: req,
-			Description: fmt.Sprintf("The name of the %s to query.", nameFriendlyName(a.Name)),
-		}, true
+			Description: fmt.Sprintf("The name of the %s to query.", nameTitle(friendlyName)),
+		}, nil
 	}
 
-	return Argument{}, false
+	return Argument{}, fmt.Errorf("%s is not an ID or name attribute", a.Name)
 }
 
-func buildTemplateData(resource string, attrs []Attribute, filename string) (ListDocumentationData, error) {
-	friendlyTitleValue := friendlyTitle(resource)
-	sectionFromTitle := getSectionFromResourceTitle(friendlyTitleValue)
-	mappedSection := mapSectionToActualSection(sectionFromTitle)
-	sectionFromName := getSectionFromResourceName(resource)
+func (config *ListDocumentationConfig) buildTemplateData(resource string, attrs []Attribute, filename string) (ListDocumentationData, error) {
+	resourceTitle := resourceTitle(resource)
+	section := getSection(resource)
+
+	subCategory := section
+	if config.SubCategory != "" {
+		subCategory = config.SubCategory
+	}
 
 	data := ListDocumentationData{
 		Resource:      resource,
-		Section:       mappedSection,
-		FriendlyTitle: friendlyTitleValue,
+		SubCategory:   subCategory,
+		FriendlyTitle: resourceTitle,
 	}
 
 	for _, a := range attrs {
-		example, err := buildExampleForAttribute(a, friendlyTitleValue, sectionFromName, filename)
+		example, err := config.buildExampleForAttribute(a, resourceTitle, section, filename)
 		if err != nil {
-			return ListDocumentationData{}, fmt.Errorf("failed to build example for attribute %s: %w", a.Name, err)
+			return ListDocumentationData{}, err
 		}
 		data.Examples = append(data.Examples, example)
 
-		if arg, shouldAdd := buildArgumentForAttribute(a, sectionFromName); shouldAdd {
-			data.Arguments = append(data.Arguments, arg)
+		arg, err := config.buildArgumentForAttribute(a, section)
+		if err != nil {
+			return ListDocumentationData{}, err
 		}
+		data.Arguments = append(data.Arguments, arg)
 	}
 
 	return data, nil
@@ -383,9 +429,8 @@ func idRemoveID(name string) string {
 	return strings.TrimSuffix(name, "_id")
 }
 
-// toFriendlyName converts snake_case to Title Case, removing the specified suffix
-func toFriendlyName(name, suffix string) string {
-	base := strings.TrimSuffix(name, suffix)
+func toTitle(name, suffix string) string {
+	base := strings.TrimSuffix(strings.TrimPrefix(name, "azurerm_"), suffix)
 	parts := strings.Split(base, "_")
 
 	for i, p := range parts {
@@ -398,82 +443,34 @@ func toFriendlyName(name, suffix string) string {
 	return strings.Join(parts, " ")
 }
 
-func nameFriendlyName(name string) string {
-	return toFriendlyName(name, "_name")
+func nameTitle(name string) string {
+	return toTitle(name, "_name")
 }
 
-func idFriendlyName(name string) string {
-	return toFriendlyName(name, "_id")
+func idTitle(name string) string {
+	return toTitle(name, "_id")
 }
 
-func friendlyTitle(name string) string {
-
-	parts := strings.Split(strings.TrimPrefix(name, "azurerm_"), "_")
-
-	for i, p := range parts {
-		if len(p) == 0 {
-			continue
-		}
-		parts[i] = strings.ToUpper(p[:1]) + strings.ToLower(p[1:])
-	}
-	return strings.Join(parts, " ")
+func resourceTitle(name string) string {
+	return toTitle(name, "")
 }
 
-func checkAddSectionToName(section string, name string) string {
+func (config *ListDocumentationConfig) checkAddSectionToName(section string, name string) string {
 	if name == "subscription_id" || name == "resource_group_name" {
 		return name
 	}
 
-	sectionsCheck := []string{"mysql"}
-	for _, s := range sectionsCheck {
-		if s == section {
-			return s + "_" + name
-		}
+	if config.AddSectionToName {
+		return section + "_" + name
 	}
 
 	return name
 }
 
-func removeSectionFromResourceName(section string, resource string) string {
-	if strings.HasPrefix(resource, "azurerm_"+section+"_") {
-		resource = strings.TrimPrefix(resource, "azurerm_"+section+"_")
-	}
-	resource = strings.TrimPrefix(resource, "azurerm_")
-	return resource
-}
-
-func getSectionFromResourceTitle(title string) string {
-	parts := strings.Split(title, " ")
-
-	return parts[0]
-}
-
-func getSectionFromResourceName(name string) string {
+func getSection(name string) string {
 	parts := strings.Split(name, "_")
 
 	return parts[1]
-}
-
-func mapSectionToActualSection(section string) string {
-
-	var sectionCategoryMap = map[string]string{
-		"Firewall":    "Network",
-		"Mssql":       "Database",
-		"Mysql":       "Database",
-		"Application": "Network",
-		"Ip":          "Network",
-		"Web":         "Network",
-		"Route":       "Network",
-		"Public":      "Network",
-		"Private":     "Network",
-		"Nat":         "Network",
-		"Virtual":     "Network",
-	}
-
-	if category, ok := sectionCategoryMap[section]; ok {
-		return category
-	}
-	return section
 }
 
 func markdownPathFromGo(goPath string, attributeName string, isOutput bool) (string, error) {
@@ -510,7 +507,7 @@ func markdownPathFromGo(goPath string, attributeName string, isOutput bool) (str
 func getExampleValueForIDAttribute(filepath string) string {
 	file, err := os.Open("/" + filepath)
 	if err != nil {
-		return "failed to open"
+		return fmt.Sprintf("failed to open %s", filepath)
 	}
 	defer file.Close()
 
