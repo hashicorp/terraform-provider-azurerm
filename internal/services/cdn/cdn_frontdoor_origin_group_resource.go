@@ -9,9 +9,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/azuresdkhacks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,10 +30,10 @@ func resourceCdnFrontDoorOriginGroup() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorOriginGroupDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -285,6 +287,8 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 
 func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cdn.FrontDoorOriginGroupsClient
+	ruleSetsClient := meta.(*clients.Client).Cdn.FrontDoorRuleSetsClient
+	rulesClient := meta.(*clients.Client).Cdn.FrontDoorRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -293,14 +297,29 @@ func resourceCdnFrontDoorOriginGroupDelete(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
+	referencePollerType := custompollers.NewFrontDoorOriginGroupWaitForRuleReferencesPoller(ruleSetsClient, rulesClient, *id)
+	referencePoller := pollers.NewPoller(referencePollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if err = referencePoller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for rule references to clear for %s: %+v", *id, err)
+	}
+
 	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+		return fmt.Errorf("waiting for the deletion operation of %s: %+v", *id, err)
 	}
+
+	pollerType := custompollers.NewFrontDoorOriginGroupDeletePoller(client, *id)
+	poller := pollers.NewPoller(pollerType, 30*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if err = poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
+	}
+
 	return nil
 }
 

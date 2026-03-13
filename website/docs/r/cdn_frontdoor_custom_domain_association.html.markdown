@@ -10,6 +10,8 @@ description: |-
 
 Manages the association between a Front Door (standard/premium) Custom Domain and one or more Front Door (standard/premium) Routes.
 
+-> **Note:** Domain ownership validation for Azure Front Door custom domains is performed asynchronously by the service (typically transitioning through states like `Submitting` and `Pending` before becoming `Approved`). For details on the required `_dnsauth` TXT record and the possible validation states, see the Azure Front Door documentation on [domain validation](https://learn.microsoft.com/azure/frontdoor/domain#domain-validation).
+
 ## Example Usage
 
 ```hcl
@@ -132,10 +134,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Front Door Custom Domain Association.
+* `create` - (Defaults to 4 hours) Used when creating the Front Door Custom Domain Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Custom Domain Association.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Custom Domain Association.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Custom Domain Association.
+* `update` - (Defaults to 4 hours) Used when updating the Front Door Custom Domain Association.
+* `delete` - (Defaults to 6 hours) Used when deleting the Front Door Custom Domain Association.
 
 ## Import
 
@@ -144,3 +146,9 @@ Front Door Custom Domain Associations can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_cdn_frontdoor_custom_domain_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/associations/assoc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2025-04-15
