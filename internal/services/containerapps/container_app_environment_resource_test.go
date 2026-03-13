@@ -1296,3 +1296,118 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary, alt.tenantId, alt.subscriptionId)
 }
+
+func TestAccContainerAppEnvironment_premiumIngressDefaults(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumIngressDefaults(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress_configuration.0.workload_profile_name").HasValue("premium-ingress"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.workload_profile_type").HasValue("D4"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.minimum_node_count").HasValue("2"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.maximum_node_count").HasValue("10"),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id", "workload_profile"),
+	})
+}
+
+func TestAccContainerAppEnvironment_premiumIngressCustom(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumIngressCustom(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress_configuration.0.workload_profile_name").HasValue("my-ingress"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.workload_profile_type").HasValue("D8"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.minimum_node_count").HasValue("3"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.maximum_node_count").HasValue("15"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.termination_grace_period_minutes").HasValue("10"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.request_idle_timeout").HasValue("5"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.header_count_limit").HasValue("200"),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id", "workload_profile"),
+	})
+}
+
+func TestAccContainerAppEnvironment_premiumIngressUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premiumIngressDefaults(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress_configuration.0.workload_profile_name").HasValue("premium-ingress"),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id", "workload_profile"),
+		{
+			Config: r.premiumIngressCustom(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("ingress_configuration.0.header_count_limit").HasValue("200"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.request_idle_timeout").HasValue("5"),
+				check.That(data.ResourceName).Key("ingress_configuration.0.workload_profile_type").HasValue("D8"),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id", "workload_profile"),
+	})
+}
+
+func (r ContainerAppEnvironmentResource) premiumIngressDefaults(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  ingress_configuration {}
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) premiumIngressCustom(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  ingress_configuration {
+    workload_profile_name             = "my-ingress"
+    workload_profile_type             = "D8"
+    minimum_node_count                = 3
+    maximum_node_count                = 15
+    termination_grace_period_minutes  = 10
+    request_idle_timeout              = 5
+    header_count_limit                = 200
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
