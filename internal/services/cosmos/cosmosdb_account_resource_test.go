@@ -709,6 +709,10 @@ func TestAccCosmosDBAccount_capabilities_EnableNoSQLFullTextSearch(t *testing.T)
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLFullTextSearch"})
 }
 
+func TestAccCosmosDBAccount_capabilities_EnableFabricNetworkAclBypass(t *testing.T) {
+	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableFabricNetworkAclBypass"})
+}
+
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"})
 }
