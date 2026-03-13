@@ -110,6 +110,10 @@ func (r KubernetesClusterAutomaticResource) basic(data acceptance.TestData) stri
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_kubernetes_cluster_automatic" "test" {
   name                = "acctestaks%[2]d"
   location            = azurerm_resource_group.test.location
@@ -141,6 +145,10 @@ resource "azurerm_kubernetes_cluster_automatic" "import" {
 func (r KubernetesClusterAutomaticResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_kubernetes_cluster_automatic" "test" {
   name                = "acctestaks%[2]d"
