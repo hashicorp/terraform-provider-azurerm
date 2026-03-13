@@ -80,23 +80,6 @@ func TestAccPublicIpPrefix_globalTier(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpPrefix_standardVTwoGlobalTier(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIpPrefixResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.sku_tier(data, string(publicipprefixes.PublicIPPrefixSkuNameStandardVTwo), string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("sku").HasValue(string(publicipprefixes.PublicIPPrefixSkuNameStandardVTwo)),
-				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipprefixes.PublicIPPrefixSkuTierGlobal)),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccPublicIpPrefix_customIpPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
 	r := PublicIpPrefixResource{}

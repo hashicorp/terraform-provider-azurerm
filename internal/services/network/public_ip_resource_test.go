@@ -414,24 +414,6 @@ func TestAccPublicIpStatic_globalTier(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpStatic_standardV2GlobalTier(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIpResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.skuTier(data, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo), string(publicipaddresses.PublicIPAddressSkuTierGlobal)),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("ip_address").Exists(),
-				check.That(data.ResourceName).Key("sku").HasValue(string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)),
-				check.That(data.ResourceName).Key("sku_tier").HasValue(string(publicipaddresses.PublicIPAddressSkuTierGlobal)),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccPublicIpStatic_regionalTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}

@@ -76,6 +76,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      string(natgateways.NatGatewaySkuNameStandard),
 			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
@@ -87,12 +88,8 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 			ForceNew: true,
 			Elem: &schema.Schema{
-				Type: schema.TypeString,
-				ValidateFunc: validation.StringInSlice([]string{
-					"1",
-					"2",
-					"3",
-				}, false),
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 		},
 

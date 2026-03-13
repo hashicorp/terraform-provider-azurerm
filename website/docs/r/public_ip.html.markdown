@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
--> **Note:** When `sku_tier` is set to `Global`, `sku` cannot be `Basic`.
+-> **Note:** When `sku_tier` is set to `Global`, `sku` must be set to `Standard`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
