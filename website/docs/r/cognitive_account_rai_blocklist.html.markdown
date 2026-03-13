@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new Cognitive Account Rai Blocklist to be created.
 
+* `tags` - (Optional) A mapping of tags assigned to the resource.
+
 ---
 
 * `description` - (Optional) A short description for the Cognitive Account Rai Blocklist.
