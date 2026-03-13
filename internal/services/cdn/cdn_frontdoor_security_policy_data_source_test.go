@@ -35,9 +35,9 @@ func (CdnFrontDoorSecurityPolicyDataSource) basic(data acceptance.TestData) stri
 %s
 
 data "azurerm_cdn_frontdoor_security_policy" "test" {
-	name                = azurerm_cdn_frontdoor_security_policy.test.name
-	profile_name        = azurerm_cdn_frontdoor_profile.test.name
-	resource_group_name = azurerm_resource_group.test.name
+  name                = azurerm_cdn_frontdoor_security_policy.test.name
+  profile_name        = azurerm_cdn_frontdoor_profile.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, CdnFrontDoorSecurityPolicyResource{}.basic(data))
 }
