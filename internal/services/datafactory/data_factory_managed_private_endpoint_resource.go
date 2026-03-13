@@ -274,7 +274,7 @@ func getManagedPrivateEndpointProvisionStatus(ctx context.Context, client *manag
 func getManagedPrivateEndpointDeletionStatus(ctx context.Context, client *managedprivateendpoints.ManagedPrivateEndpointsClient, id managedprivateendpoints.ManagedPrivateEndpointId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, id, managedprivateendpoints.DefaultGetOperationOptions())
-		if err != nil && response.WasNotFound(resp.HttpResponse) {
+		if err != nil {
 			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "NotFound", nil
 			} else {
