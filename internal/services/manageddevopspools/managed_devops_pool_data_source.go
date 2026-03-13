@@ -1,0 +1,386 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+package manageddevopspools
+
+import (
+	"context"
+	"fmt"
+	"regexp"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+var _ sdk.DataSource = ManagedDevOpsPoolDataSource{}
+
+type ManagedDevOpsPoolDataSource struct{}
+
+type ManagedDevOpsPoolDataSourceModel struct {
+	DevCenterProjectId      string                         `tfschema:"dev_center_project_id"`
+	VmssFabric              []VmssFabricModel              `tfschema:"vmss_fabric"`
+	Identity                []identity.ModelUserAssigned   `tfschema:"identity"`
+	Location                string                         `tfschema:"location"`
+	MaximumConcurrency      int64                          `tfschema:"maximum_concurrency"`
+	Name                    string                         `tfschema:"name"`
+	AzureDevOpsOrganization []AzureDevOpsOrganizationModel `tfschema:"azure_devops_organization"`
+	ResourceGroupName       string                         `tfschema:"resource_group_name"`
+	Tags                    map[string]string              `tfschema:"tags"`
+	StatefulAgent           []StatefulAgentModel           `tfschema:"stateful_agent"`
+	StatelessAgent          []StatelessAgentModel          `tfschema:"stateless_agent"`
+}
+
+func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(3, 44),
+				validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]*[a-zA-Z0-9-]$`),
+					"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.).",
+				),
+			),
+		},
+
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+	}
+}
+
+func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
+
+		"azure_devops_organization": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"organization": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"parallelism": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+
+								"projects": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								"url": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"permission": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"kind": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"administrator_account": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"groups": {
+												Type:     pluginsdk.TypeList,
+												Computed: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+
+											"users": {
+												Type:     pluginsdk.TypeList,
+												Computed: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+
+		"dev_center_project_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"identity": commonschema.UserAssignedIdentityComputed(),
+
+		"maximum_concurrency": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"stateful_agent": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"grace_period_time_span": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"max_agent_lifetime": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"manual_resource_prediction": manualResourcePredictionSchemaComputed(),
+
+					"automatic_resource_prediction": automaticResourcePredictionSchemaComputed(),
+				},
+			},
+		},
+
+		"stateless_agent": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"manual_resource_prediction": manualResourcePredictionSchemaComputed(),
+
+					"automatic_resource_prediction": automaticResourcePredictionSchemaComputed(),
+				},
+			},
+		},
+
+		"vmss_fabric": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"image": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"aliases": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Schema{
+										Type: pluginsdk.TypeString,
+									},
+								},
+
+								"buffer": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"id": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"well_known_image_name": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"security": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"interactive_logon_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+
+								"key_vault_management": {
+									Type:     pluginsdk.TypeList,
+									Computed: true,
+									Elem: &pluginsdk.Resource{
+										Schema: map[string]*pluginsdk.Schema{
+											"certificate_store_location": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+
+											"certificate_store_name": {
+												Type:     pluginsdk.TypeString,
+												Computed: true,
+											},
+
+											"key_export_enabled": {
+												Type:     pluginsdk.TypeBool,
+												Computed: true,
+											},
+
+											"key_vault_certificate_ids": {
+												Type:     pluginsdk.TypeList,
+												Computed: true,
+												Elem: &pluginsdk.Schema{
+													Type: pluginsdk.TypeString,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+
+					"sku_name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"os_disk_storage_account_type": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"storage": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"caching": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"disk_size_in_gb": {
+									Type:     pluginsdk.TypeInt,
+									Computed: true,
+								},
+
+								"drive_letter": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+
+								"storage_account_type": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+							},
+						},
+					},
+
+					"subnet_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"tags": commonschema.TagsDataSource(),
+	}
+}
+
+func (ManagedDevOpsPoolDataSource) ModelObject() interface{} {
+	return &ManagedDevOpsPoolDataSourceModel{}
+}
+
+func (ManagedDevOpsPoolDataSource) ResourceType() string {
+	return "azurerm_managed_devops_pool"
+}
+
+func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedDevOpsPools.PoolsClient
+
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var state ManagedDevOpsPoolDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := pools.NewPoolID(subscriptionId, state.ResourceGroupName, state.Name)
+
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
+
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			if model := resp.Model; model != nil {
+				state.Location = location.Normalize(model.Location)
+				state.Tags = pointer.From(model.Tags)
+
+				if model.Identity != nil {
+					flattenedIdentity, err := flattenManagedDevopsUserAssignedToLegacyIdentity(model.Identity)
+					if err != nil {
+						return fmt.Errorf("flattening `identity`: %+v", err)
+					}
+					state.Identity = flattenedIdentity
+				}
+
+				if props := model.Properties; props != nil {
+					state.DevCenterProjectId = props.DevCenterProjectResourceId
+					state.MaximumConcurrency = props.MaximumConcurrency
+
+					if agentProfile := props.AgentProfile; agentProfile != nil {
+						if stateful, ok := agentProfile.(pools.Stateful); ok {
+							state.StatefulAgent = flattenStatefulAgentToModel(stateful)
+						} else if stateless, ok := agentProfile.(pools.StatelessAgentProfile); ok {
+							state.StatelessAgent = flattenStatelessAgentToModel(stateless)
+						}
+					}
+
+					if organizationProfile := props.OrganizationProfile; organizationProfile != nil {
+						if azureDevOpsOrg, ok := organizationProfile.(pools.AzureDevOpsOrganizationProfile); ok {
+							state.AzureDevOpsOrganization = flattenAzureDevOpsOrganizationToModel(azureDevOpsOrg)
+						}
+					}
+
+					if fabricProfile := props.FabricProfile; fabricProfile != nil {
+						if vmssFabric, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
+							state.VmssFabric = flattenVmssFabricToModel(vmssFabric)
+						}
+					}
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
