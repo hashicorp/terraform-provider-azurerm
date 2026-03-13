@@ -23,9 +23,9 @@ type ContainerAppEnvironmentMaintenanceConfigurationModel struct {
 }
 
 type MaintenanceWindow struct {
-	DayOfWeek     string `tfschema:"day_of_week"`
+	DayOfWeek      string `tfschema:"day_of_week"`
 	StartHourInUtc int64  `tfschema:"start_hour_in_utc"`
-	DurationHours int64  `tfschema:"duration_hours"`
+	DurationHours  int64  `tfschema:"duration_hours"`
 }
 
 var _ sdk.ResourceWithUpdate = ContainerAppEnvironmentMaintenanceConfigurationResource{}
@@ -55,7 +55,6 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) Arguments() map
 		"maintenance_window": {
 			Type:        pluginsdk.TypeList,
 			Required:    true,
-			MinItems:    1,
 			MaxItems:    1,
 			Description: "A `maintenance_window` block as defined below.",
 			Elem: &pluginsdk.Resource{
