@@ -116,6 +116,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // load balancer global tire Public IP is only available in
         "loadbalancer" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false)),
 
+        // Playwright workspace is only available in certain locations
+        "loadtestservice" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus2", false)),
+
         // Log Analytics Clusters have a max deployments of 2 - parallelism set to 1 or `importTest` fails
         "loganalytics" to testConfiguration(parallelism = 1),
 
