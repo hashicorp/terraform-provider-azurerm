@@ -88,6 +88,7 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 					"private_ip_allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						Default:      string(inboundendpoints.IPAllocationMethodDynamic),
 						ValidateFunc: validation.StringInSlice(inboundendpoints.PossibleValuesForIPAllocationMethod(), false),
 					},
