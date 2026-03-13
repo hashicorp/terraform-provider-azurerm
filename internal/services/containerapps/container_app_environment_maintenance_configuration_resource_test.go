@@ -100,13 +100,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_container_app_environment_maintenance_configuration" "test" {
-  name                         = "default"
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  scheduled_entry {
-    week_day       = "Sunday"
-    start_hour_utc = 1
-    duration_hours = 8
+  maintenance_window {
+    day_of_week       = "Sunday"
+    start_hour_in_utc = 1
+    duration_hours    = 8
   }
 }
 `, r.template(data))
@@ -121,13 +120,12 @@ provider "azurerm" {
 %s
 
 resource "azurerm_container_app_environment_maintenance_configuration" "test" {
-  name                         = "default"
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  scheduled_entry {
-    week_day       = "Saturday"
-    start_hour_utc = 2
-    duration_hours = 10
+  maintenance_window {
+    day_of_week       = "Saturday"
+    start_hour_in_utc = 2
+    duration_hours    = 10
   }
 }
 `, r.template(data))
@@ -138,13 +136,12 @@ func (r ContainerAppEnvironmentMaintenanceConfigurationResource) requiresImport(
 %s
 
 resource "azurerm_container_app_environment_maintenance_configuration" "import" {
-  name                         = azurerm_container_app_environment_maintenance_configuration.test.name
   container_app_environment_id = azurerm_container_app_environment_maintenance_configuration.test.container_app_environment_id
 
-  scheduled_entry {
-    week_day       = "Sunday"
-    start_hour_utc = 1
-    duration_hours = 8
+  maintenance_window {
+    day_of_week       = azurerm_container_app_environment_maintenance_configuration.test.maintenance_window.0.day_of_week
+    start_hour_in_utc = azurerm_container_app_environment_maintenance_configuration.test.maintenance_window.0.start_hour_in_utc
+    duration_hours    = azurerm_container_app_environment_maintenance_configuration.test.maintenance_window.0.duration_hours
   }
 }
 `, r.basic(data))
