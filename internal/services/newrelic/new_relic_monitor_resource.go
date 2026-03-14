@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitoredsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/newrelic/2024-03-01/monitors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -27,17 +28,22 @@ const (
 )
 
 type NewRelicMonitorModel struct {
-	Name                  string                         `tfschema:"name"`
-	ResourceGroupName     string                         `tfschema:"resource_group_name"`
-	AccountCreationSource monitors.AccountCreationSource `tfschema:"account_creation_source"`
-	AccountId             string                         `tfschema:"account_id"`
-	IngestionKey          string                         `tfschema:"ingestion_key"`
-	Location              string                         `tfschema:"location"`
-	OrganizationId        string                         `tfschema:"organization_id"`
-	OrgCreationSource     monitors.OrgCreationSource     `tfschema:"org_creation_source"`
-	PlanData              []PlanDataModel                `tfschema:"plan"`
-	UserId                string                         `tfschema:"user_id"`
-	UserInfo              []UserInfoModel                `tfschema:"user"`
+	Name                  string                          `tfschema:"name"`
+	ResourceGroupName     string                          `tfschema:"resource_group_name"`
+	AccountCreationSource monitors.AccountCreationSource  `tfschema:"account_creation_source"`
+	AccountId             string                          `tfschema:"account_id"`
+	IngestionKey          string                          `tfschema:"ingestion_key"`
+	Location              string                          `tfschema:"location"`
+	MonitoredSubscription []NewRelicMonitoredSubscription `tfschema:"monitored_subscription"`
+	OrganizationId        string                          `tfschema:"organization_id"`
+	OrgCreationSource     monitors.OrgCreationSource      `tfschema:"org_creation_source"`
+	PlanData              []PlanDataModel                 `tfschema:"plan"`
+	UserId                string                          `tfschema:"user_id"`
+	UserInfo              []UserInfoModel                 `tfschema:"user"`
+}
+
+type NewRelicMonitoredSubscription struct {
+	SubscriptionId string `tfschema:"subscription_id"`
 }
 
 type PlanDataModel struct {
@@ -56,7 +62,10 @@ type UserInfoModel struct {
 
 type NewRelicMonitorResource struct{}
 
-var _ sdk.Resource = NewRelicMonitorResource{}
+var (
+	_ sdk.Resource           = NewRelicMonitorResource{}
+	_ sdk.ResourceWithUpdate = NewRelicMonitorResource{}
+)
 
 func (r NewRelicMonitorResource) ResourceType() string {
 	return "azurerm_new_relic_monitor"
@@ -205,6 +214,20 @@ func (r NewRelicMonitorResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
+		"monitored_subscription": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subscription_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsUUID,
+					},
+				},
+			},
+		},
+
 		"organization_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -282,7 +305,21 @@ func (r NewRelicMonitorResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			if len(model.MonitoredSubscription) > 0 {
+				monitoredSubscriptionsProperties := monitoredsubscriptions.MonitoredSubscriptionProperties{
+					Properties: &monitoredsubscriptions.SubscriptionList{
+						MonitoredSubscriptionList: expandMonitorSubscriptionList(model.MonitoredSubscription),
+					},
+				}
+
+				monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
+				if err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, monitorId, monitoredSubscriptionsProperties); err != nil {
+					return fmt.Errorf("creating New Relic Monitored Subscriptions of %s: %+v", id, err)
+				}
+			}
+
 			metadata.SetID(id)
+
 			return nil
 		},
 	}
@@ -352,7 +389,57 @@ func (r NewRelicMonitorResource) Read() sdk.ResourceFunc {
 				state.UserInfo = flattenUserInfoModel(properties.UserInfo)
 			}
 
+			monitorId := monitoredsubscriptions.NewMonitorID(id.SubscriptionId, id.ResourceGroupName, id.MonitorName)
+			monitoredSubscriptionResp, err := metadata.Client.NewRelic.MonitoredSubscriptionsClient.Get(ctx, monitorId)
+			if err != nil && !response.WasNotFound(monitoredSubscriptionResp.HttpResponse) {
+				return fmt.Errorf("retrieving New Relic Monitored Subscriptions of %s: %+v", *id, err)
+			}
+			if !response.WasNotFound(monitoredSubscriptionResp.HttpResponse) {
+				if monitoredSubscriptionResp.Model != nil && monitoredSubscriptionResp.Model.Properties != nil {
+					state.MonitoredSubscription = flattenMonitorSubscriptionList(monitoredSubscriptionResp.Model.Properties.MonitoredSubscriptionList)
+				}
+			}
+
 			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r NewRelicMonitorResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			id, err := monitoredsubscriptions.ParseMonitorID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var model NewRelicMonitorModel
+			if err = metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if metadata.ResourceData.HasChange("monitored_subscription") {
+				monitoredSubscriptionsClient := metadata.Client.NewRelic.MonitoredSubscriptionsClient
+
+				if len(model.MonitoredSubscription) == 0 {
+					if _, err := monitoredSubscriptionsClient.Delete(ctx, *id); err != nil {
+						return fmt.Errorf("deleting New Relic Monitored Subscriptions of %s: %+v", *id, err)
+					}
+				} else {
+					monitoredSubscriptionsProperties := monitoredsubscriptions.MonitoredSubscriptionProperties{
+						Properties: &monitoredsubscriptions.SubscriptionList{
+							MonitoredSubscriptionList: expandMonitorSubscriptionList(model.MonitoredSubscription),
+						},
+					}
+
+					if err := monitoredSubscriptionsClient.CreateOrUpdateThenPoll(ctx, *id, monitoredSubscriptionsProperties); err != nil {
+						return fmt.Errorf("updating New Relic Monitored Subscriptions of %s: %+v", *id, err)
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -377,7 +464,7 @@ func (r NewRelicMonitorResource) Delete() sdk.ResourceFunc {
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id, monitors.DeleteOperationOptions{UserEmail: &model.UserInfo[0].EmailAddress}); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
@@ -536,4 +623,35 @@ func flattenUserInfoModel(input *monitors.UserInfo) []UserInfoModel {
 	}
 
 	return append(outputList, output)
+}
+
+func expandMonitorSubscriptionList(input []NewRelicMonitoredSubscription) *[]monitoredsubscriptions.MonitoredSubscription {
+	results := make([]monitoredsubscriptions.MonitoredSubscription, 0)
+	if len(input) == 0 {
+		return &results
+	}
+
+	for _, v := range input {
+		results = append(results, monitoredsubscriptions.MonitoredSubscription{
+			SubscriptionId: pointer.To(v.SubscriptionId),
+		})
+	}
+
+	return &results
+}
+
+func flattenMonitorSubscriptionList(input *[]monitoredsubscriptions.MonitoredSubscription) []NewRelicMonitoredSubscription {
+	results := make([]NewRelicMonitoredSubscription, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		results = append(results, NewRelicMonitoredSubscription{
+			// The returned subscription UUID is in upper case
+			SubscriptionId: strings.ToLower(pointer.From(v.SubscriptionId)),
+		})
+	}
+
+	return results
 }
