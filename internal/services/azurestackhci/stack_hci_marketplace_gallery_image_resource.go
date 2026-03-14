@@ -6,6 +6,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -193,6 +194,11 @@ func (r StackHCIMarketplaceGalleryImageResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
+			// https://github.com/Azure/azure-rest-api-specs/issues/31876
+			if err := resourceMarketplaceGalleryImageWaitForCreated(ctx, *client, id); err != nil {
+				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
+			}
+
 			metadata.SetID(id)
 
 			return nil
@@ -328,5 +334,44 @@ func flattenStackHCIMarketplaceGalleryImageIdentifier(input *marketplacegalleryi
 			Publisher: input.Publisher,
 			Sku:       input.Sku,
 		},
+	}
+}
+
+func resourceMarketplaceGalleryImageWaitForCreated(ctx context.Context, client marketplacegalleryimages.MarketplaceGalleryImagesClient, id marketplacegalleryimages.MarketplaceGalleryImageId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Found"},
+		Refresh:                   resourceMarketplaceGalleryImageRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be created: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceMarketplaceGalleryImageRefreshFunc(ctx context.Context, client marketplacegalleryimages.MarketplaceGalleryImagesClient, id marketplacegalleryimages.MarketplaceGalleryImageId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking status for %s ..", id)
+
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, "NotFound", nil
+			}
+
+			return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		return resp, "Found", nil
 	}
 }

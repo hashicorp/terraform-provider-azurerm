@@ -6,6 +6,7 @@ package azurestackhci
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -209,6 +210,11 @@ func (r StackHCIVirtualHardDiskResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("performing create %s: %+v", id, err)
 			}
 
+			// https://github.com/Azure/azure-rest-api-specs/issues/31876
+			if err := resourceVirtualHardDiskWaitForCreated(ctx, *client, id); err != nil {
+				return fmt.Errorf("waiting for %s to be created: %+v", id, err)
+			}
+
 			metadata.SetID(id)
 
 			return nil
@@ -317,5 +323,44 @@ func (r StackHCIVirtualHardDiskResource) Delete() sdk.ResourceFunc {
 
 			return nil
 		},
+	}
+}
+
+func resourceVirtualHardDiskWaitForCreated(ctx context.Context, client virtualharddisks.VirtualHardDisksClient, id virtualharddisks.VirtualHardDiskId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal error: context had no deadline")
+	}
+
+	state := &pluginsdk.StateChangeConf{
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 4,
+		Pending:                   []string{"NotFound"},
+		Target:                    []string{"Found"},
+		Refresh:                   resourceVirtualHardDiskRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := state.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to be created: %+v", id, err)
+	}
+
+	return nil
+}
+
+func resourceVirtualHardDiskRefreshFunc(ctx context.Context, client virtualharddisks.VirtualHardDisksClient, id virtualharddisks.VirtualHardDiskId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		log.Printf("[DEBUG] Checking status for %s ..", id)
+
+		resp, err := client.Get(ctx, id)
+		if err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, "NotFound", nil
+			}
+
+			return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		return resp, "Found", nil
 	}
 }
