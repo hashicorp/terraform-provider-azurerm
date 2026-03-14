@@ -39,6 +39,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `applies_to_group` - An `applies_to_group` block as defined below.
 
+* `connected_group_address_overlap` - The behavior for handling overlapping IP address space among members of the connected group.
+
+* `connected_group_private_endpoints_scale` - The scale of private endpoints allowed in the connected group.
+
 * `connectivity_topology` - The connectivity topology type.
 
 * `delete_existing_peering_enabled` - Whether to current existing Virtual Network Peering in the Connectivity Configuration affected scope.
@@ -48,6 +52,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `global_mesh_enabled` - Whether global mesh is supported.
 
 * `hub` - A `hub` block as defined below.
+
+* `peering_enforcement` - The enforcement of peerings created by the connectivity configuration.
 
 ---
 
