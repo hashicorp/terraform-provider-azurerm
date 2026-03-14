@@ -64,7 +64,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "example" {
   name                            = "example-cloud-vm-cluster"
   resource_group_name             = azurerm_resource_group.example.name
   location                        = azurerm_resource_group.example.location
-  gi_version                      = "23.0.0.0"
+  gi_version                      = "26.0.0.0"
   virtual_network_id              = azurerm_virtual_network.example.id
   license_model                   = "BringYourOwnLicense"
   db_servers                      = [for obj in data.azurerm_oracle_db_servers.example.db_servers : obj.ocid]
@@ -74,7 +74,7 @@ resource "azurerm_oracle_cloud_vm_cluster" "example" {
   cpu_core_count                  = 2
   hostname                        = "hostname"
   subnet_id                       = azurerm_subnet.example.id
-  system_version                  = "23.1.19.0.0.241015"
+  system_version                  = "25.1.8.0.0.250828"
   file_system_configuration {
     mount_point = "/var"
     size_in_gb  = 32
