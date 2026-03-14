@@ -79,7 +79,8 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: true,
+					DataPlaneAvailable:           true,
+					DataPlaneAuthAnyScopeEnabled: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -172,7 +173,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_available": true,
+							"data_plane_available":              true,
+							"data_plane_auth_any_scope_enabled": true,
 						},
 					},
 					"subscription": []interface{}{
@@ -270,7 +272,8 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: true,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: true,
+					DataPlaneAvailable:           true,
+					DataPlaneAuthAnyScopeEnabled: true,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: true,
@@ -377,7 +380,8 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"storage": []interface{}{
 						map[string]interface{}{
-							"data_plane_available": false,
+							"data_plane_available":              false,
+							"data_plane_auth_any_scope_enabled": false,
 						},
 					},
 					"subscription": []interface{}{
@@ -475,7 +479,8 @@ func TestExpandFeatures(t *testing.T) {
 					RecoverSoftDeletedBackupProtectedVM: false,
 				},
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: false,
+					DataPlaneAvailable:           false,
+					DataPlaneAuthAnyScopeEnabled: false,
 				},
 				Subscription: features.SubscriptionFeatures{
 					PreventCancellationOnDestroy: false,
@@ -1510,7 +1515,8 @@ func TestExpandFeaturesStorage(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: true,
+					DataPlaneAvailable:           true,
+					DataPlaneAuthAnyScopeEnabled: false,
 				},
 			},
 		},
@@ -1527,7 +1533,26 @@ func TestExpandFeaturesStorage(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				Storage: features.StorageFeatures{
-					DataPlaneAvailable: false,
+					DataPlaneAvailable:           false,
+					DataPlaneAuthAnyScopeEnabled: false,
+				},
+			},
+		},
+		{
+			Name: "Storage Data Plane Auth with any scope is Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"storage": []interface{}{
+						map[string]interface{}{
+							"data_plane_auth_any_scope_enabled": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Storage: features.StorageFeatures{
+					DataPlaneAvailable:           true,
+					DataPlaneAuthAnyScopeEnabled: true,
 				},
 			},
 		},
