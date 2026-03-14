@@ -201,9 +201,7 @@ func (tiip ThreatIntelligenceIndicatorProperties) MarshalJSON() ([]byte, error) 
 	if tiip.ThreatIntelligenceTags != nil {
 		objectMap["threatIntelligenceTags"] = tiip.ThreatIntelligenceTags
 	}
-	if tiip.LastUpdatedTimeUtc != nil {
-		objectMap["lastUpdatedTimeUtc"] = tiip.LastUpdatedTimeUtc
-	}
+	// `LastUpdatedTimeUtc` and `ExternalLastUpdatedTimeUtc` shall be a read-only property
 	if tiip.Source != nil {
 		objectMap["source"] = tiip.Source
 	}
@@ -239,9 +237,6 @@ func (tiip ThreatIntelligenceIndicatorProperties) MarshalJSON() ([]byte, error) 
 	}
 	if tiip.Defanged != nil {
 		objectMap["defanged"] = tiip.Defanged
-	}
-	if tiip.ExternalLastUpdatedTimeUtc != nil {
-		objectMap["externalLastUpdatedTimeUtc"] = tiip.ExternalLastUpdatedTimeUtc
 	}
 	if tiip.ExternalReferences != nil {
 		objectMap["externalReferences"] = tiip.ExternalReferences
