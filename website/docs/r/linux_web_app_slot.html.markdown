@@ -120,6 +120,8 @@ The following arguments are supported:
 
 ~> **Note:** Using this value requires `WEBSITE_RUN_FROM_PACKAGE=1` to be set on the App in `app_settings`. Refer to the [Azure docs](https://docs.microsoft.com/en-us/azure/app-service/deploy-run-package) for further details.
 
+* `e2e_encryption_enabled` - (Optional) Should the end-to-end encryption enabled. Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags that should be assigned to the Linux Web App.
 
 ---
