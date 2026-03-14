@@ -315,7 +315,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge                     = "10%%"
       drain_timeout_in_minutes      = %d
@@ -352,7 +352,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS2_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -386,7 +386,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   default_node_pool {
     name                 = "default"
     node_count           = 1
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     orchestrator_version = %q
     upgrade_settings {
       max_surge = "10%%"
@@ -407,7 +407,7 @@ func (r KubernetesClusterResource) upgradeVersionsConfig(data acceptance.TestDat
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   orchestrator_version  = %q
   upgrade_settings {
@@ -424,7 +424,7 @@ func (r KubernetesClusterResource) upgradeVersionsConfigSpot(data acceptance.Tes
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_DS2_v2"
+  vm_size               = "Standard_DS2_v5"
   node_count            = 1
   orchestrator_version  = %q
   priority              = "Spot"
@@ -460,7 +460,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name                 = "default"
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS2_v5"
     auto_scaling_enabled = true
     min_count            = %d
     max_count            = %d
