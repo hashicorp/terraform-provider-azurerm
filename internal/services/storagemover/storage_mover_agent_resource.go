@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -17,6 +18,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_mover_agent -service-package-name storagemover -properties "name" -compare-values "subscription_id:storage_mover_id,resource_group_name:storage_mover_id,storage_mover_name:storage_mover_id"
 
 type StorageMoverAgentResourceModel struct {
 	Name                string `tfschema:"name"`
@@ -28,7 +31,14 @@ type StorageMoverAgentResourceModel struct {
 
 type StorageMoverAgentResource struct{}
 
-var _ sdk.ResourceWithUpdate = StorageMoverAgentResource{}
+var (
+	_ sdk.ResourceWithIdentity = StorageMoverAgentResource{}
+	_ sdk.ResourceWithUpdate   = StorageMoverAgentResource{}
+)
+
+func (r StorageMoverAgentResource) Identity() resourceids.ResourceId {
+	return &agents.AgentId{}
+}
 
 func (r StorageMoverAgentResource) ResourceType() string {
 	return "azurerm_storage_mover_agent"
@@ -126,6 +136,9 @@ func (r StorageMoverAgentResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -189,21 +202,28 @@ func (r StorageMoverAgentResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := StorageMoverAgentResourceModel{
-				Name:           id.AgentName,
-				StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
-			}
-
-			if model := resp.Model; model != nil {
-				state.ArcVmUuid = model.Properties.ArcVMUuid
-				state.ArcVirtualMachineId = model.Properties.ArcResourceId
-
-				state.Description = pointer.From(model.Properties.Description)
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r StorageMoverAgentResource) flatten(metadata sdk.ResourceMetaData, id *agents.AgentId, model *agents.Agent) error {
+	state := StorageMoverAgentResourceModel{
+		Name:           id.AgentName,
+		StorageMoverId: storagemovers.NewStorageMoverID(id.SubscriptionId, id.ResourceGroupName, id.StorageMoverName).ID(),
+	}
+
+	if model != nil {
+		state.ArcVmUuid = model.Properties.ArcVMUuid
+		state.ArcVirtualMachineId = model.Properties.ArcResourceId
+		state.Description = pointer.From(model.Properties.Description)
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r StorageMoverAgentResource) Delete() sdk.ResourceFunc {
