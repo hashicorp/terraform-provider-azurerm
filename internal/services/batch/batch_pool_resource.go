@@ -671,6 +671,26 @@ func resourceBatchPool() *pluginsdk.Resource {
 						string(pool.DiffDiskPlacementCacheDisk),
 					}, false),
 			},
+			"managed_disk": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"security_encryption_type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityEncryptionTypes(), false),
+						},
+						"storage_account_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(pool.StorageAccountTypeStandardLRS),
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForStorageAccountType(), false),
+						},
+					},
+				},
+			},
 			"inter_node_communication": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1097,6 +1117,9 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			if d.HasChange("data_disks") {
 				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
 			}
+			if d.HasChange("managed_disk") {
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.OsDisk.ManagedDisk = expandBatchPoolManagedDisk(d.Get("managed_disk").([]interface{}))
+			}
 		}
 	}
 
@@ -1309,6 +1332,10 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
+
+					if config.OsDisk != nil {
+						d.Set("managed_disk", flattenBatchPoolManagedDisk(config.OsDisk.ManagedDisk))
+					}
 
 					if config.SecurityProfile != nil {
 						d.Set("security_profile", flattenBatchPoolSecurityProfile(config.SecurityProfile))
