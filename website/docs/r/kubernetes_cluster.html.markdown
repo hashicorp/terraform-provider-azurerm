@@ -85,8 +85,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `aci_connector_linux` - (Optional) A `aci_connector_linux` block as defined below. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/azure/aks/virtual-nodes-portal).
 
-* `ai_toolchain_operator_enabled` - (Optional) Specifies whether the AI Toolchain Operator should be enabled for the Cluster. Defaults to `false`.
-
 * `automatic_upgrade_channel` - (Optional) The upgrade channel for this Kubernetes Cluster. Possible values are `patch`, `rapid`, `node-image` and `stable`. Omitting this field sets this value to `none`.
 
 !> **Note:** Cluster Auto-Upgrade will update the Kubernetes Cluster (and its Node Pools) to the latest GA version of Kubernetes automatically - please [see the Azure documentation for more information](https://docs.microsoft.com/azure/aks/upgrade-cluster#set-auto-upgrade-channel).
@@ -167,8 +165,6 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ~> **Note:** `node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` has been set to `node-image`
 
-* `node_provisioning_profile` - (Required) A `node_provisioning_profile` block as defined below.
-
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
 ~> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
@@ -227,11 +223,21 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 ```
 
+* `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
+
+* `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
+
+* `ai_toolchain_operator_enabled` - (Optional) Specifies whether the AI Toolchain Operator should be enabled for the Cluster. Defaults to `false`.
+
+* `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
+
+~> **Note:** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
+
+-> **Note:** Enabling this option will allocate Workload Identity resources to the `kube-system` namespace in Kubernetes. If you wish to customize the deployment of Workload Identity, you can refer to [the documentation on Azure AD Workload Identity.](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html) The documentation provides guidance on how to install the mutating admission webhook, which allows for the customization of Workload Identity deployment.
+
 * `role_based_access_control_enabled` - (Optional) Whether Role Based Access Control for the Kubernetes Cluster should be enabled. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `run_command_enabled` - (Optional) Whether to enable run command for the cluster or not. Defaults to `true`.
-
-* `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
 
 * `service_principal` - (Optional) A `service_principal` block as documented below. One of either `identity` or `service_principal` must be specified.
 
@@ -252,14 +258,6 @@ resource "azurerm_kubernetes_cluster" "example" {
 * `web_app_routing` - (Optional) A `web_app_routing` block as defined below.
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
-
-* `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
-
-* `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
-
-~> **Note:** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.
-
--> **Note:** Enabling this option will allocate Workload Identity resources to the `kube-system` namespace in Kubernetes. If you wish to customize the deployment of Workload Identity, you can refer to [the documentation on Azure AD Workload Identity.](https://azure.github.io/azure-workload-identity/docs/installation/mutating-admission-webhook.html) The documentation provides guidance on how to install the mutating admission webhook, which allows for the customization of Workload Identity deployment.
 
 ---
 
@@ -423,11 +421,11 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
-
--> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` if OSType=Linux or `Windows2019` if OSType=Windows. And the default Windows OSSKU will be changed to `Windows2022` after Windows2019 is deprecated. Changing this from `AzureLinux` or `Ubuntu` to `AzureLinux` or `Ubuntu` will not replace the resource, otherwise `temporary_name_for_rotation` must be specified when attempting a change.
 
 * `pod_subnet_id` - (Optional) The ID of the Subnet where the pods in the default Node Pool should exist.
+
+* `security_profile` - (Optional) A `security_profile` block as defined below.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group. Changing this forces a new resource to be created.
 
@@ -573,7 +571,7 @@ A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) An `ssh_key` block as defined below.
+* `ssh_key` - (Required) An `ssh_key` block as defined below. Only one is currently allowed. Changing this will update the key on all node pools. More information can be found in [the documentation](https://learn.microsoft.com/en-us/azure/aks/node-access#update-ssh-key-on-an-existing-aks-cluster-preview).
 
 ---
 
@@ -674,8 +672,6 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `network_policy` is set to `cilium`, the `network_data_plane` field must be set to `cilium`.
 
--> **Note:** Upgrading `network_policy` from `azure` or `calico` to `cilium` is supported and will perform an in-place upgrade. Changing from other values will force a new resource to be created.
-
 * `dns_service_ip` - (Optional) IP address within the Kubernetes service address range that will be used by cluster service discovery (kube-dns). Changing this forces a new resource to be created.
 
 * `network_data_plane` - (Optional) Specifies the data plane used for building the Kubernetes network. Possible values are `azure` and `cilium`. Defaults to `azure`. Disabling this forces a new resource to be created.
@@ -683,8 +679,6 @@ A `network_profile` block supports the following:
 ~> **Note:** When `network_data_plane` is set to `cilium`, the `network_plugin` field can only be set to `azure`.
 
 ~> **Note:** When `network_data_plane` is set to `cilium`, one of either `network_plugin_mode = "overlay"` or `pod_subnet_id` must be specified.
-
--> **Note:** Upgrading `network_data_plane` from `azure` to `cilium` is supported and will perform an in-place upgrade by reimaging all nodes in the cluster. Changing from other values will force a new resource to be created. For more information on upgrading to Azure CNI Powered by Cilium see the [product documentation](https://learn.microsoft.com/azure/aks/upgrade-azure-cni).
 
 * `network_plugin_mode` - (Optional) Specifies the network plugin mode used for building the Kubernetes network. Possible value is `overlay`.
 
@@ -968,14 +962,6 @@ A `gmsa` block supports the following:
 
 ---
 
-A `node_provisioning_profile` block as defined below.
-
-* `default_node_pools` - (Optional) Specifies whether default node pools should be provisioned automatically. Possible values are `Auto` and `None`. Defaults to `Auto`. At least one of `mode` or `default_node_pools` must be specified.
-
-* `mode` - (Optional) Specifies the provisioning mode for node pools created in this cluster. Possible values are `Auto` and `Manual`. Defaults to `Manual`. At least one of `mode` or `default_node_pools` must be specified.
-
----
-
 A `workload_autoscaler_profile` block supports the following:
 
 * `keda_enabled` - (Optional) Specifies whether KEDA Autoscaler can be used for workloads.
@@ -997,6 +983,14 @@ A `http_proxy_config` block supports the following:
 -> **Note:** You may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/language/meta-arguments/lifecycle.html#ignore_changes) to ignore the changes to this field.
 
 * `trusted_ca` - (Optional) The base64 encoded alternative CA certificate content in PEM format.
+
+---
+
+A `security_profile` block supports the following:
+
+* `vtpm_enabled` - (Optional) vTPM is a Trusted Launch feature for configuring a dedicated secure vault for keys and measurements held locally on the node. For more details, see [aka.ms/aks/trustedlaunch](https://aka.ms/aks/trustedlaunch). If not specified, the default is `false`.
+
+* `secure_boot_enabled` - (Optional) Secure Boot is a feature of Trusted Launch which ensures that only signed operating systems and drivers can boot. For more details, see [aka.ms/aks/trustedlaunch](https://aka.ms/aks/trustedlaunch). If not specified, the default is `false`.
 
 ---
 
