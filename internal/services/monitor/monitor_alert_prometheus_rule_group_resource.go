@@ -435,7 +435,7 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 		if v.Alert != "" {
 			output.Actions = expandPrometheusRuleGroupActionModel(v.Action)
 			output.Alert = pointer.To(v.Alert)
-			if v, ok := d.GetOk(fmt.Sprintf("rule.%d.severity", i)); ok {
+			if v, ok := d.GetOkExists(fmt.Sprintf("rule.%d.severity", i)); ok { //nolint:staticcheck
 				output.Severity = pointer.To(int64(v.(int)))
 			}
 			output.Annotations = pointer.To(v.Annotations)
