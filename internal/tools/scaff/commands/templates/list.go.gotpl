@@ -19,14 +19,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 
-	{{ .AzureSDKImport }}
 )
 
 type {{ .ListResourceStruct }} struct{}
 {{- if .UseResourceGroup }}
 {{- else }}
 type {{ .ModelStruct }} struct {
-	{{.Parent}}Id types.String `tfsdk:"{{.ParentLower}}_id"`
+	{{.Parent}}Id types.String `tfsdk:"{{ToSnake .Parent}}_id"`
 }
 {{- end }}
 
@@ -43,10 +42,10 @@ func (r {{ .ListResourceStruct }}) Metadata( _ context.Context, _ resource.Metad
 
 {{- if .UseResourceGroup }}
 {{- else }}
-func (r {{ .ListResourceStruct }}) ListResourceConfigSchema(_ context.Context,_ list.ListResourceSchemaRequest,response *list.ListResourceSchemaResponse) {
+func (r {{ .ListResourceStruct }}) ListResourceConfigSchema( _ context.Context,_ list.ListResourceSchemaRequest,response *list.ListResourceSchemaResponse) {
 	response.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
-			"{{.ParentLower}}_id": schema.StringAttribute{
+			"{{ToSnake .Parent}}_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
 					typehelpers.WrappedStringValidator{
@@ -139,7 +138,7 @@ switch {
 				return
 			}
 
-						sdk.EncodeListResult(ctx, rd, &result)
+			sdk.EncodeListResult(ctx, rd, &result)
 			if result.Diagnostics.HasError() {
 				push(result)
 				return

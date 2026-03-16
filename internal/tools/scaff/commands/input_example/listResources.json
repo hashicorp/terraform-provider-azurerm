@@ -1,12 +1,12 @@
 [
   {
     "service": "PrivateDns",
-    "resource": "CNameRecord",
+    "resource": "AaaaRecord",
     "include_service_in_name": true,
     "full_parent": "",
     "parent": "PrivateDnsZone",
-    "terraform_name": "private_dns_cname_record",
+    "terraform_name": "private_dns_aaaa_record",
     "id_structure": "privatedns.RecordType",
-    "path": "{tf-repository}/internal/services/privatedns/"
+    "path": "/Users/mark/gitRepos/azureProviders/refactor1/internal/services/privatedns/"
   }
 ]

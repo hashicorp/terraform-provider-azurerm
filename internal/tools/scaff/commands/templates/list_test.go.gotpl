@@ -15,14 +15,14 @@ import (
 )
 
 func TestAcc{{ .ServiceName }}{{ .ResourceName }}_listBy{{ if .UseResourceGroup }}SubscriptionAndRG{{ else}}{{ .Parent }}ID{{ end}}(t *testing.T) {
-	data := acceptance.BuildTestData( t, "{{ .TerraformResourceName }}", "testlist1")
+	data := acceptance.BuildTestData(t, "{{ .TerraformResourceName }}", "testlist1")
 	r := {{ .ResourceStruct }}{}
 
 	resource.Test(t, resource.TestCase{
 		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
 			tfversion.SkipBelow(tfversion.Version1_14_0),
 		},
-		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit( context.Background(), "azurerm"),
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
 				Config: r.basic(data),
@@ -63,14 +63,14 @@ func TestAcc{{ .ServiceName }}{{ .ResourceName }}_listBy{{ if .UseResourceGroup 
 				Query:  true,
 				Config: r.basicQuery(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
-					querycheck.ExpectLengthAtLeast("{{ .TerraformResourceName }}.list",1),
+					querycheck.ExpectLengthAtLeast("{{ .TerraformResourceName }}.list", 1),
 					querycheck.ExpectIdentity(
 						"{{ .TerraformResourceName }}.list",
 						map[string]knownvalue.Check{
-							"name": knownvalue.StringRegexp( regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"resource_group_name": knownvalue.StringRegexp( regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"{{ .Parent }}_name": knownvalue.StringRegexp( regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
-							"subscription_id": knownvalue.StringExact( data.Subscriptions.Primary),
+							"name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"resource_group_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"{{ToSnake .ParentTerraformResourceName }}_name": knownvalue.StringRegexp(regexp.MustCompile(strconv.Itoa(data.RandomInteger))),
+							"subscription_id": knownvalue.StringExact(data.Subscriptions.Primary),
 						},
 					),
 				},
@@ -85,8 +85,7 @@ func (r {{ .ResourceStruct }}) basicQuery() string {
 	return `
 list "{{ .TerraformResourceName }}" "list" {
   provider = azurerm
-  config {
-  }
+  config {}
 }
 `
 }
@@ -108,7 +107,7 @@ func (r {{ .ResourceStruct }}) basicQuery(data acceptance.TestData) string {
 list "{{ .TerraformResourceName }}" "list" {
   provider = azurerm
   config {
-    {{ .Parent }}_id = azurerm_{{ .PackageName }}_{{ .Parent }}.test.id
+    {{ToSnake .ParentTerraformResourceName }}_id = azurerm_{{ToSnake .ParentTerraformResourceName }}.test.id
   }
 }
 `

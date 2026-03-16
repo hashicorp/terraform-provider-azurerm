@@ -133,9 +133,9 @@ Usage: scaff list-documentation [options]
   for files ending with '_resource_list.go'.
 
 Options:
-  -path=<path>              Path to file or directory to scan (required)
-  -subcategory=<name>       Override the subcategory/section (e.g., "Network", "Database")
-  -addsectiontoname         Prepend section name to attribute names (boolean flag)
+  -path=<path>              (Required) Path to file or directory to scan (required)
+  -subcategory=<name>       (Optional) Override the subcategory/section (e.g., "Network", "Database")
+  -addsectiontoname         (Optional) Prepend section name to attribute names (boolean flag)
 
 Examples:
   # Basic usage (backward compatible)
