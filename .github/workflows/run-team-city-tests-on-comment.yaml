@@ -119,15 +119,8 @@ jobs:
         run: |
           PR_NUMBER=${{ github.event.issue.number }}
           COMMENT_BODY="${{ github.event.comment.body }}"
-
-          # Check if the comment contains /test -d for detailed output
-          if [[ "$COMMENT_BODY" == "/test -d"* ]]; then
-            echo "Running tctest for PR #${PR_NUMBER} with detailed output"
-            tctest pr ${PR_NUMBER} --properties "POST_GITHUB_COMMENT_DETAILED=true"
-          else
-            echo "Running tctest for PR #${PR_NUMBER}"
-            tctest pr ${PR_NUMBER} --properties "POST_GITHUB_COMMENT=true"
-          fi
+          echo "Running tctest for PR #${PR_NUMBER}"
+          tctest pr ${PR_NUMBER} --properties "POST_GITHUB_COMMENT=true"
 
       - name: Comment on success
         if: success()

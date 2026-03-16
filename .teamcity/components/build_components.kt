@@ -106,7 +106,6 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
     }
 }
 
-
 fun BuildSteps.PostTestResultsToGitHubPullRequest() {
     step(ScriptBuildStep {
         name = "Post Test Results to GitHub Pull Request"
