@@ -47,7 +47,7 @@ The following arguments are supported:
 
 -> **Note:** For `Standard`, `zones` may be omitted for a no-zone deployment or set to a single Availability Zone. For more information, please see the [Azure documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#availability-zones).
 
-~> **Note:** For `StandardV2`, `zones` should usually be omitted. `StandardV2` NAT Gateway is zone-redundant by default, and Azure may return `zones` as `1`, `2`, and `3` in state even when `zones` is not specified, see [MS learn documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#standardv2-nat-gateway) for more info.
+~> **Note:** For `StandardV2`, it is recommend to omit `zones`. The `StandardV2` NAT Gateway is zone-redundant by default, and Azure returns all available `zones` which may differ from the zones specified in config, see [MS learn documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#standardv2-nat-gateway) for more info.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
