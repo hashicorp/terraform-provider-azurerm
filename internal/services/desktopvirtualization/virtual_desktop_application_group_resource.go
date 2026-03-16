@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package desktopvirtualization
@@ -236,7 +236,9 @@ func resourceVirtualDesktopApplicationGroupRead(d *pluginsdk.ResourceData, meta 
 		}
 		d.Set("host_pool_id", hostPoolId.ID())
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

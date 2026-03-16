@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -127,27 +127,6 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 							Optional:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
-
-						"retention_policy": {
-							Type:       pluginsdk.TypeList,
-							Optional:   true,
-							MaxItems:   1,
-							Deprecated: "`retention_policy` has been deprecated in favor of `azurerm_storage_management_policy` resource - to learn more https://aka.ms/diagnostic_settings_log_retention",
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Required: true,
-									},
-
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-									},
-								},
-							},
-						},
 					},
 				},
 				Set: resourceMonitorDiagnosticLogSettingHash,
@@ -172,6 +151,25 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["enabled_log"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
+		resource.Schema["enabled_log"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "`retention_policy` has been deprecated in favour of `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more https://aka.ms/diagnostic_settings_log_retention",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+					"days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+					},
+				},
+			},
+		}
 
 		resource.Schema["enabled_metric"].AtLeastOneOf = []string{"enabled_log", "enabled_metric", "metric"}
 		resource.Schema["enabled_metric"].Computed = true
@@ -181,7 +179,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeSet,
 			Optional:      true,
 			Computed:      true,
-			Deprecated:    "`metric` has been deprecated in favor of the `enabled_metric` property and will be removed in v5.0 of the AzureRM provider",
+			Deprecated:    "`metric` has been deprecated in favour of the `enabled_metric` property and will be removed in v5.0 of the AzureRM provider",
 			AtLeastOneOf:  []string{"enabled_log", "enabled_metric", "metric"},
 			ConflictsWith: []string{"enabled_metric"},
 			Set:           resourceMonitorDiagnosticMetricsSettingHash,
@@ -203,7 +201,7 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 						Type:       pluginsdk.TypeList,
 						Optional:   true,
 						MaxItems:   1,
-						Deprecated: "`retention_policy` has been deprecated in favor of the `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more go to https://aka.ms/diagnostic_settings_log_retention",
+						Deprecated: "`retention_policy` has been deprecated in favour of the `azurerm_storage_management_policy` resource and will be removed in v5.0 of the AzureRM provider - to learn more go to https://aka.ms/diagnostic_settings_log_retention",
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"enabled": {
@@ -634,21 +632,22 @@ func expandMonitorDiagnosticsSettingsEnabledLogs(input []interface{}) (*[]diagno
 
 		category := v["category"].(string)
 		categoryGroup := v["category_group"].(string)
-		policiesRaw := v["retention_policy"].([]interface{})
-		var retentionPolicy *diagnosticsettings.RetentionPolicy
-		if len(policiesRaw) != 0 {
-			policyRaw := policiesRaw[0].(map[string]interface{})
-			retentionDays := policyRaw["days"].(int)
-			retentionEnabled := policyRaw["enabled"].(bool)
-			retentionPolicy = &diagnosticsettings.RetentionPolicy{
-				Days:    int64(retentionDays),
-				Enabled: retentionEnabled,
-			}
-		}
 
 		output := diagnosticsettings.LogSettings{
-			Enabled:         true,
-			RetentionPolicy: retentionPolicy,
+			Enabled: true,
+		}
+
+		if !features.FivePointOh() {
+			policiesRaw := v["retention_policy"].([]interface{})
+			if len(policiesRaw) != 0 {
+				policyRaw := policiesRaw[0].(map[string]interface{})
+				retentionDays := policyRaw["days"].(int)
+				retentionEnabled := policyRaw["enabled"].(bool)
+				output.RetentionPolicy = &diagnosticsettings.RetentionPolicy{
+					Days:    int64(retentionDays),
+					Enabled: retentionEnabled,
+				}
+			}
 		}
 
 		switch {
@@ -691,20 +690,16 @@ func flattenMonitorDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSettings
 		}
 		output["category_group"] = categoryGroup
 
-		policies := make([]interface{}, 0)
-
-		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			outputPolicy := make(map[string]interface{})
-
-			outputPolicy["days"] = int(inputPolicy.Days)
-
-			outputPolicy["enabled"] = inputPolicy.Enabled
-
-			policies = append(policies, outputPolicy)
+		if !features.FivePointOh() {
+			policies := make([]interface{}, 0)
+			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
+				outputPolicy := make(map[string]interface{})
+				outputPolicy["days"] = int(inputPolicy.Days)
+				outputPolicy["enabled"] = inputPolicy.Enabled
+				policies = append(policies, outputPolicy)
+			}
+			output["retention_policy"] = policies
 		}
-
-		output["retention_policy"] = policies
-
 		enabledLogs = append(enabledLogs, output)
 	}
 	return enabledLogs
@@ -724,7 +719,6 @@ func flattenMonitorDiagnosticEnabledMetrics(input *[]diagnosticsettings.MetricSe
 		}
 
 		output["category"] = pointer.From(v.Category)
-
 		enabledLogs = append(enabledLogs, output)
 	}
 	return enabledLogs
@@ -835,15 +829,15 @@ func resourceMonitorDiagnosticLogSettingHash(input interface{}) int {
 		if categoryGroup, ok := rawData["category_group"]; ok {
 			buf.WriteString(fmt.Sprintf("%s-", categoryGroup.(string)))
 		}
-		if enabled, ok := rawData["enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
-		}
-		if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
-			if policyEnabled, ok := policy["enabled"]; ok {
-				buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
-			}
-			if days, ok := policy["days"]; ok {
-				buf.WriteString(fmt.Sprintf("%d-", days.(int)))
+
+		if !features.FivePointOh() {
+			if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
+				if policyEnabled, ok := policy["enabled"]; ok {
+					buf.WriteString(fmt.Sprintf("%t-", policyEnabled.(bool)))
+				}
+				if days, ok := policy["days"]; ok {
+					buf.WriteString(fmt.Sprintf("%d-", days.(int)))
+				}
 			}
 		}
 	}
@@ -856,8 +850,10 @@ func resourceMonitorDiagnosticMetricsSettingHash(input interface{}) int {
 		if category, ok := rawData["category"]; ok {
 			buf.WriteString(fmt.Sprintf("%s-", category.(string)))
 		}
-		if enabled, ok := rawData["enabled"]; ok {
-			buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
+		if !features.FivePointOh() {
+			if enabled, ok := rawData["enabled"]; ok {
+				buf.WriteString(fmt.Sprintf("%t-", enabled.(bool)))
+			}
 		}
 		if policy, ok := rawData["retention_policy"].(map[string]interface{}); ok {
 			if policyEnabled, ok := policy["enabled"]; ok {

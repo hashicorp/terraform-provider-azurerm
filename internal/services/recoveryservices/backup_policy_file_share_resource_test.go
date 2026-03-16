@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -50,6 +50,57 @@ func TestAccBackupProtectionPolicyFileShare_basicHourly(t *testing.T) {
 				check.That(data.ResourceName).Key("backup.0.hourly.0.start_time").HasValue("10:00"),
 				check.That(data.ResourceName).Key("backup.0.hourly.0.window_duration").HasValue("12"),
 				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_vaultStandard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vaultStandard(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyFileShare_updateVaultStandard(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_file_share", "test")
+	r := BackupProtectionPolicyFileShareResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDaily(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_tier").HasValue("snapshot"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vaultStandard(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_tier").HasValue("vault-standard"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+				check.That(data.ResourceName).Key("snapshot_retention_in_days").HasValue("9"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.vaultStandardUpdated(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_tier").HasValue("vault-standard"),
+				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("20"),
+				check.That(data.ResourceName).Key("snapshot_retention_in_days").HasValue("15"),
 			),
 		},
 		data.ImportStep(),
@@ -463,6 +514,66 @@ resource "azurerm_backup_policy_file_share" "test" {
   retention_daily {
     count = 10
   }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) vaultStandard(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Hourly"
+
+    hourly {
+      interval        = 4
+      start_time      = "10:00"
+      window_duration = 12
+    }
+  }
+
+  retention_daily {
+    count = 10
+  }
+
+  snapshot_retention_in_days = 9
+
+  backup_tier = "vault-standard"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyFileShareResource) vaultStandardUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_file_share" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Hourly"
+
+    hourly {
+      interval        = 4
+      start_time      = "10:00"
+      window_duration = 12
+    }
+  }
+
+  retention_daily {
+    count = 20
+  }
+
+  snapshot_retention_in_days = 15
+
+  backup_tier = "vault-standard"
 }
 `, r.template(data), data.RandomInteger)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -579,8 +579,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			// Verify that the scrubbing_rule's are valid...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				if v, ok := diff.GetOk("log_scrubbing"); ok {
-					_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{}))
-					if err != nil {
+					if _, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{})); err != nil {
 						return err
 					}
 				}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -101,6 +101,7 @@ var subnetDelegationServiceNames = []string{
 	"Oracle.Database/networkAttachments",
 	"PaloAltoNetworks.Cloudngfw/firewalls",
 	"Qumulo.Storage/fileSystems",
+	"PureStorage.Block/storagePools",
 }
 
 func resourceSubnet() *pluginsdk.Resource {

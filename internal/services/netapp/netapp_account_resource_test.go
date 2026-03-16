@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -210,7 +210,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -226,7 +226,7 @@ resource "azurerm_netapp_account" "import" {
   resource_group_name = azurerm_netapp_account.test.resource_group_name
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
   }
 }
 `, r.basicConfig(data))
@@ -259,7 +259,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
   }
 }
@@ -280,7 +280,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
   }
 }
@@ -314,7 +314,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -340,7 +340,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "SkipNRMSNSG"   = "true"
   }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps
@@ -198,10 +198,16 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 			containerAppId := containerapps.NewContainerAppID(id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName)
 
 			containerApp, err := client.Get(ctx, containerAppId)
-			if err != nil || containerApp.Model == nil {
-				return fmt.Errorf("retrieving %s to read %s", containerAppId, id)
+			if err != nil {
+				if response.WasNotFound(containerApp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", containerAppId, err)
 			}
 
+			if containerApp.Model == nil {
+				return fmt.Errorf("retrieving %s: model was nil", containerAppId)
+			}
 			model := containerApp.Model
 
 			if model.Properties == nil || model.Properties.Configuration == nil || model.Properties.Configuration.Ingress == nil {

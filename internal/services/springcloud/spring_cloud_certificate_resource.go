@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package springcloud
@@ -11,11 +11,10 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
@@ -86,7 +85,7 @@ func resourceSpringCloudCertificate() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				AtLeastOneOf: []string{"key_vault_certificate_id", "certificate_content"},
-				ValidateFunc: keyVaultValidate.NestedItemId,
+				ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny),
 			},
 
 			"thumbprint": {
@@ -120,12 +119,12 @@ func resourceSpringCloudCertificateCreate(d *pluginsdk.ResourceData, meta interf
 
 	cert := appplatform.CertificateResource{}
 	if value, ok := d.GetOk("key_vault_certificate_id"); ok {
-		keyVaultCertificateId, err := keyVaultParse.ParseNestedItemID(value.(string))
+		keyVaultCertificateId, err := keyvault.ParseNestedItemID(value.(string), keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
 		if err != nil {
 			return err
 		}
 		cert.Properties = &appplatform.KeyVaultCertificateProperties{
-			VaultURI:          pointer.To(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseUrl, "/")),
+			VaultURI:          pointer.To(strings.TrimSuffix(keyVaultCertificateId.KeyVaultBaseURL, "/")),
 			KeyVaultCertName:  &keyVaultCertificateId.Name,
 			ExcludePrivateKey: pointer.To(d.Get("exclude_private_key").(bool)),
 		}

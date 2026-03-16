@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp_test
@@ -237,7 +237,7 @@ resource "azurerm_netapp_pool" "test" {
   size_in_tb          = 2
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -278,7 +278,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -294,7 +294,7 @@ resource "azurerm_netapp_pool" "test" {
   encryption_type     = "Single"
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
   }
 }
@@ -322,7 +322,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -337,7 +337,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Manual"
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
   }
 }
@@ -375,7 +375,7 @@ resource "azurerm_netapp_pool" "test" {
   encryption_type     = "Double"
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -412,7 +412,7 @@ resource "azurerm_netapp_pool" "test" {
   cool_access_enabled = true
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -450,7 +450,7 @@ resource "azurerm_netapp_pool" "test" {
   custom_throughput_mibps = 256
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -488,7 +488,7 @@ resource "azurerm_netapp_pool" "test" {
   custom_throughput_mibps = 512
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -145,8 +145,7 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 					Type:        field.Type,
 				}
 			}
-			_, err = client.CreateOrUpdate(ctx, id, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 

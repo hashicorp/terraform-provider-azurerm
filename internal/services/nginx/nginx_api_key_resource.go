@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -119,8 +119,7 @@ func (m APIKeyResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.ApiKeysCreateOrUpdate(ctx, id, req)
-			if err != nil {
+			if _, err = client.ApiKeysCreateOrUpdate(ctx, id, req); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 

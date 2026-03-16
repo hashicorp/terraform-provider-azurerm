@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sdk
@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	terraformschema "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -108,4 +109,28 @@ type FrameworkListWrappedResourceWithConfig interface {
 	FrameworkListWrappedResource
 
 	ListResourceConfigSchema(ctx context.Context, request list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse)
+}
+
+func EncodeListResult(ctx context.Context, resourceData *terraformschema.ResourceData, result *list.ListResult) {
+	tfTypeIdentity, err := resourceData.TfTypeIdentityState()
+	if err != nil {
+		SetResponseErrorDiagnostic(result, "converting Identity State", err)
+		return
+	}
+
+	if diags := result.Identity.Set(ctx, *tfTypeIdentity); diags.HasError() {
+		AppendResponseErrorDiagnostic(result, diags)
+		return
+	}
+
+	tfTypeResourceState, err := resourceData.TfTypeResourceState()
+	if err != nil {
+		SetResponseErrorDiagnostic(result, "converting Resource State", err)
+		return
+	}
+
+	if diags := result.Resource.Set(ctx, *tfTypeResourceState); diags.HasError() {
+		AppendResponseErrorDiagnostic(result, diags)
+		return
+	}
 }

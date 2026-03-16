@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package privatedns
@@ -18,7 +18,9 @@ func (r Registration) Actions() []func() action.Action {
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
+		PrivateDnsARecordListResource{},
 		PrivateDnsZoneListResource{},
+		PrivateDnsZoneVirtualNetworkLinkListResource{},
 	}
 }
 
