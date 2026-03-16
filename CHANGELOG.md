@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_kubernetes_cluster_node_pool` - `max_surge` and `max_unavailable` are no longer required  for spot node pools  [GH-31129]
 * `azurerm_managed_disk` - fix `nil` pointer dereference when updating `disk_access_id`  [GH-31955]
 * `azurerm_log_analytics_workspace_table` - fix validation for `basic` plan  [GH-30925]
 
