@@ -98,8 +98,8 @@ func resourceAppServiceManagedCertificate() *pluginsdk.Resource {
 }
 
 func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
-	appServiceClient := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
+	appServiceClient := meta.(*clients.Client).Web.AppServicesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -199,7 +199,7 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 }
 
 func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -241,7 +241,7 @@ func resourceAppServiceManagedCertificateRead(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAppServiceManagedCertificateDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -85,14 +85,14 @@ func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	binding, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name)
+	binding, err := clients.Web.AppServicesClientV1.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(binding.Response) {
 			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Hostname Binding %q (resource group %q) to check for Certificate Binding %q: %+v", id.HostnameBindingId.Name, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.Name, err)
 	}
-	certificate, err := clients.Web.CertificatesClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
+	certificate, err := clients.Web.CertificatesClientV1.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(certificate.Response) {
 			return pointer.To(false), nil

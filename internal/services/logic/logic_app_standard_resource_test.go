@@ -1132,7 +1132,7 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 			return err
 		}
 
-		appSettingsResp, err := clients.Web.AppServicesClient.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+		appSettingsResp, err := clients.Web.AppServicesClientV1.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
 		if err != nil {
 			return fmt.Errorf("listing AppSettings: %+v", err)
 		}
