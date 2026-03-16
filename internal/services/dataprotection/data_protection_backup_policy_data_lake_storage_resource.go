@@ -22,12 +22,12 @@ import (
 )
 
 type BackupPolicyDataLakeStorageModel struct {
-	Name                         string                                            `tfschema:"name"`
-	BackupRepeatingTimeIntervals []string                                          `tfschema:"backup_repeating_time_intervals"`
-	DefaultRetentionRule         []BackupPolicyDataLakeStorageDefaultRetentionRule `tfschema:"default_retention_rule"`
-	VaultId                      string                                            `tfschema:"vault_id"`
-	RetentionRules               []BackupPolicyDataLakeStorageRetentionRule        `tfschema:"retention_rule"`
-	TimeZone                     string                                            `tfschema:"time_zone"`
+	Name                 string                                            `tfschema:"name"`
+	BackupSchedule       []string                                          `tfschema:"backup_schedule"`
+	DefaultRetentionRule []BackupPolicyDataLakeStorageDefaultRetentionRule `tfschema:"default_retention_rule"`
+	VaultId              string                                            `tfschema:"vault_id"`
+	RetentionRules       []BackupPolicyDataLakeStorageRetentionRule        `tfschema:"retention_rule"`
+	TimeZone             string                                            `tfschema:"time_zone"`
 }
 
 type BackupPolicyDataLakeStorageDefaultRetentionRule struct {
@@ -81,7 +81,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			),
 		},
 
-		"backup_repeating_time_intervals": {
+		"backup_schedule": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			ForceNew: true,
@@ -263,7 +263,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
 			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureRetentionRules(model.RetentionRules)...)
 			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(model.DefaultRetentionRule))
-			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureBackupRules(model.BackupRepeatingTimeIntervals, model.TimeZone, expandBackupPolicyDataLakeStorageTaggingCriteria(model.RetentionRules))...)
+			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureBackupRules(model.BackupSchedule, model.TimeZone, expandBackupPolicyDataLakeStorageTaggingCriteria(model.RetentionRules))...)
 
 			parameters := basebackuppolicyresources.BaseBackupPolicyResource{
 				Properties: &basebackuppolicyresources.BackupPolicy{
@@ -313,7 +313,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Read() sdk.ResourceFu
 				if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
 					state.DefaultRetentionRule = flattenBackupPolicyDataLakeStorageDefaultRetentionRule(properties.PolicyRules)
 					state.RetentionRules = flattenBackupPolicyDataLakeStorageRetentionRules(properties.PolicyRules)
-					state.BackupRepeatingTimeIntervals = flattenBackupPolicyDataLakeStorageBackupRules(properties.PolicyRules)
+					state.BackupSchedule = flattenBackupPolicyDataLakeStorageBackupRules(properties.PolicyRules)
 					state.TimeZone = flattenBackupPolicyDataLakeStorageBackupTimeZone(properties.PolicyRules)
 				}
 			}
