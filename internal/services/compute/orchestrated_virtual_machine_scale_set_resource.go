@@ -481,18 +481,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				return nil
 			}),
 
-			// Platform fault domain count validation for sku_profile
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-				_, hasSkuProfile := diff.GetOk("sku_profile")
-				platformFaultDomainCount := diff.Get("platform_fault_domain_count").(int)
-
-				if hasSkuProfile && platformFaultDomainCount != 1 {
-					return fmt.Errorf("`sku_profile` can only be configured when `platform_fault_domain_count` is set to `1`, got `%d`", platformFaultDomainCount)
-				}
-
-				return nil
-			}),
-
 			// Force recreation when sku_profile is removed and sku_name changes from mix
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				o, n := diff.GetChange("sku_profile")

@@ -187,10 +187,6 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 			Config:      r.skuProfilePrioritizedWithNonConsecutiveRanks(data),
 			ExpectError: regexp.MustCompile("the `rank` values must be consecutive starting from 0. Expected rank `1` but got `2`"),
 		},
-		{
-			Config:      r.skuProfileWithInvalidPlatformFaultDomainCount(data),
-			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `platform_fault_domain_count` is set to `1`, got `5`"),
-		},
 	}
 
 	// TODO: Remove in v5.0 - These test steps are for deprecated vm_sizes functionality
@@ -404,72 +400,6 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfilePrioritizedWithNon
     }
   }`
 	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
-}
-
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileWithInvalidPlatformFaultDomainCount(data acceptance.TestData) string {
-	skuProfileBlock := `  sku_profile {
-    allocation_strategy = "CapacityOptimized"
-
-    virtual_machine_size {
-      name = "Standard_B1ls"
-    }
-
-    virtual_machine_size {
-      name = "Standard_B1s"
-    }
-  }`
-	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfigWithPlatformFaultDomainCount(data, "Mix", skuProfileBlock, 5)
-}
-
-func (r OrchestratedVirtualMachineScaleSetResource) skuProfileConfigWithPlatformFaultDomainCount(data acceptance.TestData, skuName string, skuProfileBlock string, platformFaultDomainCount int) string {
-	return fmt.Sprintf(`
-resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
-  name                = "acctestOVMSS-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku_name = "%[3]s"
-%[4]s
-  instances                   = 2
-  platform_fault_domain_count = %[5]d
-
-  os_profile {
-    windows_configuration {
-      computer_name_prefix     = "testvm"
-      admin_username           = "myadmin"
-      admin_password           = "Passwword1234"
-      enable_automatic_updates = true
-      provision_vm_agent       = true
-    }
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-
-    ip_configuration {
-      name      = "TestIPConfiguration"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
-  }
-
-  tags = {
-    environment = "AccTest"
-  }
-}`, data.RandomInteger, data.Locations.Primary, skuName, skuProfileBlock, platformFaultDomainCount)
 }
 
 // Helper functions for common SKU profile configurations

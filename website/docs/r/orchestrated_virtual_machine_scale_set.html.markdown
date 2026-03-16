@@ -3,12 +3,12 @@ subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_orchestrated_virtual_machine_scale_set"
 description: |-
-  Manages an Virtual Machine Scale Set in Flexible Orchestration Mode.
+  Manages an Orchestrated Virtual Machine Scale Set in Flexible Orchestration Mode.
 ---
 
 # azurerm_orchestrated_virtual_machine_scale_set
 
-Manages an Virtual Machine Scale Set in Flexible Orchestration Mode.
+Manages an Orchestrated Virtual Machine Scale Set in Flexible Orchestration Mode.
 
 ## Disclaimers
 
@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
-  name                = "example-VMSS"
+  name                = "example-orchestrated-virtual-machine-scale-set"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
 
@@ -38,11 +38,13 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 ## Arguments Reference
 
+The following arguments are supported:
+
 * `name` - (Required) The name of the Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
-* `location` - (Required) The Azure location where the Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
-
 * `resource_group_name` - (Required) The name of the Resource Group in which the Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
+
+* `location` - (Required) The Azure location where the Virtual Machine Scale Set should exist. Changing this forces a new resource to be created.
 
 * `platform_fault_domain_count` - (Required) Specifies the number of fault domains that are used by this Virtual Machine Scale Set. Changing this forces a new resource to be created.
 
@@ -52,15 +54,15 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `automatic_instance_repair` - (Optional) An `automatic_instance_repair` block as defined below.
 
--> **Note:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
+~> **Note:** To enable the `automatic_instance_repair`, the Orchestrated Virtual Machine Scale Set must have a valid [Application Health Extension](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension).
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
 
--> **Note:** `capacity_reservation_group_id` cannot be specified with `proximity_placement_group_id`
+~> **Note:** `capacity_reservation_group_id` cannot be specified with `proximity_placement_group_id`.
 
--> **Note:** If `capacity_reservation_group_id` is specified the `single_placement_group` must be set to `false`.
+~> **Note:** If `capacity_reservation_group_id` is specified, `single_placement_group` must be set to `false`.
 
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
 
@@ -70,17 +72,17 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `extension` - (Optional) One or more `extension` blocks as defined below
 
-* `extension_operations_enabled` - (Optional) Should extension operations be allowed on the Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `true`. Changing this forces a new Virtual Machine Scale Set to be created.
+* `extension_operations_enabled` - (Optional) Should extension operations be allowed on the Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `true`. Changing this forces a new resource to be created.
 
--> **Note:** `extension_operations_enabled` may only be set to `false` if there are no extensions defined in the `extension` field.
+~> **Note:** `extension_operations_enabled` may only be set to `false` if there are no extensions defined in the `extension` field.
 
-* `extensions_time_budget` - (Optional) Specifies the time alloted for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `PT1H30M`.
+* `extensions_time_budget` - (Optional) Specifies the time allotted for all extensions to start. The time duration should be between 15 minutes and 120 minutes (inclusive) and should be specified in ISO 8601 format. Defaults to `PT1H30M`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `instances` - (Optional) The number of Virtual Machines in the Virtual Machine Scale Set.
 
-* `license_type` - (Optional) Specifies the type of on-premise license (also known as Azure Hybrid Use Benefit) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client` and `Windows_Server`.
+* `license_type` - (Optional) Specifies the type of on-premise license (also known as Azure Hybrid Use Benefit) which should be used for this Virtual Machine Scale Set. Possible values are `None`, `Windows_Client`, and `Windows_Server`.
 
 * `max_bid_price` - (Optional) The maximum price you're willing to pay for each Virtual Machine in this Scale Set, in US Dollars; which must be greater than the current spot price. If this bid price falls below the current spot price the Virtual Machines in the Scale Set will be evicted using the eviction_policy. Defaults to `-1`, which means that each Virtual Machine in the Scale Set should not be evicted for price reasons.
 
@@ -92,93 +94,63 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `os_profile` - (Optional) An `os_profile` block as defined below.
 
-* `plan` - (Optional) A `plan` block as documented below. Changing this forces a new resource to be created.
+* `plan` - (Optional) A `plan` block as defined below. Changing this forces a new resource to be created.
 
-* `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this value forces a new resource.
+* `priority` - (Optional) The Priority of this Virtual Machine Scale Set. Possible values are `Regular` and `Spot`. Defaults to `Regular`. Changing this forces a new resource to be created.
 
-* `priority_mix` - (Optional) a `priority_mix` block as defined below
+* `priority_mix` - (Optional) A `priority_mix` block as defined below.
+
+~> **Note:** `priority_mix` can only be specified when `priority` is set to `Spot`.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group which the Virtual Machine should be assigned to. Changing this forces a new resource to be created.
 
-* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required when `upgrade_mode` is set to `Rolling` and cannot be specified when `upgrade_mode` is set to `Manual`. Changing this forces a new resource to be created.
+* `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** `rolling_upgrade_policy` is required when `upgrade_mode` is set to `Rolling`, cannot be specified when `upgrade_mode` is set to `Manual`, and requires a valid application health extension when `upgrade_mode` is set to `Rolling`.
 
 * `single_placement_group` - (Optional) Should this Virtual Machine Scale Set be limited to a Single Placement Group, which means the number of instances will be capped at 100 Virtual Machines. Possible values are `true` or `false`.
 
 -> **Note:** `single_placement_group` behaves differently for Flexible orchestration Virtual Machine Scale Sets than it does for Uniform orchestration Virtual Machine Scale Sets. It is recommended that you do not define the `single_placement_group` field in your configuration file as the service will determine what this value should be based off of the value contained within the `sku_name` field of your configuration file. You may set the `single_placement_group` field to `true`, however once you set it to `false` you will not be able to revert it back to `true`.
 
-* `sku_name` - (Optional) The `name` of the SKU to be used by this Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
+* `sku_name` - (Optional) The name of the SKU to be used by this Virtual Machine Scale Set.
+
+-> **Note:** `sku_name` can be set to any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
 
 * `sku_profile` - (Optional) A `sku_profile` block as defined below.
 
--> **Note:** If `sku_profile` is specified the `sku_name` must be set to `Mix`.
+~> **Note:** `sku_profile` can only be specified when `sku_name` is set to `Mix`, and `sku_profile` must be configured when `sku_name` is set to `Mix`.
 
-!> **Note:** The `sku_profile` feature comes with several key limitations: it is currently supported only in the `East US`, `West US`, `East US 2`, and `West US 2` regions; it requires the `platform_fault_domain_count` to be explicitly set to `1`; and while the `sku_profile` can be updated after deployment, it cannot be removed. Removing the `sku_profile` from the configuration after deployment will trigger the creation of a new resource. Additionally, modifying the `sku_profile` settings may result in instance disruption, as changes to allocation strategies or VM sizes typically necessitate instance redistribution or recreation by Azure.
+!> **Note:** The `sku_profile` feature may be subject to Azure service limitations for particular regions and VM size combinations. While `sku_profile` can be updated after deployment, it cannot be removed. Removing `sku_profile` from the configuration after deployment triggers the creation of a new resource. Additionally, modifying `sku_profile` settings may result in instance disruption, as changes to allocation strategies or VM sizes can require Azure to redistribute or recreate instances.
 
 * `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
 * `source_image_reference` - (Optional) A `source_image_reference` block as defined below.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
+~> **Note:** `source_image_id` and `source_image_reference` are mutually exclusive and only one of them may be specified.
 
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
-* `upgrade_mode` - (Optional) Specifies how upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual` and `Rolling`. Defaults to `Manual`. Changing this forces a new resource to be created.
+* `upgrade_mode` - (Optional) Specifies how upgrades (e.g. changing the Image/SKU) should be performed to Virtual Machine Instances. Possible values are `Automatic`, `Manual`, and `Rolling`. Defaults to `Manual`. Changing this forces a new resource to be created.
 
 * `user_data_base64` - (Optional) The Base64-Encoded User Data which should be used for this Virtual Machine Scale Set.
 
 * `zone_balance` - (Optional) Should the Virtual Machines in this Scale Set be strictly evenly distributed across Availability Zones? Defaults to `false`. Changing this forces a new resource to be created.
 
--> **Note:** This can only be set to `true` when one or more `zones` are configured.
+~> **Note:** This can only be set to `true` when one or more `zones` are configured.
 
 * `zones` - (Optional) Specifies a list of Availability Zones across which the Virtual Machine Scale Set will create instances.
 
--> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
+~> **Note:** Updating `zones` to remove an existing zone forces a new Virtual Machine Scale Set to be created.
 
 -> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
----
-
-A `sku_profile` block supports the following:
-
-* `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `LowestPrice`, `Prioritized`, and `CapacityOptimized`.
-
-* `virtual_machine_size` - (Required) One or more `virtual_machine_size` blocks as defined below.
-
----
-
-A `virtual_machine_size` block supports the following:
-
-* `name` - (Required) The name of the VM SKU which should be used for this Virtual Machine Scale Set, such as `Standard_B1ls` or `Standard_B2s`.
-
-* `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `CapacityOptimized`, `LowestPrice` and `Prioritized`.
-
-* `rank` - (Optional) Specifies the priority rank of the VM size. Possible values are integers between `0` and `2`, inclusive.
-
--> **Note:** The `rank` field is required when `allocation_strategy` is set to `Prioritized`. Where `0` represents the highest priority, `1` represents medium priority, and `2` represents the lowest priority.
+* `tags` - (Optional) A mapping of tags which should be assigned to this Virtual Machine Scale Set.
 
 ---
 
 An `additional_capabilities` block supports the following:
 
 * `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine Scale Set? Defaults to `false`. Changing this forces a new resource to be created.
-
----
-
-An `os_profile` block supports the following:
-
-* `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine Scale Set.
-
--> **Note:** When Custom Data has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
-
-* `windows_configuration` - (Optional) A `windows_configuration` block as documented below.
-
-* `linux_configuration` - (Optional) A `linux_configuration` block as documented below.
-
----
-
-An `additional_capabilities` block supports the following:
-
-* `ultra_ssd_enabled` - (Optional) Should the capacity to enable Data Disks of the `UltraSSD_LRS` storage account type be supported on this Virtual Machine Scale Set? Possible values are `true` or `false`. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -204,15 +176,15 @@ An `automatic_instance_repair` block supports the following:
 
 * `enabled` - (Required) Should the automatic instance repair be enabled on this Virtual Machine Scale Set? Possible values are `true` and `false`.
 
-* `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `10` and `90` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT10M` to `PT90M`).
-
--> **Note:** Once the `grace_period` field has been set it will always return the last value it was assigned if it is removed from the configuration file.
-
-* `action` - (Optional) The repair action that will be used for repairing unhealthy virtual machines in the scale set. Possible values include `Replace`, `Restart`, `Reimage`.
+* `action` - (Optional) The repair action that will be used for repairing unhealthy virtual machines in the scale set. Possible values are `Replace`, `Restart`, and `Reimage`.
 
 -> **Note:** Once the `action` field has been set it will always return the last value it was assigned if it is removed from the configuration file.
 
 -> **Note:** If you wish to update the repair `action` of an existing `automatic_instance_repair` policy, you must first `disable` the `automatic_instance_repair` policy before you can re-enable the `automatic_instance_repair` policy with the new repair `action` defined.
+
+* `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `10` and `90` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT10M` to `PT90M`).
+
+-> **Note:** Once the `grace_period` field has been set it will always return the last value it was assigned if it is removed from the configuration file.
 
 ---
 
@@ -238,17 +210,17 @@ A (Windows) `certificate` block supports the following:
 
 A `data_disk` block supports the following:
 
-* `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are None, ReadOnly and ReadWrite.
+* `caching` - (Required) The type of Caching which should be used for this Data Disk. Possible values are `None`, `ReadOnly`, and `ReadWrite`.
 
-* `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are Empty and FromImage. Defaults to `Empty`. (FromImage should only be used if the source image includes data disks).
+* `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS`, and `UltraSSD_LRS`.
+
+* `create_option` - (Optional) The create option which should be used for this Data Disk. Possible values are `Empty` and `FromImage`. Defaults to `Empty`. (FromImage should only be used if the source image includes data disks).
+
+* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt the Data Disk. Changing this forces a new resource to be created.
 
 * `disk_size_gb` - (Optional) The size of the Data Disk which should be created. Required if `create_option` is specified as `Empty`.
 
 * `lun` - (Optional) The Logical Unit Number of the Data Disk, which must be unique within the Virtual Machine. Required if `create_option` is specified as `Empty`.
-
-* `storage_account_type` - (Required) The Type of Storage Account which should back this Data Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, `PremiumV2_LRS`, `Premium_ZRS` and `UltraSSD_LRS`.
-
-* `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt the Data Disk. Changing this forces a new resource to be created.
 
 * `ultra_ssd_disk_iops_read_write` - (Optional) Specifies the Read-Write IOPS for this Data Disk. Only settable when `storage_account_type` is `PremiumV2_LRS` or `UltraSSD_LRS`.
 
@@ -280,6 +252,10 @@ An `extension` block supports the following:
 
 * `extensions_to_provision_after_vm_creation` - (Optional) An ordered list of Extension names which Virtual Machine Scale Set should provision after VM creation.
 
+* `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`.
+
+-> **Note:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
+
 * `force_extension_execution_on_change` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
 
 * `protected_settings` - (Optional) A JSON String which specifies Sensitive Settings (such as Passwords) for the Extension.
@@ -288,11 +264,7 @@ An `extension` block supports the following:
 
 * `protected_settings_from_key_vault` - (Optional) A `protected_settings_from_key_vault` block as defined below.
 
-~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`
-
-* `failure_suppression_enabled` - (Optional) Should failures from the extension be suppressed? Possible values are `true` or `false`.
-
--> **Note:** Operational failures such as not connecting to the VM will not be suppressed regardless of the `failure_suppression_enabled` value.
+~> **Note:** `protected_settings_from_key_vault` cannot be used with `protected_settings`.
 
 * `settings` - (Optional) A JSON String which specifies Settings for the Extension.
 
@@ -300,9 +272,9 @@ An `extension` block supports the following:
 
 An `identity` block supports the following:
 
-* `type` - (Required) The type of Managed Identity that should be configured on this Windows Virtual Machine Scale Set. Only possible value is `UserAssigned`.
+* `identity_ids` - (Required) Specifies a list of User Managed Identity IDs to be assigned to this Orchestrated Virtual Machine Scale Set.
 
-* `identity_ids` - (Required) Specifies a list of User Managed Identity IDs to be assigned to this Windows Virtual Machine Scale Set.
+* `type` - (Required) The type of Managed Identity that should be configured on this Orchestrated Virtual Machine Scale Set. The only possible value is `UserAssigned`.
 
 ---
 
@@ -326,7 +298,7 @@ An `ip_configuration` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet which this IP Configuration should be connected to.
 
--> **Note:** `subnet_id` is required if version is set to `IPv4`.
+~> **Note:** `subnet_id` is required if `version` is set to `IPv4`.
 
 * `version` - (Optional) The Internet Protocol Version which should be used for this IP Configuration. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`.
 
@@ -346,7 +318,7 @@ A `linux_configuration` block supports the following:
 
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
-* `admin_ssh_key` - (Optional) A `admin_ssh_key` block as documented below.
+* `admin_ssh_key` - (Optional) An `admin_ssh_key` block as defined above.
 
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the name field. If the value of the name field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`. Changing this forces a new resource to be created.
 
@@ -356,13 +328,13 @@ A `linux_configuration` block supports the following:
 
 * `patch_assessment_mode` - (Optional) Specifies the mode of VM Guest Patching for the virtual machines that are associated to the Virtual Machine Scale Set. Possible values are `AutomaticByPlatform` or `ImageDefault`. Defaults to `ImageDefault`.
 
--> **Note:** If the `patch_assessment_mode` is set to `AutomaticByPlatform` then the `provision_vm_agent` field must be set to `true`.
+~> **Note:** If `patch_assessment_mode` is set to `AutomaticByPlatform`, `provision_vm_agent` must be set to `true`.
 
-* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `ImageDefault` or `AutomaticByPlatform`. Defaults to `ImageDefault`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Linux Virtual Machine. Possible values are `ImageDefault` and `AutomaticByPlatform`. Defaults to `ImageDefault`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
--> **Note:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.  An example of how to correctly configure a Virtual Machine Scale Set to provision a Linux Virtual Machine with Automatic VM Guest Patching enabled can be found in the [`./examples/orchestrated-vm-scale-set/automatic-vm-guest-patching`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/automatic-vm-guest-patching) directory within the GitHub Repository.
+~> **Note:** If `patch_mode` is set to `AutomaticByPlatform`, `provision_vm_agent` must be set to `true` and the `extension` block must contain at least one application health extension. An example of how to correctly configure a Virtual Machine Scale Set to provision a Linux Virtual Machine with Automatic VM Guest Patching enabled can be found in the [`./examples/orchestrated-vm-scale-set/automatic-vm-guest-patching`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/automatic-vm-guest-patching) directory within the GitHub Repository.
 
-* `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
+* `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this forces a new resource to be created.
 
 * `secret` - (Optional) One or more `secret` blocks as defined below.
 
@@ -370,17 +342,19 @@ A `linux_configuration` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `name` - (Required) The Name which should be used for this Network Interface. Changing this forces a new resource to be created.
-
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
+
+* `name` - (Required) The Name which should be used for this Network Interface. Changing this forces a new resource to be created.
 
 * `auxiliary_mode` - (Optional) Specifies the auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections. Possible values are `AcceleratedConnections` and `Floating`.
 
 -> **Note:** `auxiliary_mode` is in **Preview** and requires that the prerequisites are enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
 
-* `auxiliary_sku` - (Optional) Specifies the SKU used for the network high-performance feature on Network Virtual Appliances (NVAs). Possible values are `A1`, `A2`, `A4` and `A8`.
+* `auxiliary_sku` - (Optional) Specifies the SKU used for the network high-performance feature on Network Virtual Appliances (NVAs). Possible values are `A1`, `A2`, `A4`, and `A8`.
 
 -> **Note:** `auxiliary_sku` is in **Preview** and requires that the prerequisites are enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
+
+~> **Note:** `auxiliary_mode` and `auxiliary_sku` must be specified together, and both fields require `network_api_version` later than `2020-11-01`.
 
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
@@ -392,21 +366,21 @@ A `network_interface` block supports the following:
 
 * `primary` - (Optional) Is this the Primary IP Configuration? Possible values are `true` and `false`. Defaults to `false`.
 
--> **Note:** If multiple `network_interface` blocks are specified, one must be set to `primary`.
+~> **Note:** If multiple `network_interface` blocks are specified, one must be set to `primary`.
 
 ---
 
 An `os_disk` block supports the following:
 
-* `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
+* `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly`, and `ReadWrite`.
 
-* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values include `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+* `storage_account_type` - (Required) The Type of Storage Account which should back the Internal OS Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `StandardSSD_ZRS`, `Premium_LRS`, and `Premium_ZRS`. Changing this forces a new resource to be created.
 
 * `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above. Changing this forces a new resource to be created.
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to encrypt this OS Disk. Changing this forces a new resource to be created.
 
--> **Note:** Disk Encryption Sets are in Public Preview in a limited set of regions
+-> **Note:** Disk Encryption Sets are in Public Preview in a limited set of regions.
 
 * `disk_size_gb` - (Optional) The Size of the Internal OS Disk in GB, if you wish to vary from the size used in the image this Virtual Machine Scale Set is sourced from.
 
@@ -414,13 +388,25 @@ An `os_disk` block supports the following:
 
 ---
 
+An `os_profile` block supports the following:
+
+* `custom_data` - (Optional) The Base64-Encoded Custom Data which should be used for this Virtual Machine Scale Set.
+
+-> **Note:** When Custom Data has been configured, it's not possible to remove it without tainting the Virtual Machine Scale Set, due to a limitation of the Azure API.
+
+* `linux_configuration` - (Optional) A `linux_configuration` block as defined above.
+
+* `windows_configuration` - (Optional) A `windows_configuration` block as defined below.
+
+---
+
 A `plan` block supports the following:
 
 * `name` - (Required) Specifies the name of the image from the marketplace. Changing this forces a new resource to be created.
 
-* `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
-
 * `product` - (Required) Specifies the product of the image from the marketplace. Changing this forces a new resource to be created.
+
+* `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
 
 ---
 
@@ -444,7 +430,9 @@ A `public_ip_address` block supports the following:
 
 * `name` - (Required) The Name of the Public IP Address Configuration.
 
-* `domain_name_label` - (Optional) The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance. Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine. Valid values must be between `1` and `26` characters long, start with a lower case letter, end with a lower case letter or number and contains only `a-z`, `0-9` and `hyphens`.
+* `domain_name_label` - (Optional) The Prefix which should be used for the Domain Name Label for each Virtual Machine Instance.
+
+-> **Note:** Azure concatenates the Domain Name Label and Virtual Machine Index to create a unique Domain Name Label for each Virtual Machine. Valid values must be between `1` and `26` characters long, start with a lower case letter, end with a lower case letter or number, and contain only `a-z`, `0-9`, and `hyphens`.
 
 * `idle_timeout_in_minutes` - (Optional) The Idle Timeout in Minutes for the Public IP Address. Possible values are in the range `4` to `32`.
 
@@ -452,15 +440,15 @@ A `public_ip_address` block supports the following:
 
 * `public_ip_prefix_id` - (Optional) The ID of the Public IP Address Prefix from where Public IP Addresses should be allocated. Changing this forces a new resource to be created.
 
-* `sku_name` - (Optional) Specifies what Public IP Address SKU the Public IP Address should be provisioned as. Possible vaules include `Basic_Regional`, `Basic_Global`, `Standard_Regional` or `Standard_Global`. For more information about Public IP Address SKU's and their capabilities, please see the [product documentation](https://docs.microsoft.com/azure/virtual-network/ip-services/public-ip-addresses#sku). Changing this forces a new resource to be created.
+* `sku_name` - (Optional) Specifies what Public IP Address SKU the Public IP Address should be provisioned as. Possible values are `Basic_Regional`, `Basic_Global`, `Standard_Regional`, and `Standard_Global`. Changing this forces a new resource to be created.
+
+-> **Note:** For more information about Public IP Address SKUs and their capabilities, please see the [product documentation](https://docs.microsoft.com/azure/virtual-network/ip-services/public-ip-addresses#sku).
 
 * `version` - (Optional) The Internet Protocol Version which should be used for this public IP address. Possible values are `IPv4` and `IPv6`. Defaults to `IPv4`. Changing this forces a new resource to be created.
 
 ---
 
 A `rolling_upgrade_policy` block supports the following:
-
-* `cross_zone_upgrades_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` or `false`.
 
 * `max_batch_instance_percent` - (Required) The maximum percent of total virtual machine instances that will be upgraded simultaneously by the rolling upgrade in one batch. As this is a maximum, unhealthy instances in previous or future batches can cause the percentage of instances in a batch to decrease to ensure higher reliability.
 
@@ -470,27 +458,41 @@ A `rolling_upgrade_policy` block supports the following:
 
 * `pause_time_between_batches` - (Required) The wait time between completing the update for all virtual machines in one batch and starting the next batch. The time duration should be specified in ISO 8601 duration format.
 
-* `prioritize_unhealthy_instances_enabled` - (Optional) Upgrade all unhealthy instances in a scale set before any healthy instances. Possible values are `true` or `false`.
+* `cross_zone_upgrades_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` and `false`.
 
-* `maximum_surge_instances_enabled` - (Optional) Create new virtual machines to upgrade the scale set, rather than updating the existing virtual machines. Existing virtual machines will be deleted once the new virtual machines are created for each batch. Possible values are `true` or `false`.
+~> **Note:** `cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified.
+
+* `maximum_surge_instances_enabled` - (Optional) Create new virtual machines to upgrade the scale set, rather than updating the existing virtual machines. Existing virtual machines will be deleted once the new virtual machines are created for each batch. Possible values are `true` and `false`.
+
+* `prioritize_unhealthy_instances_enabled` - (Optional) Upgrade all unhealthy instances in a scale set before any healthy instances. Possible values are `true` and `false`.
 
 ---
 
 A `secret` block supports the following:
 
-* `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
+* `certificate` - (Required) One or more `certificate` blocks as defined above.
 
-* `certificate` - (Required) One or more `certificate` blocks as defined below.
+* `key_vault_id` - (Required) The ID of the Key Vault from which all Secrets should be sourced.
 
 -> **Note:** The schema of the `certificate` block is slightly different depending on if you are provisioning a `windows_configuration` or a `linux_configuration`.
 
 ---
 
+A `sku_profile` block supports the following:
+
+* `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `LowestPrice`, `Prioritized`, and `CapacityOptimized`.
+
+* `virtual_machine_size` - (Required) One or more `virtual_machine_size` blocks as defined below.
+
+~> **Note:** When `allocation_strategy` is set to `Prioritized`, you must use the `virtual_machine_size` block to specify rank values.
+
+---
+
 A `source_image_reference` block supports the following:
 
-* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
-
 * `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
 
 * `sku` - (Required) Specifies the SKU of the image used to create the virtual machines.
 
@@ -500,49 +502,59 @@ A `source_image_reference` block supports the following:
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? Possible values `true` or `false`.
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? Possible values are `true` and `false`.
 
 * `timeout` - (Optional) Length of time (in minutes, between `5` and `15`) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in `ISO 8601` format. Defaults to `PT5M`.
 
 ---
 
+A `virtual_machine_size` block supports the following:
+
+* `name` - (Required) The name of the VM SKU which should be used for this Virtual Machine Scale Set, such as `Standard_B1ls` or `Standard_B2s`.
+
+* `rank` - (Optional) Specifies the priority rank of the VM size. Possible values are integers between `0` and `2`, inclusive.
+
+~> **Note:** `rank` can only be set when the parent `sku_profile` block sets `allocation_strategy` to `Prioritized`. When `allocation_strategy` is `Prioritized`, every `virtual_machine_size` block must set `rank`, and the rank values must be consecutive starting from `0` with no gaps. `0` represents the highest priority, `1` represents medium priority, and `2` represents the lowest priority.
+
+---
+
 A `windows_configuration` block supports the following:
+
+* `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
 * `admin_username` - (Required) The username of the local administrator on each Virtual Machine Scale Set instance. Changing this forces a new resource to be created.
 
-* `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
+* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined above. Changing this forces a new resource to be created.
 
 * `computer_name_prefix` - (Optional) The prefix which should be used for the name of the Virtual Machines in this Scale Set. If unspecified this defaults to the value for the `name` field. If the value of the `name` field is not a valid `computer_name_prefix`, then you must specify `computer_name_prefix`. Changing this forces a new resource to be created.
 
 * `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
 
-* `hotpatching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` or `false`. Defaults to `false`. For more information about hot patching please see the [product documentation](https://docs.microsoft.com/azure/automanage/automanage-hotpatch).
+* `hotpatching_enabled` - (Optional) Should the VM be patched without requiring a reboot? Possible values are `true` and `false`. Defaults to `false`. For more information about hot patching please see the [product documentation](https://docs.microsoft.com/azure/automanage/automanage-hotpatch).
 
--> **Note:** Hotpatching can only be enabled if the `patch_mode` is set to `AutomaticByPlatform`, the `provision_vm_agent` is set to `true`, your `source_image_reference` references a hotpatching enabled image, the VM's `sku_name` is set to a [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM SKU and the `extension` contains an application health extension. An example of how to correctly configure a Virtual Machine Scale Set to provision a Windows Virtual Machine with hotpatching enabled can be found in the [`./examples/orchestrated-vm-scale-set/hotpatching-enabled`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/hotpatching-enabled) directory within the GitHub Repository.
+~> **Note:** Hotpatching can only be enabled if `patch_mode` is set to `AutomaticByPlatform`, `provision_vm_agent` is set to `true`, `source_image_reference` references a hotpatching enabled image, `sku_name` is set to an [Azure generation 2](https://docs.microsoft.com/azure/virtual-machines/generation-2#generation-2-vm-sizes) VM SKU, and the `extension` block contains an application health extension. An example of how to correctly configure a Virtual Machine Scale Set to provision a Windows Virtual Machine with hotpatching enabled can be found in the [`./examples/orchestrated-vm-scale-set/hotpatching-enabled`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/orchestrated-vm-scale-set/hotpatching-enabled) directory within the GitHub Repository.
 
 * `patch_assessment_mode` - (Optional) Specifies the mode of VM Guest Patching for the virtual machines that are associated to the Virtual Machine Scale Set. Possible values are `AutomaticByPlatform` or `ImageDefault`. Defaults to `ImageDefault`.
 
--> **Note:** If the `patch_assessment_mode` is set to `AutomaticByPlatform` then the `provision_vm_agent` field must be set to `true`.
+~> **Note:** If `patch_assessment_mode` is set to `AutomaticByPlatform`, `provision_vm_agent` must be set to `true`.
 
-* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS` and `AutomaticByPlatform`. Defaults to `AutomaticByOS`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
+* `patch_mode` - (Optional) Specifies the mode of in-guest patching of this Windows Virtual Machine. Possible values are `Manual`, `AutomaticByOS`, and `AutomaticByPlatform`. Defaults to `AutomaticByOS`. For more information on patch modes please see the [product documentation](https://docs.microsoft.com/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes).
 
--> **Note:** If `patch_mode` is set to `AutomaticByPlatform` the `provision_vm_agent` must be set to `true` and the `extension` must contain at least one application health extension.
+~> **Note:** If `patch_mode` is set to `AutomaticByPlatform`, `provision_vm_agent` must be set to `true` and the `extension` block must contain at least one application health extension.
 
-* `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
+* `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this forces a new resource to be created.
 
-* `secret` - (Optional) One or more `secret` blocks as defined below.
+* `secret` - (Optional) One or more `secret` blocks as defined above.
 
 * `timezone` - (Optional) Specifies the time zone of the virtual machine, the possible values are defined [here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/).
 
 * `winrm_listener` - (Optional) One or more `winrm_listener` blocks as defined below. Changing this forces a new resource to be created.
 
-* `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined below. Changing this forces a new resource to be created.
-
 ---
 
 A `winrm_listener` block supports the following:
 
-* `protocol` - (Required) Specifies the protocol of listener. Possible values are `Http` or `Https`. Changing this forces a new resource to be created.
+* `protocol` - (Required) Specifies the protocol of listener. Possible values are `Http` and `Https`. Changing this forces a new resource to be created.
 
 * `certificate_url` - (Optional) The Secret URL of a Key Vault Certificate, which must be specified when protocol is set to `Https`. Changing this forces a new resource to be created.
 
@@ -554,25 +566,25 @@ A `winrm_listener` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Virtual Machine Scale Set.
+* `id` - The ID of the Orchestrated Virtual Machine Scale Set.
 
-* `unique_id` - The Unique ID for the Virtual Machine Scale Set.
+* `unique_id` - The Unique ID for the Orchestrated Virtual Machine Scale Set.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the Virtual Machine Scale Set.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.
-* `update` - (Defaults to 1 hour) Used when updating the Virtual Machine Scale Set.
-* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Machine Scale Set.
+* `create` - (Defaults to 1 hour) Used when creating the Orchestrated Virtual Machine Scale Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Orchestrated Virtual Machine Scale Set.
+* `update` - (Defaults to 1 hour) Used when updating the Orchestrated Virtual Machine Scale Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Orchestrated Virtual Machine Scale Set.
 
 ## Import
 
-An Virtual Machine Scale Set can be imported using the `resource id`, e.g.
+An Orchestrated Virtual Machine Scale Set can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_orchestrated_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1
+terraform import azurerm_orchestrated_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Compute/virtualMachineScaleSets/virtualMachineScaleSet1
 ```
 
 ## API Providers
