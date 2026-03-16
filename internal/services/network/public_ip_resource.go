@@ -205,17 +205,6 @@ func resourcePublicIp() *pluginsdk.Resource {
 
 const publicIPBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU public IP addresses is no longer permitted following its deprecation on March 31, 2025. This also affects `allocation_method` set to `Dynamic`, as it is only available with the `Basic` SKU. For more information, see https://azure.microsoft.com/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/"
 
-func isPublicIPBasicSkuDeprecatedForCreation() bool {
-	losAngelesLocation, err := time.LoadLocation("America/Los_Angeles")
-	if err != nil {
-		losAngelesLocation = time.UTC
-	}
-
-	deprecationTime := time.Date(2025, time.April, 1, 0, 0, 0, 0, losAngelesLocation)
-	now := time.Now()
-	return now.After(deprecationTime.In(now.Location()))
-}
-
 func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
