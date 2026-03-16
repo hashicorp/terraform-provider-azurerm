@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	certificateobjectlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
+	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -96,8 +96,8 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestackResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRuleStackCertificateModel{}
 			if err := metadata.Decode(&model); err != nil {
@@ -113,7 +113,7 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 			defer locks.UnlockByID(rulestackId.ID())
 
 			id := certificateobjectlocalrulestack.NewLocalRulestackCertificateID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
-			existing, err := client.Get(ctx, id)
+			existing, err := client.CertificateObjectLocalRulestackGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -143,13 +143,13 @@ func (r LocalRuleStackCertificate) Create() sdk.ResourceFunc {
 				Properties: props,
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, cert); err != nil {
+			if _, err = client.CertificateObjectLocalRulestackCreateOrUpdate(ctx, id, cert); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.CommitThenPoll(ctx, *rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
@@ -162,7 +162,7 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestack
+			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestackResources
 
 			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
@@ -171,7 +171,7 @@ func (r LocalRuleStackCertificate) Read() sdk.ResourceFunc {
 
 			var state LocalRuleStackCertificateModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.CertificateObjectLocalRulestackGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -200,7 +200,7 @@ func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestack
+			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestackResources
 
 			id, err := certificateobjectlocalrulestack.ParseLocalRulestackCertificateID(metadata.ResourceData.Id())
 			if err != nil {
@@ -214,7 +214,7 @@ func (r LocalRuleStackCertificate) Delete() sdk.ResourceFunc {
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			if _, err = client.Delete(ctx, *id); err != nil {
+			if _, err = client.CertificateObjectLocalRulestackDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -227,8 +227,8 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.CertificateObjectLocalRulestackResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 			model := LocalRuleStackCertificateModel{}
 
 			if err := metadata.Decode(&model); err != nil {
@@ -243,7 +243,7 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.CertificateObjectLocalRulestackGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retreiving %s: %+v", *id, err)
 			}
@@ -263,11 +263,11 @@ func (r LocalRuleStackCertificate) Update() sdk.ResourceFunc {
 				cert.Properties.CertificateSignerResourceId = pointer.To(model.CertificateSignerID)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, cert); err != nil {
+			if err = client.CertificateObjectLocalRulestackCreateOrUpdateThenPoll(ctx, *id, cert); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
