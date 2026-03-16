@@ -42,7 +42,7 @@ func TestAcc{{ToCamel .ResourceName}}_resourceIdentity(t *testing.T) {
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			{{- if (gt (.TestParams | len) 0) }}
-			Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , "{{ $v }}" {{ end }}),
+			Config: r.{{ .TestName }}(data {{ range $v := .TestParams -}} , {{ QuoteIfNeeded $v }} {{ end }}),
 				{{- else }}
 			Config: r.{{ .TestName }}(data),
 			{{- end }}

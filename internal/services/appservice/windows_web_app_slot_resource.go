@@ -423,8 +423,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			siteConfigUpdate := webapps.SiteConfigResource{
 				Properties: siteConfig,
 			}
-			_, err = client.UpdateConfigurationSlot(ctx, id, siteConfigUpdate)
-			if err != nil {
+			if _, err = client.UpdateConfigurationSlot(ctx, id, siteConfigUpdate); err != nil {
 				return fmt.Errorf("updating %s site config: %+v", id, err)
 			}
 
@@ -918,8 +917,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			siteConfigUpdate := webapps.SiteConfigResource{
 				Properties: model.Properties.SiteConfig,
 			}
-			_, err = client.UpdateConfigurationSlot(ctx, *id, siteConfigUpdate)
-			if err != nil {
+			if _, err = client.UpdateConfigurationSlot(ctx, *id, siteConfigUpdate); err != nil {
 				return fmt.Errorf("updating %s site config: %+v", *id, err)
 			}
 
