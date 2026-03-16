@@ -233,7 +233,7 @@ resource "azurerm_security_center_storage_defender" "test" {
   sensitive_data_discovery_enabled               = true
 
   malware_scanning_on_upload_filters {
-    # exclude_blobs_larger_than = 65536
+    exclude_blobs_larger_than = 65536
 
     exclude_blobs_with_prefix = [
       "container-0",
