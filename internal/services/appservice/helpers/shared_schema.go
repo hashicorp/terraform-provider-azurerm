@@ -548,7 +548,7 @@ func AuthSettingsSchema() *pluginsdk.Schema {
 						// Azure returns nothing for `tokenRefreshExtensionHours`, and the zero-value is set into state.
 						// This then causes a diff on subsequent plans where Terraform wants to change from `0` to the default of `72`. So we'll suppress it.
 						authSettingsVal, authSettingsDiags := d.GetRawConfigAt(sdk.ConstructCtyPath("auth_settings"))
-						if !authSettingsDiags.HasError() && authSettingsVal.IsKnown() {
+						if !authSettingsDiags.HasError() && authSettingsVal.IsKnown() && authSettingsVal.CanIterateElements() {
 							return authSettingsVal.LengthInt() == 0 && o == "0" && n == "72"
 						}
 
