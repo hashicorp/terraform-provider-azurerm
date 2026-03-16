@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -100,6 +100,32 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 
 				return nil
 			}),
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				priority := d.Get("priority").(string)
+				isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
+
+				upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+				if len(upgradeSettingsRaw) == 0 || upgradeSettingsRaw[0] == nil {
+					return nil
+				}
+
+				upgradeSettings := upgradeSettingsRaw[0].(map[string]interface{})
+				maxSurgeRaw := upgradeSettings["max_surge"].(string)
+				maxUnavailableRaw := upgradeSettings["max_unavailable"].(string)
+
+				if isSpot {
+					if maxSurgeRaw != "" {
+						return fmt.Errorf("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
+					}
+					if maxUnavailableRaw != "" {
+						return fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
+					}
+				} else if maxSurgeRaw == "" && maxUnavailableRaw == "" {
+					return fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
+				}
+
+				return nil
+			},
 		),
 	}
 
@@ -1298,10 +1324,10 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_unavailable"},
 				},
 				"drain_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1309,10 +1335,10 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 				"max_unavailable": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_surge"},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1408,11 +1434,14 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	}
 
 	v := input[0].(map[string]interface{})
-	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
+	maxSurgeRaw := v["max_surge"].(string)
+	maxUnavailableRaw := v["max_unavailable"].(string)
+
+	if maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
 		setting.MaxUnavailable = pointer.To("0")
 	}
-	if maxUnavailableRaw := v["max_unavailable"].(string); maxUnavailableRaw != "" {
+	if maxUnavailableRaw != "" {
 		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
 		setting.MaxSurge = pointer.To("0")
 	}

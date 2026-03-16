@@ -35,8 +35,7 @@ func RedisEnterpriseCacheSkuName(input string) (*RedisEnterpriseCacheSku, error)
 		return nil, fmt.Errorf("invalid Redis Enterprise Cluster 'sku_name' missing 'capacity' segment, got %q", input)
 	}
 
-	_, err := strconv.ParseInt(skuParts[1], 10, 32)
-	if err != nil {
+	if _, err := strconv.ParseInt(skuParts[1], 10, 32); err != nil {
 		return nil, fmt.Errorf("invalid Redis Enterprise Cluster 'sku_name', 'capacity' segment must be of type int32 and be a valid int32 value, got %q", skuParts[1])
 	}
 

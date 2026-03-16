@@ -594,9 +594,6 @@ func (AIServices) Delete() sdk.ResourceFunc {
 			}
 
 			deletedAzureAIServicesId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
-			if err != nil {
-				return err
-			}
 
 			log.Printf("[DEBUG] Deleting %s..", *id)
 			if err := client.AccountsDeleteThenPoll(ctx, *id); err != nil {

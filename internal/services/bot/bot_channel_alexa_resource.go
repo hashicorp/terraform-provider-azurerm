@@ -179,8 +179,7 @@ func resourceBotChannelAlexaUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
-	_, err = client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel)
-	if err != nil {
+	if _, err = client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelNameAlexaChannel, channel); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
