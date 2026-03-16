@@ -95,7 +95,7 @@ func (r AppServiceVirtualNetworkSwiftConnectionResource) Exists(ctx context.Cont
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClientV1.GetSwiftVirtualNetworkConnection(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
@@ -112,7 +112,7 @@ func (t AppServiceVirtualNetworkSwiftConnectionResource) disappears(ctx context.
 		return err
 	}
 
-	resp, err := clients.Web.AppServicesClient.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := clients.Web.AppServicesClientV1.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
 			return fmt.Errorf("deleting %s: %+v", id.String(), err)

@@ -121,6 +121,30 @@ Please follow the format in the example below for adding removed resources:
 This deprecated resource has been superseded/retired and has been removed from the Azure Provider.
 ```
 
+### `azurerm_app_service`
+
+* This deprecated resource has been superseded by `azurerm_linux_web_app` and `azurerm_windows_web_app` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_active_slot`
+
+* This deprecated resource has been superseded by `azurerm_web_app_active_slot` and `azurerm_function_app_active_slot` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_hybrid_connection`
+
+* This deprecated resource has been superseded by `azurerm_web_app_hybrid_connection` and `azurerm_function_app_hybrid_connection` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_plan`
+
+* This deprecated resource has been superseded by `azurerm_service_plan` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_slot`
+
+* This deprecated resource has been superseded by `azurerm_linux_web_app_slot` and `azurerm_windows_web_app_slot` and has been removed from the AzureRM Provider.
+
+### `azurerm_app_service_source_control_token`
+
+* This deprecated resource has been removed from the AzureRM Provider.
+
 ### `azurerm_automation_software_update_configuration`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
@@ -136,6 +160,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_data_protection_backup_policy_postgresql`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_function_app`
+
+* This deprecated resource has been superseded by `azurerm_linux_function_app` and `azurerm_windows_function_app` and has been removed from the AzureRM Provider.
+ 
+### `azurerm_function_app_slot`
+
+* This deprecated resource has been superseded by `azurerm_linux_function_app_slot` and `azurerm_windows_function_app_slot` and has been removed from the AzureRM Provider.
 
 ### `azurerm_hpc_cache`
 
@@ -156,10 +188,6 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_hpc_cache_nfs_target`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
-
-### `azurerm_logic_app_standard`
-
-* The `client_certificate_mode` property now defaults to `Required` aligning with the service default for this value.
 
 ### `azurerm_maps_creator`
 
@@ -209,10 +237,6 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
-### `azurerm_redis_enterprise_cluster`
-
-* The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-remove-tls-10-11).
-
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -220,6 +244,14 @@ This deprecated resource has been superseded/retired and has been removed from t
 ### `azurerm_spatial_anchors_account`
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_static_site`
+
+* This deprecated resource has been superseded by `azurerm_static_web_app` and has been removed from the AzureRM Provider.
+
+### `azurerm_static_site_custom_domain`
+
+* This deprecated resource has been superseded by `azurerm_static_web_app_custom_domain` and has been removed from the AzureRM Provider.
 
 
 ## Removed Data Sources
@@ -231,6 +263,18 @@ Please follow the format in the example below for adding removed data sources:
 
 This deprecated data source has been superseded/retired and has been removed from the Azure Provider.
 ```
+
+### `azurerm_app_service`
+
+* This deprecated data source has been superseded by `azurerm_linux_web_app` and `azurerm_windows_web_app` and has been removed from the Azure Provider
+
+### `azurerm_app_service_plan`
+
+* This deprecated data source has been superseded by `azurerm_service_plan` and has been removed from the Azure Provider.
+
+### `azurerm_function_app`
+
+* This deprecated data source has been superseded by `azurerm_linux_function_app` and `azurerm_windows_function_app` and has been removed from the Azure Provider.
 
 ### `azurerm_batch_certificate`
 

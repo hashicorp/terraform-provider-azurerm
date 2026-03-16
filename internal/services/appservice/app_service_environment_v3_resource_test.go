@@ -175,7 +175,7 @@ func (AppServiceEnvironmentV3Resource) Exists(ctx context.Context, client *clien
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServiceEnvironmentsClient.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	resp, err := client.Web.AppServiceEnvironmentsClientV1.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
