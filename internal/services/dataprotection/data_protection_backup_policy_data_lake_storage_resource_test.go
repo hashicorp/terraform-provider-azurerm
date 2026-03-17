@@ -139,7 +139,7 @@ provider "azurerm" {
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   name                            = "acctest-dbp-%d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W", "R/2021-05-24T03:40:00+50:00/P1W"]
+  backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W", "R/2021-05-24T03:40:00+00:00/P1W"]
   time_zone                       = "Coordinated Universal Time"
 
   default_retention_rule {
