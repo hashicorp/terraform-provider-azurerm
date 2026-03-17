@@ -17,6 +17,7 @@ data "azurerm_playwright_workspace" "example" {
   name                = "existing"
   resource_group_name = "existing"
 }
+
 output "id" {
   value = data.azurerm_playwright_workspace.example.id
 }
@@ -38,11 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dataplane_uri` - The data plane service API URI of the Playwright Workspace.
 
-* `local_auth_enabled` - Whether the local authentication is enabled.
-
 * `location` - The Azure Region where the Playwright Workspace exists.
-
-* `regional_affinity_enabled` - Whether the regional affinity is enabled.
 
 * `tags` - A mapping of tags assigned to the Playwright Workspace.
 

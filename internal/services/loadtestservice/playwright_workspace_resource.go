@@ -27,14 +27,12 @@ type PlaywrightWorkspaceResource struct{}
 var _ sdk.ResourceWithIdentity = PlaywrightWorkspaceResource{}
 
 type PlaywrightWorkspaceModel struct {
-	Name                    string            `tfschema:"name"`
-	ResourceGroupName       string            `tfschema:"resource_group_name"`
-	Location                string            `tfschema:"location"`
-	LocalAuthEnabled        bool              `tfschema:"local_auth_enabled"`
-	RegionalAffinityEnabled bool              `tfschema:"regional_affinity_enabled"`
-	DataplaneUri            string            `tfschema:"dataplane_uri"`
-	WorkspaceId             string            `tfschema:"workspace_id"`
-	Tags                    map[string]string `tfschema:"tags"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	DataplaneUri      string            `tfschema:"dataplane_uri"`
+	WorkspaceId       string            `tfschema:"workspace_id"`
+	Tags              map[string]string `tfschema:"tags"`
 }
 
 func (PlaywrightWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
@@ -51,18 +49,6 @@ func (PlaywrightWorkspaceResource) Arguments() map[string]*pluginsdk.Schema {
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
-
-		"local_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"regional_affinity_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
 
 		"tags": commonschema.Tags(),
 	}
@@ -111,21 +97,9 @@ func (r PlaywrightWorkspaceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			properties := &playwrightworkspaces.PlaywrightWorkspaceProperties{}
-			properties.LocalAuth = pointer.To(playwrightworkspaces.EnablementStatusDisabled)
-			if config.LocalAuthEnabled {
-				properties.LocalAuth = pointer.To(playwrightworkspaces.EnablementStatusEnabled)
-			}
-
-			properties.RegionalAffinity = pointer.To(playwrightworkspaces.EnablementStatusDisabled)
-			if config.RegionalAffinityEnabled {
-				properties.RegionalAffinity = pointer.To(playwrightworkspaces.EnablementStatusEnabled)
-			}
-
 			param := playwrightworkspaces.PlaywrightWorkspace{
-				Location:   location.Normalize(config.Location),
-				Properties: properties,
-				Tags:       pointer.To(config.Tags),
+				Location: location.Normalize(config.Location),
+				Tags:     pointer.To(config.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
@@ -161,27 +135,10 @@ func (r PlaywrightWorkspaceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			param := playwrightworkspaces.PlaywrightWorkspaceUpdate{
-				Properties: &playwrightworkspaces.PlaywrightWorkspaceUpdateProperties{},
-			}
-
+			param := playwrightworkspaces.PlaywrightWorkspaceUpdate{}
 			var config PlaywrightWorkspaceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			if metadata.ResourceData.HasChange("local_auth_enabled") {
-				param.Properties.LocalAuth = pointer.To(playwrightworkspaces.EnablementStatusDisabled)
-				if config.LocalAuthEnabled {
-					param.Properties.LocalAuth = pointer.To(playwrightworkspaces.EnablementStatusEnabled)
-				}
-			}
-
-			if metadata.ResourceData.HasChange("regional_affinity_enabled") {
-				param.Properties.RegionalAffinity = pointer.To(playwrightworkspaces.EnablementStatusDisabled)
-				if config.RegionalAffinityEnabled {
-					param.Properties.RegionalAffinity = pointer.To(playwrightworkspaces.EnablementStatusEnabled)
-				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -225,14 +182,6 @@ func (PlaywrightWorkspaceResource) Read() sdk.ResourceFunc {
 				state.Location = location.NormalizeNilable(&model.Location)
 
 				if properties := model.Properties; properties != nil {
-					if localAuth := properties.LocalAuth; localAuth != nil {
-						state.LocalAuthEnabled = pointer.From(localAuth) == playwrightworkspaces.EnablementStatusEnabled
-					}
-
-					if regionalAffinity := properties.RegionalAffinity; regionalAffinity != nil {
-						state.RegionalAffinityEnabled = pointer.From(regionalAffinity) == playwrightworkspaces.EnablementStatusEnabled
-					}
-
 					if dataplaneUri := properties.DataplaneUri; dataplaneUri != nil {
 						state.DataplaneUri = pointer.From(dataplaneUri)
 					}

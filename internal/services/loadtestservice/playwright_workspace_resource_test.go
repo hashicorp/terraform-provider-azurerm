@@ -48,21 +48,6 @@ func TestAccPlaywrightWorkspace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccPlaywrightWorkspace_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_playwright_workspace", "test")
-	r := PlaywrightWorkspaceResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccPlaywrightWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_playwright_workspace", "test")
 	r := PlaywrightWorkspaceResource{}
@@ -76,7 +61,7 @@ func TestAccPlaywrightWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -115,6 +100,7 @@ resource "azurerm_resource_group" "test" {
 func (r PlaywrightWorkspaceResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_playwright_workspace" "test" {
   name                = "acctest-pww-%d"
   resource_group_name = azurerm_resource_group.test.name
@@ -130,6 +116,7 @@ resource "azurerm_playwright_workspace" "test" {
 func (r PlaywrightWorkspaceResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_playwright_workspace" "import" {
   name                = azurerm_playwright_workspace.test.name
   resource_group_name = azurerm_playwright_workspace.test.resource_group_name
@@ -138,15 +125,14 @@ resource "azurerm_playwright_workspace" "import" {
 `, r.basic(data))
 }
 
-func (r PlaywrightWorkspaceResource) complete(data acceptance.TestData) string {
+func (r PlaywrightWorkspaceResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_playwright_workspace" "test" {
-  name                      = "acctest-pww-%d"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  local_auth_enabled        = true
-  regional_affinity_enabled = false
+  name                = "acctest-pww-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 
   tags = {
     Environment = "Sandbox"

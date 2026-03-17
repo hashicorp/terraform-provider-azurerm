@@ -17,6 +17,7 @@ resource "azurerm_resource_group" "example" {
   name     = "example"
   location = "West Europe"
 }
+
 resource "azurerm_playwright_workspace" "example" {
   name                = "example"
   resource_group_name = azurerm_resource_group.example.name
@@ -35,10 +36,6 @@ The following arguments are supported:
 * `location` - (Required) The Azure Region where the Playwright Workspace should exist. Changing this forces a new Playwright Workspace to be created.
 
 ---
-
-* `local_auth_enabled` - (Optional) Whether to enable local authentication through service access tokens for operations. Defaults to `false`.
-
-* `regional_affinity_enabled` - (Optional) Whether the regional affinity is enabled. When enabled, workers connect to browsers in the closest Azure region for lower latency. When disabled, workers connect to browsers in the Azure region where the Playwright Workspace was created. Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Playwright Workspace.
 

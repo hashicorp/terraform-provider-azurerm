@@ -24,14 +24,12 @@ type PlaywrightWorkspaceDataSource struct{}
 var _ sdk.DataSource = PlaywrightWorkspaceDataSource{}
 
 type PlaywrightWorkspaceDataSourceModel struct {
-	Name                    string            `tfschema:"name"`
-	ResourceGroupName       string            `tfschema:"resource_group_name"`
-	Location                string            `tfschema:"location"`
-	LocalAuthEnabled        bool              `tfschema:"local_auth_enabled"`
-	RegionalAffinityEnabled bool              `tfschema:"regional_affinity_enabled"`
-	DataplaneUri            string            `tfschema:"dataplane_uri"`
-	WorkspaceId             string            `tfschema:"workspace_id"`
-	Tags                    map[string]string `tfschema:"tags"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	DataplaneUri      string            `tfschema:"dataplane_uri"`
+	WorkspaceId       string            `tfschema:"workspace_id"`
+	Tags              map[string]string `tfschema:"tags"`
 }
 
 func (PlaywrightWorkspaceDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -54,16 +52,6 @@ func (PlaywrightWorkspaceDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"dataplane_uri": {
 			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"local_auth_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"regional_affinity_enabled": {
-			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
 
@@ -114,14 +102,6 @@ func (PlaywrightWorkspaceDataSource) Read() sdk.ResourceFunc {
 				if properties := model.Properties; properties != nil {
 					if dataplaneUri := properties.DataplaneUri; dataplaneUri != nil {
 						state.DataplaneUri = pointer.From(dataplaneUri)
-					}
-
-					if localAuth := properties.LocalAuth; localAuth != nil {
-						state.LocalAuthEnabled = pointer.From(localAuth) == playwrightworkspaces.EnablementStatusEnabled
-					}
-
-					if regionalAffinity := properties.RegionalAffinity; regionalAffinity != nil {
-						state.RegionalAffinityEnabled = pointer.From(regionalAffinity) == playwrightworkspaces.EnablementStatusEnabled
 					}
 
 					if workspaceId := properties.WorkspaceId; workspaceId != nil {
