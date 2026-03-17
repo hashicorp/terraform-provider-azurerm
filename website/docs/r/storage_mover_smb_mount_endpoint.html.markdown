@@ -49,11 +49,11 @@ resource "azurerm_storage_mover" "example" {
 
 resource "azurerm_storage_mover_smb_mount_endpoint" "example" {
   name                         = "example-smbme"
-  storage_mover_id              = azurerm_storage_mover.example.id
+  storage_mover_id             = azurerm_storage_mover.example.id
   host                         = "server.contoso.com"
   share_name                   = "data"
-  username_key_vault_secret_id  = azurerm_key_vault_secret.username.versionless_id
-  password_key_vault_secret_id  = azurerm_key_vault_secret.password.versionless_id
+  username_key_vault_secret_id = azurerm_key_vault_secret.username.versionless_id
+  password_key_vault_secret_id = azurerm_key_vault_secret.password.versionless_id
   description                  = "Example SMB Mount Endpoint with credentials"
 }
 ```
