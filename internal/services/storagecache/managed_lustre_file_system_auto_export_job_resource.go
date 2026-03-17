@@ -114,11 +114,9 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc 
 				Tags: pointer.To(model.Tags),
 			}
 
-			if model.AdminStatusEnabled {
-				props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusEnable)
-			} else {
-				props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusDisable)
-			}
+			// Azure API does not allow creating an auto export job with adminStatus set to 'Disable',
+			// so always create with 'Enable' and then update to 'Disable' if needed.
+			props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusEnable)
 
 			autoExportJobId := autoexportjob.NewAutoExportJobID(amlFileSystemId.SubscriptionId, amlFileSystemId.ResourceGroupName, amlFileSystemId.AmlFilesystemName, model.Name)
 
@@ -130,6 +128,17 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc 
 
 			if err := autoExportJobClient.CreateOrUpdateThenPoll(ctx, autoExportJobId, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			if !model.AdminStatusEnabled {
+				disableProps := autoexportjob.AutoExportJob{
+					Properties: pointer.To(autoexportjob.AutoExportJobProperties{
+						AdminStatus: pointer.To(autoexportjob.AutoExportJobAdminStatusDisable),
+					}),
+				}
+				if err := autoExportJobClient.CreateOrUpdateThenPoll(ctx, autoExportJobId, disableProps); err != nil {
+					return fmt.Errorf("disabling admin status for %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(autoExportJobId)
