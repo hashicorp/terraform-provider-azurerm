@@ -133,7 +133,7 @@ func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, met
 		parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
 			Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
 				Source: dscnodeconfiguration.ContentSource{
-					Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
+					Type: pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
 					// content_embedded is not returned by the API, so we get it from d.Get
 					Value: pointer.To(d.Get("content_embedded").(string)),
 				},
