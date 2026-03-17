@@ -3,6 +3,7 @@ package storagecache
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjob"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/autoexportjobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2024-07-01/importjobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -119,6 +121,13 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc 
 			}
 
 			autoExportJobId := autoexportjob.NewAutoExportJobID(amlFileSystemId.SubscriptionId, amlFileSystemId.ResourceGroupName, amlFileSystemId.AmlFilesystemName, model.Name)
+
+			importJobsClient := metadata.Client.StorageCache.ImportJobs
+			importJobsFsId := importjobs.NewAmlFilesystemID(amlFileSystemId.SubscriptionId, amlFileSystemId.ResourceGroupName, amlFileSystemId.AmlFilesystemName)
+			if err := waitForImportJobsToComplete(ctx, importJobsClient, importJobsFsId); err != nil {
+				return fmt.Errorf("waiting for import jobs to complete on %s: %+v", importJobsFsId, err)
+			}
+
 			if err := autoExportJobClient.CreateOrUpdateThenPoll(ctx, autoExportJobId, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -222,6 +231,12 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc 
 				props.Tags = pointer.To(model.Tags)
 			}
 
+			importJobsClient := metadata.Client.StorageCache.ImportJobs
+			importJobsFsId := importjobs.NewAmlFilesystemID(id.SubscriptionId, id.ResourceGroupName, id.AmlFilesystemName)
+			if err := waitForImportJobsToComplete(ctx, importJobsClient, importJobsFsId); err != nil {
+				return fmt.Errorf("waiting for import jobs to complete on %s: %+v", importJobsFsId, err)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -229,4 +244,44 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc 
 			return nil
 		},
 	}
+}
+
+func waitForImportJobsToComplete(ctx context.Context, client *importjobs.ImportJobsClient, fsId importjobs.AmlFilesystemId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		deadline = time.Now().Add(30 * time.Minute)
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"InProgress"},
+		Target:     []string{"Complete"},
+		MinTimeout: 30 * time.Second,
+		Timeout:    time.Until(deadline),
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.ListByAmlFilesystemComplete(ctx, fsId)
+			if err != nil {
+				return nil, "", fmt.Errorf("listing import jobs for %s: %+v", fsId, err)
+			}
+
+			for _, job := range resp.Items {
+				if job.Properties != nil && job.Properties.ProvisioningState != nil {
+					state := *job.Properties.ProvisioningState
+					if state == importjobs.ImportJobProvisioningStateTypeCreating ||
+						state == importjobs.ImportJobProvisioningStateTypeUpdating ||
+						state == importjobs.ImportJobProvisioningStateTypeDeleting {
+						log.Printf("[DEBUG] Import job %q is in state %q, waiting...", pointer.From(job.Name), string(state))
+						return resp, "InProgress", nil
+					}
+				}
+			}
+
+			return resp, "Complete", nil
+		},
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return err
+	}
+
+	return nil
 }
