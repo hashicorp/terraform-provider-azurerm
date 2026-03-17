@@ -20,7 +20,6 @@ type StorageDiscoveryWorkspaceResource struct{}
 
 func TestAccStorageDiscoveryWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
-	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -36,7 +35,6 @@ func TestAccStorageDiscoveryWorkspace_basic(t *testing.T) {
 
 func TestAccStorageDiscoveryWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
-	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -52,7 +50,6 @@ func TestAccStorageDiscoveryWorkspace_requiresImport(t *testing.T) {
 
 func TestAccStorageDiscoveryWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
-	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -68,7 +65,6 @@ func TestAccStorageDiscoveryWorkspace_complete(t *testing.T) {
 
 func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
-	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
