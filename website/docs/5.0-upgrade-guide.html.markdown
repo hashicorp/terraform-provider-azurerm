@@ -536,6 +536,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `enable_proxy_protocol` property has been removed in favour of the `proxy_protocol_enabled` property.
 
+### `azurerm_recovery_services_vault`
+
+* The deprecated `soft_delete_enabled` property has been removed.
+
 ### `azurerm_redis_cache`
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
