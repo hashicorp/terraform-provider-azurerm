@@ -28,7 +28,7 @@ resource "azurerm_playwright_workspace" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Playwright Workspace. Changing this forces a new Playwright Workspace to be created.
+* `name` - (Required) The name which should be used for this Playwright Workspace.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Playwright Workspace should exist. Changing this forces a new Playwright Workspace to be created.
 

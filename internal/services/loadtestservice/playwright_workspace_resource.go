@@ -137,7 +137,7 @@ func (r PlaywrightWorkspaceResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			return r.Read().Func(ctx, metadata)
+			return nil
 		},
 	}
 }
@@ -192,7 +192,7 @@ func (r PlaywrightWorkspaceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			return r.Read().Func(ctx, metadata)
+			return nil
 		},
 	}
 }
