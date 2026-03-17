@@ -107,7 +107,7 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
 
   auto_export_prefixes = ["/"]
 }
-`, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
+`, ManagedLustreFileSystemResource{}.completeAutoJob(data), data.RandomInteger)
 }
 
 func (r ManagedLustreFileSystemAutoExportJobResource) update(data acceptance.TestData) string {
@@ -122,7 +122,7 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
   auto_export_prefixes = ["/"]
   admin_status_enabled = false
 }
-`, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
+`, ManagedLustreFileSystemResource{}.completeAutoJob(data), data.RandomInteger)
 }
 
 func (r ManagedLustreFileSystemAutoExportJobResource) complete(data acceptance.TestData) string {
@@ -137,7 +137,7 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
   auto_export_prefixes = ["/", "/export"]
   admin_status_enabled = false
 }
-`, ManagedLustreFileSystemResource{}.complete(data), data.RandomInteger)
+`, ManagedLustreFileSystemResource{}.completeAutoJob(data), data.RandomInteger)
 }
 
 func (r ManagedLustreFileSystemAutoExportJobResource) requiresImport(data acceptance.TestData) string {
