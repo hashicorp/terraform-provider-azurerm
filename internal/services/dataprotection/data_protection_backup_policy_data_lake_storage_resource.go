@@ -241,6 +241,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 
 			parameters := basebackuppolicyresources.BaseBackupPolicyResource{
 				Properties: &basebackuppolicyresources.BackupPolicy{
+					ObjectType:      "BackupPolicy",
 					PolicyRules:     policyRules,
 					DatasourceTypes: []string{"Microsoft.Storage/storageAccounts/adlsBlobServices"},
 				},
