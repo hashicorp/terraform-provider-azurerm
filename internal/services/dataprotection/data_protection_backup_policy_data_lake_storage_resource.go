@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_data_lake_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
 
 type BackupPolicyDataLakeStorageModel struct {
 	Name                        string                                            `tfschema:"name"`
@@ -51,7 +54,14 @@ type BackupPolicyDataLakeStorageCriteria struct {
 
 type DataProtectionBackupPolicyDataLakeStorageResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupPolicyDataLakeStorageResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupPolicyDataLakeStorageResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupPolicyDataLakeStorageResource{}
+)
+
+func (r DataProtectionBackupPolicyDataLakeStorageResource) Identity() resourceids.ResourceId {
+	return &basebackuppolicyresources.BackupPolicyId{}
+}
 
 func (r DataProtectionBackupPolicyDataLakeStorageResource) ResourceType() string {
 	return "azurerm_data_protection_backup_policy_data_lake_storage"
@@ -255,6 +265,9 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -294,6 +307,10 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Read() sdk.ResourceFu
 					state.BackupSchedule = flattenBackupPolicyDataLakeStorageBackupRules(properties.PolicyRules)
 					state.TimeZone = flattenBackupPolicyDataLakeStorageBackupTimeZone(properties.PolicyRules)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
