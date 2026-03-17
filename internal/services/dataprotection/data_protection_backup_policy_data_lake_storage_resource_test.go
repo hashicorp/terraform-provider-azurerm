@@ -147,40 +147,28 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   }
 
   retention_rule {
-    name     = "weekly"
-    priority = 20
-
-    duration = "P6M"
-
-    criteria {
-      absolute_criteria = "FirstOfWeek"
-    }
+    name              = "weekly"
+    priority          = 20
+    duration          = "P6M"
+    absolute_criteria = "FirstOfWeek"
   }
 
   retention_rule {
-    name     = "thursday"
-    priority = 25
-
-    duration = "P1W"
-
-    criteria {
-      days_of_week           = ["Thursday", "Friday"]
-      months_of_year         = ["November", "December"]
-      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
-    }
+    name                   = "thursday"
+    priority               = 25
+    duration               = "P1W"
+    days_of_week           = ["Thursday", "Friday"]
+    months_of_year         = ["November", "December"]
+    scheduled_backup_times = ["2021-05-23T02:30:00Z"]
   }
 
   retention_rule {
-    name     = "monthly"
-    priority = 30
-
-    duration = "P1D"
-
-    criteria {
-      weeks_of_month         = ["First", "Last"]
-      days_of_week           = ["Tuesday"]
-      scheduled_backup_times = ["2021-05-23T02:30:00Z", "2021-05-24T03:40:00Z"]
-    }
+    name                   = "monthly"
+    priority               = 30
+    duration               = "P1D"
+    weeks_of_month         = ["First", "Last"]
+    days_of_week           = ["Tuesday"]
+    scheduled_backup_times = ["2021-05-23T02:30:00Z", "2021-05-24T03:40:00Z"]
   }
 }
 `, r.template(data), data.RandomInteger)

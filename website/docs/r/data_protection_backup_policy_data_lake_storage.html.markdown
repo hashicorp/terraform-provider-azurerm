@@ -41,36 +41,27 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   }
 
   retention_rule {
-    name = "weekly"
-    duration = "P6M"
-    priority = 20
-
-    criteria {
-      absolute_criteria = "FirstOfWeek"
-    }
+    name              = "weekly"
+    duration          = "P6M"
+    priority          = 20
+    absolute_criteria = "FirstOfWeek"
   }
 
   retention_rule {
-    name = "thursday"
-    duration = "P1W"
-    priority = 25
-
-    criteria {
-      days_of_week           = ["Thursday"]
-      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
-    }
+    name                   = "thursday"
+    duration               = "P1W"
+    priority               = 25
+    days_of_week           = ["Thursday"]
+    scheduled_backup_times = ["2021-05-23T02:30:00Z"]
   }
 
   retention_rule {
-    name = "monthly"
-    duration = "P1D"
-    priority = 15
-
-    criteria {
-      weeks_of_month         = ["First", "Last"]
-      days_of_week           = ["Tuesday"]
-      scheduled_backup_times = ["2021-05-23T02:30:00Z"]
-    }
+    name                   = "monthly"
+    duration               = "P1D"
+    priority               = 15
+    weeks_of_month         = ["First", "Last"]
+    days_of_week           = ["Tuesday"]
+    scheduled_backup_times = ["2021-05-23T02:30:00Z"]
   }
 }
 ```
@@ -103,15 +94,9 @@ A `retention_rule` block supports the following:
 
 * `name` - (Required) Specifies the name of the retention rule. Changing this forces a new resource to be created.
 
-* `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new resource to be created.
-
 * `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
 * `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new resource to be created.
-
----
-
-A `criteria` block supports the following:
 
 * `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new resource to be created.
 
