@@ -210,7 +210,7 @@ func (r StorageMoverSmbMountEndpointResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if v, ok := properties.Properties.(endpoints.SmbMountEndpointProperties); ok {
@@ -278,19 +278,10 @@ func (r StorageMoverSmbMountEndpointResource) Read() sdk.ResourceFunc {
 					state.ShareName = v.ShareName
 
 					if v.Credentials != nil {
-						if v.Credentials.UsernameUri != nil {
-							state.UsernameKeyVaultSecretId = *v.Credentials.UsernameUri
-						}
-						if v.Credentials.PasswordUri != nil {
-							state.PasswordKeyVaultSecretId = *v.Credentials.PasswordUri
-						}
+						state.UsernameKeyVaultSecretId = pointer.From(v.Credentials.UsernameUri)
+						state.PasswordKeyVaultSecretId = pointer.From(v.Credentials.PasswordUri)
 					}
-
-					des := ""
-					if v.Description != nil {
-						des = *v.Description
-					}
-					state.Description = des
+					state.Description = pointer.From(v.Description)
 				}
 			}
 
