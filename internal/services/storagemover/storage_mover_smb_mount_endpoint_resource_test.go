@@ -191,10 +191,10 @@ resource "azurerm_key_vault_secret" "password" {
 }
 
 resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
-  name             = "acctest-smse-%d"
-  storage_mover_id = azurerm_storage_mover.test.id
-  host             = "192.168.0.1"
-  share_name       = "testshare"
+  name                         = "acctest-smse-%d"
+  storage_mover_id             = azurerm_storage_mover.test.id
+  host                         = "192.168.0.1"
+  share_name                   = "testshare"
   username_key_vault_secret_id = azurerm_key_vault_secret.username.versionless_id
   password_key_vault_secret_id = azurerm_key_vault_secret.password.versionless_id
   description                  = "Example SMB Mount Endpoint Description"
@@ -247,10 +247,10 @@ resource "azurerm_key_vault_secret" "password" {
 }
 
 resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
-  name             = "acctest-smse-%d"
-  storage_mover_id = azurerm_storage_mover.test.id
-  host             = "192.168.0.1"
-  share_name       = "testshare"
+  name                         = "acctest-smse-%d"
+  storage_mover_id             = azurerm_storage_mover.test.id
+  host                         = "192.168.0.1"
+  share_name                   = "testshare"
   username_key_vault_secret_id = azurerm_key_vault_secret.username.versionless_id
   password_key_vault_secret_id = azurerm_key_vault_secret.password.versionless_id
   description                  = "Updated SMB Mount Endpoint Description"

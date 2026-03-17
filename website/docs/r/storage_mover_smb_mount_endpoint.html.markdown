@@ -66,15 +66,15 @@ The following arguments are supported:
 
 * `storage_mover_id` - (Required) Specifies the ID of the Storage Mover for this SMB Mount Endpoint. Changing this forces a new resource to be created.
 
-* `host` - (Required) Specifies the host name or IP address of the SMB server. Changing this forces a new resource to be created.
+* `host` - (Required) Specifies the host name or IP address of the SMB server. Must be a valid IPv4 address or hostname/FQDN (letters, numbers, dots, hyphens only). Changing this forces a new resource to be created.
 
-* `share_name` - (Required) Specifies the name of the SMB share. Changing this forces a new resource to be created.
+* `share_name` - (Required) Specifies the name of the SMB share. Must be 1-80 characters and cannot contain: `\` `/` `[` `]` `:` `<` `>` `+` `=` `;` `,` `*` `?` or control characters. Changing this forces a new resource to be created.
 
 * `username_key_vault_secret_id` - (Optional) Specifies the Azure Key Vault secret ID for the username to use for authentication. Must be specified together with `password_key_vault_secret_id`. You can use `azurerm_key_vault_secret.<name>.id` or `azurerm_key_vault_secret.<name>.versionless_id` (recommended to avoid pinning to a specific secret version).
 
 * `password_key_vault_secret_id` - (Optional) Specifies the Azure Key Vault secret ID for the password to use for authentication. Must be specified together with `username_key_vault_secret_id`. You can use `azurerm_key_vault_secret.<name>.id` or `azurerm_key_vault_secret.<name>.versionless_id` (recommended).
 
-* `description` - (Optional) Specifies a description for the Storage Mover SMB Mount Endpoint.
+* `description` - (Optional) Specifies a description for the Storage Mover SMB Mount Endpoint. Maximum length 1024 characters.
 
 ## Attributes Reference
 
