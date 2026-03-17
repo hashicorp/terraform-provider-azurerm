@@ -156,6 +156,10 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving existing %s: model was nil", *id)
 	}
 
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving existing %s: properties was nil", *id)
+	}
+
 	parameters := dscconfiguration.DscConfigurationUpdateParameters{
 		Name: pointer.To(id.ConfigurationName),
 		Tags: existing.Model.Tags,
