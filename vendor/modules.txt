@@ -93,7 +93,7 @@ github.com/bgentry/speakeasy
 # github.com/btubbs/datetime v0.1.1
 ## explicit
 github.com/btubbs/datetime
-# github.com/cloudflare/circl v1.6.1
+# github.com/cloudflare/circl v1.6.3
 ## explicit; go 1.22.0
 github.com/cloudflare/circl/dh/x25519
 github.com/cloudflare/circl/dh/x448
@@ -166,7 +166,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260212.1143955
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260312.1165223
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -440,11 +440,13 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/f
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleets
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/fleetupdatestrategies
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/maintenanceconfigurations
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots
-github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/trustedaccess
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/trustedaccess
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/cosmosdb
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-05-15/sqldedicatedgateway
 github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2022-11-15/mongorbacs
@@ -458,10 +460,9 @@ github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedg
 github.com/hashicorp/go-azure-sdk/resource-manager/dashboard/2025-08-01/managedprivateendpointmodels
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/devices
 github.com/hashicorp/go-azure-sdk/resource-manager/databoxedge/2022-03-01/orders
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-04-01-preview/workspaces
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2022-10-01-preview/accessconnector
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/vnetpeering
-github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/accessconnector
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/vnetpeering
+github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/datadog/2021-03-01/apikey
@@ -482,11 +483,11 @@ github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/manage
 github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/pipelines
 github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource
 github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/serviceresource
-github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupinstanceresources
-github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/backupvaultresources
-github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/basebackuppolicyresources
-github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/resourceguardresources
-github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-09-01/resourceguards
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguardresources
+github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/resourceguards
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset
 github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/share
@@ -968,35 +969,22 @@ github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contact
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/contactprofile
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/groundstation
 github.com/hashicorp/go-azure-sdk/resource-manager/orbital/2022-11-01/spacecraft
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectglobalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewalls
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/firewallstatus
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistglobalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/fqdnlistlocalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/globalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/postrules
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistglobalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistlocalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prerules
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/certificateobjectglobalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/certificateobjectlocalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/firewalls
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/firewallstatus
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/fqdnlistglobalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/fqdnlistlocalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/globalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/localrules
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/localrulestacks
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/paloaltonetworkscloudngfws
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/postrules
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/prefixlistglobalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/prefixlistlocalrulestack
-github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/prerules
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectglobalrulestackresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallstatusresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/fqdnlistglobalrulestackresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/fqdnlistlocalrulestackresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/globalrulestackresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/paloaltonetworkscloudngfws
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/postrulesresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistglobalrulestackresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources
+github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prerulesresources
 github.com/hashicorp/go-azure-sdk/resource-manager/policyinsights/2021-10-01/remediations
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/dashboard
 github.com/hashicorp/go-azure-sdk/resource-manager/portal/2019-01-01-preview/tenantconfiguration
@@ -1257,7 +1245,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20260212.1143955
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260312.1165223
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest

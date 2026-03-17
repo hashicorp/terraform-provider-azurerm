@@ -94,7 +94,7 @@ func registerWithSubscription(ctx context.Context, client *providers.ProvidersCl
 	}
 
 	log.Printf("[DEBUG] Waiting for %s to finish registering..", providerId)
-	pollerType := custompollers.NewResourceProviderRegistrationPoller(client, providerId)
+	pollerType := custompollers.NewResourceProviderRegistrationPoller(client, providerId, "Registered", 1)
 	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to be registered: %s", providerId, err)
