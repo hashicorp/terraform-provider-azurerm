@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	storageMoverValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storagemover/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -49,7 +50,7 @@ func (r StorageMoverNfsFileShareEndpointResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.EndpointName,
+			ValidateFunc: storageMoverValidate.EndpointName,
 		},
 
 		"storage_mover_id": {
@@ -70,13 +71,13 @@ func (r StorageMoverNfsFileShareEndpointResource) Arguments() map[string]*plugin
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.StorageShareName,
 		},
 
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
 }
@@ -157,7 +158,7 @@ func (r StorageMoverNfsFileShareEndpointResource) Update() sdk.ResourceFunc {
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
