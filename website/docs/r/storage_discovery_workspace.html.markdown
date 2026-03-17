@@ -54,11 +54,11 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Discovery resource is created. Changing this forces a new resource to be created.
 
+* `scopes` - (Required) One or more `scopes` blocks as defined below. Maximum of 10 scopes.
+
 * `workspace_root` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Maximum of 100 items.
 
 -> **Note:** The user or service principal must have at least Reader access (`Microsoft.Storage/storageAccounts/read`) on each specified root. The default limit of 100 can be increased by contacting Azure Support.
-
-* `scopes` - (Required) One or more `scopes` blocks as defined below. Maximum of 10 scopes.
 
 * `description` - (Optional) A description for the Discovery workspace resource.
 
