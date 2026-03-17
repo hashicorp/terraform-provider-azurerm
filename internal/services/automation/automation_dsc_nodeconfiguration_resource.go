@@ -92,15 +92,14 @@ func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, met
 		return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
 	}
 
-	// configuration name is always the first part of the dsc node configuration
-	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
-
 	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
 		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
 			Source: dscnodeconfiguration.ContentSource{
 				Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
 				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
+			// configuration name is always the first part of the dsc node configuration
+			// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
 				Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
 			},
@@ -126,18 +125,20 @@ func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, met
 	if err != nil {
 		return err
 	}
-
-	// configuration name is always the first part of the dsc node configuration
-	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
-
-	// content_embedded is not returned by the API, so it must be read from state via d.Get
+	
+	// there is only one property that can be updated and is not force new: content_embedded 
+	// if content_embedded is changed, we need to update the dsc node configuration
+	// otherwise we can just return as the resource is already in the desired state
 	if d.HasChange("content_embedded") {
 		parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
 			Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
 				Source: dscnodeconfiguration.ContentSource{
 					Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
-					Value: pointer.To(d.Get("content_embedded").(string)),
+					// content_embedded is not returned by the API, so we get it from d.Get
+					Value: pointer.To(d.Get("content_embedded").(string)), 
 				},
+				// configuration name is always the first part of the dsc node configuration
+				// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 				Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
 					Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
 				},
