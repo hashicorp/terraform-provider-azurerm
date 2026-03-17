@@ -289,10 +289,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Read() sdk.ResourceFu
 
 			if model := resp.Model; model != nil {
 				if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
-					state.DefaultRetentionRule = flattenBackupPolicyDataLakeStorageDefaultRetentionRule(properties.PolicyRules)
-					state.RetentionRules = flattenBackupPolicyDataLakeStorageRetentionRules(properties.PolicyRules)
-					state.BackupSchedule = flattenBackupPolicyDataLakeStorageBackupRules(properties.PolicyRules)
-					state.TimeZone = flattenBackupPolicyDataLakeStorageBackupTimeZone(properties.PolicyRules)
+					state.DefaultRetentionRule, state.RetentionRules, state.BackupSchedule, state.TimeZone = flattenBackupPolicyDataLakeStoragePolicyRules(properties.PolicyRules)
 				}
 			}
 
@@ -474,109 +471,62 @@ func expandBackupPolicyDataLakeStorageRetentionRuleCriteria(input BackupPolicyDa
 	}
 }
 
-func flattenBackupPolicyDataLakeStorageBackupRules(input []basebackuppolicyresources.BasePolicyRule) []string {
-	backupRules := make([]string, 0)
-
-	for _, item := range input {
-		if v, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
-			if v.Trigger != nil {
-				if scheduleBasedTrigger, ok := v.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-					backupRules = scheduleBasedTrigger.Schedule.RepeatingTimeIntervals
-					return backupRules
-				}
-			}
-		}
-	}
-
-	return backupRules
-}
-
-func flattenBackupPolicyDataLakeStorageBackupTimeZone(input []basebackuppolicyresources.BasePolicyRule) string {
+func flattenBackupPolicyDataLakeStoragePolicyRules(input []basebackuppolicyresources.BasePolicyRule) ([]BackupPolicyDataLakeStorageDefaultRetentionRule, []BackupPolicyDataLakeStorageRetentionRule, []string, string) {
+	var taggingCriteria []basebackuppolicyresources.TaggingCriteria
+	var nonDefaultRetentionRules []basebackuppolicyresources.AzureRetentionRule
+	var backupSchedule []string
 	var timeZone string
+	defaultRetentionRules := make([]BackupPolicyDataLakeStorageDefaultRetentionRule, 0)
+	retentionRules := make([]BackupPolicyDataLakeStorageRetentionRule, 0)
 
 	for _, item := range input {
-		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
-			if backupRule.Trigger != nil {
-				if scheduleBasedTrigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-					timeZone = pointer.From(scheduleBasedTrigger.Schedule.TimeZone)
-					return timeZone
-				}
+		switch rule := item.(type) {
+		case basebackuppolicyresources.AzureBackupRule:
+			if trigger, ok := rule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
+				backupSchedule = trigger.Schedule.RepeatingTimeIntervals
+				timeZone = pointer.From(trigger.Schedule.TimeZone)
+				taggingCriteria = trigger.TaggingCriteria
 			}
-		}
-	}
-
-	return timeZone
-}
-
-func flattenBackupPolicyDataLakeStorageDefaultRetentionRule(input []basebackuppolicyresources.BasePolicyRule) []BackupPolicyDataLakeStorageDefaultRetentionRule {
-	results := make([]BackupPolicyDataLakeStorageDefaultRetentionRule, 0)
-
-	for _, item := range input {
-		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok {
-			if pointer.From(retentionRule.IsDefault) {
+		case basebackuppolicyresources.AzureRetentionRule:
+			if pointer.From(rule.IsDefault) {
 				var duration string
-				if v := retentionRule.Lifecycles; len(v) > 0 {
+				if v := rule.Lifecycles; len(v) > 0 {
 					if deleteOption, ok := v[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
 						duration = deleteOption.Duration
 					}
 				}
-
-				results = append(results, BackupPolicyDataLakeStorageDefaultRetentionRule{
+				defaultRetentionRules = append(defaultRetentionRules, BackupPolicyDataLakeStorageDefaultRetentionRule{
 					Duration: duration,
 				})
+			} else {
+				nonDefaultRetentionRules = append(nonDefaultRetentionRules, rule)
 			}
 		}
 	}
 
-	return results
-}
+	for _, rule := range nonDefaultRetentionRules {
+		result := BackupPolicyDataLakeStorageRetentionRule{
+			Name: rule.Name,
+		}
 
-func flattenBackupPolicyDataLakeStorageRetentionRules(input []basebackuppolicyresources.BasePolicyRule) []BackupPolicyDataLakeStorageRetentionRule {
-	results := make([]BackupPolicyDataLakeStorageRetentionRule, 0)
-	var taggingCriterias []basebackuppolicyresources.TaggingCriteria
-
-	for _, item := range input {
-		if backupRule, ok := item.(basebackuppolicyresources.AzureBackupRule); ok {
-			if trigger, ok := backupRule.Trigger.(basebackuppolicyresources.ScheduleBasedTriggerContext); ok {
-				if trigger.TaggingCriteria != nil {
-					taggingCriterias = trigger.TaggingCriteria
-				}
+		for _, criteria := range taggingCriteria {
+			if strings.EqualFold(criteria.TagInfo.TagName, rule.Name) {
+				result.Priority = criteria.TaggingPriority
+				flattenBackupPolicyDataLakeStorageCriteriaIntoRule(criteria.Criteria, &result)
+				break
 			}
 		}
-	}
 
-	for _, item := range input {
-		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok {
-			if !pointer.From(retentionRule.IsDefault) {
-				name := retentionRule.Name
-				var taggingPriority int64
-
-				result := BackupPolicyDataLakeStorageRetentionRule{
-					Name: name,
-				}
-
-				for _, criteria := range taggingCriterias {
-					if strings.EqualFold(criteria.TagInfo.TagName, name) {
-						taggingPriority = criteria.TaggingPriority
-						flattenBackupPolicyDataLakeStorageCriteriaIntoRule(criteria.Criteria, &result)
-						break
-					}
-				}
-
-				result.Priority = taggingPriority
-
-				if v := retentionRule.Lifecycles; len(v) > 0 {
-					if deleteOption, ok := v[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
-						result.Duration = deleteOption.Duration
-					}
-				}
-
-				results = append(results, result)
+		if v := rule.Lifecycles; len(v) > 0 {
+			if deleteOption, ok := v[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+				result.Duration = deleteOption.Duration
 			}
 		}
+
+		retentionRules = append(retentionRules, result)
 	}
 
-	return results
+	return defaultRetentionRules, retentionRules, backupSchedule, timeZone
 }
 
 func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolicyresources.BackupCriteria, rule *BackupPolicyDataLakeStorageRetentionRule) {
