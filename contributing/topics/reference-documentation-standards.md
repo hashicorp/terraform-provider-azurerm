@@ -174,8 +174,7 @@ Block attributes must have two entries in the documentation:
 
 Attributes within a block subsection are expected to be ordered as follows:
 
-- The required attributes, sorted alphabetically.
-- The optional attributes, sorted alphabetically.
+- alphabetically
 
 Each block subsection is ordered independently of the top-level `## Attributes Reference` list.
 
@@ -198,13 +197,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `block_attribute` block exports the following:
 
-* `required_attribute` - This attribute returns a required example value.
+* `attribute` - This attribute returns an example value.
 
-* `some_other_required_attribute` - This attribute returns another required example value.
-
-* `optional_attribute` - This attribute returns an optional example value.
-
-* `some_other_optional_attribute` - This attribute returns another optional example value.
+* `some_other_attribute` - This attribute returns another example value.
 ...
 ```
 
