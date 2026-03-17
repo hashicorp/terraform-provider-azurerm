@@ -80,7 +80,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Kubernetes Fleet Auto Upgrade Profiles can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_kubernetes_fleet_auto_upgrade_profile.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/fleets/fleet1/autoUpgradeProfiles/autoUpgradeProfile1
+terraform import azurerm_kubernetes_fleet_auto_upgrade_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/fleets/fleet1/autoUpgradeProfiles/profile1
 ```
 
 ## API Providers
