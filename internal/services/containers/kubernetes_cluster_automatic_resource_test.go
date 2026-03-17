@@ -100,7 +100,7 @@ func (r KubernetesClusterAutomaticResource) Exists(ctx context.Context, clients 
 
 	resp, err := clients.Containers.KubernetesClustersClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

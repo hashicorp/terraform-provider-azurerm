@@ -21,10 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = KubernetesClusterAutomaticResource{}
-	_ sdk.ResourceWithUpdate = KubernetesClusterAutomaticResource{}
-)
+var _ sdk.ResourceWithUpdate = KubernetesClusterAutomaticResource{}
 
 type KubernetesClusterAutomaticResource struct{}
 
@@ -38,7 +35,7 @@ type KubernetesClusterAutomaticModel struct {
 	Location          string                 `tfschema:"location"`
 	KubernetesVersion string                 `tfschema:"kubernetes_version"`
 	NodeResourceGroup string                 `tfschema:"node_resource_group"`
-	Tags              map[string]interface{} `tfschema:"tags"`
+	Tags     map[string]string `tfschema:"tags"`
 
 	FQDN              string `tfschema:"fqdn"`
 	PortalFQDN        string `tfschema:"portal_fqdn"`
@@ -193,7 +190,7 @@ func (r KubernetesClusterAutomaticResource) Read() sdk.ResourceFunc {
 
 			model := resp.Model
 			if model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			state := KubernetesClusterAutomaticModel{
@@ -269,7 +266,7 @@ func (r KubernetesClusterAutomaticResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 			}
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving existing %s: model was nil", *id)
+				return fmt.Errorf("retrieving existing %s: `model` was nil", *id)
 			}
 
 			payload := *existing.Model

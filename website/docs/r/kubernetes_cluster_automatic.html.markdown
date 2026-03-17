@@ -10,7 +10,7 @@ description: |-
 
 Manages an AKS Automatic Cluster (Azure Kubernetes Service Automatic).
 
-AKS Automatic is a managed Kubernetes experience that automates cluster setup, node management, scaling, security, and other operations. It provides a fast and frictionless Kubernetes experience while preserving flexibility and consistency. For more information, see [AKS Automatic documentation](https://learn.microsoft.com/en-us/azure/aks/intro-aks-automatic).
+AKS Automatic is a managed Kubernetes experience that automates cluster setup, node management, scaling, security, and other operations. It provides a fast and frictionless Kubernetes experience while preserving flexibility and consistency. For more information, see [AKS Automatic documentation](https://learn.microsoft.com/azure/aks/intro-aks-automatic).
 
 -> **Note:** AKS Automatic clusters are preconfigured with production-ready settings including Azure CNI Overlay powered by Cilium, Managed NGINX ingress, Azure RBAC for Kubernetes authorization, Workload Identity, and more.
 
@@ -78,13 +78,13 @@ An `identity` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The Kubernetes Managed Cluster ID.
+* `id` - The ID of the Kubernetes Managed Cluster.
 
 * `fqdn` - The FQDN of the AKS Automatic Cluster.
 
-* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts enabled.
+* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are enabled.
 
-* `portal_fqdn` - The FQDN for the Azure Portal to access the Managed Cluster. This is only visible from Azure Portal.
+* `portal_fqdn` - The FQDN for the Azure Portal to access the Managed Cluster. This is only visible from the Azure Portal.
 
 ---
 
@@ -96,7 +96,7 @@ The `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the AKS Automatic Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AKS Automatic Cluster.
