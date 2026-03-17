@@ -4,6 +4,7 @@
 package automation
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -124,53 +125,8 @@ func resourceAutomationModuleCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	// the API returns 'done' but it's not actually finished provisioning yet
-	// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(module.ModuleProvisioningStateActivitiesStored),
-			string(module.ModuleProvisioningStateConnectionTypeImported),
-			string(module.ModuleProvisioningStateContentDownloaded),
-			string(module.ModuleProvisioningStateContentRetrieved),
-			string(module.ModuleProvisioningStateContentStored),
-			string(module.ModuleProvisioningStateContentValidated),
-			string(module.ModuleProvisioningStateCreated),
-			string(module.ModuleProvisioningStateCreating),
-			string(module.ModuleProvisioningStateModuleDataStored),
-			string(module.ModuleProvisioningStateModuleImportRunbookComplete),
-			string(module.ModuleProvisioningStateRunningImportModuleRunbook),
-			string(module.ModuleProvisioningStateStartingImportModuleRunbook),
-			string(module.ModuleProvisioningStateUpdating),
-		},
-		Target: []string{
-			string(module.ModuleProvisioningStateSucceeded),
-		},
-		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-		Refresh: func() (interface{}, string, error) {
-			resp, err2 := client.Get(ctx, id)
-			if err2 != nil {
-				return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err2)
-			}
-
-			provisioningState := "Unknown"
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if props.ProvisioningState != nil {
-						provisioningState = string(*props.ProvisioningState)
-					}
-					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-						return resp, provisioningState, errors.New(*props.Error.Message)
-					}
-					return resp, provisioningState, nil
-				}
-			}
-			return resp, provisioningState, nil
-		},
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
+	if err := waitForModuleProvisioningCompletion(ctx, client, id, d.Timeout(pluginsdk.TimeoutCreate)); err != nil {
+		return err
 	}
 
 	d.SetId(id.ID())
@@ -216,53 +172,8 @@ func resourceAutomationModuleUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	// the API returns 'done' but it's not actually finished provisioning yet
-	// tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending: []string{
-			string(module.ModuleProvisioningStateActivitiesStored),
-			string(module.ModuleProvisioningStateConnectionTypeImported),
-			string(module.ModuleProvisioningStateContentDownloaded),
-			string(module.ModuleProvisioningStateContentRetrieved),
-			string(module.ModuleProvisioningStateContentStored),
-			string(module.ModuleProvisioningStateContentValidated),
-			string(module.ModuleProvisioningStateCreated),
-			string(module.ModuleProvisioningStateCreating),
-			string(module.ModuleProvisioningStateModuleDataStored),
-			string(module.ModuleProvisioningStateModuleImportRunbookComplete),
-			string(module.ModuleProvisioningStateRunningImportModuleRunbook),
-			string(module.ModuleProvisioningStateStartingImportModuleRunbook),
-			string(module.ModuleProvisioningStateUpdating),
-		},
-		Target: []string{
-			string(module.ModuleProvisioningStateSucceeded),
-		},
-		MinTimeout: 30 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutUpdate),
-		Refresh: func() (interface{}, string, error) {
-			resp, err2 := client.Get(ctx, *id)
-			if err2 != nil {
-				return resp, "Error", fmt.Errorf("retrieving %s: %+v", *id, err2)
-			}
-
-			provisioningState := "Unknown"
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if props.ProvisioningState != nil {
-						provisioningState = string(*props.ProvisioningState)
-					}
-					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-						return resp, provisioningState, errors.New(*props.Error.Message)
-					}
-					return resp, provisioningState, nil
-				}
-			}
-			return resp, provisioningState, nil
-		},
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to finish provisioning: %+v", *id, err)
+	if err := waitForModuleProvisioningCompletion(ctx, client, *id, d.Timeout(pluginsdk.TimeoutUpdate)); err != nil {
+		return err
 	}
 
 	return resourceAutomationModuleRead(d, meta)
@@ -338,4 +249,58 @@ func expandModuleLink(d *pluginsdk.ResourceData) module.ContentLink {
 	return module.ContentLink{
 		Uri: &uri,
 	}
+}
+
+// waitForModuleProvisioningCompletion polls the module until it reaches the Succeeded
+// provisioning state. The API returns 'done' before provisioning is actually complete.
+// Tracking issue: https://github.com/Azure/azure-rest-api-specs/pull/25435
+func waitForModuleProvisioningCompletion(ctx context.Context, client *module.ModuleClient, id module.ModuleId, timeout time.Duration) error {
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			string(module.ModuleProvisioningStateActivitiesStored),
+			string(module.ModuleProvisioningStateConnectionTypeImported),
+			string(module.ModuleProvisioningStateContentDownloaded),
+			string(module.ModuleProvisioningStateContentRetrieved),
+			string(module.ModuleProvisioningStateContentStored),
+			string(module.ModuleProvisioningStateContentValidated),
+			string(module.ModuleProvisioningStateCreated),
+			string(module.ModuleProvisioningStateCreating),
+			string(module.ModuleProvisioningStateModuleDataStored),
+			string(module.ModuleProvisioningStateModuleImportRunbookComplete),
+			string(module.ModuleProvisioningStateRunningImportModuleRunbook),
+			string(module.ModuleProvisioningStateStartingImportModuleRunbook),
+			string(module.ModuleProvisioningStateUpdating),
+		},
+		Target: []string{
+			string(module.ModuleProvisioningStateSucceeded),
+		},
+		MinTimeout: 30 * time.Second,
+		Timeout:    timeout,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				return resp, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			provisioningState := "Unknown"
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					if props.ProvisioningState != nil {
+						provisioningState = string(*props.ProvisioningState)
+					}
+					if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
+						return resp, provisioningState, errors.New(*props.Error.Message)
+					}
+					return resp, provisioningState, nil
+				}
+			}
+			return resp, provisioningState, nil
+		},
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
+	}
+
+	return nil
 }
