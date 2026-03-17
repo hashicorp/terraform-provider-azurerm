@@ -125,8 +125,8 @@ func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, met
 	if err != nil {
 		return err
 	}
-	
-	// there is only one property that can be updated and is not force new: content_embedded 
+
+	// there is only one property that can be updated and is not force new: content_embedded
 	// if content_embedded is changed, we need to update the dsc node configuration
 	// otherwise we can just return as the resource is already in the desired state
 	if d.HasChange("content_embedded") {
@@ -135,7 +135,7 @@ func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, met
 				Source: dscnodeconfiguration.ContentSource{
 					Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
 					// content_embedded is not returned by the API, so we get it from d.Get
-					Value: pointer.To(d.Get("content_embedded").(string)), 
+					Value: pointer.To(d.Get("content_embedded").(string)),
 				},
 				// configuration name is always the first part of the dsc node configuration
 				// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
