@@ -209,8 +209,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
 
-				_, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters)
-				if err != nil {
+				if _, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 					return err
 				}
 			}
