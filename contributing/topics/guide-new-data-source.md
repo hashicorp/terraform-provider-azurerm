@@ -528,7 +528,7 @@ The documentation should look something like below - containing both an example 
 ---
 subcategory: "Base"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_resource_group_example"
+page_title: "Azure Resource Manager: azurerm_resource_group_example"
 description: |-
   Gets information about an existing Resource Group.
 ---
