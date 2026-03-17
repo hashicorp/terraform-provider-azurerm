@@ -17,10 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var (
-	_ sdk.Resource           = KubernetesFleetAutoUpgradeProfileResource{}
-	_ sdk.ResourceWithUpdate = KubernetesFleetAutoUpgradeProfileResource{}
-)
+var  _ sdk.ResourceWithUpdate = KubernetesFleetAutoUpgradeProfileResource{}
 
 type KubernetesFleetAutoUpgradeProfileResource struct{}
 
@@ -55,7 +52,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Arguments() map[string]*plugi
 				validation.StringLenBetween(1, 50),
 				validation.StringMatch(
 					regexp.MustCompile(`^[a-z0-9]([-a-z0-9]*[a-z0-9])?$`),
-					"must start and end with a lowercase letter or number, and can only contain lowercase letters, numbers, and hyphens",
+					"`name` must start and end with a lowercase letter or number, and can only contain lowercase letters, numbers, and hyphens",
 				),
 			),
 		},
@@ -113,7 +110,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Create() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for the presence of an existing %s: %+v", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
@@ -225,10 +222,10 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			if existing.Model == nil {
-				return fmt.Errorf("retrieving existing %s: properties was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 			payload := *existing.Model
 
