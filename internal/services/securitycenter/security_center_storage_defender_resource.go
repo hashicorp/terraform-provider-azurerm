@@ -42,6 +42,7 @@ type MalwareScanningOnUploadFilterModel struct {
 }
 
 var _ sdk.ResourceWithUpdate = StorageDefenderResource{}
+var _ sdk.ResourceWithCustomizeDiff = StorageDefenderResource{}
 
 func (s StorageDefenderResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateStorageAccountID
@@ -400,6 +401,19 @@ func (s StorageDefenderResource) Delete() sdk.ResourceFunc {
 	}
 }
 
+func (s StorageDefenderResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if _, ok := metadata.ResourceDiff.GetOk("malware_scanning_on_upload_filters"); ok && !metadata.ResourceDiff.Get("malware_scanning_on_upload_enabled").(bool) {
+				return fmt.Errorf("`malware_scanning_on_upload_filters` cannot be set if `malware_scanning_on_upload_enabled` is `false`")
+			}
+
+			return nil
+		},
+	}
+}
+
 func (s StorageDefenderResource) expandSecurityCenterStorageDefenderMalwareScanningOnUploadFilter(input []MalwareScanningOnUploadFilterModel) *defenderforstorage.OnUploadFilters {
 	if len(input) == 0 {
 		return nil
@@ -408,8 +422,7 @@ func (s StorageDefenderResource) expandSecurityCenterStorageDefenderMalwareScann
 	onUploadFilter := &defenderforstorage.OnUploadFilters{}
 
 	if input[0].ExcludeBlobsLargerThan > 0 {
-		var excludeBlobsLargerThan interface{}
-		excludeBlobsLargerThan = input[0].ExcludeBlobsLargerThan
+		var excludeBlobsLargerThan interface{} = input[0].ExcludeBlobsLargerThan
 		onUploadFilter.ExcludeBlobsLargerThan = pointer.To(excludeBlobsLargerThan)
 	}
 

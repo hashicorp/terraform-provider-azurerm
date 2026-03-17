@@ -80,12 +80,16 @@ func TestAccSecurityCenterStorageDefender_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
+		{
+			Config:      r.update(data, false),
+			ExpectError: regexp.MustCompile("`malware_scanning_on_upload_filters` cannot be set if `malware_scanning_on_upload_enabled` is `false`"),
+		},
 	})
 }
 
@@ -196,14 +200,14 @@ resource "azurerm_security_center_storage_defender" "test" {
 `, r.template(data))
 }
 
-func (r SecurityCenterStorageDefenderResource) update(data acceptance.TestData) string {
+func (r SecurityCenterStorageDefenderResource) update(data acceptance.TestData, malwareScanningOnUploadEnabled bool) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_security_center_storage_defender" "test" {
   storage_account_id                             = azurerm_storage_account.test.id
   override_subscription_settings_enabled         = false
-  malware_scanning_on_upload_enabled             = false
+  malware_scanning_on_upload_enabled             = %t
   malware_scanning_on_upload_cap_gb_per_month    = 6
   sensitive_data_discovery_enabled               = false
   malware_scanning_write_results_on_tags_enabled = false
@@ -217,7 +221,7 @@ resource "azurerm_security_center_storage_defender" "test" {
     ]
   }
 }
-`, r.template(data))
+`, r.template(data), malwareScanningOnUploadEnabled)
 }
 
 func (r SecurityCenterStorageDefenderResource) complete(data acceptance.TestData) string {
