@@ -42,7 +42,7 @@ For data sources the front matter should be defined as:
 ---
 subcategory: "ExampleService"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_example"
+page_title: "Azure Resource Manager: Data Source: azurerm_example"
 description: |-
   Gets information about an existing Example.
 ---
