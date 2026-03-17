@@ -79,7 +79,7 @@ func (r StorageMoverMultiCloudConnectorEndpointResource) Arguments() map[string]
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
 }
@@ -159,7 +159,7 @@ func (r StorageMoverMultiCloudConnectorEndpointResource) Update() sdk.ResourceFu
 
 			properties := resp.Model
 			if properties == nil {
-				return fmt.Errorf("retrieving %s: model was nil", *id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
 			}
 
 			if metadata.ResourceData.HasChange("description") {
@@ -207,12 +207,7 @@ func (r StorageMoverMultiCloudConnectorEndpointResource) Read() sdk.ResourceFunc
 				if v, ok := model.Properties.(endpoints.AzureMultiCloudConnectorEndpointProperties); ok {
 					state.MultiCloudConnectorId = v.MultiCloudConnectorId
 					state.AwsS3BucketId = v.AwsS3BucketId
-
-					des := ""
-					if v.Description != nil {
-						des = *v.Description
-					}
-					state.Description = des
+					state.Description = pointer.From(v.Description)
 				}
 			}
 
