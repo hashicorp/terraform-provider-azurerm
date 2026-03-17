@@ -11,6 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/endpoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2025-07-01/storagemovers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -19,18 +21,21 @@ import (
 )
 
 type StorageMoverSmbMountEndpointModel struct {
-	Name           string `tfschema:"name"`
-	StorageMoverId string `tfschema:"storage_mover_id"`
-	Host           string `tfschema:"host"`
-	ShareName      string `tfschema:"share_name"`
-	UsernameUri    string `tfschema:"username_uri"`
-	PasswordUri    string `tfschema:"password_uri"`
-	Description    string `tfschema:"description"`
+	Name                     string `tfschema:"name"`
+	StorageMoverId           string `tfschema:"storage_mover_id"`
+	Host                     string `tfschema:"host"`
+	ShareName                string `tfschema:"share_name"`
+	UsernameKeyVaultSecretId string `tfschema:"username_key_vault_secret_id"`
+	PasswordKeyVaultSecretId string `tfschema:"password_key_vault_secret_id"`
+	Description              string `tfschema:"description"`
 }
 
 type StorageMoverSmbMountEndpointResource struct{}
 
-var _ sdk.ResourceWithUpdate = StorageMoverSmbMountEndpointResource{}
+var (
+	_ sdk.ResourceWithUpdate   = StorageMoverSmbMountEndpointResource{}
+	_ sdk.ResourceWithIdentity = StorageMoverSmbMountEndpointResource{}
+)
 
 func (r StorageMoverSmbMountEndpointResource) ResourceType() string {
 	return "azurerm_storage_mover_smb_mount_endpoint"
@@ -38,6 +43,10 @@ func (r StorageMoverSmbMountEndpointResource) ResourceType() string {
 
 func (r StorageMoverSmbMountEndpointResource) ModelObject() interface{} {
 	return &StorageMoverSmbMountEndpointModel{}
+}
+
+func (r StorageMoverSmbMountEndpointResource) Identity() resourceids.ResourceId {
+	return &endpoints.EndpointId{}
 }
 
 func (r StorageMoverSmbMountEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -77,17 +86,19 @@ func (r StorageMoverSmbMountEndpointResource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"username_uri": {
+		"username_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"password_key_vault_secret_id"},
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 
-		"password_uri": {
+		"password_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"username_key_vault_secret_id"},
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 
 		"description": {
@@ -132,11 +143,14 @@ func (r StorageMoverSmbMountEndpointResource) Create() sdk.ResourceFunc {
 				ShareName: model.ShareName,
 			}
 
-			if model.UsernameUri != "" || model.PasswordUri != "" {
+			if model.UsernameKeyVaultSecretId != "" || model.PasswordKeyVaultSecretId != "" {
+				if model.UsernameKeyVaultSecretId == "" || model.PasswordKeyVaultSecretId == "" {
+					return fmt.Errorf("both `username_key_vault_secret_id` and `password_key_vault_secret_id` must be specified together when configuring SMB mount endpoint credentials")
+				}
 				endpointProperties.Credentials = &endpoints.AzureKeyVaultSmbCredentials{
 					Type:        endpoints.CredentialTypeAzureKeyVaultSmb,
-					UsernameUri: pointer.To(model.UsernameUri),
-					PasswordUri: pointer.To(model.PasswordUri),
+					UsernameUri: pointer.To(model.UsernameKeyVaultSecretId),
+					PasswordUri: pointer.To(model.PasswordKeyVaultSecretId),
 				}
 			}
 
@@ -153,7 +167,10 @@ func (r StorageMoverSmbMountEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
+			return metadata.Encode(&model)
 		},
 	}
 }
@@ -189,15 +206,17 @@ func (r StorageMoverSmbMountEndpointResource) Update() sdk.ResourceFunc {
 					v.Description = pointer.To(model.Description)
 				}
 
-				if metadata.ResourceData.HasChange("username_uri") || metadata.ResourceData.HasChange("password_uri") {
-					if model.UsernameUri != "" || model.PasswordUri != "" {
+				if metadata.ResourceData.HasChange("username_key_vault_secret_id") || metadata.ResourceData.HasChange("password_key_vault_secret_id") {
+					if model.UsernameKeyVaultSecretId != "" && model.PasswordKeyVaultSecretId != "" {
 						v.Credentials = &endpoints.AzureKeyVaultSmbCredentials{
 							Type:        endpoints.CredentialTypeAzureKeyVaultSmb,
-							UsernameUri: pointer.To(model.UsernameUri),
-							PasswordUri: pointer.To(model.PasswordUri),
+							UsernameUri: pointer.To(model.UsernameKeyVaultSecretId),
+							PasswordUri: pointer.To(model.PasswordKeyVaultSecretId),
 						}
-					} else {
+					} else if model.UsernameKeyVaultSecretId == "" && model.PasswordKeyVaultSecretId == "" {
 						v.Credentials = nil
+					} else {
+						return fmt.Errorf("both `username_key_vault_secret_id` and `password_key_vault_secret_id` must be specified together")
 					}
 				}
 
@@ -245,10 +264,10 @@ func (r StorageMoverSmbMountEndpointResource) Read() sdk.ResourceFunc {
 
 					if v.Credentials != nil {
 						if v.Credentials.UsernameUri != nil {
-							state.UsernameUri = *v.Credentials.UsernameUri
+							state.UsernameKeyVaultSecretId = *v.Credentials.UsernameUri
 						}
 						if v.Credentials.PasswordUri != nil {
-							state.PasswordUri = *v.Credentials.PasswordUri
+							state.PasswordKeyVaultSecretId = *v.Credentials.PasswordUri
 						}
 					}
 
@@ -260,6 +279,9 @@ func (r StorageMoverSmbMountEndpointResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}

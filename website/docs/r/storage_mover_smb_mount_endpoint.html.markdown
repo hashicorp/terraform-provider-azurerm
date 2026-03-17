@@ -48,13 +48,13 @@ resource "azurerm_storage_mover" "example" {
 }
 
 resource "azurerm_storage_mover_smb_mount_endpoint" "example" {
-  name             = "example-smbme"
-  storage_mover_id = azurerm_storage_mover.example.id
-  host             = "server.contoso.com"
-  share_name       = "data"
-  username_uri     = "https://example-vault.vault.azure.net/secrets/username"
-  password_uri     = "https://example-vault.vault.azure.net/secrets/password"
-  description      = "Example SMB Mount Endpoint with credentials"
+  name                         = "example-smbme"
+  storage_mover_id              = azurerm_storage_mover.example.id
+  host                         = "server.contoso.com"
+  share_name                   = "data"
+  username_key_vault_secret_id  = azurerm_key_vault_secret.username.versionless_id
+  password_key_vault_secret_id  = azurerm_key_vault_secret.password.versionless_id
+  description                  = "Example SMB Mount Endpoint with credentials"
 }
 ```
 
@@ -70,9 +70,9 @@ The following arguments are supported:
 
 * `share_name` - (Required) Specifies the name of the SMB share. Changing this forces a new resource to be created.
 
-* `username_uri` - (Optional) Specifies the Azure Key Vault secret URI for the username to use for authentication.
+* `username_key_vault_secret_id` - (Optional) Specifies the Azure Key Vault secret ID for the username to use for authentication. Must be specified together with `password_key_vault_secret_id`. You can use `azurerm_key_vault_secret.<name>.id` or `azurerm_key_vault_secret.<name>.versionless_id` (recommended to avoid pinning to a specific secret version).
 
-* `password_uri` - (Optional) Specifies the Azure Key Vault secret URI for the password to use for authentication.
+* `password_key_vault_secret_id` - (Optional) Specifies the Azure Key Vault secret ID for the password to use for authentication. Must be specified together with `username_key_vault_secret_id`. You can use `azurerm_key_vault_secret.<name>.id` or `azurerm_key_vault_secret.<name>.versionless_id` (recommended).
 
 * `description` - (Optional) Specifies a description for the Storage Mover SMB Mount Endpoint.
 
