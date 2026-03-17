@@ -67,27 +67,17 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 
 		"location": commonschema.Location(),
 
-		"workspace_root": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
-			MaxItems: 100,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.StorageDiscoveryWorkspaceRoot,
-			},
-		},
-
 		"scopes": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
+			MaxItems: 10,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"display_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validate.StorageDiscoveryScopeDisplayName,
 					},
 
 					"resource_types": {
@@ -120,10 +110,21 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 			},
 		},
 
+		"workspace_root": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			MinItems: 1,
+			MaxItems: 100,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.StorageDiscoveryWorkspaceRoot,
+			},
+		},
+
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 
 		"sku": {

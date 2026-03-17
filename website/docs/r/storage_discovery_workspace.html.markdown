@@ -58,7 +58,7 @@ The following arguments are supported:
 
 -> **Note:** The user or service principal must have at least Reader access (`Microsoft.Storage/storageAccounts/read`) on each specified root. The default limit of 100 can be increased by contacting Azure Support.
 
-* `scopes` - (Required) One or more `scopes` blocks as defined below.
+* `scopes` - (Required) One or more `scopes` blocks as defined below. Maximum of 10 scopes.
 
 * `description` - (Optional) A description for the Discovery workspace resource.
 
@@ -70,7 +70,7 @@ The following arguments are supported:
 
 A `scopes` block supports the following:
 
-* `display_name` - (Required) The display name for this scope.
+* `display_name` - (Required) The display name for this scope. Must be 4-64 characters long and can only contain letters, numbers, spaces, and hyphens. Cannot start or end with a number, space, or hyphen, and cannot contain consecutive hyphens or spaces.
 
 * `resource_types` - (Required) A list of Azure resource type strings to include in this scope. For example, `"Microsoft.Storage/storageAccounts"`.
 

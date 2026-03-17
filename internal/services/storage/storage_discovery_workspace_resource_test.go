@@ -20,6 +20,7 @@ type StorageDiscoveryWorkspaceResource struct{}
 
 func TestAccStorageDiscoveryWorkspace_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
+	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -35,6 +36,7 @@ func TestAccStorageDiscoveryWorkspace_basic(t *testing.T) {
 
 func TestAccStorageDiscoveryWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
+	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -50,6 +52,7 @@ func TestAccStorageDiscoveryWorkspace_requiresImport(t *testing.T) {
 
 func TestAccStorageDiscoveryWorkspace_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
+	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,6 +68,7 @@ func TestAccStorageDiscoveryWorkspace_complete(t *testing.T) {
 
 func TestAccStorageDiscoveryWorkspace_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
+	data.Locations.Primary = "eastus2"
 	r := StorageDiscoveryWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -177,7 +181,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   workspace_root = [data.azurerm_subscription.current.id]
 
   scopes {
-    display_name   = "TestScope1"
+    display_name   = "TestScopeOne"
     resource_types = ["Microsoft.Storage/storageAccounts"]
     tag_keys_only  = ["tag1", "tag2"]
     tags = {
@@ -186,7 +190,7 @@ resource "azurerm_storage_discovery_workspace" "test" {
   }
 
   scopes {
-    display_name   = "TestScope2"
+    display_name   = "TestScopeTwo"
     resource_types = ["Microsoft.Storage/storageAccounts"]
   }
 
