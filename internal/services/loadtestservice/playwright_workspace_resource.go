@@ -99,7 +99,11 @@ func (r PlaywrightWorkspaceResource) Create() sdk.ResourceFunc {
 
 			param := playwrightworkspaces.PlaywrightWorkspace{
 				Location: location.Normalize(config.Location),
-				Tags:     pointer.To(config.Tags),
+				Properties: &playwrightworkspaces.PlaywrightWorkspaceProperties{
+					LocalAuth:        pointer.To(playwrightworkspaces.EnablementStatusDisabled),
+					RegionalAffinity: pointer.To(playwrightworkspaces.EnablementStatusEnabled),
+				},
+				Tags: pointer.To(config.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
