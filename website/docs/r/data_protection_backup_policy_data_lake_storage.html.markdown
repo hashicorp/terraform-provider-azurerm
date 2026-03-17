@@ -43,14 +43,12 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   retention_rule {
     name              = "weekly"
     duration          = "P6M"
-    priority          = 20
     absolute_criteria = "FirstOfWeek"
   }
 
   retention_rule {
     name                   = "thursday"
     duration               = "P1W"
-    priority               = 25
     days_of_week           = ["Thursday"]
     scheduled_backup_times = ["2021-05-23T02:30:00Z"]
   }
@@ -58,7 +56,6 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   retention_rule {
     name                   = "monthly"
     duration               = "P1D"
-    priority               = 15
     weeks_of_month         = ["First", "Last"]
     days_of_week           = ["Tuesday"]
     scheduled_backup_times = ["2021-05-23T02:30:00Z"]
@@ -78,7 +75,7 @@ The following arguments are supported:
 
 * `data_protection_backup_vault_id` - (Required) The ID of the Backup Vault where the Azure Backup Policy Data Lake Storage should exist. Changing this forces a new resource to be created.
 
-* `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new resource to be created.
+* `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. The priority of each rule is determined by its order in the list, where the first rule has the highest priority. Changing this forces a new resource to be created.
 
 * `time_zone` - (Optional) Specifies the Time Zone which should be used by the backup schedule. Changing this forces a new resource to be created.
 
@@ -95,8 +92,6 @@ A `retention_rule` block supports the following:
 * `name` - (Required) Specifies the name of the retention rule. Changing this forces a new resource to be created.
 
 * `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
-
-* `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new resource to be created.
 
 * `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new resource to be created.
 

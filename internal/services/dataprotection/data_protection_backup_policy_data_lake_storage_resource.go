@@ -40,7 +40,6 @@ type BackupPolicyDataLakeStorageDefaultRetentionRule struct {
 type BackupPolicyDataLakeStorageRetentionRule struct {
 	Name                 string   `tfschema:"name"`
 	Duration             string   `tfschema:"duration"`
-	Priority             int64    `tfschema:"priority"`
 	AbsoluteCriteria     string   `tfschema:"absolute_criteria"`
 	DaysOfWeek           []string `tfschema:"days_of_week"`
 	MonthsOfYear         []string `tfschema:"months_of_year"`
@@ -132,12 +131,6 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 						Required:     true,
 						ForceNew:     true,
 						ValidateFunc: azValidate.ISO8601Duration,
-					},
-
-					"priority": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
-						ForceNew: true,
 					},
 
 					"absolute_criteria": {
@@ -403,11 +396,11 @@ func expandBackupPolicyDataLakeStorageTaggingCriteria(input []BackupPolicyDataLa
 		},
 	}
 
-	for _, item := range input {
+	for i, item := range input {
 		result := basebackuppolicyresources.TaggingCriteria{
 			IsDefault:       false,
 			Criteria:        expandBackupPolicyDataLakeStorageRetentionRuleCriteria(item),
-			TaggingPriority: item.Priority,
+			TaggingPriority: int64(i + 1),
 			TagInfo: basebackuppolicyresources.RetentionTag{
 				Id:      pointer.To(item.Name + "_"),
 				TagName: item.Name,
@@ -511,7 +504,6 @@ func flattenBackupPolicyDataLakeStoragePolicyRules(input []basebackuppolicyresou
 
 		for _, criteria := range taggingCriteria {
 			if strings.EqualFold(criteria.TagInfo.TagName, rule.Name) {
-				result.Priority = criteria.TaggingPriority
 				flattenBackupPolicyDataLakeStorageCriteriaIntoRule(criteria.Criteria, &result)
 				break
 			}

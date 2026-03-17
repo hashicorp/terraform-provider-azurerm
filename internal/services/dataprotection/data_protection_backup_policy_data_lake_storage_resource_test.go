@@ -148,14 +148,12 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 
   retention_rule {
     name              = "weekly"
-    priority          = 20
     duration          = "P6M"
     absolute_criteria = "FirstOfWeek"
   }
 
   retention_rule {
     name                   = "thursday"
-    priority               = 25
     duration               = "P1W"
     days_of_week           = ["Thursday", "Friday"]
     months_of_year         = ["November", "December"]
@@ -164,7 +162,6 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 
   retention_rule {
     name                   = "monthly"
-    priority               = 30
     duration               = "P1D"
     weeks_of_month         = ["First", "Last"]
     days_of_week           = ["Tuesday"]
