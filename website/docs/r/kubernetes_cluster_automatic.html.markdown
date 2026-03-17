@@ -56,7 +56,7 @@ The following arguments are supported:
 
 ---
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `identity` - (Required) An `identity` block as defined below.
 
 * `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS Automatic cluster. If not specified, the latest recommended version will be used at provisioning time.
 
@@ -82,7 +82,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the AKS Automatic Cluster.
 
-* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are enabled.
+* `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Microsoft Entra ID is enabled and local accounts are enabled.
 
 * `portal_fqdn` - The FQDN for the Azure Portal to access the Managed Cluster. This is only visible from the Azure Portal.
 

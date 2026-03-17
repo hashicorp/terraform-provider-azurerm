@@ -6,6 +6,7 @@ package containers
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,12 +30,12 @@ func (r KubernetesClusterAutomaticResource) ModelObject() interface{} {
 }
 
 type KubernetesClusterAutomaticModel struct {
-	Name              string                 `tfschema:"name"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Location          string                 `tfschema:"location"`
-	KubernetesVersion string                 `tfschema:"kubernetes_version"`
-	NodeResourceGroup string                 `tfschema:"node_resource_group"`
-	Tags     map[string]string `tfschema:"tags"`
+	Name              string            `tfschema:"name"`
+	ResourceGroupName string            `tfschema:"resource_group_name"`
+	Location          string            `tfschema:"location"`
+	KubernetesVersion string            `tfschema:"kubernetes_version"`
+	NodeResourceGroup string            `tfschema:"node_resource_group"`
+	Tags              map[string]string `tfschema:"tags"`
 
 	FQDN              string `tfschema:"fqdn"`
 	PortalFQDN        string `tfschema:"portal_fqdn"`
@@ -53,30 +53,35 @@ func (r KubernetesClusterAutomaticResource) ResourceType() string {
 func (r KubernetesClusterAutomaticResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9]$|^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9]$`),
+				"AKS Cluster names must be between 1 and 63 characters in length, must begin and end with an alphanumeric character, and may contain only alphanumeric characters, underscores, and hyphens",
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		"location": commonschema.Location(),
 
+		"identity": commonschema.SystemOrUserAssignedIdentityRequired(),
+
 		"kubernetes_version": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// NOTE: O+C Azure will assign the latest recommended version if not specified
 			Computed: true,
 		},
 
 		"node_resource_group": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
+			// NOTE: O+C Azure creates a managed resource group with a generated name if not specified
 			Computed: true,
 			ForceNew: true,
 		},
-
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -151,7 +156,7 @@ func (r KubernetesClusterAutomaticResource) Create() sdk.ResourceFunc {
 					KubernetesVersion: pointer.To(model.KubernetesVersion),
 					NodeResourceGroup: pointer.To(model.NodeResourceGroup),
 				},
-				Tags: tags.Expand(model.Tags),
+				Tags: pointer.To(model.Tags),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -197,7 +202,7 @@ func (r KubernetesClusterAutomaticResource) Read() sdk.ResourceFunc {
 				Name:              id.ManagedClusterName,
 				ResourceGroupName: id.ResourceGroupName,
 				Location:          location.Normalize(model.Location),
-				Tags:              tags.Flatten(model.Tags),
+				Tags:              pointer.From(model.Tags),
 			}
 
 			if err := metadata.ResourceData.Set("identity", flattenKubernetesClusterAutomaticIdentity(model.Identity)); err != nil {
@@ -215,7 +220,11 @@ func (r KubernetesClusterAutomaticResource) Read() sdk.ResourceFunc {
 				if kubeconfigs := credentialsModel.Kubeconfigs; kubeconfigs != nil && len(*kubeconfigs) > 0 {
 					adminKubeConfigRaw := (*kubeconfigs)[0].Value
 					if adminKubeConfigRaw != nil {
-						state.CurrentKubeConfig = *adminKubeConfigRaw
+						rawConfig := *adminKubeConfigRaw
+						if base64IsEncoded(*adminKubeConfigRaw) {
+							rawConfig = base64Decode(*adminKubeConfigRaw)
+						}
+						state.CurrentKubeConfig = rawConfig
 					}
 				}
 			}
@@ -287,7 +296,7 @@ func (r KubernetesClusterAutomaticResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
-				payload.Tags = tags.Expand(model.Tags)
+				payload.Tags = pointer.To(model.Tags)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
