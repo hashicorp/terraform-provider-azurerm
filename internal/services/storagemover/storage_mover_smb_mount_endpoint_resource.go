@@ -73,17 +73,29 @@ func (r StorageMoverSmbMountEndpointResource) Arguments() map[string]*pluginsdk.
 		},
 
 		"host": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.Any(
+				validation.IsIPv4Address,
+				validation.StringMatch(
+					regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?$`),
+					"Host must be a valid IPv4 address or hostname/FQDN (letters, numbers, dots, hyphens only).",
+				),
+			),
 		},
 
 		"share_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 80),
+				validation.StringMatch(
+					regexp.MustCompile(`^[^\\/\[\]:<> +=;,*?\x00-\x1f\x7f]+$`),
+					"Share name must be 1-80 characters and cannot contain: \\ / [ ] : < > + = ; , * ? or control characters.",
+				),
+			),
 		},
 
 		"username_key_vault_secret_id": {
@@ -104,7 +116,7 @@ func (r StorageMoverSmbMountEndpointResource) Arguments() map[string]*pluginsdk.
 		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 	}
 }
@@ -207,15 +219,18 @@ func (r StorageMoverSmbMountEndpointResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("username_key_vault_secret_id") || metadata.ResourceData.HasChange("password_key_vault_secret_id") {
-					if model.UsernameKeyVaultSecretId != "" && model.PasswordKeyVaultSecretId != "" {
+					bothSet := model.UsernameKeyVaultSecretId != "" && model.PasswordKeyVaultSecretId != ""
+					bothEmpty := model.UsernameKeyVaultSecretId == "" && model.PasswordKeyVaultSecretId == ""
+					switch {
+					case bothSet:
 						v.Credentials = &endpoints.AzureKeyVaultSmbCredentials{
 							Type:        endpoints.CredentialTypeAzureKeyVaultSmb,
 							UsernameUri: pointer.To(model.UsernameKeyVaultSecretId),
 							PasswordUri: pointer.To(model.PasswordKeyVaultSecretId),
 						}
-					} else if model.UsernameKeyVaultSecretId == "" && model.PasswordKeyVaultSecretId == "" {
+					case bothEmpty:
 						v.Credentials = nil
-					} else {
+					default:
 						return fmt.Errorf("both `username_key_vault_secret_id` and `password_key_vault_secret_id` must be specified together")
 					}
 				}
