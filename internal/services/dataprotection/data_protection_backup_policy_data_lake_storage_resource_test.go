@@ -106,9 +106,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   backup_schedule = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
   default_retention_rule {
-    life_cycle {
-      duration = "P4M"
-    }
+    duration = "P4M"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -124,9 +122,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "import" {
   backup_schedule = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
   default_retention_rule {
-    life_cycle {
-      duration = "P4M"
-    }
+    duration = "P4M"
   }
 }
 `, r.basic(data))
@@ -147,18 +143,14 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   time_zone                       = "Coordinated Universal Time"
 
   default_retention_rule {
-    life_cycle {
-      duration = "P4M"
-    }
+    duration = "P4M"
   }
 
   retention_rule {
     name     = "weekly"
     priority = 20
 
-    life_cycle {
-      duration = "P6M"
-    }
+    duration = "P6M"
 
     criteria {
       absolute_criteria = "FirstOfWeek"
@@ -169,9 +161,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
     name     = "thursday"
     priority = 25
 
-    life_cycle {
-      duration = "P1W"
-    }
+    duration = "P1W"
 
     criteria {
       days_of_week           = ["Thursday", "Friday"]
@@ -184,9 +174,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
     name     = "monthly"
     priority = 30
 
-    life_cycle {
-      duration = "P1D"
-    }
+    duration = "P1D"
 
     criteria {
       weeks_of_month         = ["First", "Last"]

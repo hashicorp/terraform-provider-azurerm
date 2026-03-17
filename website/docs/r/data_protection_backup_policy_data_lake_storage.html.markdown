@@ -37,16 +37,12 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   time_zone                       = "India Standard Time"
 
   default_retention_rule {
-    life_cycle {
-      duration = "P4M"
-    }
+    duration = "P4M"
   }
 
   retention_rule {
     name = "weekly"
-    life_cycle {
-      duration = "P6M"
-    }
+    duration = "P6M"
     priority = 20
 
     criteria {
@@ -56,9 +52,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
 
   retention_rule {
     name = "thursday"
-    life_cycle {
-      duration = "P1W"
-    }
+    duration = "P1W"
     priority = 25
 
     criteria {
@@ -69,9 +63,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
 
   retention_rule {
     name = "monthly"
-    life_cycle {
-      duration = "P1D"
-    }
+    duration = "P1D"
     priority = 15
 
     criteria {
@@ -103,7 +95,7 @@ The following arguments are supported:
 
 A `default_retention_rule` block supports the following:
 
-* `life_cycle` - (Required) A `life_cycle` block as defined below. Changing this forces a new resource to be created.
+* `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
 ---
 
@@ -113,15 +105,9 @@ A `retention_rule` block supports the following:
 
 * `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new resource to be created.
 
-* `life_cycle` - (Required) A `life_cycle` block as defined below. Changing this forces a new resource to be created.
+* `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
 * `priority` - (Required) Specifies the priority of the rule. The priority number must be unique for each rule. The lower the priority number, the higher the priority of the rule. Changing this forces a new resource to be created.
-
----
-
-A `life_cycle` block supports the following:
-
-* `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
 ---
 

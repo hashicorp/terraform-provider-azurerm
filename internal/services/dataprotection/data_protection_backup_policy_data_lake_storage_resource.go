@@ -31,18 +31,14 @@ type BackupPolicyDataLakeStorageModel struct {
 }
 
 type BackupPolicyDataLakeStorageDefaultRetentionRule struct {
-	LifeCycle []BackupPolicyDataLakeStorageLifeCycle `tfschema:"life_cycle"`
-}
-
-type BackupPolicyDataLakeStorageLifeCycle struct {
 	Duration string `tfschema:"duration"`
 }
 
 type BackupPolicyDataLakeStorageRetentionRule struct {
-	Name      string                                 `tfschema:"name"`
-	Criteria  []BackupPolicyDataLakeStorageCriteria  `tfschema:"criteria"`
-	LifeCycle []BackupPolicyDataLakeStorageLifeCycle `tfschema:"life_cycle"`
-	Priority  int64                                  `tfschema:"priority"`
+	Name     string                                `tfschema:"name"`
+	Criteria []BackupPolicyDataLakeStorageCriteria `tfschema:"criteria"`
+	Duration string                                `tfschema:"duration"`
+	Priority int64                                 `tfschema:"priority"`
 }
 
 type BackupPolicyDataLakeStorageCriteria struct {
@@ -100,20 +96,11 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"life_cycle": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"duration": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
-								},
-							},
-						},
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
 					},
 				},
 			},
@@ -195,20 +182,11 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 						},
 					},
 
-					"life_cycle": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						ForceNew: true,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"duration": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ForceNew:     true,
-									ValidateFunc: azValidate.ISO8601Duration,
-								},
-							},
-						},
+					"duration": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: azValidate.ISO8601Duration,
 					},
 
 					"priority": {
@@ -374,7 +352,7 @@ func expandBackupPolicyDataLakeStorageAzureRetentionRules(input []BackupPolicyDa
 		results = append(results, basebackuppolicyresources.AzureRetentionRule{
 			Name:       item.Name,
 			IsDefault:  pointer.To(false),
-			Lifecycles: expandBackupPolicyDataLakeStorageLifeCycle(item.LifeCycle),
+			Lifecycles: expandBackupPolicyDataLakeStorageLifeCycle(item.Duration),
 		})
 	}
 
@@ -388,33 +366,27 @@ func expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(input []BackupPo
 	}
 
 	if len(input) > 0 {
-		result.Lifecycles = expandBackupPolicyDataLakeStorageLifeCycle(input[0].LifeCycle)
+		result.Lifecycles = expandBackupPolicyDataLakeStorageLifeCycle(input[0].Duration)
 	}
 
 	return result
 }
 
-func expandBackupPolicyDataLakeStorageLifeCycle(input []BackupPolicyDataLakeStorageLifeCycle) []basebackuppolicyresources.SourceLifeCycle {
-	results := make([]basebackuppolicyresources.SourceLifeCycle, 0)
-
-	for _, item := range input {
-		// NOTE: currently only `VaultStore` is supported by the service team. When `ArchiveStore` is supported
-		// in the future, export `data_store_type` as a schema field and use `VaultStore` as the default value.
-		sourceLifeCycle := basebackuppolicyresources.SourceLifeCycle{
+func expandBackupPolicyDataLakeStorageLifeCycle(duration string) []basebackuppolicyresources.SourceLifeCycle {
+	// NOTE: currently only `VaultStore` is supported by the service team. When `ArchiveStore` is supported
+	// in the future, export `data_store_type` as a schema field and use `VaultStore` as the default value.
+	return []basebackuppolicyresources.SourceLifeCycle{
+		{
 			DeleteAfter: basebackuppolicyresources.AbsoluteDeleteOption{
-				Duration: item.Duration,
+				Duration: duration,
 			},
 			SourceDataStore: basebackuppolicyresources.DataStoreInfoBase{
 				DataStoreType: basebackuppolicyresources.DataStoreTypesVaultStore,
 				ObjectType:    "DataStoreInfoBase",
 			},
 			TargetDataStoreCopySettings: &[]basebackuppolicyresources.TargetCopySetting{},
-		}
-
-		results = append(results, sourceLifeCycle)
+		},
 	}
-
-	return results
 }
 
 func expandBackupPolicyDataLakeStorageTaggingCriteria(input []BackupPolicyDataLakeStorageRetentionRule) []basebackuppolicyresources.TaggingCriteria {
@@ -542,13 +514,15 @@ func flattenBackupPolicyDataLakeStorageDefaultRetentionRule(input []basebackuppo
 	for _, item := range input {
 		if retentionRule, ok := item.(basebackuppolicyresources.AzureRetentionRule); ok {
 			if pointer.From(retentionRule.IsDefault) {
-				var lifeCycle []BackupPolicyDataLakeStorageLifeCycle
+				var duration string
 				if v := retentionRule.Lifecycles; len(v) > 0 {
-					lifeCycle = flattenBackupPolicyDataLakeStorageLifeCycles(v)
+					if deleteOption, ok := v[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+						duration = deleteOption.Duration
+					}
 				}
 
 				results = append(results, BackupPolicyDataLakeStorageDefaultRetentionRule{
-					LifeCycle: lifeCycle,
+					Duration: duration,
 				})
 			}
 		}
@@ -588,37 +562,21 @@ func flattenBackupPolicyDataLakeStorageRetentionRules(input []basebackuppolicyre
 					}
 				}
 
-				var lifeCycle []BackupPolicyDataLakeStorageLifeCycle
+				var duration string
 				if v := retentionRule.Lifecycles; len(v) > 0 {
-					lifeCycle = flattenBackupPolicyDataLakeStorageLifeCycles(v)
+					if deleteOption, ok := v[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
+						duration = deleteOption.Duration
+					}
 				}
 
 				results = append(results, BackupPolicyDataLakeStorageRetentionRule{
-					Name:      name,
-					Priority:  taggingPriority,
-					Criteria:  taggingCriteria,
-					LifeCycle: lifeCycle,
+					Name:     name,
+					Priority: taggingPriority,
+					Criteria: taggingCriteria,
+					Duration: duration,
 				})
 			}
 		}
-	}
-
-	return results
-}
-
-func flattenBackupPolicyDataLakeStorageLifeCycles(input []basebackuppolicyresources.SourceLifeCycle) []BackupPolicyDataLakeStorageLifeCycle {
-	results := make([]BackupPolicyDataLakeStorageLifeCycle, 0)
-
-	for _, item := range input {
-		var duration string
-
-		if deleteOption, ok := item.DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
-			duration = deleteOption.Duration
-		}
-
-		results = append(results, BackupPolicyDataLakeStorageLifeCycle{
-			Duration: duration,
-		})
 	}
 
 	return results
