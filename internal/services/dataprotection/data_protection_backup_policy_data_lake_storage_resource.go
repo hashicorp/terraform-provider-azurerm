@@ -226,7 +226,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 			existing, err := client.BackupPoliciesGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("checking for existing %s: %+v", id, err)
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
