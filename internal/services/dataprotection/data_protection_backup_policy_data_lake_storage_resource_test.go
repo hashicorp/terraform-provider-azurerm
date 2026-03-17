@@ -102,7 +102,7 @@ provider "azurerm" {
 
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   name                            = "acctest-dbp-%d"
-  vault_id                        = azurerm_data_protection_backup_vault.test.id
+  data_protection_backup_vault_id  = azurerm_data_protection_backup_vault.test.id
   backup_schedule = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
   default_retention_rule {
@@ -120,7 +120,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) requiresImport(data a
 
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "import" {
   name                            = azurerm_data_protection_backup_policy_data_lake_storage.test.name
-  vault_id                        = azurerm_data_protection_backup_policy_data_lake_storage.test.vault_id
+  data_protection_backup_vault_id  = azurerm_data_protection_backup_policy_data_lake_storage.test.data_protection_backup_vault_id
   backup_schedule = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
   default_retention_rule {
@@ -142,7 +142,7 @@ provider "azurerm" {
 
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   name                            = "acctest-dbp-%d"
-  vault_id                        = azurerm_data_protection_backup_vault.test.id
+  data_protection_backup_vault_id  = azurerm_data_protection_backup_vault.test.id
   backup_schedule = ["R/2021-05-23T02:30:00+00:00/P1W", "R/2021-05-24T03:40:00+50:00/P1W"]
   time_zone                       = "Coordinated Universal Time"
 

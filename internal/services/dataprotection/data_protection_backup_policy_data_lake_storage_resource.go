@@ -22,12 +22,12 @@ import (
 )
 
 type BackupPolicyDataLakeStorageModel struct {
-	Name                 string                                            `tfschema:"name"`
-	BackupSchedule       []string                                          `tfschema:"backup_schedule"`
-	DefaultRetentionRule []BackupPolicyDataLakeStorageDefaultRetentionRule `tfschema:"default_retention_rule"`
-	VaultId              string                                            `tfschema:"vault_id"`
-	RetentionRules       []BackupPolicyDataLakeStorageRetentionRule        `tfschema:"retention_rule"`
-	TimeZone             string                                            `tfschema:"time_zone"`
+	Name                        string                                            `tfschema:"name"`
+	BackupSchedule              []string                                          `tfschema:"backup_schedule"`
+	DefaultRetentionRule        []BackupPolicyDataLakeStorageDefaultRetentionRule `tfschema:"default_retention_rule"`
+	DataProtectionBackupVaultId string                                            `tfschema:"data_protection_backup_vault_id"`
+	RetentionRules              []BackupPolicyDataLakeStorageRetentionRule        `tfschema:"retention_rule"`
+	TimeZone                    string                                            `tfschema:"time_zone"`
 }
 
 type BackupPolicyDataLakeStorageDefaultRetentionRule struct {
@@ -119,7 +119,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			},
 		},
 
-		"vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
+		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
 
 		"retention_rule": {
 			Type:     pluginsdk.TypeList,
@@ -246,7 +246,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(model.VaultId)
+			vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(model.DataProtectionBackupVaultId)
 			id := basebackuppolicyresources.NewBackupPolicyID(subscriptionId, vaultId.ResourceGroupName, vaultId.BackupVaultName, model.Name)
 
 			existing, err := client.BackupPoliciesGet(ctx, id)
@@ -305,8 +305,8 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Read() sdk.ResourceFu
 
 			vaultId := basebackuppolicyresources.NewBackupVaultID(id.SubscriptionId, id.ResourceGroupName, id.BackupVaultName)
 			state := BackupPolicyDataLakeStorageModel{
-				Name:    id.BackupPolicyName,
-				VaultId: vaultId.ID(),
+				Name:                        id.BackupPolicyName,
+				DataProtectionBackupVaultId: vaultId.ID(),
 			}
 
 			if model := resp.Model; model != nil {

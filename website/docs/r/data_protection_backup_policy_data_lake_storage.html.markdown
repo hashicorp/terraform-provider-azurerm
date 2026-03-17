@@ -32,8 +32,8 @@ resource "azurerm_data_protection_backup_vault" "example" {
 
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
   name                            = "example-backup-policy"
-  vault_id                        = azurerm_data_protection_backup_vault.example.id
-  backup_schedule                   = ["R/2021-05-23T02:30:00+00:00/P1W"]
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
+  backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W"]
   time_zone                       = "India Standard Time"
 
   default_retention_rule {
@@ -93,7 +93,7 @@ The following arguments are supported:
 
 * `default_retention_rule` - (Required) A `default_retention_rule` block as defined below. Changing this forces a new resource to be created.
 
-* `vault_id` - (Required) The ID of the Backup Vault where the Azure Backup Policy Data Lake Storage should exist. Changing this forces a new resource to be created.
+* `data_protection_backup_vault_id` - (Required) The ID of the Backup Vault where the Azure Backup Policy Data Lake Storage should exist. Changing this forces a new resource to be created.
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. Changing this forces a new resource to be created.
 
