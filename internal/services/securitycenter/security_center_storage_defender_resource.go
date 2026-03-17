@@ -41,8 +41,10 @@ type MalwareScanningOnUploadFilterModel struct {
 	ExcludeBlobsWithSuffix []string `tfschema:"exclude_blobs_with_suffix"`
 }
 
-var _ sdk.ResourceWithUpdate = StorageDefenderResource{}
-var _ sdk.ResourceWithCustomizeDiff = StorageDefenderResource{}
+var (
+	_ sdk.ResourceWithUpdate        = StorageDefenderResource{}
+	_ sdk.ResourceWithCustomizeDiff = StorageDefenderResource{}
+)
 
 func (s StorageDefenderResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return commonids.ValidateStorageAccountID
