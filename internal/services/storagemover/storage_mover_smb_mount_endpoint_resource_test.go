@@ -57,7 +57,7 @@ func TestAccStorageMoverSmbMountEndpoint_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password_uri"),
+		data.ImportStep("password_key_vault_secret_id"),
 	})
 }
 
@@ -71,14 +71,14 @@ func TestAccStorageMoverSmbMountEndpoint_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password_uri"),
+		data.ImportStep("password_key_vault_secret_id"),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("password_uri"),
+		data.ImportStep("password_key_vault_secret_id"),
 	})
 }
 
@@ -195,9 +195,9 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
   storage_mover_id = azurerm_storage_mover.test.id
   host             = "192.168.0.1"
   share_name       = "testshare"
-  username_uri     = azurerm_key_vault_secret.username.versionless_id
-  password_uri     = azurerm_key_vault_secret.password.versionless_id
-  description      = "Example SMB Mount Endpoint Description"
+  username_key_vault_secret_id = azurerm_key_vault_secret.username.versionless_id
+  password_key_vault_secret_id = azurerm_key_vault_secret.password.versionless_id
+  description                  = "Example SMB Mount Endpoint Description"
 }
 `, template, data.RandomString, data.RandomInteger)
 }
@@ -251,9 +251,9 @@ resource "azurerm_storage_mover_smb_mount_endpoint" "test" {
   storage_mover_id = azurerm_storage_mover.test.id
   host             = "192.168.0.1"
   share_name       = "testshare"
-  username_uri     = azurerm_key_vault_secret.username.versionless_id
-  password_uri     = azurerm_key_vault_secret.password.versionless_id
-  description      = "Updated SMB Mount Endpoint Description"
+  username_key_vault_secret_id = azurerm_key_vault_secret.username.versionless_id
+  password_key_vault_secret_id = azurerm_key_vault_secret.password.versionless_id
+  description                  = "Updated SMB Mount Endpoint Description"
 }
 `, template, data.RandomString, data.RandomInteger)
 }
