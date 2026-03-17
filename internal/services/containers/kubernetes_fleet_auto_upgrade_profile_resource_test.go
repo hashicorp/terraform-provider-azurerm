@@ -100,6 +100,10 @@ func (r KubernetesFleetAutoUpgradeProfileTestResource) basic(data acceptance.Tes
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
   name                        = "acctestfaup-%[2]d"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
@@ -124,6 +128,10 @@ func (r KubernetesFleetAutoUpgradeProfileTestResource) complete(data acceptance.
 	return fmt.Sprintf(`
 %s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   name                        = "acctestfus-%[2]d"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
@@ -141,6 +149,7 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
   channel                     = "Rapid"
   node_image_selection_type   = "Latest"
   update_strategy_id          = azurerm_kubernetes_fleet_update_strategy.test.id
+  enabled                     = true
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -148,6 +157,10 @@ resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
 func (r KubernetesFleetAutoUpgradeProfileTestResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   name                        = "acctestfus-%[2]d"
@@ -160,22 +173,30 @@ resource "azurerm_kubernetes_fleet_update_strategy" "test" {
   }
 }
 
+resource "azurerm_kubernetes_fleet_update_strategy" "update" {
+  name                        = "acctestupu-%[2]d"
+  kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
+  stage {
+    name = "acctestupu-%[2]d"
+    group {
+      name = "acctestupu-%[2]d"
+    }
+  }
+}
+
 resource "azurerm_kubernetes_fleet_auto_upgrade_profile" "test" {
   name                        = "acctestfaup-%[2]d"
   kubernetes_fleet_manager_id = azurerm_kubernetes_fleet_manager.test.id
   channel                     = "Stable"
   node_image_selection_type   = "Consistent"
-  update_strategy_id          = azurerm_kubernetes_fleet_update_strategy.test.id
+  update_strategy_id          = azurerm_kubernetes_fleet_update_strategy.update.id
+  enabled                     = false
 }
 `, r.template(data), data.RandomInteger)
 }
 
 func (r KubernetesFleetAutoUpgradeProfileTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[2]d"
   location = "%[1]s"

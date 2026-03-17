@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var  _ sdk.ResourceWithUpdate = KubernetesFleetAutoUpgradeProfileResource{}
+var _ sdk.ResourceWithUpdate = KubernetesFleetAutoUpgradeProfileResource{}
 
 type KubernetesFleetAutoUpgradeProfileResource struct{}
 
@@ -31,7 +31,7 @@ type KubernetesFleetAutoUpgradeProfileResourceModel struct {
 	Channel                  string  `tfschema:"channel"`
 	NodeImageSelectionType   *string `tfschema:"node_image_selection_type"`
 	UpdateStrategyId         *string `tfschema:"update_strategy_id"`
-	Disabled                 *bool   `tfschema:"disabled"`
+	Enabled                  *bool   `tfschema:"enabled"`
 }
 
 func (r KubernetesFleetAutoUpgradeProfileResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -65,23 +65,19 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Arguments() map[string]*plugi
 			ValidateFunc: validation.StringInSlice(autoupgradeprofiles.PossibleValuesForUpgradeChannel(), false),
 		},
 
+		"enabled": {
+			Optional: true,
+			Type:     pluginsdk.TypeBool,
+			Default:  true,
+		},
+
 		"node_image_selection_type": {
 			Optional:     true,
 			Type:         pluginsdk.TypeString,
 			ValidateFunc: validation.StringInSlice(autoupgradeprofiles.PossibleValuesForAutoUpgradeNodeImageSelectionType(), false),
 		},
 
-		"update_strategy_id": {
-			Optional:     true,
-			ForceNew:     true,
-			Type:         pluginsdk.TypeString,
-			ValidateFunc: fleetupdatestrategies.ValidateUpdateStrategyID,
-		},
-
-		"disabled": {
-			Optional: true,
-			Type:     pluginsdk.TypeBool,
-		},
+		"update_strategy_id": commonschema.ResourceIDReferenceOptional(&fleetupdatestrategies.UpdateStrategyId{}),
 	}
 }
 
@@ -130,7 +126,9 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Create() sdk.ResourceFunc {
 			}
 
 			payload.Properties.UpdateStrategyId = config.UpdateStrategyId
-			payload.Properties.Disabled = config.Disabled
+			if config.Enabled != nil {
+				payload.Properties.Disabled = pointer.To(!*config.Enabled)
+			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload, autoupgradeprofiles.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
@@ -170,7 +168,9 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.Channel = string(props.Channel)
 					state.UpdateStrategyId = props.UpdateStrategyId
-					state.Disabled = props.Disabled
+					if props.Disabled != nil {
+						state.Enabled = pointer.To(!*props.Disabled)
+					}
 
 					if props.NodeImageSelection != nil {
 						nodeImageSelectionType := string(props.NodeImageSelection.Type)
@@ -247,8 +247,16 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("disabled") {
-				payload.Properties.Disabled = config.Disabled
+			if metadata.ResourceData.HasChange("update_strategy_id") {
+				payload.Properties.UpdateStrategyId = config.UpdateStrategyId
+			}
+
+			if metadata.ResourceData.HasChange("enabled") {
+				if config.Enabled != nil {
+					payload.Properties.Disabled = pointer.To(!*config.Enabled)
+				} else {
+					payload.Properties.Disabled = nil
+				}
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload, autoupgradeprofiles.DefaultCreateOrUpdateOperationOptions()); err != nil {
