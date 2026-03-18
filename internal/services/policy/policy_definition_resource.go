@@ -64,7 +64,6 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					// ForceNew if parameters were removed or renamed
 					for oldKey := range oldParameters {
 						if _, exists := newParameters[oldKey]; !exists {
 							return d.ForceNew("parameters")

@@ -176,6 +176,33 @@ func TestAccAzureRMPolicyDefinition_removeParameter(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPolicyDefinition_renameParameter(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_policy_definition", "test")
+	r := PolicyDefinitionResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.renamedParameter(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r PolicyDefinitionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	definitionsClient := client.Policy.DefinitionsClient
 	id, err := parse.PolicyDefinitionID(state.ID)
@@ -478,6 +505,48 @@ POLICY_RULE
 PARAMETERS
 }
 `, data.RandomInteger, mode, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) renamedParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedRegions')]"
+      }
+    },
+    "then": {
+      "effect": "audit"
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedRegions": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed regions for resources.",
+        "displayName": "Allowed regions",
+        "strongType": "location"
+      }
+    }
+  }
+PARAMETERS
+}
+`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r PolicyDefinitionResource) additionalParameter(data acceptance.TestData) string {
