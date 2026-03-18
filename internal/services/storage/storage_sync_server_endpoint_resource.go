@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -20,9 +21,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync_server_endpoint -service-package-name storage -properties "name" -compare-values "subscription_id:storage_sync_group_id,resource_group_name:storage_sync_group_id,storage_sync_service_name:storage_sync_group_id,sync_group_name:storage_sync_group_id" -test-sequential
+
 type SyncServerEndpointResource struct{}
 
-var _ sdk.ResourceWithUpdate = SyncServerEndpointResource{}
+var (
+	_ sdk.ResourceWithUpdate   = SyncServerEndpointResource{}
+	_ sdk.ResourceWithIdentity = SyncServerEndpointResource{}
+)
 
 func (r SyncServerEndpointResource) ModelObject() interface{} {
 	return &StorageSyncServerEndpointResourceSchema{}
@@ -46,6 +52,10 @@ func (r SyncServerEndpointResource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 func (r SyncServerEndpointResource) ResourceType() string {
 	return "azurerm_storage_sync_server_endpoint"
+}
+
+func (r SyncServerEndpointResource) Identity() resourceids.ResourceId {
+	return &serverendpointresource.ServerEndpointId{}
 }
 
 func (r SyncServerEndpointResource) Arguments() map[string]*pluginsdk.Schema {
@@ -177,6 +187,9 @@ func (r SyncServerEndpointResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -187,8 +200,6 @@ func (r SyncServerEndpointResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Storage.SyncServerEndpointsClient
-
-			schema := StorageSyncServerEndpointResourceSchema{}
 
 			id, err := serverendpointresource.ParseServerEndpointID(metadata.ResourceData.Id())
 			if err != nil {
@@ -203,25 +214,36 @@ func (r SyncServerEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				schema.Name = id.ServerEndpointName
-				if props := model.Properties; props != nil {
-					schema.StorageSyncGroupId = serverendpointresource.NewSyncGroupID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName, id.SyncGroupName).ID()
-					schema.RegisteredServerId = pointer.From(props.ServerResourceId)
-					schema.ServerLocalPath = pointer.From(props.ServerLocalPath)
-					schema.VolumeFreeSpacePercent = pointer.From(props.VolumeFreeSpacePercent)
-					schema.CloudTieringEnabled = pointer.From(props.CloudTiering) == serverendpointresource.FeatureStatusOn
-					schema.InitialDownloadPolicy = string(pointer.From(props.InitialDownloadPolicy))
-					schema.LocalCacheMode = string(pointer.From(props.LocalCacheMode))
-					if pointer.From(props.TierFilesOlderThanDays) != 0 {
-						schema.TierFilesOlderThanDays = pointer.From(props.TierFilesOlderThanDays)
-					}
-				}
-			}
-
-			return metadata.Encode(&schema)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r SyncServerEndpointResource) flatten(metadata sdk.ResourceMetaData, id *serverendpointresource.ServerEndpointId, model *serverendpointresource.ServerEndpoint) error {
+	schema := StorageSyncServerEndpointResourceSchema{
+		Name:               id.ServerEndpointName,
+		StorageSyncGroupId: serverendpointresource.NewSyncGroupID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName, id.SyncGroupName).ID(),
+	}
+
+	if model != nil {
+		if props := model.Properties; props != nil {
+			schema.RegisteredServerId = pointer.From(props.ServerResourceId)
+			schema.ServerLocalPath = pointer.From(props.ServerLocalPath)
+			schema.VolumeFreeSpacePercent = pointer.From(props.VolumeFreeSpacePercent)
+			schema.CloudTieringEnabled = pointer.From(props.CloudTiering) == serverendpointresource.FeatureStatusOn
+			schema.InitialDownloadPolicy = string(pointer.From(props.InitialDownloadPolicy))
+			schema.LocalCacheMode = string(pointer.From(props.LocalCacheMode))
+			if pointer.From(props.TierFilesOlderThanDays) != 0 {
+				schema.TierFilesOlderThanDays = pointer.From(props.TierFilesOlderThanDays)
+			}
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&schema)
 }
 
 func (r SyncServerEndpointResource) Delete() sdk.ResourceFunc {
