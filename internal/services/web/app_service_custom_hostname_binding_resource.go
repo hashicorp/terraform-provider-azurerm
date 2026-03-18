@@ -163,7 +163,7 @@ func resourceAppServiceCustomHostnameBindingRead(d *pluginsdk.ResourceData, meta
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
-			d.Set("ssl_state", props.SslState)
+			d.Set("ssl_state", pointer.FromEnum(props.SslState))
 			d.Set("thumbprint", props.Thumbprint)
 			d.Set("virtual_ip", props.VirtualIP)
 		}
