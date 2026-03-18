@@ -82,7 +82,7 @@ func (r StorageSyncListResource) List(ctx context.Context, request list.ListRequ
 			rd := resourceStorageSync().Data(&terraform.InstanceState{})
 			rd.SetId(id.ID())
 
-			if err := resourceStorageSyncFlatten(ctx, rd, id, &item, metadata.Client.Storage.SyncRegisteredServerClient); err != nil {
+			if err := resourceStorageSyncFlatten(ctx, rd, id, &item, metadata.Client.Storage.SyncRegisteredServerClient, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_storage_sync"), err)
 				return
 			}

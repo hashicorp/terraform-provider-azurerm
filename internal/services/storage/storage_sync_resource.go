@@ -140,10 +140,10 @@ func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return resourceStorageSyncFlatten(ctx, d, id, resp.Model, registeredServerClient)
+	return resourceStorageSyncFlatten(ctx, d, id, resp.Model, registeredServerClient, true)
 }
 
-func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *storagesyncservicesresource.StorageSyncServiceId, model *storagesyncservicesresource.StorageSyncService, registeredServerClient *registeredserverresource.RegisteredServerResourceClient) error {
+func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *storagesyncservicesresource.StorageSyncServiceId, model *storagesyncservicesresource.StorageSyncService, registeredServerClient *registeredserverresource.RegisteredServerResourceClient, includeRegisteredServers bool) error {
 	d.Set("name", id.StorageSyncServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
@@ -159,23 +159,25 @@ func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, 
 		}
 	}
 
-	storageSyncId := registeredserverresource.NewStorageSyncServiceID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName)
-	registeredServersResp, err := registeredServerClient.RegisteredServersListByStorageSyncService(ctx, storageSyncId)
-	if err != nil {
-		if !response.WasNotFound(registeredServersResp.HttpResponse) {
-			return fmt.Errorf("retrieving registered servers for %s: %+v", id, err)
-		}
-	}
-
-	if serverModel := registeredServersResp.Model; serverModel != nil && serverModel.Value != nil {
-		registeredServers := make([]interface{}, 0, len(*serverModel.Value))
-		for _, registeredServer := range *serverModel.Value {
-			if registeredServer.Id != nil {
-				registeredServers = append(registeredServers, *registeredServer.Id)
+	if includeRegisteredServers {
+		storageSyncId := registeredserverresource.NewStorageSyncServiceID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName)
+		registeredServersResp, err := registeredServerClient.RegisteredServersListByStorageSyncService(ctx, storageSyncId)
+		if err != nil {
+			if !response.WasNotFound(registeredServersResp.HttpResponse) {
+				return fmt.Errorf("retrieving registered servers for %s: %+v", id, err)
 			}
 		}
-		if err := d.Set("registered_servers", registeredServers); err != nil {
-			return fmt.Errorf("setting `registered_servers`: %+v", err)
+
+		if serverModel := registeredServersResp.Model; serverModel != nil && serverModel.Value != nil {
+			registeredServers := make([]interface{}, 0, len(*serverModel.Value))
+			for _, registeredServer := range *serverModel.Value {
+				if registeredServer.Id != nil {
+					registeredServers = append(registeredServers, *registeredServer.Id)
+				}
+			}
+			if err := d.Set("registered_servers", registeredServers); err != nil {
+				return fmt.Errorf("setting `registered_servers`: %+v", err)
+			}
 		}
 	}
 
