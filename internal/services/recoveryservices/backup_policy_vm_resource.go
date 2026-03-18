@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -115,12 +114,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s", time.Now().Format("2006-01-02"), timeOfDay))
-	if err != nil {
-		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
-	}
-	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
-	formattedTimeOfDay := append(make([]string, 0), timeOfDay)
+	times := append(make([]string, 0), timeOfDay)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -151,10 +145,10 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 		TieringPolicy:    expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
 		InstantRPDetails: expandBackupProtectionPolicyVMResourceGroup(d),
 		RetentionPolicy: &protectionpolicies.LongTermRetentionPolicy{ // SimpleRetentionPolicy only has duration property ¯\_(ツ)_/¯
-			DailySchedule:   expandBackupProtectionPolicyVMRetentionDaily(d, formattedTimeOfDay),
-			WeeklySchedule:  expandBackupProtectionPolicyVMRetentionWeekly(d, formattedTimeOfDay),
-			MonthlySchedule: expandBackupProtectionPolicyVMRetentionMonthly(d, formattedTimeOfDay),
-			YearlySchedule:  expandBackupProtectionPolicyVMRetentionYearly(d, formattedTimeOfDay),
+			DailySchedule:   expandBackupProtectionPolicyVMRetentionDaily(d, times),
+			WeeklySchedule:  expandBackupProtectionPolicyVMRetentionWeekly(d, times),
+			MonthlySchedule: expandBackupProtectionPolicyVMRetentionMonthly(d, times),
+			YearlySchedule:  expandBackupProtectionPolicyVMRetentionYearly(d, times),
 		},
 	}
 
@@ -291,12 +285,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
 	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s", time.Now().Format("2006-01-02"), timeOfDay))
-	if err != nil {
-		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
-	}
-	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
-	formattedTimeOfDay := append(make([]string, 0), timeOfDay)
+	times := append(make([]string, 0), timeOfDay)
 
 	// Less than 7 daily backups is no longer supported for create/update
 	if d.HasChange("retention_daily.0.count") && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
@@ -362,7 +351,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
 
-		retentionPolicy.DailySchedule = expandBackupProtectionPolicyVMRetentionDaily(d, formattedTimeOfDay)
+		retentionPolicy.DailySchedule = expandBackupProtectionPolicyVMRetentionDaily(d, times)
 		properties.RetentionPolicy = retentionPolicy
 	}
 
@@ -375,7 +364,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
 
-		retentionPolicy.WeeklySchedule = expandBackupProtectionPolicyVMRetentionWeekly(d, formattedTimeOfDay)
+		retentionPolicy.WeeklySchedule = expandBackupProtectionPolicyVMRetentionWeekly(d, times)
 		properties.RetentionPolicy = retentionPolicy
 	}
 
@@ -388,7 +377,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
 
-		retentionPolicy.MonthlySchedule = expandBackupProtectionPolicyVMRetentionMonthly(d, formattedTimeOfDay)
+		retentionPolicy.MonthlySchedule = expandBackupProtectionPolicyVMRetentionMonthly(d, times)
 		properties.RetentionPolicy = retentionPolicy
 	}
 
@@ -401,7 +390,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
 
-		retentionPolicy.YearlySchedule = expandBackupProtectionPolicyVMRetentionYearly(d, formattedTimeOfDay)
+		retentionPolicy.YearlySchedule = expandBackupProtectionPolicyVMRetentionYearly(d, times)
 		properties.RetentionPolicy = retentionPolicy
 	}
 
