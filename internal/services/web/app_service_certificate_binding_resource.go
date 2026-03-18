@@ -5,22 +5,22 @@ package web
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var appServiceHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
+const appServiceHostnameBindingResourceName = "azurerm_app_service_custom_hostname_binding"
 
 func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -29,7 +29,7 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 		Delete: resourceAppServiceCertificateBindingDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CertificateBindingID(id)
+			_, err := commonids.ParseCompositeResourceID(id, &webapps.HostNameBindingId{}, &certificates.CertificateId{})
 			return err
 		}),
 
@@ -44,14 +44,14 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.HostnameBindingID,
+				ValidateFunc: webapps.ValidateHostNameBindingID,
 			},
 
 			"certificate_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CertificateID,
+				ValidateFunc: certificates.ValidateCertificateID,
 			},
 
 			"ssl_state": {
@@ -59,8 +59,8 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(web.SslStateIPBasedEnabled),
-					string(web.SslStateSniEnabled),
+					string(webapps.SslStateIPBasedEnabled),
+					string(webapps.SslStateSniEnabled),
 				}, false),
 			},
 
@@ -83,61 +83,64 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 }
 
 func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClientV1
-	certClient := meta.(*clients.Client).Web.CertificatesClientV1
+	client := meta.(*clients.Client).Web.WebAppsClient
+	certClient := meta.(*clients.Client).Web.CertificatesClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for App Service Hostname Binding creation.")
-
-	hostnameBindingID, err := parse.HostnameBindingID(d.Get("hostname_binding_id").(string))
+	hostnameBindingID, err := webapps.ParseHostNameBindingID(d.Get("hostname_binding_id").(string))
 	if err != nil {
 		return err
 	}
 
-	certificateID, err := parse.CertificateID(d.Get("certificate_id").(string))
+	certificateID, err := certificates.ParseCertificateID(d.Get("certificate_id").(string))
 	if err != nil {
-		return fmt.Errorf("could not parse ID: %+v", err)
+		return err
 	}
 
-	id := parse.NewCertificateBindingId(*hostnameBindingID, *certificateID)
+	id := commonids.NewCompositeResourceID(hostnameBindingID, certificateID)
 
-	certDetails, err := certClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
+	certificate, err := certClient.Get(ctx, *id.Second)
 	if err != nil {
-		if utils.ResponseWasNotFound(certDetails.Response) {
-			return fmt.Errorf("retrieving App Service Certificate %q (Resource Group %q), not found", id.CertificateId.Name, id.CertificateId.ResourceGroup)
-		}
-		return fmt.Errorf("failed reading App Service Certificate %q (Resource Group %q): %+v", id.CertificateId.Name, id.CertificateId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.Second, err)
 	}
 
-	if certDetails.Thumbprint == nil {
-		return fmt.Errorf("could not read thumbprint from certificate %q (resource group %q): %+v", id.CertificateId.Name, id.CertificateId.ResourceGroup, err)
+	if certificate.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id.Second)
 	}
-	thumbprint := certDetails.Thumbprint
 
-	binding, err := client.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name)
+	if certificate.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id.Second)
+	}
+
+	if certificate.Model.Properties.Thumbprint == nil {
+		return fmt.Errorf("retrieving %s: `thumbprint` was nil", id.Second)
+	}
+	thumbprint := certificate.Model.Properties.Thumbprint
+
+	binding, err := client.GetHostNameBinding(ctx, *id.First)
 	if err != nil {
-		if utils.ResponseWasNotFound(binding.Response) {
-			return fmt.Errorf("retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup, err)
-		}
-		return fmt.Errorf("retrieving Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.SiteName, id.CertificateId.Name, id.HostnameBindingId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	props := binding.HostNameBindingProperties
-	if props != nil {
-		if props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
-			return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
-		}
+	if binding.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id.First)
 	}
 
-	locks.ByName(id.SiteName, appServiceHostnameBindingResourceName)
-	defer locks.UnlockByName(id.SiteName, appServiceHostnameBindingResourceName)
+	props := binding.Model.Properties
+	if props != nil && props.Thumbprint != nil && *props.Thumbprint == *thumbprint {
+		return tf.ImportAsExistsError("azurerm_app_service_certificate_binding", id.ID())
+	}
 
-	binding.SslState = web.SslState(d.Get("ssl_state").(string))
-	binding.Thumbprint = thumbprint
+	locks.ByName(id.First.SiteName, appServiceHostnameBindingResourceName)
+	defer locks.UnlockByName(id.First.SiteName, appServiceHostnameBindingResourceName)
 
-	if _, err := client.CreateOrUpdateHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name, binding); err != nil {
-		return fmt.Errorf("creating/updating Custom Hostname Certificate Binding %q with certificate name %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.CertificateId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup, err)
+	props.SslState = pointer.ToEnum[webapps.SslState](d.Get("ssl_state").(string))
+	props.Thumbprint = thumbprint
+
+	if _, err := client.CreateOrUpdateHostNameBinding(ctx, *id.First, *binding.Model); err != nil {
+		return fmt.Errorf("updating certificate for %s: %+v", id.First, err)
 	}
 
 	d.SetId(id.ID())
@@ -146,79 +149,75 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClientV1
+	client := meta.(*clients.Client).Web.WebAppsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateBindingID(d.Id())
+	id, err := commonids.ParseCompositeResourceID(d.Id(), &webapps.HostNameBindingId{}, &certificates.CertificateId{})
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name)
+	resp, err := client.GetHostNameBinding(ctx, *id.First)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Hostname Certificate Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Custom Hostname Certificate Binding %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	props := resp.HostNameBindingProperties
-	if props == nil || props.Thumbprint == nil {
-		log.Printf("[DEBUG] App Service Hostname Certificate Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup)
+	if resp.Model == nil || resp.Model.Properties == nil || resp.Model.Properties.Thumbprint == nil {
 		d.SetId("")
 		return nil
 	}
+	props := resp.Model.Properties
 
-	d.Set("hostname_binding_id", id.HostnameBindingId.ID())
-	d.Set("certificate_id", id.CertificateId.ID())
-	d.Set("ssl_state", string(props.SslState))
+	d.Set("hostname_binding_id", id.First.ID())
+	d.Set("certificate_id", id.Second.ID())
+	d.Set("ssl_state", pointer.FromEnum(props.SslState))
 	d.Set("thumbprint", props.Thumbprint)
-	d.Set("hostname", id.HostnameBindingId.Name)
-	d.Set("app_service_name", id.SiteName)
+	d.Set("hostname", id.First.HostNameBindingName)
+	d.Set("app_service_name", id.First.SiteName)
 
 	return nil
 }
 
 func resourceAppServiceCertificateBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClientV1
+	client := meta.(*clients.Client).Web.WebAppsClient
+
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateBindingID(d.Id())
+	id, err := commonids.ParseCompositeResourceID(d.Id(), &webapps.HostNameBindingId{}, &certificates.CertificateId{})
 	if err != nil {
 		return err
 	}
 
-	binding, err := client.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name)
+	binding, err := client.GetHostNameBinding(ctx, *id.First)
 	if err != nil {
-		if utils.ResponseWasNotFound(binding.Response) {
-			log.Printf("[DEBUG] App Service Hostname Certificate Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup)
+		if response.WasNotFound(binding.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Custom Hostname Certificate Binding %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	props := binding.HostNameBindingProperties
-	if props == nil || props.Thumbprint == nil {
-		log.Printf("[DEBUG] App Service Hostname Certificate Binding %q (App Service %q / Resource Group %q) was not found - removing from state", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup)
+	if binding.Model == nil || binding.Model.Properties == nil || binding.Model.Properties.Thumbprint == nil {
 		d.SetId("")
 		return nil
 	}
+	props := binding.Model.Properties
 
-	locks.ByName(id.SiteName, appServiceHostnameBindingResourceName)
-	defer locks.UnlockByName(id.SiteName, appServiceHostnameBindingResourceName)
+	locks.ByName(id.First.SiteName, appServiceHostnameBindingResourceName)
+	defer locks.UnlockByName(id.First.SiteName, appServiceHostnameBindingResourceName)
 
-	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup)
+	props.SslState = pointer.To(webapps.SslStateDisabled)
+	props.Thumbprint = nil
 
-	binding.SslState = web.SslStateDisabled
-	binding.Thumbprint = nil
-
-	if _, err := client.CreateOrUpdateHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name, binding); err != nil {
-		return fmt.Errorf("deleting Custom Hostname Certificate Binding %q (App Service %q / Resource Group %q): %+v", id.HostnameBindingId.Name, id.SiteName, id.HostnameBindingId.ResourceGroup, err)
+	if _, err := client.CreateOrUpdateHostNameBinding(ctx, *id.First, *binding.Model); err != nil {
+		return fmt.Errorf("deleting certificate from %s: %+v", id.First, err)
 	}
 
 	return nil
