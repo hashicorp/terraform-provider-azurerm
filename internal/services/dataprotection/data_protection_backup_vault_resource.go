@@ -194,7 +194,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	// The `ArchiveStore` requires an additional item with `VaultStore`, otherwise the service will return HTTP 406.
-	// Considering this is the only known case `StorageSettings` need more than 1 element, adding this workaround instead of changing the schema.
+	// Considering this is the only known case where `StorageSettings` requires more than one element, adding this workaround instead of changing the schema.
 	if *(parameters.Properties.StorageSettings[0].DatastoreType) == backupvaultresources.StorageSettingStoreTypesArchiveStore {
 		parameters.Properties.StorageSettings = append(parameters.Properties.StorageSettings, backupvaultresources.StorageSetting{
 			DatastoreType: pointer.To(backupvaultresources.StorageSettingStoreTypesVaultStore),
