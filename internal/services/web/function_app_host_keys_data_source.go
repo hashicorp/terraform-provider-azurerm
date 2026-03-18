@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
@@ -83,38 +84,41 @@ func dataSourceFunctionAppHostKeys() *pluginsdk.Resource {
 }
 
 func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClientV1
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFunctionAppID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := commonids.NewAppServiceID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	functionSettings, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	functionSettings, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(functionSettings.Response) {
+		if response.WasNotFound(functionSettings.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
 	return pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		res, err := client.ListHostKeys(ctx, id.ResourceGroup, id.SiteName)
+		resp, err := client.ListHostKeys(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
+			if response.WasNotFound(resp.HttpResponse) {
 				return pluginsdk.NonRetryableError(fmt.Errorf("%s was not found", id))
 			}
 
-			return pluginsdk.RetryableError(fmt.Errorf("making Read request on %s: %+v", id, err))
+			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s: %+v", id, err))
 		}
 
-		d.Set("primary_key", res.MasterKey)
+		if resp.Model == nil {
+			return pluginsdk.RetryableError(fmt.Errorf("retrieving %s: model was nil", id))
+		}
+
+		d.Set("primary_key", resp.Model.MasterKey)
 
 		defaultFunctionKey := ""
-		if v, ok := res.FunctionKeys["default"]; ok {
-			defaultFunctionKey = *v
+		if v, ok := pointer.From(resp.Model.FunctionKeys)["default"]; ok {
+			defaultFunctionKey = v
 		}
 		d.Set("default_function_key", defaultFunctionKey)
 
@@ -123,34 +127,34 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 		// This block accommodates both keys.
 		eventGridExtensionConfigKey := ""
 		for _, key := range []string{"eventgridextensionconfig_extension", "eventgrid_extension"} {
-			if v, ok := res.SystemKeys[key]; ok {
-				eventGridExtensionConfigKey = *v
+			if v, ok := pointer.From(resp.Model.SystemKeys)[key]; ok {
+				eventGridExtensionConfigKey = v
 				break
 			}
 		}
 		d.Set("event_grid_extension_config_key", eventGridExtensionConfigKey)
 
 		signalrExtensionKey := ""
-		if v, ok := res.SystemKeys["signalr_extension"]; ok {
-			signalrExtensionKey = *v
+		if v, ok := pointer.From(resp.Model.SystemKeys)["signalr_extension"]; ok {
+			signalrExtensionKey = v
 		}
 		d.Set("signalr_extension_key", signalrExtensionKey)
 
 		durableTaskExtensionKey := ""
-		if v, ok := res.SystemKeys["durabletask_extension"]; ok {
-			durableTaskExtensionKey = *v
+		if v, ok := pointer.From(resp.Model.SystemKeys)["durabletask_extension"]; ok {
+			durableTaskExtensionKey = v
 		}
 		d.Set("durabletask_extension_key", durableTaskExtensionKey)
 
 		webPubSubExtensionKey := ""
-		if v, ok := res.SystemKeys["webpubsub_extension"]; ok {
-			webPubSubExtensionKey = *v
+		if v, ok := pointer.From(resp.Model.SystemKeys)["webpubsub_extension"]; ok {
+			webPubSubExtensionKey = v
 		}
 		d.Set("webpubsub_extension_key", webPubSubExtensionKey)
 
 		blobsExtensionKey := ""
-		if v, ok := res.SystemKeys["blobs_extension"]; ok {
-			blobsExtensionKey = *v
+		if v, ok := pointer.From(resp.Model.SystemKeys)["blobs_extension"]; ok {
+			blobsExtensionKey = v
 		}
 		d.Set("blobs_extension_key", blobsExtensionKey)
 
