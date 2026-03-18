@@ -89,14 +89,11 @@ func (c CognitiveRaiBlocklistResource) Create() sdk.ResourceFunc {
 
 			payload := &raiblocklists.RaiBlocklist{
 				Properties: &raiblocklists.RaiBlocklistProperties{},
+				Tags:       pointer.To(model.Tags),
 			}
 
 			if model.Description != "" {
 				payload.Properties.Description = &model.Description
-			}
-
-			if model.Tags != nil {
-				payload.Tags = pointer.To(model.Tags)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, *payload); err != nil {
