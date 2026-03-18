@@ -125,8 +125,8 @@ resource "azurerm_managed_lustre_file_system" "example" {
   zones                  = ["2"]
 
   maintenance_window {
-    day_of_week     = "Friday"
-    time_of_day_utc = "22:00"
+    day_of_week        = "Friday"
+    time_of_day_in_utc = "22:00"
   }
 
   identity {
@@ -200,7 +200,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 Azure Managed Lustre File Systems Auto Export Job can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_managed_lustre_file_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageCache/amlFilesystems/amlFilesystem1/autoExportJobs/autoexportjob1
+terraform import azurerm_managed_lustre_file_system_auto_export_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageCache/amlFilesystems/amlFilesystem1/autoExportJobs/autoexportjob1
 ```
 
 ## API Providers

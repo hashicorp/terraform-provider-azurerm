@@ -50,7 +50,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Arguments() map[string]*pl
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z][-0-9a-zA-Z_]{0,78}[0-9a-zA-Z]$`), "name must be 3-80 characters long and can only contain alphanumeric characters, underscores, and hyphens, and must start and end with an alphanumeric character"),
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9a-zA-Z][-0-9a-zA-Z_]{0,78}[0-9a-zA-Z]$`), "name must be 2-80 characters long and can only contain alphanumeric characters, underscores, and hyphens, and must start and end with an alphanumeric character"),
 		},
 
 		"managed_lustre_file_system_id": commonschema.ResourceIDReferenceRequiredForceNew(&autoexportjob.AmlFilesystemId{}),
