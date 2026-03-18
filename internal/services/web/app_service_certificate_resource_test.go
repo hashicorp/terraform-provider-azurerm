@@ -61,7 +61,7 @@ func TestAccAppServiceCertificate_KeyVault(t *testing.T) {
 				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 			),
 		},
-		data.ImportStep("key_vault_secret_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -76,7 +76,7 @@ func TestAccAppServiceCertificate_KeyVaultId(t *testing.T) {
 				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 			),
 		},
-		data.ImportStep("key_vault_secret_id", "key_vault_id"),
+		data.ImportStep(),
 	})
 }
 
@@ -91,7 +91,7 @@ func TestAccAppServiceCertificate_KeyVaultIdVersionless(t *testing.T) {
 				check.That(data.ResourceName).Key("thumbprint").HasValue("7B985BF42467791F23E52B364A3E8DEBAB9C606E"),
 			),
 		},
-		data.ImportStep("key_vault_secret_id", "key_vault_id"),
+		data.ImportStep(),
 	})
 }
 
