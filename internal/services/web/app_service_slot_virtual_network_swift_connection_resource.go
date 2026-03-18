@@ -245,7 +245,6 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Reso
 
 	if existing.Model == nil || existing.Model.Properties == nil || existing.Model.Properties.SubnetResourceId == nil {
 		// assume deleted
-		d.SetId("")
 		return nil
 	}
 

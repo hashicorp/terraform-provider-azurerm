@@ -122,12 +122,13 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 		}
 		d.Set("default_function_key", defaultFunctionKey)
 
+		systemKeys := pointer.From(resp.Model.SystemKeys)
 		// The name of the EventGrid System Key has changed from version 1.x to version 2.x:
 		// https://learn.microsoft.com/en-us/azure/azure-functions/event-grid-how-tos?tabs=v2%2Cportal#system-key
 		// This block accommodates both keys.
 		eventGridExtensionConfigKey := ""
 		for _, key := range []string{"eventgridextensionconfig_extension", "eventgrid_extension"} {
-			if v, ok := pointer.From(resp.Model.SystemKeys)[key]; ok {
+			if v, ok := systemKeys[key]; ok {
 				eventGridExtensionConfigKey = v
 				break
 			}
@@ -135,25 +136,25 @@ func dataSourceFunctionAppHostKeysRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("event_grid_extension_config_key", eventGridExtensionConfigKey)
 
 		signalrExtensionKey := ""
-		if v, ok := pointer.From(resp.Model.SystemKeys)["signalr_extension"]; ok {
+		if v, ok := systemKeys["signalr_extension"]; ok {
 			signalrExtensionKey = v
 		}
 		d.Set("signalr_extension_key", signalrExtensionKey)
 
 		durableTaskExtensionKey := ""
-		if v, ok := pointer.From(resp.Model.SystemKeys)["durabletask_extension"]; ok {
+		if v, ok := systemKeys["durabletask_extension"]; ok {
 			durableTaskExtensionKey = v
 		}
 		d.Set("durabletask_extension_key", durableTaskExtensionKey)
 
 		webPubSubExtensionKey := ""
-		if v, ok := pointer.From(resp.Model.SystemKeys)["webpubsub_extension"]; ok {
+		if v, ok := systemKeys["webpubsub_extension"]; ok {
 			webPubSubExtensionKey = v
 		}
 		d.Set("webpubsub_extension_key", webPubSubExtensionKey)
 
 		blobsExtensionKey := ""
-		if v, ok := pointer.From(resp.Model.SystemKeys)["blobs_extension"]; ok {
+		if v, ok := systemKeys["blobs_extension"]; ok {
 			blobsExtensionKey = v
 		}
 		d.Set("blobs_extension_key", blobsExtensionKey)
