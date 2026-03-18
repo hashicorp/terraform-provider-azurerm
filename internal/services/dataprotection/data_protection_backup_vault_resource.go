@@ -193,6 +193,16 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
+	// The `ArchiveStore` requires an additional item with `VaultStore`, otherwise the service will return HTTP 406.
+	// Considering this is the only known case `StorageSettings` need more than 1 element, adding this workaround instead of changing the schema.
+	if *(parameters.Properties.StorageSettings[0].DatastoreType) == backupvaultresources.StorageSettingStoreTypesArchiveStore {
+		parameters.Properties.StorageSettings = append(parameters.Properties.StorageSettings, backupvaultresources.StorageSetting{
+			DatastoreType: pointer.To(backupvaultresources.StorageSettingStoreTypesVaultStore),
+			Type:          pointer.To(*parameters.Properties.StorageSettings[0].Type),
+		})
+
+	}
+
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
 		parameters.Properties.FeatureSettings = &backupvaultresources.FeatureSettings{
 			CrossRegionRestoreSettings: &backupvaultresources.CrossRegionRestoreSettings{},
