@@ -71,6 +71,8 @@ The following conventions apply to code fences:
 
 The ``## Arguments Reference`` section is used to document fields that can be set by the user in the Terraform configuration.
 
+Directly after the initial heading of ``## Arguments Reference`` you must include the exact text ``The following arguments are supported:``.
+
 ### Descriptions
 
 The following conventions apply to argument descriptions:
@@ -117,6 +119,8 @@ Example:
 
 ```markdown
 ## Arguments Reference
+
+The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this resource.
 
