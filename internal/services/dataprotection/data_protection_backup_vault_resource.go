@@ -200,7 +200,6 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 			DatastoreType: pointer.To(backupvaultresources.StorageSettingStoreTypesVaultStore),
 			Type:          pointer.To(*parameters.Properties.StorageSettings[0].Type),
 		})
-
 	}
 
 	if !pluginsdk.IsExplicitlyNullInConfig(d, "cross_region_restore_enabled") {
