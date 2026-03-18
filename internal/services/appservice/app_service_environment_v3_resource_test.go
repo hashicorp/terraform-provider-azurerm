@@ -9,12 +9,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceEnvironmentV3Resource struct{}
@@ -170,20 +169,17 @@ func TestAccAppServiceEnvironmentV3_dedicatedHosts(t *testing.T) {
 }
 
 func (AppServiceEnvironmentV3Resource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.AppServiceEnvironmentID(state.ID)
+	id, err := commonids.ParseAppServiceEnvironmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Web.AppServiceEnvironmentsClientV1.Get(ctx, id.ResourceGroup, id.HostingEnvironmentName)
+	resp, err := client.AppService.AppServiceEnvironmentClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving App Service Environment V3 %q (Resource Group %q): %+v", id.HostingEnvironmentName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r AppServiceEnvironmentV3Resource) basic(data acceptance.TestData) string {

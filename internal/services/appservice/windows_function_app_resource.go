@@ -24,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -787,7 +786,7 @@ func (r WindowsFunctionAppResource) Read() sdk.ResourceFunc {
 					state.PublishingDeployBasicAuthEnabled = basicAuthWebDeploy
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
-						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
+						hostingEnvId, err := commonids.ParseAppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
 						if err != nil {
 							return err
 						}
