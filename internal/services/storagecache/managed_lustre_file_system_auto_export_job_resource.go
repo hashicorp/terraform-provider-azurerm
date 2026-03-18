@@ -131,12 +131,12 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc 
 			}
 
 			if !model.AdminStatusEnabled {
-				disableProps := autoexportjob.AutoExportJob{
-					Properties: pointer.To(autoexportjob.AutoExportJobProperties{
+				disableProps := autoexportjob.AutoExportJobUpdate{
+					Properties: pointer.To(autoexportjob.AutoExportJobUpdateProperties{
 						AdminStatus: pointer.To(autoexportjob.AutoExportJobAdminStatusDisable),
 					}),
 				}
-				if err := autoExportJobClient.CreateOrUpdateThenPoll(ctx, autoExportJobId, disableProps); err != nil {
+				if err := autoExportJobClient.UpdateThenPoll(ctx, autoExportJobId, disableProps); err != nil {
 					return fmt.Errorf("disabling admin status for %s: %+v", id, err)
 				}
 			}
@@ -224,15 +224,17 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("decoding: %w", err)
 			}
 
-			props := autoexportjob.AutoExportJob{
-				Properties: pointer.To(autoexportjob.AutoExportJobProperties{}),
-			}
+			props := autoexportjob.AutoExportJobUpdate{}
 
 			if metadata.ResourceData.HasChange("admin_status_enabled") {
 				if model.AdminStatusEnabled {
-					props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusEnable)
+					props.Properties = pointer.To(autoexportjob.AutoExportJobUpdateProperties{
+						AdminStatus: pointer.To(autoexportjob.AutoExportJobAdminStatusEnable),
+					})
 				} else {
-					props.Properties.AdminStatus = pointer.To(autoexportjob.AutoExportJobAdminStatusDisable)
+					props.Properties = pointer.To(autoexportjob.AutoExportJobUpdateProperties{
+						AdminStatus: pointer.To(autoexportjob.AutoExportJobAdminStatusDisable),
+					})
 				}
 			}
 
@@ -246,7 +248,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc 
 				return fmt.Errorf("waiting for import jobs to complete on %s: %+v", importJobsFsId, err)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, props); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
