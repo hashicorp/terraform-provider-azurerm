@@ -94,7 +94,6 @@ func (c ListDocumentationCommand) Run(args []string) int {
 
 		return nil
 	})
-
 	if err != nil {
 		c.Ui.Error(err.Error())
 		return 1
@@ -295,7 +294,7 @@ func (c ListDocumentationCommand) processFile(filename string, config *ListDocum
 	baseFileName := strings.TrimSuffix(filepath.Base(filename), "_resource_list.go")
 	outputPath := filepath.Join(docsDirectory, baseFileName+".html.markdown")
 
-	if err := os.WriteFile("/"+outputPath, []byte(md), 0644); err != nil {
+	if err := os.WriteFile("/"+outputPath, []byte(md), 0o644); err != nil {
 		return err
 	}
 
