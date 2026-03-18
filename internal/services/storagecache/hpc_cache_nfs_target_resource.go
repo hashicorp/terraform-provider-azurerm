@@ -257,7 +257,7 @@ func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func expandNamespaceJunctions(input []interface{}) *[]storagetargets.NamespaceJunction {
-	result := make([]storagetargets.NamespaceJunction, 0)
+	result := make([]storagetargets.NamespaceJunction, 0, len(input))
 
 	for _, v := range input {
 		b := v.(map[string]interface{})
@@ -277,7 +277,7 @@ func flattenNamespaceJunctions(input *[]storagetargets.NamespaceJunction) []inte
 		return []interface{}{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]interface{}, 0, len(*input))
 
 	for _, e := range *input {
 		output = append(output, map[string]interface{}{

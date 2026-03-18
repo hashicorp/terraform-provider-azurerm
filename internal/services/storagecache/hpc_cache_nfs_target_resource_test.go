@@ -36,7 +36,6 @@ func TestAccHPCCacheNFSTargetSequential(t *testing.T) {
 }
 
 func testAccHPCCacheNFSTarget_basic(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HpcCacheNfsTargetResource{}
 
@@ -52,7 +51,6 @@ func testAccHPCCacheNFSTarget_basic(t *testing.T) {
 }
 
 func testAccHPCCacheNFSTarget_usageModel(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HpcCacheNfsTargetResource{}
 
@@ -96,7 +94,6 @@ func testAccHPCCacheNFSTarget_usageModel(t *testing.T) {
 }
 
 func testAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HpcCacheNfsTargetResource{}
 
@@ -126,7 +123,6 @@ func testAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
 }
 
 func testAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HpcCacheNfsTargetResource{}
 
@@ -142,7 +138,6 @@ func testAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
 }
 
 func testAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
-
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HpcCacheNfsTargetResource{}
 
