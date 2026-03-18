@@ -7,26 +7,27 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
+	networkpoller "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate,
+		Create: resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate,
 		Read:   resourceAppServiceSlotVirtualNetworkSwiftConnectionRead,
-		Update: resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate,
+		Update: resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate,
 		Delete: resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -46,7 +47,7 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AppServiceID,
+				ValidateFunc: commonids.ValidateAppServiceID,
 			},
 			"subnet_id": {
 				Type:         pluginsdk.TypeString,
@@ -63,103 +64,73 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnection() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClientV1
-	subnetClient := meta.(*clients.Client).Network.Subnets
-	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.WebAppsClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	appID, err := parse.AppServiceID(d.Get("app_service_id").(string))
+	appID, err := commonids.ParseAppServiceID(d.Get("app_service_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing app service ID %+v", err)
+		return err
 	}
+
 	subnetID, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing subnet ID %+v", err)
 	}
 
-	resourceGroup := appID.ResourceGroup
-	name := appID.SiteName
-	subnetName := subnetID.SubnetName
-	virtualNetworkName := subnetID.VirtualNetworkName
-	slotName := d.Get("slot_name").(string)
+	appSlotID := webapps.NewSlotID(appID.SubscriptionId, appID.ResourceGroupName, appID.SiteName, d.Get("slot_name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, resourceGroup, name, slotName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed checking for presence of existing App Service Slot Swift Network Connection %q (Resource Group %q)", name, resourceGroup)
-			}
-		}
-
-		if existing.SwiftVirtualNetworkProperties != nil && existing.SubnetResourceID != nil && *existing.SubnetResourceID != "" {
-			return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", *existing.ID)
-		}
-	}
-
-	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
-
-	locks.ByName(subnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
-
-	appServiceExists, err := client.Get(ctx, resourceGroup, name)
+	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
 	if err != nil {
-		if utils.ResponseWasNotFound(appServiceExists.Response) {
-			return fmt.Errorf("retrieving existing App Service %q (Resource Group %q): App Service not found in resource group", name, resourceGroup)
-		}
-		return fmt.Errorf("retrieving existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
+		return fmt.Errorf("checking for presence of Swift Network Connection for %s: %w", appSlotID, err)
 	}
 
-	slotExists, err := client.GetSlot(ctx, resourceGroup, name, slotName)
-	if err != nil {
-		if utils.ResponseWasNotFound(slotExists.Response) {
-			return fmt.Errorf("retrieving existing App Service Slot %q (App Service %q / Resource Group %q): App Service not found in resource group", slotName, name, resourceGroup)
-		}
-		return fmt.Errorf("retrieving existing App Service Slot %q (App Service %q / Resource Group %q): %s", slotName, name, resourceGroup, err)
+	if existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.SubnetResourceId) != "" {
+		return tf.ImportAsExistsError("azurerm_app_service_slot_virtual_network_swift_connection", pointer.From(existing.Model.Id))
 	}
 
-	connectionEnvelope := web.SwiftVirtualNetwork{
-		SwiftVirtualNetworkProperties: &web.SwiftVirtualNetworkProperties{
-			SubnetResourceID: pointer.To(d.Get("subnet_id").(string)),
+	if _, err := client.Get(ctx, *appID); err != nil {
+		return fmt.Errorf("retrieving %s: %w", appID, err)
+	}
+
+	if _, err := client.GetSlot(ctx, appSlotID); err != nil {
+		return fmt.Errorf("retrieving %s: %w", appSlotID, err)
+	}
+
+	connectionEnvelope := webapps.SwiftVirtualNetwork{
+		Properties: &webapps.SwiftVirtualNetworkProperties{
+			SubnetResourceId: pointer.To(subnetID.ID()),
 		},
 	}
-	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckSlot(ctx, resourceGroup, name, connectionEnvelope, slotName); err != nil {
-		return fmt.Errorf("creating/updating App Service Slot VNet association between %q (App Service %q / Resource Group %q) and Virtual Network %q: %s", slotName, name, resourceGroup, virtualNetworkName, err)
+
+	locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+	defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+
+	locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
+	defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
+
+	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckSlot(ctx, appSlotID, connectionEnvelope); err != nil {
+		return fmt.Errorf("creating association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	timeout, _ := ctx.Deadline()
-
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-		Refresh:    network.SubnetProvisioningStateRefreshFunc(ctx, subnetClient, *subnetID),
-		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
-	}
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of subnet for App Service Slot VNet association between %q (App Service %q / Resource Group %q) and Virtual Network %q: %s", slotName, name, resourceGroup, virtualNetworkName, err)
+	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)
 	}
 
-	vnetId := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
-	vnetStateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-		Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-		Refresh:    network.VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
-		MinTimeout: 1 * time.Minute,
-		Timeout:    time.Until(timeout),
-	}
-	if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for provisioning state of virtual network for App Service Slot VNet association between %q (App Service %q / Resource Group %q) and Virtual Network %q: %s", slotName, name, resourceGroup, virtualNetworkName, err)
-	}
-
-	read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, resourceGroup, name, slotName)
+	read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
 	if err != nil {
-		return fmt.Errorf("retrieving App Service Slot VNet association between %q (App Service %q / Resource Group %q) and Virtual Network %q: %s", slotName, name, resourceGroup, virtualNetworkName, err)
+		return fmt.Errorf("retrieving Swift Network Connection for %s: %w", appSlotID, err)
 	}
 
-	slotSwiftVirtualNetworkId, err := parse.SlotVirtualNetworkSwiftConnectionID(*read.ID)
+	if read.Model == nil || read.Model.Id == nil {
+		return fmt.Errorf("retrieving Swift Network Connection for %s: missing ID", appSlotID)
+	}
+
+	slotSwiftVirtualNetworkId, err := parse.SlotVirtualNetworkSwiftConnectionID(*read.Model.Id)
 	if err != nil {
 		return err
 	}
@@ -170,7 +141,8 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionCreateUpdate(d *pluginsd
 }
 
 func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClientV1
+	client := meta.(*clients.Client).Web.WebAppsClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -179,48 +151,83 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d *pluginsdk.Resour
 		return err
 	}
 
-	slot, err := client.GetSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	appSlotID := webapps.NewSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
+
+	appID := commonids.NewAppServiceID(id.SubscriptionId, id.ResourceGroup, id.SiteName)
+
+	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
 	if err != nil {
-		if utils.ResponseWasNotFound(slot.Response) {
+		if response.WasNotFound(existing.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving existing App Service Slot %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
-	}
-	appService, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
-	if err != nil {
-		if utils.ResponseWasNotFound(appService.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("retrieving existing App Service %q (Resource Group %q): %s", id.SiteName, id.ResourceGroup, err)
-	}
-	swiftVnet, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-	if err != nil {
-		if utils.ResponseWasNotFound(swiftVnet.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("retrieving App Service Slot VNet association for %q (App Service %q / Resource Group %q): %s", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Swift Network Connection for %s: %w", appSlotID, err)
 	}
 
-	if swiftVnet.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("retrieving virtual network properties (Slot Name %q / App Service %q / Resource Group %q): `properties` was nil", id.SlotName, id.SiteName, id.ResourceGroup)
-	}
-	props := *swiftVnet.SwiftVirtualNetworkProperties
-	subnetID := props.SubnetResourceID
-	if subnetID == nil || *subnetID == "" {
+	if existing.Model == nil || existing.Model.Properties == nil || existing.Model.Properties.SubnetResourceId == nil {
 		d.SetId("")
 		return nil
 	}
-	d.Set("subnet_id", subnetID)
-	d.Set("app_service_id", appService.ID)
+
+	subnetID, err := commonids.ParseSubnetID(*existing.Model.Properties.SubnetResourceId)
+	if err != nil {
+		return err
+	}
+
+	d.Set("subnet_id", subnetID.ID())
+	d.Set("app_service_id", appID.ID())
 	d.Set("slot_name", id.SlotName)
+
 	return nil
 }
 
+func resourceAppServiceSlotVirtualNetworkSwiftConnectionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.WebAppsClient
+
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := parse.SlotVirtualNetworkSwiftConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	appSlotID := webapps.NewSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
+
+	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
+	if err != nil {
+		return fmt.Errorf("retrieving Swift Network Connection for %s: %w", appSlotID, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving Swift Network Connection for %s: model was nil", appSlotID)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving Swift Network Connection for %s: properties was nil", appSlotID)
+	}
+
+	subnetID, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
+	if err != nil {
+		return err
+	}
+	existing.Model.Properties.SubnetResourceId = pointer.To(subnetID.ID())
+
+	if _, err = client.CreateOrUpdateSwiftVirtualNetworkConnectionWithCheckSlot(ctx, appSlotID, *existing.Model); err != nil {
+		return fmt.Errorf("updating association between %s and %s: %w", appSlotID, subnetID, err)
+	}
+
+	pollerType := networkpoller.NewVirtualNetworkAndSubnetProvisioningSucceededPoller(meta.(*clients.Client).Network, subnetID)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+	if err := poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("polling for completion of association between %s and %s: %w", appSlotID, subnetID, err)
+	}
+
+	return resourceAppServiceSlotVirtualNetworkSwiftConnectionRead(d, meta)
+}
+
 func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClientV1
+	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -229,38 +236,32 @@ func resourceAppServiceSlotVirtualNetworkSwiftConnectionDelete(d *pluginsdk.Reso
 		return err
 	}
 
-	read, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
+	appSlotID := webapps.NewSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
+
+	existing, err := client.GetSwiftVirtualNetworkConnectionSlot(ctx, appSlotID)
 	if err != nil {
-		return fmt.Errorf("making read request on virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving Swift Network Connection for %s: %w", appSlotID, err)
 	}
-	if read.SwiftVirtualNetworkProperties == nil {
-		return fmt.Errorf("retrieving virtual network properties (Slot Name %q / App Service %q / Resource Group %q): `properties` was nil", id.SlotName, id.SiteName, id.ResourceGroup)
-	}
-	props := *read.SwiftVirtualNetworkProperties
-	subnet := props.SubnetResourceID
-	if subnet == nil || *subnet == "" {
+
+	if existing.Model == nil || existing.Model.Properties == nil || existing.Model.Properties.SubnetResourceId == nil {
 		// assume deleted
+		d.SetId("")
 		return nil
 	}
 
-	subnetID, err := commonids.ParseSubnetID(pointer.From(subnet))
+	subnetID, err := commonids.ParseSubnetID(*existing.Model.Properties.SubnetResourceId)
 	if err != nil {
-		return fmt.Errorf("parsing Subnet Resource ID %q", subnetID)
+		return err
 	}
-	subnetName := subnetID.SubnetName
-	virtualNetworkName := subnetID.VirtualNetworkName
 
-	locks.ByName(virtualNetworkName, network.VirtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, network.VirtualNetworkResourceName)
+	locks.ByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
+	defer locks.UnlockByName(subnetID.VirtualNetworkName, network.VirtualNetworkResourceName)
 
-	locks.ByName(subnetName, network.SubnetResourceName)
-	defer locks.UnlockByName(subnetName, network.SubnetResourceName)
+	locks.ByName(subnetID.SubnetName, network.SubnetResourceName)
+	defer locks.UnlockByName(subnetID.SubnetName, network.SubnetResourceName)
 
-	resp, err := client.DeleteSwiftVirtualNetworkSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting virtual network properties (Slot Name %q / App Service %q / Resource Group %q): %+v", id.SlotName, id.SiteName, id.ResourceGroup, err)
-		}
+	if _, err := client.DeleteSwiftVirtualNetworkSlot(ctx, appSlotID); err != nil {
+		return fmt.Errorf("deleting Swift Network Connection for %s: %w", appSlotID, err)
 	}
 
 	return nil
