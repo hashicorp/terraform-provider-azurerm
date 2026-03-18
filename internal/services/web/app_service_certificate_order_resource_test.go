@@ -10,12 +10,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceCertificateOrderResource struct{}
@@ -157,19 +156,16 @@ func TestAccAppServiceCertificateOrder_update(t *testing.T) {
 }
 
 func (r AppServiceCertificateOrderResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CertificateOrderID(state.ID)
+	id, err := appservicecertificateorders.ParseCertificateOrderID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Web.CertificatesOrderClientV1.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.AppServiceCertificateOrdersClient.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving App Service Certificate Order %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return pointer.To(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r AppServiceCertificateOrderResource) basic(data acceptance.TestData) string {
@@ -179,18 +175,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_app_service_certificate_order" "test" {
-  name                = "acctestASCO-%d"
+  name                = "acctestASCO-%[1]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AppServiceCertificateOrderResource) wildcard(data acceptance.TestData) string {
@@ -200,18 +196,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_app_service_certificate_order" "test" {
-  name                = "acctestASCO-%d"
+  name                = "acctestASCO-%[1]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=*.example.com"
   product_type        = "WildCard"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r AppServiceCertificateOrderResource) requiresImport(data acceptance.TestData) string {
@@ -236,19 +232,19 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_app_service_certificate_order" "test" {
-  name                = "acctestASCO-%d"
+  name                = "acctestASCO-%[1]d"
   location            = "global"
   resource_group_name = azurerm_resource_group.test.name
   distinguished_name  = "CN=example.com"
   product_type        = "Standard"
   auto_renew          = false
   validity_in_years   = 1
-  key_size            = %d
+  key_size            = %[3]d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, keySize)
+`, data.RandomInteger, data.Locations.Primary, keySize)
 }
