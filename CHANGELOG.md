@@ -1,3 +1,16 @@
+## 4.65.0 (March 19, 2026)
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20260312.1165223`
+* `azurerm_federated_identity_credential` - the `parent_id` property has been renamed to `user_assigned_identity_id` ([#31921](https://github.com/hashicorp/terraform-provider-azurerm/issues/31921))
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster_node_pool` - `max_surge` and `max_unavailable` are no longer required  for spot node pools  ([#31129](https://github.com/hashicorp/terraform-provider-azurerm/issues/31129))
+* `azurerm_log_analytics_workspace_table` - fix validation for `basic` plan  ([#30925](https://github.com/hashicorp/terraform-provider-azurerm/issues/30925))
+* `azurerm_managed_disk` - fix `nil` pointer dereference when updating `disk_access_id`  ([#31955](https://github.com/hashicorp/terraform-provider-azurerm/issues/31955))
+
 ## 4.64.0 (March 12, 2026)
 
 FEATURES:
