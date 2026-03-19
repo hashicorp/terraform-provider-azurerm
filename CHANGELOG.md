@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * dependencies: `go-azure-sdk` - update to `v0.20260312.1165223`
+* `azurerm_federated_identity_credential` - the `parent_id` property has been renamed to `user_assigned_identity_id` [GH-31921]
 
 FEATURES:
 
