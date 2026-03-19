@@ -22,6 +22,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/preflight"
+	preflightvalidation "github.com/hashicorp/terraform-provider-azurerm/internal/preflight/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
@@ -322,25 +324,10 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 
 			dbId := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, defaultDatabaseName)
 
-			clusterParams := redisenterprise.Cluster{
-				Location: location.Normalize(model.Location),
-				Sku: redisenterprise.Sku{
-					Name: redisenterprise.SkuName(model.SkuName),
-				},
-				Properties: &redisenterprise.ClusterCreateProperties{
-					Encryption:          expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
-					MinimumTlsVersion:   pointer.To(redisenterprise.TlsVersionOnePointTwo),
-					HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
-					PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
-				},
-				Tags: pointer.To(model.Tags),
-			}
-
-			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+			clusterParams, err := expandCreate(model)
 			if err != nil {
-				return fmt.Errorf("expanding `identity`: %+v", err)
+				return err
 			}
-			clusterParams.Identity = expandedIdentity
 
 			if err := clusterClient.CreateCallbackThenPoll(ctx, clusterId, clusterParams, metadata.SetIDCallback(&clusterId)); err != nil {
 				return fmt.Errorf("creating %s: %+v", clusterId, err)
@@ -366,6 +353,30 @@ func (r ManagedRedisResource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func expandCreate(model ManagedRedisResourceModel) (redisenterprise.Cluster, error) {
+	clusterParams := redisenterprise.Cluster{
+		Location: location.Normalize(model.Location),
+		Sku: redisenterprise.Sku{
+			Name: redisenterprise.SkuName(model.SkuName),
+		},
+		Properties: &redisenterprise.ClusterCreateProperties{
+			Encryption:          expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey),
+			MinimumTlsVersion:   pointer.To(redisenterprise.TlsVersionOnePointTwo),
+			HighAvailability:    expandHighAvailability(model.HighAvailabilityEnabled),
+			PublicNetworkAccess: redisenterprise.PublicNetworkAccess(model.PublicNetworkAccess),
+		},
+		Tags: pointer.To(model.Tags),
+	}
+
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
+	if err != nil {
+		return clusterParams, fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	clusterParams.Identity = expandedIdentity
+
+	return clusterParams, nil
 }
 
 func (r ManagedRedisResource) Read() sdk.ResourceFunc {
@@ -659,6 +670,30 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 			var model ManagedRedisResourceModel
 			if err := metadata.DecodeDiff(&model); err != nil {
 				return err
+			}
+
+			if metadata.Client.Features.PreflightEnabled {
+				req, err := expandCreate(model)
+				if err != nil {
+					return err
+				}
+
+				preflightValidate := preflight.ValidationRequest{
+					Location:   pointer.To(model.Location),
+					Provider:   "Microsoft.Cache",
+					ResourceId: pointer.To(redisenterprise.NewRedisEnterpriseID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)),
+					Type:       "redis",
+					Resource: preflightvalidation.ResourceValidationRequestResource{
+						ApiVersion: "2025-07-01",
+						Name:       model.Name,
+						Type:       "Microsoft.Cache/redis",
+						Properties: req,
+					},
+				}
+
+				if err = preflightValidate.ValidateResource(ctx, metadata); err != nil {
+					return err
+				}
 			}
 
 			if metadata.ResourceDiff.Id() == "" && len(model.DefaultDatabase) == 0 {
