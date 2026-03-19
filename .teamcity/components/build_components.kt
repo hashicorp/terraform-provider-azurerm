@@ -23,10 +23,10 @@ fun BuildFeatures.Golang() {
 }
 
 // Requires the creation of build_config_cache for the project:
-fun BuildFeatures.BuildCacheFeature(publish: Boolean = false) {
+fun BuildFeatures.BuildCacheFeature() {
         feature(BuildCacheFeature {
             name = "terraform-provider-azurerm-build-cache"
-            this.publish = publish
+            publish = false
         })
 }
 

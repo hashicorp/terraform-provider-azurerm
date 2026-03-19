@@ -14,7 +14,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             name = displayName
 
             vcs {
-                root(AbsoluteId(vcsRootId), "+:refs/pull/*/head")
+                root(rootId = AbsoluteId(vcsRootId))
                 cleanCheckout = true
             }
 
@@ -33,7 +33,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
 
             features {
                 Golang()
-                BuildCacheFeature(publish = true)
+                BuildCacheFeature()
             }
 
             params {
