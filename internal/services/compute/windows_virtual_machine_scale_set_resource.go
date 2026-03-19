@@ -1239,7 +1239,6 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"capacity_reservation_group_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ForceNew:     true,
 			ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 			ConflictsWith: []string{
 				"proximity_placement_group_id",
