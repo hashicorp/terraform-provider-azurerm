@@ -1765,7 +1765,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin = "azure"
- outbound_type  = "loadBalancer"
+    outbound_type  = "loadBalancer"
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
   }
