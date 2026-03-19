@@ -710,8 +710,8 @@ func (KubernetesAutomaticClusterDataSource) internalNetworkConfig(data acceptanc
 %s
 
 data "azurerm_kubernetes_automatic_cluster" "test" {
- name                = azurerm_kubernetes_automatic_cluster.test.name
- resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
+  name                = azurerm_kubernetes_automatic_cluster.test.name
+  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
 `, KubernetesAutomaticClusterResource{}.internalNetworkConfig(data))
 }
