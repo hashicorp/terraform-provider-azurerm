@@ -26,12 +26,12 @@ func (r KubernetesFleetAutoUpgradeProfileResource) ModelObject() interface{} {
 }
 
 type KubernetesFleetAutoUpgradeProfileResourceModel struct {
-	Name                     string  `tfschema:"name"`
-	KubernetesFleetManagerId string  `tfschema:"kubernetes_fleet_manager_id"`
-	Channel                  string  `tfschema:"channel"`
-	NodeImageSelectionType   *string `tfschema:"node_image_selection_type"`
-	UpdateStrategyId         *string `tfschema:"update_strategy_id"`
-	Enabled                  bool    `tfschema:"enabled"`
+	Name                     string `tfschema:"name"`
+	KubernetesFleetManagerId string `tfschema:"kubernetes_fleet_manager_id"`
+	Channel                  string `tfschema:"channel"`
+	NodeImageSelectionType   string `tfschema:"node_image_selection_type"`
+	UpdateStrategyId         string `tfschema:"update_strategy_id"`
+	Enabled                  bool   `tfschema:"enabled"`
 }
 
 func (r KubernetesFleetAutoUpgradeProfileResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -115,15 +115,18 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Create() sdk.ResourceFunc {
 
 			payload := autoupgradeprofiles.AutoUpgradeProfile{
 				Properties: &autoupgradeprofiles.AutoUpgradeProfileProperties{
-					Channel:          autoupgradeprofiles.UpgradeChannel(config.Channel),
-					UpdateStrategyId: config.UpdateStrategyId,
-					Disabled:         pointer.To(!config.Enabled),
+					Channel:  autoupgradeprofiles.UpgradeChannel(config.Channel),
+					Disabled: pointer.To(!config.Enabled),
 				},
 			}
 
-			if config.NodeImageSelectionType != nil {
+			if config.UpdateStrategyId != "" {
+				payload.Properties.UpdateStrategyId = pointer.To(config.UpdateStrategyId)
+			}
+
+			if config.NodeImageSelectionType != "" {
 				payload.Properties.NodeImageSelection = &autoupgradeprofiles.AutoUpgradeNodeImageSelection{
-					Type: autoupgradeprofiles.AutoUpgradeNodeImageSelectionType(pointer.From(config.NodeImageSelectionType)),
+					Type: autoupgradeprofiles.AutoUpgradeNodeImageSelectionType(config.NodeImageSelectionType),
 				}
 			}
 
@@ -164,14 +167,13 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.Channel = string(props.Channel)
-					state.UpdateStrategyId = props.UpdateStrategyId
+					state.UpdateStrategyId = pointer.From(props.UpdateStrategyId)
 					if props.Disabled != nil {
 						state.Enabled = !*props.Disabled
 					}
 
 					if props.NodeImageSelection != nil {
-						nodeImageSelectionType := string(props.NodeImageSelection.Type)
-						state.NodeImageSelectionType = &nodeImageSelectionType
+						state.NodeImageSelectionType = string(props.NodeImageSelection.Type)
 					}
 				}
 			}
@@ -235,9 +237,9 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("node_image_selection_type") {
-				if config.NodeImageSelectionType != nil {
+				if config.NodeImageSelectionType != "" {
 					payload.Properties.NodeImageSelection = &autoupgradeprofiles.AutoUpgradeNodeImageSelection{
-						Type: autoupgradeprofiles.AutoUpgradeNodeImageSelectionType(pointer.From(config.NodeImageSelectionType)),
+						Type: autoupgradeprofiles.AutoUpgradeNodeImageSelectionType(config.NodeImageSelectionType),
 					}
 				} else {
 					payload.Properties.NodeImageSelection = nil
@@ -245,7 +247,11 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("update_strategy_id") {
-				payload.Properties.UpdateStrategyId = config.UpdateStrategyId
+				if config.UpdateStrategyId != "" {
+					payload.Properties.UpdateStrategyId = pointer.To(config.UpdateStrategyId)
+				} else {
+					payload.Properties.UpdateStrategyId = nil
+				}
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
