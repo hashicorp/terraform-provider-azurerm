@@ -31,7 +31,7 @@ type KubernetesFleetAutoUpgradeProfileResourceModel struct {
 	Channel                  string  `tfschema:"channel"`
 	NodeImageSelectionType   *string `tfschema:"node_image_selection_type"`
 	UpdateStrategyId         *string `tfschema:"update_strategy_id"`
-	Enabled                  *bool   `tfschema:"enabled"`
+	Enabled                  bool    `tfschema:"enabled"`
 }
 
 func (r KubernetesFleetAutoUpgradeProfileResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -115,7 +115,9 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Create() sdk.ResourceFunc {
 
 			payload := autoupgradeprofiles.AutoUpgradeProfile{
 				Properties: &autoupgradeprofiles.AutoUpgradeProfileProperties{
-					Channel: autoupgradeprofiles.UpgradeChannel(config.Channel),
+					Channel:          autoupgradeprofiles.UpgradeChannel(config.Channel),
+					UpdateStrategyId: config.UpdateStrategyId,
+					Disabled:         pointer.To(!config.Enabled),
 				},
 			}
 
@@ -123,11 +125,6 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Create() sdk.ResourceFunc {
 				payload.Properties.NodeImageSelection = &autoupgradeprofiles.AutoUpgradeNodeImageSelection{
 					Type: autoupgradeprofiles.AutoUpgradeNodeImageSelectionType(pointer.From(config.NodeImageSelectionType)),
 				}
-			}
-
-			payload.Properties.UpdateStrategyId = config.UpdateStrategyId
-			if config.Enabled != nil {
-				payload.Properties.Disabled = pointer.To(!*config.Enabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, payload, autoupgradeprofiles.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -169,7 +166,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Read() sdk.ResourceFunc {
 					state.Channel = string(props.Channel)
 					state.UpdateStrategyId = props.UpdateStrategyId
 					if props.Disabled != nil {
-						state.Enabled = pointer.To(!*props.Disabled)
+						state.Enabled = !*props.Disabled
 					}
 
 					if props.NodeImageSelection != nil {
@@ -252,11 +249,7 @@ func (r KubernetesFleetAutoUpgradeProfileResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				if config.Enabled != nil {
-					payload.Properties.Disabled = pointer.To(!*config.Enabled)
-				} else {
-					payload.Properties.Disabled = nil
-				}
+				payload.Properties.Disabled = pointer.To(!config.Enabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, payload, autoupgradeprofiles.DefaultCreateOrUpdateOperationOptions()); err != nil {
