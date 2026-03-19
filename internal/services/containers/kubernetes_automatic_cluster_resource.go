@@ -1077,6 +1077,8 @@ func resourceKubernetesAutomaticCluster() *pluginsdk.Resource {
 							Default:  managedclusters.NetworkPluginAzure,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginAzure),
+								string(managedclusters.NetworkPluginKubenet), // probably needs removal
+								string(managedclusters.NetworkPluginNone),    // probably needs removal
 							}, false),
 						},
 
@@ -2888,7 +2890,9 @@ func resourceKubernetesAutomaticClusterRead(d *pluginsdk.ResourceData, meta inte
 		d.Set("sku_name", skuName)
 
 		if props := model.Properties; props != nil {
+			// if props.DnsPrefix != nil {
 			d.Set("dns_prefix", props.DnsPrefix)
+			//}
 			d.Set("dns_prefix_private_cluster", props.FqdnSubdomain)
 			d.Set("fqdn", props.Fqdn)
 			d.Set("private_fqdn", props.PrivateFQDN)
