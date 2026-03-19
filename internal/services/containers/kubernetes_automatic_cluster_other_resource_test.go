@@ -1922,8 +1922,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
   api_server_access_profile {
-	virtual_network_integration_enabled = true
-    subnet_id = azurerm_subnet.apiserver.id
+    virtual_network_integration_enabled = true
+    subnet_id                           = azurerm_subnet.apiserver.id
   }
   network_profile {
     network_plugin = "azure"
@@ -2600,13 +2600,13 @@ resource "azurerm_capacity_reservation_group" "test" {
   name                = "acctest-ccrg-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  zones = ["1", "2", "3"]
+  zones               = ["1", "2", "3"]
 }
 
 resource "azurerm_capacity_reservation" "test1" {
   name                          = "acctest-ccr1-%[1]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone = "1"
+  zone                          = "1"
   sku {
     name     = "Standard_DS3_v2"
     capacity = 2
@@ -2616,7 +2616,7 @@ resource "azurerm_capacity_reservation" "test1" {
 resource "azurerm_capacity_reservation" "test2" {
   name                          = "acctest-ccr2-%[1]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone = "2"
+  zone                          = "2"
   sku {
     name     = "Standard_DS3_v2"
     capacity = 2
@@ -2660,7 +2660,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   api_server_access_profile {
     virtual_network_integration_enabled = true
-    subnet_id = azurerm_subnet.apiserver.id
+    subnet_id                           = azurerm_subnet.apiserver.id
   }
 
   network_profile {
@@ -2675,7 +2675,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   depends_on = [
     azurerm_capacity_reservation.test1,
-	azurerm_capacity_reservation.test2,
+    azurerm_capacity_reservation.test2,
     azurerm_role_assignment.network,
     azurerm_role_assignment.capacity
   ]
@@ -2728,14 +2728,14 @@ resource "azurerm_capacity_reservation_group" "test" {
   name                = "acctest-ccrg-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  zones = ["1", "2", "3"]
+  zones               = ["1", "2", "3"]
 }
 
 
 resource "azurerm_capacity_reservation" "test1" {
   name                          = "acctest-ccr1-%[1]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone = "1"
+  zone                          = "1"
   sku {
     name     = "Standard_DS3_v2"
     capacity = 2
@@ -2745,7 +2745,7 @@ resource "azurerm_capacity_reservation" "test1" {
 resource "azurerm_capacity_reservation" "test2" {
   name                          = "acctest-ccr2-%[1]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone = "2"
+  zone                          = "2"
   sku {
     name     = "Standard_DS3_v2"
     capacity = 2
@@ -2789,8 +2789,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-	virtual_network_integration_enabled = true
-    subnet_id = azurerm_subnet.apiserver.id
+    virtual_network_integration_enabled = true
+    subnet_id                           = azurerm_subnet.apiserver.id
   }
 
   network_profile {
@@ -3136,7 +3136,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-  oidc_issuer_enabled = %t
+  oidc_issuer_enabled       = %t
   workload_identity_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, enabled)
@@ -3493,11 +3493,11 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                     = "acctestaks%d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  dns_prefix               = "acctestaks%d"
-  node_os_upgrade_channel  = "%s"
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  node_os_upgrade_channel = "%s"
   default_node_pool {
     name       = "default"
     vm_size    = "Standard_DS3_v2"
@@ -3622,7 +3622,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size      = "Standard_NC24ads_A100_v4"
     gpu_instance = "MIG1g"
     gpu_driver   = "Install"
-	zones = ["1","2"]
+    zones        = ["1", "2"]
     upgrade_settings {
       max_surge = "10%%"
     }
