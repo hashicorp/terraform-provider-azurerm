@@ -1,6 +1,7 @@
 ## 4.66.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `Go` - upgrade to version 1.25.8 [GH-31907]
 
 FEATURES:
 
