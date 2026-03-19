@@ -261,8 +261,11 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							Description: "Whether to set the resource ID into state before polling asynchronous operations for completion. Defaults to `false`.",
 						},
 						"skip_import_check_on_create_and_allow_overwriting_existing_resources": schema.BoolAttribute{
-							Optional:    true,
-							Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+						Optional:    true,
+						Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
+					},
+						"preflight_enabled": schema.BoolAttribute{
+							Optional: true,
 						},
 					},
 					Blocks: map[string]schema.Block{

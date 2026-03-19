@@ -350,9 +350,13 @@ func defaultFeaturesList() types.List {
 	databricksWorkspaceList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes), []attr.Value{databricksWorkspace})
 
 	fData, d := basetypes.NewObjectValue(FeaturesAttributes, map[string]attr.Value{
+<<<<<<< HEAD
 		"persist_id_on_create_before_polling_for_completion":                   basetypes.NewBoolNull(),
 		"skip_import_check_on_create_and_allow_overwriting_existing_resources": basetypes.NewBoolNull(),
 
+=======
+		"preflight_enabled":          basetypes.NewBoolValue(false),
+>>>>>>> b9eb7ed85d (add in provider configuration feature option. Should this be in enhanced_validation?)
 		"api_management":             apiManagementList,
 		"app_configuration":          appConfigurationList,
 		"application_insights":       applicationInsightsList,
