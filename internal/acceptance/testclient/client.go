@@ -6,11 +6,14 @@ package testclient
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
+	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/vcr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
@@ -20,7 +23,7 @@ var (
 	clientLock = &sync.Mutex{}
 )
 
-func Build() (*clients.Client, error) {
+func buildClient(httpClient *http.Client) (*clients.Client, error) {
 	clientLock.Lock()
 	defer clientLock.Unlock()
 
@@ -70,6 +73,7 @@ func Build() (*clients.Client, error) {
 			Features:          features.Default(),
 			StorageUseAzureAD: false,
 			SubscriptionID:    os.Getenv("ARM_SUBSCRIPTION_ID"),
+			HttpClient:        httpClient,
 		}
 
 		client, err := clients.Build(ctx, clientBuilder)
@@ -81,4 +85,12 @@ func Build() (*clients.Client, error) {
 	}
 
 	return _client, nil
+}
+
+func Build() (*clients.Client, error) {
+	return buildClient(nil)
+}
+
+func BuildVcr(t *testing.T) (*clients.Client, error) {
+	return buildClient(vcr.GetHTTPClient(t))
 }

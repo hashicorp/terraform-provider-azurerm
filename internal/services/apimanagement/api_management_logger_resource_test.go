@@ -18,6 +18,17 @@ import (
 
 type ApiManagementLoggerResource struct{}
 
+func TestAccApiManagementLogger_testvcr(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
+	r := ApiManagementLoggerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicsVcr(data),
+		},
+	})
+}
+
 func TestAccApiManagementLogger_basicEventHub(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_logger", "test")
 	r := ApiManagementLoggerResource{}
@@ -227,6 +238,19 @@ func (ApiManagementLoggerResource) Exists(ctx context.Context, clients *clients.
 	}
 
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
+}
+
+func (r ApiManagementLoggerResource) basicsVcr(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (ApiManagementLoggerResource) basicEventHub(data acceptance.TestData) string {

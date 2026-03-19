@@ -27,11 +27,11 @@ type apiManagementAPIPoller struct {
 var (
 	pollingSuccess = pollers.PollResult{
 		Status:       pollers.PollingStatusSucceeded,
-		PollInterval: 10 * time.Second,
+		PollInterval: replayAwarePollInterval(10 * time.Second),
 	}
 	pollingInProgress = pollers.PollResult{
 		Status:       pollers.PollingStatusInProgress,
-		PollInterval: 10 * time.Second,
+		PollInterval: replayAwarePollInterval(10 * time.Second),
 	}
 )
 
@@ -75,6 +75,7 @@ func (p options) ToQuery() *client.QueryParams {
 }
 
 func (p apiManagementAPIPoller) Poll(ctx context.Context) (*pollers.PollResult, error) {
+
 	if p.asyncID == "" {
 		return &pollingSuccess, nil
 	}
