@@ -642,21 +642,21 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     upgrade_settings {
       max_surge = %q
     }
-	
+
     vnet_subnet_id = azurerm_subnet.node_subnet.id
-    
+
   }
-  
+
   node_provisioning_profile {
-	mode = "Auto"
-	default_node_pools = "None"
+    mode               = "Auto"
+    default_node_pools = "None"
   }
 
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-	
+
   api_server_access_profile {
     virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.pod_subnet.id
@@ -752,10 +752,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name          = "default"
-    node_count    = 1
-	vnet_subnet_id = azurerm_subnet.test1.id
-    host_group_id = azurerm_dedicated_host_group.test.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test1.id
+    host_group_id  = azurerm_dedicated_host_group.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -765,7 +765,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
-	
+
   api_server_access_profile {
     virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
@@ -1145,9 +1145,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   kubernetes_version  = %[3]q
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vnet_subnet_id  = azurerm_subnet.test1.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1435,7 +1435,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     network_plugin_mode = "overlay"
     network_plugin      = "azure"
     load_balancer_sku   = "standard"
-    outbound_type		= "loadBalancer"
+    outbound_type       = "loadBalancer"
   }
 
   identity {
@@ -1487,7 +1487,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     network_plugin_mode = "overlay"
     network_plugin      = "azure"
     load_balancer_sku   = "standard"
-	outbound_type		= "loadBalancer"
+    outbound_type       = "loadBalancer"
   }
 
   identity {
@@ -1537,7 +1537,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     network_plugin_mode = "overlay"
     network_plugin      = "azure"
     load_balancer_sku   = "standard"
-    outbound_type		= "loadBalancer"
+    outbound_type       = "loadBalancer"
   }
 
   identity {

@@ -1347,7 +1347,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin     = "%s"
     network_data_plane = "%s"
-    outbound_type  = "loadBalancer"
+    outbound_type      = "loadBalancer"
 
     advanced_networking {
       observability_enabled = true
@@ -1447,7 +1447,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin     = "%s"
     network_data_plane = "cilium"
-    outbound_type  = "loadBalancer"
+    outbound_type      = "loadBalancer"
 
     advanced_networking {
       observability_enabled = true
@@ -1547,7 +1547,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin     = "%s"
     network_data_plane = "cilium"
-	outbound_type  = "loadBalancer"
+    outbound_type      = "loadBalancer"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
@@ -1798,7 +1798,7 @@ resource "azurerm_subnet" "test1" {
   name                 = "acctestsubnet1%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.1.2.0/24","fd00:db8:deca:deee::/64"]
+  address_prefixes     = ["10.1.2.0/24", "fd00:db8:deca:deee::/64"]
 
   delegation {
     name = "aks-delegation"
@@ -2125,7 +2125,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type       = "loadBalancer"
     network_plugin      = "azure"
     network_data_plane  = "cilium"
     network_plugin_mode = "overlay"
@@ -2214,7 +2214,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 
   network_profile {
-	outbound_type  = "loadBalancer"
+    outbound_type       = "loadBalancer"
     network_plugin      = "azure"
     network_policy      = "cilium"
     network_data_plane  = "cilium"
@@ -2331,7 +2331,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-	outbound_type  = "loadBalancer"
+    outbound_type  = "loadBalancer"
     network_plugin = "%s"
     network_policy = "%s"
     dns_service_ip = "10.10.0.10"
@@ -2597,7 +2597,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -2638,7 +2638,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    outbound_type  = "managedNATGateway"
+    outbound_type = "managedNATGateway"
   }
 
   identity {
@@ -2679,13 +2679,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
+    network_plugin      = "azure"
     network_plugin_mode = "overlay"
-    load_balancer_sku = "standard"
-    pod_cidr          = "10.244.0.0/16"
-    service_cidr      = "10.0.0.0/16"
-    dns_service_ip    = "10.0.0.10"
-    outbound_type     = "managedNATGateway"
+    load_balancer_sku   = "standard"
+    pod_cidr            = "10.244.0.0/16"
+    service_cidr        = "10.0.0.0/16"
+    dns_service_ip      = "10.0.0.10"
+    outbound_type       = "managedNATGateway"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -2722,13 +2722,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
+    network_plugin      = "azure"
     network_plugin_mode = "overlay"
-    load_balancer_sku = "standard"
-    pod_cidr          = "10.244.0.0/16"
-    service_cidr      = "10.0.0.0/16"
-    dns_service_ip    = "10.0.0.10"
-    outbound_type     = "managedNATGateway"
+    load_balancer_sku   = "standard"
+    pod_cidr            = "10.244.0.0/16"
+    service_cidr        = "10.0.0.0/16"
+    dns_service_ip      = "10.0.0.10"
+    outbound_type       = "managedNATGateway"
     nat_gateway_profile {
       managed_outbound_ip_count = %d
       idle_timeout_in_minutes   = %d
@@ -2844,13 +2844,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
-	network_plugin_mode = "overlay"
-    load_balancer_sku = "standard"
-    pod_cidr          = "10.244.0.0/16"
-    service_cidr      = "10.0.0.0/16"
-    dns_service_ip    = "10.0.0.10"
-    outbound_type     = "userAssignedNATGateway"
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    load_balancer_sku   = "standard"
+    pod_cidr            = "10.244.0.0/16"
+    service_cidr        = "10.0.0.0/16"
+    dns_service_ip      = "10.0.0.10"
+    outbound_type       = "userAssignedNATGateway"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -3031,9 +3031,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vnet_subnet_id  = azurerm_subnet.test.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3050,7 +3050,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
   }
 
@@ -3165,16 +3165,16 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vnet_subnet_id  = azurerm_subnet.test.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
   }
 }
@@ -3289,7 +3289,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
-	outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
   }
 
   depends_on = [
@@ -3372,9 +3372,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
-	network_plugin_mode = "overlay"
-    pod_cidrs      = ["10.1.1.0/24"]
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    pod_cidrs           = ["10.1.1.0/24"]
   }
 
   identity {
@@ -3410,10 +3410,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "auzre"
-	network_plugin_mode = "overlay"
-    pod_cidrs      = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
-    ip_versions    = ["IPv4", "IPv6"]
+    network_plugin      = "auzre"
+    network_plugin_mode = "overlay"
+    pod_cidrs           = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
+    ip_versions         = ["IPv4", "IPv6"]
   }
 
   identity {
@@ -3449,10 +3449,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
-	network_plugin_mode = "overlay"
-    dns_service_ip = "10.1.1.10"
-    service_cidrs  = ["10.1.1.0/24"]
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    dns_service_ip      = "10.1.1.10"
+    service_cidrs       = ["10.1.1.0/24"]
   }
 
   identity {
@@ -3488,11 +3488,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
-	network_plugin_mode = "overlay"
-    dns_service_ip = "10.1.1.10"
-    service_cidrs  = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
-    ip_versions    = ["IPv4", "IPv6"]
+    network_plugin      = "azure"
+    network_plugin_mode = "overlay"
+    dns_service_ip      = "10.1.1.10"
+    service_cidrs       = ["10.1.1.0/24", "2002::1234:abcd:ffff:c0a8:101/120"]
+    ip_versions         = ["IPv4", "IPv6"]
   }
 
   identity {
@@ -3591,7 +3591,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-	outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
   }
 }
@@ -3706,7 +3706,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     network_plugin    = "azure"
     dns_service_ip    = "10.10.0.10"
     service_cidr      = "10.10.0.0/16"
-	outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
   }
 }
@@ -3801,7 +3801,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-	outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = 3
@@ -3910,7 +3910,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
-	outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test.id]
       backend_pool_type       = "NodeIP"
@@ -3995,9 +3995,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-	vnet_subnet_id  = azurerm_subnet.test.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -4015,7 +4015,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = 2
@@ -4116,7 +4116,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-	outbound_type  = "loadBalancer"	
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "basic"
     load_balancer_profile {
       managed_outbound_ip_count = 3
@@ -4222,7 +4222,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_prefix_ids = []
@@ -4336,7 +4336,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_prefix_ids = [azurerm_public_ip_prefix.test.id]
@@ -4448,7 +4448,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
   network_profile {
     network_plugin    = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ip_count = "1"
@@ -4563,7 +4563,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test.id]
@@ -4676,7 +4676,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = []
@@ -4855,9 +4855,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 2
-	vnet_subnet_id  = azurerm_subnet.test.id
+    name           = "default"
+    node_count     = 2
+    vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -4875,7 +4875,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test_aks.id]
@@ -5059,9 +5059,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   default_node_pool {
-    name       = "default"
-    node_count = 2
-	vnet_subnet_id  = azurerm_subnet.test.id
+    name           = "default"
+    node_count     = 2
+    vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -5079,7 +5079,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin    = "azure"
-	outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
     load_balancer_sku = "standard"
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.test_aks.id]
@@ -5092,6 +5092,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     no_proxy    = [%s]
   }
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, noProxy)
@@ -5464,7 +5466,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     network_plugin      = "azure"
     network_data_plane  = "%[3]s"
     network_plugin_mode = "overlay"
-    outbound_type  = "loadBalancer"
+    outbound_type       = "loadBalancer"
   }
 }
 `, data.Locations.Primary, data.RandomInteger, networkDataPlane)
@@ -5531,7 +5533,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size                     = "Standard_DS3_v2"
+    vm_size        = "Standard_DS3_v2"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
@@ -5584,7 +5586,7 @@ resource "azurerm_subnet" "test1" {
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.11.0.0/24"]
-  
+
   delegation {
     name = "aks-delegation"
 
@@ -5615,7 +5617,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name           = "default"
     node_count     = 1
-    vm_size       = "Standard_DS3_v2"
+    vm_size        = "Standard_DS3_v2"
     vnet_subnet_id = azurerm_subnet.test.id
     upgrade_settings {
       max_surge = "10%%"
@@ -5632,7 +5634,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
   network_profile {
     pod_cidr            = "192.168.0.0/16"
-    outbound_type  = "loadBalancer"
+    outbound_type       = "loadBalancer"
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
   }
@@ -5806,7 +5808,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
   }
 
   api_server_access_profile {
@@ -5849,7 +5851,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
-    outbound_type  = "loadBalancer"
+    outbound_type     = "loadBalancer"
   }
 
   api_server_access_profile {
