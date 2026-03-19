@@ -175,7 +175,7 @@ func (input *ResourceInput) parseArgs(args []string) (errs []error) {
 	case input.IDStructure == "":
 		errs = append(errs, errors.New("id_structure is required"))
 	case input.Path == "":
-		input.Path = fmt.Sprintf(".")
+		input.Path = fmt.Sprint(".")
 	}
 
 	return
@@ -233,10 +233,8 @@ func derive(input ResourceInput) *ListResourceData {
 	parentLower := strings.ToLower(parent)
 	serviceLower := strings.ToLower(service)
 	resourceLower := strings.ToLower(resource)
-	useResourceGroup := false
-	if parentLower == "resourcegroup" || parentLower == "" {
-		useResourceGroup = true
-	}
+	useResourceGroup := parentLower == "resourcegroup" || parentLower == ""
+
 	terraformName := fmt.Sprintf(
 		"azurerm_%s_%s",
 		serviceLower,
