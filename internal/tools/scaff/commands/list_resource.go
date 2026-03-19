@@ -175,7 +175,7 @@ func (input *ResourceInput) parseArgs(args []string) (errs []error) {
 	case input.IDStructure == "":
 		errs = append(errs, errors.New("id_structure is required"))
 	case input.Path == "":
-		input.Path = fmt.Sprint(".")
+		input.Path = "."
 	}
 
 	return
