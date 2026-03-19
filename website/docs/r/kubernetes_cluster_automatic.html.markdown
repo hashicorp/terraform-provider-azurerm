@@ -82,6 +82,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `fqdn` - The FQDN of the AKS Automatic Cluster.
 
+* `identity` - An `identity` block as defined below.
+
 * `kube_config_raw` - Raw Kubernetes config to be used by [kubectl](https://kubernetes.io/docs/reference/kubectl/overview/) and other compatible tools. This is only available when Role Based Access Control with Microsoft Entra ID is enabled and local accounts are enabled.
 
 * `portal_fqdn` - The FQDN for the Azure Portal to access the Managed Cluster. This is only visible from the Azure Portal.

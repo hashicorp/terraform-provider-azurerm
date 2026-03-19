@@ -94,15 +94,15 @@ func (r KubernetesClusterAutomaticResource) Attributes() map[string]*pluginsdk.S
 			Computed: true,
 		},
 
-		"portal_fqdn": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"kube_config_raw": {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
+		},
+
+		"portal_fqdn": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
