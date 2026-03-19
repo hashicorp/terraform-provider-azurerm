@@ -29,6 +29,12 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Description: "Whether to skip the import check and allow the provider to overwrite existing remote resources if present. Defaults to `false`.",
 		},
 
+		"preflight_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
@@ -493,6 +499,11 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 
 	if v, ok := val["skip_import_check_on_create_and_allow_overwriting_existing_resources"]; ok {
 		featuresMap.SkipImportCheckOnCreateAndAllowOverwritingExistingResources = v.(bool)
+	}
+
+	if v, ok := val["preflight_enabled"]; ok {
+		preflightEnabled := v.(bool)
+		featuresMap.PreflightEnabled = preflightEnabled
 	}
 
 	if raw, ok := val["api_management"]; ok {

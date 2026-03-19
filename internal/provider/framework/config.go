@@ -170,6 +170,10 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 		features := featuresList[0]
 
+		if !features.PreflightEnabled.IsNull() && !features.PreflightEnabled.IsUnknown() {
+			f.PreflightEnabled = features.PreflightEnabled.ValueBool()
+		}
+
 		if !features.APIManagement.IsNull() && !features.APIManagement.IsUnknown() {
 			var feature []APIManagement
 			d := features.APIManagement.ElementsAs(ctx, &feature, true)

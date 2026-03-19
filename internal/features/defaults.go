@@ -5,6 +5,7 @@ package features
 
 func Default() UserFeatures {
 	return UserFeatures{
+		PreflightEnabled: false,
 		// NOTE: ensure all nested objects are fully populated
 		ApiManagement: ApiManagementFeatures{
 			PurgeSoftDeleteOnDestroy: true,
