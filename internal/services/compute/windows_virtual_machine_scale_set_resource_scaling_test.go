@@ -43,7 +43,7 @@ func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroupId(t *t
 
 func TestAccWindowsVirtualMachineScaleSet_scalingCapacityReservationGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
+	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
