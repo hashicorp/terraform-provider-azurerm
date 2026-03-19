@@ -483,7 +483,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-	
+
   private_cluster_enabled = false
 
 
@@ -504,11 +504,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
-	outbound_type = "loadBalancer"
+    outbound_type     = "loadBalancer"
   }
 
   api_server_access_profile {
-	virtual_network_integration_enabled = true
+    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test1.id
     authorized_ip_ranges = [
       "8.8.8.8/32",
@@ -579,7 +579,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
- private_cluster_enabled = false
+  private_cluster_enabled = false
 
 
   default_node_pool {
@@ -599,11 +599,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
-	outbound_type = "loadBalancer"
+    outbound_type     = "loadBalancer"
   }
 
   api_server_access_profile {
-	virtual_network_integration_enabled = true
+    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test1.id
   }
 }
@@ -664,9 +664,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-	vnet_subnet_id  = azurerm_subnet.test1.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -683,7 +683,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
 }
@@ -753,9 +753,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vnet_subnet_id  = azurerm_subnet.test1.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -838,9 +838,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vnet_subnet_id  = azurerm_subnet.test1.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -946,9 +946,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vnet_subnet_id  = azurerm_subnet.test1.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1219,10 +1219,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                   = "acctestaks%d"
-  location               = "${azurerm_resource_group.test.location}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  dns_prefix             = "acctestaks%d"
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1482,9 +1482,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vnet_subnet_id  = azurerm_subnet.test1.id
+    name           = "default"
+    node_count     = 1
+    vnet_subnet_id = azurerm_subnet.test1.id
     upgrade_settings {
       max_surge = "10%%"
     }
