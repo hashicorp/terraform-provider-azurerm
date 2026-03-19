@@ -14,7 +14,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             name = "%s - Acceptance Tests".format(displayName)
 
             vcs {
-                root(rootId = AbsoluteId(vcsRootId))
+                root(AbsoluteId(vcsRootId), "+:refs/pull/*/merge")
                 cleanCheckout = true
             }
 
@@ -32,7 +32,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             features {
                 Golang()
-                BuildCacheFeature()
+                BuildCacheFeature(publish = true)
             }
 
             params {
