@@ -1,6 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 
-version = "2025.03"
+version = "2025.11"
 
 var clientId = DslContext.getParameter("clientId", "")
 var clientSecret = DslContext.getParameter("clientSecret", "")
