@@ -32,7 +32,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSize(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateVmSize(data, "Standard_DS3_v2"),
+			Config: r.updateVmSize(data, "Standard_DS4_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -78,7 +78,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempAndDefaul
 					tempNodePoolName := "temp"
 					profile := resp.Model
 					profile.Name = &tempNodePoolName
-					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
+					profile.Properties.VMSize = pointer.To("Standard_DS4_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
 					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -90,7 +90,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempAndDefaul
 			),
 		},
 		{
-			Config: r.updateVmSize(data, "Standard_DS3_v2"),
+			Config: r.updateVmSize(data, "Standard_DS4_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -136,7 +136,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempWithoutDe
 					tempNodePoolName := "temp"
 					profile := resp.Model
 					profile.Name = &tempNodePoolName
-					profile.Properties.VMSize = pointer.To("Standard_DS3_v2")
+					profile.Properties.VMSize = pointer.To("Standard_DS4_v2")
 
 					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, tempNodePoolName)
 					if err := client.CreateOrUpdateThenPoll(ctx, tempNodePoolId, *profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -154,7 +154,7 @@ func TestAccKubernetesAutomaticCluster_updateVmSizeAfterFailureWithTempWithoutDe
 			ExpectNonEmptyPlan: true,
 		},
 		{
-			Config: r.updateVmSize(data, "Standard_DS3_v2"),
+			Config: r.updateVmSize(data, "Standard_DS4_v2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -183,7 +183,7 @@ func TestAccKubernetesAutomaticCluster_cycleSystemNodePool(t *testing.T) {
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.updateZones(data, "Standard_D2ads_v5", "[1,2,3]"),
+			Config: r.updateZones(data, "Standard_D4ads_v5", "[1,2,3]"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -475,7 +475,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -486,7 +486,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -513,7 +513,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name                    = "default"
     node_count              = 1
-    vm_size                 = "Standard_DS2_v2"
+    vm_size                 = "Standard_DS3_v2"
     host_encryption_enabled = true
     upgrade_settings {
       max_surge = "10%%"
@@ -525,7 +525,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -552,7 +552,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_D2ads_v5"
+    vm_size    = "Standard_D4ads_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -563,7 +563,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -591,7 +591,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                        = "default"
     temporary_name_for_rotation = "temp"
     node_count                  = 1
-    vm_size                     = "Standard_DS2_v2"
+    vm_size                     = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -602,7 +602,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -642,7 +642,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -695,7 +695,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -723,7 +723,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                         = "default"
     temporary_name_for_rotation  = "temp"
     node_count                   = 1
-    vm_size                      = "Standard_D2ads_v5"
+    vm_size                      = "Standard_D4ads_v5"
     node_public_ip_enabled       = true
     max_pods                     = 60
     only_critical_addons_enabled = true
@@ -748,7 +748,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -777,7 +777,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                        = "default"
     node_count                  = 1
     temporary_name_for_rotation = "temp"
-    vm_size                     = "Standard_DS2_v2"
+    vm_size                     = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -788,7 +788,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -818,7 +818,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count                  = 1
     os_disk_type                = "%s"
     os_disk_size_gb             = %d
-    vm_size                     = "Standard_D2ads_v5"
+    vm_size                     = "Standard_D4ads_v5"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -829,7 +829,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -856,7 +856,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = %d
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -867,7 +867,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -894,7 +894,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -933,7 +933,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS3_v2"
 
     tags = {
       Hello = "World"
@@ -978,7 +978,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     auto_scaling_enabled = true
     min_count            = 2
     max_count            = 4
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1013,7 +1013,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     min_count            = 1
     max_count            = 2
     auto_scaling_enabled = true
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1049,7 +1049,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     min_count            = 1
     max_count            = 2
     auto_scaling_enabled = true
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS3_v2"
     zones                = ["1", "2"]
     upgrade_settings {
       max_surge = "10%%"
@@ -1061,7 +1061,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "kubenet"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -1091,7 +1091,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     auto_scaling_enabled = true
     min_count            = 2
     max_count            = 4
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1131,7 +1131,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     auto_scaling_enabled = true
     min_count            = 2
     max_count            = 4
-    vm_size              = "Standard_DS2_v2"
+    vm_size              = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }

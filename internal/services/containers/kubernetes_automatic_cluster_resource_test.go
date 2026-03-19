@@ -972,7 +972,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    vm_size    = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -1002,7 +1002,7 @@ func TestAccResourceKubernetesAutomaticCluster_roleBasedAccessControlAAD_OlderKu
 
 func (KubernetesAutomaticClusterResource) edgeZone(data acceptance.TestData, controlPlaneVersion, tag string) string {
 	// WestUS has an edge zone available - so hard-code to that
-	data.Locations.Primary = "westus"
+	data.Locations.Primary = "westeurope"
 
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1026,6 +1026,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name       = "default"
     node_count = 1
+    vm_size    = "Standard_DS4_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
