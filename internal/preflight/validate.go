@@ -24,13 +24,10 @@ type ValidationRequest struct {
 func (v ValidationRequest) ValidateResource(ctx context.Context, metadata sdk.ResourceMetaData) error {
 	client := metadata.Client.Preflight.PreflightClient
 
-	resources := make([]preflightvalidation.ResourceValidationRequestResource, 0)
-	resources = append(resources, v.Resource)
-
 	input := preflightvalidation.ResourceValidationRequest{
 		Location:       v.Location,
 		Provider:       v.Provider,
-		Resources:      resources,
+		Resources:      []preflightvalidation.ResourceValidationRequestResource{v.Resource},
 		Scope:          v.decodeScope(),
 		Type:           v.Type,
 		ValidationType: pointer.To(preflightvalidation.ResourceValidationTypeArmFull),
