@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-DRY_RUN=false
+DRY_RUN=true
 WARN_DAYS=7
 CLOSE_DAYS=14
 IGNORE_LABEL="ci-ignore-failure"
@@ -30,7 +30,6 @@ MONITORED_CHECKS=(
   "test"                       # Unit Tests + gradually-deprecated job name
   "preview-api-version-linter" # Preview ARM API Version Linter
   "shellcheck"                 # ShellCheck Scripts
-  "compatibility-32bit-test"   # 32 Bit Build
   "tflint"                     # Terraform Schema Linting
   "website-lint"               # Website Linting + Validate Examples job name
   "provider-tests"             # Provider Tests
@@ -47,14 +46,14 @@ is_monitored_check() {
   return 1
 }
 
-while getopts o:r:t:d flag
+while getopts o:r:t:l flag
 do
   case "${flag}" in
     o) owner=${OPTARG};;
     r) repo=${OPTARG};;
     t) token=${OPTARG};;
-    d) DRY_RUN=true;;
-    *) echo "Usage: $0 -o owner -r repo [-t token] [-d]"; exit 1;;
+    l) DRY_RUN=false;;
+    *) echo "Usage: $0 -o owner -r repo [-t token] [-l]"; exit 1;;
   esac
 done
 
@@ -233,9 +232,6 @@ get_check_guidance() {
       ;;
     "Validate Examples")
       echo "Run \`make validate-examples\` to check that your example configurations are valid."
-      ;;
-    compatibility-32bit-test|"32 Bit Build")
-      echo "The 32-bit build is failing. Run \`GOARCH=386 GOOS=linux go build ./...\` locally to diagnose."
       ;;
     "Preview API Version Linter")
       echo "Check that any API version references are not using preview versions unless explicitly required."

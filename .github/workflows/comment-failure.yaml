@@ -27,7 +27,7 @@ jobs:
               'Unit Tests': 'Run `make test` locally to reproduce and fix the failing unit tests.',
               'ShellCheck Scripts': 'Run `make shellcheck` locally to check shell scripts for issues and fix any warnings or errors.',
               'Validate Examples': 'Run `make validate-examples` locally to check that your example Terraform configurations under `examples/` are valid.',
-              '32 Bit Build': 'The 32-bit build is failing. Run `GOARCH=386 GOOS=linux go build ./...` locally to diagnose the issue.',
+
             };
 
             let body = `<b>Build failure: ${workflowName}</b>\n\nThis pull request contains a build failure in the <b>${workflowName}</b> check which needs to be addressed [here](${{ env.gha_url }}).`;
