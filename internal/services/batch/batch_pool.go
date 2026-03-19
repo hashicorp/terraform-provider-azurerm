@@ -131,12 +131,8 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 			tempBindMounts := make([]interface{}, 0, len(*startTask.ContainerSettings.ContainerHostBatchBindMounts))
 			for _, bindMount := range *startTask.ContainerSettings.ContainerHostBatchBindMounts {
 				m := map[string]interface{}{}
-				if bindMount.Source != nil {
-					m["source"] = pointer.FromEnum(bindMount.Source)
-				}
-				if bindMount.IsReadOnly != nil {
-					m["read_only_enabled"] = *bindMount.IsReadOnly
-				}
+				m["source"] = pointer.FromEnum(bindMount.Source)
+				m["read_only_enabled"] = pointer.From(bindMount.IsReadOnly)
 				tempBindMounts = append(tempBindMounts, m)
 			}
 			containerSettings["host_batch_bind_mounts"] = tempBindMounts
