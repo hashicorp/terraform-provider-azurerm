@@ -340,18 +340,15 @@ func (s StorageDefenderResource) Read() sdk.ResourceFunc {
 					}
 
 					state.OverrideSubscriptionSettings = pointer.From(prop.OverrideSubscriptionLevelSettings)
-
+					state.MalwareScanningWriteResultsOnTagsEnabled = true
 					if ms := prop.MalwareScanning; ms != nil {
 						if onUpload := ms.OnUpload; onUpload != nil {
 							state.MalwareScanningOnUploadEnabled = pointer.From(onUpload.IsEnabled)
 							state.MalwareScanningOnUploadCapPerMon = pointer.From(onUpload.CapGBPerMonth)
 							state.MalwareScanningOnUploadFilters = s.flattenSecurityCenterStorageDefenderMalwareScanningOnUploadFilter(onUpload.Filters)
 						}
-						if ms.BlobScanResultsOptions != nil {
-							state.MalwareScanningWriteResultsOnTagsEnabled = true
-							if pointer.From(ms.BlobScanResultsOptions) == defenderforstorage.BlobScanResultsOptionsNone {
-								state.MalwareScanningWriteResultsOnTagsEnabled = false
-							}
+						if ms.BlobScanResultsOptions != nil && pointer.From(ms.BlobScanResultsOptions) == defenderforstorage.BlobScanResultsOptionsNone {
+							state.MalwareScanningWriteResultsOnTagsEnabled = false
 						}
 						if ms.ScanResultsEventGridTopicResourceId != nil {
 							topicId, err := topics.ParseTopicID(*ms.ScanResultsEventGridTopicResourceId)

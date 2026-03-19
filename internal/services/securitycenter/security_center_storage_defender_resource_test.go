@@ -164,7 +164,7 @@ func TestAccSecurityCenterStorageDefender_invalidFilterBlobPrefix(t *testing.T) 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.invalidFilterBlobPrefix(data),
-			ExpectError: regexp.MustCompile(`expected value of malware_scanning_on_upload_filters.0.exclude_blobs_with_prefix.0 to not contain any of "\\?#%&+:*"|", got test/\\`),
+			ExpectError: regexp.MustCompile(regexp.QuoteMeta(`expected value of malware_scanning_on_upload_filters.0.exclude_blobs_with_prefix.0 to not contain any of "\\?#%&+:*\"|", got test/\`)),
 		},
 	})
 }
