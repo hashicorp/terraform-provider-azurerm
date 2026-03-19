@@ -127,6 +127,20 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 				tmpReg,
 			}
 		}
+		if startTask.ContainerSettings.ContainerHostBatchBindMounts != nil {
+			tempBindMounts := make([]interface{}, 0, len(*startTask.ContainerSettings.ContainerHostBatchBindMounts))
+			for _, bindMount := range *startTask.ContainerSettings.ContainerHostBatchBindMounts {
+				m := map[string]interface{}{}
+				if bindMount.Source != nil {
+					m["source"] = pointer.FromEnum(bindMount.Source)
+				}
+				if bindMount.IsReadOnly != nil {
+					m["read_only_enabled"] = *bindMount.IsReadOnly
+				}
+				tempBindMounts = append(tempBindMounts, m)
+			}
+			containerSettings["host_batch_bind_mounts"] = tempBindMounts
+		}
 
 		result["container"] = []interface{}{
 			containerSettings,
@@ -576,6 +590,37 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 	return &containerRegistry, nil
 }
 
+func expandBatchPoolContainerHostBatchBindMounts(list []interface{}) (*[]pool.ContainerHostBatchBindMountEntry, error) {
+	result := []pool.ContainerHostBatchBindMountEntry{}
+
+	for _, tempItem := range list {
+		if item, ok := tempItem.(map[string]interface{}); ok {
+			containerHostBatchBindMountEntry, err := expandBatchPoolContainerHostBatchBindMountEntry(item)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, *containerHostBatchBindMountEntry)
+		}
+	}
+	return &result, nil
+}
+
+func expandBatchPoolContainerHostBatchBindMountEntry(ref map[string]interface{}) (*pool.ContainerHostBatchBindMountEntry, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("container host batch bind mount entry should be defined")
+	}
+
+	entry := pool.ContainerHostBatchBindMountEntry{}
+	if v := ref["source"]; v != nil && v != "" {
+		entry.Source = pointer.To(pool.ContainerHostDataPath(ref["source"].(string)))
+	}
+	if v, ok := ref["read_only_enabled"]; ok {
+		entry.IsReadOnly = pointer.To(v.(bool))
+	}
+	return &entry, nil
+
+}
+
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
 func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.CertificateReference, error) {
 	result := make([]pool.CertificateReference, 0, len(list))
@@ -744,6 +789,11 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 			}
 			if workingDir, ok := settingMap["working_directory"]; ok {
 				containerSettings.WorkingDirectory = pointer.To(pool.ContainerWorkingDirectory(workingDir.(string)))
+			}
+			if hostBatchBindMounts, ok := settingMap["host_batch_bind_mounts"].([]interface{}); ok && len(hostBatchBindMounts) > 0 {
+				if hostBatchBindMountEntry, err := expandBatchPoolContainerHostBatchBindMounts(hostBatchBindMounts); err == nil {
+					containerSettings.ContainerHostBatchBindMounts = hostBatchBindMountEntry
+				}
 			}
 		}
 		startTask.ContainerSettings = &containerSettings
