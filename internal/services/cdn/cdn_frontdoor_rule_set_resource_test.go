@@ -165,43 +165,43 @@ func (r CdnFrontDoorRuleSetResource) templateWithAttachedRoute(data acceptance.T
 func (CdnFrontDoorRuleSetResource) routeTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_cdn_frontdoor_origin_group" "test" {
-	name                     = "acctest-fdog-%[1]d"
-	cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  name                     = "acctest-fdog-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 
-	load_balancing {
-		additional_latency_in_milliseconds = 0
-		sample_size                        = 16
-		successful_samples_required        = 3
-	}
+  load_balancing {
+    additional_latency_in_milliseconds = 0
+    sample_size                        = 16
+    successful_samples_required        = 3
+  }
 }
 
 resource "azurerm_cdn_frontdoor_origin" "test" {
-	name                          = "acctest-fdorigin-%[1]d"
-	cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-	enabled                       = true
+  name                          = "acctest-fdorigin-%[1]d"
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  enabled                       = true
 
-	certificate_name_check_enabled = false
-	host_name                      = "contoso.com"
-	http_port                      = 80
-	https_port                     = 443
-	origin_host_header             = "www.contoso.com"
-	priority                       = 1
-	weight                         = 1
+  certificate_name_check_enabled = false
+  host_name                      = "contoso.com"
+  http_port                      = 80
+  https_port                     = 443
+  origin_host_header             = "www.contoso.com"
+  priority                       = 1
+  weight                         = 1
 }
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-	name                     = "acctest-fdendpoint-%[1]d"
-	cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+  name                     = "acctest-fdendpoint-%[1]d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
 }
 
 resource "azurerm_cdn_frontdoor_route" "test" {
-	name                          = "acctest-fdroute-%[1]d"
-	cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
-	cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
-	cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
-	cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.test.id]
-	patterns_to_match             = ["/*"]
-	supported_protocols           = ["Http", "Https"]
+  name                          = "acctest-fdroute-%[1]d"
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.test.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.test.id
+  cdn_frontdoor_origin_ids      = [azurerm_cdn_frontdoor_origin.test.id]
+  cdn_frontdoor_rule_set_ids    = [azurerm_cdn_frontdoor_rule_set.test.id]
+  patterns_to_match             = ["/*"]
+  supported_protocols           = ["Http", "Https"]
 }
 `, data.RandomInteger)
 }
