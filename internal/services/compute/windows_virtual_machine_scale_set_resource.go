@@ -829,6 +829,23 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.ExtensionProfile.ExtensionsTimeBudget = pointer.To(d.Get("extensions_time_budget").(string))
 	}
 
+	if d.HasChange("capacity_reservation_group_id") {
+		if d.Get("single_placement_group").(bool) {
+			return fmt.Errorf("`single_placement_group` must be set to `false` when `capacity_reservation_group_id` is specified")
+		}
+
+		capacity_reservation_group_id := d.Get("capacity_reservation_group_id").(string)
+		if capacity_reservation_group_id == "" {
+			updateProps.VirtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{}
+		}
+
+		updateProps.VirtualMachineProfile.CapacityReservation = &virtualmachinescalesets.CapacityReservationProfile{
+			CapacityReservationGroup: &virtualmachinescalesets.SubResource{
+				Id: pointer.To(v.(string)),
+			},
+		}
+	}
+
 	if d.HasChange("user_data") {
 		updateInstances = true
 		updateProps.VirtualMachineProfile.UserData = pointer.To(d.Get("user_data").(string))
