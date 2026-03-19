@@ -1,0 +1,283 @@
+# Guide: Resource Identity
+
+This guide covers adding Resource Identity to a new or existing resource. For more information on Resource Identity, see [Resources - Identity](https://developer.hashicorp.com/terraform/plugin/sdkv2/resources/identity).
+
+> The provider's Resource Identity generator does not yet support all identity types. `commonids.CompositeResourceID` and any custom resource IDs (i.e. not one provided by `commonids` or `go-azure-sdk/resource-manager`) are not supported.
+
+> **Caution:** Do not implement Resource Identity for resources with numbers in their ID segment names (e.g., `ServerGroupsv2Name`) until the `strcase.ToSnake()` issue is resolved. The current implementation splits on number boundaries, converting `ServerGroupsv2Name` to `server_groupsv_2_name` instead of the expected `server_groupsv2_name`. This causes test failures and incorrect identity schema field names.
+
+## Adding Resource Identity
+
+### Typed Resources
+
+To add Resource Identity to a typed resource, we will need to implement the `sdk.ResourceWithIdentity` interface and modify the `Read()` function.
+
+1. Define a variable of type `sdk.ResourceWithIdentity` and assign it a value of the resource type struct.
+
+    ```go
+    package example
+
+    import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+   
+    type ExampleResource struct{}
+
+    var _ sdk.ResourceWithIdentity = ExampleResource{}
+    ```
+   
+2. Add the `Identity()` method, this method should return a pointer to the correct resource ID, if you are unsure, you can reference the `IDValidationFunc` method, the ID that is being validated here is the one you'll want to use.
+
+    ```go
+    package example
+    
+    import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+    import "github.com/hashicorp/go-azure-helpers/resourceids"
+    
+    type ExampleResource struct{}
+    
+    var _ sdk.ResourceWithIdentity = ExampleResource{}
+    
+    func (r ExampleResource) Identity() resourceids.ResourceId {
+        return &examplepackage.ExampleResourceId{}
+    }
+    ```
+
+3. Update the `Create()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function. 
+
+    ```go
+    func (r ExampleResource) Create() sdk.ResourceFunc {
+        return sdk.ResourceFunc{
+            Timeout: 30 * time.Minute,
+            Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+                client := metadata.Client.Service.ExampleClient
+                
+                id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+                ...
+                
+                if err := client.CreateOrUpdateThenPoll; err != nil {
+                    return fmt.Errorf("creating %s: %+v", &id, err)
+                }
+                
+                metadata.SetID(id)
+                if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+                    return err
+                }
+                
+                return metadata.Encode(&model)
+            },
+        }
+    }
+    ```
+   
+   > **Note:** While this may seem redundant given `Read()` gets called after `Create()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event something errors after setting the `id` attribute.
+
+4. Update the `Read()` function to include a step setting the Resource Identity data into state.
+
+    ```go
+    func (r ExampleResource) Read() sdk.ResourceFunc {
+        return sdk.ResourceFunc{
+            Timeout: 5 * time.Minute,
+            Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+                client := metadata.Client.Service.ExampleClient
+                id, err := examplepackage.ParseExampleResourceID(metadata.ResourceData.Id())
+                if err != nil {
+                    return err
+                }
+                 
+                ...
+                 
+                if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+                    return err
+                }
+                
+                return metadata.Encode(&model)
+            },
+        }
+    }
+    ```
+
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+
+### Untyped Resources
+
+To add Resource Identity to an untyped resource, follow the steps below.
+
+1. Add the `Identity` schema. Here, we make use of the `pluginsdk.GenerateIdentitySchema` function, which takes in a pointer to a `resourceids.ResourceId`. The ID provided here should be the same as the ID that is being parsed in the `Importer` field.
+
+    ```go
+    package example
+    
+    import (
+        "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    )
+    
+    func resourceExample() *pluginsdk.Resource {
+        return &pluginsdk.Resource{
+            Create: resourceExampleCreate,
+            Read: resourceExampleRead,
+            Update: resourceExampleUpdate,
+            Delete: resourceExampleDelete,
+    
+            Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+                _, err := examplepackage.ParseExampleID(id)
+                return err
+            }),
+            
+            // We will be including the new `Identity` field
+            Identity: &schema.ResourceIdentity{
+                SchemaFunc: pluginsdk.GenerateIdentitySchema(&examplepackage.ExampleId{}),
+            },
+            
+            ...
+        }
+    }
+    ```
+   
+2. Update the `Importer` field, we'll want to use the `pluginsdk.ImporterValidatingIdentity` function and provide it with the same resource ID as the `pluginsdk.GenerateIdentitySchema` function.
+
+    ```go
+        package example
+        
+        import (
+            "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+        )
+        
+        func resourceExample() *pluginsdk.Resource {
+            return &pluginsdk.Resource{
+                Create: resourceExampleCreate,
+                Read: resourceExampleRead,
+                Update: resourceExampleUpdate,
+                Delete: resourceExampleDelete,
+        
+                Importer: pluginsdk.ImporterValidatingIdentity(&examplepackage.ExampleId{}),
+                
+                // We will be including the new `Identity` field
+                Identity: &schema.ResourceIdentity{
+                    SchemaFunc: pluginsdk.GenerateIdentitySchema(&examplepackage.ExampleId{}),
+                },
+                
+                ...
+            }
+        }
+    ```
+3. Update the `resourceExampleCreate()` function to include a step setting the Resource Identity data into state, this should be done right after we set the `id` attribute. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+
+    ```go
+    func resourceExampleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := meta.(*clients.Client).Compute.DedicatedHostsClient
+            ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
+            defer cancel()
+            
+            id := examplepackage.NewExampleResourceID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
+
+            ...
+            
+            if err := client.CreateOrUpdateThenPoll; err != nil {
+               return fmt.Errorf("creating %s: %+v", &id, err)
+            }
+            
+            d.SetId(id.ID())
+            if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+                return err
+            }
+            
+            return resourceExampleRead(d, meta)
+        }
+    }
+    ```
+
+   > **Note:** While this may seem redundant given `resourceExampleRead()` gets called after `resourceExampleCreate()`, this is done to prevent `Missing Resource Identity After Create` errors, in the event a function call errors after setting the `id` attribute.
+
+4. Update the `resourceExampleRead` function to include a step setting the Resource Identity data into state. Resource Identity data does not have to be set manually, we can make use of the `pluginsdk.SetResourceIdentityData` helper function.
+
+    ```go
+        func resourceExampleRead(d *pluginsdk.ResourceData, meta interface{}) error {
+            client := meta.(*clients.Client).Service.ExampleClient
+            ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+            defer cancel()
+    
+            id, err := examplepackage.ParseExampleResourceID(d.Id())
+            if err != nil {
+                return err
+            }
+            
+            ...
+            
+            // Usually we can simply replace the final `return nil` line with the return below.
+            return pluginsdk.SetResourceIdentityData(d, id)
+        }
+    ```
+
+5. Add an acceptance test to ensure the identity data is accurately set into state, please reference [Resource Identity Tests](#resource-identity-tests).
+
+## Resource Identity Tests
+
+Just like the schema, Resource Identity tests are entirely generated. This is done by adding a `go:generate` comment. Both untyped and typed resources use the same format. To make this easy to find and modify, place it underneath the imports.
+
+The schema is generated for us by taking different parts of the ID and converting them to snake_case. By default, if the last segment ends in `Name`, it will not be converted to snake case in the schema but rather set to `name`. 
+
+For the tests to generate properly, you will need to specify a combination of `-properties` and `-compare-values` inputs. All fields in the ID struct must be mapped to one of these options.
+
+> **Note:** `subscription_id` is compared against a known-value by default, however if the `subscription_id` is included as part of a parent resource ID, it should be mapped using `-compare-values`. (e.g. `-compare-values "subscription_id:parent_resource_id")
+
+> **Note:** If a resource ID doesn't include the `subscription_id` segment, omit it from the tests by using `-no-subscription-id`.
+
+To go through these in order:
+
+- `-properties`: This flag specifies the 1:1 relationship between the Resource Schema and the Resource Identity Schema fields (i.e name, resource_group_name, etc), this would be specified as `name,resource_group_name`. If the schema property name does not match the Resource Identity schema name these should be mapped accordingly. This would be specified as `{id_field_name}:{schema_field_name}`, e.g. `api_management_id:api_management_name`.
+
+- `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the Resource Identity Schema uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `subscription_id:virtual_network_id,virtual_network_name:virtual_network_id`.
+
+> **Note:** The identity schema field names are generated using `strcase.ToSnake()` which splits on number boundaries. For example, `ServerGroupsv2Name` becomes `server_groupsv_2_name` (not `server_groupsv2_name`). This affects how you reference identity fields in `-properties` and `-compare-values` arguments.
+
+Please reference the [Resource Identity Test Generator](../../internal/tools/generator-tests/generators/resource_identity.go) for additional options that are used less frequently.
+
+ ```go
+package example
+     
+import (
+    "time"
+      
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// A basic example where the Resource Identity fields map directly to the resource schema
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "name,resource_group_name"
+
+// An example where individual Resource Identity field values exist in a parent ID 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "name" -compare-values "subscription_id:parent_resource_id,resource_group_name:parent_resource_id,parent_name:parent_resource_id"
+
+// An example of a resource ID that doesn't contain the `subscription_id` segment, e.g. management groups
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name example_resource -properties "group_id:name" -no-subscription-id
+
+type ExampleResource struct{}
+  
+var _ sdk.ResourceWithIdentity = ExampleResource{}
+  
+func (r ExampleResource) Identity() resourceids.ResourceId {
+    return &examplepackage.ExampleResourceId{}
+}
+  
+func (r ExampleResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.Service.ExampleClient
+            id, err := examplepackage.ParseExampleResourceID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+             
+            ...
+              
+            if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+                return err
+            }
+             
+            return metadata.Encode(&model)
+        },
+    }
+}
+ ```

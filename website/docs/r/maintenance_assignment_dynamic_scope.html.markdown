@@ -85,15 +85,15 @@ A `filter` block supports the following:
 
 * `locations` - (Optional) Specifies a list of locations to scope the query to.
 
-* `os_types` - (Optional) Specifies a list of allowed operating systems.
+* `os_types` - (Optional) Specifies a list of allowed operating systems. Possible values are `Linux` and `Windows`.
 
 * `resource_groups` - (Optional) Specifies a list of allowed resource groups.
 
-* `resource_types` - (Optional) Specifies a list of allowed resources.
+* `resource_types` - (Optional) Specifies a list of allowed resources. Possible values are `Microsoft.Compute/virtualMachines` and `Microsoft.HybridCompute/machines`.
 
 * `tag_filter` - (Optional) Filter VMs by `Any` or `All` specified tags. Defaults to `Any`.
 
-* `tags` - (Optional) A mapping of tags for the VM
+* `tags` - (Optional) One or more `tags` blocks as defined below.
 
 ---
 
@@ -111,7 +111,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dynamic Maintenance Assignment
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dynamic Maintenance Assignment

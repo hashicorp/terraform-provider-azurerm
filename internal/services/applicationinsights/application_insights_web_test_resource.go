@@ -1,5 +1,7 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name application_insights_web_test -properties "name,resource_group_name" -service-package-name applicationinsights -known-values "subscription_id:data.Subscriptions.Primary"
 
 package applicationinsights
 
@@ -16,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	webtests "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/applicationinsights/migration"
@@ -27,14 +30,15 @@ import (
 
 func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceApplicationInsightsWebTestsCreateUpdate,
+		Create: resourceApplicationInsightsWebTestsCreate,
 		Read:   resourceApplicationInsightsWebTestsRead,
-		Update: resourceApplicationInsightsWebTestsCreateUpdate,
+		Update: resourceApplicationInsightsWebTestsUpdate,
 		Delete: resourceApplicationInsightsWebTestsDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webtests.ParseWebTestID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&webtests.WebTestId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webtests.WebTestId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -137,9 +141,9 @@ func resourceApplicationInsightsWebTests() *pluginsdk.Resource {
 	}
 }
 
-func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceApplicationInsightsWebTestsCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).AppInsights.WebTestsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
@@ -151,29 +155,22 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 
 	id := webtests.NewWebTestID(appInsightsId.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.WebTestsGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.WebTestsGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
 
-	kind := d.Get("kind").(string)
-	description := d.Get("description").(string)
-	frequency := int32(d.Get("frequency").(int))
-	timeout := int32(d.Get("timeout").(int))
-	isEnabled := d.Get("enabled").(bool)
-	retryEnabled := d.Get("retry_enabled").(bool)
-	geoLocationsRaw := d.Get("geo_locations").([]interface{})
-	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
-	testConf := d.Get("configuration").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_application_insights_web_test", id.ID())
+	}
 
+	// Azure uses a special "hidden-link" tag to associate a web test with its parent Application Insights
+	// component. The tag key is "hidden-link:<resource_id>" where <resource_id> is the full ARM resource ID
+	// of the Application Insights component, and the value is "Resource". This tag is injected into the
+	// user-supplied tags map before sending the request. It is genreally undocumented but can be seen in
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=standard
 	t := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
 	t[tagKey] = "Resource"
@@ -181,30 +178,112 @@ func resourceApplicationInsightsWebTestsCreateUpdate(d *pluginsdk.ResourceData, 
 	webTest := webtests.WebTest{
 		Name:     pointer.To(id.WebTestName),
 		Location: location.Normalize(d.Get("location").(string)),
-		Kind:     pointer.To(webtests.WebTestKind(kind)),
+		Kind:     pointer.To(webtests.WebTestKind(d.Get("kind").(string))),
 		Properties: &webtests.WebTestProperties{
 			SyntheticMonitorId: id.WebTestName,
 			Name:               id.WebTestName,
-			Description:        &description,
-			Enabled:            &isEnabled,
-			Frequency:          pointer.To(int64(frequency)),
-			Timeout:            pointer.To(int64(timeout)),
-			Kind:               webtests.WebTestKind(kind),
-			RetryEnabled:       &retryEnabled,
-			Locations:          geoLocations,
+			Description:        pointer.To(d.Get("description").(string)),
+			Enabled:            pointer.To(d.Get("enabled").(bool)),
+			Frequency:          pointer.To(int64(d.Get("frequency").(int))),
+			Timeout:            pointer.To(int64(d.Get("timeout").(int))),
+			Kind:               webtests.WebTestKind(d.Get("kind").(string)),
+			RetryEnabled:       pointer.To(d.Get("retry_enabled").(bool)),
+			Locations:          expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{})),
 			Configuration: &webtests.WebTestPropertiesConfiguration{
-				WebTest: &testConf,
+				WebTest: pointer.To(d.Get("configuration").(string)),
 			},
 		},
 		Tags: tags.Expand(t),
 	}
 
-	_, err = client.WebTestsCreateOrUpdate(ctx, id, webTest)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if _, err = client.WebTestsCreateOrUpdate(ctx, id, webTest); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
+	return resourceApplicationInsightsWebTestsRead(d, meta)
+}
+
+func resourceApplicationInsightsWebTestsUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).AppInsights.WebTestsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := webtests.ParseWebTestID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.WebTestsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	webTest := *existing.Model
+	props := webTest.Properties
+
+	if d.HasChange("description") {
+		props.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("enabled") {
+		props.Enabled = pointer.To(d.Get("enabled").(bool))
+	}
+
+	if d.HasChange("frequency") {
+		props.Frequency = pointer.To(int64(d.Get("frequency").(int)))
+	}
+
+	if d.HasChange("timeout") {
+		props.Timeout = pointer.To(int64(d.Get("timeout").(int)))
+	}
+
+	if d.HasChange("retry_enabled") {
+		props.RetryEnabled = pointer.To(d.Get("retry_enabled").(bool))
+	}
+
+	if d.HasChange("geo_locations") {
+		props.Locations = expandApplicationInsightsWebTestGeoLocations(d.Get("geo_locations").([]interface{}))
+	}
+
+	if d.HasChange("configuration") {
+		props.Configuration = &webtests.WebTestPropertiesConfiguration{
+			WebTest: pointer.To(d.Get("configuration").(string)),
+		}
+	}
+
+	// Azure uses a special "hidden-link" tag to associate a web test with its parent Application Insights
+	// component. The tag key is "hidden-link:<resource_id>" where <resource_id> is the full ARM resource ID
+	// of the Application Insights component, and the value is "Resource". This tag is injected into the
+	// user-supplied tags map before sending the request. It is genreally undocumented but can be seen in
+	// https://learn.microsoft.com/en-us/azure/azure-monitor/app/availability?tabs=standard
+	if d.HasChange("tags") {
+		appInsightsId, err := components.ParseComponentID(d.Get("application_insights_id").(string))
+		if err != nil {
+			return err
+		}
+
+		t := d.Get("tags").(map[string]interface{})
+		tagKey := fmt.Sprintf("hidden-link:%s", appInsightsId.ID())
+		t[tagKey] = "Resource"
+		webTest.Tags = tags.Expand(t)
+	}
+
+	if _, err = client.WebTestsCreateOrUpdate(ctx, *id, webTest); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceApplicationInsightsWebTestsRead(d, meta)
 }
@@ -274,9 +353,12 @@ func resourceApplicationInsightsWebTestsRead(d *pluginsdk.ResourceData, meta int
 		}
 		d.Set("application_insights_id", parsedAppInsightsId.ID())
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceApplicationInsightsWebTestsDelete(d *pluginsdk.ResourceData, meta interface{}) error {

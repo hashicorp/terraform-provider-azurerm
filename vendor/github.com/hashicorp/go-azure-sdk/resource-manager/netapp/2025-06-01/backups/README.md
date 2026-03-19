@@ -65,22 +65,6 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `BackupsClient.GetLatestStatus`
-
-```go
-ctx := context.TODO()
-id := backups.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName", "capacityPoolName", "volumeName")
-
-read, err := client.GetLatestStatus(ctx, id)
-if err != nil {
-	// handle the error
-}
-if model := read.Model; model != nil {
-	// do something with the model/response object
-}
-```
-
-
 ### Example Usage: `BackupsClient.ListByVault`
 
 ```go
@@ -98,23 +82,6 @@ for _, item := range items {
 ```
 
 
-### Example Usage: `BackupsClient.UnderAccountMigrateBackups`
-
-```go
-ctx := context.TODO()
-id := backups.NewNetAppAccountID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName")
-
-payload := backups.BackupsMigrationRequest{
-	// ...
-}
-
-
-if err := client.UnderAccountMigrateBackupsThenPoll(ctx, id, payload); err != nil {
-	// handle the error
-}
-```
-
-
 ### Example Usage: `BackupsClient.UnderBackupVaultRestoreFiles`
 
 ```go
@@ -127,23 +94,6 @@ payload := backups.BackupRestoreFiles{
 
 
 if err := client.UnderBackupVaultRestoreFilesThenPoll(ctx, id, payload); err != nil {
-	// handle the error
-}
-```
-
-
-### Example Usage: `BackupsClient.UnderVolumeMigrateBackups`
-
-```go
-ctx := context.TODO()
-id := backups.NewVolumeID("12345678-1234-9876-4563-123456789012", "example-resource-group", "netAppAccountName", "capacityPoolName", "volumeName")
-
-payload := backups.BackupsMigrationRequest{
-	// ...
-}
-
-
-if err := client.UnderVolumeMigrateBackupsThenPoll(ctx, id, payload); err != nil {
 	// handle the error
 }
 ```

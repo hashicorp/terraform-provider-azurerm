@@ -53,11 +53,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "eventhub-example"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  partition_count     = 1
-  message_retention   = 1
+  name              = "eventhub-example"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 1
+  message_retention = 1
 }
 
 resource "azurerm_eventhub_consumer_group" "example" {
@@ -98,7 +97,7 @@ resource "azurerm_kusto_eventgrid_data_connection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -142,7 +141,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the Kusto Event Grid Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Event Grid Data Connection.

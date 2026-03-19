@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package communication
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service -service-package-name communication -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 import (
 	"context"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/communication/validate"
@@ -19,9 +22,16 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = EmailCommunicationServiceResource{}
+var (
+	_ sdk.ResourceWithUpdate   = EmailCommunicationServiceResource{}
+	_ sdk.ResourceWithIdentity = EmailCommunicationServiceResource{}
+)
 
 type EmailCommunicationServiceResource struct{}
+
+func (EmailCommunicationServiceResource) Identity() resourceids.ResourceId {
+	return &emailservices.EmailServiceId{}
+}
 
 type EmailCommunicationServiceResourceModel struct {
 	Name              string            `tfschema:"name"`
@@ -118,6 +128,9 @@ func (r EmailCommunicationServiceResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -200,6 +213,10 @@ func (EmailCommunicationServiceResource) Read() sdk.ResourceFunc {
 				}
 
 				state.Tags = pointer.From(model.Tags)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)

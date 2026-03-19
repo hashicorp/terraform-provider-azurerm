@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package systemcentervirtualmachinemanager
@@ -611,10 +611,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		result.CpuCount = pointer.To(v)
 	}
 
-	dynamicMemoryEnabled := false
-	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
-		dynamicMemoryEnabled = true
-	}
+	dynamicMemoryEnabled := hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0
+
 	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
 
 	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {
@@ -790,10 +788,8 @@ func expandSystemCenterVirtualMachineManagerVirtualMachineInstanceHardwareProfil
 		result.CpuCount = pointer.To(v)
 	}
 
-	dynamicMemoryEnabled := false
-	if hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0 {
-		dynamicMemoryEnabled = true
-	}
+	dynamicMemoryEnabled := hardwareProfile.DynamicMemoryMaxInMb != 0 || hardwareProfile.DynamicMemoryMinInMb != 0
+
 	result.DynamicMemoryEnabled = pointer.To(virtualmachineinstances.DynamicMemoryEnabled(strconv.FormatBool(dynamicMemoryEnabled)))
 
 	if v := hardwareProfile.DynamicMemoryMaxInMb; v != 0 {

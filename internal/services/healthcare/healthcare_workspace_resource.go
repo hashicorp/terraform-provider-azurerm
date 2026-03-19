@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package healthcare
@@ -140,7 +140,9 @@ func resourceHealthcareApisWorkspaceRead(d *pluginsdk.ResourceData, meta interfa
 			d.Set("private_endpoint_connection", flattenWorkspacePrivateEndpoint(props.PrivateEndpointConnections))
 		}
 
-		return tags.FlattenAndSet(d, m.Tags)
+		if err := tags.FlattenAndSet(d, m.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

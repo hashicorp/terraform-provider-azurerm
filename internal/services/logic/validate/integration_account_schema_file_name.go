@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -19,7 +19,7 @@ func IntegrationAccountSchemaFileName() pluginsdk.SchemaValidateFunc {
 		}
 
 		if !strings.HasSuffix(v, ".xsd") {
-			errors = append(errors, fmt.Errorf("%q ends with `.xsd`.", k))
+			errors = append(errors, fmt.Errorf("%q ends with `.xsd`", k))
 			return
 		}
 

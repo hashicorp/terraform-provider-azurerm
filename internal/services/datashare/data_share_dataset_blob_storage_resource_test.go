@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare_test
@@ -9,19 +9,19 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/dataset"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type DataShareDataSetBlobStorageResource struct{}
+type DataShareDatasetBlobStorageResource struct{}
 
 func TestAccDataShareDataSetBlobStorage_basicFile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
-	r := DataShareDataSetBlobStorageResource{}
+	r := DataShareDatasetBlobStorageResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -37,7 +37,7 @@ func TestAccDataShareDataSetBlobStorage_basicFile(t *testing.T) {
 
 func TestAccDataShareDataSetBlobStorage_basicFolder(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
-	r := DataShareDataSetBlobStorageResource{}
+	r := DataShareDatasetBlobStorageResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccDataShareDataSetBlobStorage_basicFolder(t *testing.T) {
 
 func TestAccDataShareDataSetBlobStorage_basicContainer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
-	r := DataShareDataSetBlobStorageResource{}
+	r := DataShareDatasetBlobStorageResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -69,7 +69,7 @@ func TestAccDataShareDataSetBlobStorage_basicContainer(t *testing.T) {
 
 func TestAccDataShareDataSetBlobStorage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_blob_storage", "test")
-	r := DataShareDataSetBlobStorageResource{}
+	r := DataShareDatasetBlobStorageResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -82,7 +82,7 @@ func TestAccDataShareDataSetBlobStorage_requiresImport(t *testing.T) {
 	})
 }
 
-func (t DataShareDataSetBlobStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t DataShareDatasetBlobStorageResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dataset.ParseDataSetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,20 +95,20 @@ func (t DataShareDataSetBlobStorageResource) Exists(ctx context.Context, clients
 
 	if model := resp.Model; model != nil {
 		if _, ok := model.(dataset.BlobDataSet); ok {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 		if _, ok := model.(dataset.BlobFolderDataSet); ok {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 		if _, ok := model.(dataset.BlobContainerDataSet); ok {
-			return utils.Bool(true), nil
+			return pointer.To(true), nil
 		}
 	}
 
 	return nil, fmt.Errorf("%s is not a blob storage dataset", *id)
 }
 
-func (DataShareDataSetBlobStorageResource) template(data acceptance.TestData) string {
+func (DataShareDatasetBlobStorageResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -164,7 +164,7 @@ resource "azurerm_role_assignment" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r DataShareDataSetBlobStorageResource) basicFile(data acceptance.TestData) string {
+func (r DataShareDatasetBlobStorageResource) basicFile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -185,7 +185,7 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func (r DataShareDataSetBlobStorageResource) basicFolder(data acceptance.TestData) string {
+func (r DataShareDatasetBlobStorageResource) basicFolder(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -206,7 +206,7 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func (r DataShareDataSetBlobStorageResource) basicContainer(data acceptance.TestData) string {
+func (r DataShareDatasetBlobStorageResource) basicContainer(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -226,7 +226,7 @@ resource "azurerm_data_share_dataset_blob_storage" "test" {
 `, r.template(data), data.RandomInteger, os.Getenv("ARM_SUBSCRIPTION_ID"))
 }
 
-func (r DataShareDataSetBlobStorageResource) requiresImport(data acceptance.TestData) string {
+func (r DataShareDatasetBlobStorageResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

@@ -34,10 +34,10 @@ on:
         default: "staging"
 
 env:
-  slack_channel: "C7T8GB62H" # #tech-azure
+  slack_channel: "C09KX8BCGA2" # #tech-azure
   product_name: "terraform-provider-azurerm"
   repo_name: "terraform-provider-azurerm"
-  deployment_environment_name: "terraform-azure-repos-oss"
+  deployment_environment_name: "tf-provider-azurerm-oss"
 
 jobs:
   release:

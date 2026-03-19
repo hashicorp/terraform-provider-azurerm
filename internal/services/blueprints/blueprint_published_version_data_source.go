@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package blueprints
@@ -92,7 +92,7 @@ func dataSourceBlueprintPublishedVersionRead(d *pluginsdk.ResourceData, meta int
 	resp, err := client.Get(ctx, id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("Published Blueprint Version %q not found: %+v", id.String(), err)
+			return fmt.Errorf("the Published Blueprint Version %q not found: %+v", id.String(), err)
 		}
 
 		return fmt.Errorf("reading Published Blueprint Version (%q): %+v", id.String(), err)

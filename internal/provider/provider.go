@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package provider
@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	providerfeatures "github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -339,7 +340,7 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 			"resource_provider_registrations": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy),
+				DefaultFunc: schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone),
 				Description: "The set of Resource Providers which should be automatically registered for the subscription.",
 				ValidateFunc: validation.StringInSlice([]string{
 					resourceproviders.ProviderRegistrationsCore,
@@ -375,6 +376,28 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("ARM_STORAGE_USE_AZUREAD", false),
 				Description: "Should the AzureRM Provider use Azure AD Authentication when accessing the Storage Data Plane APIs?",
 			},
+
+			"enhanced_validation": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"locations": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS", providerfeatures.EnhancedValidationLocationsEnabled()),
+							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+						},
+						"resource_providers": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							DefaultFunc: schema.EnvDefaultFunc("ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS", providerfeatures.EnhancedValidationResourceProvidersEnabled()),
+							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+						},
+					},
+				},
+			},
 		},
 
 		DataSourcesMap: dataSources,
@@ -382,6 +405,10 @@ func azureProvider(supportLegacyTestSuite bool) *schema.Provider {
 	}
 
 	p.ConfigureContextFunc = providerConfigure(p)
+
+	if !providerfeatures.FivePointOh() {
+		p.Schema["resource_provider_registrations"].DefaultFunc = schema.EnvDefaultFunc("ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
+	}
 
 	return p
 }
@@ -522,11 +549,39 @@ func buildClient(ctx context.Context, p *schema.Provider, d *schema.ResourceData
 	}
 	requiredResourceProviders.Merge(additionalProvidersToRegister)
 
+	features := expandFeatures(d.Get("features").([]interface{}))
+	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
+	if !providerfeatures.FivePointOh() {
+		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
+			return nil, diag.FromErr(err)
+		}
+	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		return nil, diag.Errorf("the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead")
+	}
+
+	// Read enhanced_validation block
+	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
+	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
+	if raw, ok := d.GetOk("enhanced_validation"); ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			evRaw := items[0].(map[string]interface{})
+			if v, ok := evRaw["locations"]; ok {
+				enhancedValidationLocations = v.(bool)
+			}
+			if v, ok := evRaw["resource_providers"]; ok {
+				enhancedValidationResourceProviders = v.(bool)
+			}
+		}
+	}
+	features.EnhancedValidation.Locations = enhancedValidationLocations
+	features.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
+
 	clientBuilder := clients.ClientBuilder{
 		AuthConfig:                  authConfig,
 		DisableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 		DisableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
-		Features:                    expandFeatures(d.Get("features").([]interface{})),
+		Features:                    features,
 		MetadataHost:                d.Get("metadata_host").(string),
 		PartnerID:                   d.Get("partner_id").(string),
 		RegisteredResourceProviders: requiredResourceProviders,

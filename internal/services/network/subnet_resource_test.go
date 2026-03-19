@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -10,14 +10,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SubnetResource struct{}
@@ -185,7 +185,7 @@ func TestAccSubnet_delegation(t *testing.T) {
 	})
 }
 
-func TestAccSubnet_ipAddressPool(t *testing.T) {
+func testAccSubnet_ipAddressPool(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -200,7 +200,7 @@ func TestAccSubnet_ipAddressPool(t *testing.T) {
 	})
 }
 
-func TestAccSubnet_ipAddressPoolVNet(t *testing.T) {
+func testAccSubnet_ipAddressPoolVNet(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -215,7 +215,7 @@ func TestAccSubnet_ipAddressPoolVNet(t *testing.T) {
 	})
 }
 
-func TestAccSubnet_ipAddressPoolIPv6(t *testing.T) {
+func testAccSubnet_ipAddressPoolIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -230,7 +230,7 @@ func TestAccSubnet_ipAddressPoolIPv6(t *testing.T) {
 	})
 }
 
-func TestAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {
+func testAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -259,7 +259,7 @@ func TestAccSubnet_ipAddressPoolBlockUpdated(t *testing.T) {
 	})
 }
 
-func TestAccSubnet_ipAddressPoolNumberUpdated(t *testing.T) {
+func testAccSubnet_ipAddressPoolNumberUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
 
@@ -415,6 +415,34 @@ func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_sharingScopeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sharingScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -496,12 +524,12 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet (%s): %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -510,11 +538,11 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 		return nil, err
 	}
 
-	if err := client.Network.Client.Subnets.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.Network.Subnets.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -526,7 +554,7 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	subnet, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	subnet, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -559,7 +587,7 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -594,7 +622,7 @@ func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -1023,6 +1051,20 @@ resource "azurerm_subnet" "import" {
   address_prefixes     = azurerm_subnet.test.address_prefixes
 }
 `, r.basic(data))
+}
+
+func (r SubnetResource) sharingScope(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_subnet" "test" {
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
+  sharing_scope                   = "Tenant"
+}
+`, r.template(data))
 }
 
 func (r SubnetResource) serviceEndpoints(data acceptance.TestData) string {

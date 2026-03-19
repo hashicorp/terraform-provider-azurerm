@@ -60,7 +60,7 @@ JSON
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Data Factory Linked Service. Changing this forces a new resource to be created. Must be unique within a data factory. See the [Microsoft documentation](https://docs.microsoft.com/azure/data-factory/naming-rules) for all restrictions.
 
@@ -68,7 +68,8 @@ JSON
 
 * `type` - (Required) The type of data stores that will be connected to Data Factory. For full list of supported data stores, please refer to [Azure Data Factory connector](https://docs.microsoft.com/azure/data-factory/connector-overview). Please refer to [Microsoft.DataFactory factories/linkedservices](https://learn.microsoft.com/en-us/azure/templates/microsoft.datafactory/factories/linkedservices?pivots=deployment-language-terraform) for the type values syntax. Changing this forces a new resource to be created.
 
-* `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Linked Service.
+* `type_properties_json` - (Required) A JSON object that contains the properties of the Data Factory Linked Service. Refer to
+[datafactory/models.go](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/vendor/github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory/models.go) for the shape of the expected JSON. For example, the JSON object for `AzureBlobStorage`-typed Linked Service will be unmarshaled into `AzureBlobStorageLinkedServiceTypeProperties struct`.
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service.
 
@@ -96,7 +97,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Linked Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Linked Service.
