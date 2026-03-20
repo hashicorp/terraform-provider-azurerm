@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -1772,7 +1773,7 @@ func resourceKubernetesAutomaticClusterCreate(d *pluginsdk.ResourceData, meta in
 		return tf.ImportAsExistsError("azurerm_kubernetes_automatic_cluster", id.ID())
 	}
 
-	if err := validateKubernetesCluster(d, nil, id.ResourceGroupName, id.ManagedClusterName); err != nil {
+	if err := validateKubernetesAutomaticCluster(d, nil, id.ResourceGroupName, id.ManagedClusterName); err != nil {
 		return err
 	}
 
@@ -1850,7 +1851,7 @@ func resourceKubernetesAutomaticClusterCreate(d *pluginsdk.ResourceData, meta in
 	azureMonitorProfile := expandKubernetesAutomaticClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
 
 	bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
-	bootstrapProfile := expandBootstrapProfile(bootstrapProfileRaw)
+	bootstrapProfile := expandAutomaticBootstrapProfile(bootstrapProfileRaw)
 
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesAutomaticClusterHttpProxyConfig(httpProxyConfigRaw)
@@ -1863,7 +1864,7 @@ func resourceKubernetesAutomaticClusterCreate(d *pluginsdk.ResourceData, meta in
 	}
 
 	storageProfileRaw := d.Get("storage_profile").([]interface{})
-	storageProfile := expandStorageProfile(storageProfileRaw)
+	storageProfile := expandAutomaticStorageProfile(storageProfileRaw)
 
 	upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
 	upgradeOverrideSetting := expandKubernetesAutomaticClusterUpgradeOverrideSetting(upgradeOverrideSettingRaw)
@@ -2500,7 +2501,7 @@ func resourceKubernetesAutomaticClusterUpdate(d *pluginsdk.ResourceData, meta in
 	if d.HasChanges("storage_profile") {
 		updateCluster = true
 		storageProfileRaw := d.Get("storage_profile").([]interface{})
-		clusterStorageProfile := expandStorageProfile(storageProfileRaw)
+		clusterStorageProfile := expandAutomaticStorageProfile(storageProfileRaw)
 		existing.Model.Properties.StorageProfile = clusterStorageProfile
 	}
 
@@ -2557,7 +2558,7 @@ func resourceKubernetesAutomaticClusterUpdate(d *pluginsdk.ResourceData, meta in
 
 	if d.HasChange("bootstrap_profile") {
 		bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
-		profile := expandBootstrapProfile(bootstrapProfileRaw)
+		profile := expandAutomaticBootstrapProfile(bootstrapProfileRaw)
 
 		// If profile is removed in the config, we should set ArtifactSource to Direct as it's the default value in the service side.
 		if profile == nil {
@@ -2730,7 +2731,7 @@ func resourceKubernetesAutomaticClusterUpdate(d *pluginsdk.ResourceData, meta in
 
 			// if the temp node pool already exists due to a previous failure, don't bother spinning it up
 			if tempExisting.Model == nil {
-				if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+				if err := retryAutomaticNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
 					return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
 				}
 			}
@@ -2743,7 +2744,7 @@ func resourceKubernetesAutomaticClusterUpdate(d *pluginsdk.ResourceData, meta in
 			}
 
 			// create the default node pool with the new vm size
-			if err := retryNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+			if err := retryAutomaticNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
 				// if creation of the default node pool fails we automatically fall back to the temporary node pool
 				// in func findDefaultNodePool
 				log.Printf("[DEBUG] Creation of resized default node pool failed")
@@ -2874,7 +2875,7 @@ func resourceKubernetesAutomaticClusterRead(d *pluginsdk.ResourceData, meta inte
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
+		d.Set("edge_zone", flattenAutomaticEdgeZone(model.ExtendedLocation))
 		d.Set("location", location.Normalize(model.Location))
 
 		skuTier := string(managedclusters.ManagedClusterSKUTierFree)
@@ -3140,7 +3141,7 @@ func resourceKubernetesAutomaticClusterRead(d *pluginsdk.ResourceData, meta inte
 
 			d.Set("support_plan", pointer.From(props.SupportPlan))
 
-			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			bootstrapProfile, err := flattenAutomaticBootstrapProfile(props.BootstrapProfile)
 			if err != nil {
 				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
 			}
@@ -3346,7 +3347,7 @@ func expandKubernetesAutomaticClusterWindowsProfile(input []interface{}) *manage
 		license = managedclusters.LicenseType(v)
 	}
 
-	gmsaProfile := expandGmsaProfile(config["gmsa"].([]interface{}))
+	gmsaProfile := expandAutomaticGmsaProfile(config["gmsa"].([]interface{}))
 
 	return &managedclusters.ManagedClusterWindowsProfile{
 		AdminUsername: config["admin_username"].(string),
@@ -3409,43 +3410,43 @@ func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.
 	}}
 }
 
-//func expandBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
-//	if len(rawBootstrapProfile) == 0 || rawBootstrapProfile[0] == nil {
-//		return nil
-//	}
-//
-//	config := rawBootstrapProfile[0].(map[string]interface{})
-//	var containerRegistryID *string
-//	if v, exists := config["container_registry_id"]; exists && v != "" {
-//		containerRegistryID = pointer.To(v.(string))
-//	}
-//
-//	return &managedclusters.ManagedClusterBootstrapProfile{
-//		ArtifactSource:      pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
-//		ContainerRegistryId: containerRegistryID,
-//	}
-//}
-//
-//func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) ([]interface{}, error) {
-//	if profile == nil || profile.ArtifactSource == nil {
-//		return []interface{}{}, nil
-//	}
-//
-//	var containerRegistryID string
-//	if profile.ContainerRegistryId != nil {
-//		id, err := registries.ParseRegistryID(*profile.ContainerRegistryId)
-//		if err != nil {
-//			return nil, err
-//		}
-//		containerRegistryID = id.ID()
-//	}
-//	return []interface{}{
-//		map[string]interface{}{
-//			"artifact_source":       profile.ArtifactSource,
-//			"container_registry_id": containerRegistryID,
-//		},
-//	}, nil
-//}
+func expandAutomaticBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
+	if len(rawBootstrapProfile) == 0 || rawBootstrapProfile[0] == nil {
+		return nil
+	}
+
+	config := rawBootstrapProfile[0].(map[string]interface{})
+	var containerRegistryID *string
+	if v, exists := config["container_registry_id"]; exists && v != "" {
+		containerRegistryID = pointer.To(v.(string))
+	}
+
+	return &managedclusters.ManagedClusterBootstrapProfile{
+		ArtifactSource:      pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
+		ContainerRegistryId: containerRegistryID,
+	}
+}
+
+func flattenAutomaticBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) ([]interface{}, error) {
+	if profile == nil || profile.ArtifactSource == nil {
+		return []interface{}{}, nil
+	}
+
+	var containerRegistryID string
+	if profile.ContainerRegistryId != nil {
+		id, err := registries.ParseRegistryID(*profile.ContainerRegistryId)
+		if err != nil {
+			return nil, err
+		}
+		containerRegistryID = id.ID()
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"artifact_source":       profile.ArtifactSource,
+			"container_registry_id": containerRegistryID,
+		},
+	}, nil
+}
 
 func expandKubernetesAutomaticClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
 	if len(input) == 0 {
@@ -3488,26 +3489,26 @@ func expandKubernetesAutomaticClusterNodeProvisioningProfile(input []interface{}
 	return profile
 }
 
-//func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
-//	if len(input) == 0 {
-//		return nil
-//	}
-//
-//	if input[0] == nil {
-//		return &managedclusters.WindowsGmsaProfile{
-//			Enabled:        pointer.To(true),
-//			DnsServer:      pointer.To(""),
-//			RootDomainName: pointer.To(""),
-//		}
-//	}
-//
-//	config := input[0].(map[string]interface{})
-//	return &managedclusters.WindowsGmsaProfile{
-//		Enabled:        pointer.To(true),
-//		DnsServer:      pointer.To(config["dns_server"].(string)),
-//		RootDomainName: pointer.To(config["root_domain"].(string)),
-//	}
-//}
+func expandAutomaticGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	if input[0] == nil {
+		return &managedclusters.WindowsGmsaProfile{
+			Enabled:        pointer.To(true),
+			DnsServer:      pointer.To(""),
+			RootDomainName: pointer.To(""),
+		}
+	}
+
+	config := input[0].(map[string]interface{})
+	return &managedclusters.WindowsGmsaProfile{
+		Enabled:        pointer.To(true),
+		DnsServer:      pointer.To(config["dns_server"].(string)),
+		RootDomainName: pointer.To(config["root_domain"].(string)),
+	}
+}
 
 func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, d *pluginsdk.ResourceData) []interface{} {
 	if profile == nil {
@@ -3527,7 +3528,7 @@ func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.Ma
 		license = string(*profile.LicenseType)
 	}
 
-	gmsaProfile := flattenGmsaProfile(profile.GmsaProfile)
+	gmsaProfile := flattenAutomaticGmsaProfile(profile.GmsaProfile)
 
 	return []interface{}{
 		map[string]interface{}{
@@ -3573,28 +3574,28 @@ func flattenKubernetesAutomaticClusterNodeProvisioningProfile(profile *managedcl
 	}}
 }
 
-//func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface{} {
-//	if profile == nil {
-//		return []interface{}{}
-//	}
-//
-//	dnsServer := ""
-//	if dns := profile.DnsServer; dns != nil {
-//		dnsServer = *dns
-//	}
-//
-//	rootDomainName := ""
-//	if domain := profile.RootDomainName; domain != nil {
-//		rootDomainName = *domain
-//	}
-//
-//	return []interface{}{
-//		map[string]interface{}{
-//			"dns_server":  dnsServer,
-//			"root_domain": rootDomainName,
-//		},
-//	}
-//}
+func flattenAutomaticGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	dnsServer := ""
+	if dns := profile.DnsServer; dns != nil {
+		dnsServer = *dns
+	}
+
+	rootDomainName := ""
+	if domain := profile.RootDomainName; domain != nil {
+		rootDomainName = *domain
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"dns_server":  dnsServer,
+			"root_domain": rootDomainName,
+		},
+	}
+}
 
 func expandKubernetesAutomaticClusterNetworkProfile(input []interface{}, d *pluginsdk.ResourceData) (*managedclusters.ContainerServiceNetworkProfile, error) {
 	if len(input) == 0 {
@@ -3613,7 +3614,7 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []interface{}, d *plug
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	natGatewayProfileRaw := config["nat_gateway_profile"].([]interface{})
 	outboundType := config["outbound_type"].(string)
-	ipVersions, err := expandIPVersions(config["ip_versions"].([]interface{}))
+	ipVersions, err := expandAutomaticIPVersions(config["ip_versions"].([]interface{}))
 	if err != nil {
 		return nil, err
 	}
@@ -3640,7 +3641,7 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []interface{}, d *plug
 			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerSku)
 		}
 
-		networkProfile.LoadBalancerProfile = expandLoadBalancerProfile(loadBalancerProfileRaw)
+		networkProfile.LoadBalancerProfile = expandAutomaticLoadBalancerProfile(loadBalancerProfileRaw)
 	}
 
 	if len(natGatewayProfileRaw) > 0 {
@@ -3648,7 +3649,7 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []interface{}, d *plug
 			return nil, fmt.Errorf("only load balancer SKU 'Standard' supports NAT Gateway profiles. Provided load balancer type: %s", loadBalancerSku)
 		}
 
-		networkProfile.NatGatewayProfile = expandNatGatewayProfile(natGatewayProfileRaw)
+		networkProfile.NatGatewayProfile = expandAutomaticNatGatewayProfile(natGatewayProfileRaw)
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -3736,92 +3737,92 @@ func flattenKubernetesAutomaticClusterAdvancedNetworking(advancedNetworking *man
 	}
 }
 
-//func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterLoadBalancerProfile {
-//	if d[0] == nil {
-//		return nil
-//	}
-//
-//	config := d[0].(map[string]interface{})
-//
-//	profile := &managedclusters.ManagedClusterLoadBalancerProfile{}
-//
-//	if mins, ok := config["idle_timeout_in_minutes"]; ok && mins.(int) != 0 {
-//		profile.IdleTimeoutInMinutes = pointer.To(int64(mins.(int)))
-//	}
-//
-//	if port, ok := config["outbound_ports_allocated"].(int); ok {
-//		profile.AllocatedOutboundPorts = pointer.To(int64(port))
-//	}
-//
-//	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
-//		if c := int64(ipCount.(int)); c > 0 {
-//			profile.ManagedOutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
-//		}
-//	}
-//
-//	if ipv6Count := config["managed_outbound_ipv6_count"]; ipv6Count != nil {
-//		if c := int64(ipv6Count.(int)); c > 0 {
-//			if profile.ManagedOutboundIPs == nil {
-//				profile.ManagedOutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
-//			}
-//			profile.ManagedOutboundIPs.CountIPv6 = &c
-//		}
-//	}
-//
-//	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
-//		profile.OutboundIPPrefixes = &managedclusters.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
-//	}
-//
-//	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil {
-//		profile.OutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
-//	}
-//
-//	if backendPoolType, ok := config["backend_pool_type"].(string); ok {
-//		profile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
-//	}
-//
-//	return profile
-//}
-//
-//func expandIPVersions(input []interface{}) (*[]managedclusters.IPFamily, error) {
-//	if len(input) == 0 {
-//		return nil, nil
-//	}
-//
-//	ipv := make([]managedclusters.IPFamily, 0)
-//	for _, data := range input {
-//		ipv = append(ipv, managedclusters.IPFamily(data.(string)))
-//	}
-//
-//	if len(ipv) == 1 && ipv[0] == managedclusters.IPFamilyIPvSix {
-//		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
-//	}
-//
-//	return &ipv, nil
-//}
-//
-//func expandNatGatewayProfile(d []interface{}) *managedclusters.ManagedClusterNATGatewayProfile {
-//	if d[0] == nil {
-//		return nil
-//	}
-//
-//	config := d[0].(map[string]interface{})
-//
-//	profile := &managedclusters.ManagedClusterNATGatewayProfile{}
-//
-//	if mins, ok := config["idle_timeout_in_minutes"]; ok && mins.(int) != 0 {
-//		profile.IdleTimeoutInMinutes = pointer.To(int64(mins.(int)))
-//	}
-//
-//	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
-//		if c := int64(ipCount.(int)); c > 0 {
-//			profile.ManagedOutboundIPProfile = &managedclusters.ManagedClusterManagedOutboundIPProfile{Count: &c}
-//		}
-//	}
-//
-//	return profile
-//}
-//
+func expandAutomaticLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterLoadBalancerProfile {
+	if d[0] == nil {
+		return nil
+	}
+
+	config := d[0].(map[string]interface{})
+
+	profile := &managedclusters.ManagedClusterLoadBalancerProfile{}
+
+	if mins, ok := config["idle_timeout_in_minutes"]; ok && mins.(int) != 0 {
+		profile.IdleTimeoutInMinutes = pointer.To(int64(mins.(int)))
+	}
+
+	if port, ok := config["outbound_ports_allocated"].(int); ok {
+		profile.AllocatedOutboundPorts = pointer.To(int64(port))
+	}
+
+	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
+		if c := int64(ipCount.(int)); c > 0 {
+			profile.ManagedOutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+		}
+	}
+
+	if ipv6Count := config["managed_outbound_ipv6_count"]; ipv6Count != nil {
+		if c := int64(ipv6Count.(int)); c > 0 {
+			if profile.ManagedOutboundIPs == nil {
+				profile.ManagedOutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileManagedOutboundIPs{}
+			}
+			profile.ManagedOutboundIPs.CountIPv6 = &c
+		}
+	}
+
+	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefix_ids"]); ipPrefixes != nil {
+		profile.OutboundIPPrefixes = &managedclusters.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
+	}
+
+	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil {
+		profile.OutboundIPs = &managedclusters.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
+	}
+
+	if backendPoolType, ok := config["backend_pool_type"].(string); ok {
+		profile.BackendPoolType = pointer.To(managedclusters.BackendPoolType(backendPoolType))
+	}
+
+	return profile
+}
+
+func expandAutomaticIPVersions(input []interface{}) (*[]managedclusters.IPFamily, error) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	ipv := make([]managedclusters.IPFamily, 0)
+	for _, data := range input {
+		ipv = append(ipv, managedclusters.IPFamily(data.(string)))
+	}
+
+	if len(ipv) == 1 && ipv[0] == managedclusters.IPFamilyIPvSix {
+		return nil, fmt.Errorf("`ip_versions` must be `IPv4` or `IPv4` and `IPv6`. `IPv6` alone is not supported")
+	}
+
+	return &ipv, nil
+}
+
+func expandAutomaticNatGatewayProfile(d []interface{}) *managedclusters.ManagedClusterNATGatewayProfile {
+	if d[0] == nil {
+		return nil
+	}
+
+	config := d[0].(map[string]interface{})
+
+	profile := &managedclusters.ManagedClusterNATGatewayProfile{}
+
+	if mins, ok := config["idle_timeout_in_minutes"]; ok && mins.(int) != 0 {
+		profile.IdleTimeoutInMinutes = pointer.To(int64(mins.(int)))
+	}
+
+	if ipCount := config["managed_outbound_ip_count"]; ipCount != nil {
+		if c := int64(ipCount.(int)); c > 0 {
+			profile.ManagedOutboundIPProfile = &managedclusters.ManagedClusterManagedOutboundIPProfile{Count: &c}
+		}
+	}
+
+	return profile
+}
+
 //func idsToResourceReferences(set interface{}) *[]managedclusters.ResourceReference {
 //	if set == nil {
 //		return nil
@@ -4765,49 +4766,49 @@ func flattenKubernetesAutomaticClusterMicrosoftDefender(input *managedclusters.M
 	}
 }
 
-//func expandStorageProfile(input []interface{}) *managedclusters.ManagedClusterStorageProfile {
-//	if (input == nil) || len(input) == 0 {
-//		return nil
-//	}
-//
-//	raw := input[0].(map[string]interface{})
-//
-//	profile := managedclusters.ManagedClusterStorageProfile{
-//		BlobCSIDriver: &managedclusters.ManagedClusterStorageProfileBlobCSIDriver{
-//			Enabled: pointer.To(raw["blob_driver_enabled"].(bool)),
-//		},
-//		DiskCSIDriver: &managedclusters.ManagedClusterStorageProfileDiskCSIDriver{
-//			Enabled: pointer.To(raw["disk_driver_enabled"].(bool)),
-//		},
-//		FileCSIDriver: &managedclusters.ManagedClusterStorageProfileFileCSIDriver{
-//			Enabled: pointer.To(raw["file_driver_enabled"].(bool)),
-//		},
-//		SnapshotController: &managedclusters.ManagedClusterStorageProfileSnapshotController{
-//			Enabled: pointer.To(raw["snapshot_controller_enabled"].(bool)),
-//		},
-//	}
-//
-//	return &profile
-//}
-//
-//func expandEdgeZone(input string) *edgezones.Model {
-//	normalized := edgezones.Normalize(input)
-//	if normalized == "" {
-//		return nil
-//	}
-//
-//	return &edgezones.Model{
-//		Name: normalized,
-//	}
-//}
-//
-//func flattenEdgeZone(input *edgezones.Model) string {
-//	// As the `extendedLocation.type` returned by API is always lower case, so it has to use `Normalize` function while comparing them
-//	if input == nil || input.Name == "" {
-//		return ""
-//	}
-//	return edgezones.NormalizeNilable(&input.Name)
-//}
+func expandAutomaticStorageProfile(input []interface{}) *managedclusters.ManagedClusterStorageProfile {
+	if (input == nil) || len(input) == 0 {
+		return nil
+	}
+
+	raw := input[0].(map[string]interface{})
+
+	profile := managedclusters.ManagedClusterStorageProfile{
+		BlobCSIDriver: &managedclusters.ManagedClusterStorageProfileBlobCSIDriver{
+			Enabled: pointer.To(raw["blob_driver_enabled"].(bool)),
+		},
+		DiskCSIDriver: &managedclusters.ManagedClusterStorageProfileDiskCSIDriver{
+			Enabled: pointer.To(raw["disk_driver_enabled"].(bool)),
+		},
+		FileCSIDriver: &managedclusters.ManagedClusterStorageProfileFileCSIDriver{
+			Enabled: pointer.To(raw["file_driver_enabled"].(bool)),
+		},
+		SnapshotController: &managedclusters.ManagedClusterStorageProfileSnapshotController{
+			Enabled: pointer.To(raw["snapshot_controller_enabled"].(bool)),
+		},
+	}
+
+	return &profile
+}
+
+func expandEdgeZone(input string) *edgezones.Model {
+	normalized := edgezones.Normalize(input)
+	if normalized == "" {
+		return nil
+	}
+
+	return &edgezones.Model{
+		Name: normalized,
+	}
+}
+
+func flattenAutomaticEdgeZone(input *edgezones.Model) string {
+	// As the `extendedLocation.type` returned by API is always lower case, so it has to use `Normalize` function while comparing them
+	if input == nil || input.Name == "" {
+		return ""
+	}
+	return edgezones.NormalizeNilable(&input.Name)
+}
 
 //func base64Decode(str string) string {
 //	data, err := base64.StdEncoding.DecodeString(str)
@@ -5077,17 +5078,17 @@ func flattenKubernetesAutomaticClusterMetricsProfile(input *managedclusters.Mana
 	return pointer.From(input.CostAnalysis.Enabled)
 }
 
-//func retryNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
-//	// retries the creation of a node pool 3 times
-//	var err error
-//	for attempt := 0; attempt < 3; attempt++ {
-//		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
-//			return nil
-//		}
-//	}
-//
-//	return err
-//}
+func retryAutomaticNodePoolCreation(ctx context.Context, client *agentpools.AgentPoolsClient, id agentpools.AgentPoolId, profile agentpools.AgentPool) error {
+	// retries the creation of a node pool 3 times
+	var err error
+	for attempt := 0; attempt < 3; attempt++ {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, profile, agentpools.DefaultCreateOrUpdateOperationOptions()); err == nil {
+			return nil
+		}
+	}
+
+	return err
+}
 
 func expandKubernetesAutomaticClusterUpgradeOverrideSetting(input []interface{}) *managedclusters.ClusterUpgradeSettings {
 	if len(input) == 0 || input[0] == nil {
