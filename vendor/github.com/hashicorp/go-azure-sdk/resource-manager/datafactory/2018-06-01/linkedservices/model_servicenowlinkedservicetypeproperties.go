@@ -15,9 +15,9 @@ type ServiceNowLinkedServiceTypeProperties struct {
 	EncryptedCredential   *string                      `json:"encryptedCredential,omitempty"`
 	Endpoint              interface{}                  `json:"endpoint"`
 	Password              SecretBase                   `json:"password"`
-	UseEncryptedEndpoints *bool                        `json:"useEncryptedEndpoints,omitempty"`
-	UseHostVerification   *bool                        `json:"useHostVerification,omitempty"`
-	UsePeerVerification   *bool                        `json:"usePeerVerification,omitempty"`
+	UseEncryptedEndpoints *interface{}                 `json:"useEncryptedEndpoints,omitempty"`
+	UseHostVerification   *interface{}                 `json:"useHostVerification,omitempty"`
+	UsePeerVerification   *interface{}                 `json:"usePeerVerification,omitempty"`
 	Username              *interface{}                 `json:"username,omitempty"`
 }
 
@@ -29,9 +29,9 @@ func (s *ServiceNowLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) erro
 		ClientId              *interface{}                 `json:"clientId,omitempty"`
 		EncryptedCredential   *string                      `json:"encryptedCredential,omitempty"`
 		Endpoint              interface{}                  `json:"endpoint"`
-		UseEncryptedEndpoints *bool                        `json:"useEncryptedEndpoints,omitempty"`
-		UseHostVerification   *bool                        `json:"useHostVerification,omitempty"`
-		UsePeerVerification   *bool                        `json:"usePeerVerification,omitempty"`
+		UseEncryptedEndpoints *interface{}                 `json:"useEncryptedEndpoints,omitempty"`
+		UseHostVerification   *interface{}                 `json:"useHostVerification,omitempty"`
+		UsePeerVerification   *interface{}                 `json:"usePeerVerification,omitempty"`
 		Username              *interface{}                 `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

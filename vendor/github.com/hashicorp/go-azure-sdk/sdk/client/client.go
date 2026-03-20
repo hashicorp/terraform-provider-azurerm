@@ -290,6 +290,8 @@ func (r *Response) Unmarshal(model interface{}) error {
 	return fmt.Errorf("internal-error: unimplemented unmarshal function for content type %q", contentType)
 }
 
+var _ BaseClient = &Client{}
+
 // Client is a base client to be used by API-specific clients. It satisfies the BaseClient interface.
 type Client struct {
 	// BaseUri is the base endpoint for this API.
@@ -318,6 +320,10 @@ type Client struct {
 
 	// ResponseMiddlewares is a slice of functions that are called in order before a response is parsed and returned
 	ResponseMiddlewares *[]ResponseMiddleware
+
+	// Transport allows overriding the http.RoundTripper used by the client.
+	// When nil, a default transport will be used.
+	Transport http.RoundTripper
 }
 
 // NewClient returns a new Client configured with sensible defaults
@@ -330,6 +336,11 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 		BaseUri:   baseUri,
 		UserAgent: fmt.Sprintf("HashiCorp/go-azure-sdk (%s)", strings.Join(segments, " ")),
 	}
+}
+
+// SetTransport configures the transport to be used by the client
+func (c *Client) SetTransport(transport http.RoundTripper) {
+	c.Transport = transport
 }
 
 // SetAuthorizer configures the request authorizer for the client
@@ -723,24 +734,30 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
-	tlsConfig := tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
-	r.HTTPClient = &http.Client{
-		Transport: &http.Transport{
+	var transport http.RoundTripper
+	if c.Transport != nil {
+		transport = c.Transport
+	} else {
+		transport = &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := &net.Dialer{Resolver: &net.Resolver{}}
 				return d.DialContext(ctx, network, addr)
 			},
-			TLSClientConfig:       &tlsConfig,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 			ForceAttemptHTTP2:     true,
 			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		},
+		}
+	}
+
+	r.HTTPClient = &http.Client{
+		Transport: transport,
 	}
 
 	return
