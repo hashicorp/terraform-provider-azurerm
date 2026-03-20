@@ -4,9 +4,12 @@
 package vcr
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
@@ -14,6 +17,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -27,39 +31,87 @@ var (
 	testDataPath = "vcrtestdata"
 )
 
-const subscriptionPlaceholder = "00000000-0000-0000-0000-000000000000"
+const (
+	SubscriptionPlaceholder     = "00000000-0000-0000-0000-000000000000"
+	SubscriptionPlaceholderAlt  = "00000000-0000-0000-0000-000000000001"
+	SubscriptionPlaceholderAlt2 = "00000000-0000-0000-0000-000000000002"
+)
 
 // GetRecorder returns the shared recorder for a given test name, initialising it if necessary.
-// it redacts sensitive information, such as subscriptionId and Authorization Headers and tailors the matcher to AzureRM
+// it redacts sensitive information, such as SubscriptionID and Authorization Headers and tailors the matcher to AzureRM
 // requests.
 func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, error) {
 	if testName == "" {
-		return nil, fmt.Errorf("testName must be provided to retrieve a recorder")
+		return nil, errors.New("testName must be provided to retrieve a recorder")
 	}
 
 	mu.Lock()
 	defer mu.Unlock()
 
-	subscriptionIDRe := regexp.MustCompile(subscriptionId)
+	primary := os.Getenv("ARM_SUBSCRIPTION_ID")
+	alt := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	alt2 := os.Getenv("ARM_SUBSCRIPTION_ID_ALT2")
+
+	// Map real ID to specific placeholder
+	idReplacements := make(map[string]string)
+	if subscriptionId != "" && subscriptionId != primary {
+		idReplacements[subscriptionId] = SubscriptionPlaceholder
+	}
+	if primary != "" {
+		idReplacements[primary] = SubscriptionPlaceholder
+	}
+	if alt != "" {
+		idReplacements[alt] = SubscriptionPlaceholderAlt
+	}
+	if alt2 != "" {
+		idReplacements[alt2] = SubscriptionPlaceholderAlt2
+	}
+
+	// subscriptionRe matches common Azure subscription ID patterns in URLs and JSON
+	subscriptionRe := regexp.MustCompile(`(?i)(/subscriptions/|subscriptionId=|subscription_id=|"subscriptionId":\s*")([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})`)
 
 	redactSubscriptions := func(s string) string {
-		return subscriptionIDRe.ReplaceAllString(s, subscriptionPlaceholder)
+		// 1. Redact specific known IDs with their mapped placeholder (handles headers and other standalone occurrences)
+		for id, placeholder := range idReplacements {
+			re := regexp.MustCompile("(?i)" + id)
+			s = re.ReplaceAllString(s, placeholder)
+		}
+		// 2. Catch any other subscription IDs in standard patterns
+		return subscriptionRe.ReplaceAllStringFunc(s, func(match string) string {
+			groups := subscriptionRe.FindAllStringSubmatch(match, -1)
+			if len(groups) > 0 && len(groups[0]) > 2 {
+				// Prevent double-matching placeholders if already replaced
+				if groups[0][2] == SubscriptionPlaceholder || groups[0][2] == SubscriptionPlaceholderAlt || groups[0][2] == SubscriptionPlaceholderAlt2 {
+					return match
+				}
+				return groups[0][1] + SubscriptionPlaceholder
+			}
+			return match
+		})
+	}
+
+	redactHeaders := func(headers http.Header) {
+		for k, vals := range headers {
+			for j, v := range vals {
+				headers[k][j] = redactSubscriptions(v)
+			}
+		}
 	}
 
 	if r, exists := recorders[testName]; exists {
 		return r, nil
 	}
 
-	mode := recorder.ModeRecordOnce
-	if os.Getenv("TC_TEST_VIA_VCR") == "record" {
+	// default to passthrough, just in case something unexpected is set
+	mode := recorder.ModePassthrough
+	vcrMode := os.Getenv("TC_TEST_VIA_VCR")
+	switch vcrMode {
+	case "record":
 		mode = recorder.ModeRecordOnly
+	case "replay", "true":
+		mode = recorder.ModeReplayOnly
 	}
 
-	// Cassette files are stored as gzip-compressed YAML (.yaml.gz).
-	// The recorder library appends ".yaml" to the cassette name, so we suffix with ".gz"
-	// to produce the final filename: vcrtestdata/<testName>.gz.yaml
-	// For debugging/investigation purposes, switch the commented lines out and comment out the recorder.WithFS option in the recorder.New() below,
-	// cassettePath := filepath.Join(testDataPath, testName+".gz")
 	cassettePath := filepath.Join(testDataPath, testName)
 
 	// ignore volatile per-request headers
@@ -78,17 +130,34 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 	)
 
 	matcher := cassette.MatcherFunc(func(r *http.Request, i cassette.Request) bool {
-		// Normalise subscription IDs in the incoming request URL before matching
-		// so a real sub ID matches a cassette that has the placeholder.
+		// Normalise subscription IDs in the incoming request before matching
 		normalisedURL, err := url.Parse(redactSubscriptions(r.URL.String()))
 		if err != nil {
 			return false
 		}
 		rCopy := r.Clone(r.Context())
 		rCopy.URL = normalisedURL
+		rCopy.RequestURI = redactSubscriptions(rCopy.RequestURI)
+		redactHeaders(rCopy.Header)
+
+		// Redact Body in the incoming request so body matching succeeds
+		if r.Body != nil && r.Body != http.NoBody {
+			if bodyBytes, err := io.ReadAll(r.Body); err == nil {
+				// Restore original body for proper processing downstream
+				r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
+				redactedBody := redactSubscriptions(string(bodyBytes))
+				rCopy.Body = io.NopCloser(strings.NewReader(redactedBody))
+				rCopy.ContentLength = int64(len(redactedBody))
+			}
+		}
+
 		// Also normalise in the cassette interaction copy
 		iCopy := i
 		iCopy.URL = redactSubscriptions(i.URL)
+		iCopy.RequestURI = redactSubscriptions(i.RequestURI)
+		iCopy.Body = redactSubscriptions(i.Body)
+		redactHeaders(i.Headers)
+
 		return headerMatcher(rCopy, iCopy)
 	})
 
@@ -120,17 +189,16 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 			delete(i.Request.Headers, "Authorization")
 			i.Request.Headers["Authorization"] = []string{"Bearer REDACTED"}
 			return nil
-		}, recorder.AfterCaptureHook),
+		}, recorder.BeforeSaveHook),
 		recorder.WithHook(func(i *cassette.Interaction) error {
 			i.Request.URL = redactSubscriptions(i.Request.URL)
+			i.Request.RequestURI = redactSubscriptions(i.Request.RequestURI)
+			i.Request.Body = redactSubscriptions(i.Request.Body)
+			redactHeaders(i.Request.Headers)
 			i.Response.Body = redactSubscriptions(i.Response.Body)
-			for k, vals := range i.Response.Headers {
-				for j, v := range vals {
-					i.Response.Headers[k][j] = redactSubscriptions(v)
-				}
-			}
+			redactHeaders(i.Response.Headers)
 			return nil
-		}, recorder.AfterCaptureHook),
+		}, recorder.BeforeSaveHook),
 
 	)
 
