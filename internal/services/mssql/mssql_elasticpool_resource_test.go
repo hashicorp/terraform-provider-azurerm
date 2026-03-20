@@ -445,6 +445,7 @@ func TestAccMsSqlElasticPool_replicaCount(t *testing.T) {
 		data.ImportStep("max_size_gb"),
 	})
 }
+
 func TestAccMsSqlElasticPool_highAvailabilityReplicaCountNonHyperscaleError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
 	r := MssqlElasticpoolResource{}
