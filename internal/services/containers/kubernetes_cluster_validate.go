@@ -135,7 +135,119 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 	return nil
 }
 
-func validateKubernetesAutomaticCluster(d *pluginsdk.ResourceData, cluster *managedclusters.ManagedCluster) error {
+func validateKubernetesAutomaticCluster(d *pluginsdk.ResourceData, cluster *managedclusters.ManagedCluster, resourceGroup, name string) error {
+	if v, exists := d.GetOk("network_profile"); exists {
+		rawProfiles := v.([]interface{})
+
+		if len(rawProfiles) != 0 {
+			// then ensure the conditionally-required fields are set
+			profile := rawProfiles[0].(map[string]interface{})
+
+			if networkPlugin := profile["network_plugin"].(string); networkPlugin != "" {
+				dnsServiceIP := profile["dns_service_ip"].(string)
+				serviceCidr := profile["service_cidr"].(string)
+				podCidr := profile["pod_cidr"].(string)
+				podCidrs := profile["pod_cidrs"].([]interface{})
+				serviceCidrs := profile["service_cidrs"].([]interface{})
+				networkPluginMode := profile["network_plugin_mode"].(string)
+				isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
+
+				// Azure network plugin is not compatible with pod_cidr
+				if podCidr != "" && strings.EqualFold(networkPlugin, "azure") && !strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
+					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
+				}
+
+				// if not All empty values or All set values.
+				if (dnsServiceIP != "" || isServiceCidrSet) && (dnsServiceIP == "" || !isServiceCidrSet) {
+					return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
+				}
+
+				ipVersions := profile["ip_versions"].([]interface{})
+				if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
+					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
+				}
+				if len(podCidrs) == 2 && len(ipVersions) != 2 {
+					return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
+				}
+			}
+		}
+	}
+
+	// @tombuildsstuff: As of 2020-03-30 it's no longer possible to create a cluster using a Service Principal
+	// for authentication (albeit this worked on 2020-03-27 via API version 2019-10-01 :shrug:). However it's
+	// possible to rotate the Service Principal for an existing Cluster - so this needs to be supported via
+	// update.
+	//
+	// For now we'll have to error out if attempting to create a new Cluster with an SP for auth - since otherwise
+	// this gets silently converted to using MSI authentication.
+	v, principalExists := d.GetOk("service_principal")
+	if !principalExists {
+		return nil
+	}
+
+	servicePrincipalsRaw, ok := v.([]interface{})
+	if !ok || len(servicePrincipalsRaw) == 0 {
+		// if it's an existing cluster, we need to check if there's currently a SP used on this cluster that isn't
+		// defined locally, if so, we need to error out
+		if cluster != nil {
+			servicePrincipalExists := false
+			if props := cluster.Properties; props != nil {
+				if sp := props.ServicePrincipalProfile; sp != nil {
+					if cid := sp.ClientId; cid != "" {
+						// if it's MSI we ignore the block
+						servicePrincipalExists = !strings.EqualFold(cid, "msi")
+					}
+				}
+			}
+
+			// a non-MI Service Principal exists on the cluster, but not locally
+			if servicePrincipalExists {
+				return errExistingClusterServicePrincipalRemoved
+			}
+		}
+
+		return nil
+	}
+
+	// for a new cluster
+	if cluster == nil {
+		identityRaw, ok := d.GetOk("identity")
+		if !ok {
+			return nil
+		}
+		if vs := identityRaw.([]interface{}); len(vs) == 0 {
+			return nil
+		}
+
+		// if we have both a Service Principal and an Identity Block defined
+		return errNewClusterWithBothServicePrincipalAndMSI
+	} else {
+		// for an existing cluster
+		servicePrincipalIsMsi := false
+		if props := cluster.Properties; props != nil {
+			if sp := props.ServicePrincipalProfile; sp != nil {
+				if cid := sp.ClientId; cid != "" {
+					servicePrincipalIsMsi = strings.EqualFold(cid, "msi")
+				}
+			}
+		}
+
+		// the user has a Service Principal block defined, but the Cluster's been upgraded to use MSI
+		if servicePrincipalIsMsi {
+			return errExistingClusterHasBeenUpgraded
+		}
+
+		hasIdentity := false
+		if clusterIdentity := cluster.Identity; clusterIdentity != nil {
+			hasIdentity = clusterIdentity.Type != identity.TypeNone
+		}
+
+		if hasIdentity {
+			// there's a Service Principal block and an Identity block present - but it hasn't been upgraded
+			// tell the user to update it
+			return errExistingClusterRequiresUpgrading(resourceGroup, name)
+		}
+	}
 	return nil
 }
 
