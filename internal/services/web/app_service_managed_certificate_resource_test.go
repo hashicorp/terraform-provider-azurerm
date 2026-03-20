@@ -35,6 +35,7 @@ func TestAccAppServiceManagedCertificate_basicLinux(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("custom_hostname_binding_id"),
 	})
 }
 
@@ -74,6 +75,7 @@ func TestAccAppServiceManagedCertificate_completeLinux(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("custom_hostname_binding_id"),
 	})
 }
 
@@ -93,27 +95,28 @@ func TestAccAppServiceManagedCertificate_updateLinux(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_hostname_binding_id"),
 		{
 			Config: r.completeLinux(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_hostname_binding_id"),
 		{
 			Config: r.updateLinux(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("custom_hostname_binding_id"),
 		{
 			Config: r.basicLinux(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("custom_hostname_binding_id"),
 	})
 }
 
@@ -133,6 +136,7 @@ func TestAccAppServiceManagedCertificate_basicWindows(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("custom_hostname_binding_id"),
 	})
 }
 
