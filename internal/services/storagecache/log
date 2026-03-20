@@ -1,0 +1,1092 @@
+2026/03/17 10:54:16 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 10:54:19 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 10:54:23 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 10:54:26 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 10:54:28 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 10:54:30 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 10:54:32 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 10:54:35 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:54:43.608+0800 [ERROR] sdk.proto: Response contains error diagnostic:
+  diagnostic_summary=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401309634"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401309634"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   tf_rpc=ApplyResourceChange tf_resource_type=azurerm_managed_lustre_file_system tf_proto_version=5.10 tf_req_id=77247f75-c3e4-7613-94de-3cf7b909f2d3 tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+  diagnostic_detail=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401309634"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401309634"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   diagnostic_severity=ERROR
+2026-03-17T10:54:43.629+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1 test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1036811753 test_name=TestAccManagedLustreFileSystemExportJob_basic
+  error=
+  | exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401309634"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401309634"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401309634"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401309634"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+  
+2026-03-17T10:54:43.631+0800 [ERROR] sdk.helper_resource: Unexpected error: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1036811753 test_name=TestAccManagedLustreFileSystemExportJob_basic test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401309634"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401309634"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401309634"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401309634"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+  
+2026/03/17 10:54:45 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:54:45.266+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=e72bd2d9-eb40-a3de-2126-9c57c8764066 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider tf_mux_provider="*schema.GRPCProviderServer"
+2026/03/17 10:54:45 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:54:51.106+0800 [ERROR] sdk.proto: Response contains error diagnostic: tf_proto_version=5.10 tf_rpc=ApplyResourceChange tf_resource_type=azurerm_managed_lustre_file_system
+  diagnostic_detail=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317625"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317625"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   diagnostic_severity=ERROR
+  diagnostic_summary=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317625"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317625"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   tf_req_id=95466b65-b177-4c27-b669-735701e48c93 tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026-03-17T10:54:51.135+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2599621986 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform
+  error=
+  | exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317625"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317625"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317625"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317625"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+  
+2026-03-17T10:54:51.136+0800 [ERROR] sdk.helper_resource: Unexpected error: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2599621986 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317625"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317625"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317625"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317625"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+  
+2026/03/17 10:54:52 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:54:52.740+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=2f61a6c3-d970-3707-06d1-29d2e9a0ba68 tf_mux_provider="*schema.GRPCProviderServer" tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider
+2026/03/17 10:54:53 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:54:55.449+0800 [ERROR] sdk.proto: Response contains error diagnostic:
+  diagnostic_summary=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317723"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317723"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   tf_rpc=ApplyResourceChange tf_resource_type=azurerm_managed_lustre_file_system tf_req_id=e6409dcd-ce2d-a667-69e6-22159c9078d2 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10
+  diagnostic_detail=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317723"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317723"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   diagnostic_severity=ERROR
+2026-03-17T10:54:55.467+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1 test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2919221149
+  error=
+  | exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317723"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317723"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317723"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317723"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+  
+2026-03-17T10:54:55.468+0800 [ERROR] sdk.helper_resource: Unexpected error: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2919221149
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317723"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317723"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401317723"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401317723"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+   test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1
+2026/03/17 10:54:56 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:54:56.951+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=548aba06-37e2-7af7-c15c-517746470a75 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider tf_mux_provider="*schema.GRPCProviderServer"
+2026/03/17 10:54:57 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:54:58.984+0800 [ERROR] sdk.proto: Response contains error diagnostic:
+  diagnostic_detail=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401318683"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401318683"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   diagnostic_severity=ERROR
+  diagnostic_summary=
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401318683"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401318683"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+   tf_req_id=46e4fb75-c325-49dc-3012-d90b36032204 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ApplyResourceChange tf_resource_type=azurerm_managed_lustre_file_system
+2026-03-17T10:54:59.005+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401318683"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401318683"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401318683"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401318683"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+   test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2264745060
+2026-03-17T10:54:59.006+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1 test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2264745060
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401318683"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401318683"): performing CreateOrUpdate: unexpected status 409 (409 Conflict) with error: MissingSubscriptionRegistration: The subscription is not registered to use namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how to register subscriptions.
+  | 
+  |   with azurerm_managed_lustre_file_system.test,
+  |   on terraform_plugin_test.tf line 62, in resource "azurerm_managed_lustre_file_system" "test":
+  |   62: resource "azurerm_managed_lustre_file_system" "test" {
+  | 
+  | creating Aml Filesystem (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317105401318683"
+  | Aml Filesystem Name: "acctest-amlfs-260317105401318683"): performing
+  | CreateOrUpdate: unexpected status 409 (409 Conflict) with error:
+  | MissingSubscriptionRegistration: The subscription is not registered to use
+  | namespace 'Microsoft.StorageCache'. See https://aka.ms/rps-not-found for how
+  | to register subscriptions.
+  
+2026/03/17 10:55:00 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T10:55:00.494+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=e0190904-4ced-e940-218c-6b96e6fd3a9a tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider tf_mux_provider="*schema.GRPCProviderServer"
+2026/03/17 10:55:01 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:05 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:08 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:10 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:13 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:14 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:17 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:21 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:01:24 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:15:14.372+0800 [ERROR] sdk.proto: Response contains error diagnostic:
+  diagnostic_summary=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048257283"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048257283"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048257283"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  
+  diagnostic_detail=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048257283"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048257283"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048257283"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+   diagnostic_severity=ERROR tf_req_id=f5f1ae87-be8d-e75e-10d7-fbe816f31ee4 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ApplyResourceChange tf_resource_type=azurerm_managed_lustre_file_system_auto_export_job
+2026-03-17T11:15:14.405+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048257283"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048257283"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048257283"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048257283"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048257283"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048257283"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+   test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3536010903
+2026-03-17T11:15:14.406+0800 [ERROR] sdk.helper_resource: Unexpected error: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3536010903 test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_step_number=1
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048257283"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048257283"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048257283"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048257283"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048257283"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048257283"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+  
+2026/03/17 11:15:16 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:15:16.602+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_rpc=ConfigureProvider tf_req_id=f16d0f6b-2374-9fab-e822-a4fbbe5294a2 tf_mux_provider="*schema.GRPCProviderServer" tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026/03/17 11:15:17 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:15:55.320+0800 [ERROR] sdk.proto: Response contains error diagnostic: tf_proto_version=5.10 tf_resource_type=azurerm_managed_lustre_file_system_auto_export_job tf_rpc=ApplyResourceChange
+  diagnostic_detail=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048251635"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048251635"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048251635"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+   diagnostic_severity=ERROR
+  diagnostic_summary=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048251635"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048251635"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048251635"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+   tf_req_id=1ec3a9ed-a525-cf37-11a6-69003a81209e tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026-03-17T11:15:55.341+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3632553794 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048251635"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048251635"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048251635"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048251635"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048251635"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048251635"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+  
+2026-03-17T11:15:55.341+0800 [ERROR] sdk.helper_resource: Unexpected error:
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048251635"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048251635"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048251635"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048251635"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048251635"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048251635"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+   test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3632553794 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update
+2026-03-17T11:15:55.477+0800 [ERROR] sdk.proto: Response contains error diagnostic: diagnostic_severity=ERROR tf_req_id=215714cc-3d31-f156-810d-1c2569bebb14 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ApplyResourceChange tf_resource_type=azurerm_managed_lustre_file_system_auto_export_job
+  diagnostic_summary=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048256559"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048256559"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048256559"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  
+  diagnostic_detail=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048256559"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048256559"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048256559"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  
+2026-03-17T11:15:55.491+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1151759084 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_basic
+  error=
+  | exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048256559"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048256559"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048256559"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048256559"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048256559"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048256559"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+  
+2026-03-17T11:15:55.491+0800 [ERROR] sdk.helper_resource: Unexpected error: test_terraform_path=/opt/homebrew/bin/terraform
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048256559"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048256559"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048256559"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048256559"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048256559"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048256559"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+   test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1151759084 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_basic
+2026/03/17 11:15:56 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:15:57.081+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_mux_provider="*schema.GRPCProviderServer" tf_rpc=ConfigureProvider tf_req_id=f145d750-19a7-03b2-37ed-f36532cba6dd tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026/03/17 11:15:57 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:15:57.384+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=6b3c3f22-9e2f-2d8b-9c5d-6f1170cbbb52 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider tf_mux_provider="*schema.GRPCProviderServer"
+2026/03/17 11:15:57 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:15:57 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:16:05.860+0800 [ERROR] sdk.proto: Response contains error diagnostic: tf_req_id=c08577c4-fac9-7f4e-68a4-573dbf46da1c tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+  diagnostic_summary=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048252156"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048252156"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048252156"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  
+  diagnostic_detail=
+  | creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048252156"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048252156"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048252156"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+   diagnostic_severity=ERROR tf_proto_version=5.10 tf_rpc=ApplyResourceChange tf_resource_type=azurerm_managed_lustre_file_system_auto_export_job
+2026-03-17T11:16:05.882+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3814531932 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform
+  error=
+  | exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048252156"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048252156"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048252156"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048252156"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048252156"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048252156"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+  
+2026-03-17T11:16:05.883+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3814531932 test_step_number=1
+  error=
+  | Error running apply: exit status 1
+  | 
+  | Error: creating Auto Export Job (Subscription: "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048252156"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048252156"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048252156"): performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error: BadRequest: AutoExport Jobs are not supported on clusters without HSM enabled.
+  | 
+  |   with azurerm_managed_lustre_file_system_auto_export_job.test,
+  |   on terraform_plugin_test.tf line 78, in resource "azurerm_managed_lustre_file_system_auto_export_job" "test":
+  |   78: resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
+  | 
+  | creating Auto Export Job (Subscription:
+  | "18ca8bf0-e7e9-4450-83da-2124ec1ce0cb"
+  | Resource Group Name: "acctestRG-amlfs-260317110048252156"
+  | Aml Filesystem Name: "acctest-amlfs-260317110048252156"
+  | Auto Export Job Name: "acctest-amlfsaej-260317110048252156"): performing
+  | CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+  | BadRequest: AutoExport Jobs are not supported on clusters without HSM
+  | enabled.
+  
+2026/03/17 11:16:07 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:16:07.441+0800 [WARN]  sdk.helper_schema: Previously configured provider being re-configured. This can cause issues in concurrent testing if the configurations are not equal.: tf_req_id=c2495e1f-1bb1-e993-bf5f-b2da06c95523 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ConfigureProvider tf_mux_provider="*schema.GRPCProviderServer"
+2026/03/17 11:16:07 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026/03/17 11:25:15 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:25:15.104+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_req_id=51d42aee-6093-231e-d615-36fa56cecd4b tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:25:15.104+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 tf_req_id=10614e72-c7d4-f40f-0a97-41338fdb1442 diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026-03-17T11:25:15.820+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest688399117 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_basic
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:25:15.820+0800 [ERROR] sdk.helper_resource: Unexpected error: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest688399117 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_basic
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:25:19 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:25:19.595+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig diagnostic_summary="Argument is deprecated" tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_req_id=daf87c44-da0c-811f-09d6-39e9062bc87a
+2026-03-17T11:25:19.595+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=3b02c235-492d-0de0-2543-286f49305070 tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_rpc=ValidateResourceTypeConfig diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_proto_version=5.10 tf_resource_type=azurerm_storage_container
+2026-03-17T11:25:20.297+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_requiresImport
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3227706480 test_step_number=1
+2026-03-17T11:25:20.297+0800 [ERROR] sdk.helper_resource: Unexpected error:
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3227706480 test_step_number=1
+2026/03/17 11:25:26 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:25:26.466+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=8d34c935-3821-be7c-ef20-b60d937d31cf diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider."
+2026-03-17T11:25:26.466+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_rpc=ValidateResourceTypeConfig tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_resource_type=azurerm_storage_container tf_req_id=f1cf92f1-c5cc-01bd-2f38-745b1e8392e8
+2026-03-17T11:25:27.163+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3537015470 test_name=TestAccManagedLustreFileSystemExportJob_complete test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:25:27.163+0800 [ERROR] sdk.helper_resource: Unexpected error: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3537015470 test_name=TestAccManagedLustreFileSystemExportJob_complete test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:25:34 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:25:34.943+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig diagnostic_severity=WARNING tf_req_id=d1d09847-914d-855a-b4a9-140b44b3e2b1 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:25:34.944+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=04ac995d-6d78-1e72-5b9a-5a40456886f8 tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" tf_resource_type=azurerm_storage_container
+2026-03-17T11:25:35.644+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2648170243 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:25:35.644+0800 [ERROR] sdk.helper_resource: Unexpected error: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2648170243 test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_name=TestAccManagedLustreFileSystemExportJob_update
+2026/03/17 11:31:00 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:31:00.615+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_resource_type=azurerm_storage_container tf_req_id=032b871f-1c10-0f3c-65c3-3224eadd7d7d diagnostic_summary="Argument is deprecated" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:31:00.615+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" tf_req_id=9d38d48f-b6e8-219f-3a51-f79bb70dcd84 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_rpc=ValidateResourceTypeConfig
+2026-03-17T11:31:01.521+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2478438373 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_name=TestAccManagedLustreFileSystemExportJob_requiresImport
+2026-03-17T11:31:01.521+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2478438373 test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:31:04 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:31:04.930+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=dc36dcad-4e6e-6819-b261-c76693280ca5 tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider."
+2026-03-17T11:31:04.930+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_summary="Argument is deprecated" tf_req_id=68a14802-88d6-56ca-843b-ee4bc7826b10
+2026-03-17T11:31:05.641+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest4215926303 test_name=TestAccManagedLustreFileSystemExportJob_basic test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:31:05.641+0800 [ERROR] sdk.helper_resource: Unexpected error:
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest4215926303 test_name=TestAccManagedLustreFileSystemExportJob_basic test_step_number=1
+2026/03/17 11:31:09 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:31:09.637+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig tf_proto_version=5.10 diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_req_id=8993a42d-85df-09fd-06ab-1414135a1acb tf_resource_type=azurerm_storage_container
+2026-03-17T11:31:09.637+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_req_id=60c48b3a-c94d-bbd3-8308-e8bce9df8b46 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:31:10.362+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1605090717 test_step_number=1
+2026-03-17T11:31:10.362+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1605090717 test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:31:14 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:31:14.066+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_req_id=55faab0e-2d32-d2e2-67e7-88f3bf0c6cb5 diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:31:14.066+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=d425b857-6b1b-36fe-01d8-aa02cf587560 tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_summary="Argument is deprecated" tf_rpc=ValidateResourceTypeConfig tf_proto_version=5.10 tf_resource_type=azurerm_storage_container diagnostic_severity=WARNING
+2026-03-17T11:31:14.777+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3062489151 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform
+2026-03-17T11:31:14.777+0800 [ERROR] sdk.helper_resource: Unexpected error:
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3062489151 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform
+2026/03/17 11:38:00 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:38:00.109+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=b1b4ee58-1fde-fce2-4cfd-e4631cb8b5b4 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_proto_version=5.10 diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:38:00.109+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_resource_type=azurerm_storage_container diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" tf_req_id=12f47c67-c118-b049-d5c2-0fcfd42bf54b tf_proto_version=5.10
+2026-03-17T11:38:00.813+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_terraform_path=/opt/homebrew/bin/terraform test_name=TestAccManagedLustreFileSystemExportJob_basic test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3772552218 test_step_number=1
+2026-03-17T11:38:00.814+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_basic test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3772552218 test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_terraform_path=/opt/homebrew/bin/terraform
+2026/03/17 11:38:08 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:38:08.325+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_req_id=7864cf46-e82f-e734-fca7-39be4d08cbcc diagnostic_summary="Argument is deprecated" tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026-03-17T11:38:08.325+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" tf_req_id=6e6411a8-1169-b737-54a3-b5afcd80c466 tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026-03-17T11:38:09.179+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3661888038 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_requiresImport
+2026-03-17T11:38:09.180+0800 [ERROR] sdk.helper_resource: Unexpected error: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3661888038 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:38:16 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:38:16.291+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_req_id=3cc9938d-1f66-d476-ca41-c3c5b17201ce tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_summary="Argument is deprecated"
+2026-03-17T11:38:16.291+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_summary="Argument is deprecated" tf_req_id=c0668b7e-2a58-c3e0-1d2f-62be0927d441 tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:38:17.332+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1311583266 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:38:17.333+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1311583266 test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:38:20 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:38:20.804+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=34f71754-8ef0-3b65-38cf-818ae28511c3 tf_rpc=ValidateResourceTypeConfig diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_resource_type=azurerm_storage_container diagnostic_summary="Argument is deprecated"
+2026-03-17T11:38:20.804+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_summary="Argument is deprecated" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_req_id=4a8d1e84-e1ca-3f08-d903-7b572cef090c tf_resource_type=azurerm_storage_container diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:38:21.784+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest472930060 test_terraform_path=/opt/homebrew/bin/terraform test_name=TestAccManagedLustreFileSystemExportJob_complete test_step_number=1
+2026-03-17T11:38:21.785+0800 [ERROR] sdk.helper_resource: Unexpected error:
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest472930060 test_terraform_path=/opt/homebrew/bin/terraform test_name=TestAccManagedLustreFileSystemExportJob_complete test_step_number=1
+2026/03/17 11:46:33 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:46:33.850+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=2773b59c-2443-7bcb-486d-ad7a638aaa02 tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_summary="Argument is deprecated" tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING
+2026-03-17T11:46:33.850+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_req_id=dfe2dce5-ed80-de36-9345-5bafec8acf09 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_rpc=ValidateResourceTypeConfig tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_resource_type=azurerm_storage_container
+2026-03-17T11:46:34.569+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_terraform_path=/opt/homebrew/bin/terraform test_name=TestAccManagedLustreFileSystemExportJob_complete test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2144096574 test_step_number=1
+2026-03-17T11:46:34.569+0800 [ERROR] sdk.helper_resource: Unexpected error:
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_step_number=1 test_terraform_path=/opt/homebrew/bin/terraform test_name=TestAccManagedLustreFileSystemExportJob_complete test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2144096574
+2026/03/17 11:46:40 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:46:40.352+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_resource_type=azurerm_storage_container tf_req_id=742dd7a3-a7ed-b992-0cf3-72d461dc9c2a tf_proto_version=5.10 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_summary="Argument is deprecated" tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:46:40.359+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_severity=WARNING tf_rpc=ValidateResourceTypeConfig tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_proto_version=5.10 tf_resource_type=azurerm_storage_container diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_req_id=94cc35aa-79d1-3a79-246a-8c655f21bd18 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider."
+2026-03-17T11:46:41.069+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_basic test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1655545807 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:46:41.069+0800 [ERROR] sdk.helper_resource: Unexpected error: test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_basic test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest1655545807
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:46:44 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:46:44.766+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_req_id=4f27b521-41ad-ea94-cce5-1f17c1f87d60 tf_proto_version=5.10 tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:46:44.766+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_proto_version=5.10 tf_req_id=40420472-57dd-92a0-08d4-f8a05f0a02c1 diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")"
+2026-03-17T11:46:45.553+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2704277170 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:46:45.553+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest2704277170 test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 11:46:51 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T11:46:51.819+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_severity=WARNING tf_req_id=be149f94-06f4-a74d-1dbb-78884b5224bc tf_proto_version=5.10 tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_summary="Argument is deprecated"
+2026-03-17T11:46:51.819+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_req_id=01ca5e9a-5d69-ec84-d2c2-7c993af8f27e tf_proto_version=5.10 tf_resource_type=azurerm_storage_container diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated"
+2026-03-17T11:46:52.569+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3104484828 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T11:46:52.570+0800 [ERROR] sdk.helper_resource: Unexpected error: test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3104484828
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 15:19:16 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T15:19:16.116+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_resource_type=azurerm_storage_container diagnostic_severity=WARNING tf_proto_version=5.10 tf_req_id=f250f792-fa9a-b656-9f2e-70aa52f39a22 tf_rpc=ValidateResourceTypeConfig diagnostic_summary="Argument is deprecated"
+2026-03-17T15:19:16.116+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_rpc=ValidateResourceTypeConfig tf_req_id=e445a67b-8bad-d48f-3429-f0a62c9b85ba tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated"
+2026-03-17T15:19:17.108+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command:
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3023545375 test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1
+2026-03-17T15:19:17.108+0800 [ERROR] sdk.helper_resource: Unexpected error: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3023545375 test_name=TestAccManagedLustreFileSystemExportJob_complete test_terraform_path=/opt/homebrew/bin/terraform test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 15:19:23 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T15:19:23.947+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_req_id=5b016720-7744-8419-f143-dd278d7493f0 tf_proto_version=5.10 tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm
+2026-03-17T15:19:23.948+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_resource_type=azurerm_storage_container tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig tf_req_id=042e1ac4-2337-fc8c-befe-b16aac00846f diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_proto_version=5.10 diagnostic_severity=WARNING
+2026-03-17T15:19:24.774+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3760934822
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform
+2026-03-17T15:19:24.774+0800 [ERROR] sdk.helper_resource: Unexpected error: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3760934822 test_step_number=1 test_name=TestAccManagedLustreFileSystemExportJob_update test_terraform_path=/opt/homebrew/bin/terraform
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026/03/17 15:19:31 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T15:19:31.762+0800 [WARN]  sdk.proto: Response contains warning diagnostic: diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_rpc=ValidateResourceTypeConfig tf_req_id=6c01d513-19bb-f22e-d0d3-887c60cf4315 tf_proto_version=5.10 tf_resource_type=azurerm_storage_container
+2026-03-17T15:19:31.762+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_resource_type=azurerm_storage_container tf_proto_version=5.10 diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING diagnostic_attribute="AttributeName(\"storage_account_name\")" tf_req_id=a8f620fc-421b-4bb7-1f90-42fcc5b293d9 tf_rpc=ValidateResourceTypeConfig tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_summary="Argument is deprecated"
+2026-03-17T15:19:32.569+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_name=TestAccManagedLustreFileSystemExportJob_basic test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3655210213 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
+2026-03-17T15:19:32.570+0800 [ERROR] sdk.helper_resource: Unexpected error: test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_name=TestAccManagedLustreFileSystemExportJob_basic test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest3655210213
+2026/03/17 15:19:36 [WARN] The required Resource Provider "Microsoft.MixedReality" wasn't returned from the Azure API
+2026-03-17T15:19:36.367+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_rpc=ValidateResourceTypeConfig tf_req_id=74f8315c-bbcd-6206-cec4-94a8feec9477 tf_resource_type=azurerm_storage_container tf_proto_version=5.10 diagnostic_summary="Argument is deprecated" diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." tf_provider_addr=registry.terraform.io/hashicorp/azurerm diagnostic_severity=WARNING
+2026-03-17T15:19:36.367+0800 [WARN]  sdk.proto: Response contains warning diagnostic: tf_proto_version=5.10 diagnostic_attribute="AttributeName(\"storage_account_name\")" diagnostic_detail="the `storage_account_name` property has been deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the Provider." diagnostic_severity=WARNING tf_provider_addr=registry.terraform.io/hashicorp/azurerm tf_req_id=77145fd4-cc8b-a686-c902-a8750200ed6e tf_rpc=ValidateResourceTypeConfig tf_resource_type=azurerm_storage_container diagnostic_summary="Argument is deprecated"
+2026-03-17T15:19:37.364+0800 [WARN]  sdk.helper_resource: Error running Terraform CLI command: test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest929005085 test_step_number=1
+  error=
+  | exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+   test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform
+2026-03-17T15:19:37.365+0800 [ERROR] sdk.helper_resource: Unexpected error: test_name=TestAccManagedLustreFileSystemExportJob_requiresImport test_terraform_path=/opt/homebrew/bin/terraform test_working_directory=/var/folders/b2/nwsmjtkj27n_wwqgjx3clff40000gn/T/plugintest929005085 test_step_number=1
+  error=
+  | Error running pre-apply plan: exit status 1
+  | 
+  | Error: Listing service principals for filter "displayName eq 'HPC Cache Resource Provider'"
+  | 
+  |   with data.azuread_service_principal.test,
+  |   on terraform_plugin_test.tf line 130, in data "azuread_service_principal" "test":
+  |  130: data "azuread_service_principal" "test" {
+  | 
+  | unexpected status 403 (403 Forbidden) with error:
+  | Authorization_RequestDenied: Insufficient privileges to complete the
+  | operation.
+  
