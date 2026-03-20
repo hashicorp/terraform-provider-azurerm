@@ -4,7 +4,6 @@
 package web
 
 import (
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -172,11 +171,7 @@ func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if v := d.Get("pfx_blob").(string); v != "" {
-		decodedPfxBlob, err := base64.StdEncoding.DecodeString(v)
-		if err != nil {
-			return fmt.Errorf("decoding PFX blob: %+v", err)
-		}
-		certificate.Properties.PfxBlob = pointer.To(string(decodedPfxBlob))
+		certificate.Properties.PfxBlob = pointer.To(v)
 	}
 
 	if v := d.Get("key_vault_secret_id").(string); v != "" {
@@ -288,7 +283,7 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 				if err != nil {
 					return err
 				}
-				d.Set("server_farm_id", sfID.ID())
+				d.Set("app_service_plan_id", sfID.ID())
 			}
 		}
 	}

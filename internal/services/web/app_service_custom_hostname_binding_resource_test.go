@@ -19,50 +19,18 @@ import (
 
 type ServiceCustomHostnameBindingResource struct{}
 
-func TestAccAppServiceCustomHostnameBinding(t *testing.T) {
-	appServiceEnvVariable := "ARM_TEST_APP_SERVICE"
-	appServiceEnv := os.Getenv(appServiceEnvVariable)
-	if appServiceEnv == "" {
-		t.Skipf("Skipping as %q is not specified", appServiceEnvVariable)
+func TestAccAppServiceCustomHostnameBinding_basic(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
 	}
 
-	domainEnvVariable := "ARM_TEST_DOMAIN"
-	domainEnv := os.Getenv(domainEnvVariable)
-	if domainEnv == "" {
-		t.Skipf("Skipping as %q is not specified", domainEnvVariable)
-	}
-
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// the app service name being shared (so the tests don't conflict with each other)
-	testCases := map[string]map[string]func(t *testing.T, appServiceEnv, domainEnv string){
-		"basic": {
-			"basic":          testAccAppServiceCustomHostnameBinding_basic,
-			"multiple":       testAccAppServiceCustomHostnameBinding_multiple,
-			"requiresImport": testAccAppServiceCustomHostnameBinding_requiresImport,
-			"ssl":            testAccAppServiceCustomHostnameBinding_ssl,
-		},
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t, appServiceEnv, domainEnv)
-				})
-			}
-		})
-	}
-}
-
-func testAccAppServiceCustomHostnameBinding_basic(t *testing.T, appServiceEnv, domainEnv string) {
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 	r := ServiceCustomHostnameBindingResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicConfig(data, appServiceEnv, domainEnv),
+			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -71,36 +39,40 @@ func testAccAppServiceCustomHostnameBinding_basic(t *testing.T, appServiceEnv, d
 	})
 }
 
-func testAccAppServiceCustomHostnameBinding_requiresImport(t *testing.T, appServiceEnv, domainEnv string) {
-	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
-	r := ServiceCustomHostnameBindingResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicConfig(data, appServiceEnv, domainEnv),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport(data, appServiceEnv, domainEnv)
-		}),
-	})
-}
-
-func testAccAppServiceCustomHostnameBinding_multiple(t *testing.T, appServiceEnv, domainEnv string) {
-	altDomainEnvVariable := "ARM_ALT_TEST_DOMAIN"
-	altDomainEnv := os.Getenv(altDomainEnvVariable)
-	if altDomainEnv == "" {
-		t.Skipf("Skipping as %q is not specified", altDomainEnvVariable)
+func TestAccAppServiceCustomHostnameBinding_requiresImport(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 	r := ServiceCustomHostnameBindingResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.multipleConfig(data, appServiceEnv, domainEnv, altDomainEnv),
+			Config: r.basicConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
+			return r.requiresImport(data)
+		}),
+	})
+}
+
+func TestAccAppServiceCustomHostnameBinding_multiple(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
+	r := ServiceCustomHostnameBindingResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -108,13 +80,18 @@ func testAccAppServiceCustomHostnameBinding_multiple(t *testing.T, appServiceEnv
 	})
 }
 
-func testAccAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceEnv, domainEnv string) {
+func TestAccAppServiceCustomHostnameBinding_ssl(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skip("Skipping as ARM_TEST_DNS_ZONE and/or ARM_TEST_DATA_RESOURCE_GROUP are not specified")
+		return
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_app_service_custom_hostname_binding", "test")
 	r := ServiceCustomHostnameBindingResource{}
 
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.sslConfig(data, appServiceEnv, domainEnv),
+			Config: r.sslConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -137,101 +114,77 @@ func (r ServiceCustomHostnameBindingResource) Exists(ctx context.Context, client
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (ServiceCustomHostnameBindingResource) basicConfig(data acceptance.TestData, appServiceName string, domain string) string {
+func (r ServiceCustomHostnameBindingResource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
+%[1]s
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
-  hostname            = "%[4]s"
+  hostname            = trimsuffix(azurerm_dns_cname_record.test.fqdn, ".")
   app_service_name    = azurerm_app_service.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, data.RandomInteger, data.Locations.Primary, appServiceName, domain)
+`, r.template(data))
 }
 
-func (r ServiceCustomHostnameBindingResource) requiresImport(data acceptance.TestData, appServiceName string, domain string) string {
+func (r ServiceCustomHostnameBindingResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_app_service_custom_hostname_binding" "import" {
-  hostname            = azurerm_app_service_custom_hostname_binding.test.name
+  hostname            = azurerm_app_service_custom_hostname_binding.test.hostname
   app_service_name    = azurerm_app_service_custom_hostname_binding.test.app_service_name
   resource_group_name = azurerm_app_service_custom_hostname_binding.test.resource_group_name
 }
-`, r.basicConfig(data, appServiceName, domain))
+`, r.basicConfig(data))
 }
 
-func (r ServiceCustomHostnameBindingResource) multipleConfig(data acceptance.TestData, appServiceName, domain, altDomain string) string {
+func (r ServiceCustomHostnameBindingResource) multipleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
+
+resource "azurerm_dns_cname_record" "test2" {
+  name                = "%[2]s"
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 300
+  record              = azurerm_app_service.test.default_site_hostname
+}
+
+resource "azurerm_dns_txt_record" "test2" {
+  name                = join(".", ["asuid", "%[2]s"])
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 300
+
+  record {
+    value = azurerm_app_service.test.custom_domain_verification_id
+  }
+}
 
 resource "azurerm_app_service_custom_hostname_binding" "test2" {
-  hostname            = "%s"
+  hostname            = trimsuffix(azurerm_dns_cname_record.test2.fqdn, ".")
   app_service_name    = azurerm_app_service.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, r.basicConfig(data, appServiceName, domain), altDomain)
+`, r.basicConfig(data), data.RandomStringOfLength(7))
 }
 
-func (r ServiceCustomHostnameBindingResource) sslConfig(data acceptance.TestData, appServiceName, domain string) string {
+func (r ServiceCustomHostnameBindingResource) sslConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
+%[1]s
 
-resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-
-  sku {
-    tier = "Standard"
-    size = "S1"
-  }
-}
-
-resource "azurerm_app_service" "test" {
-  name                = "%[3]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  app_service_plan_id = azurerm_app_service_plan.test.id
-}
-
-data "azurerm_client_config" "test" {
-}
+data "azurerm_client_config" "test" {}
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctest-%[4]s"
+  name                = "acct-%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.test.tenant_id
@@ -241,12 +194,12 @@ resource "azurerm_key_vault" "test" {
     tenant_id               = data.azurerm_client_config.test.tenant_id
     object_id               = data.azurerm_client_config.test.object_id
     secret_permissions      = ["Delete", "Get", "Set"]
-    certificate_permissions = ["Create", "Delete", "Get", "Import"]
+    certificate_permissions = ["Create", "Delete", "Get", "Import", "Purge"]
   }
 }
 
 resource "azurerm_key_vault_certificate" "test" {
-  name         = "acct-%[1]d"
+  name         = "acctest-%[2]d"
   key_vault_id = azurerm_key_vault.test.id
 
   certificate_policy {
@@ -273,7 +226,7 @@ resource "azurerm_key_vault_certificate" "test" {
         "keyEncipherment",
       ]
 
-      subject            = "CN=%[5]s"
+      subject            = "CN=${trimsuffix(azurerm_dns_cname_record.test.fqdn, ".")}"
       validity_in_months = 12
     }
   }
@@ -285,18 +238,69 @@ data "azurerm_key_vault_secret" "test" {
 }
 
 resource "azurerm_app_service_certificate" "test" {
-  name                = "acctestCert-%[1]d"
+  name                = "acctestCert-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   pfx_blob            = data.azurerm_key_vault_secret.test.value
 }
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
-  hostname            = "%[5]s"
+  hostname            = trimsuffix(azurerm_dns_cname_record.test.fqdn, ".")
   app_service_name    = azurerm_app_service.test.name
   resource_group_name = azurerm_resource_group.test.name
   ssl_state           = "SniEnabled"
   thumbprint          = azurerm_app_service_certificate.test.thumbprint
 }
-`, data.RandomInteger, data.Locations.Primary, appServiceName, data.RandomString, domain)
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r ServiceCustomHostnameBindingResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  app_service_plan_id = azurerm_app_service_plan.test.id
+}
+
+data "azurerm_dns_zone" "test" {
+  name                = "%[3]s"
+  resource_group_name = "%[4]s"
+}
+
+resource "azurerm_dns_cname_record" "test" {
+  name                = "%[5]s"
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 300
+  record              = azurerm_app_service.test.default_site_hostname
+}
+
+resource "azurerm_dns_txt_record" "test" {
+  name                = join(".", ["asuid", "%[5]s"])
+  zone_name           = data.azurerm_dns_zone.test.name
+  resource_group_name = data.azurerm_dns_zone.test.resource_group_name
+  ttl                 = 300
+
+  record {
+    value = azurerm_app_service.test.custom_domain_verification_id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_DNS_ZONE"), os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP"), data.RandomString)
 }
