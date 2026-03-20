@@ -488,7 +488,7 @@ func TestAccCdnFrontDoorRule_requiresImport(t *testing.T) {
 	r := CdnFrontDoorRuleResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data, false),
+			Config: r.basic(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1402,7 +1402,7 @@ resource "azurerm_cdn_frontdoor_rule" "test" {
 }
 
 func (r CdnFrontDoorRuleResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data, false)
+	config := r.basic(data, true)
 	return fmt.Sprintf(`
 			%s
 
