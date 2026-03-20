@@ -2,11 +2,13 @@
 
 ENHANCEMENTS:
 * dependencies: `Go` - upgrade to version 1.25.8 [GH-31907]
+* `azurerm_kubernetes_cluster` - add support for migration from Azure or Kubenet CNI to Azure CNI Overlay [GH-30959]
 
 FEATURES:
 
 BUG FIXES:
-`azurerm_log_analytics_workspace` - preserve default value of `local_authentication_enabled` [GH-32004]
+* `azurerm_log_analytics_workspace` - preserve default value of `local_authentication_enabled` [GH-32004]
+
 
 ## 4.65.0 (March 19, 2026)
 
