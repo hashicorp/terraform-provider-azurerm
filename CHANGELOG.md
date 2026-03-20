@@ -6,6 +6,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+`azurerm_log_analytics_workspace` - preserve default value of `local_authentication_enabled` [GH-32004]
 
 ## 4.65.0 (March 19, 2026)
 
