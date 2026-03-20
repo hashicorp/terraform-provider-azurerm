@@ -1,6 +1,7 @@
 ## 4.66.0 (Unreleased)
 
 ENHANCEMENTS:
+* **New Data Source**: `azurerm_container_app_environment_storage` [GH-32007]
 * `cognitive_account_rai_blocklist_resource` - add support for the `tags` property [GH-31871]
 * dependencies: `Go` - upgrade to version 1.25.8 [GH-31907]
 * `azurerm_kubernetes_cluster` - add support for migration from Azure or Kubenet CNI to Azure CNI Overlay [GH-30959]
