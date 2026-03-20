@@ -431,6 +431,7 @@ func TestAccMsSqlElasticPool_replicaCount(t *testing.T) {
 			Config: r.highAvailabilityReplicaCount(data, 1),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("high_availability_replica_count").HasValue("1"),
 			),
 		},
 		data.ImportStep("max_size_gb"),
@@ -438,6 +439,7 @@ func TestAccMsSqlElasticPool_replicaCount(t *testing.T) {
 			Config: r.highAvailabilityReplicaCount(data, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("high_availability_replica_count").HasValue("0"),
 			),
 		},
 		data.ImportStep("max_size_gb"),
