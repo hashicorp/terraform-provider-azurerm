@@ -290,8 +290,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "contoso" {
   host_name   = join(".", ["%[3]s", azurerm_dns_zone.child.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS12"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 

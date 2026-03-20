@@ -294,8 +294,8 @@ resource "azurerm_cdn_frontdoor_custom_domain" "test" {
   host_name   = join(".", ["%s", azurerm_dns_zone.child.name])
 
   tls {
-    certificate_type    = "ManagedCertificate"
-    minimum_tls_version = "TLS10"
+    certificate_type = "ManagedCertificate"
+    minimum_version  = "TLS12"
   }
 }
 `, template, data.RandomInteger, data.RandomString)
