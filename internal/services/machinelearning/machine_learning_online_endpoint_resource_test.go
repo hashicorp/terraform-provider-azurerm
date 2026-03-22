@@ -186,7 +186,7 @@ func (r OnlineEndpointResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_online_endpoint" "test" {
-  name                          = "acctest-mle-%[2]d"
+  name                          = "acctest-mloe-%[2]d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
 
@@ -220,7 +220,7 @@ func (r OnlineEndpointResource) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_online_endpoint" "test" {
-  name                          = "acctest-mle-%[2]d"
+  name                          = "acctest-mloe-%[2]d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   authentication_mode           = "AMLToken"
@@ -248,7 +248,7 @@ func (r OnlineEndpointResource) authMode(data acceptance.TestData, mode string) 
 %s
 
 resource "azurerm_machine_learning_online_endpoint" "test" {
-  name                          = "acctest-mle-%[2]d"
+  name                          = "acctest-mloe-%[2]d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   authentication_mode           = "%[3]s"
@@ -266,7 +266,7 @@ func (r OnlineEndpointResource) publicNetworkAccessDisabled(data acceptance.Test
 %s
 
 resource "azurerm_machine_learning_online_endpoint" "test" {
-  name                          = "acctest-mle-%[2]d"
+  name                          = "acctest-mloe-%[2]d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   public_network_access_enabled = false
@@ -290,7 +290,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_machine_learning_online_endpoint" "test" {
-  name                          = "acctest-mle-%[2]d"
+  name                          = "acctest-mloe-%[2]d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
 
@@ -308,7 +308,7 @@ func (r OnlineEndpointResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_machine_learning_online_endpoint" "test" {
-  name                          = "acctest-mle-%[2]d"
+  name                          = "acctest-mloe-%[2]d"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   location                      = azurerm_resource_group.test.location
   public_network_access_enabled = false
