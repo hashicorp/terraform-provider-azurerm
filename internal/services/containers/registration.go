@@ -57,7 +57,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_container_registry":            resourceContainerRegistry(),
 		"azurerm_container_registry_token":      resourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map":  resourceContainerRegistryScopeMap(),
-		"azurerm_kubernetes_automatic_cluster":  resourceKubernetesAutomaticCluster(),
 		"azurerm_kubernetes_cluster":            resourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool":  resourceKubernetesClusterNodePool(),
 	}
@@ -81,6 +80,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryCredentialSetResource{},
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
+		KubernetesAutomaticClusterResource{},
 		KubernetesClusterExtensionResource{},
 		KubernetesFleetManagerResource{},
 		KubernetesFleetUpdateRunResource{},

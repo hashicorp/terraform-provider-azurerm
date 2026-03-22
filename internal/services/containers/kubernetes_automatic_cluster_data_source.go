@@ -795,7 +795,7 @@ func dataSourceKubernetesAutomaticClusterRead(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
-			serviceMeshProfile := flattenKubernetesAutomaticClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
+			serviceMeshProfile := flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
 			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
 				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
