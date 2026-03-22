@@ -113,6 +113,7 @@ func All() ResourceProviders {
 		"Microsoft.Blueprint":               {},
 		"Microsoft.BotService":              {},
 		"Microsoft.CognitiveServices":       {},
+		"Microsoft.Communication":           {},
 		"Microsoft.CustomProviders":         {},
 		"Microsoft.Dashboard":               {},
 		"Microsoft.DesktopVirtualization":   {},
