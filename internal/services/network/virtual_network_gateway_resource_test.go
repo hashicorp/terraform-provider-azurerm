@@ -359,6 +359,10 @@ func TestAccVirtualNetworkGateway_expressRoute(t *testing.T) {
 func TestAccVirtualNetworkGateway_expressRouteWithPublicIPAddressId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network_gateway", "test")
 	r := VirtualNetworkGatewayResource{}
+	// Brownfield-only: this must be an existing legacy ExpressRoute gateway that still
+	// returns `ip_configuration.0.public_ip_address_id`. Microsoft made auto-assigned
+	// Public IPs generally available in July 2025; gateways created since then use the
+	// HOBO model and do not expose that field.
 	legacyGatewayID := os.Getenv("ARM_TEST_LEGACY_EXPRESSROUTE_GATEWAY_ID")
 
 	if legacyGatewayID == "" {
@@ -379,10 +383,6 @@ func TestAccVirtualNetworkGateway_expressRouteWithPublicIPAddressId(t *testing.T
 				check.That(data.ResourceName).Key("type").HasValue("ExpressRoute"),
 				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").Exists(),
 			),
-		},
-		{
-			Config:   r.expressRouteWithPublicIPAddressIdBrownfield(legacyGatewayID),
-			PlanOnly: true,
 		},
 	})
 }
