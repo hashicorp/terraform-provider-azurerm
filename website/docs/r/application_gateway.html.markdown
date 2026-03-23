@@ -837,8 +837,6 @@ A `backend` block exports the following:
 
 * `id` - The ID of the Backend Settings Configuration.
 
-* `client_ip_preservation_enabled` - Whether client IP preservation is enabled for this Backend Settings Configuration.
-
 * `probe_id` - The ID of the associated Probe.
 
 ---
