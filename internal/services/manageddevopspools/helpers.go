@@ -77,6 +77,7 @@ func manualResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 	}
 }
 
+// Kept as a block for symmetry with manual_resource_prediction and to support ConflictsWith between the two prediction modes
 func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
@@ -277,11 +278,9 @@ func expandStatelessAgentModel(input []StatelessAgentModel) pools.AgentProfile {
 }
 
 func expandResourcePredictionsModel(input ManualResourcePredictionModel) *ResourcePredictionsSdkModel {
-	var daysData []map[string]int64
+	daysData := []map[string]int64{{"00:00:00": input.AllWeekSchedule}}
 
-	if input.AllWeekSchedule > 0 {
-		daysData = []map[string]int64{{"00:00:00": input.AllWeekSchedule}}
-	} else {
+	if input.AllWeekSchedule == 0 {
 		daysData = []map[string]int64{
 			expandDaySchedule(input.SundaySchedule),
 			expandDaySchedule(input.MondaySchedule),
