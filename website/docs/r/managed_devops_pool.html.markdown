@@ -259,7 +259,7 @@ A `security` block supports the following:
 
 A `permission` block supports the following:
 
-* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values include `CreatorOnly`, `Inherit`, and `SpecificAccounts`.
+* `kind` - (Optional) Determines who has admin permissions to the Azure DevOps pool. Possible values include `CreatorOnly`, `Inherit`, and `SpecificAccounts`. Defaults to `CreatorOnly`.
 
 * `administrator_account` - (Optional) An `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`.
 
@@ -340,6 +340,8 @@ A `daily_schedule` block supports the following:
 * `count` - (Required) The number of standby agents to provision at this time. Possible values range between `0` and `maximum_concurrency`.
 
 * `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
+
+~> **Note:** When specifying multiple `daily_schedule` blocks for a given day, they must be ordered by `time` in ascending order (earliest first) to avoid spurious diffs during plan.
 
 ---
 
