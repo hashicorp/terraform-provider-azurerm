@@ -3,14 +3,15 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ai_foundry"
 description: |-
-  Manages an Azure AI Hub resource used by the classic Microsoft Foundry experience.
+  Manages a Microsoft Foundry Hub (classic) resource.
 ---
 
 # azurerm_ai_foundry
 
-Manages an Azure AI Hub resource used by the classic Microsoft Foundry experience.
+Manages a Microsoft Foundry Hub (classic) resource.
 
-To create a Foundry resource for use with the recent Foundry experience, use [`azurerm_cognitive_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account).
+~> **Note:** Hub‑based projects are considered legacy and are not compatible with the new Foundry experience. Microsoft recommends using the new Microsoft Foundry resource, which should be provisioned using
+[`azurerm_cognitive_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account).
 
 ## Example Usage
 
