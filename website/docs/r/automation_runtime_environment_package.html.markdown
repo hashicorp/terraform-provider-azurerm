@@ -48,23 +48,23 @@ The following arguments are supported:
 
 * `runtime_environment_id` - (Required) The ID of the Automation Runtime Environment in which to create this package. Changing this forces a new Automation Runtime Environment Package to be created.
 
-* `content_uri` - (Required) The URI of the package content. This should be a publicly accessible URL, for example from the PowerShell Gallery.
+* `content_uri` - (Required) The URI of the package content. This should be a publicly accessible URL, for example from the PowerShell Gallery. Changing this forces a new Automation Runtime Environment Package to be created.
 
 ---
 
-* `content_version` - (Optional) The version of the package content.
+* `content_version` - (Optional) The version of the package content. Changing this forces a new Automation Runtime Environment Package to be created.
 
-* `hash_algorithm` - (Optional) The hash algorithm used to hash the content. Required when `hash_value` is specified.
+* `hash_algorithm` - (Optional) The hash algorithm used to hash the content. Required when `hash_value` is specified. Changing this forces a new Automation Runtime Environment Package to be created.
 
-* `hash_value` - (Optional) The hash value of the content. Required when `hash_algorithm` is specified.
+* `hash_value` - (Optional) The hash value of the content. Required when `hash_algorithm` is specified. Changing this forces a new Automation Runtime Environment Package to be created.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Automation Runtime Environment Package.
-
-* `provisioning_state` - The provisioning state of the package.
 
 * `size_in_bytes` - The size of the package in bytes.
 

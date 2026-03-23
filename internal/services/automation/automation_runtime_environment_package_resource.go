@@ -12,23 +12,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/packageresource"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type AutomationRuntimeEnvironmentPackageModel struct {
-	Name                   string `tfschema:"name"`
-	RuntimeEnvironmentId   string `tfschema:"runtime_environment_id"`
-	ContentUri             string `tfschema:"content_uri"`
-	ContentVersion         string `tfschema:"content_version"`
-	HashAlgorithm          string `tfschema:"hash_algorithm"`
-	HashValue              string `tfschema:"hash_value"`
-	Tags				   map[string]string `tfschema:"tags"`
-	ProvisioningState      string `tfschema:"provisioning_state"`
-	SizeInBytes            int64  `tfschema:"size_in_bytes"`
-	Version                string `tfschema:"version"`
-	IsDefault              bool   `tfschema:"is_default"`
+	Name                 string            `tfschema:"name"`
+	RuntimeEnvironmentId string            `tfschema:"runtime_environment_id"`
+	ContentUri           string            `tfschema:"content_uri"`
+	ContentVersion       string            `tfschema:"content_version"`
+	HashAlgorithm        string            `tfschema:"hash_algorithm"`
+	HashValue            string            `tfschema:"hash_value"`
+	Tags                 map[string]string `tfschema:"tags"`
+	SizeInBytes          int64             `tfschema:"size_in_bytes"`
+	Version              string            `tfschema:"version"`
+	IsDefault            bool              `tfschema:"is_default"`
 }
 
 type AutomationRuntimeEnvironmentPackageResource struct{}
@@ -170,6 +171,13 @@ func (r AutomationRuntimeEnvironmentPackageResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/41641 is resolved
+			pollerType := custompollers.NewAutomationRuntimeEnvironmentPackagePoller(client, id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to finish provisioning: %+v", id, err)
+			}
+
 			metadata.SetID(id)
 			return nil
 		},
@@ -267,6 +275,13 @@ func (r AutomationRuntimeEnvironmentPackageResource) Update() sdk.ResourceFunc {
 
 			if _, err := client.Update(ctx, *id, parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/41641 is resolved
+			pollerType := custompollers.NewAutomationRuntimeEnvironmentPackagePoller(client, *id)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
 			}
 
 			return nil
