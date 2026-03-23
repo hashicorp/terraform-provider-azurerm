@@ -531,7 +531,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(functionApp.Model.Location),
 				Tags:     pointer.To(functionAppSlot.Tags),
-				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
 					ServerFarmId:             pointer.To(servicePlanId.ID()),

@@ -36,6 +36,7 @@ type ProviderModel struct {
 	DisableCorrelationRequestId    types.Bool   `tfsdk:"disable_correlation_request_id"`
 	DisableTerraformPartnerId      types.Bool   `tfsdk:"disable_terraform_partner_id"`
 	StorageUseAzureAD              types.Bool   `tfsdk:"storage_use_azuread"`
+	EnhancedValidation             types.List   `tfsdk:"enhanced_validation"`
 	Features                       types.List   `tfsdk:"features"`
 	SkipProviderRegistration       types.Bool   `tfsdk:"skip_provider_registration"` // TODO - Remove in 5.0
 	ResourceProviderRegistrations  types.String `tfsdk:"resource_provider_registrations"`
@@ -280,4 +281,14 @@ type DatabricksWorkspace struct {
 
 var DatabricksWorkspaceAttributes = map[string]attr.Type{
 	"force_delete": types.BoolType,
+}
+
+type EnhancedValidationModel struct {
+	Locations         types.Bool `tfsdk:"locations"`
+	ResourceProviders types.Bool `tfsdk:"resource_providers"`
+}
+
+var EnhancedValidationModelAttributes = map[string]attr.Type{
+	"locations":          types.BoolType,
+	"resource_providers": types.BoolType,
 }

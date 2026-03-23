@@ -15,7 +15,7 @@ func (p ReplicationOperationPredicate) Matches(input Replication) bool {
 		return false
 	}
 
-	if p.RemoteVolumeResourceId != nil && *p.RemoteVolumeResourceId != input.RemoteVolumeResourceId {
+	if p.RemoteVolumeResourceId != nil && (input.RemoteVolumeResourceId == nil || *p.RemoteVolumeResourceId != *input.RemoteVolumeResourceId) {
 		return false
 	}
 

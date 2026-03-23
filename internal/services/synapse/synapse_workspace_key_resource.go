@@ -181,8 +181,7 @@ func resourceSynapseWorkspaceKeysDelete(d *pluginsdk.ResourceData, meta interfac
 
 	// Azure only lets you delete keys that are not active
 	if !*keyresult.IsActiveCMK {
-		_, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName)
-		if err != nil {
+		if _, err := client.Delete(ctx, id.ResourceGroup, id.WorkspaceName, id.KeyName); err != nil {
 			return fmt.Errorf("unable to delete key %s in workspace %s: %v", id.KeyName, id.WorkspaceName, err)
 		}
 	}
