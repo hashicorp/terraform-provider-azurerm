@@ -25,16 +25,12 @@ import (
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_policy_data_lake_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
 
 type BackupPolicyDataLakeStorageModel struct {
-	Name                        string                                            `tfschema:"name"`
-	BackupSchedule              []string                                          `tfschema:"backup_schedule"`
-	DefaultRetentionRule        []BackupPolicyDataLakeStorageDefaultRetentionRule `tfschema:"default_retention_rule"`
-	DataProtectionBackupVaultId string                                            `tfschema:"data_protection_backup_vault_id"`
-	RetentionRules              []BackupPolicyDataLakeStorageRetentionRule        `tfschema:"retention_rule"`
-	TimeZone                    string                                            `tfschema:"time_zone"`
-}
-
-type BackupPolicyDataLakeStorageDefaultRetentionRule struct {
-	Duration string `tfschema:"duration"`
+	Name                        string                                     `tfschema:"name"`
+	BackupSchedule              []string                                   `tfschema:"backup_schedule"`
+	DefaultRetentionDuration    string                                     `tfschema:"default_retention_duration"`
+	DataProtectionBackupVaultId string                                     `tfschema:"data_protection_backup_vault_id"`
+	RetentionRules              []BackupPolicyDataLakeStorageRetentionRule `tfschema:"retention_rule"`
+	TimeZone                    string                                     `tfschema:"time_zone"`
 }
 
 type BackupPolicyDataLakeStorageRetentionRule struct {
@@ -71,7 +67,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) IDValidationFunc() pl
 }
 
 func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[string]*pluginsdk.Schema {
-	arguments := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -94,21 +90,11 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			},
 		},
 
-		"default_retention_rule": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			ForceNew: true,
-			MaxItems: 1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"duration": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: azValidate.ISO8601Duration,
-					},
-				},
-			},
+		"default_retention_duration": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: azValidate.ISO8601Duration,
 		},
 
 		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
@@ -194,7 +180,6 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			ValidateFunc: validate.BackupPolicyDataLakeStorageTimeZone(),
 		},
 	}
-	return arguments
 }
 
 func (r DataProtectionBackupPolicyDataLakeStorageResource) Attributes() map[string]*pluginsdk.Schema {
@@ -229,7 +214,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 
 			policyRules := make([]basebackuppolicyresources.BasePolicyRule, 0)
 			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureRetentionRules(model.RetentionRules)...)
-			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(model.DefaultRetentionRule))
+			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(model.DefaultRetentionDuration))
 			policyRules = append(policyRules, expandBackupPolicyDataLakeStorageAzureBackupRules(model.BackupSchedule, model.TimeZone, expandBackupPolicyDataLakeStorageTaggingCriteria(model.RetentionRules))...)
 
 			parameters := basebackuppolicyresources.BaseBackupPolicyResource{
@@ -282,7 +267,7 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Read() sdk.ResourceFu
 
 			if model := resp.Model; model != nil {
 				if properties, ok := model.Properties.(basebackuppolicyresources.BackupPolicy); ok {
-					state.DefaultRetentionRule, state.RetentionRules, state.BackupSchedule, state.TimeZone = flattenBackupPolicyDataLakeStoragePolicyRules(properties.PolicyRules)
+					state.DefaultRetentionDuration, state.RetentionRules, state.BackupSchedule, state.TimeZone = flattenBackupPolicyDataLakeStoragePolicyRules(properties.PolicyRules)
 				}
 			}
 
@@ -353,17 +338,12 @@ func expandBackupPolicyDataLakeStorageAzureRetentionRules(input []BackupPolicyDa
 	return results
 }
 
-func expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(input []BackupPolicyDataLakeStorageDefaultRetentionRule) basebackuppolicyresources.BasePolicyRule {
-	result := basebackuppolicyresources.AzureRetentionRule{
-		Name:      "Default",
-		IsDefault: pointer.To(true),
+func expandBackupPolicyDataLakeStorageDefaultAzureRetentionRule(duration string) basebackuppolicyresources.BasePolicyRule {
+	return basebackuppolicyresources.AzureRetentionRule{
+		Name:       "Default",
+		IsDefault:  pointer.To(true),
+		Lifecycles: expandBackupPolicyDataLakeStorageLifeCycle(duration),
 	}
-
-	if len(input) > 0 {
-		result.Lifecycles = expandBackupPolicyDataLakeStorageLifeCycle(input[0].Duration)
-	}
-
-	return result
 }
 
 func expandBackupPolicyDataLakeStorageLifeCycle(duration string) []basebackuppolicyresources.SourceLifeCycle {
@@ -386,7 +366,6 @@ func expandBackupPolicyDataLakeStorageLifeCycle(duration string) []basebackuppol
 func expandBackupPolicyDataLakeStorageTaggingCriteria(input []BackupPolicyDataLakeStorageRetentionRule) []basebackuppolicyresources.TaggingCriteria {
 	results := []basebackuppolicyresources.TaggingCriteria{
 		{
-			Criteria:        nil,
 			IsDefault:       true,
 			TaggingPriority: 99,
 			TagInfo: basebackuppolicyresources.RetentionTag{
@@ -455,7 +434,6 @@ func expandBackupPolicyDataLakeStorageRetentionRuleCriteria(input BackupPolicyDa
 	return &[]basebackuppolicyresources.BackupCriteria{
 		basebackuppolicyresources.ScheduleBasedBackupCriteria{
 			AbsoluteCriteria: pointer.To(absoluteCriteria),
-			DaysOfMonth:      nil,
 			DaysOfTheWeek:    pointer.To(daysOfWeek),
 			MonthsOfYear:     pointer.To(monthsOfYear),
 			ScheduleTimes:    pointer.To(scheduleTimes),
@@ -464,12 +442,12 @@ func expandBackupPolicyDataLakeStorageRetentionRuleCriteria(input BackupPolicyDa
 	}
 }
 
-func flattenBackupPolicyDataLakeStoragePolicyRules(input []basebackuppolicyresources.BasePolicyRule) ([]BackupPolicyDataLakeStorageDefaultRetentionRule, []BackupPolicyDataLakeStorageRetentionRule, []string, string) {
+func flattenBackupPolicyDataLakeStoragePolicyRules(input []basebackuppolicyresources.BasePolicyRule) (string, []BackupPolicyDataLakeStorageRetentionRule, []string, string) {
 	var taggingCriteria []basebackuppolicyresources.TaggingCriteria
 	var nonDefaultRetentionRules []basebackuppolicyresources.AzureRetentionRule
 	var backupSchedule []string
 	var timeZone string
-	defaultRetentionRules := make([]BackupPolicyDataLakeStorageDefaultRetentionRule, 0)
+	var defaultRetentionDuration string
 	retentionRules := make([]BackupPolicyDataLakeStorageRetentionRule, 0)
 
 	for _, item := range input {
@@ -482,15 +460,11 @@ func flattenBackupPolicyDataLakeStoragePolicyRules(input []basebackuppolicyresou
 			}
 		case basebackuppolicyresources.AzureRetentionRule:
 			if pointer.From(rule.IsDefault) {
-				var duration string
 				if v := rule.Lifecycles; len(v) > 0 {
 					if deleteOption, ok := v[0].DeleteAfter.(basebackuppolicyresources.AbsoluteDeleteOption); ok {
-						duration = deleteOption.Duration
+						defaultRetentionDuration = deleteOption.Duration
 					}
 				}
-				defaultRetentionRules = append(defaultRetentionRules, BackupPolicyDataLakeStorageDefaultRetentionRule{
-					Duration: duration,
-				})
 			} else {
 				nonDefaultRetentionRules = append(nonDefaultRetentionRules, rule)
 			}
@@ -518,7 +492,7 @@ func flattenBackupPolicyDataLakeStoragePolicyRules(input []basebackuppolicyresou
 		retentionRules = append(retentionRules, result)
 	}
 
-	return defaultRetentionRules, retentionRules, backupSchedule, timeZone
+	return defaultRetentionDuration, retentionRules, backupSchedule, timeZone
 }
 
 func flattenBackupPolicyDataLakeStorageCriteriaIntoRule(input *[]basebackuppolicyresources.BackupCriteria, rule *BackupPolicyDataLakeStorageRetentionRule) {

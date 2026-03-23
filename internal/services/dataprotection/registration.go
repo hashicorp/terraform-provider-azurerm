@@ -91,13 +91,13 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns a list of Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		DataProtectionBackupInstanceKubernatesClusterResource{},
+		DataProtectionBackupInstanceMySQLFlexibleServerResource{},
+		DataProtectionBackupInstancePostgreSQLFlexibleServerResource{},
 		DataProtectionBackupPolicyDataLakeStorageResource{},
 		DataProtectionBackupPolicyKubernatesClusterResource{},
 		DataProtectionBackupPolicyMySQLFlexibleServerResource{},
 		DataProtectionBackupPolicyPostgreSQLFlexibleServerResource{},
-		DataProtectionBackupInstanceKubernatesClusterResource{},
-		DataProtectionBackupInstanceMySQLFlexibleServerResource{},
-		DataProtectionBackupInstancePostgreSQLFlexibleServerResource{},
 		DataProtectionBackupVaultCustomerManagedKeyResource{},
 	}
 }

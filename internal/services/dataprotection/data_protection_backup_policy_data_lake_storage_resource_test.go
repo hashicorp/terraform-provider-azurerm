@@ -105,9 +105,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W"]
 
-  default_retention_rule {
-    duration = "P4M"
-  }
+  default_retention_duration = "P4M"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -120,10 +118,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "import" {
   name                            = azurerm_data_protection_backup_policy_data_lake_storage.test.name
   data_protection_backup_vault_id = azurerm_data_protection_backup_policy_data_lake_storage.test.data_protection_backup_vault_id
   backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W"]
-
-  default_retention_rule {
-    duration = "P4M"
-  }
+  default_retention_duration      = "P4M"
 }
 `, r.basic(data))
 }
@@ -142,9 +137,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
   backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W", "R/2021-05-24T03:40:00+00:00/P1W"]
   time_zone                       = "Coordinated Universal Time"
 
-  default_retention_rule {
-    duration = "P4M"
-  }
+  default_retention_duration = "P4M"
 
   retention_rule {
     name              = "weekly"
