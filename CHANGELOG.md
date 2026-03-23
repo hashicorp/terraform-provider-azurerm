@@ -9,6 +9,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_linux_web_app_slot`, `azurerm_windows_web_app_slot`, `azurerm_windows_function_app_slot`, `azurerm_linux_function_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot [GH-32008] [GH-32008]
 * `azurerm_log_analytics_workspace` - preserve default value of `local_authentication_enabled` [GH-32004]
 
 
