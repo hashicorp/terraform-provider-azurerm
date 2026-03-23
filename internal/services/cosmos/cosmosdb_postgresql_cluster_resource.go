@@ -3,6 +3,11 @@
 
 package cosmos
 
+// NOTE: Resource Identity is NOT implemented for this resource.
+// The ID contains "ServerGroupsv2" which strcase.ToSnake() incorrectly converts
+// to "server_groupsv_2" (splitting on the number boundary) instead of "server_groupsv2".
+// This will be addressed once the framework handles numeric boundaries correctly.
+
 import (
 	"context"
 	"fmt"

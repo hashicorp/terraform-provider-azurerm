@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -48,7 +49,29 @@ func TestAccApplicationInsightsWorkbook_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsightsWorkbook_completeLegacy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeLegacy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApplicationInsightsWorkbook_complete(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("skipping as test is only valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -83,7 +106,36 @@ func TestAccApplicationInsightsWorkbook_updateDisplayName(t *testing.T) {
 	})
 }
 
+func TestAccApplicationInsightsWorkbook_updateLegacy(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping as test is not valid in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
+	r := ApplicationInsightsWorkbookResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeLegacy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateLegacy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApplicationInsightsWorkbook_update(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("skipping as test is only valid in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_application_insights_workbook", "test")
 	r := ApplicationInsightsWorkbookResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -295,6 +347,156 @@ resource "azurerm_application_insights_workbook" "test" {
   })
   tags = {
     env = "test"
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func (r ApplicationInsightsWorkbookResource) completeLegacy(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsads%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_application_insights_workbook" "test" {
+  name                 = "0f498fab-2989-4395-b084-fc092d83a6b1"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  display_name         = "acctest-amw-1"
+  source_id            = lower(azurerm_resource_group.test.id)
+  category             = "workbook1"
+  description          = "description1"
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  data_json = jsonencode({
+    "version" = "Notebook/1.0",
+    "items" = [
+      {
+        "type" = 1,
+        "content" = {
+          "json" = "Test2021"
+        },
+        "name" = "text - 0"
+      }
+    ],
+    "isLocked" = false,
+    "fallbackResourceIds" = [
+      "Azure Monitor"
+    ]
+  })
+  tags = {
+    env = "test"
+  }
+
+  depends_on = [
+    azurerm_role_assignment.test,
+  ]
+}
+`, template, data.RandomInteger, data.RandomString)
+}
+
+func (r ApplicationInsightsWorkbookResource) updateLegacy(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+			%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsads%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_storage_account.test.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_application_insights_workbook" "test" {
+  name                 = "0f498fab-2989-4395-b084-fc092d83a6b1"
+  resource_group_name  = azurerm_resource_group.test.name
+  location             = azurerm_resource_group.test.location
+  display_name         = "acctest-amw-2"
+  source_id            = "azure monitor"
+  category             = "workbook2"
+  description          = "description2"
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+
+  data_json = jsonencode({
+    "version" = "Notebook/1.0",
+    "items" = [
+      {
+        "type" = 1,
+        "content" = {
+          "json" = "Test2022"
+        },
+        "name" = "text - 0"
+      }
+    ],
+    "isLocked" = false,
+    "fallbackResourceIds" = [
+      "Azure Monitor"
+    ]
+  })
+  tags = {
+    env = "test2"
   }
 
   depends_on = [
