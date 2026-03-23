@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
@@ -45,7 +47,7 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 		strings.EqualFold(response.Request.Method, "POST") ||
 		strings.EqualFold(response.Request.Method, "PUT")
 	if statusCodesToCheckProvisioningState && contentTypeMatchesForProvisioningStateCheck && methodIsApplicable {
-		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, lroIsSelfReference, client, DefaultPollingInterval)
+		provisioningState, provisioningStateErr := provisioningStatePollerFromResponse(response, lroIsSelfReference, client, defaultPollingInterval())
 		if provisioningStateErr != nil {
 			return pollers.Poller{}, fmt.Errorf("building provisioningState poller: %+v", provisioningStateErr)
 		}
@@ -55,7 +57,7 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 	// finally, if it was a Delete that returned a 200/204
 	statusCodesToCheckDelete := response.StatusCode == http.StatusOK || response.StatusCode == http.StatusCreated || response.StatusCode == http.StatusAccepted || response.StatusCode == http.StatusNoContent
 	if methodIsDelete && statusCodesToCheckDelete {
-		deletePoller, deletePollerErr := deletePollerFromResponse(response, client, DefaultPollingInterval)
+		deletePoller, deletePollerErr := deletePollerFromResponse(response, client, defaultPollingInterval())
 		if deletePollerErr != nil {
 			return pollers.Poller{}, fmt.Errorf("building delete poller: %+v", deletePollerErr)
 		}
@@ -63,6 +65,13 @@ func PollerFromResponse(response *client.Response, client *Client) (poller polle
 	}
 
 	return pollers.Poller{}, fmt.Errorf("no applicable pollers were found for the response")
+}
+
+func defaultPollingInterval() time.Duration {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+		return 0 * time.Millisecond
+	}
+	return DefaultPollingInterval
 }
 
 func isLROSelfReference(lroPollingUri, originalRequestUri string) bool {

@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -33,14 +34,21 @@ type operationResult struct {
 
 type status string
 
+func replayAwarePollInterval(defaultInterval time.Duration) time.Duration {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+		return 0
+	}
+	return defaultInterval
+}
+
 var (
 	pollingDeleteSuccess = pollers.PollResult{
 		Status:       pollers.PollingStatusSucceeded,
-		PollInterval: 20 * time.Second,
+		PollInterval: replayAwarePollInterval(20 * time.Second),
 	}
 	pollingDeleteInProgress = pollers.PollResult{
 		Status:       pollers.PollingStatusInProgress,
-		PollInterval: 20 * time.Second,
+		PollInterval: replayAwarePollInterval(20 * time.Second),
 	}
 )
 
@@ -98,6 +106,7 @@ func (p apiManagementPoller) Poll(ctx context.Context) (*pollers.PollResult, err
 	}
 
 	if resp.Response != nil {
+
 		var respBody []byte
 		respBody, err = io.ReadAll(resp.Body)
 		if err != nil {
