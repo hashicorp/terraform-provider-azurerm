@@ -52,8 +52,10 @@ func (r MachineLearningOnlineEndpoint) IDValidationFunc() pluginsdk.SchemaValida
 	return onlineendpoint.ValidateOnlineEndpointID
 }
 
-var _ sdk.ResourceWithUpdate = MachineLearningOnlineEndpoint{}
-var _ sdk.ResourceWithCustomizeDiff = MachineLearningOnlineEndpoint{}
+var (
+	_ sdk.ResourceWithUpdate        = MachineLearningOnlineEndpoint{}
+	_ sdk.ResourceWithCustomizeDiff = MachineLearningOnlineEndpoint{}
+)
 
 func (r MachineLearningOnlineEndpoint) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
