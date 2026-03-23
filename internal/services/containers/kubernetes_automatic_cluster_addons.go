@@ -18,9 +18,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// Addon Model Structs
-// Note: Addon key constants are defined in kubernetes_addons.go
-
 type ACIConnectorLinuxModel struct {
 	SubnetName        string                   `tfschema:"subnet_name"`
 	ConnectorIdentity []ConnectorIdentityModel `tfschema:"connector_identity"`
@@ -258,6 +255,7 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Optional: true,
+			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"secret_rotation_enabled": {
@@ -305,11 +303,9 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 	}
 }
 
-// expandKubernetesAddOnsTyped converts typed addon models to Azure SDK addon profiles
 func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
-	// Confidential Computing
 	if len(input.ConfidentialComputing) > 0 {
 		cc := input.ConfidentialComputing[0]
 		config := make(map[string]string)
@@ -324,14 +320,12 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	// HTTP Application Routing
 	if input.HTTPApplicationRoutingEnabled {
 		addonProfiles[httpApplicationRoutingKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input.HTTPApplicationRoutingEnabled,
 		}
 	}
 
-	// OMS Agent
 	if len(input.OMSAgent) > 0 {
 		oms := input.OMSAgent[0]
 		config := make(map[string]string)
@@ -354,7 +348,6 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	// ACI Connector Linux
 	if len(input.ACIConnectorLinux) > 0 {
 		aci := input.ACIConnectorLinux[0]
 		config := make(map[string]string)
@@ -369,7 +362,6 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	// Azure Policy - always set to ensure synchronization
 	addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
 		Enabled: input.AzurePolicyEnabled,
 		Config: pointer.To(map[string]string{
@@ -377,7 +369,6 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}),
 	}
 
-	// Ingress Application Gateway
 	if len(input.IngressApplicationGateway) > 0 {
 		iag := input.IngressApplicationGateway[0]
 		config := make(map[string]string)
@@ -404,10 +395,6 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	// Open Service Mesh - Note: This field doesn't exist in KubernetesAutomaticClusterModel
-	// It's only available in regular Kubernetes clusters, not automatic clusters
-
-	// Key Vault Secrets Provider
 	if len(input.KeyVaultSecretsProvider) > 0 {
 		kvsp := input.KeyVaultSecretsProvider[0]
 		config := make(map[string]string)
@@ -425,7 +412,6 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 }
 
-// flattenKubernetesAddOnsTyped converts Azure SDK addon profiles to typed addon models
 func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClusterAddonProfile) (
 	aciConnectorLinux []ACIConnectorLinuxModel,
 	azurePolicyEnabled bool,
@@ -437,7 +423,6 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 	omsAgent []OMSAgentModel,
 	openServiceMeshEnabled bool,
 ) {
-	// ACI Connector Linux
 	aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey)
 	if aciConnector.Enabled {
 		subnetName := ""
@@ -453,11 +438,9 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
-	// Azure Policy
 	azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
 	azurePolicyEnabled = azurePolicy.Enabled
 
-	// Confidential Computing
 	confidentialComputingProfile := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
 	if confidentialComputingProfile.Enabled {
 		quoteHelperEnabled := false
@@ -469,7 +452,6 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
-	// HTTP Application Routing
 	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)
 	httpApplicationRoutingEnabled = httpApplicationRouting.Enabled
 
@@ -477,7 +459,6 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		httpApplicationRoutingZoneName = v
 	}
 
-	// OMS Agent
 	omsAgentProfile := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if omsAgentProfile.Enabled {
 		workspaceID := ""
@@ -502,7 +483,6 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
-	// Ingress Application Gateway
 	ingressApplicationGatewayProfile := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey)
 	if ingressApplicationGatewayProfile.Enabled {
 		gatewayId := ""
@@ -542,11 +522,9 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
-	// Open Service Mesh
 	openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey)
 	openServiceMeshEnabled = openServiceMesh.Enabled
 
-	// Key Vault Secrets Provider
 	azureKeyVaultSecretsProviderProfile := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
 	if azureKeyVaultSecretsProviderProfile.Enabled {
 		enableSecretRotation := false
@@ -572,7 +550,6 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 	return
 }
 
-// flattenKubernetesClusterAddOnIdentityProfileTyped converts addon identity to typed model
 func flattenKubernetesClusterAddOnIdentityProfileTyped(profile *managedclusters.UserAssignedIdentity) []ConnectorIdentityModel {
 	if profile == nil {
 		return []ConnectorIdentityModel{}
@@ -599,8 +576,6 @@ func flattenKubernetesClusterAddOnIdentityProfileTyped(profile *managedclusters.
 		UserAssignedIdentityID: userAssignedIdentityID,
 	}}
 }
-
-// Helper functions to convert between identity model types
 
 func flattenOMSAgentIdentityTyped(input []ConnectorIdentityModel) []OMSAgentIdentityModel {
 	if len(input) == 0 {
@@ -634,5 +609,3 @@ func flattenSecretIdentityTyped(input []ConnectorIdentityModel) []SecretIdentity
 		UserAssignedIdentityID: input[0].UserAssignedIdentityID,
 	}}
 }
-
-// Made with Bob
