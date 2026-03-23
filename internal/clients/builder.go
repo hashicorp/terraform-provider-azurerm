@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -33,6 +34,7 @@ type ClientBuilder struct {
 	StorageUseAzureAD           bool
 	SubscriptionID              string
 	TerraformVersion            string
+	HttpClient                  *http.Client
 }
 
 const azureStackEnvironmentError = `
@@ -150,6 +152,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		StorageUseAzureAD:           builder.StorageUseAzureAD,
 
 		ResourceManagerEndpoint: *resourceManagerEndpoint,
+		HTTPClient:              builder.HttpClient,
 	}
 
 	if err := client.Build(ctx, o); err != nil {
