@@ -69,8 +69,8 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
         step(ScriptBuildStep {
             name = "Compile Test Binary"
             scriptContent = """
-                            mkdir -p %GOMODCACHE%
-                            mkdir -p %GOCACHE%
+                            mkdir -p %env.GOMODCACHE%
+                            mkdir -p %env.GOCACHE%
                             go test -c -o test-binary
                             """.trimIndent()
             workingDir = "%SERVICE_PATH%"
@@ -118,6 +118,8 @@ fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, pr
     text("PARALLELISM", "%d".format(parallelism))
     text("TEST_PREFIX", prefix)
     text("TIMEOUT", "%d".format(timeout))
+    text("POST_GITHUB_COMMENT", "false")
+    text("POST_GITHUB_COMMENT_DETAILED", "false")
 }
 
 fun ParametrizedWithType.ReadOnlySettings() {
