@@ -402,9 +402,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			// Workaround for identity is assigned with a wrong type
-			// issue: https://github.com/Azure/azure-rest-api-specs/issues/40905
-			expandedIdentity, err := expandManagedDevopsToUserAssignedIdentity(config.Identity)
+			expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -473,7 +471,7 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			payload := existing.Model
 
 			if metadata.ResourceData.HasChange("identity") {
-				expandedIdentity, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				expandedIdentity, err := identity.ExpandUserAssignedMapFromModel(config.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -553,11 +551,11 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 
 				if model.Identity != nil {
-					flattenedIdentity, err := flattenManagedDevopsUserAssignedToLegacyIdentity(model.Identity)
+					flattenedIdentity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
 					if err != nil {
 						return fmt.Errorf("flattening `identity`: %+v", err)
 					}
-					state.Identity = flattenedIdentity
+					state.Identity = *flattenedIdentity
 				}
 
 				if props := model.Properties; props != nil {
