@@ -18,6 +18,10 @@ import (
 
 type BatchApplicationResource struct{}
 
+func (r BatchApplicationResource) basicForResourceIdentity(data acceptance.TestData) string {
+	return r.template(data, "")
+}
+
 func TestAccBatchApplication_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_application", "test")
 	r := BatchApplicationResource{}

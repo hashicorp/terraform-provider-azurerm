@@ -156,13 +156,19 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("building Client: %+v", err)
 	}
 
-	if features.EnhancedValidationEnabled() {
+	if builder.Features.EnhancedValidation.Locations {
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+
+		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
+	}
+
+	if builder.Features.EnhancedValidation.ResourceProviders {
 		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
 		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
 		defer cancel()
 
-		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
 		if err := resourceproviders.CacheSupportedProviders(ctx2, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
 			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
 		}

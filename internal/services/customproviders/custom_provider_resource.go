@@ -3,6 +3,8 @@
 
 package customproviders
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name custom_provider -service-package-name customproviders -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 import (
 	"fmt"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/customproviders/2018-09-01-preview/customresourceprovider"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/customproviders/validate"
@@ -27,10 +30,11 @@ func resourceCustomProvider() *pluginsdk.Resource {
 		Read:   resourceCustomProviderRead,
 		Update: resourceCustomProviderCreateUpdate,
 		Delete: resourceCustomProviderDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := customresourceprovider.ParseResourceProviderID(id)
-			return err
-		}),
+
+		Importer: pluginsdk.ImporterValidatingIdentity(&customresourceprovider.ResourceProviderId{}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&customresourceprovider.ResourceProviderId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -156,6 +160,10 @@ func resourceCustomProviderCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCustomProviderRead(d, meta)
 }
 
@@ -202,7 +210,8 @@ func resourceCustomProviderRead(d *pluginsdk.ResourceData, meta interface{}) err
 			return err
 		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceCustomProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {

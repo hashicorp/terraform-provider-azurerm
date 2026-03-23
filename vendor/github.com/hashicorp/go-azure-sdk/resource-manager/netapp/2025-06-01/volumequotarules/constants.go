@@ -65,30 +65,30 @@ func parseNetAppProvisioningState(input string) (*NetAppProvisioningState, error
 	return &out, nil
 }
 
-type Type string
+type QuotaType string
 
 const (
-	TypeDefaultGroupQuota    Type = "DefaultGroupQuota"
-	TypeDefaultUserQuota     Type = "DefaultUserQuota"
-	TypeIndividualGroupQuota Type = "IndividualGroupQuota"
-	TypeIndividualUserQuota  Type = "IndividualUserQuota"
+	QuotaTypeDefaultGroupQuota    QuotaType = "DefaultGroupQuota"
+	QuotaTypeDefaultUserQuota     QuotaType = "DefaultUserQuota"
+	QuotaTypeIndividualGroupQuota QuotaType = "IndividualGroupQuota"
+	QuotaTypeIndividualUserQuota  QuotaType = "IndividualUserQuota"
 )
 
-func PossibleValuesForType() []string {
+func PossibleValuesForQuotaType() []string {
 	return []string{
-		string(TypeDefaultGroupQuota),
-		string(TypeDefaultUserQuota),
-		string(TypeIndividualGroupQuota),
-		string(TypeIndividualUserQuota),
+		string(QuotaTypeDefaultGroupQuota),
+		string(QuotaTypeDefaultUserQuota),
+		string(QuotaTypeIndividualGroupQuota),
+		string(QuotaTypeIndividualUserQuota),
 	}
 }
 
-func (s *Type) UnmarshalJSON(bytes []byte) error {
+func (s *QuotaType) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseType(decoded)
+	out, err := parseQuotaType(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -96,18 +96,18 @@ func (s *Type) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-func parseType(input string) (*Type, error) {
-	vals := map[string]Type{
-		"defaultgroupquota":    TypeDefaultGroupQuota,
-		"defaultuserquota":     TypeDefaultUserQuota,
-		"individualgroupquota": TypeIndividualGroupQuota,
-		"individualuserquota":  TypeIndividualUserQuota,
+func parseQuotaType(input string) (*QuotaType, error) {
+	vals := map[string]QuotaType{
+		"defaultgroupquota":    QuotaTypeDefaultGroupQuota,
+		"defaultuserquota":     QuotaTypeDefaultUserQuota,
+		"individualgroupquota": QuotaTypeIndividualGroupQuota,
+		"individualuserquota":  QuotaTypeIndividualUserQuota,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := Type(input)
+	out := QuotaType(input)
 	return &out, nil
 }

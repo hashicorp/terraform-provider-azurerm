@@ -2,12 +2,16 @@
 # Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
+on_failure() {
+  echo ""
+  echo "Static analysis failed. Run 'make static-analysis' locally to reproduce."
+  echo "This check validates project-specific code conventions that standard linters cannot enforce."
+  echo "See the error output above for details on which rules failed and how to fix them."
+}
 
 function runStaticAnalysis {
 # This tool checks for code conformity within the provider e.g. are the correct Go types used in TypedSDK structs.
-# Currently will not fail GHA's etc as we have existing violations in `main`. -fail-on-error=false can be removed when
-# these are resolved to prevent PRs introducing this in future.
-  go run internal/tools/static-analysis/main.go -fail-on-error=false
+  go run internal/tools/static-analysis/main.go || { on_failure; exit 1; }
 }
 
 function main {

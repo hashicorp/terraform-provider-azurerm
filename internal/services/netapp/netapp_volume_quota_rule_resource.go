@@ -60,7 +60,7 @@ func (r NetAppVolumeQuotaRuleResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForType(), false),
+			ValidateFunc: validation.StringInSlice(volumequotarules.PossibleValuesForQuotaType(), false),
 		},
 
 		"quota_size_in_kib": {
@@ -122,7 +122,7 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				Location: location.Normalize(model.Location),
 				Properties: &volumequotarules.VolumeQuotaRulesProperties{
 					QuotaSizeInKiBs: pointer.To(model.QuotaSizeInKiB),
-					QuotaType:       pointer.To(volumequotarules.Type(model.QuotaType)),
+					QuotaType:       pointer.To(volumequotarules.QuotaType(model.QuotaType)),
 					QuotaTarget:     pointer.To(model.QuotaTarget),
 				},
 			}

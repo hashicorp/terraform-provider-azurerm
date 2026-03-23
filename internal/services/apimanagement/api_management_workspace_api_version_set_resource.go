@@ -146,8 +146,7 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Create() sdk.ResourceFunc {
 				parameters.Properties.VersionQueryName = pointer.To(model.VersionQueryName)
 			}
 
-			_, err = client.WorkspaceApiVersionSetCreateOrUpdate(ctx, id, parameters, apiversionset.DefaultWorkspaceApiVersionSetCreateOrUpdateOperationOptions())
-			if err != nil {
+			if _, err = client.WorkspaceApiVersionSetCreateOrUpdate(ctx, id, parameters, apiversionset.DefaultWorkspaceApiVersionSetCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -215,8 +214,7 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Update() sdk.ResourceFunc {
 			}
 
 			resp.Model.Properties = properties
-			_, err = client.WorkspaceApiVersionSetCreateOrUpdate(ctx, *id, *resp.Model, apiversionset.DefaultWorkspaceApiVersionSetCreateOrUpdateOperationOptions())
-			if err != nil {
+			if _, err = client.WorkspaceApiVersionSetCreateOrUpdate(ctx, *id, *resp.Model, apiversionset.DefaultWorkspaceApiVersionSetCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
@@ -276,8 +274,7 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			_, err = client.WorkspaceApiVersionSetDelete(ctx, *id, apiversionsets.DefaultWorkspaceApiVersionSetDeleteOperationOptions())
-			if err != nil {
+			if _, err = client.WorkspaceApiVersionSetDelete(ctx, *id, apiversionsets.DefaultWorkspaceApiVersionSetDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 

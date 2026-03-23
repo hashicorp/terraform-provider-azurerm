@@ -266,7 +266,7 @@ resource "azurerm_netapp_volume" "test" {
   protocols           = ["NFSv3"]
 
   tags = {
-    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
