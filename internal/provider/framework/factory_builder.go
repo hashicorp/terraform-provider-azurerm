@@ -5,6 +5,7 @@ package framework
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -29,11 +30,20 @@ func ProtoV6ProviderFactoriesInit(_ context.Context, providerNames ...string) ma
 }
 
 func ProtoV5ProviderFactoriesInit(ctx context.Context, providerNames ...string) map[string]func() (tfprotov5.ProviderServer, error) {
+	return protoV5ProviderFactoriesInit(ctx, nil, providerNames...)
+}
+
+// ProtoV5ProviderFactoriesInitWithHTTPClient creates provider factories with a custom HTTP client.
+func ProtoV5ProviderFactoriesInitWithHTTPClient(ctx context.Context, httpClient *http.Client, providerNames ...string) map[string]func() (tfprotov5.ProviderServer, error) {
+	return protoV5ProviderFactoriesInit(ctx, httpClient, providerNames...)
+}
+
+func protoV5ProviderFactoriesInit(ctx context.Context, httpClient *http.Client, providerNames ...string) map[string]func() (tfprotov5.ProviderServer, error) {
 	factories := make(map[string]func() (tfprotov5.ProviderServer, error), len(providerNames))
 
 	for _, name := range providerNames {
 		factories[name] = func() (tfprotov5.ProviderServer, error) {
-			providerServerFactory, _, err := ProtoV5ProviderServerFactory(ctx)
+			providerServerFactory, _, err := protoV5ProviderServerFactory(ctx, httpClient)
 			if err != nil {
 				return nil, err
 			}
@@ -46,7 +56,17 @@ func ProtoV5ProviderFactoriesInit(ctx context.Context, providerNames ...string) 
 }
 
 func ProtoV5ProviderServerFactory(ctx context.Context) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
-	v2Provider := provider.AzureProvider()
+	return protoV5ProviderServerFactory(ctx, nil)
+}
+
+// protoV5ProviderServerFactory creates a provider server factory with an optional custom HTTP client.
+func protoV5ProviderServerFactory(ctx context.Context, httpClient *http.Client) (func() tfprotov5.ProviderServer, *schema.Provider, error) {
+	var v2Provider *schema.Provider
+	if httpClient != nil {
+		v2Provider = provider.AzureProviderWithHTTPClient(httpClient)
+	} else {
+		v2Provider = provider.AzureProvider()
+	}
 
 	providers := []func() tfprotov5.ProviderServer{
 		v2Provider.GRPCProvider,
