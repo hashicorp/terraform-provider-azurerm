@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/testclient"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/vcr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
@@ -98,6 +99,10 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 			return helpers.CheckDestroyedFunc(client, testResource, td.ResourceType, td.ResourceName)(s)
 		},
 		Steps: steps,
+	}
+	if vcr.IsVCRActive() {
+		td.runAcceptanceTestWithVCR(t, testCase)
+		return
 	}
 	td.runAcceptanceTest(t, testCase)
 }
@@ -188,6 +193,20 @@ func RunTestsInSequence(t *testing.T, tests map[string]map[string]func(t *testin
 func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 	testCase.ExternalProviders = td.externalProviders()
 	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm", "azurerm-alt")
+
+	resource.ParallelTest(t, testCase)
+}
+
+// runAcceptanceTestWithVCR runs acceptance test with VCR HTTP client for recording/playback.
+func (td TestData) runAcceptanceTestWithVCR(t *testing.T, testCase resource.TestCase) {
+	testCase.ExternalProviders = td.externalProviders()
+	if _, err := testclient.BuildWithVcr(t); err != nil {
+		t.Fatalf("building VCR test client: %+v", err)
+	}
+	// Get VCR HTTP client
+	httpClient := vcr.GetHTTPClient(t)
+	testCase.ProtoV5ProviderFactories = framework.ProtoV5ProviderFactoriesInitWithHTTPClient(
+		context.Background(), httpClient, "azurerm", "azurerm-alt")
 
 	resource.ParallelTest(t, testCase)
 }
