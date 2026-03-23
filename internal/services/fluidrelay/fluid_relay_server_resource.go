@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/fluidrelay/2022-05-26/fluidrelayservers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/fluidrelay/validate"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -73,7 +73,7 @@ type Server struct{}
 var _ sdk.ResourceWithUpdate = (*Server)(nil)
 
 func (s Server) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -102,7 +102,7 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 					},
 
 					"user_assigned_identity_id": {
@@ -114,6 +114,12 @@ func (s Server) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (s Server) Attributes() map[string]*pluginsdk.Schema {
@@ -385,7 +391,12 @@ func flattenFluidRelayServerCustomerManagedKey(input *fluidrelayservers.Encrypti
 
 	if input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL != nil {
 		if v := pointer.From(input.CustomerManagedKeyEncryption.KeyEncryptionKeyURL); v != "" {
-			id, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v)
+			nestedItemType := keyvault.NestedItemTypeKey
+			if !features.FivePointOh() {
+				nestedItemType = keyvault.NestedItemTypeAny
+			}
+
+			id, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeAny, nestedItemType)
 			if err != nil {
 				return nil, err
 			}

@@ -679,13 +679,11 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 		patchSchedulesRedisId := redispatchschedules.NewRediID(id.SubscriptionId, id.ResourceGroupName, id.RedisName)
 		if patchSchedule == nil || len(patchSchedule.Properties.ScheduleEntries) == 0 {
-			_, err = patchClient.PatchSchedulesDelete(ctx, patchSchedulesRedisId)
-			if err != nil {
+			if _, err = patchClient.PatchSchedulesDelete(ctx, patchSchedulesRedisId); err != nil {
 				return fmt.Errorf("deleting Patch Schedule for %s: %+v", *id, err)
 			}
 		} else {
-			_, err = patchClient.PatchSchedulesCreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule)
-			if err != nil {
+			if _, err = patchClient.PatchSchedulesCreateOrUpdate(ctx, patchSchedulesRedisId, *patchSchedule); err != nil {
 				return fmt.Errorf("setting Patch Schedule for %s: %+v", *id, err)
 			}
 		}

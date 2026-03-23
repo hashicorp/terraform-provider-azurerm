@@ -531,7 +531,6 @@ func (r LinuxFunctionAppSlotResource) Create() sdk.ResourceFunc {
 			siteEnvelope := webapps.Site{
 				Location: location.Normalize(functionApp.Model.Location),
 				Tags:     pointer.To(functionAppSlot.Tags),
-				Kind:     pointer.To("functionapp,linux"),
 				Identity: expandedIdentity,
 				Properties: &webapps.SiteProperties{
 					ServerFarmId:             pointer.To(servicePlanId.ID()),
@@ -1078,6 +1077,10 @@ func (r LinuxFunctionAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", id, err)
 				}

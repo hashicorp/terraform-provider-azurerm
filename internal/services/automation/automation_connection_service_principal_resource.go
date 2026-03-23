@@ -22,9 +22,9 @@ import (
 
 func resourceAutomationConnectionServicePrincipal() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationConnectionServicePrincipalCreateUpdate,
+		Create: resourceAutomationConnectionServicePrincipalCreate,
 		Read:   resourceAutomationConnectionServicePrincipalRead,
-		Update: resourceAutomationConnectionServicePrincipalCreateUpdate,
+		Update: resourceAutomationConnectionServicePrincipalUpdate,
 		Delete: resourceAutomationConnectionServicePrincipalDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
@@ -88,34 +88,25 @@ func resourceAutomationConnectionServicePrincipal() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationConnectionServicePrincipalCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationConnectionServicePrincipalCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.Connection
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection creation.")
 
 	id := connection.NewConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_connection_service_principal", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	fieldDefinitionValues := map[string]string{
-		"ApplicationId":         d.Get("application_id").(string),
-		"CertificateThumbprint": d.Get("certificate_thumbprint").(string),
-		"SubscriptionId":        d.Get("subscription_id").(string),
-		"TenantId":              d.Get("tenant_id").(string),
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_connection_service_principal", id.ID())
 	}
 
 	parameters := connection.ConnectionCreateOrUpdateParameters{
@@ -125,15 +116,80 @@ func resourceAutomationConnectionServicePrincipalCreateUpdate(d *pluginsdk.Resou
 			ConnectionType: connection.ConnectionTypeAssociationProperty{
 				Name: pointer.To("AzureServicePrincipal"),
 			},
-			FieldDefinitionValues: &fieldDefinitionValues,
+			FieldDefinitionValues: &map[string]string{
+				"ApplicationId":         d.Get("application_id").(string),
+				"CertificateThumbprint": d.Get("certificate_thumbprint").(string),
+				"SubscriptionId":        d.Get("subscription_id").(string),
+				"TenantId":              d.Get("tenant_id").(string),
+			},
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return err
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationConnectionServicePrincipalRead(d, meta)
+}
+
+func resourceAutomationConnectionServicePrincipalUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Connection
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for AzureRM Automation Connection update.")
+
+	id, err := connection.ParseConnectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// The API represents application_id, certificate_thumbprint, subscription_id, and tenant_id
+	// as a single FieldDefinitionValues map — the map is replaced as a whole on update. We GET the
+	// existing values first, then overlay only the changed fields so that ignore_changes on
+	// individual properties is respected.
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+
+	fieldDefinitionValues := make(map[string]string)
+	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.FieldDefinitionValues != nil {
+		fieldDefinitionValues = *existing.Model.Properties.FieldDefinitionValues
+	}
+
+	if d.HasChange("application_id") {
+		fieldDefinitionValues["ApplicationId"] = d.Get("application_id").(string)
+	}
+
+	if d.HasChange("certificate_thumbprint") {
+		fieldDefinitionValues["CertificateThumbprint"] = d.Get("certificate_thumbprint").(string)
+	}
+
+	if d.HasChange("subscription_id") {
+		fieldDefinitionValues["SubscriptionId"] = d.Get("subscription_id").(string)
+	}
+
+	if d.HasChange("tenant_id") {
+		fieldDefinitionValues["TenantId"] = d.Get("tenant_id").(string)
+	}
+
+	parameters := connection.ConnectionUpdateParameters{
+		Name: &id.ConnectionName,
+		Properties: &connection.ConnectionUpdateProperties{
+			FieldDefinitionValues: &fieldDefinitionValues,
+		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if _, err := client.Update(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationConnectionServicePrincipalRead(d, meta)
 }
