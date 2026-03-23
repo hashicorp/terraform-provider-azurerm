@@ -108,6 +108,7 @@ func (r KubernetesClusterDeploymentSafeguardResource) Create() sdk.ResourceFunc 
 			payload := deploymentsafeguards.DeploymentSafeguard{
 				Properties: &deploymentsafeguards.DeploymentSafeguardsProperties{
 					Level: deploymentsafeguards.DeploymentSafeguardsLevel(model.Level),
+					PodSecurityStandardsLevel: pointer.ToEnum[deploymentsafeguards.PodSecurityStandardsLevel](model.PodSecurityStandardsLevel),
 				},
 			}
 
@@ -115,9 +116,6 @@ func (r KubernetesClusterDeploymentSafeguardResource) Create() sdk.ResourceFunc 
 				payload.Properties.ExcludedNamespaces = pointer.To(model.ExcludedNamespaces)
 			}
 
-			if model.PodSecurityStandardsLevel != "" {
-				payload.Properties.PodSecurityStandardsLevel = pointer.ToEnum[deploymentsafeguards.PodSecurityStandardsLevel](model.PodSecurityStandardsLevel)
-			}
 
 			if err := client.CreateThenPoll(ctx, scopeId, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", kubernetesClusterId, err)
