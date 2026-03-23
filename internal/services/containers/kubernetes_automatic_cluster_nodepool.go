@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
@@ -21,8 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
-
-// Default Node Pool Model Struct
 
 type DefaultNodePoolModel struct {
 	Name                       string                    `tfschema:"name"`
@@ -43,7 +42,7 @@ type DefaultNodePoolModel struct {
 	NodeCount                  int64                     `tfschema:"node_count"`
 	NodeLabels                 map[string]string         `tfschema:"node_labels"`
 	NodePublicIPPrefixID       string                    `tfschema:"node_public_ip_prefix_id"`
-	Tags                       map[string]string         `tfschema:"tags"`
+	Tags                       map[string]interface{}    `tfschema:"tags"`
 	OSDiskSizeGB               int64                     `tfschema:"os_disk_size_gb"`
 	OSDiskType                 string                    `tfschema:"os_disk_type"`
 	OSSKU                      string                    `tfschema:"os_sku"`
@@ -130,11 +129,9 @@ type AllowedHostPortsModel struct {
 
 type UpgradeSettingsModel struct {
 	MaxSurge                  string `tfschema:"max_surge"`
-	DrainTimeoutInMinutes     int    `tfschema:"drain_timeout_in_minutes"`
-	NodeSoakDurationInMinutes int    `tfschema:"node_soak_duration_in_minutes"`
+	DrainTimeoutInMinutes     int64  `tfschema:"drain_timeout_in_minutes"`
+	NodeSoakDurationInMinutes int64  `tfschema:"node_soak_duration_in_minutes"`
 }
-
-// Schema Definition for Automatic Cluster Default Node Pool
 
 func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
@@ -401,9 +398,6 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 	}
 }
 
-// Expand/Flatten Functions for Default Node Pool
-
-// expandClusterNodePoolKubeletConfigTyped converts typed KubeletConfig model to Azure SDK type
 func expandClusterNodePoolKubeletConfigTyped(input []KubeletConfigModel) *managedclusters.KubeletConfig {
 	if len(input) == 0 {
 		return nil
@@ -444,7 +438,6 @@ func expandClusterNodePoolKubeletConfigTyped(input []KubeletConfigModel) *manage
 	return result
 }
 
-// expandClusterNodePoolLinuxOSConfigTyped converts typed LinuxOSConfig model to Azure SDK type
 func expandClusterNodePoolLinuxOSConfigTyped(input []LinuxOSConfigModel) (*managedclusters.LinuxOSConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
@@ -473,7 +466,6 @@ func expandClusterNodePoolLinuxOSConfigTyped(input []LinuxOSConfigModel) (*manag
 	return result, nil
 }
 
-// expandClusterNodePoolSysctlConfigTyped converts typed SysctlConfig model to Azure SDK type
 func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managedclusters.SysctlConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
@@ -524,7 +516,6 @@ func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managed
 		result.NetIPv4TcpkeepaliveIntvl = pointer.To(int64(config.NetIPv4TCPKeepaliveIntvl))
 	}
 
-	// Validate port range
 	if (config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax == 0) ||
 		(config.NetIPv4IPLocalPortRangeMin == 0 && config.NetIPv4IPLocalPortRangeMax != 0) {
 		return nil, fmt.Errorf("`net_ipv4_ip_local_port_range_min` and `net_ipv4_ip_local_port_range_max` should both be set or unset")
@@ -579,7 +570,6 @@ func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managed
 	return result, nil
 }
 
-// expandClusterNodePoolUpgradeSettingsTyped converts typed UpgradeSettings model to Azure SDK type
 func expandClusterNodePoolUpgradeSettingsTyped(input []UpgradeSettingsModel) *managedclusters.AgentPoolUpgradeSettings {
 	if len(input) == 0 {
 		return nil
@@ -601,7 +591,6 @@ func expandClusterNodePoolUpgradeSettingsTyped(input []UpgradeSettingsModel) *ma
 	return result
 }
 
-// flattenClusterNodePoolKubeletConfigTyped converts Azure SDK KubeletConfig to typed model
 func flattenClusterNodePoolKubeletConfigTyped(input *managedclusters.KubeletConfig) []KubeletConfigModel {
 	if input == nil {
 		return []KubeletConfigModel{}
@@ -650,7 +639,6 @@ func flattenClusterNodePoolKubeletConfigTyped(input *managedclusters.KubeletConf
 	return []KubeletConfigModel{result}
 }
 
-// flattenClusterNodePoolLinuxOSConfigTyped converts Azure SDK LinuxOSConfig to typed model
 func flattenClusterNodePoolLinuxOSConfigTyped(input *managedclusters.LinuxOSConfig) ([]LinuxOSConfigModel, error) {
 	if input == nil {
 		return []LinuxOSConfigModel{}, nil
@@ -678,7 +666,6 @@ func flattenClusterNodePoolLinuxOSConfigTyped(input *managedclusters.LinuxOSConf
 	return []LinuxOSConfigModel{result}, nil
 }
 
-// flattenClusterNodePoolSysctlConfigTyped converts Azure SDK SysctlConfig to typed model
 func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig) ([]SysctlConfigModel, error) {
 	if input == nil {
 		return []SysctlConfigModel{}, nil
@@ -733,7 +720,6 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 		result.NetIPv4TCPKeepaliveIntvl = int(*input.NetIPv4TcpkeepaliveIntvl)
 	}
 
-	// Parse port range
 	if input.NetIPv4IPLocalPortRange != nil {
 		portRange := *input.NetIPv4IPLocalPortRange
 		var min, max int
@@ -786,7 +772,6 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 	return []SysctlConfigModel{result}, nil
 }
 
-// flattenClusterNodePoolUpgradeSettingsTyped converts Azure SDK AgentPoolUpgradeSettings to typed model
 func flattenClusterNodePoolUpgradeSettingsTyped(input *managedclusters.AgentPoolUpgradeSettings) []UpgradeSettingsModel {
 	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
 		return []UpgradeSettingsModel{}
@@ -798,13 +783,264 @@ func flattenClusterNodePoolUpgradeSettingsTyped(input *managedclusters.AgentPool
 		result.MaxSurge = *input.MaxSurge
 	}
 	if input.DrainTimeoutInMinutes != nil {
-		result.DrainTimeoutInMinutes = int(*input.DrainTimeoutInMinutes)
+		result.DrainTimeoutInMinutes = int64(*input.DrainTimeoutInMinutes)
 	}
 	if input.NodeSoakDurationInMinutes != nil {
-		result.NodeSoakDurationInMinutes = int(*input.NodeSoakDurationInMinutes)
+		result.NodeSoakDurationInMinutes = int64(*input.NodeSoakDurationInMinutes)
 	}
 
 	return []UpgradeSettingsModel{result}
 }
 
-// Made with Bob
+func findDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoolProfile) (*managedclusters.ManagedClusterAgentPoolProfile, error) {
+	if input == nil {
+		return nil, fmt.Errorf("agent pool profiles is nil")
+	}
+
+	var agentPool *managedclusters.ManagedClusterAgentPoolProfile
+	for _, v := range *input {
+		if v.Name == "" {
+			continue
+		}
+		if v.Mode == nil || *v.Mode != managedclusters.AgentPoolModeSystem {
+			continue
+		}
+
+		agentPool = &v
+		break
+	}
+
+	if agentPool == nil {
+		return nil, fmt.Errorf("unable to determine default agent pool - no System mode pool found")
+	}
+
+	return agentPool, nil
+}
+
+func flattenClusterPoolNetworkProfileTyped(input *managedclusters.AgentPoolNetworkProfile) []NodeNetworkProfileModel {
+	if input == nil || (input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil) {
+		return []NodeNetworkProfileModel{}
+	}
+
+	result := NodeNetworkProfileModel{
+		AllowedHostPorts:            flattenClusterPoolNetworkProfileAllowedHostPortsTyped(input.AllowedHostPorts),
+		ApplicationSecurityGroupIDs: []string{},
+		NodePublicIPTags:            flattenClusterPoolNetworkProfileNodePublicIPTagsTyped(input.NodePublicIPTags),
+	}
+
+	if input.ApplicationSecurityGroups != nil {
+		result.ApplicationSecurityGroupIDs = *input.ApplicationSecurityGroups
+	}
+
+	return []NodeNetworkProfileModel{result}
+}
+
+func flattenClusterPoolNetworkProfileAllowedHostPortsTyped(input *[]managedclusters.PortRange) []AllowedHostPortsModel {
+	if input == nil {
+		return []AllowedHostPortsModel{}
+	}
+
+	result := make([]AllowedHostPortsModel, 0)
+	for _, portRange := range *input {
+		model := AllowedHostPortsModel{}
+		if portRange.PortEnd != nil {
+			model.PortEnd = int64(*portRange.PortEnd)
+		}
+		if portRange.PortStart != nil {
+			model.PortStart = int64(*portRange.PortStart)
+		}
+		if portRange.Protocol != nil {
+			model.Protocol = string(*portRange.Protocol)
+		}
+		result = append(result, model)
+	}
+	return result
+}
+
+func flattenClusterPoolNetworkProfileNodePublicIPTagsTyped(input *[]managedclusters.IPTag) map[string]string {
+	if input == nil {
+		return map[string]string{}
+	}
+
+	result := make(map[string]string)
+	for _, tag := range *input {
+		if tag.IPTagType != nil && tag.Tag != nil {
+			result[*tag.IPTagType] = *tag.Tag
+		}
+	}
+
+	return result
+}
+
+func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoolProfile) ([]DefaultNodePoolModel, error) {
+	if input == nil {
+		return []DefaultNodePoolModel{}, nil
+	}
+
+	agentPool, err := findDefaultNodePoolTyped(input)
+	if err != nil {
+		return nil, err
+	}
+
+	result := DefaultNodePoolModel{
+		Name: agentPool.Name,
+	}
+
+	if agentPool.Count != nil {
+		result.NodeCount = int64(*agentPool.Count)
+	}
+
+	if agentPool.EnableUltraSSD != nil {
+		result.UltraSSDEnabled = *agentPool.EnableUltraSSD
+	}
+
+	if agentPool.EnableAutoScaling != nil {
+		result.AutoScalingEnabled = *agentPool.EnableAutoScaling
+	}
+
+	if agentPool.EnableFIPS != nil {
+		result.FipsEnabled = *agentPool.EnableFIPS
+	}
+
+	if agentPool.EnableNodePublicIP != nil {
+		result.NodePublicIPEnabled = *agentPool.EnableNodePublicIP
+	}
+
+	if agentPool.EnableEncryptionAtHost != nil {
+		result.HostEncryptionEnabled = *agentPool.EnableEncryptionAtHost
+	}
+
+	if agentPool.GpuInstanceProfile != nil {
+		result.GPUInstance = string(*agentPool.GpuInstanceProfile)
+	}
+
+	if agentPool.GpuProfile != nil && agentPool.GpuProfile.Driver != nil {
+		result.GPUDriver = string(*agentPool.GpuProfile.Driver)
+	}
+
+	if agentPool.MaxCount != nil {
+		result.MaxCount = int64(*agentPool.MaxCount)
+	}
+
+	if agentPool.MaxPods != nil {
+		result.MaxPods = int64(*agentPool.MaxPods)
+	}
+
+	if agentPool.MinCount != nil {
+		result.MinCount = int64(*agentPool.MinCount)
+	}
+
+	if agentPool.NodeLabels != nil {
+		result.NodeLabels = make(map[string]string)
+		for k, v := range *agentPool.NodeLabels {
+			result.NodeLabels[k] = v
+		}
+	}
+
+	if agentPool.NodePublicIPPrefixID != nil {
+		result.NodePublicIPPrefixID = *agentPool.NodePublicIPPrefixID
+	}
+
+	// Check for CriticalAddonsOnly taint
+	if agentPool.NodeTaints != nil {
+		for _, taint := range *agentPool.NodeTaints {
+			if taint == "CriticalAddonsOnly=true:NoSchedule" {
+				result.OnlyCriticalAddonsEnabled = true
+				break
+			}
+		}
+	}
+
+	if agentPool.OsDiskSizeGB != nil {
+		result.OSDiskSizeGB = int64(*agentPool.OsDiskSizeGB)
+	}
+
+	if agentPool.OsDiskType != nil {
+		result.OSDiskType = string(*agentPool.OsDiskType)
+	} else {
+		result.OSDiskType = string(managedclusters.OSDiskTypeManaged)
+	}
+
+	if agentPool.PodSubnetID != nil {
+		result.PodSubnetID = *agentPool.PodSubnetID
+	}
+
+	if agentPool.VnetSubnetID != nil {
+		result.VnetSubnetID = *agentPool.VnetSubnetID
+	}
+
+	if agentPool.HostGroupID != nil {
+		result.HostGroupID = *agentPool.HostGroupID
+	}
+
+	// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0)
+	// Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion
+	if agentPool.OrchestratorVersion != nil {
+		result.OrchestratorVersion = *agentPool.OrchestratorVersion
+	} else if agentPool.CurrentOrchestratorVersion != nil {
+		result.OrchestratorVersion = *agentPool.CurrentOrchestratorVersion
+	}
+
+	if agentPool.ProximityPlacementGroupID != nil {
+		result.ProximityPlacementGroupID = *agentPool.ProximityPlacementGroupID
+	}
+
+	if agentPool.ScaleDownMode != nil {
+		result.ScaleDownMode = string(*agentPool.ScaleDownMode)
+	} else {
+		result.ScaleDownMode = string(managedclusters.ScaleDownModeDelete)
+	}
+
+	if agentPool.CreationData != nil && agentPool.CreationData.SourceResourceId != nil {
+		id, err := snapshots.ParseSnapshotIDInsensitively(*agentPool.CreationData.SourceResourceId)
+		if err != nil {
+			return nil, err
+		}
+		result.SnapshotID = id.ID()
+	}
+
+	if agentPool.VMSize != nil {
+		result.VMSize = *agentPool.VMSize
+	}
+
+	if agentPool.CapacityReservationGroupID != nil {
+		result.CapacityReservationGroupID = *agentPool.CapacityReservationGroupID
+	}
+
+	if agentPool.WorkloadRuntime != nil {
+		result.WorkloadRuntime = string(*agentPool.WorkloadRuntime)
+	}
+
+	if agentPool.KubeletDiskType != nil {
+		result.KubeletDiskType = string(*agentPool.KubeletDiskType)
+	}
+
+	if agentPool.OsSKU != nil {
+		result.OSSKU = string(*agentPool.OsSKU)
+	}
+
+	if agentPool.Type != nil {
+		result.Type = string(*agentPool.Type)
+	}
+
+	result.UpgradeSettings = flattenClusterNodePoolUpgradeSettingsTyped(agentPool.UpgradeSettings)
+
+	linuxOSConfig, err := flattenClusterNodePoolLinuxOSConfigTyped(agentPool.LinuxOSConfig)
+	if err != nil {
+		return nil, err
+	}
+	result.LinuxOSConfig = linuxOSConfig
+
+	result.KubeletConfig = flattenClusterNodePoolKubeletConfigTyped(agentPool.KubeletConfig)
+	result.NodeNetworkProfile = flattenClusterPoolNetworkProfileTyped(agentPool.NetworkProfile)
+
+	if agentPool.AvailabilityZones != nil {
+		result.Zones = *agentPool.AvailabilityZones
+	}
+
+	if agentPool.Tags != nil && len(*agentPool.Tags) > 0 {
+		result.Tags = tags.Flatten(agentPool.Tags)
+	}
+
+	return []DefaultNodePoolModel{result}, nil
+}
