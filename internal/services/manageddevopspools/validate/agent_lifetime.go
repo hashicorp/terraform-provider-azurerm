@@ -5,8 +5,8 @@ package validate
 
 import (
 	"fmt"
-	"regexp"
 	"strconv"
+	"strings"
 )
 
 func AgentLifetime(i interface{}, k string) (warnings []string, errors []error) {
@@ -40,44 +40,41 @@ func AgentLifetime(i interface{}, k string) (warnings []string, errors []error) 
 	return
 }
 
-var (
-	timeSpanWithDays    = regexp.MustCompile(`^(\d+)\.(\d{1,2}):(\d{2}):(\d{2})$`)
-	timeSpanWithoutDays = regexp.MustCompile(`^(\d{1,2}):(\d{2}):(\d{2})$`)
-)
-
 func parseTimeSpan(s string) (days, hours, minutes, seconds int, err error) {
-	if m := timeSpanWithDays.FindStringSubmatch(s); m != nil {
-		days, err = strconv.Atoi(m[1])
-		if err != nil {
+	timePart := s
+
+	// Check for "dd.hh:mm:ss" format
+	if dotIdx := strings.IndexByte(s, '.'); dotIdx >= 0 {
+		days, err = strconv.Atoi(s[:dotIdx])
+		if err != nil || days < 0 {
+			err = fmt.Errorf("value %q has invalid days component", s)
 			return
 		}
-		hours, err = strconv.Atoi(m[2])
-		if err != nil {
-			return
-		}
-		minutes, err = strconv.Atoi(m[3])
-		if err != nil {
-			return
-		}
-		seconds, err = strconv.Atoi(m[4])
-		if err != nil {
-			return
-		}
-	} else if m := timeSpanWithoutDays.FindStringSubmatch(s); m != nil {
-		hours, err = strconv.Atoi(m[1])
-		if err != nil {
-			return
-		}
-		minutes, err = strconv.Atoi(m[2])
-		if err != nil {
-			return
-		}
-		seconds, err = strconv.Atoi(m[3])
-		if err != nil {
-			return
-		}
-	} else {
-		err = fmt.Errorf("value %q does not match expected format dd.hh:mm:ss", s)
+		timePart = s[dotIdx+1:]
+	}
+
+	parts := strings.Split(timePart, ":")
+	if len(parts) != 3 {
+		err = fmt.Errorf("value %q does not match expected format dd.hh:mm:ss or hh:mm:ss", s)
+		return
+	}
+
+	hours, err = strconv.Atoi(parts[0])
+	if err != nil || hours < 0 {
+		err = fmt.Errorf("value %q has invalid hours component", s)
+		return
+	}
+
+	minutes, err = strconv.Atoi(parts[1])
+	if err != nil || minutes < 0 {
+		err = fmt.Errorf("value %q has invalid minutes component", s)
+		return
+	}
+
+	seconds, err = strconv.Atoi(parts[2])
+	if err != nil || seconds < 0 {
+		err = fmt.Errorf("value %q has invalid seconds component", s)
+		return
 	}
 
 	return
