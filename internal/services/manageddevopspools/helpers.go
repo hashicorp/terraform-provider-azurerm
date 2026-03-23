@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -99,7 +100,7 @@ func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 
 func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
+		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -107,7 +108,7 @@ func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *
 					Type:     pluginsdk.TypeString,
 					Required: true,
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^([01]\d|2[0-3]):00:00$`),
+						regexp.MustCompile(`^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$`),
 						"must be a valid 24-hour time in format HH:MM:SS",
 					),
 				},
@@ -126,7 +127,7 @@ func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *
 
 func dayScheduleSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
+		Type:     pluginsdk.TypeList,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -549,6 +550,13 @@ func flattenDaySchedule(input map[string]int64) []DayScheduleModel {
 	for t, count := range input {
 		output = append(output, DayScheduleModel{Time: t, Count: count})
 	}
+
+	// Sort by time to ensure deterministic ordering, since Go map iteration is random.
+	// Without this, Terraform would detect spurious diffs on every plan.
+	sort.Slice(output, func(i, j int) bool {
+		return output[i].Time < output[j].Time
+	})
+
 	return output
 }
 
@@ -594,9 +602,9 @@ func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel
 func flattenVmssFabricToModel(input pools.VMSSFabricProfile) []VmssFabricModel {
 	vmssFabricModel := VmssFabricModel{
 		Images:                   flattenImagesToModel(input.Images),
-		Security:                 flattenSecurityToModel(input.OsProfile),
 		SkuName:                  input.Sku.Name,
 		OsDiskStorageAccountType: flattenOsDiskStorageAccountType(input.StorageProfile),
+		Security:                 flattenSecurityToModel(input.OsProfile),
 		Storage:                  flattenStorageToModel(input.StorageProfile),
 	}
 
