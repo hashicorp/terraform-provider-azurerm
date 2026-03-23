@@ -43,11 +43,11 @@ The following arguments are supported:
 
 * `sku_name` - (Optional) The SKU which should be used. Possible values are `Standard` and `StandardV2`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
+* `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new resource to be created.
 
 -> **Note:** For `Standard`, `zones` may be omitted for a no-zone deployment or set to a single Availability Zone. For more information, please see the [Azure documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#availability-zones).
 
-~> **Note:** For `StandardV2`, it is recommend to omit `zones`. The `StandardV2` NAT Gateway is zone-redundant by default, and Azure returns all available `zones` which may differ from the zones specified in config, see [MS learn documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#standardv2-nat-gateway) for more info.
+~> **Note:** `zones` must be omitted when `sku_name` is set to `StandardV2`. `StandardV2` NAT Gateways are zone-redundant by default and Azure automatically deploys across all available zones. For more information, please see the [Azure documentation](https://learn.microsoft.com/azure/nat-gateway/nat-overview#standardv2-nat-gateway).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
