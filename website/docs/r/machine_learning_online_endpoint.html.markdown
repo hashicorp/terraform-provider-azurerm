@@ -137,3 +137,9 @@ A Machine Learning Online Endpoint can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_online_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/onlineEndpoints/onlineEndpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01
