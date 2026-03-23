@@ -26,7 +26,6 @@ var (
 		Status:       pollers.PollingStatusSucceeded,
 	}
 	pollingInProgress = pollers.PollResult{
-		HttpResponse: nil,
 		PollInterval: 10 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
 	}
