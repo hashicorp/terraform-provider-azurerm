@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/vcr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
@@ -83,6 +84,12 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 	testData.Subscriptions = Subscriptions{
 		Primary:   os.Getenv("ARM_SUBSCRIPTION_ID"),
 		Secondary: os.Getenv("ARM_SUBSCRIPTION_ID_ALT"),
+	}
+
+	// Override with VCR-managed values when VCR is active (recording or replaying)
+	if vcr.IsVCRActive() {
+		testData.RandomInteger = vcr.RandTimeIntVCR(t, testData.RandomInteger)
+		testData.RandomString = vcr.RandStringVCR(t, testData.RandomString)
 	}
 
 	return testData
