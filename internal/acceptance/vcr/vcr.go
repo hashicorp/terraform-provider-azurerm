@@ -63,13 +63,17 @@ func validateAndGetBasePath(t *testing.T) string {
 	return filepath.Clean(basePath)
 }
 
+func currentMode() string {
+	return strings.ToUpper(strings.TrimSpace(os.Getenv(EnvVCRMode)))
+}
+
 // GetHTTPClient returns an HTTP client for acceptance tests.
 // VCR mode is controlled by VCR_MODE environment variable:
-//   - "RECORDING": Record HTTP interactions to cassette file
-//   - "REPLAYING": Replay HTTP interactions from cassette file
+//   - "RECORD": Record HTTP interactions to cassette file
+//   - "REPLAY": Replay HTTP interactions from cassette file
 //   - empty/other: Passthrough mode (make real HTTP requests, no recording)
 func GetHTTPClient(t *testing.T) *http.Client {
-	vcrMode := os.Getenv(EnvVCRMode)
+	vcrMode := currentMode()
 	if vcrMode == "" {
 		return nil // Passthrough mode, return nil to indicate no VCR client
 	}
@@ -81,7 +85,7 @@ func GetHTTPClient(t *testing.T) *http.Client {
 		return singleton
 	}
 	baseDir := validateAndGetBasePath(t)
-	cassettePath := getCassettePath(t)
+	cassettePath := getCassettePathFromBasePath(baseDir, t)
 	debugEnabled := isDebugEnabled()
 
 	var mode recorder.Mode
@@ -227,8 +231,10 @@ func (d *debugTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 func getCassettePath(t *testing.T) string {
-	basePath := validateAndGetBasePath(t)
+	return getCassettePathFromBasePath(validateAndGetBasePath(t), t)
+}
 
+func getCassettePathFromBasePath(basePath string, t *testing.T) string {
 	testName := strings.ReplaceAll(t.Name(), "/", "_")
 	cassettePath := filepath.Join(basePath, testName)
 
@@ -237,7 +243,7 @@ func getCassettePath(t *testing.T) string {
 
 // IsVCRActive returns true if VCR is recording or replaying.
 func IsVCRActive() bool {
-	mode := os.Getenv(EnvVCRMode)
+	mode := currentMode()
 	return mode == ModeRecord || mode == ModeReplay
 }
 
@@ -380,10 +386,10 @@ func logFailureDiagnostics(t *testing.T, vcrMode string, cassettePath string) {
 }
 
 // RandTimeIntVCR returns a random integer for VCR tests.
-// In RECORDING mode: returns the provided value (will be saved on test success)
-// In REPLAYING mode: returns the captured value from recording
+// In RECORD mode: returns the provided value (will be saved on test success)
+// In REPLAY mode: returns the captured value from recording
 func RandTimeIntVCR(t *testing.T, value int) int {
-	switch os.Getenv(EnvVCRMode) {
+	switch currentMode() {
 	case ModeRecord:
 		// Capture for persistence on successful test completion.
 		storeRandomIntegerForReplay(t, value)
@@ -396,10 +402,10 @@ func RandTimeIntVCR(t *testing.T, value int) int {
 }
 
 // RandStringVCR returns a random string for VCR tests.
-// In RECORDING mode: returns the provided value (will be saved on test success)
-// In REPLAYING mode: returns the captured value from recording
+// In RECORD mode: returns the provided value (will be saved on test success)
+// In REPLAY mode: returns the captured value from recording
 func RandStringVCR(t *testing.T, value string) string {
-	switch os.Getenv(EnvVCRMode) {
+	switch currentMode() {
 	case ModeRecord:
 		// Capture for persistence on successful test completion.
 		storeRandomStringForReplay(t, value)

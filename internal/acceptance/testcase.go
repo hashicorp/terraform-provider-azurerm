@@ -92,7 +92,7 @@ func (td TestData) ResourceTest(t *testing.T, testResource types.TestResource, s
 	testCase := resource.TestCase{
 		PreCheck: func() { PreCheck(t) },
 		CheckDestroy: func(s *terraform.State) error {
-			client, err := testclient.Build()
+			client, err := testclient.BuildWithVcr(t)
 			if err != nil {
 				return fmt.Errorf("building client: %+v", err)
 			}
