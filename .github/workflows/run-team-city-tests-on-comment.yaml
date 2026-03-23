@@ -84,36 +84,13 @@ jobs:
         id: cache-tctest
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
-          path: ~/bin/tctest
+          path: ~/go/bin/tctest
           key: tctest-${{ runner.os }}-${{ steps.tctest-version.outputs.version }}
 
-      - name: Download and build tctest
+      - name: Install tctest
         if: steps.cache-tctest.outputs.cache-hit != 'true'
         run: |
-          LATEST_RELEASE="${{ steps.tctest-version.outputs.version }}"
-
-          # Download source code
-          DOWNLOAD_URL="https://github.com/katbyte/tctest/archive/refs/tags/${LATEST_RELEASE}.tar.gz"
-          echo "Downloading source from: $DOWNLOAD_URL"
-
-          curl -L -o tctest-source.tar.gz "$DOWNLOAD_URL"
-          tar -xzf tctest-source.tar.gz
-
-          # Navigate to extracted directory (strip version prefix 'v')
-          cd tctest-${LATEST_RELEASE#v}
-
-          # Build tctest
-          echo "Building tctest..."
-          go build -o tctest .
-
-          # Move to cache directory
-          mkdir -p ~/bin
-          mv tctest ~/bin/
-
-      - name: Install tctest
-        run: |
-          sudo cp ~/bin/tctest /usr/local/bin/
-          sudo chmod +x /usr/local/bin/tctest
+          go install github.com/katbyte/tctest@latest
 
       - name: Run tctest
         run: |

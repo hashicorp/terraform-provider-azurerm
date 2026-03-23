@@ -17,7 +17,7 @@ var principalIdAltTenant = DslContext.getParameter("principalIdAltTenant", "")
 var vcsRootId = DslContext.getParameter("vcsRootId", "TF_HashiCorp_AzureRM_Repository")
 var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlobally", "true").equals("true", ignoreCase = true)
 var emailAddressAccTests = DslContext.getParameter("emailAddressAccTests", "")
-var gitHubRepo = DslContext.getParameter("gitHubRepo", "")
+var gitHubRepo = DslContext.getParameter("gitHubRepo", "hashicorp/terraform-provider-azurerm")
 var gitPat = DslContext.getParameter("gitPat", "")
 
 

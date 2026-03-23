@@ -1,11 +1,16 @@
 #!/bin/bash
 
-if [ "%POST_GITHUB_COMMENT%" != "true" ] && [ "%POST_GITHUB_COMMENT_DETAILED%" != "true" ]; then
+POST_GITHUB_COMMENT="%POST_GITHUB_COMMENT%"
+POST_GITHUB_COMMENT_DETAILED="%POST_GITHUB_COMMENT_DETAILED%"
+
+if [ "$POST_GITHUB_COMMENT" != "true" ] && [ "$POST_GITHUB_COMMENT_DETAILED" != "true" ]; then
   echo "GitHub commenting disabled — skipping."
   exit 0
 fi
 
-if [[ "%teamcity.build.branch%" =~ refs/pull/([0-9]+)/merge ]]; then
+TEAMCITY_BUILD_BRANCH="%teamcity.build.branch%"
+
+if [[ "$TEAMCITY_BUILD_BRANCH" =~ refs/pull/([0-9]+)/merge ]]; then
   PR_NUMBER="${BASH_REMATCH[1]}"
 else
   echo "Not a PR merge branch: %teamcity.build.branch%"
@@ -13,7 +18,7 @@ else
 fi
 
 detailed=false
-if [ "%POST_GITHUB_COMMENT_DETAILED%" = "true" ]; then
+if [ "$POST_GITHUB_COMMENT_DETAILED" = "true" ]; then
   echo "Detailed GitHub commenting enabled."
   detailed=true
 fi
@@ -132,7 +137,7 @@ echo "Posting comment to GitHub..."
 curl -s \
 -H "Authorization: Bearer %env.GIT_PAT%" \
 -H "Accept: application/vnd.github+json" \
-https://api.github.com/repos/%env.GITHUB_REPO%/issues/${PR_NUMBER}/comments \
+https://api.github.com/repos/%env.GITHUB_REPO%/issues/"${PR_NUMBER}"/comments \
 -d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
 
 echo "Comment posted successfully."
