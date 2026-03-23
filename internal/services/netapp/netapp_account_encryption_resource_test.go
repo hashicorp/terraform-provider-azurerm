@@ -408,7 +408,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
   encryption_key                        = azurerm_key_vault_key.test.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomIntOfLength(17), tenantID)
 }
 
 func (r NetAppAccountEncryptionResource) keyUpdate2(data acceptance.TestData, tenantID string) string {
@@ -523,7 +523,7 @@ resource "azurerm_netapp_account_encryption" "test" {
   system_assigned_identity_principal_id = azurerm_netapp_account.test.identity.0.principal_id
   encryption_key                        = azurerm_key_vault_key.test-new-key.versionless_id
 }
-`, r.template(data), data.RandomInteger, tenantID)
+`, r.template(data), data.RandomIntOfLength(17), tenantID)
 }
 
 func (NetAppAccountEncryptionResource) template(data acceptance.TestData) string {

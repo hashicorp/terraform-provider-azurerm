@@ -77,7 +77,7 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: commonids.ValidateStorageContainerID,
 		},
 
 		"description": {

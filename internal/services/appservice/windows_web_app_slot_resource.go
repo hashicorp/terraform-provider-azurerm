@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
@@ -64,12 +65,15 @@ type WindowsWebAppSlotModel struct {
 	ZipDeployFile                      string                                     `tfschema:"zip_deploy_file"`
 	Tags                               map[string]string                          `tfschema:"tags"`
 	VirtualNetworkBackupRestoreEnabled bool                                       `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkImagePullEnabled     bool                                       `tfschema:"virtual_network_image_pull_enabled"`
 	VirtualNetworkSubnetID             string                                     `tfschema:"virtual_network_subnet_id"`
 }
 
-var _ sdk.ResourceWithUpdate = WindowsWebAppSlotResource{}
-
-var _ sdk.ResourceWithStateMigration = WindowsWebAppSlotResource{}
+var (
+	_ sdk.ResourceWithCustomizeDiff  = WindowsWebAppSlotResource{}
+	_ sdk.ResourceWithUpdate         = WindowsWebAppSlotResource{}
+	_ sdk.ResourceWithStateMigration = WindowsWebAppSlotResource{}
+)
 
 func (r WindowsWebAppSlotResource) ModelObject() interface{} {
 	return &WindowsWebAppSlotModel{}
@@ -84,7 +88,7 @@ func (r WindowsWebAppSlotResource) IDValidationFunc() pluginsdk.SchemaValidateFu
 }
 
 func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -210,12 +214,28 @@ func (r WindowsWebAppSlotResource) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"virtual_network_image_pull_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
 		"virtual_network_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: commonids.ValidateSubnetID,
 		},
 	}
+
+	if !features.FivePointOh() {
+		s["virtual_network_image_pull_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return s
 }
 
 func (r WindowsWebAppSlotResource) Attributes() map[string]*pluginsdk.Schema {
@@ -358,6 +378,19 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 					VnetBackupRestoreEnabled: pointer.To(webAppSlot.VirtualNetworkBackupRestoreEnabled),
 					VnetRouteAllEnabled:      siteConfig.VnetRouteAllEnabled,
 				},
+			}
+
+			if !features.FivePointOh() {
+				rawVnetImagePullEnabled, err := metadata.GetRawConfigAt("virtual_network_image_pull_enabled")
+				if err != nil {
+					return err
+				}
+
+				if !rawVnetImagePullEnabled.IsNull() {
+					siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
+				}
+			} else {
+				siteEnvelope.Properties.VnetImagePullEnabled = pointer.To(webAppSlot.VirtualNetworkImagePullEnabled)
 			}
 
 			if differentServicePlanToParent {
@@ -633,6 +666,7 @@ func (r WindowsWebAppSlotResource) Read() sdk.ResourceFunc {
 					state.PossibleOutboundIPAddressList = strings.Split(pointer.From(props.PossibleOutboundIPAddresses), ",")
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
+					state.VirtualNetworkImagePullEnabled = pointer.From(props.VnetImagePullEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						hostingEnvId, err := parse.AppServiceEnvironmentIDInsensitively(*hostingEnv.Id)
@@ -861,6 +895,10 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 				model.Properties.VnetBackupRestoreEnabled = pointer.To(state.VirtualNetworkBackupRestoreEnabled)
 			}
 
+			if metadata.ResourceData.HasChange("virtual_network_image_pull_enabled") {
+				model.Properties.VnetImagePullEnabled = pointer.To(state.VirtualNetworkImagePullEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("virtual_network_subnet_id") {
 				subnetId := metadata.ResourceData.Get("virtual_network_subnet_id").(string)
 				if subnetId == "" {
@@ -1018,6 +1056,51 @@ func (r WindowsWebAppSlotResource) StateUpgraders() sdk.StateUpgradeData {
 		SchemaVersion: 1,
 		Upgraders: map[int]pluginsdk.StateUpgrade{
 			0: migration.WindowsWebAppSlotV0toV1{},
+		},
+	}
+}
+
+func (r WindowsWebAppSlotResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.AppService.WebAppsClient
+
+			model := WindowsWebAppSlotModel{}
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %w", err)
+			}
+
+			if metadata.ResourceDiff.HasChange("virtual_network_image_pull_enabled") {
+				appServiceId := model.AppServiceId
+				if appServiceId == "" {
+					return nil
+				}
+
+				_, newValue := metadata.ResourceDiff.GetChange("virtual_network_image_pull_enabled")
+				if newValue.(bool) {
+					return nil
+				}
+
+				appServiceID, err := commonids.ParseAppServiceID(appServiceId)
+				if err != nil {
+					return err
+				}
+
+				resp, err := client.Get(ctx, *appServiceID)
+				if err != nil {
+					return fmt.Errorf("retrieving %s: %w", *appServiceID, err)
+				}
+
+				if webAppModel := resp.Model; webAppModel != nil {
+					if webAppModel.Properties != nil && webAppModel.Properties.HostingEnvironmentProfile != nil &&
+						pointer.From(webAppModel.Properties.HostingEnvironmentProfile.Id) != "" && !newValue.(bool) {
+						return fmt.Errorf("`virtual_network_image_pull_enabled` cannot be disabled for app running in an app service environment")
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }

@@ -224,6 +224,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tena
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionset
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace
@@ -689,7 +691,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements
 github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/machines
 github.com/hashicorp/go-azure-sdk/resource-manager/migrate/2020-01-01/runasaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/mixedreality/2021-01-01/resource
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/attacheddatanetwork
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/datanetwork
 github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/mobilenetwork

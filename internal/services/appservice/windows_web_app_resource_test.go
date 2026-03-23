@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -3514,6 +3515,21 @@ resource "azurerm_windows_web_app" "test" {
 
 // Note - this test omits the features block as the referenced template is a complete test on Service Plan
 func (r WindowsWebAppResource) withASEV3(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_web_app" "test" {
+  name                = "acctestWA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  site_config {}
+}
+`, ServicePlanResource{}.aseV3(data), data.RandomInteger)
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -3524,6 +3540,8 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   site_config {}
+
+  virtual_network_image_pull_enabled = true
 }
 `, ServicePlanResource{}.aseV3(data), data.RandomInteger)
 }
@@ -4210,6 +4228,8 @@ resource "azurerm_windows_web_app" "test" {
   service_plan_id           = azurerm_service_plan.test.id
   virtual_network_subnet_id = azurerm_subnet.test1.id
   site_config {}
+
+  virtual_network_image_pull_enabled = true
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomInteger)
 }

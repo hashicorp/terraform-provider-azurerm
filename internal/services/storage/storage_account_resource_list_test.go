@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 )
 
-func TestStorageAccount_list_basic(t *testing.T) {
+func TestAccStorageAccount_list_basic(t *testing.T) {
 	r := StorageAccountResource{}
 
 	data := acceptance.BuildTestData(t, "azurerm_storage_account", "list1")

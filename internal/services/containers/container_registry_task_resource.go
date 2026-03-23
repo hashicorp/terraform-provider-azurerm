@@ -1510,7 +1510,7 @@ func expandSourceRegistryCredential(input []SourceRegistryCredential) *tasks.Sou
 }
 
 func flattenSourceRegistryCredential(input *tasks.SourceRegistryCredentials) []SourceRegistryCredential {
-	if input == nil {
+	if input == nil || input.LoginMode == nil {
 		return nil
 	}
 

@@ -30,8 +30,10 @@ jobs:
         env:
           GITHUB_ACTIONS_STAGE: "UNIT_TESTS"
   save-artifacts-on-fail:
-    if: ${{ needs.test.result }} == 'failure'
+    needs: test
+    if: ${{ failure() }}
     uses: ./.github/workflows/save-artifacts.yaml
   comment-on-fail:
-    if: ${{ needs.depscheck.result }} == 'failure'
+    needs: test
+    if: ${{ failure() }}
     uses: ./.github/workflows/comment-failure.yaml
