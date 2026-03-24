@@ -5,6 +5,7 @@ package securitycenter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -106,12 +107,8 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Schema{
-							Type: pluginsdk.TypeString,
-							ValidateFunc: validation.All(
-								validate.BlobPrefixContainerName,
-								validation.StringDoesNotContainAny("\\?#%&+:*\"|"),
-								validation.StringIsNotEmpty,
-							),
+							Type:         pluginsdk.TypeString,
+							ValidateFunc: validate.BlobPrefix,
 						},
 						AtLeastOneOf: s.securityCenterStorageDefenderMalwareScanningOnUploadFilterConstraint(),
 					},
@@ -123,7 +120,7 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.All(
 								validation.StringDoesNotContainAny("\\?#%&+:*\"|"),
-								validation.StringIsNotEmpty,
+								validation.StringLenBetween(1, 512),
 							),
 						},
 						AtLeastOneOf: s.securityCenterStorageDefenderMalwareScanningOnUploadFilterConstraint(),
@@ -405,7 +402,7 @@ func (s StorageDefenderResource) CustomizeDiff() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			if _, ok := metadata.ResourceDiff.GetOk("malware_scanning_on_upload_filters"); ok && !metadata.ResourceDiff.Get("malware_scanning_on_upload_enabled").(bool) {
-				return fmt.Errorf("`malware_scanning_on_upload_filters` cannot be set if `malware_scanning_on_upload_enabled` is `false`")
+				return errors.New("`malware_scanning_on_upload_filters` cannot be set if `malware_scanning_on_upload_enabled` is `false`")
 			}
 
 			return nil

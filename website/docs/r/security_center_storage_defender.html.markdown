@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `malware_scanning_on_upload_filters` - (Optional) A `malware_scanning_on_upload_filters` block as documented below.
 
+~> **Note:** `malware_scanning_on_upload_filters` cannot be set if `malware_scanning_on_upload_enabled` is `false`
+
 * `malware_scanning_write_results_on_tags_enabled` - (Optional) Whether to write scan result on blobIndexTags. Defaults to `true`.
 
 * `scan_results_event_grid_topic_id` - (Optional) The Event Grid Topic where every scan result will be sent to. When you set an Event Grid custom topic, you must set `override_subscription_settings_enabled` to `true` to override the subscription-level settings.
