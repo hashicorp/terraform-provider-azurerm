@@ -214,6 +214,7 @@ func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 		NetworkProfileListResource{},
 		NetworkSecurityGroupListResource{},
 		NetworkSecurityRuleListResource{},
+		PrivateEndpointListResource{},
 		PublicIpListResource{},
 		RouteListResource{},
 		RouteTableListResource{},

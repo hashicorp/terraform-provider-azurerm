@@ -984,8 +984,7 @@ func resourceBatchCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.TargetNodeCommunicationMode = pointer.To(pool.NodeCommunicationMode(v.(string)))
 	}
 
-	_, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{})
-	if err != nil {
+	if _, err = client.Create(ctx, id, parameters, pool.CreateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
