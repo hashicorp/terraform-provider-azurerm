@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageMoverNfsFileShareEndpointTestResource struct{}
+type StorageMoverNfsFileShareTargetEndpointTestResource struct{}
 
-func TestAccStorageMoverNfsFileShareEndpoint_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_endpoint", "test")
-	r := StorageMoverNfsFileShareEndpointTestResource{}
+func TestAccStorageMoverNfsFileShareTargetEndpoint_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_target_endpoint", "test")
+	r := StorageMoverNfsFileShareTargetEndpointTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -33,9 +33,9 @@ func TestAccStorageMoverNfsFileShareEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccStorageMoverNfsFileShareEndpoint_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_endpoint", "test")
-	r := StorageMoverNfsFileShareEndpointTestResource{}
+func TestAccStorageMoverNfsFileShareTargetEndpoint_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_target_endpoint", "test")
+	r := StorageMoverNfsFileShareTargetEndpointTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -47,9 +47,9 @@ func TestAccStorageMoverNfsFileShareEndpoint_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStorageMoverNfsFileShareEndpoint_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_endpoint", "test")
-	r := StorageMoverNfsFileShareEndpointTestResource{}
+func TestAccStorageMoverNfsFileShareTargetEndpoint_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_target_endpoint", "test")
+	r := StorageMoverNfsFileShareTargetEndpointTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -61,9 +61,9 @@ func TestAccStorageMoverNfsFileShareEndpoint_complete(t *testing.T) {
 	})
 }
 
-func TestAccStorageMoverNfsFileShareEndpoint_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_endpoint", "test")
-	r := StorageMoverNfsFileShareEndpointTestResource{}
+func TestAccStorageMoverNfsFileShareTargetEndpoint_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_mover_nfs_file_share_target_endpoint", "test")
+	r := StorageMoverNfsFileShareTargetEndpointTestResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -82,7 +82,7 @@ func TestAccStorageMoverNfsFileShareEndpoint_update(t *testing.T) {
 	})
 }
 
-func (r StorageMoverNfsFileShareEndpointTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageMoverNfsFileShareTargetEndpointTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := endpoints.ParseEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func (r StorageMoverNfsFileShareEndpointTestResource) Exists(ctx context.Context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageMoverNfsFileShareEndpointTestResource) template(data acceptance.TestData) string {
+func (r StorageMoverNfsFileShareTargetEndpointTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%d"
@@ -130,8 +130,7 @@ resource "azurerm_storage_mover" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
-func (r StorageMoverNfsFileShareEndpointTestResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
+func (r StorageMoverNfsFileShareTargetEndpointTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -139,31 +138,29 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_mover_nfs_file_share_endpoint" "test" {
+resource "azurerm_storage_mover_nfs_file_share_target_endpoint" "test" {
   name               = "acctest-smnfse-%d"
   storage_mover_id   = azurerm_storage_mover.test.id
   storage_account_id = azurerm_storage_account.test.id
   file_share_name    = azurerm_storage_share.test.name
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r StorageMoverNfsFileShareEndpointTestResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
+func (r StorageMoverNfsFileShareTargetEndpointTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_storage_mover_nfs_file_share_endpoint" "import" {
-  name               = azurerm_storage_mover_nfs_file_share_endpoint.test.name
+resource "azurerm_storage_mover_nfs_file_share_target_endpoint" "import" {
+  name               = azurerm_storage_mover_nfs_file_share_target_endpoint.test.name
   storage_mover_id   = azurerm_storage_mover.test.id
   storage_account_id = azurerm_storage_account.test.id
   file_share_name    = azurerm_storage_share.test.name
 }
-`, config)
+`, r.basic(data))
 }
 
-func (r StorageMoverNfsFileShareEndpointTestResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
+func (r StorageMoverNfsFileShareTargetEndpointTestResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -171,18 +168,17 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_mover_nfs_file_share_endpoint" "test" {
+resource "azurerm_storage_mover_nfs_file_share_target_endpoint" "test" {
   name               = "acctest-smnfse-%d"
   storage_mover_id   = azurerm_storage_mover.test.id
   storage_account_id = azurerm_storage_account.test.id
   file_share_name    = azurerm_storage_share.test.name
   description        = "Example NFS File Share Endpoint Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r StorageMoverNfsFileShareEndpointTestResource) update(data acceptance.TestData) string {
-	template := r.template(data)
+func (r StorageMoverNfsFileShareTargetEndpointTestResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -190,12 +186,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_mover_nfs_file_share_endpoint" "test" {
+resource "azurerm_storage_mover_nfs_file_share_target_endpoint" "test" {
   name               = "acctest-smnfse-%d"
   storage_mover_id   = azurerm_storage_mover.test.id
   storage_account_id = azurerm_storage_account.test.id
   file_share_name    = azurerm_storage_share.test.name
   description        = "Updated NFS File Share Endpoint Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
