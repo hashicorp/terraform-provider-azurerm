@@ -5,6 +5,7 @@ package storage_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -32,7 +33,7 @@ func TestAccStorageSyncServerEndpoint_list_basic(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicListQuery(),
+				Config: r.basicListQuery(data),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLengthAtLeast(listResourceAddress, 1),
 				},
@@ -41,13 +42,13 @@ func TestAccStorageSyncServerEndpoint_list_basic(t *testing.T) {
 	})
 }
 
-func (r StorageSyncServerEndpointResource) basicListQuery() string {
-	return `
+func (r StorageSyncServerEndpointResource) basicListQuery(data acceptance.TestData) string {
+	return fmt.Sprintf(`
 list "azurerm_storage_sync_server_endpoint" "list" {
   provider = azurerm
   config {
-    storage_sync_group_id = azurerm_storage_sync_group.test.id
+    storage_sync_group_id = "/subscriptions/%s/resourceGroups/acctestRG-StorageSync-%d/providers/Microsoft.StorageSync/storageSyncServices/acctest-StorageSync-%d/syncGroups/acctest-StorageSyncGroup-%d"
   }
 }
-`
+`, data.Subscriptions.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
