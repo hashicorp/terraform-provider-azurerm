@@ -398,6 +398,37 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 	}
 }
 
+func upgradeSettingsSchemaAutomaticClusterDefaultNodePool() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"max_surge": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+				"drain_timeout_in_minutes": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+				"node_soak_duration_in_minutes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 30),
+				},
+				"undrainable_node_behavior": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
+				},
+			},
+		},
+	}
+}
+
 func expandClusterNodePoolKubeletConfigTyped(input []KubeletConfigModel) *managedclusters.KubeletConfig {
 	if len(input) == 0 {
 		return nil

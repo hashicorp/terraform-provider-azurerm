@@ -1544,10 +1544,14 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"sku_tier": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(managedclusters.ManagedClusterSKUTierFree),
-				ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForManagedClusterSKUTier(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(managedclusters.ManagedClusterSKUTierFree),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(managedclusters.ManagedClusterSKUTierFree),
+					string(managedclusters.ManagedClusterSKUTierStandard),
+					string(managedclusters.ManagedClusterSKUTierPremium),
+				}, false),
 			},
 
 			"storage_profile": {
