@@ -1651,6 +1651,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		"storage_profile": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			Computed: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -2197,7 +2198,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.EdgeZone = flattenKubernetesAutomaticClusterEdgeZone(model.ExtendedLocation)
 				// Only set tags if non-empty to avoid empty map in state
-				if model.Tags != nil && len(*model.Tags) > 0 {
+				if model.Tags != nil {
 					state.Tags = tags.Flatten(model.Tags)
 				}
 
@@ -2251,6 +2252,10 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					enablePrivateClusterPublicFQDN := false
 					runCommandEnabled := true
 					privateDnsZoneId := ""
+
+					apiServerAccessProfile := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
+					state.APIServerAccessProfile = apiServerAccessProfile
+
 					if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
 						if accessProfile.EnablePrivateCluster != nil {
 							enablePrivateCluster = *accessProfile.EnablePrivateCluster
@@ -2975,6 +2980,27 @@ func expandKubernetesAutomaticClusterAPIAccessProfile(model *KubernetesAutomatic
 	}
 
 	return apiAccessProfile
+}
+
+func flattenKubernetesAutomaticClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []APIServerAccessProfileModel {
+	apiServerAccessProfile := make([]APIServerAccessProfileModel, 0)
+
+	if profile == nil {
+		return apiServerAccessProfile
+	}
+
+	// API access profile can be managed by other properties, only return it if one of the properties has been set
+	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+		return apiServerAccessProfile
+	}
+
+	apiServerAccessProfile = append(apiServerAccessProfile, APIServerAccessProfileModel{
+		AuthorizedIPRanges:               pointer.From(profile.AuthorizedIPRanges),
+		VirtualNetworkIntegrationEnabled: pointer.From(profile.EnableVnetIntegration),
+		SubnetID:                         pointer.From(profile.SubnetId),
+	})
+
+	return apiServerAccessProfile
 }
 
 func expandKubernetesAutomaticClusterBootstrapProfile(input []BootstrapProfileModel) *managedclusters.ManagedClusterBootstrapProfile {
