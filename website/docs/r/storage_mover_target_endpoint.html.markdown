@@ -10,7 +10,7 @@ description: |-
 
 Manages a Storage Mover **Target Endpoint** for an Azure Storage **blob container** migration destination (as shown in the Azure portal).
 
--> **Note:** To target an **NFS file share** on Azure Files instead, use [`azurerm_storage_mover_nfs_file_share_target_endpoint`](storage_mover_nfs_file_share_target_endpoint.html).
+-> **Note:** To target an **NFS file share** on Azure Files instead, use [`azurerm_storage_mover_nfs_file_share_target_endpoint`](storage_mover_nfs_file_share_target_endpoint.html). For an **SMB** file share target, use [`azurerm_storage_mover_smb_file_share_endpoint`](storage_mover_smb_file_share_endpoint.html).
 
 ## Example Usage
 
