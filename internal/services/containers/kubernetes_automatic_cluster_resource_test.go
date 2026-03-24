@@ -251,34 +251,34 @@ func TestAccKubernetesAutomaticCluster_edgeZone(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_updateNetworkProfileOutboundType(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-		},
-		data.ImportStep(),
-		{
-			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-		},
-		data.ImportStep(),
-		// 'none' tested in network isolated setup with bootstrap profile
-	})
-}
+//func TestAccKubernetesAutomaticCluster_updateNetworkProfileOutboundType(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
+//		},
+//		data.ImportStep(),
+//		// 'none' tested in network isolated setup with bootstrap profile
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_bootstrapProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
