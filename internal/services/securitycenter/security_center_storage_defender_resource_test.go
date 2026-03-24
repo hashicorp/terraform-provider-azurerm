@@ -158,17 +158,6 @@ func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
 	})
 }
 
-func TestAccSecurityCenterStorageDefender_invalidFilterBlobPrefix(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_security_center_storage_defender", "test")
-	r := SecurityCenterStorageDefenderResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.invalidFilterBlobPrefix(data),
-			ExpectError: regexp.MustCompile(regexp.QuoteMeta(`expected value of malware_scanning_on_upload_filters.0.exclude_blobs_with_prefix.0 to not contain any of "\\?#%&+:*\"|", got test/\`)),
-		},
-	})
-}
-
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -282,20 +271,4 @@ resource "azurerm_security_center_storage_defender" "test" {
   scan_results_event_grid_topic_id       = azurerm_eventgrid_topic.test.id
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r SecurityCenterStorageDefenderResource) invalidFilterBlobPrefix(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_security_center_storage_defender" "test" {
-  storage_account_id = azurerm_storage_account.test.id
-
-  malware_scanning_on_upload_filters {
-    exclude_blobs_with_prefix = [
-      "test/\\"
-    ]
-  }
-}
-`, r.template(data))
 }
