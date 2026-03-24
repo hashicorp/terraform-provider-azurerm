@@ -129,7 +129,6 @@ resource "azurerm_storage_mover" "test" {
 }
 
 func (r StorageMoverSmbFileShareEndpointTestResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -143,11 +142,10 @@ resource "azurerm_storage_mover_smb_file_share_endpoint" "test" {
   storage_account_id = azurerm_storage_account.test.id
   file_share_name    = azurerm_storage_share.test.name
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageMoverSmbFileShareEndpointTestResource) requiresImport(data acceptance.TestData) string {
-	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -157,11 +155,10 @@ resource "azurerm_storage_mover_smb_file_share_endpoint" "import" {
   storage_account_id = azurerm_storage_account.test.id
   file_share_name    = azurerm_storage_share.test.name
 }
-`, config)
+`, r.basic(data))
 }
 
 func (r StorageMoverSmbFileShareEndpointTestResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -176,11 +173,10 @@ resource "azurerm_storage_mover_smb_file_share_endpoint" "test" {
   file_share_name    = azurerm_storage_share.test.name
   description        = "Example SMB File Share Endpoint Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r StorageMoverSmbFileShareEndpointTestResource) update(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -195,5 +191,5 @@ resource "azurerm_storage_mover_smb_file_share_endpoint" "test" {
   file_share_name    = azurerm_storage_share.test.name
   description        = "Updated SMB File Share Endpoint Description"
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
