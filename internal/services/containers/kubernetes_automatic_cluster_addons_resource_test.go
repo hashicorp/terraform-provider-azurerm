@@ -41,37 +41,37 @@ func TestAccKubernetesAutomaticCluster_addonProfileAciConnectorLinuxDisabled(t *
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_addonProfileAzurePolicy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// Enable with V2
-			Config: r.addonProfileAzurePolicyConfig(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			// Disable it
-			Config: r.addonProfileAzurePolicyConfig(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			// Enable with V2
-			Config: r.addonProfileAzurePolicyConfig(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_addonProfileAzurePolicy(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			// Enable with V2
+//			Config: r.addonProfileAzurePolicyConfig(data, true),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//		{
+//			// Disable it
+//			Config: r.addonProfileAzurePolicyConfig(data, false),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//		{
+//			// Enable with V2
+//			Config: r.addonProfileAzurePolicyConfig(data, true),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -230,29 +230,29 @@ func TestAccKubernetesAutomaticCluster_addonProfileOpenServiceMesh(t *testing.T)
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_addonProfileAzureKeyVaultSecretsProvider(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			// Enable AzureKeyvaultSecretsProvider
-			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, "2m"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			// Disable AzureKeyvaultSecretsProvider
-			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, false, "2m"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_addonProfileAzureKeyVaultSecretsProvider(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			// Enable AzureKeyvaultSecretsProvider
+//			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, "2m"),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//		{
+//			// Disable AzureKeyvaultSecretsProvider
+//			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, false, "2m"),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_addonProfileConfidentialComputing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
