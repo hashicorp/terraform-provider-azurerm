@@ -125,7 +125,7 @@ func (r AutomationRuntimeEnvironmentPackageResource) Create() sdk.ResourceFunc {
 
 			var model AutomationRuntimeEnvironmentPackageModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			envId, err := packageresource.ParseRuntimeEnvironmentID(model.RuntimeEnvironmentId)
@@ -204,12 +204,12 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: model was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			var stateModel AutomationRuntimeEnvironmentPackageModel
 			if err = metadata.Decode(&stateModel); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			runtimeEnvId := packageresource.NewRuntimeEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RuntimeEnvironmentName)
@@ -226,21 +226,23 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 				HashAlgorithm:  stateModel.HashAlgorithm,
 			}
 
-			model := resp.Model
-			if model.Properties != nil {
-				if content := model.Properties.ContentLink; content != nil {
-					output.ContentUri = pointer.From(content.Uri)
-					output.ContentVersion = pointer.From(content.Version)
-					if hash := content.ContentHash; hash != nil {
-						output.HashAlgorithm = hash.Algorithm
-						output.HashValue = hash.Value
-					}
-				}
-
-				output.SizeInBytes = pointer.From(model.Properties.SizeInBytes)
-				output.Version = pointer.From(model.Properties.Version)
-				output.IsDefault = pointer.From(model.Properties.Default)
+			if model := resp.Model; model != nil {
 				output.Tags = pointer.From(model.Tags)
+
+				if props := model.Properties; props != nil {
+					if content := props.ContentLink; content != nil {
+						output.ContentUri = pointer.From(content.Uri)
+						output.ContentVersion = pointer.From(content.Version)
+						if hash := content.ContentHash; hash != nil {
+							output.HashAlgorithm = hash.Algorithm
+							output.HashValue = hash.Value
+						}
+					}
+
+					output.SizeInBytes = pointer.From(props.SizeInBytes)
+					output.Version = pointer.From(props.Version)
+					output.IsDefault = pointer.From(props.Default)
+				}
 			}
 
 			return metadata.Encode(&output)

@@ -43,8 +43,12 @@ func (p automationRuntimeEnvironmentPackagePoller) Poll(ctx context.Context) (*p
 		return nil, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
-	if resp.Model == nil || resp.Model.Properties == nil {
-		return nil, fmt.Errorf("polling for %s: model or properties were nil", p.id)
+	if resp.Model == nil {
+		return nil, fmt.Errorf("polling for %s: `model` was nil", p.id)
+	}
+
+	if resp.Model.Properties == nil {
+		return nil, fmt.Errorf("polling for %s: `properties` was nil", p.id)
 	}
 
 	props := resp.Model.Properties

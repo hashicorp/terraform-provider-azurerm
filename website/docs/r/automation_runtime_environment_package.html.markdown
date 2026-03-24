@@ -14,12 +14,12 @@ Manages a Package within an Automation Runtime Environment.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "rg-example"
+  name     = "example-resource-group"
   location = "westeurope"
 }
 
 resource "azurerm_automation_account" "example" {
-  name                = "example"
+  name                = "example-account"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "Basic"
@@ -34,9 +34,9 @@ resource "azurerm_automation_runtime_environment" "example" {
 }
 
 resource "azurerm_automation_runtime_environment_package" "example" {
-  name                   = "Microsoft.Graph.Authentication"
+  name                   = "example-package"
   runtime_environment_id = azurerm_automation_runtime_environment.example.id
-  content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
+  content_uri            = "https://www.powershellgallery.com/api/v2/package/example-package/1.0.0"
 }
 ```
 
@@ -48,7 +48,9 @@ The following arguments are supported:
 
 * `runtime_environment_id` - (Required) The ID of the Automation Runtime Environment in which to create this package. Changing this forces a new Automation Runtime Environment Package to be created.
 
-* `content_uri` - (Required) The URI of the package content. This should be a publicly accessible URL, for example from the PowerShell Gallery. Changing this forces a new Automation Runtime Environment Package to be created.
+* `content_uri` - (Required) The URI of the package content. Changing this forces a new Automation Runtime Environment Package to be created.
+
+-> **Note:** The `content_uri` should be a publicly accessible URL, for example from the PowerShell Gallery.
 
 ---
 
@@ -66,11 +68,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Automation Runtime Environment Package.
 
+* `is_default` - Whether this is a default package.
+
 * `size_in_bytes` - The size of the package in bytes.
 
 * `version` - The version of the package as reported by the platform.
-
-* `is_default` - Whether this is a default package.
 
 ## Timeouts
 

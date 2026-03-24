@@ -13,26 +13,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type AutomationRuntimeEnvironmentPackageResource struct{}
 
-func (a AutomationRuntimeEnvironmentPackageResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := packageresource.ParsePackageID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-	resp, err := client.Automation.PackageResource.Get(ctx, *id)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
-	}
-	return pointer.To(resp.Model != nil), nil
-}
-
 func TestAccAutomationRuntimeEnvironmentPackage_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentPackageResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runtime_environment_package", "test")
 	r := AutomationRuntimeEnvironmentPackageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -47,7 +34,7 @@ func TestAccAutomationRuntimeEnvironmentPackage_basic(t *testing.T) {
 }
 
 func TestAccAutomationRuntimeEnvironmentPackage_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentPackageResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runtime_environment_package", "test")
 	r := AutomationRuntimeEnvironmentPackageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -62,7 +49,7 @@ func TestAccAutomationRuntimeEnvironmentPackage_requiresImport(t *testing.T) {
 }
 
 func TestAccAutomationRuntimeEnvironmentPackage_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentPackageResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runtime_environment_package", "test")
 	r := AutomationRuntimeEnvironmentPackageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -77,7 +64,7 @@ func TestAccAutomationRuntimeEnvironmentPackage_complete(t *testing.T) {
 }
 
 func TestAccAutomationRuntimeEnvironmentPackage_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, automation.AutomationRuntimeEnvironmentPackageResource{}.ResourceType(), "test")
+	data := acceptance.BuildTestData(t, "azurerm_automation_runtime_environment_package", "test")
 	r := AutomationRuntimeEnvironmentPackageResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -98,7 +85,31 @@ func TestAccAutomationRuntimeEnvironmentPackage_update(t *testing.T) {
 	})
 }
 
-func (a AutomationRuntimeEnvironmentPackageResource) requiresImport(data acceptance.TestData) string {
+func (AutomationRuntimeEnvironmentPackageResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := packageresource.ParsePackageID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Automation.PackageResource.Get(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+	return pointer.To(resp.Model != nil), nil
+}
+
+func (r AutomationRuntimeEnvironmentPackageResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_runtime_environment_package" "test" {
+  name                   = "acctest-authentication"
+  runtime_environment_id = azurerm_automation_runtime_environment.test.id
+  content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
+}
+`, r.template(data))
+}
+
+func (r AutomationRuntimeEnvironmentPackageResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -107,22 +118,10 @@ resource "azurerm_automation_runtime_environment_package" "import" {
   runtime_environment_id = azurerm_automation_runtime_environment_package.test.runtime_environment_id
   content_uri            = azurerm_automation_runtime_environment_package.test.content_uri
 }
-`, a.basic(data))
+`, r.basic(data))
 }
 
-func (a AutomationRuntimeEnvironmentPackageResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_automation_runtime_environment_package" "test" {
-  name                   = "acctest-authentication"
-  runtime_environment_id = azurerm_automation_runtime_environment.test.id
-  content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
-}
-`, a.template(data))
-}
-
-func (a AutomationRuntimeEnvironmentPackageResource) complete(data acceptance.TestData) string {
+func (r AutomationRuntimeEnvironmentPackageResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -131,15 +130,17 @@ resource "azurerm_automation_runtime_environment_package" "test" {
   runtime_environment_id = azurerm_automation_runtime_environment.test.id
   content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
   content_version        = "2.25.0"
+  hash_algorithm         = "SHA256"
+  hash_value             = "examplehashvalue"
 
   tags = {
     Environment = "test"
   }
 }
-`, a.template(data))
+`, r.template(data))
 }
 
-func (a AutomationRuntimeEnvironmentPackageResource) update(data acceptance.TestData) string {
+func (r AutomationRuntimeEnvironmentPackageResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -152,10 +153,10 @@ resource "azurerm_automation_runtime_environment_package" "test" {
     Environment = "test"
   }
 }
-`, a.template(data))
+`, r.template(data))
 }
 
-func (a AutomationRuntimeEnvironmentPackageResource) template(data acceptance.TestData) string {
+func (r AutomationRuntimeEnvironmentPackageResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
