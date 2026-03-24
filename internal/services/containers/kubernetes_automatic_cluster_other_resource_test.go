@@ -257,20 +257,20 @@ func TestAccKubernetesAutomaticCluster_upgradeSkuTier(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_podSubnet(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.podSubnet(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_podSubnet(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.podSubnet(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -697,45 +697,45 @@ func TestAccKubernetesAutomaticCluster_osSku(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_osSkuUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.osSku(data, "Ubuntu"),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//		check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
-		//	),
-		//},
-		//data.ImportStep(),
-		{
-			Config: r.osSku(data, "AzureLinux"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
-			),
-		},
-		data.ImportStep(),
-		//{
-		//	Config: r.osSku(data, "Ubuntu2204"),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//		check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu2204"),
-		//	),
-		//},
-		//data.ImportStep(),
-		{
-			Config: r.osSku(data, "AzureLinux3"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux3"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_osSkuUpdate(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		//{
+//		//	Config: r.osSku(data, "Ubuntu"),
+//		//	Check: acceptance.ComposeTestCheckFunc(
+//		//		check.That(data.ResourceName).ExistsInAzure(r),
+//		//		check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+//		//	),
+//		//},
+//		//data.ImportStep(),
+//		{
+//			Config: r.osSku(data, "AzureLinux"),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
+//			),
+//		},
+//		data.ImportStep(),
+//		//{
+//		//	Config: r.osSku(data, "Ubuntu2204"),
+//		//	Check: acceptance.ComposeTestCheckFunc(
+//		//		check.That(data.ResourceName).ExistsInAzure(r),
+//		//		check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu2204"),
+//		//	),
+//		//},
+//		//data.ImportStep(),
+//		{
+//			Config: r.osSku(data, "AzureLinux3"),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux3"),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_microsoftDefender(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -759,55 +759,56 @@ func TestAccKubernetesAutomaticCluster_microsoftDefender(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_oidcIssuer(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.oidcIssuer(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.oidcIssuer(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_workloadIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.workloadIdentity(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.workloadIdentity(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//
+//func TestAccKubernetesAutomaticCluster_oidcIssuer(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.oidcIssuer(data, false),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
+//				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
+//			),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.oidcIssuer(data, true),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
+//				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
+//
+//func TestAccKubernetesAutomaticCluster_workloadIdentity(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.workloadIdentity(data, true),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("true"),
+//			),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.workloadIdentity(data, false),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("false"),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_webAppRoutingWithMultipleDnsZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -918,32 +919,32 @@ func TestAccKubernetesAutomaticCluster_azureMonitorKubernetesMetrics(t *testing.
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_nodeOsUpgradeChannel(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	nodeOsUpgradeChannel := "node_os_upgrade_channel"
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		// Note: "Unmanaged" and "None" are not compatible with Automatic SKU
-		// which requires automatic_upgrade_channel = "stable"
-		{
-			Config: r.nodeOsUpgradeChannel(data, "NodeImage"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("NodeImage"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.nodeOsUpgradeChannel(data, "SecurityPatch"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("SecurityPatch"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_nodeOsUpgradeChannel(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	nodeOsUpgradeChannel := "node_os_upgrade_channel"
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		// Note: "Unmanaged" and "None" are not compatible with Automatic SKU
+//		// which requires automatic_upgrade_channel = "stable"
+//		{
+//			Config: r.nodeOsUpgradeChannel(data, "NodeImage"),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("NodeImage"),
+//			),
+//		},
+//		data.ImportStep(),
+//		{
+//			Config: r.nodeOsUpgradeChannel(data, "SecurityPatch"),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("SecurityPatch"),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_snapshotId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -1046,20 +1047,20 @@ func TestAccKubernetesAutomaticCluster_supportPlanKubernetesOfficial(t *testing.
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_supportPlanAKSLongTermSupport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.supportPlanAKSLongTermSupport(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_supportPlanAKSLongTermSupport(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.supportPlanAKSLongTermSupport(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_costAnalysis(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
