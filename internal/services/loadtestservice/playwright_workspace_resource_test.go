@@ -33,6 +33,21 @@ func TestAccPlaywrightWorkspace_basic(t *testing.T) {
 	})
 }
 
+func TestAccPlaywrightWorkspace_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_playwright_workspace", "test")
+	r := PlaywrightWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPlaywrightWorkspace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_playwright_workspace", "test")
 	r := PlaywrightWorkspaceResource{}
@@ -61,7 +76,7 @@ func TestAccPlaywrightWorkspace_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -105,10 +120,6 @@ resource "azurerm_playwright_workspace" "test" {
   name                = "acctest-pww-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-
-  tags = {
-    env = "prod"
-  }
 }
 `, r.template(data), data.RandomIntOfLength(8))
 }
@@ -125,7 +136,7 @@ resource "azurerm_playwright_workspace" "import" {
 `, r.basic(data))
 }
 
-func (r PlaywrightWorkspaceResource) update(data acceptance.TestData) string {
+func (r PlaywrightWorkspaceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

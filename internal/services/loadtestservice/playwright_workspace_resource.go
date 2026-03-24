@@ -130,15 +130,6 @@ func (r PlaywrightWorkspaceResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
-
 			param := playwrightworkspaces.PlaywrightWorkspaceUpdate{}
 			var config PlaywrightWorkspaceModel
 			if err := metadata.Decode(&config); err != nil {

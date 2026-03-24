@@ -45,7 +45,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Playwright Workspace.
 
-* `dataplane_uri` - The data plane service API URI of the Playwright Workspace.
+* `dataplane_uri` - The data plane service API URI of the Playwright Workspace. The format of URI is `https://{location}.api.playwright.microsoft.com/playwrightworkspaces/{workspace_id}`. To use the Playwright Workspace remote browsers, apply the URI according to the [documentation](https://learn.microsoft.com/en-us/azure/app-testing/playwright-workspaces/quickstart-run-end-to-end-tests?tabs=playwrightcli&pivots=playwright-test-runner#configure-the-browser-endpoint).
 
 * `workspace_id` - The ID in GUID format of the Playwright Workspace.
 
