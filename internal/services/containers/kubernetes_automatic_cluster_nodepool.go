@@ -1038,7 +1038,7 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 		result.Zones = *agentPool.AvailabilityZones
 	}
 
-	if agentPool.Tags != nil && len(*agentPool.Tags) > 0 {
+	if agentPool.Tags != nil {
 		result.Tags = tags.Flatten(agentPool.Tags)
 	}
 
