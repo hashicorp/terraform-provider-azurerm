@@ -617,11 +617,20 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"host_batch_bind_mounts": {
+					"host_directory_mount": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
-							Schema: batchPoolDataContainerHostBatchBindMountEntry(),
+							Schema: map[string]*pluginsdk.Schema{
+								"source": {
+									Type:     pluginsdk.TypeString,
+									Computed: true,
+								},
+								"read_only_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Computed: true,
+								},
+							},
 						},
 					},
 				},
@@ -734,19 +743,6 @@ func batchPoolDataContainerRegistry() map[string]*schema.Schema {
 			Type:      pluginsdk.TypeString,
 			Computed:  true,
 			Sensitive: true,
-		},
-	}
-}
-
-func batchPoolDataContainerHostBatchBindMountEntry() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"source": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"read_only_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
 		},
 	}
 }

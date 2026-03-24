@@ -165,7 +165,7 @@ A `container` block exports the following:
 
 * `working_directory` - A flag to indicate where the container task working directory is.
 
-* `host_batch_bind_mounts` - One or more `host_batch_bind_mount_entry` blocks that describe the entry of path and mount mode you want to mount into task container.
+* `host_directory_mount` - One or more `host_directory_mount` blocks that describe the entry of path and mount mode you want to mount into task container.
 ---
 
 A `user_identity` block exports the following:
@@ -224,7 +224,7 @@ A `container_registries` block exports the following:
 
 ---
 
-A `host_batch_bind_mount_entry` block exports the following:
+A `host_directory_mount` block exports the following:
 
 * `source` - The paths which will be mounted to container task's container. Possible value is `Applications`, `JobPrep`, `Shared`, `Startup`, `Task` and `VfsMounts`.
 

@@ -1544,11 +1544,22 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 							string(pool.ContainerWorkingDirectoryContainerImageDefault),
 						}, false),
 					},
-					"host_batch_bind_mounts": {
+					"host_directory_mount": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
-							Schema: ContainerHostBatchBindMountEntry(),
+							Schema: map[string]*pluginsdk.Schema{
+								"source": {
+									Type:         pluginsdk.TypeString,
+									Optional:     true,
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerHostDataPath(), false),
+								},
+								"read_only_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+							},
 						},
 					},
 				},
@@ -1684,28 +1695,6 @@ func containerRegistry() map[string]*schema.Schema {
 			ForceNew:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-	}
-}
-
-func ContainerHostBatchBindMountEntry() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"source": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(pool.ContainerHostDataPathApplications),
-				string(pool.ContainerHostDataPathJobPrep),
-				string(pool.ContainerHostDataPathShared),
-				string(pool.ContainerHostDataPathStartup),
-				string(pool.ContainerHostDataPathTask),
-				string(pool.ContainerHostDataPathVfsMounts),
-			}, false),
-		},
-		"read_only_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
 		},
 	}
 }

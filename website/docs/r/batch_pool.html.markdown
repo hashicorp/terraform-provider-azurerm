@@ -293,7 +293,7 @@ A `container` block supports the following:
 
 * `working_directory` - (Optional) A flag to indicate where the container task working directory is. Possible values are `TaskWorkingDirectory` and `ContainerImageDefault`.
   
-* `host_batch_bind_mounts` - (Optional) One or more `host_batch_bind_mount_entry` blocks that describe the entry of path and mount mode you want to mount into task container.
+* `host_directory_mount` - (Optional) One or more `host_directory_mount` blocks that describe the entry of path and mount mode you want to mount into task container.
 
 ---
 
@@ -357,11 +357,11 @@ A `container_registries` block supports the following:
 
 ---
 
-A `host_batch_bind_mount_entry` block supports the following:
+A `host_directory_mount` block supports the following:
 
-* `source` - (Optional) The paths which will be mounted to container task's container. Possible value is `Applications`, `JobPrep`, `Shared`, `Startup`, `Task` and `VfsMounts`.
+* `source` - (Optional) The paths which will be mounted to container task's container. Possible values include `Applications`, `JobPrep`, `Shared`, `Startup`, `Task`, and `VfsMounts`.
 
-* `read_only_enabled` - (Optional) Mount this source path as read-only mode or not. Default to `false` (read/write mode). Changing this forces a new resource to be created.
+* `read_only_enabled` - (Optional) Mount this source path as read-only mode or not. Default to `false` (read/write mode).
 
 ---
 
