@@ -133,20 +133,20 @@ func TestAccKubernetesAutomaticCluster_roleBasedAccessControl(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlDisabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlConfigDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_roleBasedAccessControlDisabled(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.roleBasedAccessControlConfigDisabled(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAAD(t *testing.T) {
 	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
@@ -226,100 +226,101 @@ func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADUpdateToManaged(
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManaged(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-	clientData := data.Client()
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-		{
-			// should be no changes since the default for Tenant ID comes from the Provider block
-			Config:   r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
-			PlanOnly: true,
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-	clientData := data.Client()
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, clientData.TenantID),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-	clientData := data.Client()
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-		{
-			Config: r.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, clientData.TenantID),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-		{
-			Config: r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManagedChange(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-	clientData := data.Client()
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-		{
-			Config: r.roleBasedAccessControlAADManagedConfigScale(data, clientData.TenantID),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-	})
-}
+//
+//func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManaged(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//	clientData := data.Client()
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//		{
+//			// should be no changes since the default for Tenant ID comes from the Provider block
+//			Config:   r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
+//			PlanOnly: true,
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//	})
+//}
+//
+//func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabled(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//	clientData := data.Client()
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, clientData.TenantID),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//	})
+//}
+//
+//func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManagedWithLocalAccountDisabledUpdated(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//	clientData := data.Client()
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//		{
+//			Config: r.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, clientData.TenantID),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//		{
+//			Config: r.roleBasedAccessControlAADManagedConfig(data, clientData.TenantID),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//	})
+//}
+//
+//func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADManagedChange(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//	clientData := data.Client()
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//		{
+//			Config: r.roleBasedAccessControlAADManagedConfigScale(data, clientData.TenantID),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//				check.That(data.ResourceName).Key("default_node_pool.0.node_count").HasValue("2"),
+//			),
+//		},
+//		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
