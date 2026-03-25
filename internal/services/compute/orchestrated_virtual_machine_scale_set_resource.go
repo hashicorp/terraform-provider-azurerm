@@ -133,7 +133,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: computeValidate.SkuProfileVMSizeName,
 								},
 								"rank": {
 									Type:         pluginsdk.TypeInt,
@@ -155,7 +155,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 						Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `virtual_machine_size` block instead.",
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: computeValidate.SkuProfileVMSizeName,
 						},
 					}
 
@@ -170,7 +170,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 								"name": {
 									Type:         pluginsdk.TypeString,
 									Required:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: computeValidate.SkuProfileVMSizeName,
 								},
 								"rank": {
 									Type:         pluginsdk.TypeInt,

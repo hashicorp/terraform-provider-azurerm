@@ -512,6 +512,8 @@ A `virtual_machine_size` block supports the following:
 
 * `name` - (Required) The name of the VM SKU which should be used for this Virtual Machine Scale Set, such as `Standard_B1ls` or `Standard_B2s`.
 
+~> **Note:** `sku_profile` currently supports `Standard_` VM size names from the general-purpose `A`, `B`, `D`, `E`, and `F` families. Specialized families such as `L`, `DC`, and `EC` are not supported. Additional Azure service compatibility limitations may still apply to valid-looking VM size combinations.
+
 * `rank` - (Optional) Specifies the priority rank of the VM size. Possible values are integers between `0` and `2`, inclusive.
 
 ~> **Note:** `rank` can only be set when the parent `sku_profile` block sets `allocation_strategy` to `Prioritized`. When `allocation_strategy` is `Prioritized`, every `virtual_machine_size` block must set `rank`, and the rank values must be consecutive starting from `0` with no gaps. `0` represents the highest priority, `1` represents medium priority, and `2` represents the lowest priority.
