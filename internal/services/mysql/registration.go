@@ -85,9 +85,12 @@ func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
 	return []sdk.FrameworkWrappedResource{}
 }
 
-// Resources returns a list of List Resources supported by this Service
+// ListResources returns a list of List Resources supported by this Service
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
 	return []sdk.FrameworkListWrappedResource{
 		MysqlFlexibleServerListResource{},
+		MysqlFlexibleDatabaseListResource{},
+		MysqlFlexibleServerFirewallRuleListResource{},
+		MysqlFlexibleServerConfigurationListResource{},
 	}
 }

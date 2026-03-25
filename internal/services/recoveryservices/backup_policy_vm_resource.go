@@ -1006,8 +1006,7 @@ func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
@@ -1024,8 +1023,7 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
