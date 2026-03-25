@@ -251,6 +251,10 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 				},
 			},
 		},
+		"open_service_mesh_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
 		"key_vault_secrets_provider": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
