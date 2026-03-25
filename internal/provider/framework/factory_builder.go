@@ -29,7 +29,7 @@ func ProtoV6ProviderFactoriesInit(_ context.Context, providerNames ...string) ma
 }
 
 // ProtoV5ProviderFactoriesInit allows tests outside the acceptance test suite to instantiate the ServerFactory required
-// to run tests directly. Primary use case today is List resoruces until thy are supported by the acceptance package as
+// to run tests directly. Primary use case today is List resources until thy are supported by the acceptance package as
 // testing type.
 func ProtoV5ProviderFactoriesInit(ctx context.Context, providerNames ...string) map[string]func() (tfprotov5.ProviderServer, error) {
 	factories := make(map[string]func() (tfprotov5.ProviderServer, error), len(providerNames))

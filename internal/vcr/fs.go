@@ -11,13 +11,13 @@ import (
 	"path/filepath"
 )
 
-// gzipFS is a cassette.FS implementation that reads and writes gzip-compressed files.
+// GzipFS is a cassette.FS implementation that reads and writes gzip-compressed files.
 // Note: Not currently active as we successfully removed the "noise" of the RP status caching which was causing 3.4MiB
 // bloat in the recorded cassettes. When in use the cassettes are not human-readable, so troubleshooting / checking /
 // reviewing is inconvenient.
-type gzipFS struct{}
+type GzipFS struct{}
 
-func (fs *gzipFS) ReadFile(name string) ([]byte, error) {
+func (fs *GzipFS) ReadFile(name string) ([]byte, error) {
 	f, err := os.Open(name)
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func (fs *gzipFS) ReadFile(name string) ([]byte, error) {
 	return io.ReadAll(r)
 }
 
-func (fs *gzipFS) WriteFile(name string, data []byte) error {
+func (fs *GzipFS) WriteFile(name string, data []byte) error {
 	dir := filepath.Dir(name)
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		if err = os.MkdirAll(dir, 0o755); err != nil {
@@ -60,7 +60,7 @@ func (fs *gzipFS) WriteFile(name string, data []byte) error {
 	return err
 }
 
-func (fs *gzipFS) IsFileExists(name string) bool {
+func (fs *GzipFS) IsFileExists(name string) bool {
 	_, err := os.Stat(name)
 	return !os.IsNotExist(err)
 }
