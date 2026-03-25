@@ -1,6 +1,7 @@
 ## 4.66.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_bastion_host` - Upgrade API to `2025-01-01` [GH-32030]
 * `azurerm_search_service`: add support for `endpoint` attribute [GH-32010]
 * **New Data Source**: `azurerm_container_app_environment_storage` [GH-32007]
 * `cognitive_account_rai_blocklist_resource` - add support for the `tags` property [GH-31871]
