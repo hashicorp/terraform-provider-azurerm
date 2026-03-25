@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/bastionhosts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -516,7 +516,7 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastion
 				Subnet: bastionhosts.SubResource{
 					Id: &subID,
 				},
-				PublicIPAddress: bastionhosts.SubResource{
+				PublicIPAddress: &bastionhosts.SubResource{
 					Id: &pipID,
 				},
 			},
@@ -545,7 +545,7 @@ func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPCo
 			ipConfig["subnet_id"] = subnetId
 
 			publicIpId := ""
-			if pip := props.PublicIPAddress; pip.Id != nil {
+			if pip := props.PublicIPAddress; pip != nil && pip.Id != nil {
 				publicIpId = *pip.Id
 			}
 			ipConfig["public_ip_address_id"] = publicIpId
