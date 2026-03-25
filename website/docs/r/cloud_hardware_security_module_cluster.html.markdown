@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `auto_generated_domain_name_label_scope` - (Optional) Specifies the scope for auto-generated domain name labels. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse`, and `NoReuse`. Defaults to `TenantReuse`. Changing this forces a new resource to be created.
+* `domain_name_reuse` - (Optional) Specifies the scope for auto-generated domain name labels. Possible values are `TenantReuse`, `SubscriptionReuse`, `ResourceGroupReuse`, and `NoReuse`. Defaults to `TenantReuse`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the Cloud Hardware Security Module Cluster.
 
@@ -61,55 +61,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Cloud Hardware Security Module Cluster.
 
-* `activation_state` - The activation state of the Cloud Hardware Security Module Cluster.
-
-* `hsms` - A list of `hsms` blocks as defined below.
-
-* `private_endpoint_connections` - A list of `private_endpoint_connections` blocks as defined below.
-
-* `status_message` - The status message of the Cloud Hardware Security Module Cluster.
+* `hardware_security_module` - A list of `hardware_security_module` blocks as defined below.
 
 ---
 
-A `hsms` block exports the following:
+A `hardware_security_module` block exports the following:
 
 * `fqdn` - The fully qualified domain name of the HSM instance.
-
-* `state` - The state of the HSM instance.
-
-* `state_message` - The state message of the HSM instance.
-
----
-
-A `private_endpoint_connections` block exports the following:
-
-* `id` - The ID of the private endpoint connection.
-
-* `name` - The name of the private endpoint connection.
-
-* `group_ids` - A list of group IDs for the private endpoint connection.
-
-* `private_endpoint` - A `private_endpoint` block as defined below.
-
-* `private_link_service_connection_state` - A `private_link_service_connection_state` block as defined below.
-
-* `type` - The type of the private endpoint connection.
-
----
-
-A `private_endpoint` block exports the following:
-
-* `id` - The ID of the private endpoint.
-
----
-
-A `private_link_service_connection_state` block exports the following:
-
-* `actions_required` - The actions required for the private link service connection.
-
-* `description` - The description of the private link service connection state.
-
-* `status` - The status of the private link service connection.
 
 ## Timeouts
 

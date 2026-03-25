@@ -204,7 +204,7 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  auto_generated_domain_name_label_scope = "TenantReuse"
+  domain_name_reuse = "TenantReuse"
 
   tags = {
     environment = "test"
@@ -344,7 +344,7 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
-  auto_generated_domain_name_label_scope = "TenantReuse"
+  domain_name_reuse = "TenantReuse"
 
   tags = {
     environment = "test"
