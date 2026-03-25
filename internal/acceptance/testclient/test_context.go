@@ -11,9 +11,7 @@ import (
 	"testing"
 )
 
-var (
-	goroutineTests sync.Map
-)
+var goroutineTests sync.Map
 
 // RegisterTestT associates t with the current goroutine.
 // Called at the entry point of each acceptance test run.

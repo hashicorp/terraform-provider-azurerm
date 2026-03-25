@@ -184,7 +184,7 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 		recorder.WithSkipRequestLatency(true),
 		recorder.WithRealTransport(defaultTransport),
 		recorder.WithMatcher(matcher),
-		// recorder.WithFS(&gzipFS{}),
+		// recorder.WithFS(&GzipFS{}),
 		recorder.WithHook(func(i *cassette.Interaction) error {
 			delete(i.Request.Headers, "Authorization")
 			i.Request.Headers["Authorization"] = []string{"Bearer REDACTED"}
@@ -199,9 +199,7 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 			redactHeaders(i.Response.Headers)
 			return nil
 		}, recorder.BeforeSaveHook),
-
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to create recorder for %s: %v", testName, err)
 	}
