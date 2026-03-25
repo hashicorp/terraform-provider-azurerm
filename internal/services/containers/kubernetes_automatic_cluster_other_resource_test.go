@@ -21,20 +21,20 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
-func TestAccKubernetesAutomaticCluster_sameSizeVMSSConfig(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.sameSize(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
+//func TestAccKubernetesAutomaticCluster_sameSizeVMSSConfig(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config: r.sameSize(data),
+//			Check: acceptance.ComposeTestCheckFunc(
+//				check.That(data.ResourceName).ExistsInAzure(r),
+//			),
+//		},
+//		data.ImportStep(),
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_basicVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")

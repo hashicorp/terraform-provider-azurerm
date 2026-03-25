@@ -52,7 +52,7 @@ func TestAccKubernetesAutomaticCluster_managedClusterIdentity(t *testing.T) {
 			Config: r.managedClusterIdentityConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("kubelet_identity.0.client_id").Exists(),
 				check.That(data.ResourceName).Key("kubelet_identity.0.object_id").Exists(),
 				check.That(data.ResourceName).Key("kubelet_identity.0.user_assigned_identity_id").Exists(),
@@ -626,6 +626,12 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   name                = "test_identity"
+}
+
+resource "azurerm_role_assignment" "network" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_virtual_network" "test" {

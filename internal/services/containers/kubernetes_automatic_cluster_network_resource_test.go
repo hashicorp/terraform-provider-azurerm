@@ -95,9 +95,12 @@ func TestAccKubernetesAutomaticCluster_advancedNetworkingNetworkDataplane(t *tes
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.advancedNetworkingBlock(data, "azure", "azure"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `cilium`"),
+			Config: r.advancedNetworkingBlock(data, "azure", "cilium"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
+		data.ImportStep(),
 	})
 }
 

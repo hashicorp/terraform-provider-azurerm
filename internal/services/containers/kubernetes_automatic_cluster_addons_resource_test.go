@@ -313,21 +313,21 @@ func TestAccKubernetesAutomaticCluster_addonProfileServiceMeshProfile_revisions(
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-26"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25", "asm-1-26"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-26", "asm-1-27"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-26"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -737,6 +737,26 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
@@ -764,7 +784,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) addonProfileRoutingConfig(data acceptance.TestData, enabled bool) string {
