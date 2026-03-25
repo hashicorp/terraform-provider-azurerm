@@ -327,7 +327,6 @@ resource "azurerm_managed_devops_pool" "test" {
   vmss_fabric {
     image {
       well_known_image_name = "ubuntu-24.04/latest"
-      buffer                = "*"
     }
     sku_name = "Standard_B1s"
   }
@@ -401,12 +400,6 @@ resource "azurerm_managed_devops_pool" "test" {
       parallelism = 2
       url         = "%s"
       projects    = ["%s"]
-    }
-    permission {
-      kind = "SpecificAccounts"
-      administrator_account {
-        users = ["%s"]
-      }
     }
   }
 
@@ -485,7 +478,7 @@ resource "azurerm_managed_devops_pool" "test" {
     azurerm_role_assignment.devops_infrastructure_vnet_network_contributor,
   ]
 }
-`, r.template(data), r.keyVaultConfig(), r.networkingConfig(data), r.roleAssignmentsConfig(), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL_UPDATED"), os.Getenv("ARM_MANAGED_DEVOPS_ORG_PROJECT"), os.Getenv("ARM_MANAGED_DEVOPS_ADMIN_EMAIL"))
+`, r.template(data), r.keyVaultConfig(), r.networkingConfig(data), r.roleAssignmentsConfig(), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL_UPDATED"), os.Getenv("ARM_MANAGED_DEVOPS_ORG_PROJECT"))
 }
 
 func (r ManagedDevOpsPoolResource) completeWithoutNetwork(data acceptance.TestData) string {
@@ -522,12 +515,6 @@ resource "azurerm_managed_devops_pool" "test" {
       parallelism = 2
       url         = "%s"
       projects    = ["%s"]
-    }
-    permission {
-      kind = "SpecificAccounts"
-      administrator_account {
-        users = ["%s"]
-      }
     }
   }
 
@@ -605,7 +592,7 @@ resource "azurerm_managed_devops_pool" "test" {
     azurerm_role_assignment.devops_infrastructure_vnet_network_contributor,
   ]
 }
-`, r.template(data), r.keyVaultConfig(), r.networkingConfig(data), r.roleAssignmentsConfig(), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL_UPDATED"), os.Getenv("ARM_MANAGED_DEVOPS_ORG_PROJECT"), os.Getenv("ARM_MANAGED_DEVOPS_ADMIN_EMAIL"))
+`, r.template(data), r.keyVaultConfig(), r.networkingConfig(data), r.roleAssignmentsConfig(), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL_UPDATED"), os.Getenv("ARM_MANAGED_DEVOPS_ORG_PROJECT"))
 }
 
 func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {

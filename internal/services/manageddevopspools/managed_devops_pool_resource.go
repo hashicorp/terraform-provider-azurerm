@@ -112,12 +112,14 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 					"permission": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
+						ForceNew: true,
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"kind": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
+									ForceNew:     true,
 									Default:      pools.AzureDevOpsPermissionTypeCreatorOnly,
 									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForAzureDevOpsPermissionType(), false),
 								},
@@ -125,12 +127,14 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 								"administrator_account": {
 									Type:     pluginsdk.TypeList,
 									Optional: true,
+									ForceNew: true,
 									MaxItems: 1,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"groups": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
+												ForceNew: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validate.Email,
@@ -141,6 +145,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 											"users": {
 												Type:     pluginsdk.TypeList,
 												Optional: true,
+												ForceNew: true,
 												Elem: &pluginsdk.Schema{
 													Type:         pluginsdk.TypeString,
 													ValidateFunc: validate.Email,
