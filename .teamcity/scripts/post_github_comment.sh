@@ -139,5 +139,3 @@ curl -s \
 -H "Accept: application/vnd.github+json" \
 https://api.github.com/repos/%env.GITHUB_REPO%/issues/"${PR_NUMBER}"/comments \
 -d "{\"body\": $(jq -Rs . <<< "$COMMENT")}"
-
-echo "Comment posted successfully."
