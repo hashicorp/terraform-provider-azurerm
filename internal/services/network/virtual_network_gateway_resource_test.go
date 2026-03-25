@@ -384,6 +384,7 @@ func TestAccVirtualNetworkGateway_expressRouteWithPublicIPAddressId(t *testing.T
 				check.That(data.ResourceName).Key("ip_configuration.0.public_ip_address_id").Exists(),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
