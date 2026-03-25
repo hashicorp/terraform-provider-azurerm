@@ -117,8 +117,6 @@ A `daily_schedule` block supports the following:
 
 * `time` - (Required) The time of day at which the agent count changes, in 24-hour format `HH:MM:SS`.
 
-~> **Note:** When specifying multiple `daily_schedule` blocks for a given day, they must be ordered by `time` in ascending order (earliest first) to avoid spurious diffs during plan.
-
 ---
 
 An `identity` block supports the following:

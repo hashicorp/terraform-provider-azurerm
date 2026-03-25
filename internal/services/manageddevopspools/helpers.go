@@ -6,7 +6,6 @@ package manageddevopspools
 import (
 	"encoding/json"
 	"regexp"
-	"sort"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
@@ -98,7 +97,7 @@ func automaticResourcePredictionSchema(parentPath string) *pluginsdk.Schema {
 
 func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -125,7 +124,7 @@ func dayScheduleSchemaOptional(atLeastOneOf []string, conflictsWith ...string) *
 
 func dayScheduleSchemaComputed() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
+		Type:     pluginsdk.TypeSet,
 		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -548,12 +547,6 @@ func flattenDaySchedule(input map[string]int64) []DayScheduleModel {
 	for t, count := range input {
 		output = append(output, DayScheduleModel{Time: t, Count: count})
 	}
-
-	// Sort by time to ensure deterministic ordering, since Go map iteration is random.
-	// Without this, Terraform would detect spurious diffs on every plan.
-	sort.Slice(output, func(i, j int) bool {
-		return output[i].Time < output[j].Time
-	})
 
 	return output
 }
