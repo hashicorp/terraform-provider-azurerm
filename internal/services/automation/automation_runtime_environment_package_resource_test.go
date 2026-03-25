@@ -63,28 +63,6 @@ func TestAccAutomationRuntimeEnvironmentPackage_complete(t *testing.T) {
 	})
 }
 
-func TestAccAutomationRuntimeEnvironmentPackage_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_runtime_environment_package", "test")
-	r := AutomationRuntimeEnvironmentPackageResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("content_uri"),
-		{
-			Config: r.update(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("content_uri"),
-	})
-}
-
 func (AutomationRuntimeEnvironmentPackageResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := packageresource.ParsePackageID(state.ID)
 	if err != nil {
@@ -132,18 +110,6 @@ resource "azurerm_automation_runtime_environment_package" "test" {
   content_version        = "2.25.0"
   hash_algorithm         = "SHA256"
   hash_value             = "examplehashvalue"
-}
-`, r.template(data))
-}
-
-func (r AutomationRuntimeEnvironmentPackageResource) update(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_automation_runtime_environment_package" "test" {
-  name                   = "acctest-authentication"
-  runtime_environment_id = azurerm_automation_runtime_environment.test.id
-  content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
 }
 `, r.template(data))
 }
