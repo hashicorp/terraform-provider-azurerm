@@ -19,15 +19,15 @@ import (
 )
 
 type AutomationRuntimeEnvironmentPackageModel struct {
-	Name                 string            `tfschema:"name"`
-	RuntimeEnvironmentId string            `tfschema:"runtime_environment_id"`
-	ContentUri           string            `tfschema:"content_uri"`
-	ContentVersion       string            `tfschema:"content_version"`
-	HashAlgorithm        string            `tfschema:"hash_algorithm"`
+	Name                 string `tfschema:"name"`
+	RuntimeEnvironmentId string `tfschema:"runtime_environment_id"`
+	ContentUri           string `tfschema:"content_uri"`
+	ContentVersion       string `tfschema:"content_version"`
+	HashAlgorithm        string `tfschema:"hash_algorithm"`
 	HashValue            string `tfschema:"hash_value"`
 	SizeInBytes          int64  `tfschema:"size_in_bytes"`
-	Version              string            `tfschema:"version"`
-	IsDefault            bool              `tfschema:"is_default"`
+	Version              string `tfschema:"version"`
+	IsDefault            bool   `tfschema:"is_default"`
 }
 
 type AutomationRuntimeEnvironmentPackageResource struct{}
