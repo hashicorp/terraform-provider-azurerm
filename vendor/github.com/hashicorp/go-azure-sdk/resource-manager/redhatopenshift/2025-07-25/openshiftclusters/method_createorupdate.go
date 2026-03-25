@@ -14,22 +14,22 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type UpdateOperationResponse struct {
+type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
 	Model        *OpenShiftCluster
 }
 
-// Update ...
-func (c OpenShiftClustersClient) Update(ctx context.Context, id ProviderOpenShiftClusterId, input OpenShiftClusterUpdate) (result UpdateOperationResponse, err error) {
+// CreateOrUpdate ...
+func (c OpenShiftClustersClient) CreateOrUpdate(ctx context.Context, id OpenShiftClusterId, input OpenShiftCluster) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPatch,
+		HttpMethod: http.MethodPut,
 		Path:       id.ID(),
 	}
 
@@ -60,15 +60,15 @@ func (c OpenShiftClustersClient) Update(ctx context.Context, id ProviderOpenShif
 	return
 }
 
-// UpdateThenPoll performs Update then polls until it's completed
-func (c OpenShiftClustersClient) UpdateThenPoll(ctx context.Context, id ProviderOpenShiftClusterId, input OpenShiftClusterUpdate) error {
-	result, err := c.Update(ctx, id, input)
+// CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
+func (c OpenShiftClustersClient) CreateOrUpdateThenPoll(ctx context.Context, id OpenShiftClusterId, input OpenShiftCluster) error {
+	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
-		return fmt.Errorf("performing Update: %+v", err)
+		return fmt.Errorf("performing CreateOrUpdate: %+v", err)
 	}
 
 	if err := result.Poller.PollUntilDone(ctx); err != nil {
-		return fmt.Errorf("polling after Update: %+v", err)
+		return fmt.Errorf("polling after CreateOrUpdate: %+v", err)
 	}
 
 	return nil
