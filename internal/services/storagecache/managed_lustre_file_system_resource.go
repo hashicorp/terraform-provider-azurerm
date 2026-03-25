@@ -316,7 +316,7 @@ func (r ManagedLustreFileSystemResource) CustomizeDiff() sdk.ResourceFunc {
 
 func (r ManagedLustreFileSystemResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model ManagedLustreFileSystemModel
 			if err := metadata.Decode(&model); err != nil {
@@ -475,7 +475,7 @@ func (r ManagedLustreFileSystemResource) Read() sdk.ResourceFunc {
 
 func (r ManagedLustreFileSystemResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StorageCache.AmlFilesystems
 

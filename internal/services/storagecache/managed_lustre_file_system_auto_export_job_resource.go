@@ -62,6 +62,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Arguments() map[string]*pl
 			Required: true,
 			ForceNew: true,
 			MinItems: 1,
+			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,

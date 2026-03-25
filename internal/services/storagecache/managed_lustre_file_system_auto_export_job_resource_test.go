@@ -134,7 +134,7 @@ resource "azurerm_managed_lustre_file_system_auto_export_job" "test" {
   managed_lustre_file_system_id = azurerm_managed_lustre_file_system.test.id
   location                      = azurerm_resource_group.test.location
 
-  auto_export_prefixes = ["/", "/export"]
+  auto_export_prefixes = ["/export"]
   admin_status_enabled = false
 }
 `, ManagedLustreFileSystemResource{}.completeAutoJob(data), data.RandomInteger)
