@@ -60,8 +60,6 @@ The following arguments are supported:
 
 * `hash_value` - (Optional) The hash value of the content. Required when `hash_algorithm` is specified. Changing this forces a new Automation Runtime Environment Package to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -80,7 +78,6 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Runtime Environment Package.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation Runtime Environment Package.
-* `update` - (Defaults to 30 minutes) Used when updating the Automation Runtime Environment Package.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Automation Runtime Environment Package.
 
 ## Import

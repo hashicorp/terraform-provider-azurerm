@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/packageresource"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,16 +24,13 @@ type AutomationRuntimeEnvironmentPackageModel struct {
 	ContentUri           string            `tfschema:"content_uri"`
 	ContentVersion       string            `tfschema:"content_version"`
 	HashAlgorithm        string            `tfschema:"hash_algorithm"`
-	HashValue            string            `tfschema:"hash_value"`
-	Tags                 map[string]string `tfschema:"tags"`
-	SizeInBytes          int64             `tfschema:"size_in_bytes"`
+	HashValue            string `tfschema:"hash_value"`
+	SizeInBytes          int64  `tfschema:"size_in_bytes"`
 	Version              string            `tfschema:"version"`
 	IsDefault            bool              `tfschema:"is_default"`
 }
 
 type AutomationRuntimeEnvironmentPackageResource struct{}
-
-var _ sdk.ResourceWithUpdate = AutomationRuntimeEnvironmentPackageResource{}
 
 func (r AutomationRuntimeEnvironmentPackageResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -81,8 +77,6 @@ func (r AutomationRuntimeEnvironmentPackageResource) Arguments() map[string]*plu
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"hash_algorithm"},
 		},
-
-		"tags": commonschema.Tags(),
 	}
 }
 
@@ -162,11 +156,6 @@ func (r AutomationRuntimeEnvironmentPackageResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if parameters.AllOf == nil {
-				parameters.AllOf = &packageresource.TrackedResource{}
-			}
-			parameters.AllOf.Tags = &model.Tags
-
 			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -227,8 +216,6 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				output.Tags = pointer.From(model.Tags)
-
 				if props := model.Properties; props != nil {
 					if content := props.ContentLink; content != nil {
 						output.ContentUri = pointer.From(content.Uri)
@@ -246,47 +233,6 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 			}
 
 			return metadata.Encode(&output)
-		},
-	}
-}
-
-func (r AutomationRuntimeEnvironmentPackageResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Automation.PackageResource
-
-			id, err := packageresource.ParsePackageID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
-			var model AutomationRuntimeEnvironmentPackageModel
-			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			parameters := packageresource.PackageUpdateParameters{}
-
-			if metadata.ResourceData.HasChange("tags") {
-				if parameters.AllOf == nil {
-					parameters.AllOf = &packageresource.TrackedResource{}
-				}
-				parameters.AllOf.Tags = &model.Tags
-			}
-
-			if _, err := client.Update(ctx, *id, parameters); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			// custom poller is required until https://github.com/Azure/azure-rest-api-specs/issues/41641 is resolved
-			pollerType := custompollers.NewAutomationRuntimeEnvironmentPackagePoller(client, *id)
-			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
-			if err := poller.PollUntilDone(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to finish updating: %+v", id, err)
-			}
-
-			return nil
 		},
 	}
 }

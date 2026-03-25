@@ -132,10 +132,6 @@ resource "azurerm_automation_runtime_environment_package" "test" {
   content_version        = "2.25.0"
   hash_algorithm         = "SHA256"
   hash_value             = "examplehashvalue"
-
-  tags = {
-    Environment = "test"
-  }
 }
 `, r.template(data))
 }
@@ -148,10 +144,6 @@ resource "azurerm_automation_runtime_environment_package" "test" {
   name                   = "acctest-authentication"
   runtime_environment_id = azurerm_automation_runtime_environment.test.id
   content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
-
-  tags = {
-    Environment = "test"
-  }
 }
 `, r.template(data))
 }
