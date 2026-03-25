@@ -24,7 +24,7 @@ jobs:
         id: check-membership
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_MEMEBERSHIP_CHECK_TOKEN }}
           script: |
             const teamSlug = "${{ env.AUTHORIZED_TEAM }}";
             const org = context.repo.owner;
