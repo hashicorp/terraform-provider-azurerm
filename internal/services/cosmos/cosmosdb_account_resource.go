@@ -847,7 +847,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("checking whether the CosmosDB Account name (`%s`) is available: %+v", id.DatabaseAccountName, err)
 			}
 		}
-		return fmt.Errorf("A CosmosDB Account with the chosen name (`%s`) already exists, please specify a different name", id.DatabaseAccountName)
+		return fmt.Errorf("a CosmosDB Account with the chosen name (`%s`) already exists, please specify a different name", id.DatabaseAccountName)
 	}
 	geoLocations, err := expandAzureRmCosmosDBAccountGeoLocations(d)
 	if err != nil {
@@ -956,7 +956,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account, d)
+	err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -964,7 +964,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	// NOTE: this is to work around the issue here: https://github.com/Azure/azure-rest-api-specs/issues/27596
 	// Once the above issue is resolved we shouldn't need this check and update anymore
 	if d.Get("create_mode").(string) == string(cosmosdb.CreateModeRestore) {
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account, d)
+		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, id, account)
 		if err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
@@ -1049,20 +1049,16 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	updateRequired := false
-
 	// NOTE: these fields are expanded directly into the
 	// 'DatabaseAccountCreateUpdateParameters' below or
 	// are included in the 'DatabaseAccountCreateUpdateParameters'
 	// later, however we need to know if they changed or not...
-	if d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
+	updateRequired := d.HasChanges("consistency_policy", "virtual_network_rule", "cors_rule", "access_key_metadata_writes_enabled",
 		"network_acl_bypass_for_azure_services", "network_acl_bypass_ids", "analytical_storage",
 		"capacity", "restore", "mongo_server_version",
 		"public_network_access_enabled", "ip_range_filter", "offer_type", "is_virtual_network_filter_enabled",
 		"tags", "automatic_failover_enabled", "analytical_storage_enabled",
-		"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled") {
-		updateRequired = true
-	}
+		"local_authentication_disabled", "partition_merge_enabled", "minimal_tls_version", "burst_capacity_enabled")
 
 	// Incident : #383341730
 	// Azure Bug: #2209567 'Updating identities and default identity at the same time fails silently'
@@ -1118,10 +1114,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
 	// I do not include 'DefaultIdentity' and 'Identity' in the 'accountProps' intentionally, these operations need to be
 	// performed mutually exclusive from each other in an atomic fashion, else you will hit the service teams bug...
-	updateDefaultIdentity := false
-	if d.HasChange("default_identity_type") {
-		updateDefaultIdentity = true
-	}
+	updateDefaultIdentity := d.HasChange("default_identity_type")
 
 	// adding 'DefaultIdentity' to avoid causing it to fallback
 	// to "FirstPartyIdentity" on update(s), issue #22466
@@ -1156,7 +1149,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 
 	// Only do this update if a value has changed above...
 	if updateRequired {
-		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}
@@ -1166,7 +1159,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.Properties.EnableMultipleWriteLocations = pointer.To(d.Get("multiple_write_locations_enabled").(bool))
 
 		// Update the database...
-		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
 			return fmt.Errorf("updating %q EnableMultipleWriteLocations: %+v", id, err)
 		}
 	}
@@ -1201,7 +1194,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.Properties.Locations = locationsUnchanged
 
 		// Update the database...
-		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d); err != nil {
+		if err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account); err != nil {
 			return fmt.Errorf("removing %q renamed `locations`: %+v", id, err)
 		}
 	}
@@ -1210,7 +1203,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		account.Properties.Locations = configLocations
 
 		// Update the database locations...
-		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account, d)
+		err = resourceCosmosDbAccountApiCreateOrUpdate(client, ctx, *id, account)
 		if err != nil {
 			return fmt.Errorf("updating %q `locations`: %+v", id, err)
 		}
@@ -1234,7 +1227,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database 'Identity' to 'None'...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal, d)
+		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
 		if err != nil {
 			return fmt.Errorf("updating 'identity' %q: %+v", id, err)
 		}
@@ -1252,7 +1245,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			// Update the database...
-			err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal, d)
+			err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, identityVal)
 			if err != nil {
 				return fmt.Errorf("updating `identity` for %s: %+v", id, err)
 			}
@@ -1276,7 +1269,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		// Update the database...
-		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity, d)
+		err = resourceCosmosDbAccountApiUpdate(client, ctx, *id, defaultIdentity)
 		if err != nil {
 			return fmt.Errorf("updating `default_identity_type` for %s: %+v", id, err)
 		}
@@ -1532,7 +1525,7 @@ func resourceCosmosDbAccountDelete(d *pluginsdk.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceCosmosDbAccountApiUpdate(client *cosmosdb.CosmosDBClient, ctx context.Context, id cosmosdb.DatabaseAccountId, account cosmosdb.DatabaseAccountUpdateParameters, d *pluginsdk.ResourceData) error {
+func resourceCosmosDbAccountApiUpdate(client *cosmosdb.CosmosDBClient, ctx context.Context, id cosmosdb.DatabaseAccountId, account cosmosdb.DatabaseAccountUpdateParameters) error {
 	if err := client.DatabaseAccountsUpdateThenPoll(ctx, id, account); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
@@ -1566,7 +1559,7 @@ func resourceCosmosDbAccountApiUpdate(client *cosmosdb.CosmosDBClient, ctx conte
 	return nil
 }
 
-func resourceCosmosDbAccountApiCreateOrUpdate(client *cosmosdb.CosmosDBClient, ctx context.Context, id cosmosdb.DatabaseAccountId, account cosmosdb.DatabaseAccountCreateUpdateParameters, d *pluginsdk.ResourceData) error {
+func resourceCosmosDbAccountApiCreateOrUpdate(client *cosmosdb.CosmosDBClient, ctx context.Context, id cosmosdb.DatabaseAccountId, account cosmosdb.DatabaseAccountCreateUpdateParameters) error {
 	if err := client.DatabaseAccountsCreateOrUpdateThenPoll(ctx, id, account); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
