@@ -199,9 +199,9 @@ An `organization` block supports the following:
 
 A `permission` block supports the following:
 
-* `administrator_account` - (Optional) An `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`. Changing this forces a new resource to be created.
+* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `Inherit`, and `SpecificAccounts`. Changing this forces a new resource to be created.
 
-* `kind` - (Optional) Determines who has admin permissions to the Azure DevOps pool. Possible values are `CreatorOnly`, `Inherit`, and `SpecificAccounts`. Defaults to `CreatorOnly`. Changing this forces a new resource to be created.
+* `administrator_account` - (Optional) An `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`. Changing this forces a new resource to be created.
 
 ---
 
