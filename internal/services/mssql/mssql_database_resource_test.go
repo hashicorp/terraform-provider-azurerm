@@ -2772,6 +2772,25 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger, maxSizeGb)
 }
 
+func TestAccMsSqlDatabase_freeTierBillOverUsageToAutoPauseError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.freeTier(data, "BillOverUsage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.freeTier(data, "AutoPause"),
+			ExpectError: regexp.MustCompile("`free_limit_exhaustion_behavior` cannot be changed from `BillOverUsage` to `AutoPause`"),
+		},
+	})
+}
+
 func TestAccMsSqlDatabase_freeTierExhaustionBehaviorRequiresFreeLimitError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
 	r := MssqlDatabaseResource{}

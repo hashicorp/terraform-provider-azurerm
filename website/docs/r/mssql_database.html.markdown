@@ -223,6 +223,8 @@ The following arguments are supported:
 
 ~> **Note:** When `free_limit_exhaustion_behavior` is set to `AutoPause`, `storage_account_type` must be set to `Local`.
 
+~> **Note:** `free_limit_exhaustion_behavior` can be changed from `AutoPause` to `BillOverUsage`, but cannot be changed from `BillOverUsage` back to `AutoPause`. To revert to `AutoPause` the database must be recreated.
+
 * `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. Defaults to `true`.
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.

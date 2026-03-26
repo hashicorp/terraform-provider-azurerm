@@ -715,6 +715,13 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("`storage_account_type` must be set to `Local` when `free_limit_exhaustion_behavior` is `AutoPause`")
 	}
 
+	if d.HasChange("free_limit_exhaustion_behavior") {
+		old, new := d.GetChange("free_limit_exhaustion_behavior")
+		if old.(string) == string(databases.FreeLimitExhaustionBehaviorBillOverUsage) && new.(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause) {
+			return fmt.Errorf("`free_limit_exhaustion_behavior` cannot be changed from `BillOverUsage` to `AutoPause`")
+		}
+	}
+
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing server ID: %+v", err)
