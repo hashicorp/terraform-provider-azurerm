@@ -163,6 +163,7 @@ func TestAccBastionHost_privateOnly(t *testing.T) {
 			Config: r.privateOnly(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("private_only_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -559,11 +560,10 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_bastion_host" "test" {
-  name                 = "acctestBastion%s"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  sku                  = "Premium"
-  private_only_enabled = true
+  name                = "acctestBastion%s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Premium"
 
   ip_configuration {
     name      = "ip-configuration"

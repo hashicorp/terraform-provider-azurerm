@@ -147,13 +147,6 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"private_only_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
-			},
-
 			"session_recording_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -172,6 +165,12 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_only_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+				ForceNew: true,
+			},
+
 			"tags": commonschema.Tags(),
 
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
@@ -187,35 +186,22 @@ func resourceBastionHost() *pluginsdk.Resource {
 			}),
 			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
 				sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
-				privateOnlyEnabled := d.Get("private_only_enabled").(bool)
-
-				if privateOnlyEnabled && sku != bastionhosts.BastionHostSkuNamePremium {
-					return errors.New("`private_only_enabled` is only supported when `sku` is `Premium`")
-				}
 
 				// GetRawConfig is used because `public_ip_address_id` may reference another resource and be unknown during plan.
 				// d.Get() returns "" for unknown values, which would incorrectly trigger the required check.
 				// By inspecting the raw config, we can distinguish between "not set" and "unknown" and skip validation when unknown.
 				rawConfig := d.GetRawConfig()
 				ipConfigRaw := rawConfig.AsValueMap()["ip_configuration"]
-				ipConfiguration := d.Get("ip_configuration").([]interface{})
-				if privateOnlyEnabled {
-					if !ipConfigRaw.IsNull() && ipConfigRaw.IsKnown() && len(ipConfiguration) > 0 {
-						ipConfigMap := ipConfiguration[0].(map[string]interface{})
-						if v, ok := ipConfigMap["public_ip_address_id"]; ok && v.(string) != "" {
-							return errors.New("`public_ip_address_id` must not be set when `private_only_enabled` is `true`")
-						}
-					}
-				} else if sku != bastionhosts.BastionHostSkuNameDeveloper {
-					if len(ipConfiguration) == 0 {
-						return errors.New("`ip_configuration` with `public_ip_address_id` is required when `private_only_enabled` is `false`")
-					}
 
-					if !ipConfigRaw.IsNull() && ipConfigRaw.IsKnown() {
-						pipRaw := ipConfigRaw.AsValueSlice()[0].AsValueMap()["public_ip_address_id"]
-						if pipRaw.IsKnown() && (pipRaw.IsNull() || pipRaw.AsString() == "") {
-							return errors.New("`public_ip_address_id` is required in `ip_configuration` when `private_only_enabled` is `false`")
-						}
+				// Basic and Standard SKUs require public_ip_address_id; Developer uses virtual_network_id instead.
+				// Premium without public_ip_address_id enables private-only mode.
+				if sku != bastionhosts.BastionHostSkuNamePremium && sku != bastionhosts.BastionHostSkuNameDeveloper {
+					if ipConfigRaw.IsNull() || !ipConfigRaw.IsKnown() || len(ipConfigRaw.AsValueSlice()) == 0 {
+						return errors.New("`ip_configuration` with `public_ip_address_id` is required when `sku` is `Basic` or `Standard`")
+					}
+					pipRaw := ipConfigRaw.AsValueSlice()[0].AsValueMap()["public_ip_address_id"]
+					if pipRaw.IsKnown() && (pipRaw.IsNull() || pipRaw.AsString() == "") {
+						return errors.New("`public_ip_address_id` must be set in `ip_configuration` when `sku` is `Basic` or `Standard`")
 					}
 				}
 
@@ -240,7 +226,6 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	fileCopyEnabled := d.Get("file_copy_enabled").(bool)
 	ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
-	privateOnlyEnabled := d.Get("private_only_enabled").(bool)
 	shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
 	tunnelingEnabled := d.Get("tunneling_enabled").(bool)
 	sessionRecordingEnabled := d.Get("session_recording_enabled").(bool)
@@ -322,6 +307,17 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if sessionRecordingEnabled {
 		parameters.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
+	}
+
+	ipConfigs := d.Get("ip_configuration").([]interface{})
+	privateOnlyEnabled := false
+	if sku == bastionhosts.BastionHostSkuNamePremium {
+		if len(ipConfigs) > 0 {
+			ipConfigMap := ipConfigs[0].(map[string]interface{})
+			if v, ok := ipConfigMap["public_ip_address_id"]; ok && v.(string) != "" {
+				privateOnlyEnabled = true
+			}
+		}
 	}
 
 	if privateOnlyEnabled {

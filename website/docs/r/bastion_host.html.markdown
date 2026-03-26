@@ -86,10 +86,6 @@ The following arguments are supported:
 
 ~> **Note:** `kerberos_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
-* `private_only_enabled` - (Optional) Is Private-Only deployment enabled for the Bastion Host. Defaults to `false`. Changing this forces a new resource to be created.
-
-~> **Note:** `private_only_enabled` is only supported when `sku` is `Premium`. When `private_only_enabled` is `true`, `public_ip_address_id` in `ip_configuration` must not be specified.
-
 * `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
 
 ~> **Note:** `scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`.
@@ -124,7 +120,7 @@ A `ip_configuration` block supports the following:
 
 * `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
 
-~> **Note:** `public_ip_address_id` is required when `private_only_enabled` is `false`.
+~> **Note:** `public_ip_address_id` is required when `sku` is `Basic` or `Standard`. When `sku` is `Premium` and `public_ip_address_id` is omitted, the Bastion Host is deployed in Private-Only mode (`private_only_enabled` will be `true`).
 
 ## Attributes Reference
 
@@ -133,6 +129,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Bastion Host.
 
 * `dns_name` - The FQDN for the Bastion Host.
+
+* `private_only_enabled` - Whether Private-Only deployment is enabled for the Bastion Host. 
 
 ## Timeouts
 
