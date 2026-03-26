@@ -6,7 +6,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
-`azurerm_cosmosdb_account` - fix an API error caused by `backup.interval_in_minutes` and `backup.retention_in_hours` being set to `0` in the API payload when not defined in config [GH-32037]
+* `azurerm_cosmosdb_account` - fix an API error caused by `backup.interval_in_minutes` and `backup.retention_in_hours` being set to `0` in the API payload when not defined in config [GH-32037]
 
 ## 4.66.0 (March 26, 2026)
 
