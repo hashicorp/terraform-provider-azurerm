@@ -1265,17 +1265,22 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}, te
 }
 
 func isTempDbLunsInConfig(d *pluginsdk.ResourceData) bool {
-	tempDbLunsInConfig := false
-	if rawConfig := d.GetRawConfig().AsValueMap(); rawConfig != nil {
-		if sc := rawConfig["storage_configuration"]; !sc.IsNull() && sc.LengthInt() > 0 {
-			if td := sc.AsValueSlice()[0].AsValueMap()["temp_db_settings"]; !td.IsNull() && td.LengthInt() > 0 {
-				if luns := td.AsValueSlice()[0].AsValueMap()["luns"]; !luns.IsNull() {
-					tempDbLunsInConfig = true
-				}
-			}
-		}
+	rawConfig := d.GetRawConfig().AsValueMap()
+	if rawConfig == nil {
+		return false
 	}
-	return tempDbLunsInConfig
+
+	sc := rawConfig["storage_configuration"]
+	if sc.IsNull() || sc.LengthInt() == 0 {
+		return false
+	}
+
+	td := sc.AsValueSlice()[0].AsValueMap()["temp_db_settings"]
+	if td.IsNull() || td.LengthInt() == 0 {
+		return false
+	}
+
+	return !td.AsValueSlice()[0].AsValueMap()["luns"].IsNull()
 }
 
 func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachines.StorageConfigurationSettings, storageWorkloadType string) []interface{} {

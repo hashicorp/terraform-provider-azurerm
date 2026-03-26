@@ -178,7 +178,7 @@ The `temp_db_settings` block supports the following:
 
 * `default_file_path` - (Required) The SQL Server default path
 
-* `luns` - (Optional) A list of Logical Unit Numbers for the disks. Setting empty list of leaving blank will result in tempdb being created on the same disks as the user databases.
+* `luns` - (Optional) A list of Logical Unit Numbers for the disks. Setting it to empty list or leaving it blank will result in tempdb being created on the same disks as the user databases.
 
 * `data_file_count` - (Optional) The SQL Server default file count. This value defaults to `8`
 
