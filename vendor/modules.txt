@@ -644,6 +644,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/priv
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2024-07-10/privatelinkscopes
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters
+github.com/hashicorp/go-azure-sdk/resource-manager/imagebuilder/2024-02-01/virtualmachineimagetemplate
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts
 github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-04-16/scheduledqueryrules
