@@ -80,17 +80,17 @@ The following conventions apply to argument descriptions:
 - Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a [note](#notes).
 - If an argument has `ForceNew: true`, its description must end with `Changing this forces a new resource to be created.`
 - If the argument has a default value, this must be documented using `` Defaults to `default1`. ``
-- If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `value1`, `value2`, and `value3. ``.
+- If the argument has validation allowing only specific inputs, e.g. `validation.StringInSlice()`, these must be documented using `` Possible values are `valueOne`, `valueTwo`, and `valueThree`. ``.
   * Other common entries include:
-    - Arguments with a single allowed value: `` The only possible value is `value1`. ``
+    - Arguments with a single allowed value: `` The only possible value is `valueOne`. ``
     - Arguments allowing a range of values, e.g. `validation.IntBetween()`: `` Possible values range between `1` and `100`. ``
 
 
 Examples:
 
-- `name` - (Required) The name which should be used for this resource.
-- `argument_enabled` - (Optional) Should this argument be enabled? Possible values are `true` and `false`. Defaults to `false`.
-- `argument_in_gb` - (Optional) The argument in gigabytes. Possible values range between `4` and `256`.
+- `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.
+- `argument_enabled` - (Optional) Whether the `argument` is enabled. Defaults to `false`.
+- `argument_in_gb` - (Optional) The argument in gigabytes. Possible values range between `4` and `256`. Defaults to `129`.
 
 ### Ordering
 
@@ -122,29 +122,35 @@ Example:
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this resource.
+* `name` - (Required) The name which should be used for this resource. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name which should be used for this resource.
+-> **Note:** The `name` must begin and end with an alphanumeric character, and may contain only alphanumeric characters and hyphens.
 
-* `location` - (Required) The name which should be used for this resource.
+* `resource_group_name` - (Required) The name of the Resource Group where the resource should exist. Changing this forces a new resource to be created.
 
-* `argument` - (Required) This argument does something nifty.
+* `location` - (Required) The Azure Region where the resource should exist. Changing this forces a new resource to be created.
+
+* `argument` - (Required) This argument does something nifty. Possible values are `nifty`, `super-nifty`, and `stupendous`.
 
 * `block_argument` - (Optional) A `block_argument` as defined below.
 
-* `some_other_argument` - (Optional) This argument does something magical.
+* `some_other_argument` - (Optional) This argument does something magical. Possible values are `magical` or `muggle`. Defaults to `magical`.
+
+* `tags` - (Optional) Specifies a mapping of tags to assign to the resource.
 
 ---
 
 A `block_argument` supports the following:
 
-* `block_argument` - (Required) Specifies the block_argument of this nested item.
+* `argument` - (Required) The argument that should be used for this block argument. Possible values are `this`, `that`, and `other`.
 
-* `some_other_block_argument` - (Required) Specifies the some_other_block_argument of this nested item exists.
+* `some_other_block_argument` - (Required) Specifies the some other block argument. The only possible value is `value`.
 
-* `optional_block_argument` - (Optional) Specifies the optional_block_argument of this nested item exists.
+* `optional_block_argument` - (Optional) The optional block argument for the resource. Possible values range between `1` and `2048`. Defaults to `1024`.
 
-* `some_other_optional_block_argument` - (Optional) Specifies the some_other_optional_block_argument of this nested item exists.
+* `some_other_optional_block_argument` - (Optional) Specifies the some other optional block argument. Defaults to `false`.
+
+~> **Note:** The argument `some_other_optional_block_argument` is required when `argument` is set to `stupendous`.
 
 ## Attributes Reference
 
@@ -254,7 +260,7 @@ To add a warning note, use `~> **Note:**`, within the Terraform registry documen
 For example, an argument that is optional but required when another argument is set to `true`:
 
 ```markdown
-* `optional_argument_enabled` - (Optional) Is the optional argument enabled? Defaults to `false`.
+* `optional_argument_enabled` - (Optional) Whether the `optional argument` is enabled. Defaults to `false`.
 
 * `optional_argument` - (Optional) An optional argument.
 
@@ -270,7 +276,7 @@ To add a caution note, use `!> **Note:**`, within the Terraform registry documen
 For example, an argument that when set to `true` cannot be reversed without recreating the resource:
 
 ```markdown
-* `irreversible_argument_enabled` - (Optional) Is irreversible argument enabled? Defaults to `false`.
+* `irreversible_argument_enabled` - (Optional) Whether the `irreversible argument` is enabled. Defaults to `false`.
 
 !> **Note:** The argument `irreversible_argument_enabled` cannot be disabled after being enabled.
 ```
