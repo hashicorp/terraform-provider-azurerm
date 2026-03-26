@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -65,6 +66,14 @@ var (
 	apimTlsRsaWithAes256CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA"
 	apimTlsRsaWithAes128CbcShaCiphers        = "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA"
 )
+
+func replayAwareApiManagementPollInterval(defaultInterval time.Duration) time.Duration {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+		return 0
+	}
+
+	return defaultInterval
+}
 
 func resourceApiManagementService() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -1444,7 +1453,7 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("polling deleting %s: %+v", id, err)
 		}
 		if pollerType != nil {
-			poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			poller := pollers.NewPoller(pollerType, replayAwareApiManagementPollInterval(20*time.Second), pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("polling deleting %s: %+v", id, err)
 			}
@@ -1477,7 +1486,7 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 					return fmt.Errorf("polling deleting %s: %+v", id, err)
 				}
 				if pollerType != nil {
-					poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+					poller := pollers.NewPoller(pollerType, replayAwareApiManagementPollInterval(20*time.Second), pollers.DefaultNumberOfDroppedConnectionsToAllow)
 					if err := poller.PollUntilDone(ctx); err != nil {
 						return fmt.Errorf("polling purging the deleting %s: %+v", id, err)
 					}

@@ -1603,6 +1603,10 @@ github.com/zclconf/go-cty/cty/function/stdlib
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
 github.com/zclconf/go-cty/cty/set
+# go.yaml.in/yaml/v4 v4.0.0-rc.3
+## explicit; go 1.18
+go.yaml.in/yaml/v4
+go.yaml.in/yaml/v4/internal/libyaml
 # golang.org/x/crypto v0.47.0
 ## explicit; go 1.24.0
 golang.org/x/crypto/argon2
@@ -1822,6 +1826,10 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/dnaeon/go-vcr.v4 v4.0.6
+## explicit; go 1.24
+gopkg.in/dnaeon/go-vcr.v4/pkg/cassette
+gopkg.in/dnaeon/go-vcr.v4/pkg/recorder
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

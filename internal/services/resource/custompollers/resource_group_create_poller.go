@@ -3,6 +3,8 @@ package custompollers
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -21,20 +23,27 @@ var _ pollers.PollerType = &resourceGroupCreatePoller{}
 var (
 	successCount   = 3 // emulates ContinuousTargetOccurrence
 	pollingSuccess = &pollers.PollResult{
-		PollInterval: 5 * time.Second,
+		PollInterval: replayAwareResourceGroupCreatePollInterval(5 * time.Second),
 		Status:       pollers.PollingStatusSucceeded,
 	}
 	pollingInProgress = &pollers.PollResult{
 		HttpResponse: nil,
-		PollInterval: 5 * time.Second,
+		PollInterval: replayAwareResourceGroupCreatePollInterval(5 * time.Second),
 		Status:       pollers.PollingStatusInProgress,
 	}
 	pollingFailed = &pollers.PollResult{
 		HttpResponse: nil,
-		PollInterval: 5 * time.Second,
+		PollInterval: replayAwareResourceGroupCreatePollInterval(5 * time.Second),
 		Status:       pollers.PollingStatusFailed,
 	}
 )
+
+func replayAwareResourceGroupCreatePollInterval(defaultInterval time.Duration) time.Duration {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+		return 0
+	}
+	return defaultInterval
+}
 
 func NewResourceGroupCreatePoller(client *resourcegroups.ResourceGroupsClient, id commonids.ResourceGroupId) *resourceGroupCreatePoller {
 	return &resourceGroupCreatePoller{

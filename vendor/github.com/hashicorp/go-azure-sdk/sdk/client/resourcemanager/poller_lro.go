@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -33,6 +34,14 @@ type longRunningOperationPoller struct {
 	maxDroppedConnections  int
 }
 
+func replayAwareLongRunningOperationPollInterval(defaultInterval time.Duration) time.Duration {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+		return 0
+	}
+
+	return defaultInterval
+}
+
 func pollingUriForLongRunningOperation(resp *client.Response) string {
 	pollingUrl := resp.Header.Get("Azure-AsyncOperation")
 	if pollingUrl == "" {
@@ -44,7 +53,7 @@ func pollingUriForLongRunningOperation(resp *client.Response) string {
 func longRunningOperationPollerFromResponse(resp *client.Response, client *client.Client) (*longRunningOperationPoller, error) {
 	poller := longRunningOperationPoller{
 		client:                client,
-		initialRetryDuration:  10 * time.Second,
+		initialRetryDuration:  replayAwareLongRunningOperationPollInterval(10 * time.Second),
 		maxDroppedConnections: 3,
 	}
 

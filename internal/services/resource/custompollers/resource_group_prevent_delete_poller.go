@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -18,6 +19,14 @@ import (
 type resourceGroupPreventDeletePoller struct {
 	client *resourcegroups.ResourceGroupsClient
 	id     commonids.ResourceGroupId
+}
+
+func replayAwareResourceGroupDeletePollInterval(defaultInterval time.Duration) time.Duration {
+	if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+		return 0
+	}
+
+	return defaultInterval
 }
 
 var _ pollers.PollerType = &resourceGroupPreventDeletePoller{}
@@ -51,7 +60,7 @@ func (p resourceGroupPreventDeletePoller) Poll(ctx context.Context) (*pollers.Po
 
 	if len(nestedResourceIds) > 0 {
 		return &pollers.PollResult{
-			PollInterval: 30 * time.Second,
+			PollInterval: replayAwareResourceGroupDeletePollInterval(30 * time.Second),
 			Status:       pollers.PollingStatusInProgress,
 		}, resourceGroupContainsItemsError(p.id.ResourceGroupName, nestedResourceIds)
 	}
