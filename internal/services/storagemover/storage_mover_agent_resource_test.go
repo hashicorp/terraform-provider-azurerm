@@ -102,6 +102,7 @@ func (r StorageMoverAgentResource) Exists(ctx context.Context, clients *clients.
 }
 
 func (r StorageMoverAgentResource) template(data acceptance.TestData) string {
+	clientData := data.Client()
 	randomUUID, _ := uuid.GenerateUUID()
 	return fmt.Sprintf(`
 
@@ -208,7 +209,8 @@ resource "azurerm_linux_virtual_machine" "test" {
       uuid                = "%[3]s"
       location            = azurerm_resource_group.test.location
       tenant_id           = data.azurerm_client_config.current.tenant_id
-      client_id           = data.azurerm_client_config.current.client_id
+      client_id           = "%[4]s"
+      client_secret       = "%[5]s"
       subscription_id     = data.azurerm_client_config.current.subscription_id
     })
     destination = "/home/adminuser/install_arc_agent.sh"
@@ -254,7 +256,7 @@ data "azurerm_arc_machine" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, randomUUID)
+`, data.RandomInteger, data.Locations.Primary, randomUUID, clientData.Default.ClientID, clientData.Default.ClientSecret)
 }
 
 func (r StorageMoverAgentResource) basic(data acceptance.TestData) string {
