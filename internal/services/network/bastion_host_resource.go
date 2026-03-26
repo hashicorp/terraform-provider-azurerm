@@ -193,9 +193,14 @@ func resourceBastionHost() *pluginsdk.Resource {
 					return errors.New("`private_only_enabled` is only supported when `sku` is `Standard` or `Premium`")
 				}
 
+				// GetRawConfig is used because `public_ip_address_id` may reference another resource and be unknown during plan.
+				// d.Get() returns "" for unknown values, which would incorrectly trigger the required check.
+				// By inspecting the raw config, we can distinguish between "not set" and "unknown" and skip validation when unknown.
+				rawConfig := d.GetRawConfig()
+				ipConfigRaw := rawConfig.AsValueMap()["ip_configuration"]
 				ipConfiguration := d.Get("ip_configuration").([]interface{})
 				if privateOnlyEnabled {
-					if len(ipConfiguration) > 0 {
+					if !ipConfigRaw.IsNull() && ipConfigRaw.IsKnown() && len(ipConfiguration) > 0 {
 						ipConfigMap := ipConfiguration[0].(map[string]interface{})
 						if v, ok := ipConfigMap["public_ip_address_id"]; ok && v.(string) != "" {
 							return errors.New("`public_ip_address_id` must not be set when `private_only_enabled` is `true`")
@@ -206,9 +211,11 @@ func resourceBastionHost() *pluginsdk.Resource {
 						return errors.New("`ip_configuration` with `public_ip_address_id` is required when `private_only_enabled` is `false`")
 					}
 
-					ipConfigMap := ipConfiguration[0].(map[string]interface{})
-					if v, ok := ipConfigMap["public_ip_address_id"]; !ok || v.(string) == "" {
-						return errors.New("`public_ip_address_id` is required in `ip_configuration` when `private_only_enabled` is `false`")
+					if !ipConfigRaw.IsNull() && ipConfigRaw.IsKnown() {
+						pipRaw := ipConfigRaw.AsValueSlice()[0].AsValueMap()["public_ip_address_id"]
+						if pipRaw.IsKnown() && (pipRaw.IsNull() || pipRaw.AsString() == "") {
+							return errors.New("`public_ip_address_id` is required in `ip_configuration` when `private_only_enabled` is `false`")
+						}
 					}
 				}
 
