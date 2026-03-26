@@ -309,19 +309,10 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		parameters.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
 	}
 
-	ipConfigs := d.Get("ip_configuration").([]interface{})
-	privateOnlyEnabled := false
 	if sku == bastionhosts.BastionHostSkuNamePremium {
-		if len(ipConfigs) > 0 {
-			ipConfigMap := ipConfigs[0].(map[string]interface{})
-			if v, ok := ipConfigMap["public_ip_address_id"]; ok && v.(string) != "" {
-				privateOnlyEnabled = true
-			}
+		if _, ok := d.GetOk("ip_configuration.0.public_ip_address_id"); !ok {
+			parameters.Properties.EnablePrivateOnlyBastion = pointer.To(true)
 		}
-	}
-
-	if privateOnlyEnabled {
-		parameters.Properties.EnablePrivateOnlyBastion = pointer.To(privateOnlyEnabled)
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
