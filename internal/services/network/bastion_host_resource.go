@@ -5,6 +5,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -189,7 +190,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 				privateOnlyEnabled := d.Get("private_only_enabled").(bool)
 
 				if privateOnlyEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-					return fmt.Errorf("`private_only_enabled` is only supported when `sku` is `Standard` or `Premium`")
+					return errors.New("`private_only_enabled` is only supported when `sku` is `Standard` or `Premium`")
 				}
 
 				ipConfiguration := d.Get("ip_configuration").([]interface{})
@@ -197,17 +198,17 @@ func resourceBastionHost() *pluginsdk.Resource {
 					if len(ipConfiguration) > 0 {
 						ipConfigMap := ipConfiguration[0].(map[string]interface{})
 						if v, ok := ipConfigMap["public_ip_address_id"]; ok && v.(string) != "" {
-							return fmt.Errorf("`public_ip_address_id` must not be set when `private_only_enabled` is `true`")
+							return errors.New("`public_ip_address_id` must not be set when `private_only_enabled` is `true`")
 						}
 					}
 				} else if sku != bastionhosts.BastionHostSkuNameDeveloper {
 					if len(ipConfiguration) == 0 {
-						return fmt.Errorf("`ip_configuration` with `public_ip_address_id` is required when `private_only_enabled` is `false`")
+						return errors.New("`ip_configuration` with `public_ip_address_id` is required when `private_only_enabled` is `false`")
 					}
-					
+
 					ipConfigMap := ipConfiguration[0].(map[string]interface{})
 					if v, ok := ipConfigMap["public_ip_address_id"]; !ok || v.(string) == "" {
-						return fmt.Errorf("`public_ip_address_id` is required in `ip_configuration` when `private_only_enabled` is `false`")
+						return errors.New("`public_ip_address_id` is required in `ip_configuration` when `private_only_enabled` is `false`")
 					}
 				}
 
