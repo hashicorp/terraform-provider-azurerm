@@ -2787,7 +2787,7 @@ resource "azurerm_logic_app_standard" "test" {
     type = "SystemAssigned"
   }
 
-    key_vault_reference_identity_id = "systemAssigned"
+  key_vault_reference_identity_id = "SystemAssigned"
 
 }
 `, r.template(data), data.RandomInteger)
