@@ -379,6 +379,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 * The deprecated `enable_internet_security` property has been removed in favour of the `internet_security_enabled` property.
 
+### `azurerm_federated_identity_credential`
+
+* The deprecated `parent_id` property has been removed in favour of the `user_assigned_identity_id` property.
+
 ### `azurerm_key_vault`
 
 * The deprecated `contact` property has been removed as it is no longer supported by the resource.
@@ -535,6 +539,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_private_link_service`
 
 * The deprecated `enable_proxy_protocol` property has been removed in favour of the `proxy_protocol_enabled` property.
+
+### `azurerm_recovery_services_vault`
+
+* The deprecated `soft_delete_enabled` property has been removed.
 
 ### `azurerm_redis_cache`
 
