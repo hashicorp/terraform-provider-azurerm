@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -1458,7 +1459,7 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 			}
 
 			if hotPatchingEnabled {
-				return fmt.Errorf("`hot_patching_enabled` field is not supported unless you are using one of the following hot patching enable images, `2022-datacenter-azure-edition-core`, `2022-datacenter-azure-edition-core-smalldisk`, `2022-datacenter-azure-edition-hotpatch` or `2022-datacenter-azure-edition-hotpatch-smalldisk`")
+				return fmt.Errorf("`hot_patching_enabled` field is not supported unless you are using one of the following hot patching enable images, `2022-datacenter-azure-edition-core`, `2022-datacenter-azure-edition-core-smalldisk`, `2022-datacenter-azure-edition-hotpatch`, `2022-datacenter-azure-edition-hotpatch-smalldisk`, `2025-datacenter-azure-edition`, `2025-datacenter-azure-edition-smalldisk`, `2025-datacenter-azure-edition-core`, or `2025-datacenter-azure-edition-core-smalldisk`")
 			}
 		}
 	}
@@ -1539,7 +1540,18 @@ func isValidHotPatchSourceImageReference(referenceInput []SourceImageReferenceMo
 	offer := raw.Offer
 	sku := raw.Sku
 
-	if pub == "MicrosoftWindowsServer" && offer == "WindowsServer" && (sku == "2022-datacenter-azure-edition-core" || sku == "2022-datacenter-azure-edition-core-smalldisk" || sku == "2022-datacenter-azure-edition-hotpatch" || sku == "2022-datacenter-azure-edition-hotpatch-smalldisk") {
+	supportedSkus := []string{
+		"2022-datacenter-azure-edition-core",
+		"2022-datacenter-azure-edition-core-smalldisk",
+		"2022-datacenter-azure-edition-hotpatch",
+		"2022-datacenter-azure-edition-hotpatch-smalldisk",
+		"2025-datacenter-azure-edition",
+		"2025-datacenter-azure-edition-smalldisk",
+		"2025-datacenter-azure-edition-core",
+		"2025-datacenter-azure-edition-core-smalldisk",
+	}
+
+	if pub == "MicrosoftWindowsServer" && offer == "WindowsServer" && slices.Contains(supportedSkus, sku) {
 		return true
 	}
 

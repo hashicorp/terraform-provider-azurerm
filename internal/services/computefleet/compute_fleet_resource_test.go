@@ -32,6 +32,20 @@ func TestAccComputeFleet_basic(t *testing.T) {
 	})
 }
 
+func TestAccComputeFleet_test(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
+	r := ComputeFleetTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.test(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
 func TestAccComputeFleet_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
 	r := ComputeFleetTestResource{}
@@ -190,7 +204,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   virtual_machine_profile {
@@ -230,6 +244,89 @@ resource "azurerm_compute_fleet" "test" {
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
+func (r ComputeFleetTestResource) test(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctest-nsg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_compute_fleet" "test" {
+  name                = "acctest-fleet-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  zones               = ["1", "2", "3"]
+
+  spot_priority_profile {
+    min_capacity              = 0
+    maintain_capacity_enabled = true
+    capacity                  = 1
+    max_hourly_price_per_vm   = 0.01996
+    eviction_policy           = "Delete"
+    allocation_strategy       = "PriceCapacityOptimized"
+  }
+
+  regular_priority_profile {
+    min_capacity        = 0
+    capacity            = 1
+    allocation_strategy = "LowestPrice"
+  }
+
+  vm_sizes_profile {
+    name = "Standard_DC1ds_v3"
+  }
+
+  vm_sizes_profile {
+    name = "Standard_DC1s_v3"
+  }
+
+  vm_sizes_profile {
+    name = "Standard_F1ads_v7"
+  }
+
+  virtual_machine_profile {
+    network_api_version = "2020-11-01"
+    secure_boot_enabled = true
+    vtpm_enabled        = true
+
+    source_image_reference {
+      offer     = "ubuntu-24_04-lts"
+      publisher = "canonical"
+      sku       = "server"
+      version   = "latest"
+    }
+
+    os_profile {
+      linux_configuration {
+        computer_name_prefix            = "testvm"
+        admin_username                  = local.admin_username
+        admin_password                  = local.admin_password
+        password_authentication_enabled = true
+      }
+    }
+
+    network_interface {
+      name                              = "networkProTest"
+      network_security_group_id         = azurerm_network_security_group.test.id
+
+      ip_configuration {
+        name                             = "TestIPConfiguration"
+        subnet_id                        = azurerm_subnet.test.id
+
+        public_ip_address {
+          name                    = "TestPublicIPConfiguration"
+          idle_timeout_in_minutes = 15
+        }
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
 func (r ComputeFleetTestResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -246,7 +343,7 @@ resource "azurerm_compute_fleet" "import" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   virtual_machine_profile {
@@ -290,7 +387,7 @@ func (r ComputeFleetTestResource) completeExceptVMSS(data acceptance.TestData) s
 	return fmt.Sprintf(`
 	%[1]s
 
-data "azurerm_marketplace_agreement" "barracuda" {
+resource "azurerm_marketplace_agreement" "barracuda" {
   publisher = "micro-focus"
   offer     = "arcsight-logger"
   plan      = "arcsight_logger_72_byol"
@@ -404,7 +501,7 @@ func (r ComputeFleetTestResource) completeExceptVMSSUpdate(data acceptance.TestD
 	return fmt.Sprintf(`
 	%[1]s
 
-data "azurerm_marketplace_agreement" "barracuda" {
+resource "azurerm_marketplace_agreement" "barracuda" {
   publisher = "micro-focus"
   offer     = "arcsight-logger"
   plan      = "arcsight_logger_72_byol"

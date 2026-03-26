@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
@@ -182,7 +182,7 @@ resource "azurerm_public_ip" "public" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "acctestsourcevm-%[2]d"
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "public" {
@@ -202,7 +202,7 @@ resource "azurerm_linux_virtual_machine" "source" {
   name                            = "acctestsourceVM-%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  size                            = "Standard_DS1_v2"
+  size                            = "Standard_D2s_v3"
   admin_username                  = local.admin_username
   disable_password_authentication = false
   admin_password                  = local.admin_password
@@ -247,7 +247,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   virtual_machine_profile {
@@ -314,7 +314,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -410,7 +410,7 @@ resource "azurerm_compute_fleet" "image_id" {
     min_capacity = 1
   }
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -508,7 +508,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -614,7 +614,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -720,7 +720,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"

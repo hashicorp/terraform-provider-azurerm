@@ -104,7 +104,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -161,7 +161,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -217,7 +217,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -272,7 +272,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
@@ -329,7 +329,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2s_v3"
   }
 
   compute_api_version = "2024-03-01"
