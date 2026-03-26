@@ -1,6 +1,7 @@
 ## 4.67.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - upgrade to `v0.20260326.1151219`
 
 FEATURES:
 
