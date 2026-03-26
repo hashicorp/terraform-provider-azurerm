@@ -26,9 +26,9 @@ import (
 
 type BackupPolicyDataLakeStorageModel struct {
 	Name                        string                                     `tfschema:"name"`
+	DataProtectionBackupVaultId string                                     `tfschema:"data_protection_backup_vault_id"`
 	BackupSchedule              []string                                   `tfschema:"backup_schedule"`
 	DefaultRetentionDuration    string                                     `tfschema:"default_retention_duration"`
-	DataProtectionBackupVaultId string                                     `tfschema:"data_protection_backup_vault_id"`
 	RetentionRules              []BackupPolicyDataLakeStorageRetentionRule `tfschema:"retention_rule"`
 	TimeZone                    string                                     `tfschema:"time_zone"`
 }
@@ -78,6 +78,8 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			),
 		},
 
+		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
+
 		"backup_schedule": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -96,8 +98,6 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Arguments() map[strin
 			ForceNew:     true,
 			ValidateFunc: azValidate.ISO8601Duration,
 		},
-
-		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(pointer.To(basebackuppolicyresources.BackupVaultId{})),
 
 		"retention_rule": {
 			Type:     pluginsdk.TypeList,
@@ -196,6 +196,12 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) Create() sdk.Resource
 			var model BackupPolicyDataLakeStorageModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			for _, rule := range model.RetentionRules {
+				if rule.AbsoluteCriteria == "" && len(rule.DaysOfWeek) == 0 {
+					return fmt.Errorf("`retention_rule` %q requires at least one of `absolute_criteria` and `days_of_week` to be specified", rule.Name)
+				}
 			}
 
 			vaultId, _ := basebackuppolicyresources.ParseBackupVaultID(model.DataProtectionBackupVaultId)

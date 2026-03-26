@@ -67,11 +67,11 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Backup Policy for the Azure Backup Policy Data Lake Storage. Changing this forces a new resource to be created.
 
+* `data_protection_backup_vault_id` - (Required) The ID of the Backup Vault where the Azure Backup Policy Data Lake Storage should exist. Changing this forces a new resource to be created.
+
 * `backup_schedule` - (Required) Specifies a list of repeating time interval, also known as the backup schedule. It supports daily & weekly backup. It should follow [`ISO 8601` recurring time interval format](https://en.wikipedia.org/wiki/ISO_8601#Recurring_intervals), for example: `R/2021-05-23T02:30:00+00:00/P1W`. Changing this forces a new resource to be created.
 
 * `default_retention_duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
-
-* `data_protection_backup_vault_id` - (Required) The ID of the Backup Vault where the Azure Backup Policy Data Lake Storage should exist. Changing this forces a new resource to be created.
 
 * `retention_rule` - (Optional) One or more `retention_rule` blocks as defined below. The priority of each rule is determined by its order in the list, where the first rule has the highest priority. Changing this forces a new resource to be created.
 
@@ -89,13 +89,13 @@ A `retention_rule` block supports the following:
 
 * `days_of_week` - (Optional) Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`. Changing this forces a new resource to be created.
 
+* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new resource to be created.
+
 * `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new resource to be created.
 
 * `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new resource to be created.
 
-* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new resource to be created.
-
--> **Note:** When not using `absolute_criteria`, you must use exactly one of `weeks_of_month` or `days_of_week`. Regarding the remaining two properties, `weeks_of_month` and `months_of_year`, you may use either, both, or neither. If you would like to set multiple intervals, you may do so by using multiple `retention_rule` blocks.
+-> **Note:** At lease one of `absolute_criteria` or `days_of_week` must be used. `weeks_of_month` and `months_of_year` are optional, both can be supplied together. Multiple intervals may be set using multiple `retention_rule` blocks.
 
 ## Attributes Reference
 
