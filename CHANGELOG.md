@@ -1,23 +1,22 @@
-## 4.66.0 (Unreleased)
+## 4.66.0 (March 26, 2026)
 
 ENHANCEMENTS:
-* `azurerm_bastion_host` - Upgrade API to `2025-01-01` [GH-32030]
-* `azurerm_search_service`: add support for `endpoint` attribute [GH-32010]
-* **New Data Source**: `azurerm_container_app_environment_storage` [GH-32007]
-* `cognitive_account_rai_blocklist_resource` - add support for the `tags` property [GH-31871]
-* dependencies: `Go` - upgrade to version 1.25.8 [GH-31907]
-* `azurerm_kubernetes_cluster` - add support for migration from Azure or Kubenet CNI to Azure CNI Overlay [GH-30959]
 
-FEATURES:
+* dependencies: `Go` - upgrade to version 1.25.8 ([#31907](https://github.com/hashicorp/terraform-provider-azurerm/issues/31907))
+* **New Data Source**: `azurerm_container_app_environment_storage` ([#32007](https://github.com/hashicorp/terraform-provider-azurerm/issues/32007))
+* `azurerm_bastion_host` - Upgrade API to `2025-01-01` ([#32030](https://github.com/hashicorp/terraform-provider-azurerm/issues/32030))
+* `azurerm_kubernetes_cluster` - add support for migration from Azure or Kubenet CNI to Azure CNI Overlay ([#30959](https://github.com/hashicorp/terraform-provider-azurerm/issues/30959))
+* `azurerm_search_service`: add support for `endpoint` attribute ([#32010](https://github.com/hashicorp/terraform-provider-azurerm/issues/32010))
+* `cognitive_account_rai_blocklist_resource` - add support for the `tags` property ([#31871](https://github.com/hashicorp/terraform-provider-azurerm/issues/31871))
 
 BUG FIXES:
-* `azurerm_container_app` - fix `failure_count_threshold` validation values for container app probes [GH-31989]
-* `azurerm_linux_web_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot [GH-32008]
-* `azurerm_windows_web_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot [GH-32008]
-* `azurerm_windows_function_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot [GH-32008]
-* `azurerm_linux_function_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot [GH-32008]
-* `azurerm_log_analytics_workspace` - preserve default value of `local_authentication_enabled` [GH-32004]
 
+* `azurerm_container_app` - fix `failure_count_threshold` validation values for container app probes ([#31989](https://github.com/hashicorp/terraform-provider-azurerm/issues/31989))
+* `azurerm_linux_function_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot ([#32008](https://github.com/hashicorp/terraform-provider-azurerm/issues/32008))
+* `azurerm_linux_web_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot ([#32008](https://github.com/hashicorp/terraform-provider-azurerm/issues/32008))
+* `azurerm_log_analytics_workspace` - preserve default value of `local_authentication_enabled` ([#32004](https://github.com/hashicorp/terraform-provider-azurerm/issues/32004))
+* `azurerm_windows_function_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot ([#32008](https://github.com/hashicorp/terraform-provider-azurerm/issues/32008))
+* `azurerm_windows_web_app_slot` - fix API error when removing auth_settings_v2 configuration from a previously deployed appservice slot ([#32008](https://github.com/hashicorp/terraform-provider-azurerm/issues/32008))
 
 ## 4.65.0 (March 19, 2026)
 
