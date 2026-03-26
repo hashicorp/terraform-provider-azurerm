@@ -137,6 +137,8 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Windows Virtual Machine Scale Set should exist. Changing this forces a new Windows Virtual Machine Scale Set to be created.
 
+* `disk_controller_type` - (Optional) Specifies the Disk Controller Type used for this Virtual Machine Scale Set. Possible values are `SCSI` and `NVMe`.
+
 * `enable_automatic_updates` - (Optional) Are automatic updates enabled for this Virtual Machine? Defaults to `true`.
 
 * `encryption_at_host_enabled` - (Optional) Should all of the disks (including the temp disk) attached to this Virtual Machine be encrypted by enabling Encryption at Host?
