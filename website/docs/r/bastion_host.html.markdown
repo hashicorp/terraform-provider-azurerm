@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `private_only_enabled` - (Optional) Is Private-Only deployment enabled for the Bastion Host. Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **Note:** `private_only_enabled` is only supported when `sku` is `Standard` or `Premium`. When `private_only_enabled` is `true`, `public_ip_address_id` in `ip_configuration` must not be specified.
+~> **Note:** `private_only_enabled` is only supported when `sku` is `Premium`. When `private_only_enabled` is `true`, `public_ip_address_id` in `ip_configuration` must not be specified.
 
 * `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
 

@@ -189,8 +189,8 @@ func resourceBastionHost() *pluginsdk.Resource {
 				sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
 				privateOnlyEnabled := d.Get("private_only_enabled").(bool)
 
-				if privateOnlyEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
-					return errors.New("`private_only_enabled` is only supported when `sku` is `Standard` or `Premium`")
+				if privateOnlyEnabled && sku != bastionhosts.BastionHostSkuNamePremium {
+					return errors.New("`private_only_enabled` is only supported when `sku` is `Premium`")
 				}
 
 				// GetRawConfig is used because `public_ip_address_id` may reference another resource and be unknown during plan.
