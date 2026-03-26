@@ -939,8 +939,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = LogicAppResource{}
-var _ sdk.ResourceWithCustomizeDiff = LogicAppResource{}
+var (
+	_ sdk.ResourceWithUpdate        = LogicAppResource{}
+	_ sdk.ResourceWithCustomizeDiff = LogicAppResource{}
+)
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
 	appKindPropName := "APP_KIND"
