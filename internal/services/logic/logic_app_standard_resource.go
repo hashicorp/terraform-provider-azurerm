@@ -331,6 +331,34 @@ func (r LogicAppResource) ResourceType() string {
 	return "azurerm_logic_app_standard"
 }
 
+func (r LogicAppResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// Since `key_vault_reference_identity_id` is O+C, if it's removed from the config, the value get below is still the old value.
+			if metadata.ResourceDiff.GetRawConfig().GetAttr("key_vault_reference_identity_id").IsNull() {
+				return nil
+			}
+
+			keyVaultReferenceIdentityId := metadata.ResourceDiff.Get("key_vault_reference_identity_id").(string)
+			if keyVaultReferenceIdentityId == "" || strings.EqualFold(keyVaultReferenceIdentityId, "SystemAssigned") {
+				return nil
+			}
+
+			identityIdsRaw := metadata.ResourceDiff.Get("identity.0.identity_ids").(*pluginsdk.Set)
+			identityIds := identityIdsRaw.List()
+
+			for _, id := range identityIds {
+				if strings.EqualFold(id.(string), keyVaultReferenceIdentityId) {
+					return nil
+				}
+			}
+
+			return fmt.Errorf("`key_vault_reference_identity_id` must be an identity assigned to this resource in the `identity` block, got `%s`", keyVaultReferenceIdentityId)
+		},
+	}
+}
+
 func (r LogicAppResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -911,7 +939,8 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = &LogicAppResource{}
+var _ sdk.ResourceWithUpdate = LogicAppResource{}
+var _ sdk.ResourceWithCustomizeDiff = LogicAppResource{}
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
 	appKindPropName := "APP_KIND"
