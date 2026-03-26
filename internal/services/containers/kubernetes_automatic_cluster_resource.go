@@ -95,6 +95,7 @@ type KubernetesAutomaticClusterModel struct {
 	HTTPApplicationRoutingEnabled bool                             `tfschema:"http_application_routing_enabled"`
 	IngressApplicationGateway     []IngressApplicationGatewayModel `tfschema:"ingress_application_gateway"`
 	KeyVaultSecretsProvider       []KeyVaultSecretsProviderModel   `tfschema:"key_vault_secrets_provider"`
+	OpenServiceMeshEnabled        bool                             `tfschema:"open_service_mesh_enabled"`
 	OMSAgent                      []OMSAgentModel                  `tfschema:"oms_agent"`
 
 	// Computed fields
@@ -2198,22 +2199,23 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.EdgeZone = flattenKubernetesAutomaticClusterEdgeZone(model.ExtendedLocation)
 				// Only set tags if non-empty to avoid empty map in state
-				if model.Tags != nil {
-					state.Tags = tags.Flatten(model.Tags)
-				}
+				// if model.Tags != nil {
+				state.Tags = tags.Flatten(model.Tags)
+				//}
 
-				skuTier := string(managedclusters.ManagedClusterSKUTierFree)
-				skuName := string(managedclusters.ManagedClusterSKUNameBase)
-				if model.Sku != nil {
-					if model.Sku.Tier != nil && *model.Sku.Tier != "" {
-						skuTier = string(*model.Sku.Tier)
-					}
-					if model.Sku.Name != nil && *model.Sku.Name != "" {
-						skuName = string(*model.Sku.Name)
-					}
-				}
-				state.SKUTier = skuTier
-				state.SKUName = skuName
+				//skuTier := string(managedclusters.ManagedClusterSKUTierStandard)
+				//skuName := string(managedclusters.ManagedClusterSKUNameAutomatic)
+				//// #TODO dont need this
+				//if model.Sku != nil {
+				//	if model.Sku.Tier != nil && *model.Sku.Tier != "" {
+				//		skuTier = string(*model.Sku.Tier)
+				//	}
+				//	if model.Sku.Name != nil && *model.Sku.Name != "" {
+				//		skuName = string(*model.Sku.Name)
+				//	}
+				//}
+				state.SKUTier = string(*model.Sku.Tier)
+				state.SKUName = string(*model.Sku.Name)
 
 				if props := model.Properties; props != nil {
 					state.DNSPrefix = pointer.From(props.DnsPrefix)
@@ -2224,25 +2226,23 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					state.KubernetesVersion = pointer.From(props.KubernetesVersion)
 					state.CurrentKubernetesVersion = pointer.From(props.CurrentKubernetesVersion)
 
-					nodeResourceGroup := pointer.From(props.NodeResourceGroup)
-					state.NodeResourceGroup = nodeResourceGroup
-					if nodeResourceGroup != "" {
-						nodeResourceGroupId := commonids.NewResourceGroupID(id.SubscriptionId, nodeResourceGroup)
-						state.NodeResourceGroupID = nodeResourceGroupId.ID()
+					state.NodeResourceGroup = pointer.From(props.NodeResourceGroup)
+					if state.NodeResourceGroup != "" {
+						state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, state.NodeResourceGroup).ID()
 					}
 
-					upgradeChannel := ""
-					nodeOSUpgradeChannel := ""
-					if profile := props.AutoUpgradeProfile; profile != nil {
-						if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
-							upgradeChannel = string(*profile.UpgradeChannel)
-						}
-						if profile.NodeOSUpgradeChannel != nil {
-							nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
-						}
-					}
-					state.AutomaticUpgradeChannel = upgradeChannel
-					state.NodeOSUpgradeChannel = nodeOSUpgradeChannel
+					//upgradeChannel := ""
+					//nodeOSUpgradeChannel := ""
+					//if profile := props.AutoUpgradeProfile; profile != nil {
+					//	if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
+					//		upgradeChannel = string(*profile.UpgradeChannel)
+					//	}
+					//	if profile.NodeOSUpgradeChannel != nil {
+					//		nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
+					//	}
+					//}
+					state.AutomaticUpgradeChannel = string(*props.AutoUpgradeProfile.UpgradeChannel)
+					state.NodeOSUpgradeChannel = string(*props.AutoUpgradeProfile.NodeOSUpgradeChannel)
 
 					if props.SecurityProfile != nil && props.SecurityProfile.CustomCATrustCertificates != nil {
 						state.CustomCATrustCertificatesBase64 = *props.SecurityProfile.CustomCATrustCertificates
@@ -2289,7 +2289,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 							state.IngressApplicationGateway,
 							state.KeyVaultSecretsProvider,
 							state.OMSAgent,
-							_ = flattenKubernetesAddOnsTyped(*props.AddonProfiles)
+							state.OpenServiceMeshEnabled = flattenKubernetesAddOnsTyped(*props.AddonProfiles)
 					}
 
 					autoScalerProfile, err := flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
@@ -2318,11 +2318,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
 					state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, "")
 					state.WorkloadAutoscalerProfile = flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
-
-					if props.NodeProvisioningProfile != nil {
-						state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
-					}
-
+					state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
 					state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
 
 					if props.BootstrapProfile != nil {
@@ -2616,7 +2612,8 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				metadata.ResourceData.HasChange("http_application_routing_enabled") ||
 				metadata.ResourceData.HasChange("oms_agent") ||
 				metadata.ResourceData.HasChange("ingress_application_gateway") ||
-				metadata.ResourceData.HasChange("key_vault_secrets_provider") {
+				metadata.ResourceData.HasChange("key_vault_secrets_provider") ||
+				metadata.ResourceData.HasChange("open_service_mesh_enabled") {
 				addonProfiles, err := expandKubernetesAddOnsTyped(&model, metadata.Client.Containers.Environment)
 				if err != nil {
 					return fmt.Errorf("expanding addons: %+v", err)
