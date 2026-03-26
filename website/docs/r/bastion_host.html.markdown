@@ -86,6 +86,10 @@ The following arguments are supported:
 
 ~> **Note:** `kerberos_enabled` is only supported when `sku` is `Standard` or `Premium`.
 
+* `private_only_enabled` - (Optional) Is Private-Only deployment enabled for the Bastion Host. Defaults to `false`. Changing this forces a new resource to be created.
+
+~> **Note:** `private_only_enabled` is only supported when `sku` is `Standard` or `Premium`. When `private_only_enabled` is `true`, `public_ip_address_id` in `ip_configuration` must not be specified.
+
 * `scale_units` - (Optional) The number of scale units with which to provision the Bastion Host. Possible values are between `2` and `50`. Defaults to `2`.
 
 ~> **Note:** `scale_units` only can be changed when `sku` is `Standard` or `Premium`. `scale_units` is always `2` when `sku` is `Basic`.
@@ -118,7 +122,9 @@ A `ip_configuration` block supports the following:
 
 ~> **Note:** The Subnet used for the Bastion Host must have the name `AzureBastionSubnet` and the subnet mask must be at least a `/26`.
 
-* `public_ip_address_id` - (Required) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
+
+~> **Note:** `public_ip_address_id` is required when `private_only_enabled` is `false`.
 
 ## Attributes Reference
 

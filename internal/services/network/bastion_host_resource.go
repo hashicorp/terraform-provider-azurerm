@@ -100,7 +100,7 @@ func resourceBastionHost() *pluginsdk.Resource {
 						},
 						"public_ip_address_id": {
 							Type:         pluginsdk.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: commonids.ValidatePublicIPAddressID,
 						},
@@ -146,6 +146,13 @@ func resourceBastionHost() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"private_only_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"session_recording_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -177,6 +184,35 @@ func resourceBastionHost() *pluginsdk.Resource {
 				}
 				return false
 			}),
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				sku := bastionhosts.BastionHostSkuName(d.Get("sku").(string))
+				privateOnlyEnabled := d.Get("private_only_enabled").(bool)
+
+				if privateOnlyEnabled && (sku != bastionhosts.BastionHostSkuNameStandard && sku != bastionhosts.BastionHostSkuNamePremium) {
+					return fmt.Errorf("`private_only_enabled` is only supported when `sku` is `Standard` or `Premium`")
+				}
+
+				ipConfiguration := d.Get("ip_configuration").([]interface{})
+				if privateOnlyEnabled {
+					if len(ipConfiguration) > 0 {
+						ipConfigMap := ipConfiguration[0].(map[string]interface{})
+						if v, ok := ipConfigMap["public_ip_address_id"]; ok && v.(string) != "" {
+							return fmt.Errorf("`public_ip_address_id` must not be set when `private_only_enabled` is `true`")
+						}
+					}
+				} else if sku != bastionhosts.BastionHostSkuNameDeveloper {
+					if len(ipConfiguration) == 0 {
+						return fmt.Errorf("`ip_configuration` with `public_ip_address_id` is required when `private_only_enabled` is `false`")
+					}
+					
+					ipConfigMap := ipConfiguration[0].(map[string]interface{})
+					if v, ok := ipConfigMap["public_ip_address_id"]; !ok || v.(string) == "" {
+						return fmt.Errorf("`public_ip_address_id` is required in `ip_configuration` when `private_only_enabled` is `false`")
+					}
+				}
+
+				return nil
+			},
 		),
 	}
 }
@@ -196,6 +232,7 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	fileCopyEnabled := d.Get("file_copy_enabled").(bool)
 	ipConnectEnabled := d.Get("ip_connect_enabled").(bool)
 	kerberosEnabled := d.Get("kerberos_enabled").(bool)
+	privateOnlyEnabled := d.Get("private_only_enabled").(bool)
 	shareableLinkEnabled := d.Get("shareable_link_enabled").(bool)
 	tunnelingEnabled := d.Get("tunneling_enabled").(bool)
 	sessionRecordingEnabled := d.Get("session_recording_enabled").(bool)
@@ -277,6 +314,10 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if sessionRecordingEnabled {
 		parameters.Properties.EnableSessionRecording = pointer.To(sessionRecordingEnabled)
+	}
+
+	if privateOnlyEnabled {
+		parameters.Properties.EnablePrivateOnlyBastion = pointer.To(privateOnlyEnabled)
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -450,6 +491,7 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
 			d.Set("session_recording_enabled", props.EnableSessionRecording)
+			d.Set("private_only_enabled", props.EnablePrivateOnlyBastion)
 
 			virtualNetworkId := ""
 			if vnet := props.VirtualNetwork; vnet != nil {
@@ -507,21 +549,23 @@ func expandBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]bastion
 	property := input[0].(map[string]interface{})
 	ipConfName := property["name"].(string)
 	subID := property["subnet_id"].(string)
-	pipID := property["public_ip_address_id"].(string)
 
-	return &[]bastionhosts.BastionHostIPConfiguration{
-		{
-			Name: &ipConfName,
-			Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
-				Subnet: bastionhosts.SubResource{
-					Id: &subID,
-				},
-				PublicIPAddress: &bastionhosts.SubResource{
-					Id: &pipID,
-				},
+	ipConfig := bastionhosts.BastionHostIPConfiguration{
+		Name: &ipConfName,
+		Properties: &bastionhosts.BastionHostIPConfigurationPropertiesFormat{
+			Subnet: bastionhosts.SubResource{
+				Id: &subID,
 			},
 		},
 	}
+
+	if pipID, ok := property["public_ip_address_id"].(string); ok && pipID != "" {
+		ipConfig.Properties.PublicIPAddress = &bastionhosts.SubResource{
+			Id: &pipID,
+		}
+	}
+
+	return &[]bastionhosts.BastionHostIPConfiguration{ipConfig}
 }
 
 func flattenBastionHostIPConfiguration(ipConfigs *[]bastionhosts.BastionHostIPConfiguration) []interface{} {

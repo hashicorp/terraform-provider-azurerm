@@ -154,6 +154,36 @@ func TestAccBastionHost_premiumSku(t *testing.T) {
 	})
 }
 
+func TestAccBastionHost_privateOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
+	r := BastionHostResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateOnly(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBastionHost_privateOnlyPremium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bastion_host", "test")
+	r := BastionHostResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateOnlyPremium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (BastionHostResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := bastionhosts.ParseBastionHostID(state.ID)
 	if err != nil {
@@ -516,4 +546,88 @@ resource "azurerm_bastion_host" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomString)
+}
+
+func (BastionHostResource) privateOnly(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-bastion-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNet%s"
+  address_space       = ["192.168.1.0/24"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["192.168.1.224/27"]
+}
+
+resource "azurerm_bastion_host" "test" {
+  name                 = "acctestBastion%s"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  sku                  = "Standard"
+  private_only_enabled = true
+
+  ip_configuration {
+    name      = "ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (BastionHostResource) privateOnlyPremium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-bastion-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNet%s"
+  address_space       = ["192.168.1.0/24"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["192.168.1.224/27"]
+}
+
+resource "azurerm_bastion_host" "test" {
+  name                      = "acctestBastion%s"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "Premium"
+  private_only_enabled      = true
+  file_copy_enabled         = true
+  ip_connect_enabled        = true
+  tunneling_enabled         = true
+  session_recording_enabled = true
+
+  ip_configuration {
+    name      = "ip-configuration"
+    subnet_id = azurerm_subnet.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
 }

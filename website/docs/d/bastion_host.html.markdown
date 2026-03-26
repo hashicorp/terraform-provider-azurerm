@@ -58,6 +58,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `session_recording_enabled` - Is Session Recording feature enabled for the Bastion Host.
 
+* `private_only_enabled` - Is the Bastion Host deployed in Private-Only mode (without a public IP address).
+
 * `dns_name` - The FQDN for the Bastion Host.
 
 * `tags` - A mapping of tags assigned to the Bastion Host.
@@ -73,6 +75,8 @@ A `ip_configuration` block supports the following:
 * `subnet_id` - Reference to the subnet in which this Bastion Host has been created.
 
 * `public_ip_address_id` - Reference to a Public IP Address associated to this Bastion Host.
+
+* `private_ip_allocation_method` - The Private IP address allocation method.
 
 ## Timeouts
 
