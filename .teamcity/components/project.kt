@@ -12,6 +12,9 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
         var pullRequestBuildConfig = pullRequestBuildConfiguration(environment, configuration)
         buildType(pullRequestBuildConfig)
 
+        var cacheBuildConfig = buildConfigurationForCache(environment, configuration)
+        buildType(cacheBuildConfig)
+
         var buildConfigs = buildConfigurationsForServices(services, providerName, environment, configuration)
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
@@ -46,6 +49,10 @@ fun pullRequestBuildConfiguration(environment: String, config: ClientConfigurati
     var buildConfiguration = pullRequest.buildConfiguration(providerName)
     buildConfiguration.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv)
     return buildConfiguration
+}
+
+fun buildConfigurationForCache(environment: String, config: ClientConfiguration) : BuildType {
+    return buildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
 }
 
 class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion, disableTriggers: Boolean = false) {
