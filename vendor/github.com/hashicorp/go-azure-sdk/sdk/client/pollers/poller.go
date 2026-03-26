@@ -7,6 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -135,6 +137,9 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 			// determine the next retry duration / how long to poll for
 			if p.latestResponse != nil {
 				retryDuration = p.latestResponse.PollInterval
+			}
+			if strings.EqualFold(strings.TrimSpace(os.Getenv("VCR_MODE")), "REPLAY") {
+				retryDuration = 0
 			}
 			endTime := time.Now().Add(retryDuration)
 
