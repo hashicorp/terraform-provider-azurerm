@@ -29,6 +29,14 @@ Here are some general guidelines you can turn to when naming properties:
 * Time properties that are not in the format of RFC3339 or are specified as UTC in the documentation should have that appended e.g.
  > `timestamp_in_utc`
 
+* Properties that represent percentage values should be appended with `_percentage` e.g.
+> `sampling_percentage`
+
+## Resource ID Reference
+
+Properties that are a reference to another resource's ID should be in the format of `{resource_name}_id` where `{resource_name}` is the full name minus the provider prefix (`azurerm_`). e.g.
+> A property that expects a reference to the `azurerm_api_management` ID becomes `api_management_id`
+
 ## Boolean Property Naming Conventions
 
 * As a general rule, booleans should be appended with `_enabled` e.g.

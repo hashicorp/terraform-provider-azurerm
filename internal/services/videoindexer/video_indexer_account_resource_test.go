@@ -90,8 +90,7 @@ func (r AccountResource) Exists(ctx context.Context, client *clients.Client, sta
 		return nil, err
 	}
 
-	_, err = client.VideoIndexer.AccountClient.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.VideoIndexer.AccountClient.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retreiving %s: %v", id, err)
 	}
 

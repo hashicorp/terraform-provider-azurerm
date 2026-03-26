@@ -211,8 +211,7 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 					sourceControl.Properties.GitHubActionConfiguration = ghaConfig
 				}
 
-				_, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl)
-				if err != nil {
+				if _, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl); err != nil {
 					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
 				}
 			}

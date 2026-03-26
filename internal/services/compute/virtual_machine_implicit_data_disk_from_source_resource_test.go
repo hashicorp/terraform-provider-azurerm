@@ -258,8 +258,7 @@ func TestAccVirtualMachineImplicitDataDiskFromSource_detachImplicitDataDisk(t *t
 						return err
 					}
 
-					_, err = diskClient.Get(ctx, *id)
-					if err != nil {
+					if _, err = diskClient.Get(ctx, *id); err != nil {
 						return fmt.Errorf("retrieving %s: %+v", id, err)
 					}
 

@@ -191,18 +191,7 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.basicEventHub(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("buffered").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
-				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
-				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
-			),
-		},
-		{
-			Config: r.complete(data, "Logger from Terraform test", "false"),
+			Config: r.applicationInsightsUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("false"),
@@ -213,36 +202,14 @@ func TestAccApiManagementLogger_update(t *testing.T) {
 			),
 		},
 		{
-			Config: r.complete(data, "Logger from Terraform update test", "true"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("buffered").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform update test"),
-				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
-				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
-				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
-			),
-		},
-		{
-			Config: r.complete(data, "Logger from Terraform test", "false"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("buffered").HasValue("false"),
-				check.That(data.ResourceName).Key("description").HasValue("Logger from Terraform test"),
-				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
-				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
-				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
-			),
-		},
-		{
-			Config: r.basicEventHub(data),
+			Config: r.basicApplicationInsights(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("buffered").HasValue("true"),
 				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("eventhub.#").HasValue("1"),
-				check.That(data.ResourceName).Key("eventhub.0.name").Exists(),
-				check.That(data.ResourceName).Key("eventhub.0.connection_string").Exists(),
+				check.That(data.ResourceName).Key("eventhub.#").HasValue("0"),
+				check.That(data.ResourceName).Key("application_insights.#").HasValue("1"),
+				check.That(data.ResourceName).Key("application_insights.0.instrumentation_key").Exists(),
 			),
 		},
 	})
@@ -577,4 +544,46 @@ resource "azurerm_api_management_logger" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, description, buffered)
+}
+
+func (ApiManagementLoggerResource) applicationInsightsUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  application_type    = "other"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Consumption_0"
+}
+
+resource "azurerm_api_management_logger" "test" {
+  name                = "acctestapimnglogger-%[1]d"
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  description         = "Logger from Terraform test"
+  buffered            = false
+
+  application_insights {
+    instrumentation_key = azurerm_application_insights.test.instrumentation_key
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
