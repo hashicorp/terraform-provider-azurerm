@@ -204,6 +204,10 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("serverless databases do not support license type")
 	}
 
+	if d.Get("free_limit_exhaustion_behavior").(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
+		return fmt.Errorf("`storage_account_type` must be set to `Local` when `free_limit_exhaustion_behavior` is `AutoPause`")
+	}
+
 	name := d.Get("name").(string)
 
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
@@ -349,6 +353,14 @@ func resourceMsSqlDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		},
 
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if v := d.Get("use_free_limit").(bool); v {
+		input.Properties.UseFreeLimit = pointer.To(v)
+	}
+
+	if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+		input.Properties.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
 	}
 
 	// NOTE: The 'PreferredEnclaveType' field cannot be passed to the APIs Create if the 'sku_name' is a DW or DC-series SKU...
@@ -699,6 +711,10 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("serverless databases do not support license type")
 	}
 
+	if d.Get("free_limit_exhaustion_behavior").(string) == string(databases.FreeLimitExhaustionBehaviorAutoPause) && d.Get("storage_account_type").(string) != string(databases.BackupStorageRedundancyLocal) {
+		return fmt.Errorf("`storage_account_type` must be set to `Local` when `free_limit_exhaustion_behavior` is `AutoPause`")
+	}
+
 	serverId, err := commonids.ParseSqlServerID(d.Get("server_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing server ID: %+v", err)
@@ -842,6 +858,18 @@ func resourceMsSqlDatabaseUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 				return fmt.Errorf("'restore_point_in_time' is supported only for create_mode %s", string(databases.CreateModePointInTimeRestore))
 			}
 			props.RestorePointInTime = pointer.To(restorePointInTime)
+		}
+	}
+
+	if d.HasChange("use_free_limit") {
+		props.UseFreeLimit = pointer.To(d.Get("use_free_limit").(bool))
+	}
+
+	if d.HasChange("free_limit_exhaustion_behavior") {
+		if v, ok := d.GetOk("free_limit_exhaustion_behavior"); ok {
+			props.FreeLimitExhaustionBehavior = pointer.To(databases.FreeLimitExhaustionBehavior(v.(string)))
+		} else {
+			props.FreeLimitExhaustionBehavior = nil
 		}
 	}
 
@@ -1269,6 +1297,14 @@ func resourceMssqlDatabaseSetFlatten(d *pluginsdk.ResourceData, id *commonids.Sq
 			d.Set("maintenance_configuration_name", configurationName)
 			d.Set("ledger_enabled", ledgerEnabled)
 			d.Set("enclave_type", enclaveType)
+			d.Set("use_free_limit", pointer.From(props.UseFreeLimit))
+
+			freeLimitExhaustionBehavior := ""
+			if props.FreeLimitExhaustionBehavior != nil {
+				freeLimitExhaustionBehavior = string(pointer.From(props.FreeLimitExhaustionBehavior))
+			}
+			d.Set("free_limit_exhaustion_behavior", freeLimitExhaustionBehavior)
+
 			d.Set("transparent_data_encryption_key_vault_key_id", props.EncryptionProtector)
 			d.Set("transparent_data_encryption_key_automatic_rotation_enabled", pointer.From(props.EncryptionProtectorAutoRotation))
 
@@ -1875,6 +1911,18 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForSecondaryType(), false),
+		},
+
+		"use_free_limit": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
+		"free_limit_exhaustion_behavior": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			RequiredWith: []string{"use_free_limit"},
+			ValidateFunc: validation.StringInSlice(databases.PossibleValuesForFreeLimitExhaustionBehavior(), false),
 		},
 
 		"tags": commonschema.Tags(),
