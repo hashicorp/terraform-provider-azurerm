@@ -6,7 +6,6 @@ package storagemover_test
 import (
 	"context"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -210,7 +209,6 @@ resource "azurerm_linux_virtual_machine" "test" {
       location            = azurerm_resource_group.test.location
       tenant_id           = data.azurerm_client_config.current.tenant_id
       client_id           = data.azurerm_client_config.current.client_id
-      client_secret       = "%[4]s"
       subscription_id     = data.azurerm_client_config.current.subscription_id
     })
     destination = "/home/adminuser/install_arc_agent.sh"
@@ -224,6 +222,18 @@ resource "azurerm_linux_virtual_machine" "test" {
       "bash /home/adminuser/install_arc_agent.sh",
     ]
   }
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-uai-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_resource_group.test.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_storage_mover" "test" {
@@ -244,7 +254,7 @@ data "azurerm_arc_machine" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, randomUUID, os.Getenv("ARM_CLIENT_SECRET"))
+`, data.RandomInteger, data.Locations.Primary, randomUUID)
 }
 
 func (r StorageMoverAgentResource) basic(data acceptance.TestData) string {
