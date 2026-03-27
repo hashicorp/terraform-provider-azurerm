@@ -6,6 +6,7 @@ package network
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -678,14 +679,18 @@ func resourceVirtualNetworkGatewayCustomizeDiff(ctx context.Context, d *pluginsd
 	gatewayType := d.Get("type").(string)
 
 	// Validate that public_ip_address_id is not set for ExpressRoute gateways
-	if gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) {
+	if gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("edge_zone").(string) == "" {
 		ipConfigs := d.Get("ip_configuration").([]interface{})
 		for i, ipConfigRaw := range ipConfigs {
 			ipConfig := ipConfigRaw.(map[string]interface{})
 			if publicIPID, ok := ipConfig["public_ip_address_id"].(string); ok && publicIPID != "" {
-				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` cannot be set when `type` is set to `ExpressRoute`", i)
+				return fmt.Errorf("`ip_configuration.%d.public_ip_address_id` cannot be set when `type` is set to `ExpressRoute` except when using `edge_zone`", i)
 			}
 		}
+	}
+
+	if d.HasChanges("type", "sku") && gatewayType == string(virtualnetworkgateways.VirtualNetworkGatewayTypeExpressRoute) && d.Get("sku").(string) == string(virtualnetworkgateways.VirtualNetworkGatewaySkuTierBasic) {
+		return errors.New("creation or update of `azurerm_virtual_network_gateway` resource with `Basic` `sku` when `type` is `ExpressRoute` is no longer supported. Refer to https://learn.microsoft.com/en-us/azure/expressroute/gateway-migration")
 	}
 
 	return nil
