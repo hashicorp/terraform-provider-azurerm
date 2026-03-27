@@ -292,6 +292,8 @@ A `container` block supports the following:
 * `registry` - (Optional) The `container_registries` block defined as below.
 
 * `working_directory` - (Optional) A flag to indicate where the container task working directory is. Possible values are `TaskWorkingDirectory` and `ContainerImageDefault`.
+  
+* `host_directory_mount` - (Optional) One or more `host_directory_mount` blocks that describe the entry of path and mount mode you want to mount into task container.
 
 ---
 
@@ -352,6 +354,14 @@ A `container_registries` block supports the following:
 * `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
 
 * `user_assigned_identity_id` - (Optional) The reference to the user assigned identity to use to access an Azure Container Registry instead of username and password. Changing this forces a new resource to be created.
+
+---
+
+A `host_directory_mount` block supports the following:
+
+* `source` - (Required) The paths which will be mounted to container task's container. Possible values include `Applications`, `JobPrep`, `Shared`, `Startup`, `Task`, and `VfsMounts`.
+
+* `read_only_enabled` - (Optional) Mount this source path as read-only mode or not. Default to `false` (read/write mode).
 
 ---
 

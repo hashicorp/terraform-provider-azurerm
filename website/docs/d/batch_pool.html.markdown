@@ -165,6 +165,7 @@ A `container` block exports the following:
 
 * `working_directory` - A flag to indicate where the container task working directory is.
 
+* `host_directory_mount` - One or more `host_directory_mount` blocks that describe the entry of path and mount mode you want to mount into task container.
 ---
 
 A `user_identity` block exports the following:
@@ -220,6 +221,14 @@ A `container_registries` block exports the following:
 * `password` - The password to log into the registry server.
 
 * `user_assigned_identity_id` - The reference to the user assigned identity to use to access an Azure Container Registry instead of username and password.
+
+---
+
+A `host_directory_mount` block exports the following:
+
+* `source` - The paths which will be mounted to container task's container. Possible value is `Applications`, `JobPrep`, `Shared`, `Startup`, `Task` and `VfsMounts`.
+
+* `read_only_enabled` - A flag that indicates wheather this source path is mounted as read-only mode or not.
 
 ---
 
