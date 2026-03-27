@@ -177,6 +177,7 @@ type ProvisioningState string
 
 const (
 	ProvisioningStateAdminUpdating ProvisioningState = "AdminUpdating"
+	ProvisioningStateCanceled      ProvisioningState = "Canceled"
 	ProvisioningStateCreating      ProvisioningState = "Creating"
 	ProvisioningStateDeleting      ProvisioningState = "Deleting"
 	ProvisioningStateFailed        ProvisioningState = "Failed"
@@ -187,6 +188,7 @@ const (
 func PossibleValuesForProvisioningState() []string {
 	return []string{
 		string(ProvisioningStateAdminUpdating),
+		string(ProvisioningStateCanceled),
 		string(ProvisioningStateCreating),
 		string(ProvisioningStateDeleting),
 		string(ProvisioningStateFailed),
@@ -211,6 +213,7 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
 		"adminupdating": ProvisioningStateAdminUpdating,
+		"canceled":      ProvisioningStateCanceled,
 		"creating":      ProvisioningStateCreating,
 		"deleting":      ProvisioningStateDeleting,
 		"failed":        ProvisioningStateFailed,
