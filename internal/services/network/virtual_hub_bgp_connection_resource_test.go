@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -238,7 +238,7 @@ resource "azurerm_virtual_hub_connection" "test" {
 
 resource "azurerm_virtual_network" "test2" {
   name                = "acctestvirtnet2%[2]d"
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.5.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
@@ -253,7 +253,7 @@ resource "azurerm_subnet" "test2" {
   name                 = "acctestsubnet2%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test2.name
-  address_prefixes     = ["10.6.1.0/24"]
+  address_prefixes     = ["10.5.1.0/24"]
 }
 
 resource "azurerm_subnet_network_security_group_association" "test2" {
@@ -279,7 +279,7 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
   name                          = "acctest-VHub-BgpConnection-%[2]d"
   virtual_hub_id                = azurerm_virtual_hub.test2.id
   peer_asn                      = 65514
-  peer_ip                       = "10.6.0.1"
+  peer_ip                       = "10.5.0.1"
   virtual_network_connection_id = azurerm_virtual_hub_connection.test2.id
 }
 `, r.virtualWanTemplate(data), data.RandomInteger)

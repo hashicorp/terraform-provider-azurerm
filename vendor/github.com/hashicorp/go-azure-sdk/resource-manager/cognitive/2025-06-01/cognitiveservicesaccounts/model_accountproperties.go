@@ -27,7 +27,7 @@ type AccountProperties struct {
 	Locations                     *MultiRegionSettings         `json:"locations,omitempty"`
 	MigrationToken                *string                      `json:"migrationToken,omitempty"`
 	NetworkAcls                   *NetworkRuleSet              `json:"networkAcls,omitempty"`
-	NetworkInjections             *NetworkInjections           `json:"networkInjections,omitempty"`
+	NetworkInjections             *[]NetworkInjection          `json:"networkInjections,omitempty"`
 	PrivateEndpointConnections    *[]PrivateEndpointConnection `json:"privateEndpointConnections,omitempty"`
 	ProvisioningState             *ProvisioningState           `json:"provisioningState,omitempty"`
 	PublicNetworkAccess           *PublicNetworkAccess         `json:"publicNetworkAccess,omitempty"`

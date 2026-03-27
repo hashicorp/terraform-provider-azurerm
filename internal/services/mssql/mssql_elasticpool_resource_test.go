@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -9,20 +9,20 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MsSqlElasticPoolResource struct{}
+type MssqlElasticpoolResource struct{}
 
 func TestAccMsSqlElasticPool_basicDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -32,13 +32,13 @@ func TestAccMsSqlElasticPool_basicDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccMsSqlElasticPool_requiresImport(t *testing.T) {
 
 func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	maintenance_configuration_name := "SQL_Default"
 	switch data.Locations.Primary {
@@ -72,7 +72,7 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.standardDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -81,13 +81,13 @@ func TestAccMsSqlElasticPool_standardDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_premiumDTUZoneRedundant(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	// Limited regional availability for ZRS
 	data.Locations.Primary = "westeurope"
@@ -102,7 +102,7 @@ func TestAccMsSqlElasticPool_premiumDTUZoneRedundant(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.premiumDTUZoneRedundant(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -112,13 +112,13 @@ func TestAccMsSqlElasticPool_premiumDTUZoneRedundant(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_basicVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -128,7 +128,7 @@ func TestAccMsSqlElasticPool_basicVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicVCore(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -136,13 +136,13 @@ func TestAccMsSqlElasticPool_basicVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_basicVCoreMaxSizeBytes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -152,7 +152,7 @@ func TestAccMsSqlElasticPool_basicVCoreMaxSizeBytes(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicVCoreMaxSizeBytes(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -160,13 +160,13 @@ func TestAccMsSqlElasticPool_basicVCoreMaxSizeBytes(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_resizeDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -176,7 +176,7 @@ func TestAccMsSqlElasticPool_resizeDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.resizeDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -184,13 +184,13 @@ func TestAccMsSqlElasticPool_resizeDTU(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -200,7 +200,7 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.resizeVCore(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -208,13 +208,13 @@ func TestAccMsSqlElasticPool_resizeVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	// Limited regional availability for Fsv2 family
 	data.Locations.Primary = "westeurope"
@@ -227,7 +227,7 @@ func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.fsv2VCore(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -235,13 +235,13 @@ func TestAccMsSqlElasticPool_fsv2FamilyVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_dcFamilyVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	// Limited regional availability for DC-series
 	data.Locations.Primary = "westeurope"
@@ -254,13 +254,13 @@ func TestAccMsSqlElasticPool_dcFamilyVCore(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_dcFamilyBcTierVCore(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	// Limited regional availability for DC-series
 	data.Locations.Primary = "westeurope"
@@ -272,13 +272,13 @@ func TestAccMsSqlElasticPool_dcFamilyBcTierVCore(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_licenseType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -304,7 +304,7 @@ func TestAccMsSqlElasticPool_licenseType(t *testing.T) {
 
 func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -314,7 +314,7 @@ func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.hyperScaleUpdate(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -322,13 +322,13 @@ func TestAccMsSqlElasticPool_hyperScale(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_vCoreToStandardDTU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -369,7 +369,7 @@ func TestAccMsSqlElasticPool_vCoreToStandardDTU(t *testing.T) {
 func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 	// NOTE: Once the enclave_type has be set it cannot be removed...
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -379,7 +379,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").IsEmpty(),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -387,7 +387,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicDTU(data, `enclave_type = "Default"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -395,7 +395,7 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("Default"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 		{
 			Config: r.basicDTU(data, `enclave_type = "VBS"`),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -403,13 +403,13 @@ func TestAccMsSqlElasticPool_enclaveTypeUpdate(t *testing.T) {
 				check.That(data.ResourceName).Key("enclave_type").HasValue("VBS"),
 			),
 		},
-		data.ImportStep("max_size_gb"),
+		data.ImportStep(),
 	})
 }
 
 func TestAccMsSqlElasticPool_dcFamilyVCoreEnclaveTypeError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
-	r := MsSqlElasticPoolResource{}
+	r := MssqlElasticpoolResource{}
 
 	// Limited regional availability for DC-series
 	data.Locations.Primary = "westeurope"
@@ -422,7 +422,7 @@ func TestAccMsSqlElasticPool_dcFamilyVCoreEnclaveTypeError(t *testing.T) {
 	})
 }
 
-func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (MssqlElasticpoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlElasticPoolID(state.ID)
 	if err != nil {
 		return nil, err
@@ -437,14 +437,18 @@ func (MsSqlElasticPoolResource) Exists(ctx context.Context, client *clients.Clie
 		return nil, fmt.Errorf("reading SQL Elastic Pool %s: %v", id, err)
 	}
 
-	return utils.Bool(existing.Model.Id != nil), nil
+	return pointer.To(existing.Model.Id != nil), nil
 }
 
-func (r MsSqlElasticPoolResource) basicDTU(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) basic(data acceptance.TestData) string {
+	return r.templateDTU(data, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false, "")
+}
+
+func (r MssqlElasticpoolResource) basicDTU(data acceptance.TestData, enclaveType string) string {
 	return r.templateDTU(data, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlElasticpoolResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -469,47 +473,47 @@ resource "azurerm_mssql_elasticpool" "import" {
 `, r.templateDTU(data, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false, ""))
 }
 
-func (r MsSqlElasticPoolResource) premiumDTUZoneRedundant(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) premiumDTUZoneRedundant(data acceptance.TestData, enclaveType string) string {
 	return r.templateDTU(data, "PremiumPool", "Premium", 125, 50, 0, 50, true, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) standardDTU(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) standardDTU(data acceptance.TestData, enclaveType string) string {
 	return r.templateDTU(data, "StandardPool", "Standard", 50, 50, 0, 50, false, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) resizeDTU(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) resizeDTU(data acceptance.TestData, enclaveType string) string {
 	return r.templateDTU(data, "StandardPool", "Standard", 100, 100, 50, 100, false, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) updateToStandardDTU(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) updateToStandardDTU(data acceptance.TestData, enclaveType string) string {
 	return r.templateUpdateToDTU(data, "StandardPool", "Standard", 50, 50, 10, 50, false, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) basicVCore(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) basicVCore(data acceptance.TestData, enclaveType string) string {
 	return r.templateVCore(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) fsv2VCore(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) fsv2VCore(data acceptance.TestData, enclaveType string) string {
 	return r.templateVCore(data, "GP_Fsv2", "GeneralPurpose", 8, "Fsv2", 0, 8, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) dcVCore(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) dcVCore(data acceptance.TestData, enclaveType string) string {
 	return r.templateVCore(data, "GP_DC", "GeneralPurpose", 2, "DC", 2, 2, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) dcVCoreBc(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) dcVCoreBc(data acceptance.TestData, enclaveType string) string {
 	return r.templateVCore(data, "BC_DC", "BusinessCritical", 2, "DC", 2, 2, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) basicVCoreMaxSizeBytes(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) basicVCoreMaxSizeBytes(data acceptance.TestData, enclaveType string) string {
 	return r.templateVCoreMaxSizeBytes(data, "GP_Gen5", "GeneralPurpose", 4, "Gen5", 0.25, 4, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) resizeVCore(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) resizeVCore(data acceptance.TestData, enclaveType string) string {
 	return r.templateVCore(data, "GP_Gen5", "GeneralPurpose", 8, "Gen5", 0, 8, enclaveType)
 }
 
-func (MsSqlElasticPoolResource) templateDTU(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool, enclaveType string) string {
+func (MssqlElasticpoolResource) templateDTU(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool, enclaveType string) string {
 	configName := "SQL_Default"
 	if skuTier != "Basic" {
 		switch data.Locations.Primary {
@@ -565,7 +569,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant, configName, enclaveType)
 }
 
-func (MsSqlElasticPoolResource) templateUpdateToDTU(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool, enclaveType string) string {
+func (MssqlElasticpoolResource) templateUpdateToDTU(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool, enclaveType string) string {
 	configName := "SQL_Default"
 	if skuTier != "Basic" {
 		switch data.Locations.Primary {
@@ -622,7 +626,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant, configName, enclaveType)
 }
 
-func (MsSqlElasticPoolResource) templateVCore(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string) string {
+func (MssqlElasticpoolResource) templateVCore(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -664,7 +668,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax, enclaveType)
 }
 
-func (MsSqlElasticPoolResource) templateVCoreMaxSizeBytes(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string) string {
+func (MssqlElasticpoolResource) templateVCoreMaxSizeBytes(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -707,7 +711,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax, enclaveType)
 }
 
-func (MsSqlElasticPoolResource) templateHyperScale(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string) string {
+func (MssqlElasticpoolResource) templateHyperScale(data acceptance.TestData, skuName string, skuTier string, skuCapacity int, skuFamily string, databaseSettingsMin float64, databaseSettingsMax float64, enclaveType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -748,7 +752,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax, enclaveType)
 }
 
-func (MsSqlElasticPoolResource) noLicenseType(data acceptance.TestData) string {
+func (MssqlElasticpoolResource) noLicenseType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -791,7 +795,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (MsSqlElasticPoolResource) licenseType(data acceptance.TestData, licenseType string, enclaveType string) string {
+func (MssqlElasticpoolResource) licenseType(data acceptance.TestData, licenseType string, enclaveType string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -836,10 +840,10 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, data.RandomInteger, data.Locations.Primary, licenseType, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) hyperScale(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) hyperScale(data acceptance.TestData, enclaveType string) string {
 	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0.25, 4, enclaveType)
 }
 
-func (r MsSqlElasticPoolResource) hyperScaleUpdate(data acceptance.TestData, enclaveType string) string {
+func (r MssqlElasticpoolResource) hyperScaleUpdate(data acceptance.TestData, enclaveType string) string {
 	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0, 4, enclaveType)
 }

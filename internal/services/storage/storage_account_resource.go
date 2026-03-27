@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -18,23 +18,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultsClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
-	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -265,16 +262,8 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
-						},
-
-						"managed_hsm_key_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+							Required:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 						},
 
 						"user_assigned_identity_id": {
@@ -344,7 +333,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			"allow_nested_items_to_be_public": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 
 			"shared_access_key_enabled": {
@@ -695,12 +684,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"expiration_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(storageaccounts.ExpirationActionLog),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storageaccounts.ExpirationActionLog),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(storageaccounts.ExpirationActionLog),
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForExpirationAction(), false),
 						},
 						"expiration_period": {
 							Type:         pluginsdk.TypeString,
@@ -1141,10 +1128,21 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				}
 
 				if !features.FivePointOh() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
-					if _, ok := d.GetOk("queue_properties"); ok {
+					rawQueueProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("queue_properties"))
+					if diags.HasError() {
+						return nil
+					}
+
+					if !rawQueueProperties.IsNull() && rawQueueProperties.IsKnown() && rawQueueProperties.LengthInt() > 0 {
 						return errors.New("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
-					if _, ok := d.GetOk("static_website"); ok {
+
+					rawStaticWebsiteProperties, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("static_website"))
+					if diags.HasError() {
+						return nil
+					}
+
+					if !rawStaticWebsiteProperties.IsNull() && rawStaticWebsiteProperties.IsKnown() && rawStaticWebsiteProperties.LengthInt() > 0 {
 						return errors.New("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
 				}
@@ -1216,116 +1214,152 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 			Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_static_website` resource and will be removed in v5.0 of the AzureRM provider",
 		}
-	}
 
-	resource.Schema["queue_properties"] = &pluginsdk.Schema{
-		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		MaxItems: 1,
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
-				"hour_metrics": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"version": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"include_apis": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-							},
-							"retention_policy_days": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 365),
-							},
-						},
+		resource.Schema["customer_managed_key"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 					},
-				},
-				"logging": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"version": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"delete": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"read": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"write": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"retention_policy_days": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 365),
-							},
-						},
+
+					"managed_hsm_key_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+						Deprecated:   "`managed_hsm_key_id` has been deprecated in favour of `key_vault_key_id` and will be removed in v5.0 of the AzureRM provider",
 					},
-				},
-				"minute_metrics": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					Computed: true,
-					MaxItems: 1,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"version": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
-							"enabled": {
-								Type:     pluginsdk.TypeBool,
-								Required: true,
-							},
-							"include_apis": {
-								Type:     pluginsdk.TypeBool,
-								Optional: true,
-							},
-							"retention_policy_days": {
-								Type:         pluginsdk.TypeInt,
-								Optional:     true,
-								ValidateFunc: validation.IntBetween(1, 365),
-							},
-						},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 					},
 				},
 			},
-		},
-		Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
-	}
+		}
 
-	if !features.FivePointOh() {
 		resource.Schema["min_tls_version"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
 			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
+		}
+
+		resource.Schema["queue_properties"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"cors_rule": helpers.SchemaStorageAccountCorsRule(false),
+					"hour_metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"include_apis": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+					"logging": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								"delete": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"read": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"write": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+					"minute_metrics": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Computed: true,
+						MaxItems: 1,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"version": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringIsNotEmpty,
+								},
+								// TODO 4.0: Remove this property and determine whether to enable based on existence of the out side block.
+								"enabled": {
+									Type:     pluginsdk.TypeBool,
+									Required: true,
+								},
+								"include_apis": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+								},
+								"retention_policy_days": {
+									Type:         pluginsdk.TypeInt,
+									Optional:     true,
+									ValidateFunc: validation.IntBetween(1, 365),
+								},
+							},
+						},
+					},
+				},
+			},
+			Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
+		}
+
+		resource.Schema["allow_nested_items_to_be_public"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
 		}
 	}
 
@@ -1493,7 +1527,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 	tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 	encryptionRaw := d.Get("customer_managed_key").([]interface{})
-	encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+	encryption, err := expandAccountCustomerManagedKey(d, ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
 	if err != nil {
 		return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 	}
@@ -1503,7 +1537,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	if infrastructureEncryption {
 		validPremiumConfiguration := accountTier == storageaccounts.SkuTierPremium && (accountKind == storageaccounts.KindBlockBlobStorage) || accountKind == storageaccounts.KindFileStorage
 		validV2Configuration := accountKind == storageaccounts.KindStorageVTwo
-		if !(validPremiumConfiguration || validV2Configuration) {
+		if !validPremiumConfiguration && !validV2Configuration {
 			return fmt.Errorf("`infrastructure_encryption_enabled` can only be used with account kind `StorageV2`, or account tier `Premium` and account kind is one of `BlockBlobStorage` or `FileStorage`")
 		}
 		encryption.RequireInfrastructureEncryption = &infrastructureEncryption
@@ -1516,6 +1550,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	// populate the cache
 	account, err := client.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
@@ -1694,10 +1731,8 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s%s_%s", accountTier, provisionedBillingModelVersion, replicationType)
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 
-	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
-		if storageType == string(storageaccounts.SkuNameStandardZRS) {
-			return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
-		}
+	if accountKind == storageaccounts.KindBlobStorage && storageType == string(storageaccounts.SkuNameStandardZRS) {
+		return fmt.Errorf("an `account_replication_type` of `ZRS` isn't supported for Blob Storage accounts")
 	}
 
 	existing, err := client.GetProperties(ctx, *id, storageaccounts.DefaultGetPropertiesOperationOptions())
@@ -1775,7 +1810,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		queueEncryptionKeyType := storageaccounts.KeyType(d.Get("queue_encryption_key_type").(string))
 		tableEncryptionKeyType := storageaccounts.KeyType(d.Get("table_encryption_key_type").(string))
 		encryptionRaw := d.Get("customer_managed_key").([]interface{})
-		encryption, err := expandAccountCustomerManagedKey(ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
+		encryption, err := expandAccountCustomerManagedKey(d, ctx, keyVaultClient, id.SubscriptionId, encryptionRaw, accountTier, accountKind, *expandedIdentity, queueEncryptionKeyType, tableEncryptionKeyType)
 		if err != nil {
 			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
 		}
@@ -2046,18 +2081,10 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 }
 
 func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	storageUtils := meta.(*clients.Client).Storage
 	storageClient := meta.(*clients.Client).Storage.ResourceManager
 	client := storageClient.StorageAccounts
-	dataPlaneAvailable := meta.(*clients.Client).Features.Storage.DataPlaneAvailable
-	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
-	if !ok {
-		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
-	}
 
 	id, err := commonids.ParseStorageAccountID(d.Id())
 	if err != nil {
@@ -2074,28 +2101,38 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	// we then need to find the storage account
-	account, err := storageUtils.GetAccount(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	if err := resourceStorageAccountFlatten(ctx, d, *id, resp.Model, meta); err != nil {
+		return fmt.Errorf("encoding %s: %+v", *id, err)
 	}
+
+	return nil
+}
+
+func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceData, id commonids.StorageAccountId, account *storageaccounts.StorageAccount, meta interface{}) error {
+	storageClient := meta.(*clients.Client).Storage.ResourceManager
+	storageUtils := meta.(*clients.Client).Storage
+	client := storageClient.StorageAccounts
+	dataPlaneAvailable := meta.(*clients.Client).Features.Storage.DataPlaneAvailable
+	storageDomainSuffix, ok := meta.(*clients.Client).Account.Environment.Storage.DomainSuffix()
+	if !ok {
+		return fmt.Errorf("could not determine Storage domain suffix for environment %q", meta.(*clients.Client).Account.Environment.Name)
+	}
+
+	// we then need to find the storage account
+	details, err := storageUtils.GetAccount(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
 	if account == nil {
 		return fmt.Errorf("unable to locate %q", id)
 	}
 
-	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
-	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
-	keys, err := client.ListKeys(ctx, *id, listKeysOpts)
-	if err != nil {
-		hasWriteLock := response.WasConflict(keys.HttpResponse)
-		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
-		if !hasWriteLock && !doesntHavePermissions {
-			return fmt.Errorf("listing Keys for %s: %+v", id, err)
-		}
-	}
-
 	d.Set("name", id.StorageAccountName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+
+	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
+	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
 
 	supportLevel := storageAccountServiceSupportLevel{
 		supportBlob:          false,
@@ -2103,163 +2140,182 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		supportShare:         false,
 		supportStaticWebsite: false,
 	}
+
 	var accountKind storageaccounts.Kind
 	var primaryEndpoints *storageaccounts.Endpoints
 	var secondaryEndpoints *storageaccounts.Endpoints
 	var routingPreference *storageaccounts.RoutingPreference
-	if model := resp.Model; model != nil {
-		if model.Kind != nil {
-			accountKind = *model.Kind
+	if account.Kind != nil {
+		accountKind = *account.Kind
+	}
+	d.Set("account_kind", string(accountKind))
+
+	var accountTier storageaccounts.SkuTier
+	accountReplicationType := ""
+	provisionBillingModelVer := ""
+	if sku := account.Sku; sku != nil {
+		skuNameSegs := strings.Split(string(sku.Name), "_")
+		accountTierAndProvisionBillingModelVer := skuNameSegs[0]
+		accountReplicationType = skuNameSegs[1]
+		if sku.Tier != nil {
+			accountTier = *sku.Tier
+			provisionBillingModelVer = strings.TrimPrefix(accountTierAndProvisionBillingModelVer, string(accountTier))
 		}
-		d.Set("account_kind", string(accountKind))
+	}
+	d.Set("account_tier", string(accountTier))
+	d.Set("account_replication_type", accountReplicationType)
+	d.Set("provisioned_billing_model_version", provisionBillingModelVer)
 
-		var accountTier storageaccounts.SkuTier
-		accountReplicationType := ""
-		provisionBillingModelVer := ""
-		if sku := model.Sku; sku != nil {
-			skuNameSegs := strings.Split(string(sku.Name), "_")
-			accountTierAndProvisionBillingModelVer := skuNameSegs[0]
-			accountReplicationType = skuNameSegs[1]
-			if sku.Tier != nil {
-				accountTier = *sku.Tier
-				provisionBillingModelVer = strings.TrimPrefix(accountTierAndProvisionBillingModelVer, string(accountTier))
-			}
+	d.Set("edge_zone", flattenEdgeZone(account.ExtendedLocation))
+	d.Set("location", location.Normalize(account.Location))
+
+	if props := account.Properties; props != nil {
+		primaryEndpoints = props.PrimaryEndpoints
+		routingPreference = props.RoutingPreference
+		secondaryEndpoints = props.SecondaryEndpoints
+
+		d.Set("access_tier", pointer.From(props.AccessTier))
+		d.Set("allowed_copy_scope", pointer.From(props.AllowedCopyScope))
+		if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
+			return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
 		}
-		d.Set("account_tier", string(accountTier))
-		d.Set("account_replication_type", accountReplicationType)
-		d.Set("provisioned_billing_model_version", provisionBillingModelVer)
+		d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
+		d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
+		d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
+		d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
+		d.Set("primary_location", pointer.From(props.PrimaryLocation))
+		if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
+			return fmt.Errorf("setting `routing`: %+v", err)
+		}
+		d.Set("secondary_location", pointer.From(props.SecondaryLocation))
+		d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
 
-		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
-		d.Set("location", location.Normalize(model.Location))
+		// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
+		// resources when a new field gets added - meaning we need to default the values below.
+		allowBlobPublicAccess := false
+		if !features.FivePointOh() {
+			allowBlobPublicAccess = true
+		}
+		if props.AllowBlobPublicAccess != nil {
+			allowBlobPublicAccess = *props.AllowBlobPublicAccess
+		}
+		d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
 
-		if props := model.Properties; props != nil {
-			primaryEndpoints = props.PrimaryEndpoints
-			routingPreference = props.RoutingPreference
-			secondaryEndpoints = props.SecondaryEndpoints
+		defaultToOAuthAuthentication := false
+		if props.DefaultToOAuthAuthentication != nil {
+			defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
+		}
+		d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
 
-			d.Set("access_tier", pointer.From(props.AccessTier))
-			d.Set("allowed_copy_scope", pointer.From(props.AllowedCopyScope))
-			if err := d.Set("azure_files_authentication", flattenAccountAzureFilesAuthentication(props.AzureFilesIdentityBasedAuthentication)); err != nil {
-				return fmt.Errorf("setting `azure_files_authentication`: %+v", err)
-			}
-			d.Set("cross_tenant_replication_enabled", pointer.From(props.AllowCrossTenantReplication))
-			d.Set("https_traffic_only_enabled", pointer.From(props.SupportsHTTPSTrafficOnly))
-			d.Set("is_hns_enabled", pointer.From(props.IsHnsEnabled))
-			d.Set("nfsv3_enabled", pointer.From(props.IsNfsV3Enabled))
-			d.Set("primary_location", pointer.From(props.PrimaryLocation))
-			if err := d.Set("routing", flattenAccountRoutingPreference(props.RoutingPreference)); err != nil {
-				return fmt.Errorf("setting `routing`: %+v", err)
-			}
-			d.Set("secondary_location", pointer.From(props.SecondaryLocation))
-			d.Set("sftp_enabled", pointer.From(props.IsSftpEnabled))
+		dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
+		if props.DnsEndpointType != nil {
+			dnsEndpointType = *props.DnsEndpointType
+		}
+		d.Set("dns_endpoint_type", dnsEndpointType)
 
-			// NOTE: The Storage API returns `null` rather than the default value in the API response for existing
-			// resources when a new field gets added - meaning we need to default the values below.
-			allowBlobPublicAccess := true
-			if props.AllowBlobPublicAccess != nil {
-				allowBlobPublicAccess = *props.AllowBlobPublicAccess
-			}
-			d.Set("allow_nested_items_to_be_public", allowBlobPublicAccess)
+		isLocalEnabled := true
+		if props.IsLocalUserEnabled != nil {
+			isLocalEnabled = *props.IsLocalUserEnabled
+		}
+		d.Set("local_user_enabled", isLocalEnabled)
 
-			defaultToOAuthAuthentication := false
-			if props.DefaultToOAuthAuthentication != nil {
-				defaultToOAuthAuthentication = *props.DefaultToOAuthAuthentication
-			}
-			d.Set("default_to_oauth_authentication", defaultToOAuthAuthentication)
+		largeFileShareEnabled := false
+		if props.LargeFileSharesState != nil {
+			largeFileShareEnabled = *props.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled
+		}
+		d.Set("large_file_share_enabled", largeFileShareEnabled)
 
-			dnsEndpointType := storageaccounts.DnsEndpointTypeStandard
-			if props.DnsEndpointType != nil {
-				dnsEndpointType = *props.DnsEndpointType
-			}
-			d.Set("dns_endpoint_type", dnsEndpointType)
+		minTlsVersion := string(storageaccounts.MinimumTlsVersionTLSOneZero)
+		if props.MinimumTlsVersion != nil {
+			minTlsVersion = string(*props.MinimumTlsVersion)
+		}
+		d.Set("min_tls_version", minTlsVersion)
 
-			isLocalEnabled := true
-			if props.IsLocalUserEnabled != nil {
-				isLocalEnabled = *props.IsLocalUserEnabled
-			}
-			d.Set("local_user_enabled", isLocalEnabled)
+		publicNetworkAccessEnabled := true
+		if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
+			publicNetworkAccessEnabled = false
+		}
+		d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
-			largeFileShareEnabled := false
-			if props.LargeFileSharesState != nil {
-				largeFileShareEnabled = *props.LargeFileSharesState == storageaccounts.LargeFileSharesStateEnabled
-			}
-			d.Set("large_file_share_enabled", largeFileShareEnabled)
+		allowSharedKeyAccess := true
+		if props.AllowSharedKeyAccess != nil {
+			allowSharedKeyAccess = *props.AllowSharedKeyAccess
+		}
+		d.Set("shared_access_key_enabled", allowSharedKeyAccess)
 
-			minTlsVersion := string(storageaccounts.MinimumTlsVersionTLSOneZero)
-			if props.MinimumTlsVersion != nil {
-				minTlsVersion = string(*props.MinimumTlsVersion)
-			}
-			d.Set("min_tls_version", minTlsVersion)
+		if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
+			return fmt.Errorf("setting `custom_domain`: %+v", err)
+		}
+		if err := d.Set("immutability_policy", flattenAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
+			return fmt.Errorf("setting `immutability_policy`: %+v", err)
+		}
+		if err := d.Set("network_rules", flattenAccountNetworkRules(props.NetworkAcls)); err != nil {
+			return fmt.Errorf("setting `network_rules`: %+v", err)
+		}
 
-			publicNetworkAccessEnabled := true
-			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == storageaccounts.PublicNetworkAccessDisabled {
-				publicNetworkAccessEnabled = false
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-
-			allowSharedKeyAccess := true
-			if props.AllowSharedKeyAccess != nil {
-				allowSharedKeyAccess = *props.AllowSharedKeyAccess
-			}
-			d.Set("shared_access_key_enabled", allowSharedKeyAccess)
-
-			if err := d.Set("custom_domain", flattenAccountCustomDomain(props.CustomDomain)); err != nil {
-				return fmt.Errorf("setting `custom_domain`: %+v", err)
-			}
-			if err := d.Set("immutability_policy", flattenAccountImmutabilityPolicy(props.ImmutableStorageWithVersioning)); err != nil {
-				return fmt.Errorf("setting `immutability_policy`: %+v", err)
-			}
-			if err := d.Set("network_rules", flattenAccountNetworkRules(props.NetworkAcls)); err != nil {
-				return fmt.Errorf("setting `network_rules`: %+v", err)
-			}
-
-			// When the encryption key type is "Service", the queue/table is not returned in the service list, so we default
-			// the encryption key type to "Service" if it is absent (must also be the default value for "Service" in the schema)
-			infrastructureEncryption := false
-			queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
-			tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
-			if encryption := props.Encryption; encryption != nil {
-				infrastructureEncryption = pointer.From(encryption.RequireInfrastructureEncryption)
-				if encryption.Services != nil {
-					if encryption.Services.Queue != nil && encryption.Services.Queue.KeyType != nil {
-						queueEncryptionKeyType = string(*encryption.Services.Queue.KeyType)
-					}
-					if encryption.Services.Table != nil && encryption.Services.Table.KeyType != nil {
-						tableEncryptionKeyType = string(*encryption.Services.Table.KeyType)
-					}
+		// When the encryption key type is "Service", the queue/table is not returned in the service list, so we default
+		// the encryption key type to "Service" if it is absent (must also be the default value for "Service" in the schema)
+		infrastructureEncryption := false
+		queueEncryptionKeyType := string(storageaccounts.KeyTypeService)
+		tableEncryptionKeyType := string(storageaccounts.KeyTypeService)
+		if encryption := props.Encryption; encryption != nil {
+			infrastructureEncryption = pointer.From(encryption.RequireInfrastructureEncryption)
+			if encryption.Services != nil {
+				if encryption.Services.Queue != nil && encryption.Services.Queue.KeyType != nil {
+					queueEncryptionKeyType = string(*encryption.Services.Queue.KeyType)
+				}
+				if encryption.Services.Table != nil && encryption.Services.Table.KeyType != nil {
+					tableEncryptionKeyType = string(*encryption.Services.Table.KeyType)
 				}
 			}
-			d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
-			d.Set("queue_encryption_key_type", queueEncryptionKeyType)
-			d.Set("table_encryption_key_type", tableEncryptionKeyType)
-
-			customerManagedKey := flattenAccountCustomerManagedKey(props.Encryption, env)
-			if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
-				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
-			}
-
-			if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
-				return fmt.Errorf("setting `sas_policy`: %+v", err)
-			}
-
-			supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
 		}
+		d.Set("infrastructure_encryption_enabled", infrastructureEncryption)
+		d.Set("queue_encryption_key_type", queueEncryptionKeyType)
+		d.Set("table_encryption_key_type", tableEncryptionKeyType)
 
-		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
+		customerManagedKey, err := flattenAccountCustomerManagedKey(props.Encryption)
 		if err != nil {
-			return fmt.Errorf("flattening `identity`: %+v", err)
-		}
-		if err := d.Set("identity", flattenedIdentity); err != nil {
-			return fmt.Errorf("setting `identity`: %+v", err)
+			return fmt.Errorf("flattening `customer_managed_key`: %+v", err)
 		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return err
+		if err := d.Set("customer_managed_key", customerManagedKey); err != nil {
+			return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 		}
+
+		if err := d.Set("sas_policy", flattenAccountSASPolicy(props.SasPolicy)); err != nil {
+			return fmt.Errorf("setting `sas_policy`: %+v", err)
+		}
+
+		supportLevel = availableFunctionalityForAccount(accountKind, accountTier, accountReplicationType)
+	}
+
+	flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(account.Identity)
+	if err != nil {
+		return fmt.Errorf("flattening `identity`: %+v", err)
+	}
+	if err := d.Set("identity", flattenedIdentity); err != nil {
+		return fmt.Errorf("setting `identity`: %+v", err)
+	}
+
+	if err := tags.FlattenAndSet(d, account.Tags); err != nil {
+		return err
 	}
 
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	endpoints.set(d)
+
+	if err = pluginsdk.SetResourceIdentityData(d, pointer.To(id)); err != nil {
+		return fmt.Errorf("setting resource identity data: %+v", err)
+	}
+
+	keys, err := client.ListKeys(ctx, id, listKeysOpts)
+	if err != nil {
+		hasWriteLock := response.WasConflict(keys.HttpResponse)
+		doesntHavePermissions := response.WasForbidden(keys.HttpResponse) || response.WasStatusCode(keys.HttpResponse, http.StatusUnauthorized)
+		if !hasWriteLock && !doesntHavePermissions {
+			return fmt.Errorf("listing Keys for %s: %+v", id, err)
+		}
+	}
 
 	storageAccountKeys := make([]storageaccounts.StorageAccountKey, 0)
 	if keys.Model != nil && keys.Model.Keys != nil {
@@ -2270,35 +2326,35 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	blobProperties := make([]interface{}, 0)
 	if supportLevel.supportBlob {
-		blobProps, err := storageClient.BlobService.GetServiceProperties(ctx, *id)
+		blobProps, err := storageClient.BlobService.GetServiceProperties(ctx, id)
 		if err != nil {
-			return fmt.Errorf("reading blob properties for %s: %+v", *id, err)
+			return fmt.Errorf("reading blob properties for %s: %+v", id, err)
 		}
 
 		blobProperties = flattenAccountBlobServiceProperties(blobProps.Model)
 	}
 	if err := d.Set("blob_properties", blobProperties); err != nil {
-		return fmt.Errorf("setting `blob_properties` for %s: %+v", *id, err)
+		return fmt.Errorf("setting `blob_properties` for %s: %+v", id, err)
 	}
 
 	shareProperties := make([]interface{}, 0)
 	if supportLevel.supportShare {
-		shareProps, err := storageClient.FileService.GetServiceProperties(ctx, *id)
+		shareProps, err := storageClient.FileService.GetServiceProperties(ctx, id)
 		if err != nil {
-			return fmt.Errorf("retrieving share properties for %s: %+v", *id, err)
+			return fmt.Errorf("retrieving share properties for %s: %+v", id, err)
 		}
 
 		shareProperties = flattenAccountShareProperties(shareProps.Model)
 	}
 	if err := d.Set("share_properties", shareProperties); err != nil {
-		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
+		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
 	}
 
 	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		queueProperties := make([]interface{}, 0)
 		if supportLevel.supportQueue {
-			queueClient, err := dataPlaneClient.QueuesDataPlaneClient(ctx, *account, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
+			queueClient, err := dataPlaneClient.QueuesDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Queues Client: %s", err)
 			}
@@ -2308,7 +2364,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 				// Queue properties is a data plane only service, so we tolerate connection errors here in case of
 				// firewalls and other connectivity issues that are not guaranteed.
 				if !connectionError(err) {
-					return fmt.Errorf("retrieving queue properties for %s: %+v", *id, err)
+					return fmt.Errorf("retrieving queue properties for %s: %+v", id, err)
 				}
 			}
 
@@ -2320,7 +2376,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		staticWebsiteProperties := make([]interface{}, 0)
 		if supportLevel.supportStaticWebsite {
-			accountsClient, err := dataPlaneClient.AccountsDataPlaneClient(ctx, *account, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
+			accountsClient, err := dataPlaneClient.AccountsDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
 			if err != nil {
 				return fmt.Errorf("building Accounts Data Plane Client: %s", err)
 			}
@@ -2328,7 +2384,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 			staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
 			if err != nil {
 				if !connectionError(err) {
-					return fmt.Errorf("retrieving static website properties for %s: %+v", *id, err)
+					return fmt.Errorf("retrieving static website properties for %s: %+v", id, err)
 				}
 			}
 
@@ -2340,7 +2396,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return nil
 }
 
 func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -2427,7 +2483,7 @@ func flattenAccountCustomDomain(input *storageaccounts.CustomDomain) []interface
 	return output
 }
 
-func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []interface{}, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
+func expandAccountCustomerManagedKey(d *pluginsdk.ResourceData, ctx context.Context, keyVaultClient *keyVaultsClient.Client, subscriptionId string, input []interface{}, accountTier storageaccounts.SkuTier, accountKind storageaccounts.Kind, expandedIdentity identity.LegacySystemAndUserAssignedMap, queueEncryptionKeyType, tableEncryptionKeyType storageaccounts.KeyType) (*storageaccounts.Encryption, error) {
 	if accountKind == storageaccounts.KindStorage {
 		if queueEncryptionKeyType == storageaccounts.KeyTypeAccount {
 			return nil, fmt.Errorf("`queue_encryption_key_type = %q` cannot be used with account kind `%q`", string(storageaccounts.KeyTypeAccount), string(storageaccounts.KindStorage))
@@ -2460,60 +2516,69 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 
 	v := input[0].(map[string]interface{})
 
-	var keyName, keyVersion, keyVaultURI *string
-	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && keyVaultKeyId != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultKeyId.(string))
+	setInConfig := func(d *pluginsdk.ResourceData) bool {
+		if features.FivePointOh() {
+			// If we're in 5.0 only `key_vault_key_id` exists, so no need to check
+			return true
+		}
+
+		raw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("customer_managed_key.0.key_vault_key_id"))
+		return !diags.HasError() && !raw.IsNull()
+	}
+
+	var keyID *keyvault.NestedItemID
+	// When cleaning up `features.FivePointOh()` flags, this condition can be removed as `key_vault_key_id` will be required in 5.0.
+	// The variable instantiation above can be removed as well, and `keyId` below can be renamed to `KeyID`.
+	if keyVaultKeyId, ok := v["key_vault_key_id"]; ok && setInConfig(d) {
+		keyId, err := keyvault.ParseNestedItemID(keyVaultKeyId.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
 		if err != nil {
 			return nil, err
 		}
 
-		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-		keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseUrl)
-		if err != nil {
-			return nil, err
-		}
-		if keyVaultIdRaw == nil {
-			return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyId.KeyVaultBaseUrl, subscriptionResourceId)
-		}
-		keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-		if err != nil {
-			return nil, err
-		}
-
-		vaultsClient := keyVaultClient.VaultsClient
-		keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
-		if err != nil {
-			return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
-		}
-
-		softDeleteEnabled := false
-		purgeProtectionEnabled := false
-		if model := keyVault.Model; model != nil {
-			if esd := model.Properties.EnableSoftDelete; esd != nil {
-				softDeleteEnabled = *esd
+		if !keyId.IsManagedHSM() {
+			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyId.KeyVaultBaseURL)
+			if err != nil {
+				return nil, err
 			}
-			if epp := model.Properties.EnablePurgeProtection; epp != nil {
-				purgeProtectionEnabled = *epp
+			if keyVaultIdRaw == nil {
+				return nil, fmt.Errorf("unable to find the Resource Manager ID for the Key Vault URI %q in %s", keyId.KeyVaultBaseURL, subscriptionResourceId)
+			}
+			keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
+			if err != nil {
+				return nil, err
+			}
+
+			vaultsClient := keyVaultClient.VaultsClient
+			keyVault, err := vaultsClient.Get(ctx, *keyVaultId)
+			if err != nil {
+				return nil, fmt.Errorf("retrieving %s: %+v", *keyVaultId, err)
+			}
+
+			softDeleteEnabled := false
+			purgeProtectionEnabled := false
+			if model := keyVault.Model; model != nil {
+				if esd := model.Properties.EnableSoftDelete; esd != nil {
+					softDeleteEnabled = *esd
+				}
+				if epp := model.Properties.EnablePurgeProtection; epp != nil {
+					purgeProtectionEnabled = *epp
+				}
+			}
+			if !softDeleteEnabled || !purgeProtectionEnabled {
+				return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
 			}
 		}
-		if !softDeleteEnabled || !purgeProtectionEnabled {
-			return nil, fmt.Errorf("%s must be configured for both Purge Protection and Soft Delete", *keyVaultId)
-		}
 
-		keyName = pointer.To(keyId.Name)
-		keyVersion = pointer.To(keyId.Version)
-		keyVaultURI = pointer.To(keyId.KeyVaultBaseUrl)
-	} else if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
-		if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = pointer.To(keyId.KeyName)
-			keyVersion = pointer.To(keyId.KeyVersion)
-			keyVaultURI = pointer.To(keyId.BaseUri())
-		} else if keyId, err := managedHsmParse.ManagedHSMDataPlaneVersionlessKeyID(managedHSMKeyId.(string), nil); err == nil {
-			keyName = utils.String(keyId.KeyName)
-			keyVersion = utils.String("")
-			keyVaultURI = utils.String(keyId.BaseUri())
-		} else {
-			return nil, fmt.Errorf("parsing %q as HSM key ID", managedHSMKeyId.(string))
+		keyID = keyId
+	} else if !features.FivePointOh() {
+		if managedHSMKeyId, ok := v["managed_hsm_key_id"]; ok && managedHSMKeyId != "" {
+			keyId, err := keyvault.ParseNestedItemID(managedHSMKeyId.(string), keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+			if err != nil {
+				return nil, err
+			}
+
+			keyID = keyId
 		}
 	}
 
@@ -2535,37 +2600,45 @@ func expandAccountCustomerManagedKey(ctx context.Context, keyVaultClient *keyVau
 			},
 		},
 		Identity: &storageaccounts.EncryptionIdentity{
-			UserAssignedIdentity: utils.String(v["user_assigned_identity_id"].(string)),
+			UserAssignedIdentity: pointer.To(v["user_assigned_identity_id"].(string)),
 		},
 		KeySource: pointer.To(storageaccounts.KeySourceMicrosoftPointKeyvault),
 		Keyvaultproperties: &storageaccounts.KeyVaultProperties{
-			Keyname:     keyName,
-			Keyversion:  keyVersion,
-			Keyvaulturi: keyVaultURI,
+			Keyname:     pointer.To(keyID.Name),
+			Keyversion:  pointer.To(keyID.Version),
+			Keyvaulturi: pointer.To(keyID.KeyVaultBaseURL),
 		},
 	}
 
 	return encryption, nil
 }
 
-func flattenAccountCustomerManagedKey(input *storageaccounts.Encryption, env environments.Environment) []interface{} {
-	output := make([]interface{}, 0)
+func flattenAccountCustomerManagedKey(input *storageaccounts.Encryption) ([]any, error) {
+	output := make([]any, 0)
 
-	if input != nil && input.KeySource != nil && *input.KeySource == storageaccounts.KeySourceMicrosoftPointKeyvault {
-		userAssignedIdentityId := ""
+	if input != nil && pointer.From(input.KeySource) == storageaccounts.KeySourceMicrosoftPointKeyvault {
+		cmk := make(map[string]any)
+
 		if props := input.Identity; props != nil {
-			userAssignedIdentityId = pointer.From(props.UserAssignedIdentity)
+			cmk["user_assigned_identity_id"] = pointer.From(props.UserAssignedIdentity)
 		}
 
-		customerManagedKey := flattenCustomerManagedKey(input.Keyvaultproperties, env.KeyVault, env.ManagedHSM)
-		output = append(output, map[string]interface{}{
-			"key_vault_key_id":          customerManagedKey.keyVaultKeyUri,
-			"managed_hsm_key_id":        customerManagedKey.managedHsmKeyUri,
-			"user_assigned_identity_id": userAssignedIdentityId,
-		})
+		if props := input.Keyvaultproperties; props != nil {
+			keyID, err := keyvault.NewNestedItemID(pointer.From(props.Keyvaulturi), keyvault.NestedItemTypeKey, pointer.From(props.Keyname), pointer.From(props.Keyversion))
+			if err != nil {
+				return output, err
+			}
+			cmk["key_vault_key_id"] = keyID.ID()
+
+			if !features.FivePointOh() && keyID.IsManagedHSM() {
+				cmk["managed_hsm_key_id"] = keyID.ID()
+			}
+		}
+
+		output = append(output, cmk)
 	}
 
-	return output
+	return output, nil
 }
 
 func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.ImmutableStorageAccount {
@@ -2575,7 +2648,7 @@ func expandAccountImmutabilityPolicy(input []interface{}) *storageaccounts.Immut
 
 	v := input[0].(map[string]interface{})
 	return &storageaccounts.ImmutableStorageAccount{
-		Enabled: utils.Bool(true),
+		Enabled: pointer.To(true),
 		ImmutabilityPolicy: &storageaccounts.AccountImmutabilityPolicyProperties{
 			AllowProtectedAppendWrites:            pointer.To(v["allow_protected_append_writes"].(bool)),
 			ImmutabilityPeriodSinceCreationInDays: pointer.To(int64(v["period_since_creation_in_days"].(int))),
@@ -2609,16 +2682,16 @@ func expandAccountActiveDirectoryProperties(input []interface{}) *storageaccount
 		DomainName: m["domain_name"].(string),
 	}
 	if v := m["storage_sid"]; v != "" {
-		output.AzureStorageSid = utils.String(v.(string))
+		output.AzureStorageSid = pointer.To(v.(string))
 	}
 	if v := m["domain_sid"]; v != "" {
-		output.DomainSid = utils.String(v.(string))
+		output.DomainSid = pointer.To(v.(string))
 	}
 	if v := m["forest_name"]; v != "" {
-		output.ForestName = utils.String(v.(string))
+		output.ForestName = pointer.To(v.(string))
 	}
 	if v := m["netbios_domain_name"]; v != "" {
-		output.NetBiosDomainName = utils.String(v.(string))
+		output.NetBiosDomainName = pointer.To(v.(string))
 	}
 	return output
 }
@@ -2730,7 +2803,7 @@ func expandAccountBlobServiceProperties(kind storageaccounts.Kind, input []inter
 			CorsRules: &[]blobservice.CorsRule{},
 		},
 		DeleteRetentionPolicy: &blobservice.DeleteRetentionPolicy{
-			Enabled: utils.Bool(false),
+			Enabled: pointer.To(false),
 		},
 	}
 

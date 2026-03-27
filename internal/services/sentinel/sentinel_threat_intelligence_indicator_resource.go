@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package sentinel
@@ -929,7 +929,7 @@ func expandThreatIntelligenceKillChainPhaseModel(inputList []killChainPhaseModel
 	for _, v := range inputList {
 		input := v
 		output := securityinsight.ThreatIntelligenceKillChainPhase{
-			KillChainName: utils.String(killChainName),
+			KillChainName: pointer.To(killChainName),
 		}
 
 		if input.PhaseName != "" {

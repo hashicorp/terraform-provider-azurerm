@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package dynatrace
@@ -99,6 +99,7 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.StringInSlice([]string{
 							"MONTHLY",
 							"WEEKLY",
+							"YEARLY",
 						}, false),
 					},
 
@@ -134,12 +135,6 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"country": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"email": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -160,7 +155,13 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 
 					"phone_number": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"country": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},

@@ -114,6 +114,10 @@ A `template` block supports the following:
 
 * `min_replicas` - (Optional) The minimum number of replicas for this container.
 
+* `cooldown_period_in_seconds` - (Optional) The number of seconds to wait before scaling down the number of instances again. Defaults to `300`.
+
+* `polling_interval_in_seconds` - (Optional) The interval in seconds used for polling KEDA. Defaults to `30`.
+
 * `azure_queue_scale_rule` - (Optional) One or more `azure_queue_scale_rule` blocks as defined below.
 
 * `custom_scale_rule` - (Optional) One or more `custom_scale_rule` blocks as defined below.
@@ -124,7 +128,7 @@ A `template` block supports the following:
 
 * `revision_suffix` - (Optional) The suffix for the revision. This value must be unique for the lifetime of the Resource. If omitted the service will use a hash function to create one.
 
-* `termination_grace_period_seconds` - (Optional)   The time in seconds after the container is sent the termination signal before the process if forcibly killed.
+* `termination_grace_period_seconds` - (Optional) The time in seconds after the container is sent the termination signal before the process if forcibly killed.
 
 * `volume` - (Optional) A `volume` block as detailed below.
 
@@ -188,9 +192,9 @@ A `volume` block supports the following:
 
 * `storage_name` - (Optional) The name of the `AzureFile` storage.
 
-* `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir` and `Secret`. Defaults to `EmptyDir`.
+* `storage_type` - (Optional) The type of storage volume. Possible values are `AzureFile`, `EmptyDir`, `NfsAzureFile` and `Secret`. Defaults to `EmptyDir`.
 
-* `mount_options` - Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
+* `mount_options` - (Optional) Mount options used while mounting the AzureFile. Must be a comma-separated string e.g. `dir_mode=0751,file_mode=0751`.
 
 ---
 
@@ -200,9 +204,9 @@ An `init_container` block supports:
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Optional) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
+* `cpu` - (Optional) The amount of vCPU to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
@@ -212,9 +216,9 @@ An `init_container` block supports:
 
 * `image` - (Required) The image to use to create the container.
 
-* `memory` - (Optional) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
+* `memory` - (Optional) The amount of memory to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `name` - (Required) The name of the container
 
@@ -228,9 +232,9 @@ A `container` block supports the following:
 
 * `command` - (Optional) A command to pass to the container to override the default. This is provided as a list of command line elements without spaces.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
+* `cpu` - (Required) The amount of vCPU to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
@@ -242,9 +246,9 @@ A `container` block supports the following:
 
 * `liveness_probe` - (Optional) A `liveness_probe` block as detailed below.
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
+* `memory` - (Required) The amount of memory to allocate to the container.
 
-~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** When using a Consumption plan, the `cpu` and `memory` properties must add up to one of the combinations found in the Microsoft provided documentation, for more information see [vCPU and memory allocation requirements](https://learn.microsoft.com/azure/container-apps/containers#allocations)
 
 * `name` - (Required) The name of the container
 
@@ -514,7 +518,7 @@ A `custom_domain` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
@@ -533,4 +537,4 @@ terraform import azurerm_container_app.example "/subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App` - 2025-01-01
+* `Microsoft.App` - 2025-07-01

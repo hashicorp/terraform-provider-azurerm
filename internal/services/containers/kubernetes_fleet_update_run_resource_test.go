@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers_test
@@ -155,7 +155,7 @@ resource "azurerm_kubernetes_fleet_update_run" "test" {
   managed_cluster_update {
     upgrade {
       type               = "Full"
-      kubernetes_version = "1.27"
+      kubernetes_version = %[3]q
     }
     node_image_selection {
       type = "Latest"
@@ -171,7 +171,7 @@ resource "azurerm_kubernetes_fleet_update_run" "test" {
 
   depends_on = [azurerm_kubernetes_fleet_member.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, currentKubernetesVersionAlias)
 }
 
 func (r KubernetesFleetUpdateRunTestResource) template(data acceptance.TestData) string {

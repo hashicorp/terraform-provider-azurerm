@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package consumption
@@ -41,7 +41,6 @@ func (r ManagementGroupConsumptionBudget) Arguments() map[string]*pluginsdk.Sche
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
-			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {

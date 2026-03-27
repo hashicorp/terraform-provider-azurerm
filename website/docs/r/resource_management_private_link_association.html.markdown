@@ -54,19 +54,7 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Required) Whether public network access is allowed. Changing this forces a new Private Link Association to be created.
  
-* `name` - (Optional) Specifies the name of this Private Link Association, which should be a UUID. If `name` is not provided, a UUID will be generated, you should use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess). Changing this forces a new Private Link Association to be created.
-
-```hcl
-resource "azurerm_resource_management_private_link_association" "example" {
-  management_group_id                 = azurerm_management_group.example.id
-  resource_management_private_link_id = azurerm_resource_management_private_link.example.id
-  public_network_access_enabled       = true
-  lifecycle {
-    ignore_changes = [name]
-  }
-}
-
-```
+* `name` - (Optional) Specifies the name of this Private Link Association, which should be a UUID. If `name` is not provided, a UUID will be generated, you should use [the `ignore_changes` attribute to ignore changes to this field](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes). Changing this forces a new Private Link Association to be created.
 
 ## Attributes Reference
 
@@ -80,7 +68,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Private Link Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Association.

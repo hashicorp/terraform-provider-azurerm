@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	rawConfigFileName     = "terraform_plugin_test.tf"
-	rawConfigFileNameJSON = rawConfigFileName + ".json"
+	rawConfigFileName      = "terraform_plugin_test.tf"
+	rawConfigFileNameJSON  = rawConfigFileName + ".json"
+	rawQueryConfigFileName = "terraform_plugin_test.tfquery.hcl"
 )
 
 var (
@@ -46,6 +47,7 @@ type Config interface {
 	HasTerraformBlock(context.Context) (bool, error)
 	Write(context.Context, string) error
 	Append(string) Config
+	WriteQuery(context.Context, string) error
 }
 
 // PrepareConfigurationRequest is used to simplify the generation of

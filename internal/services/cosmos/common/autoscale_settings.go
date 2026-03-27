@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package common
@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func ExpandCosmosDbAutoscaleSettingsLegacy(d *pluginsdk.ResourceData) *documentdb.AutoscaleSettings {
@@ -23,7 +23,7 @@ func ExpandCosmosDbAutoscaleSettingsLegacy(d *pluginsdk.ResourceData) *documentd
 	autoscaleSettings := documentdb.AutoscaleSettings{}
 
 	if maxThroughput, ok := input["max_throughput"].(int); ok {
-		autoscaleSettings.MaxThroughput = utils.Int32(int32(maxThroughput))
+		autoscaleSettings.MaxThroughput = pointer.To(int32(maxThroughput))
 	}
 
 	return &autoscaleSettings
@@ -40,7 +40,7 @@ func ExpandCosmosDbAutoscaleSettings(d *pluginsdk.ResourceData) *cosmosdb.AutoSc
 	autoscaleSettings := cosmosdb.AutoScaleSettings{}
 
 	if maxThroughput, ok := input["max_throughput"].(int); ok {
-		autoscaleSettings.MaxThroughput = utils.Int64(int64(maxThroughput))
+		autoscaleSettings.MaxThroughput = pointer.To(int64(maxThroughput))
 	}
 
 	return &autoscaleSettings

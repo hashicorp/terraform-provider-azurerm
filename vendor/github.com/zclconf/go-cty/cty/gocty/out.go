@@ -26,7 +26,7 @@ import (
 //
 // The function will panic if given a non-pointer as the Go value target,
 // since that is considered to be a bug in the calling program.
-func FromCtyValue(val cty.Value, target interface{}) error {
+func FromCtyValue(val cty.Value, target any) error {
 	tVal := reflect.ValueOf(target)
 	if tVal.Kind() != reflect.Ptr {
 		panic("target value is not a pointer")

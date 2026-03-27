@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2019-06-01/smartdetectoralertrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2021-08-08/alertprocessingrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroups"
+	prometheusrulegroups "github.com/hashicorp/go-azure-sdk/resource-manager/alertsmanagement/2023-03-01/prometheusrulegroupresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azureactivedirectory/2017-04-01/diagnosticsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2015-04-01/activitylogs"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2018-03-01/metricalerts"
@@ -43,7 +43,7 @@ type Client struct {
 	ActionGroupsClient                   *actiongroupsapis.ActionGroupsAPIsClient
 	ActivityLogsClient                   *activitylogs.ActivityLogsClient
 	ActivityLogAlertsClient              *activitylogalertsapis.ActivityLogAlertsAPIsClient
-	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupsClient
+	AlertPrometheusRuleGroupClient       *prometheusrulegroups.PrometheusRuleGroupResourcesClient
 	DataCollectionEndpointsClient        *datacollectionendpoints.DataCollectionEndpointsClient
 	DataCollectionRuleAssociationsClient *datacollectionruleassociations.DataCollectionRuleAssociationsClient
 	DataCollectionRulesClient            *datacollectionrules.DataCollectionRulesClient
@@ -100,7 +100,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(ActivityLogAlertsClient.Client, o.Authorizers.ResourceManager)
 
-	alertPrometheusRuleGroupClient, err := prometheusrulegroups.NewPrometheusRuleGroupsClientWithBaseURI(o.Environment.ResourceManager)
+	alertPrometheusRuleGroupClient, err := prometheusrulegroups.NewPrometheusRuleGroupResourcesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building PrometheusRuleGroups client: %+v", err)
 	}

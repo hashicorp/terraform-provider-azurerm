@@ -381,6 +381,50 @@ func parseFileAccessLogs(input string) (*FileAccessLogs, error) {
 	return &out, nil
 }
 
+type MirrorState string
+
+const (
+	MirrorStateBroken        MirrorState = "Broken"
+	MirrorStateMirrored      MirrorState = "Mirrored"
+	MirrorStateUninitialized MirrorState = "Uninitialized"
+)
+
+func PossibleValuesForMirrorState() []string {
+	return []string{
+		string(MirrorStateBroken),
+		string(MirrorStateMirrored),
+		string(MirrorStateUninitialized),
+	}
+}
+
+func (s *MirrorState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseMirrorState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseMirrorState(input string) (*MirrorState, error) {
+	vals := map[string]MirrorState{
+		"broken":        MirrorStateBroken,
+		"mirrored":      MirrorStateMirrored,
+		"uninitialized": MirrorStateUninitialized,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := MirrorState(input)
+	return &out, nil
+}
+
 type NetworkFeatures string
 
 const (
@@ -683,6 +727,141 @@ func parseSmbNonBrowsable(input string) (*SmbNonBrowsable, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := SmbNonBrowsable(input)
+	return &out, nil
+}
+
+type VolumeBackupRelationshipStatus string
+
+const (
+	VolumeBackupRelationshipStatusFailed       VolumeBackupRelationshipStatus = "Failed"
+	VolumeBackupRelationshipStatusIdle         VolumeBackupRelationshipStatus = "Idle"
+	VolumeBackupRelationshipStatusTransferring VolumeBackupRelationshipStatus = "Transferring"
+	VolumeBackupRelationshipStatusUnknown      VolumeBackupRelationshipStatus = "Unknown"
+)
+
+func PossibleValuesForVolumeBackupRelationshipStatus() []string {
+	return []string{
+		string(VolumeBackupRelationshipStatusFailed),
+		string(VolumeBackupRelationshipStatusIdle),
+		string(VolumeBackupRelationshipStatusTransferring),
+		string(VolumeBackupRelationshipStatusUnknown),
+	}
+}
+
+func (s *VolumeBackupRelationshipStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVolumeBackupRelationshipStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseVolumeBackupRelationshipStatus(input string) (*VolumeBackupRelationshipStatus, error) {
+	vals := map[string]VolumeBackupRelationshipStatus{
+		"failed":       VolumeBackupRelationshipStatusFailed,
+		"idle":         VolumeBackupRelationshipStatusIdle,
+		"transferring": VolumeBackupRelationshipStatusTransferring,
+		"unknown":      VolumeBackupRelationshipStatusUnknown,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VolumeBackupRelationshipStatus(input)
+	return &out, nil
+}
+
+type VolumeReplicationRelationshipStatus string
+
+const (
+	VolumeReplicationRelationshipStatusIdle         VolumeReplicationRelationshipStatus = "Idle"
+	VolumeReplicationRelationshipStatusTransferring VolumeReplicationRelationshipStatus = "Transferring"
+)
+
+func PossibleValuesForVolumeReplicationRelationshipStatus() []string {
+	return []string{
+		string(VolumeReplicationRelationshipStatusIdle),
+		string(VolumeReplicationRelationshipStatusTransferring),
+	}
+}
+
+func (s *VolumeReplicationRelationshipStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVolumeReplicationRelationshipStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseVolumeReplicationRelationshipStatus(input string) (*VolumeReplicationRelationshipStatus, error) {
+	vals := map[string]VolumeReplicationRelationshipStatus{
+		"idle":         VolumeReplicationRelationshipStatusIdle,
+		"transferring": VolumeReplicationRelationshipStatusTransferring,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VolumeReplicationRelationshipStatus(input)
+	return &out, nil
+}
+
+type VolumeRestoreRelationshipStatus string
+
+const (
+	VolumeRestoreRelationshipStatusFailed       VolumeRestoreRelationshipStatus = "Failed"
+	VolumeRestoreRelationshipStatusIdle         VolumeRestoreRelationshipStatus = "Idle"
+	VolumeRestoreRelationshipStatusTransferring VolumeRestoreRelationshipStatus = "Transferring"
+	VolumeRestoreRelationshipStatusUnknown      VolumeRestoreRelationshipStatus = "Unknown"
+)
+
+func PossibleValuesForVolumeRestoreRelationshipStatus() []string {
+	return []string{
+		string(VolumeRestoreRelationshipStatusFailed),
+		string(VolumeRestoreRelationshipStatusIdle),
+		string(VolumeRestoreRelationshipStatusTransferring),
+		string(VolumeRestoreRelationshipStatusUnknown),
+	}
+}
+
+func (s *VolumeRestoreRelationshipStatus) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseVolumeRestoreRelationshipStatus(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseVolumeRestoreRelationshipStatus(input string) (*VolumeRestoreRelationshipStatus, error) {
+	vals := map[string]VolumeRestoreRelationshipStatus{
+		"failed":       VolumeRestoreRelationshipStatusFailed,
+		"idle":         VolumeRestoreRelationshipStatusIdle,
+		"transferring": VolumeRestoreRelationshipStatusTransferring,
+		"unknown":      VolumeRestoreRelationshipStatusUnknown,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := VolumeRestoreRelationshipStatus(input)
 	return &out, nil
 }
 

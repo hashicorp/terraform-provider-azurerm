@@ -32,7 +32,7 @@ output "uai_tenant_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` -  The name of the User Assigned Identity.
 * `resource_group_name` - The name of the Resource Group in which the User Assigned Identity exists.
@@ -46,11 +46,12 @@ The following attributes are exported:
 * `principal_id` - The Service Principal ID of the User Assigned Identity.
 * `client_id` - The Client ID of the User Assigned Identity.
 * `tenant_id` - The Tenant ID of the User Assigned Identity.
+* `isolation_scope` - The isolation scope for the User Assigned Identity.
 * `tags` - A mapping of tags assigned to the User Assigned Identity.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the User Assigned Identity.
 
@@ -58,4 +59,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ManagedIdentity` - 2023-01-31
+* `Microsoft.ManagedIdentity` - 2024-11-30

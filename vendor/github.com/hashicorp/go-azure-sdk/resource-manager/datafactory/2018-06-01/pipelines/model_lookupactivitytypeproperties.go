@@ -9,17 +9,19 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LookupActivityTypeProperties struct {
-	Dataset      DatasetReference `json:"dataset"`
-	FirstRowOnly *bool            `json:"firstRowOnly,omitempty"`
-	Source       CopySource       `json:"source"`
+	Dataset              DatasetReference `json:"dataset"`
+	FirstRowOnly         *bool            `json:"firstRowOnly,omitempty"`
+	Source               CopySource       `json:"source"`
+	TreatDecimalAsString *bool            `json:"treatDecimalAsString,omitempty"`
 }
 
 var _ json.Unmarshaler = &LookupActivityTypeProperties{}
 
 func (s *LookupActivityTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		Dataset      DatasetReference `json:"dataset"`
-		FirstRowOnly *bool            `json:"firstRowOnly,omitempty"`
+		Dataset              DatasetReference `json:"dataset"`
+		FirstRowOnly         *bool            `json:"firstRowOnly,omitempty"`
+		TreatDecimalAsString *bool            `json:"treatDecimalAsString,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
@@ -27,6 +29,7 @@ func (s *LookupActivityTypeProperties) UnmarshalJSON(bytes []byte) error {
 
 	s.Dataset = decoded.Dataset
 	s.FirstRowOnly = decoded.FirstRowOnly
+	s.TreatDecimalAsString = decoded.TreatDecimalAsString
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {

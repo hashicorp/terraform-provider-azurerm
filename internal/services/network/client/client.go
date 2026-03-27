@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -9,18 +9,26 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts"
-	network_2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01"
+	network_2025_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeteraccessrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterassociations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeterprofiles"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networksecurityperimeters"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	*network_2024_05_01.Client
+	*network_2025_01_01.Client
 
 	BastionHostsClient *bastionhosts.BastionHostsClient
 	// VMSS Data Source requires the Network Interfaces and VMSSPublicIpAddresses client from `2023-09-01` for the `ListVirtualMachineScaleSetVMNetworkInterfacesComplete` method
-	NetworkInterfacesClient     *networkinterfaces.NetworkInterfacesClient
-	VMSSPublicIPAddressesClient *vmsspublicipaddresses.VMSSPublicIPAddressesClient
+	NetworkInterfacesClient                    *networkinterfaces.NetworkInterfacesClient
+	NetworkSecurityPerimeterAccessRulesClient  *networksecurityperimeteraccessrules.NetworkSecurityPerimeterAccessRulesClient
+	NetworkSecurityPerimeterAssociationsClient *networksecurityperimeterassociations.NetworkSecurityPerimeterAssociationsClient
+	NetworkSecurityPerimeterProfilesClient     *networksecurityperimeterprofiles.NetworkSecurityPerimeterProfilesClient
+	NetworkSecurityPerimetersClient            *networksecurityperimeters.NetworkSecurityPerimetersClient
+	VMSSPublicIPAddressesClient                *vmsspublicipaddresses.VMSSPublicIPAddressesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -36,13 +44,37 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(NetworkInterfacesClient.Client, o.Authorizers.ResourceManager)
 
+	NetworkSecurityPerimeterAssociationsClient, err := networksecurityperimeterassociations.NewNetworkSecurityPerimeterAssociationsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Network Security Perimeter Resource Association Client: %+v", err)
+	}
+	o.Configure(NetworkSecurityPerimeterAssociationsClient.Client, o.Authorizers.ResourceManager)
+
+	NetworkSecurityPerimeterAccessRulesClient, err := networksecurityperimeteraccessrules.NewNetworkSecurityPerimeterAccessRulesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Network Security Perimeter Access Rules Client: %+v", err)
+	}
+	o.Configure(NetworkSecurityPerimeterAccessRulesClient.Client, o.Authorizers.ResourceManager)
+
+	NetworkSecurityPerimeterProfilesClient, err := networksecurityperimeterprofiles.NewNetworkSecurityPerimeterProfilesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Network Security Perimeter Profiles Client: %+v", err)
+	}
+	o.Configure(NetworkSecurityPerimeterProfilesClient.Client, o.Authorizers.ResourceManager)
+
+	NetworkSecurityPerimetersClient, err := networksecurityperimeters.NewNetworkSecurityPerimetersClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Network Security Perimeters Client: %+v", err)
+	}
+	o.Configure(NetworkSecurityPerimetersClient.Client, o.Authorizers.ResourceManager)
+
 	VMSSPublicIPAddressesClient, err := vmsspublicipaddresses.NewVMSSPublicIPAddressesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VMSS Public IP Addresses Client: %+v", err)
 	}
 	o.Configure(VMSSPublicIPAddressesClient.Client, o.Authorizers.ResourceManager)
 
-	client, err := network_2024_05_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	client, err := network_2025_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {
@@ -50,9 +82,13 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 
 	return &Client{
-		BastionHostsClient:          BastionHostsClient,
-		NetworkInterfacesClient:     NetworkInterfacesClient,
-		VMSSPublicIPAddressesClient: VMSSPublicIPAddressesClient,
-		Client:                      client,
+		BastionHostsClient:                         BastionHostsClient,
+		NetworkInterfacesClient:                    NetworkInterfacesClient,
+		NetworkSecurityPerimeterAccessRulesClient:  NetworkSecurityPerimeterAccessRulesClient,
+		NetworkSecurityPerimeterAssociationsClient: NetworkSecurityPerimeterAssociationsClient,
+		NetworkSecurityPerimeterProfilesClient:     NetworkSecurityPerimeterProfilesClient,
+		NetworkSecurityPerimetersClient:            NetworkSecurityPerimetersClient,
+		VMSSPublicIPAddressesClient:                VMSSPublicIPAddressesClient,
+		Client:                                     client,
 	}, nil
 }

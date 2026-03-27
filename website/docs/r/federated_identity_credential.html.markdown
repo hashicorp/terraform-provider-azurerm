@@ -25,12 +25,11 @@ resource "azurerm_user_assigned_identity" "example" {
 }
 
 resource "azurerm_federated_identity_credential" "example" {
-  name                = "example"
-  resource_group_name = azurerm_resource_group.example.name
-  audience            = ["foo"]
-  issuer              = "https://foo"
-  parent_id           = azurerm_user_assigned_identity.example.id
-  subject             = "foo"
+  name      = "example"
+  audience  = ["foo"]
+  issuer    = "https://foo"
+  parent_id = azurerm_user_assigned_identity.example.id
+  subject   = "foo"
 }
 ```
 
@@ -40,13 +39,11 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of this Federated Identity Credential. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Federated Identity Credential should exist. Changing this forces a new Federated Identity Credential to be created.
+* `parent_id` - (Required) Specifies parent ID of User Assigned Identity for this Federated Identity Credential. Changing this forces a new Federated Identity Credential to be created.
 
 * `audience` - (Required) Specifies the audience for this Federated Identity Credential.
 
 * `issuer` - (Required) Specifies the issuer of this Federated Identity Credential.
-
-* `parent_id` - (Required) Specifies parent ID of User Assigned Identity for this Federated Identity Credential. Changing this forces a new Federated Identity Credential to be created.
 
 * `subject` - (Required) Specifies the subject for this Federated Identity Credential.
 
@@ -60,7 +57,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Federated Identity Credential.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Federated Identity Credential.
@@ -79,4 +76,4 @@ terraform import azurerm_federated_identity_credential.example /subscriptions/{s
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ManagedIdentity` - 2023-01-31
+* `Microsoft.ManagedIdentity` - 2024-11-30

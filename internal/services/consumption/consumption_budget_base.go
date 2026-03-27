@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package consumption
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -138,7 +139,6 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
-			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
@@ -368,8 +368,7 @@ func (br consumptionBudgetBaseResource) updateFunc() sdk.ResourceFunc {
 
 func (br consumptionBudgetBaseResource) importerFunc() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-		_, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id())
-		if err != nil {
+		if _, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id()); err != nil {
 			return err
 		}
 
@@ -387,7 +386,7 @@ func createOrUpdateConsumptionBudget(ctx context.Context, client *budgets.Budget
 	// 'Cost' is the only valid Budget type today according to the API spec.
 
 	parameters := budgets.Budget{
-		Name: utils.String(id.BudgetName),
+		Name: pointer.To(id.BudgetName),
 		Properties: &budgets.BudgetProperties{
 			Amount:        metadata.ResourceData.Get("amount").(float64),
 			Category:      budgets.CategoryTypeCost,
@@ -399,11 +398,10 @@ func createOrUpdateConsumptionBudget(ctx context.Context, client *budgets.Budget
 	}
 
 	if v, ok := metadata.ResourceData.GetOk("etag"); ok {
-		parameters.ETag = utils.String(v.(string))
+		parameters.ETag = pointer.To(v.(string))
 	}
 
-	_, err = client.CreateOrUpdate(ctx, id, parameters)
-	if err != nil {
+	if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return err
 	}
 
@@ -419,8 +417,7 @@ func expandConsumptionBudgetTimePeriod(i []interface{}) (*budgets.BudgetTimePeri
 	timePeriod := budgets.BudgetTimePeriod{}
 
 	if startDateInput, ok := input["start_date"].(string); ok {
-		_, err := date.ParseTime(time.RFC3339, startDateInput)
-		if err != nil {
+		if _, err := date.ParseTime(time.RFC3339, startDateInput); err != nil {
 			return nil, fmt.Errorf("start_date '%s' was not in the correct format: %+v", startDateInput, err)
 		}
 		timePeriod.StartDate = input["start_date"].(string)
@@ -428,12 +425,11 @@ func expandConsumptionBudgetTimePeriod(i []interface{}) (*budgets.BudgetTimePeri
 
 	if endDateInput, ok := input["end_date"].(string); ok {
 		if endDateInput != "" {
-			_, err := date.ParseTime(time.RFC3339, endDateInput)
-			if err != nil {
+			if _, err := date.ParseTime(time.RFC3339, endDateInput); err != nil {
 				return nil, fmt.Errorf("end_date '%s' was not in the correct format: %+v", endDateInput, err)
 			}
 
-			timePeriod.EndDate = utils.String(input["end_date"].(string))
+			timePeriod.EndDate = pointer.To(input["end_date"].(string))
 		}
 	}
 

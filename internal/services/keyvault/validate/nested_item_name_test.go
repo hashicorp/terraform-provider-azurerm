@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -51,6 +51,10 @@ func TestNestedItemName(t *testing.T) {
 
 		if tc.ExpectError && !hasError {
 			t.Fatalf("Expected the Key Vault Nested Item Name to trigger a validation error for '%s'", tc.Input)
+		}
+
+		if !tc.ExpectError && hasError {
+			t.Fatalf("Encountered unexpected validation error for Key Vault Nested Item Name '%s'", tc.Input)
 		}
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -276,8 +276,7 @@ func (r MsSqlVirtualMachineGroupResource) Update() sdk.ResourceFunc {
 
 			id := sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID(subscriptionId, model.ResourceGroup, model.Name)
 
-			_, err := client.Get(ctx, id)
-			if err != nil {
+			if _, err := client.Get(ctx, id); err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 

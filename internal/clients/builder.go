@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package clients
@@ -38,11 +38,7 @@ type ClientBuilder struct {
 const azureStackEnvironmentError = `
 The AzureRM Provider supports the different Azure Public Clouds - including China, Public,
 and US Government - however it does not support Azure Stack due to differences in API and
-feature availability.
-
-Terraform instead offers a separate "azurestack" provider which supports the functionality
-and APIs available in Azure Stack via Azure Stack Profiles.
-`
+feature availability`
 
 func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	var err error
@@ -160,13 +156,19 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("building Client: %+v", err)
 	}
 
-	if features.EnhancedValidationEnabled() {
+	if builder.Features.EnhancedValidation.Locations {
+		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
+		defer cancel()
+
+		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
+	}
+
+	if builder.Features.EnhancedValidation.ResourceProviders {
 		subscriptionId := commonids.NewSubscriptionID(client.Account.SubscriptionId)
 
 		ctx2, cancel := context.WithTimeout(ctx, 10*time.Minute)
 		defer cancel()
 
-		location.CacheSupportedLocations(ctx2, *resourceManagerEndpoint)
 		if err := resourceproviders.CacheSupportedProviders(ctx2, client.Resource.ResourceProvidersClient, subscriptionId); err != nil {
 			log.Printf("[DEBUG] error retrieving providers: %s. Enhanced validation will be unavailable", err)
 		}

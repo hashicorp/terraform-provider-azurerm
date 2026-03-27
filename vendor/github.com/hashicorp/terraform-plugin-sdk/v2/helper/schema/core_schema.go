@@ -4,11 +4,14 @@
 package schema
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/configs/configschema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugin/convert"
 )
 
 // StringKind represents the format a string is in.
@@ -396,4 +399,38 @@ func (r *Resource) coreIdentitySchema() (*configschema.Block, error) {
 	// as we're only interested in the existing CoreConfigSchema() method
 	// to convert our schema
 	return schemaMap(r.Identity.SchemaMap()).CoreConfigSchema(), nil
+}
+
+// ProtoSchema will return a function that returns the *tfprotov5.Schema
+func (r *Resource) ProtoSchema(ctx context.Context) func() *tfprotov5.Schema {
+	return func() *tfprotov5.Schema {
+		return &tfprotov5.Schema{
+			Version: int64(r.SchemaVersion),
+			Block:   convert.ConfigSchemaToProto(ctx, r.CoreConfigSchema()),
+		}
+	}
+}
+
+// ProtoIdentitySchema will return a function that returns the *tfprotov5.ResourceIdentitySchema if the resource supports identity,
+// otherwise it will return nil.
+func (r *Resource) ProtoIdentitySchema(ctx context.Context) func() *tfprotov5.ResourceIdentitySchema {
+	// Resource doesn't support identity, return nil
+	if r.Identity == nil {
+		return nil
+	}
+
+	return func() *tfprotov5.ResourceIdentitySchema {
+		idschema, err := r.CoreIdentitySchema()
+
+		if err != nil {
+			// This shouldn't be reachable unless there is an implementation error in the provider, which should raise
+			// a diagnostic prior to reaching this point.
+			panic(fmt.Sprintf("unexpected error retrieving identity schema: %s", err))
+		}
+
+		return &tfprotov5.ResourceIdentitySchema{
+			Version:            r.Identity.Version,
+			IdentityAttributes: convert.ConfigIdentitySchemaToProto(ctx, idschema),
+		}
+	}
 }

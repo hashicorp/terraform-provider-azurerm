@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package netapp
@@ -91,6 +91,8 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.S
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
+					"zone": commonschema.ZoneSingleComputed(),
 
 					"volume_spec_name": {
 						Type:     pluginsdk.TypeString,
@@ -229,6 +231,21 @@ func (r NetAppVolumeGroupSAPHanaDataSource) Attributes() map[string]*pluginsdk.S
 								},
 							},
 						},
+					},
+
+					"encryption_key_source": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"key_vault_private_endpoint_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"network_features": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
 					},
 				},
 			},

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package servicefabricmanaged
@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomFabricSetting struct {
@@ -257,7 +256,7 @@ func (k ClusterResource) Create() sdk.ResourceFunc {
 			managedClusterId := managedcluster.NewManagedClusterID(subscriptionId, model.ResourceGroup, model.Name)
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
 				Sku:        managedcluster.Sku{Name: model.Sku},
 			}
@@ -399,7 +398,7 @@ func (k ClusterResource) Update() sdk.ResourceFunc {
 
 			cluster := managedcluster.ManagedCluster{
 				Location:   model.Location,
-				Name:       utils.String(model.Name),
+				Name:       pointer.To(model.Name),
 				Properties: expandClusterProperties(&model),
 				Sku: managedcluster.Sku{
 					Name: model.Sku,
@@ -575,9 +574,10 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
-			if feature == managedcluster.ManagedClusterAddOnFeatureDnsService {
+			switch feature {
+			case managedcluster.ManagedClusterAddOnFeatureDnsService:
 				model.DNSService = true
-			} else if feature == managedcluster.ManagedClusterAddOnFeatureBackupRestoreService {
+			case managedcluster.ManagedClusterAddOnFeatureBackupRestoreService:
 				model.BackupRestoreService = true
 			}
 		}
@@ -752,7 +752,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 	}
 	out.AddonFeatures = &addons
 
-	out.AdminPassword = utils.String(model.Password)
+	out.AdminPassword = pointer.To(model.Password)
 	out.AdminUserName = model.Username
 
 	out.DnsName = model.Name
@@ -768,9 +768,9 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 		if adAuth := auth[0].ADAuth; len(adAuth) > 0 {
 			if adAuth[0].ClientApp != "" && adAuth[0].ClusterApp != "" && adAuth[0].TenantId != "" {
 				out.AzureActiveDirectory = &managedcluster.AzureActiveDirectory{
-					ClientApplication:  utils.String(adAuth[0].ClientApp),
-					ClusterApplication: utils.String(adAuth[0].ClusterApp),
-					TenantId:           utils.String(adAuth[0].TenantId),
+					ClientApplication:  pointer.To(adAuth[0].ClientApp),
+					ClusterApplication: pointer.To(adAuth[0].ClusterApp),
+					TenantId:           pointer.To(adAuth[0].TenantId),
 				}
 			}
 		}
@@ -778,9 +778,9 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 			clients := make([]managedcluster.ClientCertificate, len(certs))
 			for idx, cert := range certs {
 				clients[idx] = managedcluster.ClientCertificate{
-					CommonName: utils.String(cert.CommonName),
+					CommonName: pointer.To(cert.CommonName),
 					IsAdmin:    cert.CertificateType == CertTypeAdmin,
-					Thumbprint: utils.String(cert.Thumbprint),
+					Thumbprint: pointer.To(cert.Thumbprint),
 				}
 			}
 			out.Clients = &clients
@@ -823,7 +823,7 @@ func expandClusterProperties(model *ClusterResourceModel) *managedcluster.Manage
 				BackendPort:      rule.BackendPort,
 				FrontendPort:     rule.FrontendPort,
 				ProbeProtocol:    rule.ProbeProtocol,
-				ProbeRequestPath: utils.String(rule.ProbeRequestPath),
+				ProbeRequestPath: pointer.To(rule.ProbeRequestPath),
 				Protocol:         rule.Protocol,
 			}
 

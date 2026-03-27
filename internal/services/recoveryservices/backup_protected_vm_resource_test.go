@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -117,33 +117,6 @@ func TestAccBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 			// Remove backup policies and vault
 			ResourceName: data.ResourceName,
 			Config:       r.basePolicyTest(data),
-		},
-	})
-}
-
-func TestAccBackupProtectedVm_updateVault(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm", "test")
-	r := BackupProtectedVmResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.updateVaultFirstBackupVm(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.updateVaultSecondBackupVm(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-			),
-		},
-		{
-			// vault cannot be deleted unless we unregister all backups
-			Config: r.additionalVault(data),
 		},
 	})
 }
@@ -1235,32 +1208,6 @@ resource "azurerm_backup_protected_vm" "test" {
   include_disk_luns = [0]
 }
 `, r.baseWithoutVM(data))
-}
-
-func (r BackupProtectedVmResource) updateVaultFirstBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  recovery_vault_name = azurerm_recovery_services_vault.test.name
-  backup_policy_id    = azurerm_backup_policy_vm.test.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
-}
-
-func (r BackupProtectedVmResource) updateVaultSecondBackupVm(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_backup_protected_vm" "test" {
-  resource_group_name = azurerm_resource_group.test2.name
-  recovery_vault_name = azurerm_recovery_services_vault.test2.name
-  backup_policy_id    = azurerm_backup_policy_vm.test2.id
-  source_vm_id        = azurerm_virtual_machine.test.id
-}
-`, r.additionalVault(data))
 }
 
 func (r BackupProtectedVmResource) protectionStopped(data acceptance.TestData) string {

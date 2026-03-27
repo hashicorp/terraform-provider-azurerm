@@ -15,7 +15,24 @@ import (
 type ListOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *SnapshotsList
+	Model        *[]Snapshot
+}
+
+type ListCompleteResult struct {
+	LatestHttpResponse *http.Response
+	Items              []Snapshot
+}
+
+type ListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
 }
 
 // List ...
@@ -26,6 +43,7 @@ func (c SnapshotsClient) List(ctx context.Context, id VolumeId) (result ListOper
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListCustomPager{},
 		Path:       fmt.Sprintf("%s/snapshots", id.ID()),
 	}
 
@@ -35,7 +53,7 @@ func (c SnapshotsClient) List(ctx context.Context, id VolumeId) (result ListOper
 	}
 
 	var resp *client.Response
-	resp, err = req.Execute(ctx)
+	resp, err = req.ExecutePaged(ctx)
 	if resp != nil {
 		result.OData = resp.OData
 		result.HttpResponse = resp.Response
@@ -44,11 +62,44 @@ func (c SnapshotsClient) List(ctx context.Context, id VolumeId) (result ListOper
 		return
 	}
 
-	var model SnapshotsList
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
+	var values struct {
+		Values *[]Snapshot `json:"value"`
+	}
+	if err = resp.Unmarshal(&values); err != nil {
 		return
 	}
 
+	result.Model = values.Values
+
+	return
+}
+
+// ListComplete retrieves all the results into a single object
+func (c SnapshotsClient) ListComplete(ctx context.Context, id VolumeId) (ListCompleteResult, error) {
+	return c.ListCompleteMatchingPredicate(ctx, id, SnapshotOperationPredicate{})
+}
+
+// ListCompleteMatchingPredicate retrieves all the results and then applies the predicate
+func (c SnapshotsClient) ListCompleteMatchingPredicate(ctx context.Context, id VolumeId, predicate SnapshotOperationPredicate) (result ListCompleteResult, err error) {
+	items := make([]Snapshot, 0)
+
+	resp, err := c.List(ctx, id)
+	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
+		err = fmt.Errorf("loading results: %+v", err)
+		return
+	}
+	if resp.Model != nil {
+		for _, v := range *resp.Model {
+			if predicate.Matches(v) {
+				items = append(items, v)
+			}
+		}
+	}
+
+	result = ListCompleteResult{
+		LatestHttpResponse: resp.HttpResponse,
+		Items:              items,
+	}
 	return
 }

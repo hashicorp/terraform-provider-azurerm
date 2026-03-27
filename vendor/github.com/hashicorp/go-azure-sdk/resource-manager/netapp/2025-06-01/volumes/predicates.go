@@ -3,6 +3,29 @@ package volumes
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type ReplicationOperationPredicate struct {
+	RemoteVolumeRegion     *string
+	RemoteVolumeResourceId *string
+	ReplicationId          *string
+}
+
+func (p ReplicationOperationPredicate) Matches(input Replication) bool {
+
+	if p.RemoteVolumeRegion != nil && (input.RemoteVolumeRegion == nil || *p.RemoteVolumeRegion != *input.RemoteVolumeRegion) {
+		return false
+	}
+
+	if p.RemoteVolumeResourceId != nil && *p.RemoteVolumeResourceId != input.RemoteVolumeResourceId {
+		return false
+	}
+
+	if p.ReplicationId != nil && (input.ReplicationId == nil || *p.ReplicationId != *input.ReplicationId) {
+		return false
+	}
+
+	return true
+}
+
 type VolumeOperationPredicate struct {
 	Etag     *string
 	Id       *string
