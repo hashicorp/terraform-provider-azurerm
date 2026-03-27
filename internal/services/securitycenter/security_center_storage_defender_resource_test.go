@@ -158,6 +158,21 @@ func TestAccSecurityCenterStorageDefender_eventGrid(t *testing.T) {
 	})
 }
 
+func TestAccSecurityCenterStorageDefender_writeResultsOnTagsEnabledWithMalwareScanningDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_security_center_storage_defender", "test")
+	r := SecurityCenterStorageDefenderResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.writeResultsOnTagsEnabledWithMalwareScanningDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SecurityCenterStorageDefenderResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -195,14 +210,14 @@ func (r SecurityCenterStorageDefenderResource) update(data acceptance.TestData, 
 
 resource "azurerm_security_center_storage_defender" "test" {
   storage_account_id                             = azurerm_storage_account.test.id
-  override_subscription_settings_enabled         = false
+  override_subscription_settings_enabled         = true
   malware_scanning_on_upload_enabled             = %t
   malware_scanning_on_upload_cap_gb_per_month    = 6
   sensitive_data_discovery_enabled               = false
   malware_scanning_write_results_on_tags_enabled = false
 
   malware_scanning_on_upload_filters {
-    exclude_blobs_larger_than = 131072
+    exclude_blobs_larger_than_in_bytes = 131072
 
     exclude_blobs_with_prefix = [
       "container-2/blob",
@@ -226,7 +241,7 @@ resource "azurerm_security_center_storage_defender" "test" {
   sensitive_data_discovery_enabled               = true
 
   malware_scanning_on_upload_filters {
-    exclude_blobs_larger_than = 65536
+    exclude_blobs_larger_than_in_bytes = 65536
 
     exclude_blobs_with_prefix = [
       "container-0",
@@ -271,4 +286,17 @@ resource "azurerm_security_center_storage_defender" "test" {
   scan_results_event_grid_topic_id       = azurerm_eventgrid_topic.test.id
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r SecurityCenterStorageDefenderResource) writeResultsOnTagsEnabledWithMalwareScanningDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_security_center_storage_defender" "test" {
+  storage_account_id                             = azurerm_storage_account.test.id
+  override_subscription_settings_enabled         = true
+  malware_scanning_on_upload_enabled             = false
+  malware_scanning_write_results_on_tags_enabled = true
+}
+`, r.template(data))
 }

@@ -58,7 +58,7 @@ The following arguments are supported:
 
 A `malware_scanning_on_upload_filters` block supports the following:
 
-* `exclude_blobs_larger_than` - (Optional) Specifies the maximum size in bytes for blobs to be scanned. This parameter accepts a single positive integer value larger than `0`. Blobs larger than this value will be excluded from scanning.
+* `exclude_blobs_larger_than_in_bytes` - (Optional) Specifies the maximum size in bytes for blobs to be scanned. This parameter accepts a single positive integer value larger than `0`. Blobs larger than this value will be excluded from scanning.
 
 * `exclude_blobs_with_prefix` - (Optional) A list of prefixes to exclude from on-upload malware scanning. Format: `container-name/blob-name` (start with the container name; do not include the storage account name). Exclude entire containers: Use prefix of container names you want to exclude without a trailing /. Exclude a single container: Add a trailing slash / after the container name to avoid excluding other containers with similar prefixes.
 

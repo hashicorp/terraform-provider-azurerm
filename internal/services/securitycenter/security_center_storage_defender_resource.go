@@ -37,7 +37,7 @@ type StorageDefenderModel struct {
 }
 
 type MalwareScanningOnUploadFilterModel struct {
-	ExcludeBlobsLargerThan int64    `tfschema:"exclude_blobs_larger_than"`
+	ExcludeBlobsLargerThan int64    `tfschema:"exclude_blobs_larger_than_in_bytes"`
 	ExcludeBlobsWithPrefix []string `tfschema:"exclude_blobs_with_prefix"`
 	ExcludeBlobsWithSuffix []string `tfschema:"exclude_blobs_with_suffix"`
 }
@@ -96,7 +96,7 @@ func (s StorageDefenderResource) Arguments() map[string]*schema.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"exclude_blobs_larger_than": {
+					"exclude_blobs_larger_than_in_bytes": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						ValidateFunc: validation.IntAtLeast(1),
@@ -454,7 +454,7 @@ func (s StorageDefenderResource) flattenSecurityCenterStorageDefenderMalwareScan
 
 func (StorageDefenderResource) securityCenterStorageDefenderMalwareScanningOnUploadFilterConstraint() []string {
 	return []string{
-		"malware_scanning_on_upload_filters.0.exclude_blobs_larger_than",
+		"malware_scanning_on_upload_filters.0.exclude_blobs_larger_than_in_bytes",
 		"malware_scanning_on_upload_filters.0.exclude_blobs_with_prefix",
 		"malware_scanning_on_upload_filters.0.exclude_blobs_with_suffix",
 	}
