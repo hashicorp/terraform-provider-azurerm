@@ -81,6 +81,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
 		KubernetesAutomaticClusterResource{},
+		KubernetesClusterDeploymentSafeguardResource{},
 		KubernetesClusterExtensionResource{},
 		KubernetesFleetManagerResource{},
 		KubernetesFleetUpdateRunResource{},
