@@ -359,9 +359,9 @@ resource "azurerm_public_ip" "test" {
   name                = "mypublicip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   ip_version          = "IPv6"
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
@@ -394,9 +394,9 @@ resource "azurerm_public_ip" "test2" {
   name                = "mypublicip%d2"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   ip_version          = "IPv6"
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
@@ -429,9 +429,9 @@ resource "azurerm_public_ip" "test" {
   name                = "mypublicip%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   ip_version          = "IPv6"
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
