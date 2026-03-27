@@ -27,23 +27,23 @@ type ApiManagementGatewayConfigConnectionModel struct {
 	Hostnames              []string `tfschema:"hostnames"`
 }
 
-type ApiManagementGatewayConfigConnectionResource struct{}
+type ApiManagementGatewayWorkspaceConnectionResource struct{}
 
-var _ sdk.Resource = ApiManagementGatewayConfigConnectionResource{}
+var _ sdk.Resource = ApiManagementGatewayWorkspaceConnectionResource{}
 
-func (r ApiManagementGatewayConfigConnectionResource) ResourceType() string {
-	return "azurerm_api_management_gateway_config_connection"
+func (r ApiManagementGatewayWorkspaceConnectionResource) ResourceType() string {
+	return "azurerm_api_management_gateway_workspace_connection"
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) ModelObject() interface{} {
+func (r ApiManagementGatewayWorkspaceConnectionResource) ModelObject() interface{} {
 	return &ApiManagementGatewayConfigConnectionModel{}
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r ApiManagementGatewayWorkspaceConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return apigatewayconfigconnection.ValidateConfigConnectionID
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) Arguments() map[string]*pluginsdk.Schema {
+func (r ApiManagementGatewayWorkspaceConnectionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -71,11 +71,11 @@ func (r ApiManagementGatewayConfigConnectionResource) Arguments() map[string]*pl
 	}
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) Attributes() map[string]*pluginsdk.Schema {
+func (r ApiManagementGatewayWorkspaceConnectionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) Create() sdk.ResourceFunc {
+func (r ApiManagementGatewayWorkspaceConnectionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -122,7 +122,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Create() sdk.ResourceFunc 
 	}
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) Read() sdk.ResourceFunc {
+func (r ApiManagementGatewayWorkspaceConnectionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -156,7 +156,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) Delete() sdk.ResourceFunc {
+func (r ApiManagementGatewayWorkspaceConnectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

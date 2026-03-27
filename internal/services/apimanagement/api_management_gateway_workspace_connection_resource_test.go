@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementGatewayConfigConnectionResource struct{}
+type ApiManagementGatewayWorkspaceConnectionResource struct{}
 
-func TestAccApiManagementGatewayConfigConnection_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_config_connection", "test")
-	r := ApiManagementGatewayConfigConnectionResource{}
+func TestAccApiManagementGatewayWorkspaceConnection_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_workspace_connection", "test")
+	r := ApiManagementGatewayWorkspaceConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccApiManagementGatewayConfigConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementGatewayConfigConnection_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_config_connection", "test")
-	r := ApiManagementGatewayConfigConnectionResource{}
+func TestAccApiManagementGatewayWorkspaceConnection_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_workspace_connection", "test")
+	r := ApiManagementGatewayWorkspaceConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,9 +48,9 @@ func TestAccApiManagementGatewayConfigConnection_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccApiManagementGatewayConfigConnection_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_config_connection", "test")
-	r := ApiManagementGatewayConfigConnectionResource{}
+func TestAccApiManagementGatewayWorkspaceConnection_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_gateway_workspace_connection", "test")
+	r := ApiManagementGatewayWorkspaceConnectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,7 +63,7 @@ func TestAccApiManagementGatewayConfigConnection_complete(t *testing.T) {
 	})
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApiManagementGatewayWorkspaceConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := apigatewayconfigconnection.ParseConfigConnectionID(state.ID)
 	if err != nil {
 		return nil, err
@@ -77,7 +77,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Exists(ctx context.Context
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) basic(data acceptance.TestData) string {
+func (r ApiManagementGatewayWorkspaceConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -85,7 +85,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_api_management_gateway_config_connection" "test" {
+resource "azurerm_api_management_gateway_workspace_connection" "test" {
   name                      = "acctest-gc-%d"
   api_management_gateway_id = azurerm_api_management_standalone_gateway.test.id
   workspace_id                 = azurerm_api_management_workspace.test.id
@@ -93,19 +93,19 @@ resource "azurerm_api_management_gateway_config_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementGatewayWorkspaceConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_api_management_gateway_config_connection" "import" {
-  name                      = azurerm_api_management_gateway_config_connection.test.name
-  api_management_gateway_id = azurerm_api_management_gateway_config_connection.test.api_management_gateway_id
-  workspace_id                 = azurerm_api_management_gateway_config_connection.test.workspace_id
+resource "azurerm_api_management_gateway_workspace_connection" "import" {
+  name                      = azurerm_api_management_gateway_workspace_connection.test.name
+  api_management_gateway_id = azurerm_api_management_gateway_workspace_connection.test.api_management_gateway_id
+  workspace_id                 = azurerm_api_management_gateway_workspace_connection.test.workspace_id
 }
 `, r.basic(data))
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) complete(data acceptance.TestData) string {
+func (r ApiManagementGatewayWorkspaceConnectionResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -113,7 +113,7 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_api_management_gateway_config_connection" "test" {
+resource "azurerm_api_management_gateway_workspace_connection" "test" {
   name                      = "acctest-gc-%d"
   api_management_gateway_id = azurerm_api_management_standalone_gateway.test.id
   workspace_id                 = azurerm_api_management_workspace.test.id
@@ -127,7 +127,7 @@ resource "azurerm_api_management_gateway_config_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r ApiManagementGatewayConfigConnectionResource) template(data acceptance.TestData) string {
+func (r ApiManagementGatewayWorkspaceConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest-rg-%[1]d"
