@@ -40,6 +40,7 @@ func TestExpandFeatures(t *testing.T) {
 					ResourceProviders: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
+					CheckPublicAvailability:          true,
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
 					PurgeSoftDeletedSecretsOnDestroy: true,
@@ -132,6 +133,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
+							"check_public_availability":                                   true,
 							"purge_soft_deleted_certificates_on_destroy":                  true,
 							"purge_soft_deleted_keys_on_destroy":                          true,
 							"purge_soft_deleted_secrets_on_destroy":                       true,
@@ -245,6 +247,7 @@ func TestExpandFeatures(t *testing.T) {
 					ResourceProviders: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
+					CheckPublicAvailability:          true,
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
 					PurgeSoftDeletedSecretsOnDestroy: true,
@@ -337,6 +340,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"key_vault": []interface{}{
 						map[string]interface{}{
+							"check_public_availability":                                   false,
 							"purge_soft_deleted_certificates_on_destroy":                  false,
 							"purge_soft_deleted_keys_on_destroy":                          false,
 							"purge_soft_deleted_secrets_on_destroy":                       false,
@@ -450,6 +454,7 @@ func TestExpandFeatures(t *testing.T) {
 					ResourceProviders: true,
 				},
 				KeyVault: features.KeyVaultFeatures{
+					CheckPublicAvailability:          false,
 					PurgeSoftDeletedCertsOnDestroy:   false,
 					PurgeSoftDeletedKeysOnDestroy:    false,
 					PurgeSoftDeletedSecretsOnDestroy: false,
@@ -811,6 +816,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
+					CheckPublicAvailability:          true,
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
 					PurgeSoftDeletedSecretsOnDestroy: true,
@@ -831,6 +837,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
+							"check_public_availability":                                   true,
 							"purge_soft_deleted_certificates_on_destroy":                  true,
 							"purge_soft_deleted_keys_on_destroy":                          true,
 							"purge_soft_deleted_secrets_on_destroy":                       true,
@@ -848,6 +855,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
+					CheckPublicAvailability:          true,
 					PurgeSoftDeletedCertsOnDestroy:   true,
 					PurgeSoftDeletedKeysOnDestroy:    true,
 					PurgeSoftDeletedSecretsOnDestroy: true,
@@ -868,6 +876,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 				map[string]interface{}{
 					"key_vault": []interface{}{
 						map[string]interface{}{
+							"check_public_availability":                                   true,
 							"purge_soft_deleted_certificates_on_destroy":                  false,
 							"purge_soft_deleted_keys_on_destroy":                          false,
 							"purge_soft_deleted_secrets_on_destroy":                       false,
@@ -885,6 +894,7 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 			},
 			Expected: features.UserFeatures{
 				KeyVault: features.KeyVaultFeatures{
+					CheckPublicAvailability:          true,
 					PurgeSoftDeletedCertsOnDestroy:   false,
 					PurgeSoftDeletedKeysOnDestroy:    false,
 					PurgeSoftDeletedSecretsOnDestroy: false,
@@ -896,6 +906,45 @@ func TestExpandFeaturesKeyVault(t *testing.T) {
 					RecoverSoftDeletedKeys:           false,
 					RecoverSoftDeletedSecrets:        false,
 					RecoverSoftDeletedHSMKeys:        false,
+				},
+			},
+		},
+		{
+			Name: "Disable public availability check and Purge Soft Delete On Destroy and Recover Soft Deleted Key Vaults Enabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"key_vault": []interface{}{
+						map[string]interface{}{
+							"check_public_availability":                                   false,
+							"purge_soft_deleted_certificates_on_destroy":                  true,
+							"purge_soft_deleted_keys_on_destroy":                          true,
+							"purge_soft_deleted_secrets_on_destroy":                       true,
+							"purge_soft_deleted_hardware_security_modules_on_destroy":     true,
+							"purge_soft_deleted_hardware_security_module_keys_on_destroy": true,
+							"purge_soft_delete_on_destroy":                                true,
+							"recover_soft_deleted_certificates":                           true,
+							"recover_soft_deleted_keys":                                   true,
+							"recover_soft_deleted_key_vaults":                             true,
+							"recover_soft_deleted_secrets":                                true,
+							"recover_soft_deleted_hardware_security_module_keys":          true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				KeyVault: features.KeyVaultFeatures{
+					CheckPublicAvailability:          false,
+					PurgeSoftDeletedCertsOnDestroy:   true,
+					PurgeSoftDeletedKeysOnDestroy:    true,
+					PurgeSoftDeletedSecretsOnDestroy: true,
+					PurgeSoftDeleteOnDestroy:         true,
+					PurgeSoftDeletedHSMsOnDestroy:    true,
+					PurgeSoftDeletedHSMKeysOnDestroy: true,
+					RecoverSoftDeletedCerts:          true,
+					RecoverSoftDeletedKeyVaults:      true,
+					RecoverSoftDeletedKeys:           true,
+					RecoverSoftDeletedSecrets:        true,
+					RecoverSoftDeletedHSMKeys:        true,
 				},
 			},
 		},

@@ -436,7 +436,8 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	//
 	// As such we poll to check the Key Vault is available, if it's public, to ensure that downstream
 	// operations can succeed.
-	if isPublic {
+
+	if isPublic && meta.(*clients.Client).Features.KeyVault.CheckPublicAvailability {
 		log.Printf("[DEBUG] Waiting for %s to become available", id)
 		deadline, ok := ctx.Deadline()
 		if !ok {
@@ -782,7 +783,7 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	// to ignore the error if the data plane call fails.
 	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
 	if err != nil {
-		if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+		if publicNetworkAccessEnabled && meta.(*clients.Client).Features.KeyVault.CheckPublicAvailability && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
 			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 		}
 	}
