@@ -58,7 +58,9 @@ type ManagedRedisResourceModel struct {
 	PublicNetworkAccess     string                                     `tfschema:"public_network_access"`
 	Tags                    map[string]string                          `tfschema:"tags"`
 
-	Hostname string `tfschema:"hostname"`
+	Hostname           string `tfschema:"hostname"`
+	PrimaryAccessKey   string `tfschema:"primary_access_key"`
+	SecondaryAccessKey string `tfschema:"secondary_access_key"`
 }
 
 type CustomerManagedKeyModel struct {
@@ -277,6 +279,18 @@ func (r ManagedRedisResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"primary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
+
+		"secondary_access_key": {
+			Type:      pluginsdk.TypeString,
+			Computed:  true,
+			Sensitive: true,
+		},
 	}
 }
 
@@ -449,6 +463,8 @@ func (r ManagedRedisResource) Read() sdk.ResourceFunc {
 						if keysModel := keysResp.Model; keysModel != nil {
 							defaultDb.PrimaryAccessKey = pointer.From(keysModel.PrimaryKey)
 							defaultDb.SecondaryAccessKey = pointer.From(keysModel.SecondaryKey)
+							state.PrimaryAccessKey = pointer.From(keysModel.PrimaryKey)
+							state.SecondaryAccessKey = pointer.From(keysModel.SecondaryKey)
 						}
 					}
 
@@ -691,6 +707,26 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 								return fmt.Errorf("invalid clustering_policy %q, when using RediSearch module, clustering_policy must be set to EnterpriseCluster", dbModel.ClusteringPolicy)
 							}
 						}
+					}
+				}
+			}
+
+			// Azure rotates access keys when the database is re-created due to changes in immutable properties.
+			// Only trigger when both old and new configs have a default_database (actual re-creation, not add/remove).
+			if metadata.ResourceDiff.Id() != "" && len(model.DefaultDatabase) > 0 {
+				oldDb, newDb := metadata.ResourceDiff.GetChange("default_database")
+				oldDbList, _ := oldDb.([]interface{})
+				newDbList, _ := newDb.([]interface{})
+				if len(oldDbList) > 0 && len(newDbList) > 0 && metadata.ResourceDiff.HasChanges(
+					"default_database.0.clustering_policy",
+					"default_database.0.geo_replication_group_name",
+					"default_database.0.module",
+				) {
+					if err := metadata.ResourceDiff.SetNewComputed("primary_access_key"); err != nil {
+						return err
+					}
+					if err := metadata.ResourceDiff.SetNewComputed("secondary_access_key"); err != nil {
+						return err
 					}
 				}
 			}
