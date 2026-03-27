@@ -81,5 +81,11 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	if !features.FivePointOh() {
+		return []sdk.FrameworkListWrappedResource{
+			HPCCacheNFSTargetListResource{},
+		}
+	}
+
 	return []sdk.FrameworkListWrappedResource{}
 }

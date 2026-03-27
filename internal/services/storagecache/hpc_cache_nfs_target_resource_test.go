@@ -16,14 +16,28 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type HPCCacheNFSTargetResource struct{}
+type HpcCacheNfsTargetResource struct{}
 
-func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
+func TestAccHPCCacheNFSTargetSequential(t *testing.T) {
 	// https://azure.microsoft.com/en-us/updates?id=hpccacheretirement
-	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+	t.Skip("The HPC Cache service is being retired, these tests are no longer functional. Skipping...")
 
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"hpcCacheNfsTarget": {
+			"basic":             testAccHPCCacheNFSTarget_basic,
+			"usageModel":        testAccHPCCacheNFSTarget_usageModel,
+			"namespaceJunction": testAccHPCCacheNFSTarget_namespaceJunction,
+			"requiresImport":    testAccHPCCacheNFSTarget_requiresImport,
+			"accessPolicy":      testAccHPCCacheNFSTarget_accessPolicy,
+			"resourceIdentity":  testAccHpcCacheNfsTarget_resourceIdentity,
+			"list_basic":        testAccHPCCacheNFSTarget_list_basic,
+		},
+	})
+}
+
+func testAccHPCCacheNFSTarget_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
-	r := HPCCacheNFSTargetResource{}
+	r := HpcCacheNfsTargetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,11 +50,9 @@ func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
 	})
 }
 
-func TestAccHPCCacheNFSTarget_usageModel(t *testing.T) {
-	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
-
+func testAccHPCCacheNFSTarget_usageModel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
-	r := HPCCacheNFSTargetResource{}
+	r := HpcCacheNfsTargetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -81,11 +93,9 @@ func TestAccHPCCacheNFSTarget_usageModel(t *testing.T) {
 	})
 }
 
-func TestAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
-	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
-
+func testAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
-	r := HPCCacheNFSTargetResource{}
+	r := HpcCacheNfsTargetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -112,11 +122,9 @@ func TestAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
 	})
 }
 
-func TestAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
-	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
-
+func testAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
-	r := HPCCacheNFSTargetResource{}
+	r := HpcCacheNfsTargetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -129,11 +137,9 @@ func TestAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
-	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
-
+func testAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
-	r := HPCCacheNFSTargetResource{}
+	r := HpcCacheNfsTargetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -167,7 +173,7 @@ func TestAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
 	})
 }
 
-func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (HpcCacheNfsTargetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := storagetargets.ParseStorageTargetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -181,7 +187,7 @@ func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r HPCCacheNFSTargetResource) basic(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -204,7 +210,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) usageModelReadHeavyCheck180(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) usageModelReadHeavyCheck180(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -229,7 +235,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) usageModelReadWrite(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) usageModelReadWrite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -256,7 +262,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) usageModelReadOnly(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) usageModelReadOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -282,7 +288,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) namespaceJunction(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) namespaceJunction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -301,7 +307,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) accessPolicy(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) accessPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -336,7 +342,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) accessPolicyUpdate(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) accessPolicyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -371,7 +377,7 @@ resource "azurerm_hpc_cache_nfs_target" "test" {
 `, r.cacheTemplate(data), data.RandomString)
 }
 
-func (r HPCCacheNFSTargetResource) requiresImport(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -394,7 +400,7 @@ resource "azurerm_hpc_cache_nfs_target" "import" {
 `, r.basic(data))
 }
 
-func (r HPCCacheNFSTargetResource) cacheTemplate(data acceptance.TestData) string {
+func (r HpcCacheNfsTargetResource) cacheTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -409,7 +415,7 @@ resource "azurerm_hpc_cache" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (HPCCacheNFSTargetResource) template(data acceptance.TestData) string {
+func (HpcCacheNfsTargetResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

@@ -86,9 +86,10 @@ func GetSkuPropertiesByName(skuName string) *SkuProperties {
 }
 
 func PossibleValuesForSkuName() []string {
-	skus := make([]string, 0)
+	possibleSkus := PossibleSkuProperties()
+	skus := make([]string, 0, len(possibleSkus))
 
-	for _, sku := range PossibleSkuProperties() {
+	for _, sku := range possibleSkus {
 		skus = append(skus, sku.Name)
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagecache/2023-05-01/storagetargets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storagecache/validate"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name hpc_cache_nfs_target -service-package-name storagecache -properties "name,resource_group_name,cache_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
 
 func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -29,10 +32,11 @@ func resourceHPCCacheNFSTarget() *pluginsdk.Resource {
 		Read:   resourceHPCCacheNFSTargetRead,
 		Delete: resourceHPCCacheNFSTargetDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := storagetargets.ParseStorageTargetID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&storagetargets.StorageTargetId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&storagetargets.StorageTargetId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -180,6 +184,9 @@ func resourceHPCCacheNFSTargetCreateOrUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceHPCCacheNFSTargetRead(d, meta)
 }
@@ -204,12 +211,16 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("retrieving HPC Cache NFS Target %q: %+v", id, err)
 	}
 
+	return resourceHPCCacheNFSTargetFlatten(d, id, resp.Model)
+}
+
+func resourceHPCCacheNFSTargetFlatten(d *pluginsdk.ResourceData, id *storagetargets.StorageTargetId, model *storagetargets.StorageTarget) error {
 	d.Set("name", id.StorageTargetName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("cache_name", id.CacheName)
 
-	if m := resp.Model; m != nil {
-		if props := m.Properties; props != nil {
+	if model != nil {
+		if props := model.Properties; props != nil {
 			if props.TargetType != storagetargets.StorageTargetTypeNfsThree {
 				return fmt.Errorf("the type of this HPC Cache Target (%q) is not a NFS Target", id)
 			}
@@ -225,7 +236,7 @@ func resourceHPCCacheNFSTargetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -246,7 +257,7 @@ func resourceHPCCacheNFSTargetDelete(d *pluginsdk.ResourceData, meta interface{}
 }
 
 func expandNamespaceJunctions(input []interface{}) *[]storagetargets.NamespaceJunction {
-	result := make([]storagetargets.NamespaceJunction, 0)
+	result := make([]storagetargets.NamespaceJunction, 0, len(input))
 
 	for _, v := range input {
 		b := v.(map[string]interface{})
@@ -266,7 +277,7 @@ func flattenNamespaceJunctions(input *[]storagetargets.NamespaceJunction) []inte
 		return []interface{}{}
 	}
 
-	output := make([]interface{}, 0)
+	output := make([]interface{}, 0, len(*input))
 
 	for _, e := range *input {
 		output = append(output, map[string]interface{}{
