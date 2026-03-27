@@ -70,7 +70,7 @@ func OrchestratedVirtualMachineScaleSetWindowsConfigurationSchema() *pluginsdk.S
 
 				"additional_unattend_content": additionalUnattendContentSchema(),
 
-				// TODO 4.0: change this from enable_* to *_enabled
+				// TODO 5.0: change this from enable_* to *_enabled
 				"enable_automatic_updates": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -315,14 +315,14 @@ func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schem
 					},
 				},
 
-				// TODO 4.0: change this from enable_* to *_enabled
+				// TODO 5.0: change this from enable_* to *_enabled
 				"enable_accelerated_networking": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
 				},
 
-				// TODO 4.0: change this from enable_* to *_enabled
+				// TODO 5.0: change this from enable_* to *_enabled
 				"enable_ip_forwarding": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
@@ -582,7 +582,7 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 4.0
+				// TODO rename `ultra_ssd_disk_iops_read_write` to `disk_iops_read_write` in 5.0
 				"ultra_ssd_disk_iops_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
@@ -590,7 +590,7 @@ func OrchestratedVirtualMachineScaleSetDataDiskSchema() *pluginsdk.Schema {
 					Computed:     true,
 				},
 
-				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 4.0
+				// TODO rename `ultra_ssd_disk_mbps_read_write` to `disk_mbps_read_write` in 5.0
 				"ultra_ssd_disk_mbps_read_write": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
