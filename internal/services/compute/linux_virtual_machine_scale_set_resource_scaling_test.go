@@ -41,6 +41,35 @@ func TestAccLinuxVirtualMachineScaleSet_scalingCapacityReservationGroupId(t *tes
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_scalingCapacityReservationGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scalingCapacityReservationGroupInitial(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.scalingCapacityReservationGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.scalingCapacityReservationGroupRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_defaultInstanceCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
@@ -419,6 +448,196 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   single_placement_group        = false
   platform_fault_domain_count   = 3
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) scalingCapacityReservationGroupInitial(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_capacity_reservation_group" "test" {
+  name                = "acctest-ccrg-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  sku {
+    name     = "Standard_F2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  single_placement_group      = false
+  platform_fault_domain_count = 3
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) scalingCapacityReservationGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_capacity_reservation_group" "test" {
+  name                = "acctest-ccrg-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  sku {
+    name     = "Standard_F2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  single_placement_group        = false
+  platform_fault_domain_count   = 3
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  depends_on = [
+    azurerm_capacity_reservation.test,
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) scalingCapacityReservationGroupRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_capacity_reservation_group" "test" {
+  name                = "acctest-ccrg-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_capacity_reservation" "test" {
+  name                          = "acctest-ccr-%[2]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  sku {
+    name     = "Standard_F2"
+    capacity = 1
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
+  disable_password_authentication = false
+
+  single_placement_group      = false
+  platform_fault_domain_count = 3
 
   source_image_reference {
     publisher = "Canonical"
