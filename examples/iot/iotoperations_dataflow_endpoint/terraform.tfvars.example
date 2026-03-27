@@ -1,0 +1,67 @@
+# Example values for the IoT Operations Dataflow Endpoints deployment
+# Copy this file to terraform.tfvars and modify the values as needed
+
+resource_group_name = "rg-iotoperations-endpoints"
+location           = "East US 2"
+instance_name      = "my-iotops-instance"
+
+# MQTT Endpoint Configuration
+mqtt_endpoint_name = "mqtt-telemetry-source"
+mqtt_host         = "mqtt-broker.iotoperations.svc.cluster.local"
+mqtt_port         = 8883  # Use 8883 for TLS, 1883 for non-TLS
+
+# Enable MQTT Authentication
+mqtt_authentication_enabled = true
+mqtt_auth_method            = "UsernamePassword"
+mqtt_username              = "iot-client"
+mqtt_password_secret       = "mqtt-credentials"
+
+# Enable MQTT TLS
+mqtt_tls_enabled           = true
+mqtt_tls_mode             = "Enabled"
+mqtt_tls_ca_cert_config_map = "mqtt-ca-cert"
+
+# MQTT Connection Settings
+mqtt_keep_alive_seconds    = 60
+mqtt_retain               = false
+mqtt_session_expiry_seconds = 3600
+mqtt_qos                  = 1
+
+# Azure Data Explorer Endpoint Configuration
+adx_endpoint_name     = "adx-analytics-sink"
+adx_cluster_uri       = "https://myiotcluster.eastus2.kusto.windows.net"
+adx_database_name     = "iottelemetrydb"
+adx_audience          = "https://kusto.windows.net"
+adx_batching_latency  = 5
+adx_batching_max_messages = 1000
+
+# Azure Storage Endpoint Configuration
+storage_endpoint_name        = "blob-archive-sink"
+storage_account_host        = "https://myiotdatalake.blob.core.windows.net"
+storage_container_name      = "iot-raw-data"
+storage_audience           = "https://storage.azure.com"
+storage_batching_latency   = 60
+storage_batching_max_messages = 10000
+
+# Local Storage Endpoint Configuration
+local_endpoint_name     = "local-buffer"
+local_storage_pvc_name = "iot-local-storage-pvc"
+
+# Fabric OneLake Endpoint Configuration (Optional)
+enable_fabric_endpoint    = true
+fabric_endpoint_name     = "fabric-analytics-sink"
+fabric_host             = "https://onelake.dfs.fabric.microsoft.com"
+fabric_workspace_id     = "12345678-1234-5678-9abc-123456789012"
+fabric_lakehouse_name   = "iot-analytics-lakehouse"
+fabric_audience         = "https://onelake.dfs.fabric.microsoft.com"
+fabric_batching_latency = 30
+fabric_batching_max_messages = 5000
+
+# Tags
+tags = {
+  Environment = "Production"
+  Project     = "IoT Operations"
+  Owner       = "Data Engineering Team"
+  Purpose     = "IoT Data Ingestion and Processing Endpoints"
+  CostCenter  = "Engineering"
+}

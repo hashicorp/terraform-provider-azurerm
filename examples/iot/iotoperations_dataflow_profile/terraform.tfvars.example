@@ -1,0 +1,52 @@
+# Example values for the IoT Operations Dataflow Profiles deployment
+# Copy this file to terraform.tfvars and modify the values as needed
+
+resource_group_name = "rg-iotoperations-dataflow-profiles"
+location           = "East US 2"
+instance_name      = "my-iotops-instance"
+
+# High Performance Profile - For real-time, high-throughput scenarios
+high_performance_profile_name     = "realtime-processing"
+high_performance_instance_count   = 4
+high_performance_log_level       = "warn"
+high_performance_prometheus_port = 9090
+high_performance_self_check_mode = "Enabled"
+high_performance_self_check_interval = 30
+high_performance_self_check_timeout  = 15
+
+# Standard Profile - For regular batch processing workloads
+standard_profile_name     = "batch-processing"
+standard_instance_count   = 2
+standard_log_level       = "info"
+standard_prometheus_port = 9091
+standard_self_check_mode = "Enabled"
+standard_self_check_interval = 60
+standard_self_check_timeout  = 30
+
+# Edge Profile - For resource-constrained edge environments
+edge_profile_name     = "edge-processing"
+edge_instance_count   = 1
+edge_log_level       = "error"
+edge_prometheus_port = 9092
+edge_self_check_mode = "Enabled"
+edge_self_check_interval = 120
+edge_self_check_timeout  = 60
+
+# Development Profile - For testing and development (optional)
+create_development_profile       = true
+development_profile_name         = "dev-testing"
+development_instance_count       = 1
+development_log_level           = "debug"
+development_prometheus_port     = 9093
+development_self_check_mode     = "Enabled"
+development_self_check_interval = 30
+development_self_check_timeout  = 15
+
+# Tags
+tags = {
+  Environment = "Production"
+  Project     = "IoT Operations"
+  Owner       = "Data Engineering Team"
+  Purpose     = "Dataflow Processing Profiles"
+  CostCenter  = "Engineering"
+}
