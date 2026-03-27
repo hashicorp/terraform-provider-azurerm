@@ -141,6 +141,7 @@ func (m WatcherResource) Create() sdk.ResourceFunc {
 			scriptParameters := expandStringInterfaceMap(model.ScriptParameters)
 
 			param := watcher.Watcher{
+				Name: pointer.To(model.Name),
 				Properties: &watcher.WatcherProperties{
 					Description:                 pointer.To(model.Description),
 					ExecutionFrequencyInSeconds: pointer.To(model.ExecutionFrequencyInSeconds),
@@ -212,7 +213,7 @@ func (m WatcherResource) Read() sdk.ResourceFunc {
 
 func (m WatcherResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 10 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
 			client := meta.Client.Automation.WatcherClient
 
@@ -226,13 +227,46 @@ func (m WatcherResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding err: %+v", err)
 			}
 
-			var upd watcher.WatcherUpdateParameters
+			upd := watcher.WatcherUpdateParameters{
+				Name: &id.WatcherName,
+			}
 			upd.Properties = &watcher.WatcherUpdateProperties{}
 			if meta.ResourceData.HasChange("execution_frequency_in_seconds") {
 				upd.Properties.ExecutionFrequencyInSeconds = pointer.To(model.ExecutionFrequencyInSeconds)
 			}
+
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{
+					"New",
+				},
+				Target: []string{
+					"Running",
+					"Stopped",
+					"Suspended",
+				},
+				Refresh:    automationWatcherStateRefreshFunc(ctx, client, id),
+				MinTimeout: 30 * time.Second,
+				Timeout:    meta.ResourceData.Timeout(pluginsdk.TimeoutUpdate),
+			}
+
+			resp, err := stateConf.WaitForStateContext(ctx)
+			if err != nil {
+				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+			}
+
+			status := pointer.From(resp.(watcher.GetOperationResponse).Model.Properties.Status)
+			if status == "Running" {
+				if _, err = client.Stop(ctx, *id); err != nil {
+					return fmt.Errorf("stopping %s: %v", *id, err)
+				}
+			}
+
 			if _, err = client.Update(ctx, *id, upd); err != nil {
 				return fmt.Errorf("updating %s: %v", *id, err)
+			}
+
+			if _, err = client.Start(ctx, *id); err != nil {
+				return fmt.Errorf("starting %s: %v", *id, err)
 			}
 
 			return nil
@@ -260,4 +294,23 @@ func (m WatcherResource) Delete() sdk.ResourceFunc {
 
 func (m WatcherResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return watcher.ValidateWatcherID
+}
+
+func automationWatcherStateRefreshFunc(ctx context.Context, client *watcher.WatcherClient, id *watcher.WatcherId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, *id)
+		if err != nil {
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if model := resp.Model; model != nil {
+			if properties := model.Properties; properties != nil {
+				if status := properties.Status; status != nil {
+					return resp, pointer.From(status), nil
+				}
+			}
+		}
+
+		return resp, "", fmt.Errorf("retrieving %s: status is not returned", id)
+	}
 }
