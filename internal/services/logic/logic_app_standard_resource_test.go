@@ -1111,6 +1111,28 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_fileShareMountUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.fileShareMount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.fileShareMountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseLogicAppId(state.ID)
 	if err != nil {
@@ -2301,6 +2323,9 @@ provider "azurerm" {
   features {}
 }
 
+provider "azapi" {
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
   location = "%[2]s"
@@ -2652,4 +2677,78 @@ resource "azurerm_logic_app_standard" "test" {
   ftp_publish_basic_authentication_enabled = false
 }
 `, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LogicAppStandardResource) fileShareMount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+}
+
+resource "azapi_resource_action" "logicapp_storage_config" {
+  type        = "Microsoft.Web/sites/config@2022-09-01"
+  resource_id = "${azurerm_logic_app_standard.test.id}/config/azurestorageaccounts"
+  method      = "PUT"
+
+  body = {
+    properties = {
+      FileSystem = {
+        type        = "FileShare",
+        accountName = azurerm_storage_account.test.name,
+        shareName   = "dummy-share",
+        accessKey   = azurerm_storage_account.test.primary_access_key,
+        mountPath   = "\\mounts\\FileSystem",
+        endpoint    = azurerm_storage_account.test.primary_blob_endpoint,
+        protocol    = "Smb"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) fileShareMountUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  tags = {
+    "test" = "1"
+  }
+}
+
+resource "azapi_resource_action" "logicapp_storage_config" {
+  type        = "Microsoft.Web/sites/config@2022-09-01"
+  resource_id = "${azurerm_logic_app_standard.test.id}/config/azurestorageaccounts"
+  method      = "PUT"
+
+  body = {
+    properties = {
+      FileSystem = {
+        type        = "FileShare",
+        accountName = azurerm_storage_account.test.name,
+        shareName   = "dummy-share",
+        accessKey   = azurerm_storage_account.test.primary_access_key,
+        mountPath   = "\\mounts\\FileSystem",
+        endpoint    = azurerm_storage_account.test.primary_blob_endpoint,
+        protocol    = "Smb"
+      }
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

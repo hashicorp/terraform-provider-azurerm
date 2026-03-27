@@ -747,6 +747,11 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			existingSiteConfig := sc.Model.Properties
 			siteEnvelope.SiteConfig = existingSiteConfig
 
+			// The `AzureStorageAccounts` received does not contain `endpoint`, which is required in some cases.
+			// Since we currently do not support this property, we remove it from the payload.
+			// Tracked by https://github.com/Azure/azure-rest-api-specs/issues/40128
+			siteEnvelope.SiteConfig.AzureStorageAccounts = nil
+
 			appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
 			if err != nil || appSettingsResp.Model == nil {
 				return fmt.Errorf("reading App Settings for Linux %s: %+v", id, err)
