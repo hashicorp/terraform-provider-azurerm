@@ -306,6 +306,13 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
+	addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
+		Enabled: input.OpenServiceMeshEnabled,
+	}
+
+	addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
+		Enabled: false,
+	}
 	if len(input.ConfidentialComputing) > 0 {
 		cc := input.ConfidentialComputing[0]
 		config := make(map[string]string)
@@ -326,6 +333,9 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
+	addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
+		Enabled: false,
+	}
 	if len(input.OMSAgent) > 0 {
 		oms := input.OMSAgent[0]
 		config := make(map[string]string)
@@ -348,6 +358,9 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
+	addonProfiles[aciConnectorKey] = managedclusters.ManagedClusterAddonProfile{
+		Enabled: false,
+	}
 	if len(input.ACIConnectorLinux) > 0 {
 		aci := input.ACIConnectorLinux[0]
 		config := make(map[string]string)
@@ -369,6 +382,9 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}),
 	}
 
+	addonProfiles[ingressApplicationGatewayKey] = managedclusters.ManagedClusterAddonProfile{
+		Enabled: false,
+	}
 	if len(input.IngressApplicationGateway) > 0 {
 		iag := input.IngressApplicationGateway[0]
 		config := make(map[string]string)
