@@ -1446,6 +1446,43 @@ func TestAccKubernetesClusterNodePool_VMSizeOmitted(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_localDNSProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_localDNSProfileUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.localDNSProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.localDNSProfileUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r KubernetesClusterNodePoolResource) autoScaleConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3856,4 +3893,238 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
 		data.RandomInteger,     // kubernetes_cluster name
 		data.RandomInteger,     // kubernetes_cluster dns_prefix
 	)
+}
+
+func (KubernetesClusterNodePoolResource) localDNSProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_D4s_v3"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D4s_v3"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  local_dns_profile {
+    mode = "Required"
+
+    vnet_dns_override {
+      domain                    = "."
+      serve_stale               = "Verify"
+      serve_stale_duration      = 3600
+      query_logging             = "Error"
+      protocol                  = "PreferUDP"
+      forward_destination       = "VnetDNS"
+      forward_policy            = "Sequential"
+      max_concurrent            = 1000
+      cache_duration_in_seconds = 3600
+    }
+
+    vnet_dns_override {
+      domain                    = "cluster.local"
+      serve_stale               = "Verify"
+      serve_stale_duration      = 3600
+      query_logging             = "Error"
+      protocol                  = "PreferUDP"
+      forward_destination       = "ClusterCoreDNS"
+      forward_policy            = "Sequential"
+      max_concurrent            = 1000
+      cache_duration_in_seconds = 3600
+    }
+
+    kube_dns_override {
+      domain                    = "cluster.local"
+      serve_stale               = "Verify"
+      serve_stale_duration      = 3600
+      query_logging             = "Error"
+      protocol                  = "PreferUDP"
+      forward_destination       = "ClusterCoreDNS"
+      forward_policy            = "Sequential"
+      max_concurrent            = 1000
+      cache_duration_in_seconds = 3600
+    }
+
+    kube_dns_override {
+      domain                    = "."
+      serve_stale               = "Verify"
+      serve_stale_duration      = 3600
+      query_logging             = "Error"
+      protocol                  = "PreferUDP"
+      forward_destination       = "ClusterCoreDNS"
+      forward_policy            = "Sequential"
+      max_concurrent            = 1000
+      cache_duration_in_seconds = 3600
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (KubernetesClusterNodePoolResource) localDNSProfileUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_D4s_v3"
+    vnet_subnet_id = azurerm_subnet.test.id
+    upgrade_settings {
+      max_surge = "10%%%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_D4s_v3"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.test.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+
+  local_dns_profile {
+    mode = "Required"
+
+    vnet_dns_override {
+      domain                    = "."
+      serve_stale               = "Verify"
+      serve_stale_duration      = 3600
+      query_logging             = "Error"
+      protocol                  = "PreferUDP"
+      forward_destination       = "VnetDNS"
+      forward_policy            = "RoundRobin"
+      max_concurrent            = 2000
+      cache_duration_in_seconds = 7200
+    }
+
+    vnet_dns_override {
+      domain                    = "mycustom.local"
+      serve_stale               = "Verify"
+      serve_stale_duration      = 3600
+      query_logging             = "Error"
+      protocol                  = "PreferUDP"
+      forward_destination       = "VnetDNS"
+      forward_policy            = "RoundRobin"
+      max_concurrent            = 2000
+      cache_duration_in_seconds = 7200
+    }
+
+    vnet_dns_override {
+      domain                    = "cluster.local"
+      serve_stale               = "Verify"
+      serve_stale_duration      = 3600
+      query_logging             = "Error"
+      protocol                  = "PreferUDP"
+      forward_destination       = "ClusterCoreDNS"
+      forward_policy            = "RoundRobin"
+      max_concurrent            = 2000
+      cache_duration_in_seconds = 7200
+    }
+
+    kube_dns_override {
+      domain                    = "cluster.local"
+      serve_stale               = "Immediate"
+      serve_stale_duration      = 3600
+      query_logging             = "Log"
+      protocol                  = "ForceTCP"
+      forward_destination       = "ClusterCoreDNS"
+      forward_policy            = "RoundRobin"
+      max_concurrent            = 2000
+      cache_duration_in_seconds = 7200
+    }
+
+    kube_dns_override {
+      domain                    = "."
+      serve_stale               = "Immediate"
+      serve_stale_duration      = 3600
+      query_logging             = "Log"
+      protocol                  = "ForceTCP"
+      forward_destination       = "ClusterCoreDNS"
+      forward_policy            = "RoundRobin"
+      max_concurrent            = 2000
+      cache_duration_in_seconds = 7200
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
