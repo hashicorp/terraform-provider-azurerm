@@ -5,10 +5,12 @@ package cdn_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type CdnFrontDoorCustomDomainDataSource struct{}
@@ -16,20 +18,55 @@ type CdnFrontDoorCustomDomainDataSource struct{}
 func TestAccCdnFrontDoorCustomDomainDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_custom_domain", "test")
 	d := CdnFrontDoorCustomDomainDataSource{}
+	d.preCheck(t)
+
+	checks := []acceptance.TestCheckFunc{
+		check.That(data.ResourceName).Key("dns_zone_id").Exists(),
+		check.That(data.ResourceName).Key("host_name").Exists(),
+		check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
+		check.That(data.ResourceName).Key("tls.0.cdn_frontdoor_secret_id").IsEmpty(),
+		check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
+		check.That(data.ResourceName).Key("tls.0.minimum_version").Exists(),
+		check.That(data.ResourceName).Key("expiration_date").Exists(),
+		check.That(data.ResourceName).Key("validation_token").Exists(),
+	}
+
+	if !features.FivePointOh() {
+		checks = append(checks, check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists())
+	}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
 			Config: d.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("dns_zone_id").Exists(),
-				check.That(data.ResourceName).Key("host_name").Exists(),
-				check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
-				check.That(data.ResourceName).Key("tls.0.cdn_frontdoor_secret_id").IsEmpty(),
-				check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
-				check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists(),
-				check.That(data.ResourceName).Key("expiration_date").Exists(),
-				check.That(data.ResourceName).Key("validation_token").Exists(),
-			),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorCustomDomainDataSource_cipherSuite_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_custom_domain", "test")
+	d := CdnFrontDoorCustomDomainDataSource{}
+	d.preCheck(t)
+
+	checks := []acceptance.TestCheckFunc{
+		check.That(data.ResourceName).Key("dns_zone_id").Exists(),
+		check.That(data.ResourceName).Key("host_name").Exists(),
+		check.That(data.ResourceName).Key("cdn_frontdoor_profile_id").Exists(),
+		check.That(data.ResourceName).Key("tls.0.certificate_type").Exists(),
+		check.That(data.ResourceName).Key("tls.0.minimum_version").Exists(),
+		check.That(data.ResourceName).Key("tls.0.cipher_suite.0.type").HasValue("Customized"),
+		check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls12.#").HasValue("1"),
+		check.That(data.ResourceName).Key("tls.0.cipher_suite.0.custom_ciphers.0.tls13.#").HasValue("2"),
+	}
+
+	if !features.FivePointOh() {
+		checks = append(checks, check.That(data.ResourceName).Key("tls.0.minimum_tls_version").Exists())
+	}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.cipherSuites(data),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
 		},
 	})
 }
@@ -44,4 +81,25 @@ data "azurerm_cdn_frontdoor_custom_domain" "test" {
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
 `, CdnFrontDoorCustomDomainResource{}.complete(data))
+}
+
+func (CdnFrontDoorCustomDomainDataSource) cipherSuites(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_cdn_frontdoor_custom_domain" "test" {
+  name                = azurerm_cdn_frontdoor_custom_domain.test.name
+  profile_name        = azurerm_cdn_frontdoor_profile.test.name
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+}
+`, CdnFrontDoorCustomDomainResource{}.cipherSuitesMixedWithTls12MinMultiple(data))
+}
+
+func (CdnFrontDoorCustomDomainDataSource) preCheck(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_RESOURCE_GROUP_NAME` must be set for acceptance tests!")
+	}
+	if os.Getenv("ARM_TEST_DNS_ZONE_NAME") == "" {
+		t.Skipf("`ARM_TEST_DNS_ZONE_NAME` must be set for acceptance tests!")
+	}
 }
