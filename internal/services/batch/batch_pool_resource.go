@@ -1551,7 +1551,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 							Schema: map[string]*pluginsdk.Schema{
 								"source": {
 									Type:         pluginsdk.TypeString,
-									Optional:     true,
+									Required:     true,
 									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerHostDataPath(), false),
 								},
 								"read_only_enabled": {

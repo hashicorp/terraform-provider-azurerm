@@ -298,6 +298,8 @@ func TestAccBatchPool_startTask_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.0.container.0.working_directory").HasValue("ContainerImageDefault"),
 				check.That(data.ResourceName).Key("start_task.0.container.0.host_directory_mount.0.source").HasValue("Startup"),
 				check.That(data.ResourceName).Key("start_task.0.container.0.host_directory_mount.0.read_only_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.host_directory_mount.1.source").HasValue("Applications"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.host_directory_mount.1.read_only_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("stop_pending_resize_operation",
@@ -1259,7 +1261,10 @@ resource "azurerm_batch_pool" "test" {
       working_directory = "ContainerImageDefault"
       host_directory_mount {
         source            = "Startup"
-        read_only_enabled = false
+      }
+      host_directory_mount {
+        source            = "Applications"
+        read_only_enabled = true
       }
     }
 

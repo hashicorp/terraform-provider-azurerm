@@ -359,7 +359,7 @@ A `container_registries` block supports the following:
 
 A `host_directory_mount` block supports the following:
 
-* `source` - (Optional) The paths which will be mounted to container task's container. Possible values include `Applications`, `JobPrep`, `Shared`, `Startup`, `Task`, and `VfsMounts`.
+* `source` - (Required) The paths which will be mounted to container task's container. Possible values include `Applications`, `JobPrep`, `Shared`, `Startup`, `Task`, and `VfsMounts`.
 
 * `read_only_enabled` - (Optional) Mount this source path as read-only mode or not. Default to `false` (read/write mode).
 
