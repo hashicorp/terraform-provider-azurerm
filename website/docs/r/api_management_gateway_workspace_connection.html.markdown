@@ -48,7 +48,7 @@ resource "azurerm_api_management_workspace" "example" {
 resource "azurerm_api_management_gateway_workspace_connection" "example" {
   name                      = "example-connection"
   api_management_gateway_id = azurerm_api_management_standalone_gateway.example.id
-  source_id                 = azurerm_api_management_workspace.example.id
+  workspace_id              = azurerm_api_management_workspace.example.id
 }
 ```
 
