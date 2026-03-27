@@ -171,7 +171,7 @@ service/healthcare:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_healthcare_((.|\n)*)###'
 
 service/hsm:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(cloud_hardware_security_module_cluster|dedicated_hardware_security_module)((.|\n)*)###'
 
 service/hybrid-compute:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+)((.|\n)*)###'
