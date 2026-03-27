@@ -21,16 +21,45 @@ type UpdateOperationResponse struct {
 	Model        *Vault
 }
 
+type UpdateOperationOptions struct {
+	XMsAuthorizationAuxiliary *string
+}
+
+func DefaultUpdateOperationOptions() UpdateOperationOptions {
+	return UpdateOperationOptions{}
+}
+
+func (o UpdateOperationOptions) ToHeaders() *client.Headers {
+	out := client.Headers{}
+	if o.XMsAuthorizationAuxiliary != nil {
+		out.Append("x-ms-authorization-auxiliary", fmt.Sprintf("%v", *o.XMsAuthorizationAuxiliary))
+	}
+	return &out
+}
+
+func (o UpdateOperationOptions) ToOData() *odata.Query {
+	out := odata.Query{}
+
+	return &out
+}
+
+func (o UpdateOperationOptions) ToQuery() *client.QueryParams {
+	out := client.QueryParams{}
+
+	return &out
+}
+
 // Update ...
-func (c VaultsClient) Update(ctx context.Context, id VaultId, input PatchVault) (result UpdateOperationResponse, err error) {
+func (c VaultsClient) Update(ctx context.Context, id VaultId, input PatchVault, options UpdateOperationOptions) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodPatch,
-		Path:       id.ID(),
+		HttpMethod:    http.MethodPatch,
+		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -61,8 +90,8 @@ func (c VaultsClient) Update(ctx context.Context, id VaultId, input PatchVault) 
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c VaultsClient) UpdateThenPoll(ctx context.Context, id VaultId, input PatchVault) error {
-	result, err := c.Update(ctx, id, input)
+func (c VaultsClient) UpdateThenPoll(ctx context.Context, id VaultId, input PatchVault, options UpdateOperationOptions) error {
+	result, err := c.Update(ctx, id, input, options)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)
 	}
