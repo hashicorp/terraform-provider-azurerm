@@ -8,9 +8,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2021-06-01-preview/policy" // nolint: staticcheck
 	assignments "github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-06-01/policyassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policydefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -71,6 +73,18 @@ func getPolicyDefinitionByName(ctx context.Context, client *policy.DefinitionsCl
 	return res, err
 }
 
+func getPolicyDefinitionByID(ctx context.Context, client *policydefinitions.PolicyDefinitionsClient, id any) (*http.Response, *policydefinitions.PolicyDefinition, error) {
+	switch id := id.(type) {
+	case policydefinitions.ProviderPolicyDefinitionId:
+		return getPolicyDefinition(ctx, client, id)
+	case policydefinitions.Providers2PolicyDefinitionId:
+		resp, err := client.GetAtManagementGroup(ctx, id)
+		return resp.HttpResponse, resp.Model, err
+	default:
+		return nil, nil, fmt.Errorf("`id` was not one of the expected types: %T", id)
+	}
+}
+
 func getPolicySetDefinitionByName(ctx context.Context, client *policy.SetDefinitionsClient, name, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.GetBuiltIn(ctx, name)
@@ -122,16 +136,34 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 	return results[0], nil
 }
 
-func expandParameterDefinitionsValueFromStringTrack1(jsonString string) (map[string]*policy.ParameterDefinitionsValue, error) {
-	var result map[string]*policy.ParameterDefinitionsValue
-
-	err := json.Unmarshal([]byte(jsonString), &result)
-
-	return result, err
-}
-
 func flattenParameterDefinitionsValueToStringTrack1(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
 	if len(input) == 0 {
+		return "", nil
+	}
+
+	result, err := json.Marshal(input)
+	if err != nil {
+		return "", err
+	}
+
+	compactJson := bytes.Buffer{}
+	if err := json.Compact(&compactJson, result); err != nil {
+		return "", err
+	}
+
+	return compactJson.String(), nil
+}
+
+func expandParameterDefinitionsValueForPolicyDefinition(input string) (*map[string]policydefinitions.ParameterDefinitionsValue, error) {
+	var result map[string]policydefinitions.ParameterDefinitionsValue
+
+	err := json.Unmarshal([]byte(input), &result)
+
+	return &result, err
+}
+
+func flattenParameterDefinitionsValueToStringForPolicyDefinition(input *map[string]policydefinitions.ParameterDefinitionsValue) (string, error) {
+	if input == nil {
 		return "", nil
 	}
 
