@@ -436,6 +436,10 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	props := *existing.Model.Properties
 
+	// remove readonly properties as they are not managed by TF - large IPConfiguration blocks can cause ARM API limit errors
+	props.IPConfigurations = nil
+	props.PrivateEndpoints = nil
+
 	if d.HasChange("address_prefixes") {
 		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
 		switch len(addressPrefixesRaw) {
