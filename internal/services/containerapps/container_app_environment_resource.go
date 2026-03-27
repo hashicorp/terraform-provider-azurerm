@@ -51,6 +51,7 @@ type ContainerAppEnvironmentModel struct {
 	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
 	Tags                                    map[string]interface{}                     `tfschema:"tags"`
 	WorkloadProfiles                        []helpers.WorkloadProfileModel             `tfschema:"workload_profile"`
+	IngressConfiguration                    []helpers.IngressConfigurationModel        `tfschema:"ingress_configuration"`
 	InfrastructureResourceGroup             string                                     `tfschema:"infrastructure_resource_group_name"`
 	Mtls                                    bool                                       `tfschema:"mutual_tls_enabled"`
 
@@ -167,6 +168,8 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 		},
 
 		"workload_profile": helpers.WorkloadProfileSchema(),
+
+		"ingress_configuration": helpers.IngressConfigurationSchema(),
 
 		"zone_redundancy_enabled": {
 			Type:         pluginsdk.TypeBool,
@@ -332,6 +335,12 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
+			ingressConfig, ingressProfile := helpers.ExpandIngressConfiguration(containerAppEnvironment.IngressConfiguration)
+			if ingressConfig != nil {
+				managedEnvironment.Properties.IngressConfiguration = ingressConfig
+				managedEnvironment.Properties.WorkloadProfiles = helpers.MergeIngressWorkloadProfile(managedEnvironment.Properties.WorkloadProfiles, ingressProfile)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -415,6 +424,10 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
+					state.IngressConfiguration = helpers.FlattenIngressConfiguration(props.IngressConfiguration, props.WorkloadProfiles)
+					if props.IngressConfiguration != nil && props.IngressConfiguration.WorkloadProfileName != nil {
+						state.WorkloadProfiles = helpers.FilterIngressWorkloadProfile(state.WorkloadProfiles, *props.IngressConfiguration.WorkloadProfileName)
+					}
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
@@ -498,6 +511,41 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("workload_profile") {
 				payload.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
+			}
+
+			if metadata.ResourceData.HasChange("ingress_configuration") {
+				ingressConfig, ingressProfile := helpers.ExpandIngressConfiguration(state.IngressConfiguration)
+				payload.Properties.IngressConfiguration = ingressConfig
+				if ingressProfile != nil {
+					if payload.Properties.WorkloadProfiles == nil {
+						// Need to get the current workload profiles if they weren't being changed
+						if existing.Model != nil && existing.Model.Properties != nil {
+							payload.Properties.WorkloadProfiles = existing.Model.Properties.WorkloadProfiles
+						}
+					}
+					payload.Properties.WorkloadProfiles = helpers.MergeIngressWorkloadProfile(payload.Properties.WorkloadProfiles, ingressProfile)
+				} else {
+					// ingress_configuration was removed: remove the dedicated workload profile
+					o, _ := metadata.ResourceData.GetChange("ingress_configuration")
+					if oldList, ok := o.([]interface{}); ok && len(oldList) > 0 {
+						if oldMap, ok := oldList[0].(map[string]interface{}); ok {
+							if oldName, ok := oldMap["workload_profile_name"].(string); ok && oldName != "" {
+								if payload.Properties.WorkloadProfiles == nil && existing.Model != nil && existing.Model.Properties != nil {
+									payload.Properties.WorkloadProfiles = existing.Model.Properties.WorkloadProfiles
+								}
+								if payload.Properties.WorkloadProfiles != nil {
+									filtered := make([]managedenvironments.WorkloadProfile, 0)
+									for _, p := range *payload.Properties.WorkloadProfiles {
+										if p.Name != oldName {
+											filtered = append(filtered, p)
+										}
+									}
+									payload.Properties.WorkloadProfiles = &filtered
+								}
+							}
+						}
+					}
+				}
 			}
 
 			if metadata.ResourceData.HasChange("mutual_tls_enabled") {
@@ -639,6 +687,18 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if model.InternalLoadBalancerEnabled && model.PublicNetworkAccess == string(managedenvironments.PublicNetworkAccessEnabled) {
 				return errors.New("`public_network_access` cannot be `Enabled` when `internal_load_balancer_enabled` is set to `true`")
+			}
+
+			if len(model.IngressConfiguration) > 0 {
+				ic := model.IngressConfiguration[0]
+				if ic.MaximumNodeCount < ic.MinimumNodeCount {
+					return errors.New("`maximum_node_count` in `ingress_configuration` must be greater than or equal to `minimum_node_count`")
+				}
+				for _, wp := range model.WorkloadProfiles {
+					if wp.Name == ic.WorkloadProfileName {
+						return fmt.Errorf("`ingress_configuration.workload_profile_name` %q conflicts with a user-defined `workload_profile` block with the same name. The dedicated ingress workload profile is auto-managed by `ingress_configuration` and must not be duplicated in `workload_profile`", ic.WorkloadProfileName)
+					}
+				}
 			}
 
 			return nil
