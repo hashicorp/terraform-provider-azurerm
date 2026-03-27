@@ -878,7 +878,7 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 			if len(state.SpotPriorityProfile) > 0 {
 				if state.SpotPriorityProfile[0].MaintainCapacityEnabled {
 					if state.SpotPriorityProfile[0].MinCapacity > 0 {
-						return errors.New("`spot_priority_profile.0.min_capacity` is unable to be specified if `spot_priority_profile.0.maintain_enabled` is enabled")
+						return errors.New("`spot_priority_profile.0.min_capacity` is unable to be specified if `spot_priority_profile.0.maintain_capacity_enabled` is enabled")
 					}
 
 					if len(state.VMSizesProfile) < 3 {

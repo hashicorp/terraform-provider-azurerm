@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
@@ -182,7 +182,7 @@ resource "azurerm_public_ip" "public" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
   domain_name_label   = "acctestsourcevm-%[2]d"
-  sku                 = "Basic"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "public" {

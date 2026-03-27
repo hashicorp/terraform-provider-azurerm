@@ -104,7 +104,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -113,7 +113,7 @@ resource "azurerm_compute_fleet" "test" {
     source_image_reference {
       publisher = "MicrosoftWindowsServer"
       offer     = "WindowsServer"
-      sku       = "2016-Datacenter-Server-Core"
+      sku       = "2025-datacenter-core-g2"
       version   = "latest"
     }
 
@@ -161,7 +161,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"

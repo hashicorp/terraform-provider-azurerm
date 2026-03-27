@@ -190,7 +190,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   virtual_machine_profile {
@@ -246,7 +246,7 @@ resource "azurerm_compute_fleet" "import" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   virtual_machine_profile {
@@ -290,7 +290,7 @@ func (r ComputeFleetTestResource) completeExceptVMSS(data acceptance.TestData) s
 	return fmt.Sprintf(`
 	%[1]s
 
-data "azurerm_marketplace_agreement" "barracuda" {
+resource "azurerm_marketplace_agreement" "barracuda" {
   publisher = "micro-focus"
   offer     = "arcsight-logger"
   plan      = "arcsight_logger_72_byol"
@@ -404,7 +404,7 @@ func (r ComputeFleetTestResource) completeExceptVMSSUpdate(data acceptance.TestD
 	return fmt.Sprintf(`
 	%[1]s
 
-data "azurerm_marketplace_agreement" "barracuda" {
+resource "azurerm_marketplace_agreement" "barracuda" {
   publisher = "micro-focus"
   offer     = "arcsight-logger"
   plan      = "arcsight_logger_72_byol"
