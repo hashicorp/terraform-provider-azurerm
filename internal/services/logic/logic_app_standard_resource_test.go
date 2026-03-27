@@ -6,6 +6,7 @@ package logic_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -1105,6 +1106,60 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 			Config: r.vnetContentShareEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogicAppStandard_keyVaultReferenceIdentityInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.keyVaultReferenceIdentityInvalid(data),
+			ExpectError: regexp.MustCompile("`key_vault_reference_identity_id` must be an identity assigned to this resource in the `identity` block"),
+		},
+	})
+}
+
+func TestAccLogicAppStandard_keyVaultReferenceIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Once the `key_vault_reference_identity_id` is set, it can not be reset
+			// Even if the SystemAssigned identity is removed, the property can not be reset till a new value is set.
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultReferenceIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.keyVaultReferenceSysmtemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").HasValue("SystemAssigned"),
 			),
 		},
 		data.ImportStep(),
@@ -2652,4 +2707,88 @@ resource "azurerm_logic_app_standard" "test" {
   ftp_publish_basic_authentication_enabled = false
 }
 `, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LogicAppStandardResource) keyVaultReferenceIdentityInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_user_assigned_identity" "other" {
+  name                = "acctest-other-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.other.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) keyVaultReferenceIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "kv" {
+  name                = "acctest-kv-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%[2]d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.kv.id]
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.kv.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LogicAppStandardResource) keyVaultReferenceSysmtemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  key_vault_reference_identity_id = "SystemAssigned"
+
+}
+`, r.template(data), data.RandomInteger)
 }

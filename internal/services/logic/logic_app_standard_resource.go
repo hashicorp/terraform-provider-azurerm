@@ -33,30 +33,31 @@ import (
 type LogicAppResource struct{}
 
 type LogicAppResourceModel struct {
-	Name                       string                                     `tfschema:"name"`
-	ResourceGroupName          string                                     `tfschema:"resource_group_name"`
-	Location                   string                                     `tfschema:"location"`
-	AppServicePlanId           string                                     `tfschema:"app_service_plan_id"`
-	AppSettings                map[string]string                          `tfschema:"app_settings"`
-	UseExtensionBundle         bool                                       `tfschema:"use_extension_bundle"`
-	BundleVersion              string                                     `tfschema:"bundle_version"`
-	ClientAffinityEnabled      bool                                       `tfschema:"client_affinity_enabled"`
-	ClientCertificateMode      string                                     `tfschema:"client_certificate_mode"`
-	Enabled                    bool                                       `tfschema:"enabled"`
-	FtpPublishBasicAuthEnabled bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
-	HTTPSOnly                  bool                                       `tfschema:"https_only"`
-	Identity                   []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	SCMPublishBasicAuthEnabled bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
-	SiteConfig                 []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
-	ConnectionStrings          []helpers.ConnectionString                 `tfschema:"connection_string"`
-	StorageAccountName         string                                     `tfschema:"storage_account_name"`
-	StorageAccountAccessKey    string                                     `tfschema:"storage_account_access_key"`
-	PublicNetworkAccess        string                                     `tfschema:"public_network_access"`
-	StorageAccountShareName    string                                     `tfschema:"storage_account_share_name"`
-	Version                    string                                     `tfschema:"version"`
-	VNETContentShareEnabled    bool                                       `tfschema:"vnet_content_share_enabled"`
-	VirtualNetworkSubnetId     string                                     `tfschema:"virtual_network_subnet_id"`
-	Tags                       map[string]string                          `tfschema:"tags"`
+	Name                        string                                     `tfschema:"name"`
+	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
+	Location                    string                                     `tfschema:"location"`
+	AppServicePlanId            string                                     `tfschema:"app_service_plan_id"`
+	AppSettings                 map[string]string                          `tfschema:"app_settings"`
+	UseExtensionBundle          bool                                       `tfschema:"use_extension_bundle"`
+	BundleVersion               string                                     `tfschema:"bundle_version"`
+	ClientAffinityEnabled       bool                                       `tfschema:"client_affinity_enabled"`
+	ClientCertificateMode       string                                     `tfschema:"client_certificate_mode"`
+	Enabled                     bool                                       `tfschema:"enabled"`
+	FtpPublishBasicAuthEnabled  bool                                       `tfschema:"ftp_publish_basic_authentication_enabled"`
+	HTTPSOnly                   bool                                       `tfschema:"https_only"`
+	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	KeyvaultReferenceIdentityId string                                     `tfschema:"key_vault_reference_identity_id"`
+	SCMPublishBasicAuthEnabled  bool                                       `tfschema:"scm_publish_basic_authentication_enabled"`
+	SiteConfig                  []helpers.LogicAppSiteConfig               `tfschema:"site_config"`
+	ConnectionStrings           []helpers.ConnectionString                 `tfschema:"connection_string"`
+	StorageAccountName          string                                     `tfschema:"storage_account_name"`
+	StorageAccountAccessKey     string                                     `tfschema:"storage_account_access_key"`
+	PublicNetworkAccess         string                                     `tfschema:"public_network_access"`
+	StorageAccountShareName     string                                     `tfschema:"storage_account_share_name"`
+	Version                     string                                     `tfschema:"version"`
+	VNETContentShareEnabled     bool                                       `tfschema:"vnet_content_share_enabled"`
+	VirtualNetworkSubnetId      string                                     `tfschema:"virtual_network_subnet_id"`
+	Tags                        map[string]string                          `tfschema:"tags"`
 
 	CustomDomainVerificationId  string                           `tfschema:"custom_domain_verification_id"`
 	DefaultHostname             string                           `tfschema:"default_hostname"`
@@ -212,6 +213,18 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.NoZeroValues,
 		},
 
+		// Once this property is set, it can not be removed.
+		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/37553
+		"key_vault_reference_identity_id": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true, // When the `identity` is specified as `SystemAssigned`, the service will add `SystemAssigned` to this `key_vault_reference_identity_id` property.
+			ValidateFunc: validation.Any(
+				commonids.ValidateUserAssignedIdentityID,
+				validation.StringInSlice([]string{"SystemAssigned"}, false),
+			),
+		},
+
 		"public_network_access": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -316,6 +329,34 @@ func (r LogicAppResource) ModelObject() interface{} {
 
 func (r LogicAppResource) ResourceType() string {
 	return "azurerm_logic_app_standard"
+}
+
+func (r LogicAppResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			// Since `key_vault_reference_identity_id` is O+C, if it's removed from the config, the value get below is still the old value.
+			if metadata.ResourceDiff.GetRawConfig().GetAttr("key_vault_reference_identity_id").IsNull() {
+				return nil
+			}
+
+			keyVaultReferenceIdentityId := metadata.ResourceDiff.Get("key_vault_reference_identity_id").(string)
+			if keyVaultReferenceIdentityId == "" || strings.EqualFold(keyVaultReferenceIdentityId, "SystemAssigned") {
+				return nil
+			}
+
+			identityIdsRaw := metadata.ResourceDiff.Get("identity.0.identity_ids").(*pluginsdk.Set)
+			identityIds := identityIdsRaw.List()
+
+			for _, id := range identityIds {
+				if strings.EqualFold(id.(string), keyVaultReferenceIdentityId) {
+					return nil
+				}
+			}
+
+			return fmt.Errorf("`key_vault_reference_identity_id` must be an identity assigned to this resource in the `identity` block, got `%s`", keyVaultReferenceIdentityId)
+		},
+	}
 }
 
 func (r LogicAppResource) Create() sdk.ResourceFunc {
@@ -479,6 +520,10 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(data.VirtualNetworkSubnetId)
 			}
 
+			if data.KeyvaultReferenceIdentityId != "" {
+				siteEnvelope.Properties.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
+			}
+
 			if err = client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -571,6 +616,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
+					state.KeyvaultReferenceIdentityId = pointer.From(props.KeyVaultReferenceIdentity)
 					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
 					if !features.FivePointOh() {
 						if pointer.From(props.ClientCertEnabled) {
@@ -841,6 +887,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				existing.Model.Identity = expandedIdentity
 			}
 
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+				siteEnvelope.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
+			}
+
 			existing.Model.Properties = pointer.To(siteEnvelope)
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -889,7 +939,10 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = &LogicAppResource{}
+var (
+	_ sdk.ResourceWithUpdate        = LogicAppResource{}
+	_ sdk.ResourceWithCustomizeDiff = LogicAppResource{}
+)
 
 func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([]webapps.NameValuePair, error) {
 	appKindPropName := "APP_KIND"
