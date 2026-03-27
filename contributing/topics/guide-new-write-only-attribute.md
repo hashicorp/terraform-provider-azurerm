@@ -44,13 +44,14 @@ As a result we add two new properties to the schema, `password_wo` and `password
 	Optional:      true,
 	WriteOnly:     true, 
 	RequiredWith:  []string{"password_wo_version"} // this must be set to ensure the "trigger" property is provided with the wo attribute 
-	ConflictsWith: []string{"password_wo_version"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
+	ConflictsWith: []string{"password"} // this must be set to prevent both the sensitive `password` and the wo attribute `password_wo` from being set
 }
 
 "password_wo_version": {
 	Type:         pluginsdk.TypeInt,
 	Optional:     true,
 	RequiredWith: []string{"password_wo"} // this must be set to ensure the "trigger" property is provided with the wo attribute
+	ValidateFunc: validation.IntAtLeast(1) // in SDKv2, `0` will be set into state regardless, prevent users from setting version to `0` so we can properly track changes
 }
 
 ... // omitted for brevity

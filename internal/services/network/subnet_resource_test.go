@@ -37,6 +37,40 @@ func TestAccSubnet_basic(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_basicWithNSG(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithNSG(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version"),
+		{
+			Config: r.basicWithNSG(data, 2), // update NSG
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version"),
+		{
+			Config: r.basicWithNSG(data, 0), // remove NSG
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_security_group_id").IsEmpty(),
+			),
+		},
+		data.ImportStep("network_security_group_id_wo_version"),
+	})
+}
+
+// TODO: test for route table
+
 func TestAccSubnet_basic_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -518,7 +552,7 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 	})
 }
 
-func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -666,6 +700,41 @@ resource "azurerm_subnet" "test2" {
   address_prefixes     = ["10.0.3.0/24"]
 }
 `, r.template(data))
+}
+
+func (r SubnetResource) basicWithNSG(data acceptance.TestData, nsgInstance int) string {
+	var nsg string
+	if nsgInstance != 0 {
+		nsg = fmt.Sprintf(`
+network_security_group_id_wo = azurerm_network_security_group.test%[1]d.id
+network_security_group_id_wo_version = %[1]d
+`, nsgInstance)
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_network_security_group" "test1" {
+  name                = "acctestnsg-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_network_security_group" "test2" {
+  name                = "acctestnsg2-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.2.0/24"]
+
+  %[3]s
+}
+`, r.template(data), data.RandomInteger, nsg)
 }
 
 func (r SubnetResource) delegation(data acceptance.TestData) string {
