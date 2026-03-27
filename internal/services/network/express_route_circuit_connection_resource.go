@@ -186,9 +186,12 @@ func resourceExpressRouteCircuitConnectionRead(d *pluginsdk.ResourceData, meta i
 
 			// The ExpressRoute Circuit Connection API returns "*****************" for AuthorizationKey when it's changed from a valid value to `nil`
 			// See more details from https://github.com/Azure/azure-rest-api-specs/issues/15030
-			authorizationKey := ""
+			var authorizationKey string
 			if props.AuthorizationKey != nil && *props.AuthorizationKey != "*****************" {
 				authorizationKey = *props.AuthorizationKey
+			} else {
+				// Preserve the existing value in state to avoid perpetual difference
+				authorizationKey = d.Get("authorization_key").(string)
 			}
 			d.Set("authorization_key", authorizationKey)
 
