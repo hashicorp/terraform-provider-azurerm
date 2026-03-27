@@ -202,7 +202,7 @@ resource "azurerm_linux_virtual_machine" "source" {
   name                            = "acctestsourceVM-%[2]d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  size                            = "Standard_DS1_v2"
+  size                            = "Standard_F1alds_v7"
   admin_username                  = local.admin_username
   disable_password_authentication = false
   admin_password                  = local.admin_password
@@ -222,9 +222,9 @@ resource "azurerm_linux_virtual_machine" "source" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "canonical"
+    offer     = "ubuntu-24_04-lts"
+    sku       = "server"
     version   = "latest"
   }
 }
@@ -247,15 +247,15 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      offer     = "0001-com-ubuntu-server-focal"
       publisher = "canonical"
-      sku       = "20_04-lts-gen2"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -314,7 +314,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -410,7 +410,7 @@ resource "azurerm_compute_fleet" "image_id" {
     min_capacity = 1
   }
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -508,7 +508,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -614,7 +614,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -720,7 +720,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"

@@ -168,9 +168,9 @@ resource "azurerm_compute_fleet" "test" {
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
     os_disk {
@@ -217,16 +217,16 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
     os_disk {
@@ -272,16 +272,16 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
     os_disk {
@@ -329,16 +329,16 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
     os_disk {

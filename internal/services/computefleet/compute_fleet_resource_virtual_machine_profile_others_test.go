@@ -155,7 +155,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -229,7 +229,7 @@ resource "azurerm_capacity_reservation" "test" {
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   zone                          = "2"
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_F1alds_v7"
     capacity = 2
   }
 }
@@ -247,7 +247,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_F2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -256,9 +256,9 @@ resource "azurerm_compute_fleet" "test" {
     capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
 
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -378,16 +378,16 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -449,7 +449,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -458,7 +458,7 @@ resource "azurerm_compute_fleet" "test" {
     source_image_reference {
       publisher = "MicrosoftWindowsServer"
       offer     = "WindowsServer"
-      sku       = "2016-Datacenter-Server-Core"
+      sku       = "2025-datacenter-core-g2"
       version   = "latest"
     }
 
@@ -518,7 +518,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_D1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -526,9 +526,9 @@ resource "azurerm_compute_fleet" "test" {
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -584,16 +584,16 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_D1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -652,16 +652,16 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_D2s_v3"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -677,6 +677,13 @@ resource "azurerm_compute_fleet" "test" {
         admin_password                  = local.admin_password
         password_authentication_enabled = true
       }
+    }
+
+    data_disk {
+      create_option        = "Empty"
+      disk_size_in_gib     = 10
+      lun                  = 42
+      storage_account_type = "UltraSSD_LRS"
     }
 
     network_interface {

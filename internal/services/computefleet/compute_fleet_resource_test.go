@@ -557,9 +557,9 @@ func (r ComputeFleetTestResource) basicBaseWindowsVirtualMachineProfile() string
 virtual_machine_profile {
 	network_api_version = "2020-11-01"
 	source_image_reference {
-	  publisher = "MicrosoftWindowsServer"
+      publisher = "MicrosoftWindowsServer"
       offer     = "WindowsServer"
-      sku       = "2016-Datacenter-Server-Core"
+      sku       = "2025-datacenter-core-g2"
       version   = "latest"
 	}
 
