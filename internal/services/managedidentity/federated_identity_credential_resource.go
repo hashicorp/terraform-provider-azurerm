@@ -34,8 +34,9 @@ type FederatedIdentityCredentialResourceSchema struct {
 	// TODO: Remove this in V5.0
 	ResourceGroupName string `tfschema:"resource_group_name,removedInNextMajorVersion"`
 
-	ResourceName string `tfschema:"parent_id"`
-	Subject      string `tfschema:"subject"`
+	ParentId               string `tfschema:"parent_id,removedInNextMajorVersion"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
+	Subject                string `tfschema:"subject"`
 }
 
 func (r FederatedIdentityCredentialResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -67,8 +68,7 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
-		"parent_id": {
-			// TODO 5.0: this wants renaming to `user_assigned_identity_id`
+		"user_assigned_identity_id": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
@@ -83,7 +83,26 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 
 	if !features.FivePointOh() {
 		schema["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
+
+		schema["parent_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Computed:     true,
+			Deprecated:   "`parent_id` has been renamed to `user_assigned_identity_id` and will be removed in v5.0 of the AzureRM Provider",
+			ExactlyOneOf: []string{"user_assigned_identity_id", "parent_id"},
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		}
+		schema["user_assigned_identity_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"user_assigned_identity_id", "parent_id"},
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		}
 	}
+
 	return schema
 }
 
@@ -103,7 +122,13 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+
+			userAssignedIdentityId := config.UserAssignedIdentityId
+			if !features.FivePointOh() && userAssignedIdentityId == "" {
+				userAssignedIdentityId = config.ParentId
+			}
+
+			parentId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentityId)
 			if err != nil {
 				return fmt.Errorf("parsing parent resource ID: %+v", err)
 			}
@@ -160,11 +185,12 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				schema.Name = id.FederatedIdentityCredentialName
 				parentId := commonids.NewUserAssignedIdentityID(id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName)
-				schema.ResourceName = parentId.ID()
+				schema.UserAssignedIdentityId = parentId.ID()
 
 				r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
 
 				if !features.FivePointOh() {
+					schema.ParentId = parentId.ID()
 					schema.ResourceGroupName = id.ResourceGroupName
 				}
 			}
@@ -189,7 +215,12 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+			userAssignedIdentityId := config.UserAssignedIdentityId
+			if !features.FivePointOh() && userAssignedIdentityId == "" {
+				userAssignedIdentityId = config.ParentId
+			}
+
+			parentId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentityId)
 			if err != nil {
 				return fmt.Errorf("parsing parent resource ID: %+v", err)
 			}

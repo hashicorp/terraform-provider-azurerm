@@ -43,6 +43,11 @@ func dataSourceSearchService() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"endpoint": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
 			"replica_count": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -119,6 +124,7 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			partitionCount := 1
 			replicaCount := 1
 			publicNetworkAccess := true
+			endpoint := ""
 
 			if props.EncryptionWithCmk != nil {
 				d.Set("customer_managed_key_encryption_compliance_status", string(pointer.From(props.EncryptionWithCmk.EncryptionComplianceStatus)))
@@ -136,9 +142,14 @@ func dataSourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) er
 				publicNetworkAccess = strings.EqualFold(string(pointer.From(props.PublicNetworkAccess)), string(services.PublicNetworkAccessEnabled))
 			}
 
+			if props.Endpoint != nil {
+				endpoint = pointer.From(props.Endpoint)
+			}
+
 			d.Set("partition_count", partitionCount)
 			d.Set("replica_count", replicaCount)
 			d.Set("public_network_access_enabled", publicNetworkAccess)
+			d.Set("endpoint", endpoint)
 		}
 
 		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)

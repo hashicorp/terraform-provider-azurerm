@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/certificateobjectlocalrulestack"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	certificates "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
+	localrules "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulesresources"
+	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
@@ -193,8 +193,8 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRules
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulesResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRuleModel{}
 
@@ -212,7 +212,7 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 			// API uses Priority not Name for ID, despite swagger defining `ruleName` as required, not Priority - https://github.com/Azure/azure-rest-api-specs/issues/24697
 			id := localrules.NewLocalRuleID(metadata.Client.Account.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, strconv.FormatInt(model.Priority, 10))
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.LocalRulesGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -285,13 +285,13 @@ func (r LocalRuleStackRule) Create() sdk.ResourceFunc {
 				props.Protocol = pointer.To(model.Protocol)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
+			if _, err = client.LocalRulesCreateOrUpdate(ctx, id, localrules.LocalRulesResource{Properties: props}); err != nil {
 				return err
 			}
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.CommitThenPoll(ctx, *rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
@@ -304,7 +304,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRules
+			client := metadata.Client.PaloAlto.LocalRulesResources
 
 			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -313,7 +313,7 @@ func (r LocalRuleStackRule) Read() sdk.ResourceFunc {
 
 			var state LocalRuleModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.LocalRulesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -361,7 +361,7 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRules
+			client := metadata.Client.PaloAlto.LocalRulesResources
 
 			id, err := localrules.ParseLocalRuleID(metadata.ResourceData.Id())
 			if err != nil {
@@ -372,7 +372,7 @@ func (r LocalRuleStackRule) Delete() sdk.ResourceFunc {
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.LocalRulesDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -385,8 +385,8 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRules
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulesResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			model := LocalRuleModel{}
 
@@ -406,7 +406,7 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.LocalRulesGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retreiving %s: %+v", *id, err)
 			}
@@ -501,11 +501,11 @@ func (r LocalRuleStackRule) Update() sdk.ResourceFunc {
 				ruleEntry.Properties.Tags = expandTagsForRule(model.Tags)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, *id, ruleEntry); err != nil {
+			if _, err = client.LocalRulesCreateOrUpdate(ctx, *id, ruleEntry); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 

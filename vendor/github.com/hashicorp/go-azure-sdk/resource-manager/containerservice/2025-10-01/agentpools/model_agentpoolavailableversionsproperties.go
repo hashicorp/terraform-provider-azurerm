@@ -4,5 +4,5 @@ package agentpools
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type AgentPoolAvailableVersionsProperties struct {
-	AgentPoolVersions *[]AgentPoolAvailableVersionsPropertiesAgentPoolVersionsInlined `json:"agentPoolVersions,omitempty"`
+	AgentPoolVersions *[]AgentPoolAvailableVersionsPropertiesAgentPoolVersionsItem `json:"agentPoolVersions,omitempty"`
 }
