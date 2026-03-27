@@ -1214,7 +1214,7 @@ func flattenClusterPoolNetworkProfileTyped(input *managedclusters.AgentPoolNetwo
 	if input == nil || (input.NodePublicIPTags == nil && input.AllowedHostPorts == nil && input.ApplicationSecurityGroups == nil) {
 		return []NodeNetworkProfileModel{}
 	}
-
+	results := make([]NodeNetworkProfileModel, 0)
 	result := NodeNetworkProfileModel{
 		AllowedHostPorts:            flattenClusterPoolNetworkProfileAllowedHostPortsTyped(input.AllowedHostPorts),
 		ApplicationSecurityGroupIDs: []string{},
@@ -1224,8 +1224,8 @@ func flattenClusterPoolNetworkProfileTyped(input *managedclusters.AgentPoolNetwo
 	if input.ApplicationSecurityGroups != nil {
 		result.ApplicationSecurityGroupIDs = *input.ApplicationSecurityGroups
 	}
-
-	return []NodeNetworkProfileModel{result}
+	results = append(results, result)
+	return results
 }
 
 func flattenClusterPoolNetworkProfileAllowedHostPortsTyped(input *[]managedclusters.PortRange) []AllowedHostPortsModel {

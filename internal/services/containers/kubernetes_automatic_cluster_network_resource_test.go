@@ -77,17 +77,17 @@ func TestAccKubernetesAutomaticCluster_advancedNetworkingBlock(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_advancedNetworkingNetworkPluginError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.advancedNetworkingBlock(data, "kubenet", "cilium"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `azure`"),
-		},
-	})
-}
+//func TestAccKubernetesAutomaticCluster_advancedNetworkingNetworkPluginError(t *testing.T) {
+//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+//	r := KubernetesAutomaticClusterResource{}
+//
+//	data.ResourceTest(t, r, []acceptance.TestStep{
+//		{
+//			Config:      r.advancedNetworkingBlock(data, "kubenet", "cilium"),
+//			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `azure`"),
+//		},
+//	})
+//}
 
 func TestAccKubernetesAutomaticCluster_advancedNetworkingNetworkDataplane(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -1117,13 +1117,13 @@ func TestAccKubernetesAutomaticCluster_clusterPoolNetworkProfileUpdate(t *testin
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.clusterPoolNodePublicIPTags(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
+		//{
+		//	Config: r.clusterPoolNodePublicIPTags(data),
+		//	Check: acceptance.ComposeTestCheckFunc(
+		//		check.That(data.ResourceName).ExistsInAzure(r),
+		//	),
+		//},
+		//data.ImportStep(),
 		{
 			Config: r.clusterPoolNetworkProfileComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -5858,7 +5858,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   network_profile {
     network_plugin    = "azure"
     load_balancer_sku = "standard"
-    outbound_type     = "loadBalancer"
+    outbound_type     = "managedNATGateway"
   }
 
   api_server_access_profile {

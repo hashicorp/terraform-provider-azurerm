@@ -1898,7 +1898,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			autoScalerProfile := expandKubernetesAutomaticClusterAutoScalerProfile(model.AutoScalerProfile)
 
-			networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile, nil, nil)
+			networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
 			if err != nil {
 				return fmt.Errorf("expanding network profile: %+v", err)
 			}
@@ -2655,7 +2655,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("network_profile") {
-				networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile, nil, nil)
+				networkProfile, err := expandKubernetesAutomaticClusterNetworkProfile(model.NetworkProfile)
 				if err != nil {
 					return fmt.Errorf("expanding network profile: %+v", err)
 				}
@@ -2675,6 +2675,16 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("web_app_routing") {
 				props.IngressProfile = expandKubernetesAutomaticClusterWebAppRouting(model.WebAppRouting, metadata.ResourceData.HasChange("web_app_routing"))
+				updateCluster = true
+			}
+
+			if metadata.ResourceData.HasChange("upgrade_override") {
+				props.UpgradeSettings = expandKubernetesAutomaticClusterUpgradeOverride(model.UpgradeOverride)
+				updateCluster = true
+			}
+
+			if metadata.ResourceData.HasChange("bootstrap_profile") {
+				props.BootstrapProfile = expandKubernetesAutomaticClusterBootstrapProfile(model.BootstrapProfile)
 				updateCluster = true
 			}
 
@@ -3293,7 +3303,7 @@ func automaticResourceReferencesToIds(refs *[]managedclusters.ResourceReference)
 	return nil
 }
 
-func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel, advancedNetworkingOld, advancedNetworkingNew interface{}) (*managedclusters.ContainerServiceNetworkProfile, error) {
+func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel) (*managedclusters.ContainerServiceNetworkProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -3369,41 +3379,39 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel,
 	}
 
 	if len(config.AdvancedNetworking) > 0 {
-		networkProfile.AdvancedNetworking = expandKubernetesAutomaticClusterAdvancedNetworking(config.AdvancedNetworking, advancedNetworkingOld, advancedNetworkingNew)
+		networkProfile.AdvancedNetworking = expandKubernetesAutomaticClusterAdvancedNetworking(config.AdvancedNetworking)
 	}
 
 	return &networkProfile, nil
 }
 
-func expandKubernetesAutomaticClusterAdvancedNetworking(input []AdvancedNetworkingModel, oldValue, newValue interface{}) *managedclusters.AdvancedNetworking {
-	if len(input) == 0 {
-		if oldValue != nil && newValue == nil {
-			return &managedclusters.AdvancedNetworking{
-				Enabled: pointer.To(false),
-				Observability: &managedclusters.AdvancedNetworkingObservability{
-					Enabled: pointer.To(false),
-				},
-				Security: &managedclusters.AdvancedNetworkingSecurity{
-					Enabled: pointer.To(false),
-				},
-			}
-		}
-		return nil
-	}
-
-	config := input[0]
-	observabilityEnabled := config.ObservabilityEnabled
-	securityEnabled := config.SecurityEnabled
-
-	return &managedclusters.AdvancedNetworking{
-		Enabled: pointer.To(true),
+func expandKubernetesAutomaticClusterAdvancedNetworking(input []AdvancedNetworkingModel) *managedclusters.AdvancedNetworking {
+	advancedNetworkingConfig := managedclusters.AdvancedNetworking{
+		Enabled: pointer.To(false),
 		Observability: &managedclusters.AdvancedNetworkingObservability{
-			Enabled: pointer.To(observabilityEnabled),
+			Enabled: pointer.To(false),
 		},
 		Security: &managedclusters.AdvancedNetworkingSecurity{
-			Enabled: pointer.To(securityEnabled),
+			Enabled: pointer.To(false),
 		},
 	}
+	if len(input) != 0 {
+		config := input[0]
+		observabilityEnabled := config.ObservabilityEnabled
+		securityEnabled := config.SecurityEnabled
+
+		advancedNetworkingConfig = managedclusters.AdvancedNetworking{
+			Enabled: pointer.To(true),
+			Observability: &managedclusters.AdvancedNetworkingObservability{
+				Enabled: pointer.To(observabilityEnabled),
+			},
+			Security: &managedclusters.AdvancedNetworkingSecurity{
+				Enabled: pointer.To(securityEnabled),
+			},
+		}
+	}
+
+	return &advancedNetworkingConfig
 }
 
 func flattenKubernetesAutomaticClusterAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetworking) []AdvancedNetworkingModel {
