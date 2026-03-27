@@ -650,7 +650,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
             if existing.Model.Properties == nil {
                return fmt.Errorf("retrieving %s: `properties` was nil", id)
             }
-            
+
             ...
             return nil
         },
@@ -1002,9 +1002,9 @@ resource "azurerm_resource_group_example" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new Resource Group to be created.
+* `location` - (Required) The Azure Region where the Resource Group should exist. Changing this forces a new resource to be created.
 
-* `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new Resource Group to be created.
+* `name` - (Required) The Name which should be used for this Resource Group. Changing this forces a new resource to be created.
 
 ---
 
