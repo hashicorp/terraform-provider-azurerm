@@ -190,9 +190,9 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the Azure Managed Lustre File System Auto Export Job.
+* `create` - (Defaults to 2 hours) Used when creating the Azure Managed Lustre File System Auto Export Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Managed Lustre File System Auto Export Job.
-* `update` - (Defaults to 1 hour) Used when updating the Azure Managed Lustre File System Auto Export Job.
+* `update` - (Defaults to 2 hours) Used when updating the Azure Managed Lustre File System Auto Export Job.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Azure Managed Lustre File System Auto Export Job.
 
 ## Import

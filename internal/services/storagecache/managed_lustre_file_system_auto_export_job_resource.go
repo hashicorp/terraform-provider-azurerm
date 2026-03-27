@@ -81,7 +81,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) Arguments() map[string]*pl
 
 func (r ManagedLustreFileSystemAutoExportJobResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model ManagedLustreFileSystemAutoExportJobModel
 			if err := metadata.Decode(&model); err != nil {
@@ -211,7 +211,7 @@ func (r ManagedLustreFileSystemAutoExportJobResource) IDValidationFunc() plugins
 
 func (r ManagedLustreFileSystemAutoExportJobResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 60 * time.Minute,
+		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.StorageCache.AutoExportJob
 
