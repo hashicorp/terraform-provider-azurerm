@@ -168,7 +168,6 @@ func resourceBastionHost() *pluginsdk.Resource {
 			"private_only_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"tags": commonschema.Tags(),
