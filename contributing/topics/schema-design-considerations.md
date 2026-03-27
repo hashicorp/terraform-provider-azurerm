@@ -257,11 +257,15 @@ Would be better exposed as the following resources:
 - `azurerm_data_factory_linked_service_azure_function`
 - `azurerm_data_factory_linked_service_azure_search`
 
+## Common Fields Excluded from the Schema
+
+Fields that are not useful to customers, such as `type`, `state`, and `provisioning_state`, should not be exposed in the schema definition.
+
 ## Preview Fields
 
 Fields that are in preview should not be supported until they reach General Availability (GA) status, as they may change or be removed before becoming stable.
 
-## Flattening nested properties
+## Flattening Nested Properties
 
 When designing schemas, consider flattening properties with `MaxItems: 1` that contain only a single nested property unless the service team has confirmed additional nested properties are imminent. In those cases, add an inline comment explaining why the block is left unflattened so reviewers understand the rationale.
 
@@ -332,6 +336,8 @@ String arguments must be validated. Use `StringNotEmpty` at a minimum but ideall
 
 Numeric arguments should specify a valid range.
 
+Properties which are purely `Computed` (and not `Optional`) do not require a `ValidateFunc`.
+
 ```go
 "name": {
 	Type:     pluginsdk.TypeString,
@@ -392,3 +398,18 @@ Numeric arguments should specify a valid range.
 	ValidateFunc: validation.IntBetween(32, 16384),
 },
 ```
+
+## Validating Enums
+
+When defining validation for a field where all enumeration values defined in the SDK are valid options, use the built-in `PossibleValuesFor...` helper functions to define the allowed values instead of manually enumerating them. This approach reduces the risk of drift between the provider and the SDK. However, if some of the enumeration values are not supported by the current API, the supported values should be explicitly listed instead.
+
+For example:
+
+```go
+"sku_name": {
+	Type:         pluginsdk.TypeString,
+	Required:     true,
+	ValidateFunc: validation.StringInSlice(healthbots.PossibleValuesForSkuName(), false),
+},
+```
+
