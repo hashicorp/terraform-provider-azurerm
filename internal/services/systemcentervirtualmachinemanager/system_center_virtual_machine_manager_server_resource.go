@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/extendedlocation/2021-08-15/customlocations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/inventoryitems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/vmmservers"
@@ -20,6 +21,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name system_center_virtual_machine_manager_server -service-package-name systemcentervirtualmachinemanager -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-sequential
 
 type SystemCenterVirtualMachineManagerServerModel struct {
 	Name              string            `tfschema:"name"`
@@ -34,8 +37,9 @@ type SystemCenterVirtualMachineManagerServerModel struct {
 }
 
 var (
-	_ sdk.Resource           = SystemCenterVirtualMachineManagerServerResource{}
-	_ sdk.ResourceWithUpdate = SystemCenterVirtualMachineManagerServerResource{}
+	_ sdk.Resource             = SystemCenterVirtualMachineManagerServerResource{}
+	_ sdk.ResourceWithUpdate   = SystemCenterVirtualMachineManagerServerResource{}
+	_ sdk.ResourceWithIdentity = SystemCenterVirtualMachineManagerServerResource{}
 )
 
 type SystemCenterVirtualMachineManagerServerResource struct{}
@@ -50,6 +54,10 @@ func (r SystemCenterVirtualMachineManagerServerResource) IDValidationFunc() plug
 
 func (r SystemCenterVirtualMachineManagerServerResource) ResourceType() string {
 	return "azurerm_system_center_virtual_machine_manager_server"
+}
+
+func (r SystemCenterVirtualMachineManagerServerResource) Identity() resourceids.ResourceId {
+	return &vmmservers.VMmServerId{}
 }
 
 func (r SystemCenterVirtualMachineManagerServerResource) Arguments() map[string]*pluginsdk.Schema {
@@ -167,6 +175,9 @@ func (r SystemCenterVirtualMachineManagerServerResource) Create() sdk.ResourceFu
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -191,25 +202,41 @@ func (r SystemCenterVirtualMachineManagerServerResource) Read() sdk.ResourceFunc
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			state := SystemCenterVirtualMachineManagerServerModel{}
-			if model := resp.Model; model != nil {
-				state.Name = id.VmmServerName
-				state.ResourceGroupName = id.ResourceGroupName
-				state.Location = location.Normalize(model.Location)
-				state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
-				state.Fqdn = model.Properties.Fqdn
-				state.Password = metadata.ResourceData.Get("password").(string)
-				state.Port = pointer.From(model.Properties.Port)
-				state.Tags = pointer.From(model.Tags)
-
-				if v := model.Properties.Credentials; v != nil {
-					state.Username = pointer.From(v.Username)
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, resp.Model)
 		},
 	}
+}
+
+func (r SystemCenterVirtualMachineManagerServerResource) flatten(metadata sdk.ResourceMetaData, id *vmmservers.VMmServerId, model *vmmservers.VMmServer) error {
+	state := SystemCenterVirtualMachineManagerServerModel{
+		Name:              id.VmmServerName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.CustomLocationId = pointer.From(model.ExtendedLocation.Name)
+		state.Tags = pointer.From(model.Tags)
+
+		if model.Properties != nil {
+			state.Fqdn = model.Properties.Fqdn
+			state.Port = pointer.From(model.Properties.Port)
+
+			if v := model.Properties.Credentials; v != nil {
+				state.Username = pointer.From(v.Username)
+			}
+		}
+
+		if existingPassword, ok := metadata.ResourceData.Get("password").(string); ok {
+			state.Password = existingPassword
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r SystemCenterVirtualMachineManagerServerResource) Update() sdk.ResourceFunc {

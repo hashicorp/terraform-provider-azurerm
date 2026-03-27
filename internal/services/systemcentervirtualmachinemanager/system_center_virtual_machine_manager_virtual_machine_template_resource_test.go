@@ -28,10 +28,11 @@ func TestAccSystemCenterVirtualMachineManagerVirtualMachineTemplateSequential(t 
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
 		"scvmmVirtualMachineTemplate": {
-			"basic":          testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_basic,
-			"requiresImport": testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_requiresImport,
-			"complete":       testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_complete,
-			"update":         testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_update,
+			"basic":            testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_basic,
+			"requiresImport":   testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_requiresImport,
+			"complete":         testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_complete,
+			"update":           testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_update,
+			"resourceIdentity": testAccSystemCenterVirtualMachineManagerVirtualMachineTemplate_resourceIdentity,
 		},
 	})
 }
