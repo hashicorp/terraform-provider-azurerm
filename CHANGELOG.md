@@ -1,3 +1,19 @@
+## 4.67.0 (Unreleased)
+
+ENHANCEMENTS:
+* Data Source: `azurerm_application_gateway` - export the `backend`, `listener`, and `routing_rule` properties [GH-30376]
+* `azurerm_application_gateway` - add support for the `backend`, `listener`, and `routing_rule` properties [GH-30376]
+* dependencies: `go-azure-sdk` - upgrade to `v0.20260326.1151219` [GH-32047]
+* `azurerm_nat_gateway` - add support for the `StandardV2` SKU [GH-31197]
+* `azurerm_public_ip` - add support for the `StandardV2` SKU [GH-31197]
+* `azurerm_public_ip_prefix` - add support for the `StandardV2` SKU [GH-31197]
+
+FEATURES:
+* **New Resource**: `azurerm_kubernetes_cluster_deployment_safeguard` [GH-31670]
+
+BUG FIXES:
+* `azurerm_cosmosdb_account` - fix an API error caused by `backup.interval_in_minutes` and `backup.retention_in_hours` being set to `0` in the API payload when not defined in config [GH-32037]
+
 ## 4.66.0 (March 26, 2026)
 
 FEATURES:
