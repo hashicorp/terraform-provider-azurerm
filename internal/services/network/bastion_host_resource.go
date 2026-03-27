@@ -310,9 +310,8 @@ func resourceBastionHostCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if sku == bastionhosts.BastionHostSkuNamePremium {
-		if _, ok := d.GetOk("ip_configuration.0.public_ip_address_id"); !ok {
-			parameters.Properties.EnablePrivateOnlyBastion = pointer.To(true)
-		}
+		_, ok := d.GetOk("ip_configuration.0.public_ip_address_id")
+		parameters.Properties.EnablePrivateOnlyBastion = pointer.To(!ok)
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
