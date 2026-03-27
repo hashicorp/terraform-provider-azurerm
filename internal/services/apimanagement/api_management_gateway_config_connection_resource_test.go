@@ -88,7 +88,7 @@ provider "azurerm" {
 resource "azurerm_api_management_gateway_config_connection" "test" {
   name                      = "acctest-gc-%d"
   api_management_gateway_id = azurerm_api_management_standalone_gateway.test.id
-  source_id                 = azurerm_api_management_workspace.test.id
+  workspace_id                 = azurerm_api_management_workspace.test.id
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -100,7 +100,7 @@ func (r ApiManagementGatewayConfigConnectionResource) requiresImport(data accept
 resource "azurerm_api_management_gateway_config_connection" "import" {
   name                      = azurerm_api_management_gateway_config_connection.test.name
   api_management_gateway_id = azurerm_api_management_gateway_config_connection.test.api_management_gateway_id
-  source_id                 = azurerm_api_management_gateway_config_connection.test.source_id
+  workspace_id                 = azurerm_api_management_gateway_config_connection.test.workspace_id
 }
 `, r.basic(data))
 }
@@ -116,7 +116,7 @@ provider "azurerm" {
 resource "azurerm_api_management_gateway_config_connection" "test" {
   name                      = "acctest-gc-%d"
   api_management_gateway_id = azurerm_api_management_standalone_gateway.test.id
-  source_id                 = azurerm_api_management_workspace.test.id
+  workspace_id                 = azurerm_api_management_workspace.test.id
 
   hostnames = [
     "example.com",

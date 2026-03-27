@@ -23,7 +23,7 @@ import (
 type ApiManagementGatewayConfigConnectionModel struct {
 	Name                   string   `tfschema:"name"`
 	ApiManagementGatewayId string   `tfschema:"api_management_gateway_id"`
-	SourceId               string   `tfschema:"source_id"`
+	WorkspaceId            string   `tfschema:"workspace_id"`
 	Hostnames              []string `tfschema:"hostnames"`
 }
 
@@ -57,7 +57,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Arguments() map[string]*pl
 
 		"api_management_gateway_id": commonschema.ResourceIDReferenceRequiredForceNew(&apigateway.GatewayId{}),
 
-		"source_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
+		"workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
 
 		"hostnames": {
 			Type:     pluginsdk.TypeSet,
@@ -93,7 +93,6 @@ func (r ApiManagementGatewayConfigConnectionResource) Create() sdk.ResourceFunc 
 
 			id := apigatewayconfigconnection.NewConfigConnectionID(gatewayId.SubscriptionId, gatewayId.ResourceGroupName, gatewayId.GatewayName, model.Name)
 
-			metadata.Logger.Infof("Import check for %s", id)
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -103,10 +102,9 @@ func (r ApiManagementGatewayConfigConnectionResource) Create() sdk.ResourceFunc 
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			metadata.Logger.Infof("Creating %s", id)
 			payload := apigatewayconfigconnection.ApiManagementGatewayConfigConnectionResource{
 				Properties: apigatewayconfigconnection.GatewayConfigConnectionBaseProperties{
-					SourceId: pointer.To(model.SourceId),
+					SourceId: pointer.To(model.WorkspaceId),
 				},
 			}
 
@@ -135,7 +133,6 @@ func (r ApiManagementGatewayConfigConnectionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			metadata.Logger.Infof("Reading %s", *id)
 			resp, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -150,7 +147,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.SourceId = pointer.From(model.Properties.SourceId)
+				state.WorkspaceId = pointer.From(model.Properties.SourceId)
 				state.Hostnames = pointer.From(model.Properties.Hostnames)
 			}
 
@@ -170,7 +167,6 @@ func (r ApiManagementGatewayConfigConnectionResource) Delete() sdk.ResourceFunc 
 				return err
 			}
 
-			metadata.Logger.Infof("Deleting %s", *id)
 			if err := client.DeleteThenPoll(ctx, *id, apigatewayconfigconnection.DefaultDeleteOperationOptions()); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
