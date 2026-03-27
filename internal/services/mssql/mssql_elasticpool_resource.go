@@ -159,11 +159,11 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			},
 
 			"max_size_bytes": {
-				Type:          pluginsdk.TypeInt,
+				Type:          pluginsdk.TypeFloat,
 				Optional:      true,
 				Computed:      true,
 				ConflictsWith: []string{"max_size_gb"},
-				ValidateFunc:  validation.IntAtLeast(0),
+				ValidateFunc:  validation.FloatAtLeast(0),
 			},
 
 			"max_size_gb": {
@@ -282,7 +282,16 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			elasticPool.Properties.MaxSizeBytes = pointer.To(int64(maxSizeBytes))
 		}
 	} else if v, ok := d.GetOk("max_size_bytes"); ok {
-		elasticPool.Properties.MaxSizeBytes = pointer.To(int64(v.(int)))
+		switch t := v.(type) {
+		case int:
+			elasticPool.Properties.MaxSizeBytes = pointer.To(int64(t))
+		case int64:
+			elasticPool.Properties.MaxSizeBytes = pointer.To(t)
+		case float64:
+			elasticPool.Properties.MaxSizeBytes = pointer.To(int64(t))
+		default:
+			return fmt.Errorf("unexpected type for max_size_bytes: %T", v)
+		}
 	}
 
 	err := client.CreateOrUpdateThenPoll(ctx, id, elasticPool)
@@ -336,8 +345,10 @@ func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids
 				enclaveType = string(pointer.From(v))
 			}
 			d.Set("enclave_type", enclaveType)
-			d.Set("max_size_gb", pointer.To(float64(*props.MaxSizeBytes)/1073741824))
-			d.Set("max_size_bytes", pointer.To(props.MaxSizeBytes))
+			if props.MaxSizeBytes != nil {
+				d.Set("max_size_gb", float64(*props.MaxSizeBytes)/1073741824)
+				d.Set("max_size_bytes", float64(*props.MaxSizeBytes))
+			}
 			d.Set("zone_redundant", pointer.From(props.ZoneRedundant))
 
 			licenseType := string(elasticpools.ElasticPoolLicenseTypeLicenseIncluded)

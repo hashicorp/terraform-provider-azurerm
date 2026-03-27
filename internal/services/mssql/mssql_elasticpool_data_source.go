@@ -42,7 +42,7 @@ func dataSourceMsSqlElasticpool() *pluginsdk.Resource {
 			"location": commonschema.LocationComputed(),
 
 			"max_size_bytes": {
-				Type:     pluginsdk.TypeInt,
+				Type:     pluginsdk.TypeFloat,
 				Computed: true,
 			},
 
@@ -139,8 +139,10 @@ func dataSourceMsSqlElasticpoolRead(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if props := model.Properties; props != nil {
-			d.Set("max_size_gb", float64(*props.MaxSizeBytes/int64(1073741824)))
-			d.Set("max_size_bytes", props.MaxSizeBytes)
+			if props.MaxSizeBytes != nil {
+				d.Set("max_size_gb", float64(*props.MaxSizeBytes)/1073741824)
+				d.Set("max_size_bytes", float64(*props.MaxSizeBytes))
+			}
 			d.Set("zone_redundant", props.ZoneRedundant)
 
 			licenseType := ""
