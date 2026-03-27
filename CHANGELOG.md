@@ -1,6 +1,7 @@
 ## 4.67.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_application_gateway` - add support for the `backend`, `listener`, and `routing_rule` arguments [GH-30376]
 * dependencies: `go-azure-sdk` - upgrade to `v0.20260326.1151219` [GH-32047]
 * `azurerm_nat_gateway` - add support for the `StandardV2` SKU [GH-31197]
 * `azurerm_public_ip` - add support for the `StandardV2` SKU [GH-31197]
