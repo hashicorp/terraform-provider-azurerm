@@ -35,10 +35,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/rollingupgradestatusinfos"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2025-04-01/virtualmachinescalesetvms"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -75,7 +75,7 @@ type Client struct {
 	VirtualMachineRunCommandsClient             *virtualmachineruncommands.VirtualMachineRunCommandsClient
 	VirtualMachineScaleSetsClient               *virtualmachinescalesets.VirtualMachineScaleSetsClient
 	VirtualMachineScaleSetExtensionsClient      *virtualmachinescalesetextensions.VirtualMachineScaleSetExtensionsClient
-	VirtualMachineScaleSetRollingUpgradesClient *virtualmachinescalesetrollingupgrades.VirtualMachineScaleSetRollingUpgradesClient
+	VirtualMachineScaleSetRollingUpgradesClient *rollingupgradestatusinfos.RollingUpgradeStatusInfosClient
 	VirtualMachineScaleSetVMsClient             *virtualmachinescalesetvms.VirtualMachineScaleSetVMsClient
 	VirtualMachineImagesClient                  *virtualmachineimages.VirtualMachineImagesClient
 }
@@ -237,7 +237,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(virtualMachineRunCommandsClient.Client, o.Authorizers.ResourceManager)
 
-	virtualMachineScaleSetRollingUpgradesClient, err := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetRollingUpgradesClientWithBaseURI(o.Environment.ResourceManager)
+	virtualMachineScaleSetRollingUpgradesClient, err := rollingupgradestatusinfos.NewRollingUpgradeStatusInfosClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachineScaleSetRollingUpgrades client: %+v", err)
 	}
@@ -304,9 +304,9 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id virtualmachinescalesets.VirtualMachineScaleSetId) error {
 	// TODO replace with commonid once https://github.com/hashicorp/pandora/issues/4017 has been merged
-	virtualMachineScaleSetId := virtualmachinescalesetrollingupgrades.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+	rollingUpgradeId := rollingupgradestatusinfos.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
 
-	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.GetLatest(ctx, virtualMachineScaleSetId)
+	resp, err := c.VirtualMachineScaleSetRollingUpgradesClient.VirtualMachineScaleSetRollingUpgradesGetLatest(ctx, rollingUpgradeId)
 	if err != nil {
 		// No rolling upgrades are running so skipping attempt to cancel them before deletion
 		if response.WasNotFound(resp.HttpResponse) {
@@ -315,7 +315,7 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id vir
 		return fmt.Errorf("retrieving rolling updates for %s: %+v", id, err)
 	}
 
-	var upgradeStatus virtualmachinescalesetrollingupgrades.RollingUpgradeStatusCode
+	var upgradeStatus rollingupgradestatusinfos.RollingUpgradeStatusCode
 	if model := resp.Model; model != nil && model.Properties != nil {
 		if status := model.Properties.RunningStatus; status != nil {
 			upgradeStatus = pointer.From(status.Code)
@@ -323,11 +323,11 @@ func (c *Client) CancelRollingUpgradesBeforeDeletion(ctx context.Context, id vir
 	}
 
 	// If lastest rolling upgrade is marked as completed, skip cancellation
-	if upgradeStatus == virtualmachinescalesetrollingupgrades.RollingUpgradeStatusCodeCompleted {
+	if upgradeStatus == rollingupgradestatusinfos.RollingUpgradeStatusCodeCompleted {
 		return nil
 	}
 
-	future, err := c.VirtualMachineScaleSetRollingUpgradesClient.Cancel(ctx, virtualMachineScaleSetId)
+	future, err := c.VirtualMachineScaleSetsClient.VirtualMachineScaleSetRollingUpgradesCancel(ctx, id)
 	if err != nil {
 		// If there is no rolling upgrade the API will throw a 409/No rolling upgrade to cancel
 		// we don't error out in this case
