@@ -83,7 +83,7 @@ func (r AppServiceSlotCustomHostnameBindingResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Web.AppServicesClient.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
+	resp, err := clients.Web.AppServicesClientV1.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil

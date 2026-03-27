@@ -162,7 +162,7 @@ func (r AppServiceCertificateOrderResource) Exists(ctx context.Context, clients 
 		return nil, err
 	}
 
-	resp, err := clients.Web.CertificatesOrderClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Web.CertificatesOrderClientV1.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
