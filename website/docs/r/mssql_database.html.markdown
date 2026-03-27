@@ -53,6 +53,37 @@ resource "azurerm_mssql_database" "example" {
 }
 ```
 
+## Example Usage (Free Tier)
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_mssql_server" "example" {
+  name                         = "example-sqlserver"
+  resource_group_name          = azurerm_resource_group.example.name
+  location                     = azurerm_resource_group.example.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_database" "example" {
+  name                           = "example-db"
+  server_id                      = azurerm_mssql_server.example.id
+  sku_name                       = "GP_S_Gen5_1"
+  use_free_limit                 = true
+  free_limit_exhaustion_behavior = "AutoPause"
+  storage_account_type           = "Local"
+}
+```
+
 ## Example Usage for Transparent Data Encryption(TDE) with a Customer Managed Key(CMK) during Create
 ```hcl
 provider "azurerm" {
@@ -188,6 +219,12 @@ The following arguments are supported:
 
 ~> **Note:** The default value for the `enclave_type` field is unset not `Default`.
 
+* `free_limit_exhaustion_behavior` - (Optional) Specifies the behavior when monthly free limits are exhausted for the free database. Possible values are `AutoPause` and `BillOverUsage`. `AutoPause` pauses the database until the next calendar month, while `BillOverUsage` continues to use the database and bills any usage above the free limits. Must be set when `use_free_limit` is `true`.
+
+~> **Note:** When `free_limit_exhaustion_behavior` is set to `AutoPause`, `storage_account_type` must be set to `Local`.
+
+~> **Note:** `free_limit_exhaustion_behavior` can be changed from `AutoPause` to `BillOverUsage`, but cannot be changed from `BillOverUsage` back to `AutoPause`. To revert to `AutoPause` the database must be recreated.
+
 * `geo_backup_enabled` - (Optional) A boolean that specifies if the Geo Backup Policy is enabled. Defaults to `true`.
 
 ~> **Note:** `geo_backup_enabled` is only applicable for DataWarehouse SKUs (DW*). This setting is ignored for all other SKUs.
@@ -249,6 +286,10 @@ The following arguments are supported:
 * `transparent_data_encryption_key_automatic_rotation_enabled` - (Optional) Boolean flag to specify whether TDE automatically rotates the encryption Key to latest version or not. Possible values are `true` or `false`. Defaults to `false`.
 
 ~> **Note:** When the `sku_name` is `DW100c`, the `transparent_data_encryption_key_automatic_rotation_enabled` and the `transparent_data_encryption_key_vault_key_id` properties should not be specified, as database-level CMK is not supported for Data Warehouse SKUs.
+
+* `use_free_limit` - (Optional) If set to `true`, the database uses the Azure Free Tier limits. Only one free database per subscription is allowed.
+
+-> **Note:** Free Tier databases do not support long-term and short-term retention policies.
 
 * `zone_redundant` - (Optional) Whether or not this database is zone redundant, which means the replicas of this database will be spread across multiple availability zones. This property is only settable for Premium and Business Critical databases.
 
