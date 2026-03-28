@@ -80,6 +80,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The Bot Channel ID.
 
+* `extension_key_1` - (Optional) The first key for Directline App Service Extension.
+
+* `extension_key_2` - (Optional) The second key for Directline App Service Extension.
+
 ---
 
 A `site` block exports the following:
