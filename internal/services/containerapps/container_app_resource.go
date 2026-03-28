@@ -448,9 +448,16 @@ func (r ContainerAppResource) CustomizeDiff() sdk.ResourceFunc {
 			if err := metadata.DecodeDiff(&app); err != nil {
 				return err
 			}
-			// Ingress traffic weight validations
+
 			if len(app.Ingress) != 0 {
 				ingress := app.Ingress[0]
+				// Ingress sticky session validations
+				if len(ingress.StickySessions) != 0 &&
+					ingress.StickySessions[0].Affinity == string(containerapps.AffinitySticky) &&
+					app.RevisionMode != string(containerapps.ActiveRevisionsModeSingle) {
+					return fmt.Errorf("`sticky` session affinity can only be used in conjunction with `Single` `revision_mode`")
+				}
+				// Ingress traffic weight validations
 
 				for i, tw := range ingress.TrafficWeights {
 					if !tw.LatestRevision && tw.RevisionSuffix == "" {
