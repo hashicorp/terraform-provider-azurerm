@@ -131,6 +131,28 @@ func datasourceAutomationVariableCommonSchema(attType pluginsdk.ValueType) map[s
 	}
 }
 
+func formatAutomationVariableValue(d *pluginsdk.ResourceData, varType string) (string, error) {
+	switch strings.ToLower(varType) {
+	case "datetime":
+		vTime, err := time.Parse(time.RFC3339, d.Get("value").(string))
+		if err != nil {
+			return "", fmt.Errorf("invalid time format: %+v", err)
+		}
+		return fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000), nil
+	case "bool":
+		return strconv.FormatBool(d.Get("value").(bool)), nil
+	case "int":
+		return strconv.Itoa(d.Get("value").(int)), nil
+	case "object":
+		// We don't quote the object so it gets saved as a JSON object
+		return d.Get("value").(string), nil
+	case "string":
+		return strconv.Quote(d.Get("value").(string)), nil
+	default:
+		return "", nil
+	}
+}
+
 func resourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -152,26 +174,6 @@ func resourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta interface{
 		return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), id.ID())
 	}
 
-	value := ""
-
-	switch varTypeLower {
-	case "datetime":
-		vTime, parseErr := time.Parse(time.RFC3339, d.Get("value").(string))
-		if parseErr != nil {
-			return fmt.Errorf("invalid time format: %+v", parseErr)
-		}
-		value = fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000)
-	case "bool":
-		value = strconv.FormatBool(d.Get("value").(bool))
-	case "int":
-		value = strconv.Itoa(d.Get("value").(int))
-	case "object":
-		// We don't quote the object so it gets saved as a JSON object
-		value = d.Get("value").(string)
-	case "string":
-		value = strconv.Quote(d.Get("value").(string))
-	}
-
 	parameters := variable.VariableCreateOrUpdateParameters{
 		Name: id.VariableName,
 		Properties: variable.VariableCreateOrUpdateProperties{
@@ -181,6 +183,10 @@ func resourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if varTypeLower != "null" {
+		value, err := formatAutomationVariableValue(d, varType)
+		if err != nil {
+			return err
+		}
 		parameters.Properties.Value = pointer.To(value)
 	}
 
@@ -198,8 +204,6 @@ func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta interface{
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	varTypeLower := strings.ToLower(varType)
-
 	id, err := variable.ParseVariableID(d.Id())
 	if err != nil {
 		return err
@@ -216,14 +220,14 @@ func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("retrieving existing Automation %s Variable %s: model or properties were nil", varType, id)
 	}
 
-	props := existing.Model.Properties
+	existingProps := existing.Model.Properties
 
 	parameters := variable.VariableCreateOrUpdateParameters{
 		Name: id.VariableName,
 		Properties: variable.VariableCreateOrUpdateProperties{
-			Description: props.Description,
-			IsEncrypted: props.IsEncrypted,
-			Value:       props.Value,
+			Description: existingProps.Description,
+			IsEncrypted: existingProps.IsEncrypted,
+			Value:       existingProps.Value,
 		},
 	}
 
@@ -236,27 +240,12 @@ func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("value") {
-		value := ""
-
-		switch varTypeLower {
-		case "datetime":
-			vTime, parseErr := time.Parse(time.RFC3339, d.Get("value").(string))
-			if parseErr != nil {
-				return fmt.Errorf("invalid time format: %+v", parseErr)
-			}
-			value = fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000)
-		case "bool":
-			value = strconv.FormatBool(d.Get("value").(bool))
-		case "int":
-			value = strconv.Itoa(d.Get("value").(int))
-		case "object":
-			// We don't quote the object so it gets saved as a JSON object
-			value = d.Get("value").(string)
-		case "string":
-			value = strconv.Quote(d.Get("value").(string))
-		}
-
+		varTypeLower := strings.ToLower(varType)
 		if varTypeLower != "null" {
+			value, err := formatAutomationVariableValue(d, varType)
+			if err != nil {
+				return err
+			}
 			parameters.Properties.Value = pointer.To(value)
 		}
 	}
