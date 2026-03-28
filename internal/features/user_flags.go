@@ -86,6 +86,8 @@ type ApplicationInsightFeatures struct {
 
 type ManagedDiskFeatures struct {
 	ExpandWithoutDowntime bool
+	StopVMBeforeDetaching bool
+	SkipAttachmentDestroy bool
 }
 
 type AppConfigurationFeatures struct {
