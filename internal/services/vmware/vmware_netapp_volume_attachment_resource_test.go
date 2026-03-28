@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type VmwareNetappFileVolumeAttachmentResource struct{}
+type VmwareNetappVolumeAttachmentResource struct{}
 
 func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_vmware_netapp_volume_attachment", "test")
-	r := VmwareNetappFileVolumeAttachmentResource{}
+	r := VmwareNetappVolumeAttachmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccVmwarePrivateCloudNetappFileVolumeAttachment_basic(t *testing.T) {
 	})
 }
 
-func (r VmwareNetappFileVolumeAttachmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VmwareNetappVolumeAttachmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := datastores.ParseDataStoreID(state.ID)
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (r VmwareNetappFileVolumeAttachmentResource) Exists(ctx context.Context, cl
 	return pointer.To(true), nil
 }
 
-func (r VmwareNetappFileVolumeAttachmentResource) basic(data acceptance.TestData) string {
+func (r VmwareNetappVolumeAttachmentResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
@@ -69,7 +69,7 @@ resource "azurerm_vmware_netapp_volume_attachment" "test" {
 }`, data.RandomInteger, r.templatePrivateCloud(data), r.templateNetappFile(data), data.RandomInteger)
 }
 
-func (r VmwareNetappFileVolumeAttachmentResource) templatePrivateCloud(data acceptance.TestData) string {
+func (r VmwareNetappVolumeAttachmentResource) templatePrivateCloud(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -133,7 +133,7 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 `, r.templateVnet(data), data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VmwareNetappFileVolumeAttachmentResource) templateNetappFile(data acceptance.TestData) string {
+func (r VmwareNetappVolumeAttachmentResource) templateNetappFile(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
@@ -205,7 +205,7 @@ resource "azurerm_netapp_volume" "test" {
 }`, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VmwareNetappFileVolumeAttachmentResource) templateVnet(data acceptance.TestData) string {
+func (r VmwareNetappVolumeAttachmentResource) templateVnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
