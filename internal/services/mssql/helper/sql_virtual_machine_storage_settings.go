@@ -71,7 +71,7 @@ func SQLTempDBStorageSettingSchema() *pluginsdk.Schema {
 				},
 				"luns": {
 					Type:     pluginsdk.TypeList,
-					Required: true,
+					Optional: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeInt,
 					},

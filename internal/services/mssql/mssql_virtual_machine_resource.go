@@ -572,7 +572,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 			},
 			SqlManagement:                &sqlManagement,
 			SqlServerLicenseType:         &sqlServerLicenseType,
-			StorageConfigurationSettings: expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{})),
+			StorageConfigurationSettings: expandSqlVirtualMachineStorageConfigurationSettings(d.Get("storage_configuration").([]interface{}), isTempDbLunsInConfig(d)),
 			VirtualMachineResourceId:     pointer.To(d.Get("virtual_machine_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -1245,7 +1245,7 @@ func mssqlVMCredentialNameDiffSuppressFunc(_, old, new string, _ *pluginsdk.Reso
 	return false
 }
 
-func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *sqlvirtualmachines.StorageConfigurationSettings {
+func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}, tempDbLunsInConfig bool) *sqlvirtualmachines.StorageConfigurationSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
@@ -1260,8 +1260,27 @@ func expandSqlVirtualMachineStorageConfigurationSettings(input []interface{}) *s
 		SqlSystemDbOnDataDisk: pointer.To(storageSettings["system_db_on_data_disk_enabled"].(bool)),
 		SqlDataSettings:       expandSqlVirtualMachineDataStorageSettings(storageSettings["data_settings"].([]interface{})),
 		SqlLogSettings:        expandSqlVirtualMachineDataStorageSettings(storageSettings["log_settings"].([]interface{})),
-		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{})),
+		SqlTempDbSettings:     expandSqlVirtualMachineTempDbSettings(storageSettings["temp_db_settings"].([]interface{}), tempDbLunsInConfig),
 	}
+}
+
+func isTempDbLunsInConfig(d *pluginsdk.ResourceData) bool {
+	rawConfig := d.GetRawConfig().AsValueMap()
+	if rawConfig == nil {
+		return false
+	}
+
+	sc := rawConfig["storage_configuration"]
+	if sc.IsNull() || sc.LengthInt() == 0 {
+		return false
+	}
+
+	td := sc.AsValueSlice()[0].AsValueMap()["temp_db_settings"]
+	if td.IsNull() || td.LengthInt() == 0 {
+		return false
+	}
+
+	return !td.AsValueSlice()[0].AsValueMap()["luns"].IsNull()
 }
 
 func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachines.StorageConfigurationSettings, storageWorkloadType string) []interface{} {
@@ -1338,14 +1357,19 @@ func flattenSqlVirtualMachineStorageSettings(input *sqlvirtualmachines.SQLStorag
 	return []interface{}{attrs}
 }
 
-func expandSqlVirtualMachineTempDbSettings(input []interface{}) *sqlvirtualmachines.SQLTempDbSettings {
+func expandSqlVirtualMachineTempDbSettings(input []interface{}, lunsInConfig bool) *sqlvirtualmachines.SQLTempDbSettings {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	tempDbSettings := input[0].(map[string]interface{})
 
+	var luns *[]int64
+	if lunsInConfig {
+		luns = expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{}))
+	}
+
 	return &sqlvirtualmachines.SQLTempDbSettings{
-		Luns:            expandSqlVirtualMachineStorageSettingsLuns(tempDbSettings["luns"].([]interface{})),
+		Luns:            luns,
 		DefaultFilePath: pointer.To(tempDbSettings["default_file_path"].(string)),
 		DataFileCount:   pointer.To(int64(tempDbSettings["data_file_count"].(int))),
 		DataFileSize:    pointer.To(int64(tempDbSettings["data_file_size_mb"].(int))),
