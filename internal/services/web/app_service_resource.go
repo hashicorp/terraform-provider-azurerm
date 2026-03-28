@@ -33,7 +33,7 @@ func resourceAppService() *pluginsdk.Resource {
 		Update: resourceAppServiceUpdate,
 		Delete: resourceAppServiceDelete,
 
-		DeprecationMessage: "The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. Whilst this resource will continue to be available in the 2.x and 3.x releases it is feature-frozen for compatibility purposes, will no longer receive any updates and will be removed in a future major release of the Azure Provider.",
+		DeprecationMessage: "The `azurerm_app_service` resource has been superseded by the `azurerm_linux_web_app` and `azurerm_windows_web_app` resources. This resource will be removed in v5.0 of the AzureRM Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.AppServiceID(id)
@@ -228,8 +228,8 @@ func resourceAppService() *pluginsdk.Resource {
 }
 
 func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
-	aspClient := meta.(*clients.Client).Web.AppServicePlansClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
+	aspClient := meta.(*clients.Client).Web.AppServicePlansClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -385,7 +385,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -617,7 +617,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -795,7 +795,7 @@ func resourceAppServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceAppServiceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

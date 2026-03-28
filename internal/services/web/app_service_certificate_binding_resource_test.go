@@ -10,12 +10,13 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppServiceCertificateBindingResource struct{}
@@ -80,41 +81,36 @@ func TestAccAppServiceCertificateBinding_requiresImport(t *testing.T) {
 }
 
 func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CertificateBindingID(state.ID)
+	id, err := commonids.ParseCompositeResourceID(state.ID, &webapps.HostNameBindingId{}, &certificates.CertificateId{})
 	if err != nil {
 		return nil, err
 	}
 
-	binding, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name)
+	binding, err := clients.Web.WebAppsClient.GetHostNameBinding(ctx, *id.First)
 	if err != nil {
-		if utils.ResponseWasNotFound(binding.Response) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving App Service Hostname Binding %q (resource group %q) to check for Certificate Binding %q: %+v", id.HostnameBindingId.Name, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.Name, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
-	certificate, err := clients.Web.CertificatesClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
+
+	certificate, err := clients.Web.CertificatesClient.Get(ctx, *id.Second)
 	if err != nil {
-		if utils.ResponseWasNotFound(certificate.Response) {
-			return pointer.To(false), nil
-		}
-		return nil, fmt.Errorf("retrieving App Service Certificate %q (resource group %q) to check for Certificate Binding: %+v", id.CertificateId.Name, id.CertificateId.ResourceGroup, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id.First, err)
 	}
-	bindingProps := binding.HostNameBindingProperties
-	if bindingProps == nil || bindingProps.Thumbprint == nil {
-		return pointer.To(false), nil
+
+	if binding.Model == nil || binding.Model.Properties == nil || binding.Model.Properties.Thumbprint == nil {
+		return nil, fmt.Errorf("retrieving %s: unable to retrieve thumbprint", id.First)
 	}
-	certProps := certificate.CertificateProperties
-	if certProps == nil || certProps.Thumbprint == nil {
-		return nil, fmt.Errorf("reading Certificate thumbprint for verification on binding")
+
+	if certificate.Model == nil || certificate.Model.Properties == nil || certificate.Model.Properties.Thumbprint == nil {
+		return nil, fmt.Errorf("retrieving %s: unable to retrieve thumbprint", id.Second)
 	}
-	if *certProps.Thumbprint != *bindingProps.Thumbprint {
+
+	if *certificate.Model.Properties.Thumbprint != *binding.Model.Properties.Thumbprint {
 		return pointer.To(false), nil
 	}
 	return pointer.To(true), nil
 }
 
 func (t AppServiceCertificateBindingResource) basic(data acceptance.TestData) string {
-	template := t.testAccCertificateBinding_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -127,11 +123,10 @@ resource "azurerm_app_service_certificate_binding" "test" {
 }
 
 %s
-`, template)
+`, t.testAccCertificateBinding_template(data))
 }
 
 func (t AppServiceCertificateBindingResource) basicSniEnabled(data acceptance.TestData) string {
-	template := t.testAccCertificateBinding_template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -144,11 +139,10 @@ resource "azurerm_app_service_certificate_binding" "test" {
 }
 
 %s
-`, template)
+`, t.testAccCertificateBinding_template(data))
 }
 
 func (t AppServiceCertificateBindingResource) requiresImport(data acceptance.TestData) string {
-	template := t.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +151,7 @@ resource "azurerm_app_service_certificate_binding" "import" {
   certificate_id      = azurerm_app_service_certificate_binding.test.certificate_id
   ssl_state           = azurerm_app_service_certificate_binding.test.ssl_state
 }
-`, template)
+`, t.basic(data))
 }
 
 func (AppServiceCertificateBindingResource) testAccCertificateBinding_template(data acceptance.TestData) string {
@@ -166,12 +160,12 @@ func (AppServiceCertificateBindingResource) testAccCertificateBinding_template(d
 	return fmt.Sprintf(`
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-asmc-%d"
-  location = "%s"
+  name     = "acctestRG-asmc-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_app_service_plan" "test" {
-  name                = "acctestASP-%d"
+  name                = "acctestASP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   kind                = "Linux"
@@ -185,19 +179,19 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_app_service" "test" {
-  name                = "acctest%s"
+  name                = "acctest%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   app_service_plan_id = azurerm_app_service_plan.test.id
 }
 
 data "azurerm_dns_zone" "test" {
-  name                = "%s"
-  resource_group_name = "%s"
+  name                = "%[4]s"
+  resource_group_name = "%[5]s"
 }
 
 resource "azurerm_dns_cname_record" "test" {
-  name                = "%s"
+  name                = "%[3]s"
   zone_name           = data.azurerm_dns_zone.test.name
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   ttl                 = 300
@@ -205,7 +199,7 @@ resource "azurerm_dns_cname_record" "test" {
 }
 
 resource "azurerm_dns_txt_record" "test" {
-  name                = join(".", ["asuid", "%s"])
+  name                = join(".", ["asuid", "%[3]s"])
   zone_name           = data.azurerm_dns_zone.test.name
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   ttl                 = 300
@@ -224,5 +218,5 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
 resource "azurerm_app_service_managed_certificate" "test" {
   custom_hostname_binding_id = azurerm_app_service_custom_hostname_binding.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, dnsZone, dataResourceGroup, data.RandomString, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, dnsZone, dataResourceGroup)
 }

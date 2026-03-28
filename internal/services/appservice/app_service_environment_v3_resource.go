@@ -435,7 +435,7 @@ func (r AppServiceEnvironmentV3Resource) Delete() sdk.ResourceFunc {
 }
 
 func (r AppServiceEnvironmentV3Resource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.AppServiceEnvironmentID
+	return commonids.ValidateAppServiceEnvironmentID
 }
 
 func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {

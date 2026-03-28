@@ -675,7 +675,10 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.VoiceServices, err = voiceServices.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Voice Services: %+v", err)
 	}
-	client.Web = web.NewClient(o)
+
+	if client.Web, err = web.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Web: %+v", err)
+	}
 
 	if client.Workloads, err = workloads.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Workloads: %+v", err)

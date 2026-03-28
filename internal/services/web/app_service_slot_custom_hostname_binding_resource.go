@@ -5,23 +5,20 @@ package web
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var appServiceSlotCustomHostnameBindingResourceName = "azurerm_app_service_slot_custom_hostname_binding"
+const appServiceSlotCustomHostnameBindingResourceName = "azurerm_app_service_slot_custom_hostname_binding"
 
 func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -29,7 +26,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 		Read:   resourceAppServiceSlotCustomHostnameBindingRead,
 		Delete: resourceAppServiceSlotCustomHostnameBindingDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.AppServiceSlotCustomHostnameBindingID(id)
+			_, err := webapps.ParseSlotHostNameBindingID(id)
 			return err
 		}),
 
@@ -44,7 +41,7 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.AppServiceSlotID,
+				ValidateFunc: webapps.ValidateSlotID,
 			},
 
 			"hostname": {
@@ -59,8 +56,8 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(web.SslStateIPBasedEnabled),
-					string(web.SslStateSniEnabled),
+					string(webapps.SslStateIPBasedEnabled),
+					string(webapps.SslStateSniEnabled),
 				}, false),
 			},
 
@@ -81,52 +78,47 @@ func resourceAppServiceSlotCustomHostnameBinding() *pluginsdk.Resource {
 }
 
 func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.WebAppsClient
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for App Service Slot Hostname Binding creation.")
-
-	slotId, err := parse.AppServiceSlotID(d.Get("app_service_slot_id").(string))
+	slotId, err := webapps.ParseSlotID(d.Get("app_service_slot_id").(string))
 	if err != nil {
 		return err
 	}
 
-	hostname := d.Get("hostname").(string)
 	sslState := d.Get("ssl_state").(string)
 	thumbprint := d.Get("thumbprint").(string)
 
-	id := parse.NewAppServiceSlotCustomHostnameBindingID(slotId.SubscriptionId, slotId.ResourceGroup, slotId.SiteName, slotId.SlotName, hostname)
+	id := webapps.NewSlotHostNameBindingID(slotId.SubscriptionId, slotId.ResourceGroupName, slotId.SiteName, slotId.SlotName, d.Get("hostname").(string))
 
-	locks.ByName(hostname, appServiceSlotCustomHostnameBindingResourceName)
-	defer locks.UnlockByName(hostname, appServiceSlotCustomHostnameBindingResourceName)
+	locks.ByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
+	defer locks.UnlockByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
 
-	existing, err := client.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+	existing, err := client.GetHostNameBindingSlot(ctx, id)
+	if !response.WasNotFound(existing.HttpResponse) {
+		if err != nil {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
-	}
-
-	if !utils.ResponseWasNotFound(existing.Response) {
 		return tf.ImportAsExistsError("azurerm_app_service_slot_custom_hostname_binding", id.ID())
 	}
 
-	properties := web.HostNameBinding{
-		HostNameBindingProperties: &web.HostNameBindingProperties{
+	payload := webapps.HostNameBinding{
+		Properties: &webapps.HostNameBindingProperties{
 			SiteName: pointer.To(id.SiteName),
 		},
 	}
 
 	if sslState != "" {
-		properties.SslState = web.SslState(sslState)
+		payload.Properties.SslState = pointer.ToEnum[webapps.SslState](sslState)
 	}
 
 	if thumbprint != "" {
-		properties.Thumbprint = pointer.To(thumbprint)
+		payload.Properties.Thumbprint = pointer.To(thumbprint)
 	}
 
-	if _, err := client.CreateOrUpdateHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.HostNameBindingName, properties, id.SlotName); err != nil {
+	if _, err := client.CreateOrUpdateHostNameBindingSlot(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -136,44 +128,44 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 }
 
 func resourceAppServiceSlotCustomHostnameBindingRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServiceSlotCustomHostnameBindingID(d.Id())
+	id, err := webapps.ParseSlotHostNameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.GetHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
+	resp, err := client.GetHostNameBindingSlot(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] %s was not found - removing from state", id)
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	slotId := parse.NewAppServiceSlotID(id.SubscriptionId, id.ResourceGroup, id.SiteName, id.SlotName)
-	d.Set("app_service_slot_id", slotId.ID())
+	d.Set("app_service_slot_id", webapps.NewSlotID(id.SubscriptionId, id.ResourceGroupName, id.SiteName, id.SlotName).ID())
 	d.Set("hostname", id.HostNameBindingName)
 
-	if props := resp.HostNameBindingProperties; props != nil {
-		d.Set("ssl_state", string(props.SslState))
-		d.Set("thumbprint", props.Thumbprint)
-		d.Set("virtual_ip", props.VirtualIP)
+	if resp.Model != nil {
+		if props := resp.Model.Properties; props != nil {
+			d.Set("ssl_state", pointer.FromEnum(props.SslState))
+			d.Set("thumbprint", props.Thumbprint)
+			d.Set("virtual_ip", props.VirtualIP)
+		}
 	}
 
 	return nil
 }
 
 func resourceAppServiceSlotCustomHostnameBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.AppServiceSlotCustomHostnameBindingID(d.Id())
+	id, err := webapps.ParseSlotHostNameBindingID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -181,13 +173,8 @@ func resourceAppServiceSlotCustomHostnameBindingDelete(d *pluginsdk.ResourceData
 	locks.ByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
 	defer locks.UnlockByName(id.HostNameBindingName, appServiceSlotCustomHostnameBindingResourceName)
 
-	log.Printf("[DEBUG] deleting %s", id)
-
-	resp, err := client.DeleteHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.SlotName, id.HostNameBindingName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
-		}
+	if _, err := client.DeleteHostNameBindingSlot(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
