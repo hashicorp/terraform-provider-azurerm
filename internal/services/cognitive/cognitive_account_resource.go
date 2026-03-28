@@ -507,6 +507,10 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	if err := waitForCognitiveAccountProvisioningSucceeded(ctx, client, id); err != nil {
+		return err
+	}
+
 	d.SetId(id.ID())
 	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
@@ -596,6 +600,10 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if err = client.AccountsUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
+
+	if err := waitForCognitiveAccountProvisioningSucceeded(ctx, client, *id); err != nil {
+		return err
 	}
 
 	return resourceCognitiveAccountRead(d, meta)
@@ -834,11 +842,50 @@ func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveserv
 			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 		}
 
+		state := "Unknown"
 		if res.Model != nil && res.Model.Properties != nil && res.Model.Properties.ProvisioningState != nil {
-			return res, string(*res.Model.Properties.ProvisioningState), nil
+			state = string(*res.Model.Properties.ProvisioningState)
 		}
-		return nil, "", fmt.Errorf("unable to read provisioning state")
+
+		switch state {
+		case "Failed", "Canceled":
+			return res, state, fmt.Errorf("%s provisioningState is %q", id, state)
+		}
+
+		return res, state, nil
 	}
+}
+
+func waitForCognitiveAccountProvisioningSucceeded(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, id cognitiveservicesaccounts.AccountId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending: []string{
+			"Unknown",
+			"Accepted",
+			"Creating",
+			"Updating",
+			"Provisioning",
+			"InProgress",
+			"Running",
+			"Moving",
+			"Deleting",
+			"ResolvingDNS",
+		},
+		Target:     []string{"Succeeded"},
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to reach provisioningState %q: %+v", id, "Succeeded", err)
+	}
+
+	return nil
 }
 
 func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
