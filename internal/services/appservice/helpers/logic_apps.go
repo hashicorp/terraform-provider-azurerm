@@ -20,6 +20,7 @@ type LogicAppSiteConfig struct {
 	MinTLSVersion                 string          `tfschema:"min_tls_version"`
 	PreWarmedInstanceCount        int64           `tfschema:"pre_warmed_instance_count"`
 	SCMIPRestriction              []IpRestriction `tfschema:"scm_ip_restriction"`
+	SCMIpRestrictionDefaultAction string          `tfschema:"scm_ip_restriction_default_action"`
 	SCMUseMainIpRestriction       bool            `tfschema:"scm_use_main_ip_restriction"`
 	SCMMinTLSVersion              string          `tfschema:"scm_min_tls_version"`
 	SCMType                       string          `tfschema:"scm_type"`
@@ -95,6 +96,12 @@ func SchemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 				},
 
 				"scm_ip_restriction": IpRestrictionSchema(),
+
+				"scm_ip_restriction_default_action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForDefaultAction(), false),
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,
