@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/fileservices"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	storageClients "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -18,13 +18,13 @@ import (
 var _ pollers.PollerType = &DataPlaneFileShareAvailabilityPoller{}
 
 type DataPlaneFileShareAvailabilityPoller struct {
-	client           *fileservice.FileServiceClient
+	client           *fileservices.FileServicesClient
 	storageAccountId commonids.StorageAccountId
 }
 
 func NewDataPlaneFileShareAvailabilityPoller(client *storageClients.Client, account *storageClients.AccountDetails) (*DataPlaneFileShareAvailabilityPoller, error) {
 	return &DataPlaneFileShareAvailabilityPoller{
-		client:           client.ResourceManager.FileService,
+		client:           client.ResourceManager.FileServices,
 		storageAccountId: account.StorageAccountId,
 	}, nil
 }
