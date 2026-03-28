@@ -92,7 +92,9 @@ resource "azurerm_cdn_frontdoor_security_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Front Door Security Policy. Possible values must not be an empty string. Changing this forces a new Front Door Security Policy to be created.
+* `name` - (Required) The name which should be used for this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
+
+-> **Note:** The `name` must begin and end with an alphanumeric character, and may contain only alphanumeric characters and hyphens.
 
 * `cdn_frontdoor_profile_id` - (Required) The Front Door Profile Resource Id that is linked to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
 
