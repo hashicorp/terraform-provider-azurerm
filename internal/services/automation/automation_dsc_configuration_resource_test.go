@@ -68,6 +68,48 @@ func TestAccAutomationDscConfiguration_complete(t *testing.T) {
 	})
 }
 
+func TestAccAutomationDscConfiguration_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_dsc_configuration", "test")
+	r := AutomationDscConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("test"),
+				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest {}"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("test - updated"),
+				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest_updated {}"),
+				check.That(data.ResourceName).Key("log_verbose").HasValue("true"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("stage"),
+				check.That(data.ResourceName).Key("tags.UPDATE").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("description").HasValue("test"),
+				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest {}"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t AutomationDscConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := dscconfiguration.ParseConfigurationID(state.ID)
 	if err != nil {
@@ -159,6 +201,41 @@ resource "azurerm_automation_dsc_configuration" "test" {
   log_verbose             = "true"
   tags = {
     ENV = "prod"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AutomationDscConfigurationResource) updated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-auto-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_dsc_configuration" "test" {
+  name                    = "acctest"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  location                = azurerm_resource_group.test.location
+  content_embedded        = "configuration acctest_updated {}"
+  description             = "test - updated"
+  log_verbose             = true
+
+  tags = {
+    ENV    = "stage"
+    UPDATE = "true"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
