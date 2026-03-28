@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -55,6 +56,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.checkAlertRuleSeverity("Billing_Processing_Very_Slow", 0)),
 			),
 		},
 		data.ImportStep(),
@@ -69,6 +71,7 @@ func TestAccAlertsManagementPrometheusRuleGroup_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.checkAlertRuleSeverity("Billing_Processing_Very_Slow", 0)),
 			),
 		},
 		data.ImportStep(),
@@ -76,6 +79,15 @@ func TestAccAlertsManagementPrometheusRuleGroup_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.checkAlertRuleSeverity("Billing_Processing_Very_Slow2", 1)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateAlertRuleSeverityZero(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				data.CheckWithClient(r.checkAlertRuleSeverity("Billing_Processing_Very_Slow2", 0)),
 			),
 		},
 		data.ImportStep(),
@@ -104,6 +116,50 @@ func (r AlertPrometheusRuleGroupTestResource) Exists(ctx context.Context, client
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
+}
+
+func (r AlertPrometheusRuleGroupTestResource) checkAlertRuleSeverity(alertName string, expectedSeverity int64) acceptance.ClientCheckFunc {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := prometheusrulegroups.ParsePrometheusRuleGroupID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		if _, ok := ctx.Deadline(); !ok {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
+			defer cancel()
+		}
+
+		client := clients.Monitor.AlertPrometheusRuleGroupClient
+		resp, err := client.PrometheusRuleGroupsGet(ctx, *id)
+		if err != nil {
+			return fmt.Errorf("retrieving %s: %+v", id, err)
+		}
+
+		if resp.Model == nil {
+			return fmt.Errorf("retrieving %s: model was nil", id)
+		}
+
+		for _, rule := range resp.Model.Properties.Rules {
+			if pointer.From(rule.Alert) != alertName {
+				continue
+			}
+
+			if rule.Severity == nil {
+				return fmt.Errorf("expected alert rule %q severity to be %d but was nil", alertName, expectedSeverity)
+			}
+
+			actualSeverity := pointer.From(rule.Severity)
+			if actualSeverity != expectedSeverity {
+				return fmt.Errorf("expected alert rule %q severity to be %d but got %d", alertName, expectedSeverity, actualSeverity)
+			}
+
+			return nil
+		}
+
+		return fmt.Errorf("alert rule %q was not found in %s", alertName, id)
+	}
 }
 
 func (r AlertPrometheusRuleGroupTestResource) template(data acceptance.TestData) string {
@@ -343,6 +399,116 @@ histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-
 EOF
     for        = "PT4M"
     severity   = 1
+    action {
+      action_group_id = azurerm_monitor_action_group.test2.id
+    }
+    action {
+      action_group_id = azurerm_monitor_action_group.test.id
+    }
+    alert_resolution {
+      auto_resolved   = false
+      time_to_resolve = "PT9M"
+    }
+    annotations = {
+      annotationName2 = "annotationValue2"
+    }
+    labels = {
+      team2 = "prod2"
+    }
+  }
+  tags = {
+    key2 = "value2"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r AlertPrometheusRuleGroupTestResource) updateAlertRuleSeverityZero(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test2" {
+  name                = "acctestaks2%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks2%[2]d"
+
+  default_node_pool {
+    name                    = "default"
+    node_count              = 2
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
+  name                = "acctest-amprg-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  cluster_name        = azurerm_kubernetes_cluster.test2.name
+  description         = "This is the description of the following rule group2"
+  rule_group_enabled  = true
+  interval            = "PT10M"
+  scopes              = [azurerm_monitor_workspace.test.id]
+
+  rule {
+    enabled    = true
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
+    record     = "job_type:billing_jobs_duration_seconds:99p6m"
+    labels = {
+      team2 = "prod2"
+    }
+  }
+
+  rule {
+    alert      = "Billing_Processing_Very_Slow2"
+    enabled    = false
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
+    for        = "PT4M"
+    severity   = 0
     action {
       action_group_id = azurerm_monitor_action_group.test2.id
     }
