@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -114,12 +113,8 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 	log.Printf("[DEBUG] Creating %s", id)
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
-	timeOfDay := d.Get("backup.0.time").(string)
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s:00Z", time.Now().Format("2006-01-02"), timeOfDay))
-	if err != nil {
-		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
-	}
-	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
+	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
+	times := append(make([]string, 0), timeOfDay)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -289,12 +284,8 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	log.Printf("[DEBUG] Updating %s", id)
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
-	timeOfDay := d.Get("backup.0.time").(string)
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s:00Z", time.Now().Format("2006-01-02"), timeOfDay))
-	if err != nil {
-		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
-	}
-	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
+	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
+	times := append(make([]string, 0), timeOfDay)
 
 	// Less than 7 daily backups is no longer supported for create/update
 	if d.HasChange("retention_daily.0.count") && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
