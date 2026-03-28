@@ -259,6 +259,20 @@ func TestAccKubernetesFluxConfiguration_gitRepositoryProviderGeneric(t *testing.
 	})
 }
 
+func TestAccKubernetesFluxConfiguration_gitRepositoryProviderGitHub(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
+	r := KubernetesFluxConfigurationResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.gitRepositoryProvider(data, "GitHub"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesFluxConfiguration_gitRepositoryProviderUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_flux_configuration", "test")
 	r := KubernetesFluxConfigurationResource{}
@@ -279,6 +293,13 @@ func TestAccKubernetesFluxConfiguration_gitRepositoryProviderUpdate(t *testing.T
 		data.ImportStep(),
 		{
 			Config: r.gitRepositoryProvider(data, "Generic"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.gitRepositoryProvider(data, "GitHub"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
