@@ -144,9 +144,15 @@ func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceD
 		return fmt.Errorf("reading existing %s: %+v", *id, err)
 	}
 
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("reading existing %s: model or properties was nil", *id)
+	}
+
+	props := existing.Model.Properties
+
 	fieldDefinitionValues := map[string]string{}
-	if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.FieldDefinitionValues != nil {
-		fieldDefinitionValues = *existing.Model.Properties.FieldDefinitionValues
+	if props.FieldDefinitionValues != nil {
+		fieldDefinitionValues = *props.FieldDefinitionValues
 	}
 
 	if d.HasChange("subscription_name") {
@@ -164,15 +170,12 @@ func resourceAutomationConnectionClassicCertificateUpdate(d *pluginsdk.ResourceD
 	parameters := connection.ConnectionCreateOrUpdateParameters{
 		Name: id.ConnectionName,
 		Properties: connection.ConnectionCreateOrUpdateProperties{
+			Description: props.Description,
 			ConnectionType: connection.ConnectionTypeAssociationProperty{
 				Name: pointer.To("AzureClassicCertificate"),
 			},
 			FieldDefinitionValues: &fieldDefinitionValues,
 		},
-	}
-
-	if existing.Model != nil && existing.Model.Properties != nil {
-		parameters.Properties.Description = existing.Model.Properties.Description
 	}
 
 	if d.HasChange("description") {
