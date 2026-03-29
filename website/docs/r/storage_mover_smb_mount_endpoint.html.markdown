@@ -3,12 +3,12 @@ subcategory: "Storage Mover"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_mover_smb_mount_endpoint"
 description: |-
-  Manages a Storage Mover SMB Mount Endpoint.
+  Manages a Storage Mover SMB Mount Target Endpoint.
 ---
 
 # azurerm_storage_mover_smb_mount_endpoint
 
-Manages a Storage Mover SMB Mount Endpoint for migrating from on-premises Windows file servers to Azure.
+Manages a Storage Mover **SMB Mount Target Endpoint** (as shown under **Endpoints** in the Azure portal) for migrating from on-premises Windows file servers to Azure.
 
 ## Example Usage
 
