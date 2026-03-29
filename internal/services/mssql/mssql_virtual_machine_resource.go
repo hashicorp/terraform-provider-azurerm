@@ -1380,7 +1380,7 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}, lunsInConfig boo
 }
 
 func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbSettings) []interface{} {
-	if input == nil || input.Luns == nil {
+	if input == nil {
 		return []interface{}{}
 	}
 	attrs := make(map[string]interface{})
