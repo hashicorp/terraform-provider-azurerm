@@ -40,8 +40,9 @@ func (r Registration) DataSources() []sdk.DataSource {
 // Resources returns the supported Resources supported by this Service
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		RelayNamespaceResource{},
+		RelayHybridConnectionAuthorizationRule{},
 		ArmRelayHybridConnectionResource{},
+		RelayNamespaceResource{},
 	}
 
 	// return map[string]*pluginsdk.Resource{
