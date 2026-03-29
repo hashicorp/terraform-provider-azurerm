@@ -1,6 +1,14 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
+// Acceptance tests for this resource require real Azure resources that are not created by these tests:
+//   - ARM_TEST_MULTI_CLOUD_CONNECTOR_ID — resource ID of a Microsoft.HybridConnectivity/publicCloudConnectors instance
+//   - ARM_TEST_AWS_S3_BUCKET_ID — resource ID of a Microsoft.AwsConnector/s3Buckets instance linked for cloud-to-cloud migration
+//
+// Create those prerequisites in the portal or via ARM as described in
+// https://learn.microsoft.com/azure/storage-mover/cloud-to-cloud-migration
+// then export the two IDs into the environment before running TF_ACC for this package.
+
 package storagemover_test
 
 import (
