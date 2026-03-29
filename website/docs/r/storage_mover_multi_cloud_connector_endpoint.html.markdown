@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_mover_multi_cloud_connector_endpoint
 
-Manages a Storage Mover Multi-Cloud Connector Endpoint for migrating data from AWS S3 to Azure.
+Manages a Storage Mover **Target Endpoint** of type Multi-Cloud Connector for [cloud-to-cloud migration](https://learn.microsoft.com/azure/storage-mover/cloud-to-cloud-migration) from AWS S3 to Azure. In the Azure portal this appears under **Storage Mover** → your storage mover → **Endpoints** when creating an endpoint that uses a multi-cloud connector and AWS S3 bucket.
 
 ## Example Usage
 
@@ -28,7 +28,7 @@ resource "azurerm_storage_mover_multi_cloud_connector_endpoint" "example" {
   name                     = "example-mcce"
   storage_mover_id         = azurerm_storage_mover.example.id
   multi_cloud_connector_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.HybridConnectivity/publicCloudConnectors/example-connector"
-  aws_s3_bucket_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/aws-rg/providers/Microsoft.AWSConnector/s3Buckets/example-bucket"
+  aws_s3_bucket_id         = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/aws-rg/providers/Microsoft.AwsConnector/s3Buckets/example-bucket"
   description              = "Example Multi-Cloud Connector Endpoint"
 }
 ```
