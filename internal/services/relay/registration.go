@@ -7,14 +7,13 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 type Registration struct{}
 
 var (
-	_ sdk.FrameworkServiceRegistration               = Registration{}
-	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+	_ sdk.FrameworkServiceRegistration             = Registration{}
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 )
 
 func (r Registration) AssociatedGitHubLabel() string {
@@ -33,19 +32,24 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
-// SupportedDataSources returns the supported Data Sources supported by this Service
-func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{}
+// DataSources returns the supported Data Sources supported by this Service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
 }
 
-// SupportedResources returns the supported Resources supported by this Service
-func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
-		"azurerm_relay_hybrid_connection":                    resourceArmRelayHybridConnection(),
-		"azurerm_relay_hybrid_connection_authorization_rule": resourceRelayHybridConnectionAuthorizationRule(),
-		"azurerm_relay_namespace":                            resourceRelayNamespace(),
-		"azurerm_relay_namespace_authorization_rule":         resourceRelayNamespaceAuthorizationRule(),
+// Resources returns the supported Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		RelayNamespaceResource{},
+		ArmRelayHybridConnectionResource{},
 	}
+
+	// return map[string]*pluginsdk.Resource{
+	// 	"azurerm_relay_hybrid_connection":                    resourceArmRelayHybridConnection(),
+	// 	"azurerm_relay_hybrid_connection_authorization_rule": resourceRelayHybridConnectionAuthorizationRule(),
+	// 	"azurerm_relay_namespace":                            resourceRelayNamespace(),
+	// 	"azurerm_relay_namespace_authorization_rule":         resourceRelayNamespaceAuthorizationRule(),
+	// }
 }
 
 func (r Registration) Actions() []func() action.Action {

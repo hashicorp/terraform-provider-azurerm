@@ -9,182 +9,244 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/relay/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func resourceArmRelayHybridConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceArmRelayHybridConnectionCreateUpdate,
-		Read:   resourceArmRelayHybridConnectionRead,
-		Update: resourceArmRelayHybridConnectionCreateUpdate,
-		Delete: resourceArmRelayHybridConnectionDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := hybridconnections.ParseHybridConnectionID(id)
-			return err
-		}),
+var _ sdk.ResourceWithUpdate = ArmRelayHybridConnectionResource{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+type ArmRelayHybridConnectionResource struct{}
+
+type ArmRelayHybridConnectionResourceModel struct {
+	Name                        string `tfschema:"name"`
+	ResourceGroupName           string `tfschema:"resource_group_name"`
+	RelayNamespaceName          string `tfschema:"relay_namespace_name"`
+	RequiresClientAuthorization bool   `tfschema:"requires_client_authorization"`
+	UserMetadata                string `tfschema:"user_metadata"`
+}
+
+func (ArmRelayHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-			"resource_group_name": commonschema.ResourceGroupName(),
+		"relay_namespace_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-			"relay_namespace_name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"requires_client_authorization": {
+			Type:     pluginsdk.TypeBool,
+			Default:  true,
+			ForceNew: true,
+			Optional: true,
+		},
 
-			"requires_client_authorization": {
-				Type:     pluginsdk.TypeBool,
-				Default:  true,
-				ForceNew: true,
-				Optional: true,
-			},
-			"user_metadata": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+		"user_metadata": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
 }
 
-func resourceArmRelayHybridConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Relay.HybridConnectionsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (ArmRelayHybridConnectionResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
 
-	log.Printf("[INFO] preparing arguments for Relay Hybrid Connection creation.")
+func (ArmRelayHybridConnectionResource) ModelObject() interface{} {
+	return &ArmRelayHybridConnectionResourceModel{}
+}
 
-	id := hybridconnections.NewHybridConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("relay_namespace_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
+func (ArmRelayHybridConnectionResource) ResourceType() string {
+	return "azurerm_relay_hybrid_connection"
+}
+
+func (r ArmRelayHybridConnectionResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.HybridConnectionsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			log.Printf("[INFO] preparing arguments for Relay Hybrid Connection creation.")
+
+			var config ArmRelayHybridConnectionResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := hybridconnections.NewHybridConnectionID(subscriptionId, config.ResourceGroupName, config.RelayNamespaceName, config.Name)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-		}
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
 
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_relay_hybrid_connection", id.ID())
-		}
+			parameters := hybridconnections.HybridConnection{
+				Properties: &hybridconnections.HybridConnectionProperties{
+					RequiresClientAuthorization: &config.RequiresClientAuthorization,
+					UserMetadata:                &config.UserMetadata,
+				},
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
 	}
+}
 
-	requireClientAuthorization := d.Get("requires_client_authorization").(bool)
-	userMetadata := d.Get("user_metadata").(string)
+func (r ArmRelayHybridConnectionResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
-	parameters := hybridconnections.HybridConnection{
-		Properties: &hybridconnections.HybridConnectionProperties{
-			RequiresClientAuthorization: &requireClientAuthorization,
-			UserMetadata:                &userMetadata,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.HybridConnectionsClient
+
+			log.Printf("[INFO] preparing arguments for Relay Hybrid Connection update.")
+
+			id, err := hybridconnections.ParseHybridConnectionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var config ArmRelayHybridConnectionResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving: %s: %+v", id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			parameters := hybridconnections.HybridConnection{
+				Properties: &hybridconnections.HybridConnectionProperties{
+					UserMetadata: &config.UserMetadata,
+				},
+			}
+
+			if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (ArmRelayHybridConnectionResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.HybridConnectionsClient
+
+			id, err := hybridconnections.ParseHybridConnectionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving: %s: %+v", id, err)
+			}
+
+			state := ArmRelayHybridConnectionResourceModel{}
+
+			state.ResourceGroupName = id.ResourceGroupName
+			state.RelayNamespaceName = id.NamespaceName
+
+			if model := resp.Model; model != nil {
+				state.Name = pointer.From(model.Name)
+
+				if props := model.Properties; props != nil {
+					state.RequiresClientAuthorization = pointer.From(model.Properties.RequiresClientAuthorization)
+					state.UserMetadata = pointer.From(model.Properties.UserMetadata)
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (ArmRelayHybridConnectionResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.HybridConnectionsClient
+
+			id, err := hybridconnections.ParseHybridConnectionID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err := client.Delete(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", *id, err)
+			}
+
+			log.Printf("[INFO] Waiting for %s to be deleted", *id)
+			pollerType := custompollers.DeleteRelayHybridConnectionPoller(client, pointer.From(id))
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return err
+			}
+
+			return nil
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	d.SetId(id.ID())
-	return resourceArmRelayHybridConnectionRead(d, meta)
 }
 
-func resourceArmRelayHybridConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Relay.HybridConnectionsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := hybridconnections.ParseHybridConnectionID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
-			return nil
+func (ArmRelayHybridConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return func(input interface{}, key string) (warnings []string, errors []error) {
+		v, ok := input.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+			return
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-
-	d.Set("name", id.HybridConnectionName)
-	d.Set("relay_namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			d.Set("requires_client_authorization", props.RequiresClientAuthorization)
-			d.Set("user_metadata", props.UserMetadata)
-		}
-	}
-
-	return nil
-}
-
-func resourceArmRelayHybridConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Relay.HybridConnectionsClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := hybridconnections.ParseHybridConnectionID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	// we can't make use of the Future here due to a bug where 404 isn't tracked as Successful
-	log.Printf("[INFO] Waiting for %s to be deleted", *id)
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Pending"},
-		Target:     []string{"Deleted"},
-		Refresh:    hybridConnectionDeleteRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
-	}
-
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
-	}
-
-	return nil
-}
-
-func hybridConnectionDeleteRefreshFunc(ctx context.Context, client *hybridconnections.HybridConnectionsClient, id hybridconnections.HybridConnectionId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(res.HttpResponse) {
-				return res, "Deleted", nil
-			}
-
-			return nil, "Error", fmt.Errorf("retrieving %s: %+v", id, err)
+		if _, err := hybridconnections.ParseHybridConnectionID(v); err != nil {
+			errors = append(errors, err)
 		}
 
-		return res, "Pending", nil
+		return
 	}
 }
