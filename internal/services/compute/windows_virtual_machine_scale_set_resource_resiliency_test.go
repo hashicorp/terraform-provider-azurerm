@@ -11,6 +11,35 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
+func TestAccWindowsVirtualMachineScaleSet_resiliency_automaticZoneRebalancing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.automaticZoneRebalancing(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.automaticZoneRebalancing(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.automaticZoneRebalancing(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
@@ -64,6 +93,61 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 		},
 		data.ImportStep("admin_password"),
 	})
+}
+
+func (r WindowsVirtualMachineScaleSetResource) automaticZoneRebalancing(data acceptance.TestData, automaticZoneRebalancingEnabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_windows_virtual_machine_scale_set" "test" {
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2ads_v7"
+  instances           = 2
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  computer_name_prefix = "vm-"
+  zones               = ["1", "2"]
+  automatic_zone_rebalancing_enabled = %t
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-datacenter-gensecond"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  extension {
+    name                       = "HealthExtension"
+    publisher                  = "Microsoft.ManagedServices"
+    type                       = "ApplicationHealthWindows"
+    type_handler_version       = "1.0"
+    auto_upgrade_minor_version = true
+    settings = jsonencode({
+      protocol    = "https"
+      port        = 443
+      requestPath = "/"
+    })
+  }
+}
+`, r.template(data), data.RandomInteger, automaticZoneRebalancingEnabled)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) resiliencyVMPolicies(data acceptance.TestData, vmCreationEnabled, vmDeletionEnabled bool) string {
