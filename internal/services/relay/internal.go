@@ -115,7 +115,7 @@ func flattenAuthorizationRuleRights(rights []namespaces.AccessRights) (listen, s
 	return listen, send, manage
 }
 
-func expandHybridConnectionAuthorizationRuleRights(config RelayHybridConnectionAuthorizationRuleModel) []hybridconnections.AccessRights {
+func expandHybridConnectionAuthorizationRuleRights(config RelayHybridConnectionAuthorizationRuleResourceModel) []hybridconnections.AccessRights {
 	rights := make([]hybridconnections.AccessRights, 0)
 
 	if config.Listen {

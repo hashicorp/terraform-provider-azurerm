@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = RelayHybridConnectionAuthorizationRule{}
+var _ sdk.ResourceWithUpdate = RelayHybridConnectionAuthorizationRuleResource{}
 
-type RelayHybridConnectionAuthorizationRule struct{}
+type RelayHybridConnectionAuthorizationRuleResource struct{}
 
-type RelayHybridConnectionAuthorizationRuleModel struct {
+type RelayHybridConnectionAuthorizationRuleResourceModel struct {
 	Name                 string `tfschema:"name"`
 	ResourceGroupName    string `tfschema:"resource_group_name"`
 	RelayNamespaceName   string `tfschema:"relay_namespace_name"`
@@ -32,7 +32,7 @@ type RelayHybridConnectionAuthorizationRuleModel struct {
 	RelayAuthorizationRuleAttributesModel
 }
 
-func (r RelayHybridConnectionAuthorizationRule) Arguments() map[string]*pluginsdk.Schema {
+func (r RelayHybridConnectionAuthorizationRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return authorizationRuleArgumentsFrom(map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -59,15 +59,15 @@ func (r RelayHybridConnectionAuthorizationRule) Arguments() map[string]*pluginsd
 	})
 }
 
-func (r RelayHybridConnectionAuthorizationRule) Attributes() map[string]*pluginsdk.Schema {
+func (r RelayHybridConnectionAuthorizationRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{})
 }
 
-func (RelayHybridConnectionAuthorizationRule) ModelObject() interface{} {
-	return &RelayHybridConnectionAuthorizationRuleModel{}
+func (RelayHybridConnectionAuthorizationRuleResource) ModelObject() interface{} {
+	return &RelayHybridConnectionAuthorizationRuleResourceModel{}
 }
 
-func (r RelayHybridConnectionAuthorizationRule) Create() sdk.ResourceFunc {
+func (r RelayHybridConnectionAuthorizationRuleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -77,7 +77,7 @@ func (r RelayHybridConnectionAuthorizationRule) Create() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
 
-			var config RelayHybridConnectionAuthorizationRuleModel
+			var config RelayHybridConnectionAuthorizationRuleResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -110,7 +110,7 @@ func (r RelayHybridConnectionAuthorizationRule) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayHybridConnectionAuthorizationRule) Update() sdk.ResourceFunc {
+func (r RelayHybridConnectionAuthorizationRuleResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -119,7 +119,7 @@ func (r RelayHybridConnectionAuthorizationRule) Update() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
 
-			var config RelayHybridConnectionAuthorizationRuleModel
+			var config RelayHybridConnectionAuthorizationRuleResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -158,7 +158,7 @@ func (r RelayHybridConnectionAuthorizationRule) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayHybridConnectionAuthorizationRule) Delete() sdk.ResourceFunc {
+func (r RelayHybridConnectionAuthorizationRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -179,7 +179,7 @@ func (r RelayHybridConnectionAuthorizationRule) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayHybridConnectionAuthorizationRule) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r RelayHybridConnectionAuthorizationRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input interface{}, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
@@ -195,7 +195,7 @@ func (r RelayHybridConnectionAuthorizationRule) IDValidationFunc() pluginsdk.Sch
 	}
 }
 
-func (r RelayHybridConnectionAuthorizationRule) Read() sdk.ResourceFunc {
+func (r RelayHybridConnectionAuthorizationRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
 
@@ -223,7 +223,7 @@ func (r RelayHybridConnectionAuthorizationRule) Read() sdk.ResourceFunc {
 				return fmt.Errorf("listing keys for %s: %+v", id, err)
 			}
 
-			state := RelayHybridConnectionAuthorizationRuleModel{}
+			state := RelayHybridConnectionAuthorizationRuleResourceModel{}
 
 			state.ResourceGroupName = id.ResourceGroupName
 			state.RelayNamespaceName = id.NamespaceName
@@ -247,11 +247,11 @@ func (r RelayHybridConnectionAuthorizationRule) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayHybridConnectionAuthorizationRule) ResourceType() string {
+func (r RelayHybridConnectionAuthorizationRuleResource) ResourceType() string {
 	return "azurerm_relay_hybrid_connection_authorization_rule"
 }
 
-func (r RelayHybridConnectionAuthorizationRule) CustomizeDiff() sdk.ResourceFunc {
+func (r RelayHybridConnectionAuthorizationRuleResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
