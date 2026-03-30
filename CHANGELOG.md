@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * `azurerm_logic_app_standard` - add support for the `site_config.ip_restriction_default_action` property [GH-31816]
+* Data Source: `azurerm_logic_app_standard` - export the `site_config.ip_restriction_default_action` property [GH-31816]
 * Data Source: `azurerm_application_gateway` - export the `backend`, `listener`, and `routing_rule` properties [GH-30376]
 * `azurerm_application_gateway` - add support for the `backend`, `listener`, and `routing_rule` properties [GH-30376]
 * dependencies: `go-azure-sdk` - upgrade to `v0.20260326.1151219` [GH-32047]
@@ -14,6 +15,7 @@ FEATURES:
 
 BUG FIXES:
 * `azurerm_cosmosdb_account` - fix an API error caused by `backup.interval_in_minutes` and `backup.retention_in_hours` being set to `0` in the API payload when not defined in config [GH-32037]
+* `azurerm_backup_policy_vm` - fix the Update function to properly set all timestamps when any of `backup.time`, `retention_daily`, `retention_weekly`, `retention_montly`, or `retention_yearly` change [GH-31969]
 
 ## 4.66.0 (March 26, 2026)
 
