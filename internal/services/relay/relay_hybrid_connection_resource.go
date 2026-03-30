@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = ArmRelayHybridConnectionResource{}
+var _ sdk.ResourceWithUpdate = RelayHybridConnectionResource{}
 
-type ArmRelayHybridConnectionResource struct{}
+type RelayHybridConnectionResource struct{}
 
 type ArmRelayHybridConnectionResourceModel struct {
 	Name                        string `tfschema:"name"`
@@ -32,7 +32,7 @@ type ArmRelayHybridConnectionResourceModel struct {
 	UserMetadata                string `tfschema:"user_metadata"`
 }
 
-func (ArmRelayHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema {
+func (RelayHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -65,19 +65,19 @@ func (ArmRelayHybridConnectionResource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (ArmRelayHybridConnectionResource) Attributes() map[string]*pluginsdk.Schema {
+func (RelayHybridConnectionResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (ArmRelayHybridConnectionResource) ModelObject() interface{} {
+func (RelayHybridConnectionResource) ModelObject() interface{} {
 	return &ArmRelayHybridConnectionResourceModel{}
 }
 
-func (ArmRelayHybridConnectionResource) ResourceType() string {
+func (RelayHybridConnectionResource) ResourceType() string {
 	return "azurerm_relay_hybrid_connection"
 }
 
-func (r ArmRelayHybridConnectionResource) Create() sdk.ResourceFunc {
+func (r RelayHybridConnectionResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -119,7 +119,7 @@ func (r ArmRelayHybridConnectionResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r ArmRelayHybridConnectionResource) Update() sdk.ResourceFunc {
+func (r RelayHybridConnectionResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -166,7 +166,7 @@ func (r ArmRelayHybridConnectionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (ArmRelayHybridConnectionResource) Read() sdk.ResourceFunc {
+func (RelayHybridConnectionResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
 
@@ -206,7 +206,7 @@ func (ArmRelayHybridConnectionResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (ArmRelayHybridConnectionResource) Delete() sdk.ResourceFunc {
+func (RelayHybridConnectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
 
@@ -235,7 +235,7 @@ func (ArmRelayHybridConnectionResource) Delete() sdk.ResourceFunc {
 
 }
 
-func (ArmRelayHybridConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (RelayHybridConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input interface{}, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
