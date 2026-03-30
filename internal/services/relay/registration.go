@@ -35,8 +35,10 @@ func (r Registration) WebsiteCategories() []string {
 // DataSources returns the supported Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		RelayHybridConnectionAuthorizationRuleDataResource{},
 		RelayHybridConnectionDataResource{},
 		RelayNamespaceDataResource{},
+		RelayNamespaceAuthorizationRuleDataResource{},
 	}
 }
 
