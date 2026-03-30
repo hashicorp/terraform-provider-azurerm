@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below.
 
-* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS Automatic cluster. If not specified, the latest recommended version will be used at provisioning time.
+* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS Automatic Cluster. If not specified, the latest recommended version will be used at provisioning time.
 
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
