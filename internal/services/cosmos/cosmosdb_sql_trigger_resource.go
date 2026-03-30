@@ -152,8 +152,8 @@ func resourceCosmosDbSQLTriggerRead(d *pluginsdk.ResourceData, meta interface{})
 		if props := resp.Model.Properties; props != nil {
 			if r := props.Resource; r != nil {
 				d.Set("body", r.Body)
-				d.Set("operation", r.TriggerOperation)
-				d.Set("type", r.TriggerType)
+				d.Set("operation", pointer.FromEnum(r.TriggerOperation))
+				d.Set("type", pointer.FromEnum(r.TriggerType))
 			}
 		}
 	}
