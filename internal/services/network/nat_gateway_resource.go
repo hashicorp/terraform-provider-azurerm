@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -49,6 +50,16 @@ func resourceNatGateway() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&natgateways.NatGatewayId{}),
 		},
 
+		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+			if diff.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo) {
+				if !diff.GetRawConfig().AsValueMap()["zones"].IsNull() {
+					return fmt.Errorf("%s resources with `sku_name` set to `%s` are zone-redundant by default, Azure automatically deploys across all available zones. The `zones` argument must be omitted", natGatewayResourceName, natgateways.NatGatewaySkuNameStandardVTwo)
+				}
+			}
+
+			return nil
+		},
+
 		Schema: resourceNatGatewaySchema(),
 	}
 }
@@ -74,15 +85,26 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(natgateways.NatGatewaySkuNameStandard),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(natgateways.NatGatewaySkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(natgateways.NatGatewaySkuNameStandard),
+			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": {
+			Type:                  schema.TypeSet,
+			Optional:              true,
+			ForceNew:              true,
+			DiffSuppressOnRefresh: true,
+			DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+				return d.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo)
+			},
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 
 		"resource_guid": {
 			Type:     pluginsdk.TypeString,
