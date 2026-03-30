@@ -46,7 +46,7 @@ func (r Registration) Resources() []sdk.Resource {
 		RelayHybridConnectionAuthorizationRule{},
 		RelayHybridConnectionResource{},
 		RelayNamespaceResource{},
-		RelayNamespaceAuthorizationResource{},
+		RelayNamespaceAuthorizationRuleResource{},
 	}
 }
 

@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = RelayNamespaceAuthorizationResource{}
+var _ sdk.ResourceWithUpdate = RelayNamespaceAuthorizationRuleResource{}
 
-type RelayNamespaceAuthorizationResource struct{}
+type RelayNamespaceAuthorizationRuleResource struct{}
 
-type RelayNamespaceAuthorizationResourceModel struct {
+type RelayNamespaceAuthorizationRuleResourceModel struct {
 	RelayAuthorizationRuleArgumentsModel
 	RelayAuthorizationRuleAttributesModel
 
@@ -31,7 +31,7 @@ type RelayNamespaceAuthorizationResourceModel struct {
 	RelayNamespaceName string `tfschema:"relay_namespace_name"`
 }
 
-func (RelayNamespaceAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
+func (RelayNamespaceAuthorizationRuleResource) Arguments() map[string]*pluginsdk.Schema {
 	return authorizationRuleArgumentsFrom(map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -51,19 +51,19 @@ func (RelayNamespaceAuthorizationResource) Arguments() map[string]*pluginsdk.Sch
 	})
 }
 
-func (RelayNamespaceAuthorizationResource) Attributes() map[string]*pluginsdk.Schema {
+func (RelayNamespaceAuthorizationRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{})
 }
 
-func (RelayNamespaceAuthorizationResource) ModelObject() interface{} {
-	return &RelayNamespaceAuthorizationResourceModel{}
+func (RelayNamespaceAuthorizationRuleResource) ModelObject() interface{} {
+	return &RelayNamespaceAuthorizationRuleResourceModel{}
 }
 
-func (RelayNamespaceAuthorizationResource) ResourceType() string {
+func (RelayNamespaceAuthorizationRuleResource) ResourceType() string {
 	return "azurerm_relay_namespace_authorization_rule"
 }
 
-func (r RelayNamespaceAuthorizationResource) Create() sdk.ResourceFunc {
+func (r RelayNamespaceAuthorizationRuleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -73,7 +73,7 @@ func (r RelayNamespaceAuthorizationResource) Create() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay Namespace Authorization Rule creation.")
 
-			var config RelayNamespaceAuthorizationResourceModel
+			var config RelayNamespaceAuthorizationRuleResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -107,7 +107,7 @@ func (r RelayNamespaceAuthorizationResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayNamespaceAuthorizationResource) Update() sdk.ResourceFunc {
+func (r RelayNamespaceAuthorizationRuleResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -116,7 +116,7 @@ func (r RelayNamespaceAuthorizationResource) Update() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay Namespace Authorization Rule creation.")
 
-			var config RelayNamespaceAuthorizationResourceModel
+			var config RelayNamespaceAuthorizationRuleResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -155,7 +155,7 @@ func (r RelayNamespaceAuthorizationResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayNamespaceAuthorizationResource) Read() sdk.ResourceFunc {
+func (r RelayNamespaceAuthorizationRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
 
@@ -181,7 +181,7 @@ func (r RelayNamespaceAuthorizationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("listing keys for %s: %+v", id, err)
 			}
 
-			state := RelayNamespaceAuthorizationResourceModel{}
+			state := RelayNamespaceAuthorizationRuleResourceModel{}
 
 			state.Name = id.AuthorizationRuleName
 			state.RelayNamespaceName = id.NamespaceName
@@ -204,7 +204,7 @@ func (r RelayNamespaceAuthorizationResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayNamespaceAuthorizationResource) Delete() sdk.ResourceFunc {
+func (r RelayNamespaceAuthorizationRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
@@ -225,7 +225,7 @@ func (r RelayNamespaceAuthorizationResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r RelayNamespaceAuthorizationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r RelayNamespaceAuthorizationRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input interface{}, key string) (warnings []string, errors []error) {
 		v, ok := input.(string)
 		if !ok {
@@ -241,7 +241,7 @@ func (r RelayNamespaceAuthorizationResource) IDValidationFunc() pluginsdk.Schema
 	}
 }
 
-func (r RelayNamespaceAuthorizationResource) CustomizeDiff() sdk.ResourceFunc {
+func (r RelayNamespaceAuthorizationRuleResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 

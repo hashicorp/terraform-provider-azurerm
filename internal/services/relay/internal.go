@@ -78,7 +78,7 @@ func authorizationRuleAttributesFrom(s map[string]*pluginsdk.Schema) map[string]
 	return s
 }
 
-func expandAuthorizationRuleRights(config RelayNamespaceAuthorizationResourceModel) []namespaces.AccessRights {
+func expandAuthorizationRuleRights(config RelayNamespaceAuthorizationRuleResourceModel) []namespaces.AccessRights {
 	rights := make([]namespaces.AccessRights, 0)
 
 	if config.Listen {
