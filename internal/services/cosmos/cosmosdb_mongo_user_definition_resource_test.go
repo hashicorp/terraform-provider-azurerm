@@ -93,7 +93,7 @@ func (r CosmosMongoUserDefinitionResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.Cosmos.MongoRBACClient.MongoDBResourcesGetMongoUserDefinition(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %q: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
