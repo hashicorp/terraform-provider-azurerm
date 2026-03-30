@@ -55,9 +55,9 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.All(
 				validation.StringLenBetween(3, 44),
 				validation.StringMatch(
-					regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]{1,42}[a-zA-Z0-9-]$`),  
-                	"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.) and length between 3 and 44.",  
-            	),
+					regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]{1,42}[a-zA-Z0-9-]$`),
+					"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.) and length between 3 and 44.",
+				),
 			),
 		},
 
