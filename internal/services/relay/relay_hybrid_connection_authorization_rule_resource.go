@@ -25,7 +25,7 @@ type RelayHybridConnectionAuthorizationRuleResource struct{}
 type RelayHybridConnectionAuthorizationRuleResourceModel struct {
 	Name                      string `tfschema:"name"`
 	ResourceGroupName         string `tfschema:"resource_group_name"`
-	RelayNamespaceName        string `tfschema:"relay_namespace_name"`
+	RelayNamespaceName        string `tfschema:"namespace_name"`
 	HybridConnectionName      string `tfschema:"hybrid_connection_name"`
 	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
 	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
@@ -47,7 +47,7 @@ func (r RelayHybridConnectionAuthorizationRuleResource) Arguments() map[string]*
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"relay_namespace_name": {
+		"namespace_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,

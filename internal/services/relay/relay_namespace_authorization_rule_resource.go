@@ -25,7 +25,7 @@ type RelayNamespaceAuthorizationRuleResource struct{}
 type RelayNamespaceAuthorizationRuleResourceModel struct {
 	Name                      string `tfschema:"name"`
 	ResourceGroupName         string `tfschema:"resource_group_name"`
-	RelayNamespaceName        string `tfschema:"relay_namespace_name"`
+	RelayNamespaceName        string `tfschema:"namespace_name"`
 	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
 	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
 	PrimaryKey                string `tfschema:"primary_key"`
@@ -46,7 +46,7 @@ func (RelayNamespaceAuthorizationRuleResource) Arguments() map[string]*pluginsdk
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"relay_namespace_name": {
+		"namespace_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
