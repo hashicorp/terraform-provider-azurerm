@@ -41,6 +41,7 @@ func (r Registration) Resources() []sdk.Resource {
 		LocalRuleStackPrefixList{},
 		LocalRuleStackRule{},
 		NetworkVirtualApplianceResource{},
+		NextGenerationFirewallMetricsResource{},
 		NextGenerationFirewallVHubLocalRuleStackResource{},
 		NextGenerationFirewallVHubPanoramaResource{},
 		NextGenerationFirewallVHubStrataCloudManagerResource{},
