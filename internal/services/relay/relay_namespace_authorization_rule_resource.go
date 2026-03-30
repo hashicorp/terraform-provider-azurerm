@@ -230,19 +230,7 @@ func (r RelayNamespaceAuthorizationRuleResource) Delete() sdk.ResourceFunc {
 }
 
 func (r RelayNamespaceAuthorizationRuleResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return func(input interface{}, key string) (warnings []string, errors []error) {
-		v, ok := input.(string)
-		if !ok {
-			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
-			return
-		}
-
-		if _, err := namespaces.ParseAuthorizationRuleID(v); err != nil {
-			errors = append(errors, err)
-		}
-
-		return
-	}
+	return namespaces.ValidateAuthorizationRuleID
 }
 
 func (r RelayNamespaceAuthorizationRuleResource) CustomizeDiff() sdk.ResourceFunc {

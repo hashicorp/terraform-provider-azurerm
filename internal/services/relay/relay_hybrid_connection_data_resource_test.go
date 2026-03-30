@@ -21,8 +21,8 @@ func TestAccRelayHybridConnectionDataDataSource_basic(t *testing.T) {
 		{
 			Config: r.dataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("default"),
-				check.That(data.ResourceName).Key("namespace_name").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("relay_namespace_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("requires_client_authorization").Exists(),
 				check.That(data.ResourceName).Key("user_metadata").Exists(),

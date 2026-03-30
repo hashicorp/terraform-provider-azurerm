@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.DataSource = RelayNamespaceDataResource{}
@@ -38,10 +37,9 @@ type RelayNamespaceDataResourceModel struct {
 func (r RelayNamespaceDataResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: r.IDValidationFunc(),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -158,8 +156,4 @@ func (r RelayNamespaceDataResource) Read() sdk.ResourceFunc {
 			return metadata.Encode(&state)
 		},
 	}
-}
-
-func (r RelayNamespaceDataResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validation.StringLenBetween(6, 50)
 }

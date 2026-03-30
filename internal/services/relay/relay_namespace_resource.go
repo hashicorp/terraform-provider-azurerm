@@ -44,7 +44,7 @@ func (r RelayNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: r.IDValidationFunc(),
+			ValidateFunc: validation.StringLenBetween(6, 50),
 		},
 
 		"location": commonschema.Location(),
@@ -288,5 +288,5 @@ func (r RelayNamespaceResource) Delete() sdk.ResourceFunc {
 }
 
 func (r RelayNamespaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validation.StringLenBetween(6, 50)
+	return namespaces.ValidateNamespaceID
 }
