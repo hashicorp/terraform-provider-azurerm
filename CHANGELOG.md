@@ -1,6 +1,8 @@
 ## 4.67.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_kubernetes_cluster` - add support for the `Ubuntu2404` OS SKU [GH-32070]
+* `azurerm_kubernetes_cluster_node_pool` - add support for the `Ubuntu2404` OS SKU [GH-32070]
 * `azurerm_kubernetes_cluster` - improve validation for `network_profile.0.advanced_networking` [GH-31497]
 * `azurerm_logic_app_standard` - add support for the `site_config.ip_restriction_default_action` property [GH-31816]
 * Data Source: `azurerm_logic_app_standard` - export the `site_config.ip_restriction_default_action` property [GH-31816]
