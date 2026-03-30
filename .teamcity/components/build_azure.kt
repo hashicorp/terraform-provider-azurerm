@@ -16,6 +16,8 @@ class ClientConfiguration(var clientId: String,
                           val emailAddressAccTests : String,
                           val gitHubRepo : String,
                           val gitPat : String,
+                          val testViaVcr : String,
+                          val blockbusterVideo : String,
                           )
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean)
@@ -50,4 +52,6 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.GITHUB_REPO", config.gitHubRepo, "GitHub Repository")
     hiddenVariable("env.POST_GITHUB_COMMENT",  "false", "Whether to post a comment on the PR with the results of the tests")
     hiddenVariable("env.POST_GITHUB_COMMENT_DETAILED",  "false", "Whether to post a detailed comment on the PR with the results of the tests")
+    hiddenVariable("env.TC_TEST_VIA_VCR", config.testViaVcr, "Whether to run the tests via VCR (record/replay)")
+    hiddenVariable("env.BLOCKBUSTER_VIDEO", config.blockbusterVideo, "The Azure Blob Storage location for VCR cassettes")
 }

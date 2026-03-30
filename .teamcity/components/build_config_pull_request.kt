@@ -23,7 +23,9 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
 
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadVCRCassettes(packageName)
                 RunAcceptanceTestsForPullRequest(packageName)
+                UploadVCRCassettes(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
 

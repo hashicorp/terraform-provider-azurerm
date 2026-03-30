@@ -21,7 +21,9 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             steps {
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
+                DownloadVCRCassettes(packageName)
                 RunAcceptanceTests(packageName)
+                UploadVCRCassettes(packageName)
                 PostTestResultsToGitHubPullRequest()
             }
 

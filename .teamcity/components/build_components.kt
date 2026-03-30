@@ -50,6 +50,28 @@ fun servicePath(packageName: String) : String {
     return "./internal/services/%s".format(packageName)
 }
 
+fun BuildSteps.DownloadVCRCassettes(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Download VCR Cassettes"
+        scriptContent = """
+            if [ "%env.TC_TEST_VIA_VCR%" = "replay" ]; then
+                azcopy copy "%env.BLOCKBUSTER_VIDEO%/%teamcity.build.branch%/$packageName/*" "./internal/services/$packageName/vcrtestdata" --recursive
+            fi
+        """.trimIndent()
+    })
+}
+
+fun BuildSteps.UploadVCRCassettes(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Upload VCR Cassettes"
+        scriptContent = """
+            if [ "%env.TC_TEST_VIA_VCR%" = "record" ]; then
+                azcopy copy "./internal/services/$packageName/vcrtestdata/*.yaml" "%env.BLOCKBUSTER_VIDEO%/%teamcity.build.branch%/$packageName/" --recursive
+            fi
+        """.trimIndent()
+    })
+}
+
 fun BuildSteps.RunAcceptanceTests(packageName: String) {
     var packagePath = servicePath(packageName)
     var withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(packagePath)
