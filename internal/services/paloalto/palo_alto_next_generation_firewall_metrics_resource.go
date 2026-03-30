@@ -14,6 +14,7 @@ import (
 	metricsobjectfirewall "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/metricsobjectfirewallresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -60,7 +61,7 @@ func (r NextGenerationFirewallMetricsResource) Arguments() map[string]*schema.Sc
 		"application_insights_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: azure.ValidateResourceID,
 		},
 	}
 }
@@ -147,7 +148,10 @@ func (r NextGenerationFirewallMetricsResource) Read() sdk.ResourceFunc {
 
 			if model := existing.Model; model != nil {
 				props := model.Properties
-				state.ApplicationInsightsConnectionString = props.ApplicationInsightsConnectionString
+				// Azure may redact the connection string on GET; preserve the config value in state
+				if props.ApplicationInsightsConnectionString != "" {
+					state.ApplicationInsightsConnectionString = props.ApplicationInsightsConnectionString
+				}
 				state.ApplicationInsightsResourceID = props.ApplicationInsightsResourceId
 				state.PanEtag = pointer.From(props.PanEtag)
 			}
@@ -178,6 +182,10 @@ func (r NextGenerationFirewallMetricsResource) Update() sdk.ResourceFunc {
 			existing, err := client.MetricsObjectFirewallGet(ctx, metricsFirewallId)
 			if err != nil {
 				return fmt.Errorf("retrieving Metrics for %s: %+v", metricsFirewallId, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving Metrics for %s: `model` was nil", metricsFirewallId)
 			}
 
 			update := *existing.Model
