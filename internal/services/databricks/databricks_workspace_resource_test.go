@@ -2633,7 +2633,6 @@ resource "azurerm_key_vault_access_policy" "diskencryption" {
     "GetRotationPolicy",
     "UnwrapKey",
     "WrapKey",
->>>>>>> origin/main
   ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, databricksPrincipalID)
