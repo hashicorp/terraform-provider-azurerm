@@ -334,7 +334,8 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.InstantRPDetails = expandBackupProtectionPolicyVMResourceGroup(d)
 	}
 
-	if d.HasChange("backup") {
+	// If anything changes inside any of the `retention_*` fields, update the `schedulePolicy` object as the API requires all timestamps match
+	if d.HasChanges("backup", "retention_daily", "retention_weekly", "retention_monthly", "retention_yearly") {
 		schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
 		if err != nil {
 			return err
@@ -342,7 +343,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.SchedulePolicy = schedulePolicy
 	}
 
-	if d.HasChange("retention_daily") || d.HasChange("backup.0.time") {
+	if d.HasChanges("retention_daily", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
@@ -355,7 +356,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.RetentionPolicy = retentionPolicy
 	}
 
-	if d.HasChange("retention_weekly") {
+	if d.HasChanges("retention_weekly", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
@@ -368,7 +369,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.RetentionPolicy = retentionPolicy
 	}
 
-	if d.HasChange("retention_monthly") {
+	if d.HasChanges("retention_monthly", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
@@ -381,7 +382,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.RetentionPolicy = retentionPolicy
 	}
 
-	if d.HasChange("retention_yearly") {
+	if d.HasChanges("retention_yearly", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
