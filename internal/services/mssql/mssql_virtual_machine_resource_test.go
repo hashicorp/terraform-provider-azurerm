@@ -1295,7 +1295,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
     }
 
     temp_db_settings {
-      default_file_path = "F:\\SQLTemp"
+      default_file_path = "D:\\SQLTemp"
       log_file_size_mb  = 512
     }
   }
