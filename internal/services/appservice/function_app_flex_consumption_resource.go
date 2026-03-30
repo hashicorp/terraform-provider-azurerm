@@ -64,25 +64,21 @@ type FunctionAppFlexConsumptionModel struct {
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
 	KeyVaultReferenceIdentityID      string                     `tfschema:"key_vault_reference_identity_id"`
 
-	StorageContainerType                    string                                         `tfschema:"storage_container_type,removedInNextMajorVersion"`
-	StorageContainerEndpoint                string                                         `tfschema:"storage_container_endpoint,removedInNextMajorVersion"`
-	StorageAuthType                         string                                         `tfschema:"storage_authentication_type,removedInNextMajorVersion"`
-	StorageAccessKey                        string                                         `tfschema:"storage_access_key,removedInNextMajorVersion"`
-	StorageUserAssignedIdentityID           string                                         `tfschema:"storage_user_assigned_identity_id,removedInNextMajorVersion"`
-	DeploymentStorageContainerType          string                                         `tfschema:"deployment_storage_container_type"`
-	DeploymentStorageContainerEndpoint      string                                         `tfschema:"deployment_storage_container_endpoint"`
-	DeploymentStorageAuthType               string                                         `tfschema:"deployment_storage_authentication_type"`
-	DeploymentStorageAccessKey              string                                         `tfschema:"deployment_storage_access_key"`
-	DeploymentStorageUserAssignedIdentityID string                                         `tfschema:"deployment_storage_user_assigned_identity_id"`
-	RuntimeName                             string                                         `tfschema:"runtime_name"`
-	RuntimeVersion                          string                                         `tfschema:"runtime_version"`
-	MaximumInstanceCount                    int64                                          `tfschema:"maximum_instance_count"`
-	InstanceMemoryInMB                      int64                                          `tfschema:"instance_memory_in_mb"`
-	HttpConcurrency                         int64                                          `tfschema:"http_concurrency"`
-	AlwaysReady                             []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
-	SiteConfig                              []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
-	Identity                                []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
-	Tags                                    map[string]string                              `tfschema:"tags"`
+	StorageContainerType          string                                         `tfschema:"storage_container_type,removedInNextMajorVersion"`
+	StorageContainerEndpoint      string                                         `tfschema:"storage_container_endpoint,removedInNextMajorVersion"`
+	StorageAuthType               string                                         `tfschema:"storage_authentication_type,removedInNextMajorVersion"`
+	StorageAccessKey              string                                         `tfschema:"storage_access_key,removedInNextMajorVersion"`
+	StorageUserAssignedIdentityID string                                         `tfschema:"storage_user_assigned_identity_id,removedInNextMajorVersion"`
+	DeploymentStorage             []DeploymentStorage                            `tfschema:"deployment_storage"`
+	RuntimeName                   string                                         `tfschema:"runtime_name"`
+	RuntimeVersion                string                                         `tfschema:"runtime_version"`
+	MaximumInstanceCount          int64                                          `tfschema:"maximum_instance_count"`
+	InstanceMemoryInMB            int64                                          `tfschema:"instance_memory_in_mb"`
+	HttpConcurrency               int64                                          `tfschema:"http_concurrency"`
+	AlwaysReady                   []FunctionAppAlwaysReady                       `tfschema:"always_ready"`
+	SiteConfig                    []helpers.SiteConfigFunctionAppFlexConsumption `tfschema:"site_config"`
+	Identity                      []identity.ModelSystemAssignedUserAssigned     `tfschema:"identity"`
+	Tags                          map[string]string                              `tfschema:"tags"`
 
 	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
 	DefaultHostname               string   `tfschema:"default_hostname"`
@@ -99,6 +95,14 @@ type FunctionAppFlexConsumptionModel struct {
 type FunctionAppAlwaysReady struct {
 	Name          string `tfschema:"name"`
 	InstanceCount int64  `tfschema:"instance_count"`
+}
+
+type DeploymentStorage struct {
+	ContainerType          string `tfschema:"container_type"`
+	ContainerEndPoint      string `tfschema:"container_endpoint"`
+	AuthenticationType     string `tfschema:"authentication_type"`
+	AccessKey              string `tfschema:"access_key"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
 }
 
 var _ sdk.ResourceWithUpdate = FunctionAppFlexConsumptionResource{}
@@ -143,7 +147,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: storageValidate.StorageAccountName,
 			ExactlyOneOf: []string{
 				"storage_account_name",
-				"storage_key_vault_secret_id",
+				"storage_account_key_vault_secret_id",
 			},
 			Description: "The backend storage account name which will be used by this Function App.",
 		},
@@ -190,42 +194,51 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The User Assigned Identity to use for Key Vault access.",
 		},
 
-		"deployment_storage_container_type": {
-			Type:     pluginsdk.TypeString,
+		"deployment_storage": {
+			Type:     pluginsdk.TypeList,
 			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
-			}, false),
-			Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
-		},
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"container_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
+						}, false),
+						Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
+					},
 
-		"deployment_storage_container_endpoint": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			Description: "The endpoint of the storage container where the function app's code is hosted.",
-		},
+					"container_endpoint": {
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						Description: "The endpoint of the storage container where the function app's code is hosted.",
+					},
 
-		"deployment_storage_authentication_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.AuthenticationTypeSystemAssignedIdentity),
-				string(webapps.AuthenticationTypeStorageAccountConnectionString),
-				string(webapps.AuthenticationTypeUserAssignedIdentity),
-			}, false),
-		},
+					"authentication_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(webapps.AuthenticationTypeSystemAssignedIdentity),
+							string(webapps.AuthenticationTypeStorageAccountConnectionString),
+							string(webapps.AuthenticationTypeUserAssignedIdentity),
+						}, false),
+					},
 
-		"deployment_storage_access_key": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
+					"access_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-		"deployment_storage_user_assigned_identity_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
 		},
 
 		"runtime_name": {
@@ -433,35 +446,19 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: validation.StringInSlice([]string{
 				string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
 			}, false),
-			ExactlyOneOf: []string{
-				"storage_container_type",
-				"deployment_storage_container_type",
-			},
-			ConflictsWith: []string{
-				"deployment_storage_container_endpoint",
-				"deployment_storage_authentication_type",
-				"deployment_storage_access_key",
-				"deployment_storage_user_assigned_identity_id",
-			},
-			Deprecated:  "`storage_container_type` has been deprecated in favour of the `deployment_storage_container_type` property and will be removed in v5.0 of the AzureRM Provider.",
-			Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
+			ExactlyOneOf: []string{"storage_container_type", "deployment_storage"},
+			Deprecated:   "`storage_container_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
+			Description:  "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
 		}
 
 		schema["storage_container_endpoint"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
-			ExactlyOneOf: []string{
-				"storage_container_endpoint",
-				"deployment_storage_container_endpoint",
-			},
 			ConflictsWith: []string{
-				"deployment_storage_container_type",
-				"deployment_storage_authentication_type",
-				"deployment_storage_access_key",
-				"deployment_storage_user_assigned_identity_id",
+				"deployment_storage",
 			},
-			Deprecated:  "`storage_container_endpoint` has been deprecated in favour of the `deployment_storage_container_endpoint` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:  "`storage_container_endpoint` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
 			Description: "The endpoint of the storage container where the function app's code is hosted.",
 		}
 
@@ -474,17 +471,10 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				string(webapps.AuthenticationTypeStorageAccountConnectionString),
 				string(webapps.AuthenticationTypeUserAssignedIdentity),
 			}, false),
-			ExactlyOneOf: []string{
-				"storage_authentication_type",
-				"deployment_storage_authentication_type",
-			},
 			ConflictsWith: []string{
-				"deployment_storage_container_type",
-				"deployment_storage_container_endpoint",
-				"deployment_storage_access_key",
-				"deployment_storage_user_assigned_identity_id",
+				"deployment_storage",
 			},
-			Deprecated: "`storage_authentication_type` has been deprecated in favour of the `deployment_storage_authentication_type` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated: "`storage_authentication_type` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 
 		schema["storage_access_key"] = &pluginsdk.Schema{
@@ -493,14 +483,11 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Computed:  true,
 			Sensitive: true,
 			ConflictsWith: []string{
-				"deployment_storage_container_type",
-				"deployment_storage_container_endpoint",
-				"deployment_storage_authentication_type",
-				"deployment_storage_access_key",
-				"deployment_storage_user_assigned_identity_id",
+				"deployment_storage",
 			},
+
 			ValidateFunc: validation.StringIsNotEmpty,
-			Deprecated:   "`storage_access_key` has been deprecated in favour of the `deployment_storage_access_key` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:   "`storage_access_key` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 
 		schema["storage_user_assigned_identity_id"] = &pluginsdk.Schema{
@@ -508,102 +495,62 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 			Computed: true,
 			ConflictsWith: []string{
-				"deployment_storage_container_type",
-				"deployment_storage_container_endpoint",
-				"deployment_storage_authentication_type",
-				"deployment_storage_access_key",
-				"deployment_storage_user_assigned_identity_id",
+				"deployment_storage",
 			},
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-			Deprecated:   "`storage_user_assigned_identity_id` has been deprecated in favour of the `deployment_storage_user_assigned_identity_id` property and will be removed in v5.0 of the AzureRM Provider.",
+			Deprecated:   "`storage_user_assigned_identity_id` has been deprecated in favour of the `deployment_storage` property and will be removed in v5.0 of the AzureRM Provider.",
 		}
 
-		schema["deployment_storage_container_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
+		schema["deployment_storage"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
-			}, false),
-			ExactlyOneOf: []string{
-				"storage_container_type",
-				"deployment_storage_container_type",
-			},
-			ConflictsWith: []string{
-				"storage_container_type",
-				"storage_container_endpoint",
-				"storage_access_key",
-				"storage_user_assigned_identity_id",
-			},
-			Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
-		}
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"container_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(webapps.FunctionsDeploymentStorageTypeBlobContainer),
+						}, false),
+						Description: "The type of the storage container where the function app's code is hosted. Only `blobContainer` is supported currently.",
+					},
 
-		schema["deployment_storage_container_endpoint"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ExactlyOneOf: []string{
-				"storage_container_endpoint",
-				"deployment_storage_container_endpoint",
-			},
-			ConflictsWith: []string{
-				"storage_container_type",
-				"storage_authentication_type",
-				"storage_access_key",
-				"storage_user_assigned_identity_id",
-			},
-			Description: "The endpoint of the storage container where the function app's code is hosted.",
-		}
+					"container_endpoint": {
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						Description: "The endpoint of the storage container where the function app's code is hosted.",
+					},
 
-		schema["deployment_storage_authentication_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(webapps.AuthenticationTypeSystemAssignedIdentity),
-				string(webapps.AuthenticationTypeStorageAccountConnectionString),
-				string(webapps.AuthenticationTypeUserAssignedIdentity),
-			}, false),
-			ExactlyOneOf: []string{
-				"storage_authentication_type",
-				"deployment_storage_authentication_type",
-			},
-			ConflictsWith: []string{
-				"storage_container_type",
-				"storage_container_endpoint",
-				"storage_access_key",
-				"storage_user_assigned_identity_id",
-			},
-		}
+					"authentication_type": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringInSlice([]string{
+							string(webapps.AuthenticationTypeSystemAssignedIdentity),
+							string(webapps.AuthenticationTypeStorageAccountConnectionString),
+							string(webapps.AuthenticationTypeUserAssignedIdentity),
+						}, false),
+					},
 
-		schema["deployment_storage_access_key"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			ConflictsWith: []string{
-				"storage_container_type",
-				"storage_container_endpoint",
-				"storage_authentication_type",
-				"storage_access_key",
-				"storage_user_assigned_identity_id",
-			},
-		}
+					"access_key": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Sensitive:    true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
 
-		schema["deployment_storage_user_assigned_identity_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ConflictsWith: []string{
-				"storage_container_type",
-				"storage_container_endpoint",
-				"storage_authentication_type",
-				"storage_access_key",
-				"storage_user_assigned_identity_id",
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
 			},
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			ExactlyOneOf: []string{"storage_container_type", "deployment_storage"},
 		}
+	} else {
+
 	}
 	return schema
 }
@@ -735,32 +682,34 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			deploymentSaKey := functionAppFlexConsumption.DeploymentStorageAccessKey
-			deploymentSaEndpoint := functionAppFlexConsumption.DeploymentStorageContainerEndpoint
-			storageAuthType := webapps.AuthenticationType(functionAppFlexConsumption.DeploymentStorageAuthType)
+			deploymentStorage := functionAppFlexConsumption.DeploymentStorage
+			var deploymentStorageKey, deploymentStorageEndpoint, deploymentStorageConnectionStr, deploymentStorageUai string
+			var deploymentStorageAuthType webapps.AuthenticationType
 			storageConnStringForFCApp := "DEPLOYMENT_STORAGE_CONNECTION_STRING"
-			storageUai := functionAppFlexConsumption.DeploymentStorageUserAssignedIdentityID
 
-			if !features.FivePointOh() {
-				if deploymentSaEndpoint == "" {
-					deploymentSaEndpoint = functionAppFlexConsumption.StorageContainerEndpoint
-					deploymentSaKey = functionAppFlexConsumption.StorageAccessKey
-					storageAuthType = webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType)
-					storageUai = functionAppFlexConsumption.StorageUserAssignedIdentityID
-				}
+			if !features.FivePointOh() && deploymentStorage == nil {
+				deploymentStorageEndpoint = functionAppFlexConsumption.StorageContainerEndpoint
+				deploymentStorageKey = functionAppFlexConsumption.StorageAccessKey
+				deploymentStorageAuthType = webapps.AuthenticationType(functionAppFlexConsumption.StorageAuthType)
+				deploymentStorageUai = functionAppFlexConsumption.StorageUserAssignedIdentityID
 				if functionAppStorageAccountString == "" {
-					endpoint, err := url.Parse(deploymentSaEndpoint)
+					endpoint, err := url.Parse(deploymentStorageEndpoint)
 					if storageName := strings.Split(endpoint.Host, ".")[0]; storageName != "" {
 						if functionAppFlexConsumption.StorageAccountUsesMSI {
 							functionAppStorageAccountString = storageName
 						} else {
-							functionAppStorageAccountString = fmt.Sprintf(StorageStringFmt, storageName, deploymentSaKey, *storageDomainSuffix)
+							functionAppStorageAccountString = fmt.Sprintf(StorageStringFmt, storageName, deploymentStorageKey, *storageDomainSuffix)
 						}
 					}
 					if err != nil {
 						return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
 					}
 				}
+			} else {
+				deploymentStorageEndpoint = deploymentStorage[0].ContainerEndPoint
+				deploymentStorageKey = deploymentStorage[0].AccessKey
+				deploymentStorageAuthType = webapps.AuthenticationType(deploymentStorage[0].AuthenticationType)
+				deploymentStorageUai = deploymentStorage[0].UserAssignedIdentityId
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(functionAppFlexConsumption.Identity)
@@ -768,7 +717,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
 
-			blobContainerType := webapps.FunctionsDeploymentStorageType(functionAppFlexConsumption.DeploymentStorageContainerType)
+			blobContainerType := webapps.FunctionsDeploymentStorageType(functionAppFlexConsumption.DeploymentStorage[0].ContainerType)
 			if !features.FivePointOh() && blobContainerType == "" {
 				blobContainerType = webapps.FunctionsDeploymentStorageType(functionAppFlexConsumption.StorageContainerType)
 			}
@@ -776,37 +725,37 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			storageDeployment := &webapps.FunctionsDeployment{
 				Storage: &webapps.FunctionsDeploymentStorage{
 					Type:  &blobContainerType,
-					Value: &deploymentSaEndpoint,
+					Value: &deploymentStorageEndpoint,
 				},
 			}
 
 			storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
-				Type: &storageAuthType,
+				Type: &deploymentStorageAuthType,
 			}
 
-			endpoint := strings.TrimPrefix(deploymentSaEndpoint, "https://")
+			endpoint := strings.TrimPrefix(deploymentStorageEndpoint, "https://")
 			var deploymentSaConnString string
 			if storageNameIndex := strings.Index(endpoint, "."); storageNameIndex != -1 {
 				storageName := endpoint[:storageNameIndex]
-				deploymentSaConnString = fmt.Sprintf(StorageStringFmt, storageName, deploymentSaKey, *storageDomainSuffix)
+				deploymentSaConnString = fmt.Sprintf(StorageStringFmt, storageName, deploymentStorageKey, *storageDomainSuffix)
 			} else {
 				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", functionAppFlexConsumption.StorageContainerEndpoint)
 			}
 
-			if storageAuthType == webapps.AuthenticationTypeStorageAccountConnectionString {
-				if deploymentSaKey == "" {
+			if deploymentStorageAuthType == webapps.AuthenticationTypeStorageAccountConnectionString {
+				if deploymentStorageKey == "" {
 					return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
 				} else {
-					storageAuth.StorageAccountConnectionStringName = &storageConnStringForFCApp
+					storageAuth.StorageAccountConnectionStringName = &deploymentStorageConnectionStr
 				}
 			} else {
 				storageConnStringForFCApp = ""
 				deploymentSaConnString = ""
-				if storageAuthType == webapps.AuthenticationTypeUserAssignedIdentity {
-					if storageUai == "" {
+				if deploymentStorageAuthType == webapps.AuthenticationTypeUserAssignedIdentity {
+					if deploymentStorageUai == "" {
 						return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
 					}
-					storageAuth.UserAssignedIdentityResourceId = &storageUai
+					storageAuth.UserAssignedIdentityResourceId = &deploymentStorageUai
 				}
 			}
 
@@ -1059,20 +1008,20 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					if faConfigDeployment := functionAppConfig.Deployment; faConfigDeployment != nil && faConfigDeployment.Storage != nil {
 						storageConfig := *faConfigDeployment.Storage
 
-						state.DeploymentStorageContainerType = string(pointer.From(storageConfig.Type))
-						state.DeploymentStorageContainerEndpoint = pointer.From(storageConfig.Value)
+						state.DeploymentStorage[0].ContainerType = string(pointer.From(storageConfig.Type))
+						state.DeploymentStorage[0].ContainerEndPoint = pointer.From(storageConfig.Value)
 						if !features.FivePointOh() {
 							state.StorageContainerType = string(pointer.From(storageConfig.Type))
 							state.StorageContainerEndpoint = pointer.From(storageConfig.Value)
 						}
 
 						if storageConfig.Authentication != nil && storageConfig.Authentication.Type != nil {
-							state.DeploymentStorageAuthType = string(pointer.From(storageConfig.Authentication.Type))
+							state.DeploymentStorage[0].AuthenticationType = string(pointer.From(storageConfig.Authentication.Type))
 							if !features.FivePointOh() {
 								state.StorageAuthType = string(pointer.From(storageConfig.Authentication.Type))
 							}
 							if storageConfig.Authentication.UserAssignedIdentityResourceId != nil {
-								state.DeploymentStorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
+								state.DeploymentStorage[0].UserAssignedIdentityId = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
 								if !features.FivePointOh() {
 									state.StorageUserAssignedIdentityID = pointer.From(storageConfig.Authentication.UserAssignedIdentityResourceId)
 								}
@@ -1230,7 +1179,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			var backendStorageString, deploymentSaKey, deploymentSaName, storageConnStringForFCApp, storageConnStringForFcAppValue string
 
-			deploymentSaEndpoint := state.DeploymentStorageContainerEndpoint
+			deploymentSaEndpoint := state.DeploymentStorage[0].ContainerEndPoint
 			if !features.FivePointOh() && deploymentSaEndpoint == "" {
 				deploymentSaEndpoint = state.StorageContainerEndpoint
 			}
@@ -1259,19 +1208,19 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("deployment_storage_container_endpoint") {
-				deploymentSaEndpoint = state.DeploymentStorageContainerEndpoint
+			if metadata.ResourceData.HasChange("deployment_storage.0.container_endpoint") {
+				deploymentSaEndpoint = state.DeploymentStorage[0].ContainerEndPoint
 				model.Properties.FunctionAppConfig.Deployment.Storage.Value = pointer.To(deploymentSaEndpoint)
 			}
 
-			if metadata.ResourceData.HasChange("deployment_storage_access_key") {
-				deploymentSaKey = state.DeploymentStorageAccessKey
+			if metadata.ResourceData.HasChange("deployment_storage.0.access_key") {
+				deploymentSaKey = state.DeploymentStorage[0].AccessKey
 			}
 
 			endpoint, err := url.Parse(deploymentSaEndpoint)
 			deploymentSaName = strings.Split(endpoint.Host, ".")[0]
 			if err != nil {
-				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.DeploymentStorageContainerEndpoint)
+				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.DeploymentStorage[0].ContainerEndPoint)
 			}
 
 			if deploymentSaKey != "" && deploymentSaName != "" {
@@ -1320,12 +1269,12 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication = &storageAuth
 			}
 
-			if metadata.ResourceData.HasChange("deployment_storage_authentication_type") {
-				storageAuthType := webapps.AuthenticationType(state.DeploymentStorageAuthType)
+			if metadata.ResourceData.HasChange("deployment_storage.0.authentication_type") {
+				storageAuthType := webapps.AuthenticationType(state.DeploymentStorage[0].AuthenticationType)
 				storageAuth := webapps.FunctionsDeploymentStorageAuthentication{
 					Type: &storageAuthType,
 				}
-				if state.DeploymentStorageAuthType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
+				if state.DeploymentStorage[0].AuthenticationType == string(webapps.AuthenticationTypeStorageAccountConnectionString) {
 					storageConnStringForFCApp = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 					if deploymentSaKey == "" {
 						return fmt.Errorf("the storage account access key must be specified when using the storage key based access")
@@ -1334,11 +1283,11 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				} else {
 					storageConnStringForFCApp = ""
 					storageConnStringForFcAppValue = ""
-					if state.DeploymentStorageAuthType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
-						if state.DeploymentStorageUserAssignedIdentityID == "" {
+					if state.DeploymentStorage[0].AuthenticationType == string(webapps.AuthenticationTypeUserAssignedIdentity) {
+						if state.DeploymentStorage[0].UserAssignedIdentityId == "" {
 							return fmt.Errorf("the user assigned identity id must be specified when using the user assigned identity to access the storage account")
 						}
-						storageAuth.UserAssignedIdentityResourceId = &state.DeploymentStorageUserAssignedIdentityID
+						storageAuth.UserAssignedIdentityResourceId = &state.DeploymentStorage[0].UserAssignedIdentityId
 					}
 				}
 				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication = &storageAuth
@@ -1349,7 +1298,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("deployment_storage_user_assigned_identity_id") {
-				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication.UserAssignedIdentityResourceId = &state.DeploymentStorageUserAssignedIdentityID
+				model.Properties.FunctionAppConfig.Deployment.Storage.Authentication.UserAssignedIdentityResourceId = &state.DeploymentStorage[0].UserAssignedIdentityId
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
@@ -1550,7 +1499,7 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 			m.SiteConfig[0].HealthCheckEvictionTime = int64(i)
 
 		case "DEPLOYMENT_STORAGE_CONNECTION_STRING":
-			_, m.DeploymentStorageAccessKey = helpers.ParseWebJobsStorageString(v)
+			_, m.DeploymentStorage[0].AccessKey = helpers.ParseWebJobsStorageString(v)
 			if !features.FivePointOh() {
 				_, m.StorageAccessKey = helpers.ParseWebJobsStorageString(v)
 			}
