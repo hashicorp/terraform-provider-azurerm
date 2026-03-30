@@ -1505,16 +1505,16 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
       max_surge = "10%%"
     }
     kubelet_config {
-      cpu_manager_policy        = "static"
-      cpu_cfs_quota_enabled     = true
-      cpu_cfs_quota_period      = "10ms"
-      image_gc_high_threshold   = 90
-      image_gc_low_threshold    = 70
-      topology_manager_policy   = "best-effort"
-      allowed_unsafe_sysctls    = ["kernel.msg*", "net.core.somaxconn"]
-      container_log_max_size_mb = 100
-      container_log_max_line    = 100000
-      pod_max_pid               = 12345
+      cpu_manager_policy         = "static"
+      cpu_cfs_quota_enabled      = true
+      cpu_cfs_quota_period       = "10ms"
+      image_gc_high_threshold    = 90
+      image_gc_low_threshold     = 70
+      topology_manager_policy    = "best-effort"
+      allowed_unsafe_sysctls     = ["kernel.msg*", "net.core.somaxconn"]
+      container_log_max_size_mb  = 100
+      container_log_max_files    = 10000
+      pod_max_pid                = 12345
     }
 
     linux_os_config {
@@ -1596,7 +1596,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
 
     linux_os_config {
-      transparent_huge_page_enabled = "always" # This property is deprecated and is removed in v5.0 of the provider
 
       sysctl_config {
         fs_aio_max_nr               = 65536
