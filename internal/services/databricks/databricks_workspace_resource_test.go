@@ -322,7 +322,7 @@ func TestAccDatabricksWorkspace_managedDiskCMK(t *testing.T) {
 }
 
 func TestAccDatabricksWorkspace_managedHSMCMK(t *testing.T) {
-	if os.Getenv("ARM_TEST_HSM_KEY2") == "" {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
 		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
 		return
 	}
