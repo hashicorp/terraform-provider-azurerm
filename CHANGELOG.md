@@ -12,6 +12,7 @@ ENHANCEMENTS:
 
 FEATURES:
 * **New Resource**: `azurerm_kubernetes_cluster_deployment_safeguard` [GH-31670]
+* **New Resource**: `azurerm_data_protection_backup_policy_data_lake_storage` [GH-31179]
 
 BUG FIXES:
 * `azurerm_cosmosdb_account` - fix an API error caused by `backup.interval_in_minutes` and `backup.retention_in_hours` being set to `0` in the API payload when not defined in config [GH-32037]
