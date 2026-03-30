@@ -77,15 +77,18 @@ func (r RelayHybridConnectionAuthorizationRuleDataResource) Read() sdk.ResourceF
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Relay.HybridConnectionsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
 
-			id, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			var config RelayHybridConnectionAuthorizationRuleDataResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.GetAuthorizationRule(ctx, *id)
+			id := hybridconnections.NewHybridConnectionAuthorizationRuleID(subscriptionId, config.ResourceGroupName, config.RelayNamespaceName, config.HybridConnectionName, config.Name)
+
+			resp, err := client.GetAuthorizationRule(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -94,7 +97,7 @@ func (r RelayHybridConnectionAuthorizationRuleDataResource) Read() sdk.ResourceF
 				return fmt.Errorf("retrieving: %s: %+v", id, err)
 			}
 
-			keysResp, err := client.ListKeys(ctx, *id)
+			keysResp, err := client.ListKeys(ctx, id)
 			if err != nil {
 				return fmt.Errorf("listing keys for %s: %+v", id, err)
 			}

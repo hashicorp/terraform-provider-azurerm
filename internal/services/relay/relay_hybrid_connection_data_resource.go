@@ -77,13 +77,16 @@ func (RelayHybridConnectionDataResource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Relay.HybridConnectionsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id, err := hybridconnections.ParseHybridConnectionID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			var config RelayHybridConnectionDataResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.Get(ctx, *id)
+			id := hybridconnections.NewHybridConnectionID(subscriptionId, config.ResourceGroupName, config.RelayNamespaceName, config.Name)
+
+			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)

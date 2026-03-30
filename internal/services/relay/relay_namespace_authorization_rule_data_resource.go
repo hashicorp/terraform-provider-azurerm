@@ -72,13 +72,16 @@ func (r RelayNamespaceAuthorizationRuleDataResource) Read() sdk.ResourceFunc {
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Relay.NamespacesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			id, err := namespaces.ParseAuthorizationRuleID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
+			var config RelayNamespaceAuthorizationRuleDataResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			resp, err := client.GetAuthorizationRule(ctx, *id)
+			id := namespaces.NewAuthorizationRuleID(subscriptionId, config.ResourceGroupName, config.RelayNamespaceName, config.Name)
+
+			resp, err := client.GetAuthorizationRule(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -87,7 +90,7 @@ func (r RelayNamespaceAuthorizationRuleDataResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving: %s: %+v", id, err)
 			}
 
-			keysResp, err := client.ListKeys(ctx, *id)
+			keysResp, err := client.ListKeys(ctx, id)
 			if err != nil {
 				return fmt.Errorf("listing keys for %s: %+v", id, err)
 			}
