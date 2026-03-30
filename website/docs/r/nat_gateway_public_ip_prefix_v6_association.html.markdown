@@ -3,18 +3,18 @@ subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nat_gateway_public_ip_prefix_v6_association"
 description: |-
-  Manages the association between a NAT Gateway and a Public IP Prefix (IPv6).
+  Manages the association between a NAT Gateway and an IPv6 Public IP Prefix.
 ---
 
 # azurerm_nat_gateway_public_ip_prefix_v6_association
 
-Manages the association between a NAT Gateway and a Public IP Prefix (IPv6).
+Manages the association between a NAT Gateway and an IPv6 Public IP Prefix.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
+  name     = "example-resource-group"
   location = "West Europe"
 }
 
@@ -23,6 +23,7 @@ resource "azurerm_public_ip_prefix" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   ip_version          = "IPv6"
+  prefix_length       = 127
   sku                 = "StandardV2"
 }
 
@@ -47,6 +48,8 @@ The following arguments are supported:
 
 * `public_ip_prefix_id` - (Required) The ID of the IPv6 Public IP Prefix which this NAT Gateway should be connected to. Changing this forces a new resource to be created.
 
+~> **Note:** When `nat_gateway_id` references a `StandardV2` NAT Gateway, `public_ip_prefix_id` must reference a `StandardV2` IPv6 Public IP Prefix. Azure rejects `Standard` Public IP Prefixes with `StandardV2` NAT Gateways, and this incompatibility is not validated during terraform plan phase.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -63,13 +66,13 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-A NAT Gateway Public IP Prefix V6 Association can be imported using the `resource id`, e.g.
+A NAT Gateway and IPv6 Public IP Prefix association can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nat_gateway_public_ip_prefix_v6_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/natGateways/natGateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/publicIPPrefixes/publicIPPrefix1"
 ```
 
--> **Note:** This is a Terraform specific ID in the format `{natGatewayID}|{publicIPPrefixID}`.
+-> **Note:** This is a Terraform Specific ID in the format `{natGatewayID}|{publicIPPrefixID}`
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
