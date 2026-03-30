@@ -1293,9 +1293,9 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		diskType = string(*input.DiskConfigurationType)
 	}
 
-	systemDbOnDataDisk := false
+	var systemDbOnDataDisk *bool
 	if input.SqlSystemDbOnDataDisk != nil {
-		systemDbOnDataDisk = *input.SqlSystemDbOnDataDisk
+		systemDbOnDataDisk = input.SqlSystemDbOnDataDisk
 	}
 
 	output := map[string]interface{}{
@@ -1309,8 +1309,7 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
 		len(output["data_settings"].([]interface{})) == 0 &&
-		len(output["log_settings"].([]interface{})) == 0 &&
-		len(output["temp_db_settings"].([]interface{})) == 0 {
+		len(output["log_settings"].([]interface{})) == 0 {
 		return []interface{}{}
 	}
 
