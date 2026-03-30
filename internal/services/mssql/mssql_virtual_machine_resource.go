@@ -1380,16 +1380,8 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}, lunsInConfig boo
 }
 
 func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbSettings) []interface{} {
-	if input == nil || (input.DataFileCount == nil &&
-		input.DataFileSize == nil &&
-		input.DataGrowth == nil &&
-		input.DefaultFilePath == nil &&
-		input.LogFileSize == nil &&
-		input.LogGrowth == nil &&
-		input.Luns == nil &&
-		input.PersistFolder == nil &&
-		input.PersistFolderPath == nil &&
-		input.UseStoragePool == nil) {
+	// Check mandatory field `default_file_path` to determine if TempDbSettings is set.
+	if input == nil || input.DefaultFilePath == nil {
 		return []interface{}{}
 	}
 	attrs := make(map[string]interface{})
