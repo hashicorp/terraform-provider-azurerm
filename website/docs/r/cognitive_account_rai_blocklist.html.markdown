@@ -3,12 +3,12 @@ subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account_rai_blocklist"
 description: |-
-  Manages a Cognitive Account Rai Blocklist.
+  Manages a Microsoft Foundry "Guardrails + Controls" blocklist. Microsoft Foundry was previously known as "Cognitive Account".
 ---
 
 # azurerm_cognitive_account_rai_blocklist
 
-Manages a Cognitive Account Rai Blocklist.
+Manages a Microsoft Foundry "Guardrails + Controls" blocklist. Microsoft Foundry was previously known as "Cognitive Account".
 
 ## Example Usage
 
@@ -40,6 +40,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the Cognitive Account Rai Blocklist. Changing this forces a new Cognitive Account Rai Blocklist to be created.
 
 * `cognitive_account_id` - (Required) The ID of the Cognitive Services Account. Changing this forces a new Cognitive Account Rai Blocklist to be created.
+
+* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ---
 
