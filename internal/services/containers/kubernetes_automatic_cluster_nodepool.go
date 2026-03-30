@@ -68,52 +68,52 @@ type KubeletConfigModel struct {
 	CPUManagerPolicy      string   `tfschema:"cpu_manager_policy"`
 	CPUCfsQuotaEnabled    bool     `tfschema:"cpu_cfs_quota_enabled"`
 	CPUCfsQuotaPeriod     string   `tfschema:"cpu_cfs_quota_period"`
-	ImageGcHighThreshold  int      `tfschema:"image_gc_high_threshold"`
-	ImageGcLowThreshold   int      `tfschema:"image_gc_low_threshold"`
+	ImageGcHighThreshold  int64    `tfschema:"image_gc_high_threshold"`
+	ImageGcLowThreshold   int64    `tfschema:"image_gc_low_threshold"`
 	TopologyManagerPolicy string   `tfschema:"topology_manager_policy"`
 	AllowedUnsafeSysctls  []string `tfschema:"allowed_unsafe_sysctls"`
-	ContainerLogMaxSizeMB int      `tfschema:"container_log_max_size_mb"`
-	ContainerLogMaxLine   int      `tfschema:"container_log_max_line"`
-	PodMaxPid             int      `tfschema:"pod_max_pid"`
+	ContainerLogMaxSizeMB int64    `tfschema:"container_log_max_size_mb"`
+	ContainerLogMaxFiles  int64    `tfschema:"container_log_max_files"`
+	PodMaxPid             int64    `tfschema:"pod_max_pid"`
 }
 
 type LinuxOSConfigModel struct {
 	SysctlConfig              []SysctlConfigModel `tfschema:"sysctl_config"`
 	TransparentHugePage       string              `tfschema:"transparent_huge_page"`
 	TransparentHugePageDefrag string              `tfschema:"transparent_huge_page_defrag"`
-	SwapFileSizeMB            int                 `tfschema:"swap_file_size_mb"`
+	SwapFileSizeMB            int64               `tfschema:"swap_file_size_mb"`
 }
 
 type SysctlConfigModel struct {
-	FsAioMaxNr                     int  `tfschema:"fs_aio_max_nr"`
-	FsFileMax                      int  `tfschema:"fs_file_max"`
-	FsInotifyMaxUserWatches        int  `tfschema:"fs_inotify_max_user_watches"`
-	FsNrOpen                       int  `tfschema:"fs_nr_open"`
-	KernelThreadsMax               int  `tfschema:"kernel_threads_max"`
-	NetCoreNetdevMaxBacklog        int  `tfschema:"net_core_netdev_max_backlog"`
-	NetCoreOptmemMax               int  `tfschema:"net_core_optmem_max"`
-	NetCoreRmemDefault             int  `tfschema:"net_core_rmem_default"`
-	NetCoreRmemMax                 int  `tfschema:"net_core_rmem_max"`
-	NetCoreSomaxconn               int  `tfschema:"net_core_somaxconn"`
-	NetCoreWmemDefault             int  `tfschema:"net_core_wmem_default"`
-	NetCoreWmemMax                 int  `tfschema:"net_core_wmem_max"`
-	NetIPv4IPLocalPortRangeMin     int  `tfschema:"net_ipv4_ip_local_port_range_min"`
-	NetIPv4IPLocalPortRangeMax     int  `tfschema:"net_ipv4_ip_local_port_range_max"`
-	NetIPv4NeighDefaultGcThresh1   int  `tfschema:"net_ipv4_neigh_default_gc_thresh1"`
-	NetIPv4NeighDefaultGcThresh2   int  `tfschema:"net_ipv4_neigh_default_gc_thresh2"`
-	NetIPv4NeighDefaultGcThresh3   int  `tfschema:"net_ipv4_neigh_default_gc_thresh3"`
-	NetIPv4TCPFinTimeout           int  `tfschema:"net_ipv4_tcp_fin_timeout"`
-	NetIPv4TCPKeepaliveIntvl       int  `tfschema:"net_ipv4_tcp_keepalive_intvl"`
-	NetIPv4TCPKeepaliveProbes      int  `tfschema:"net_ipv4_tcp_keepalive_probes"`
-	NetIPv4TCPKeepaliveTime        int  `tfschema:"net_ipv4_tcp_keepalive_time"`
-	NetIPv4TCPMaxSynBacklog        int  `tfschema:"net_ipv4_tcp_max_syn_backlog"`
-	NetIPv4TCPMaxTwBuckets         int  `tfschema:"net_ipv4_tcp_max_tw_buckets"`
-	NetIPv4TCPTwReuse              bool `tfschema:"net_ipv4_tcp_tw_reuse"`
-	NetNetfilterNfConntrackBuckets int  `tfschema:"net_netfilter_nf_conntrack_buckets"`
-	NetNetfilterNfConntrackMax     int  `tfschema:"net_netfilter_nf_conntrack_max"`
-	VMMaxMapCount                  int  `tfschema:"vm_max_map_count"`
-	VMSwappiness                   int  `tfschema:"vm_swappiness"`
-	VMVfsCachePressure             int  `tfschema:"vm_vfs_cache_pressure"`
+	FsAioMaxNr                     int64 `tfschema:"fs_aio_max_nr"`
+	FsFileMax                      int64 `tfschema:"fs_file_max"`
+	FsInotifyMaxUserWatches        int64 `tfschema:"fs_inotify_max_user_watches"`
+	FsNrOpen                       int64 `tfschema:"fs_nr_open"`
+	KernelThreadsMax               int64 `tfschema:"kernel_threads_max"`
+	NetCoreNetdevMaxBacklog        int64 `tfschema:"net_core_netdev_max_backlog"`
+	NetCoreOptmemMax               int64 `tfschema:"net_core_optmem_max"`
+	NetCoreRmemDefault             int64 `tfschema:"net_core_rmem_default"`
+	NetCoreRmemMax                 int64 `tfschema:"net_core_rmem_max"`
+	NetCoreSomaxconn               int64 `tfschema:"net_core_somaxconn"`
+	NetCoreWmemDefault             int64 `tfschema:"net_core_wmem_default"`
+	NetCoreWmemMax                 int64 `tfschema:"net_core_wmem_max"`
+	NetIPv4IPLocalPortRangeMin     int64 `tfschema:"net_ipv4_ip_local_port_range_min"`
+	NetIPv4IPLocalPortRangeMax     int64 `tfschema:"net_ipv4_ip_local_port_range_max"`
+	NetIPv4NeighDefaultGcThresh1   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh1"`
+	NetIPv4NeighDefaultGcThresh2   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh2"`
+	NetIPv4NeighDefaultGcThresh3   int64 `tfschema:"net_ipv4_neigh_default_gc_thresh3"`
+	NetIPv4TCPFinTimeout           int64 `tfschema:"net_ipv4_tcp_fin_timeout"`
+	NetIPv4TCPKeepaliveIntvl       int64 `tfschema:"net_ipv4_tcp_keepalive_intvl"`
+	NetIPv4TCPKeepaliveProbes      int64 `tfschema:"net_ipv4_tcp_keepalive_probes"`
+	NetIPv4TCPKeepaliveTime        int64 `tfschema:"net_ipv4_tcp_keepalive_time"`
+	NetIPv4TCPMaxSynBacklog        int64 `tfschema:"net_ipv4_tcp_max_syn_backlog"`
+	NetIPv4TCPMaxTwBuckets         int64 `tfschema:"net_ipv4_tcp_max_tw_buckets"`
+	NetIPv4TCPTwReuse              bool  `tfschema:"net_ipv4_tcp_tw_reuse"`
+	NetNetfilterNfConntrackBuckets int64 `tfschema:"net_netfilter_nf_conntrack_buckets"`
+	NetNetfilterNfConntrackMax     int64 `tfschema:"net_netfilter_nf_conntrack_max"`
+	VMMaxMapCount                  int64 `tfschema:"vm_max_map_count"`
+	VMSwappiness                   int64 `tfschema:"vm_swappiness"`
+	VMVfsCachePressure             int64 `tfschema:"vm_vfs_cache_pressure"`
 }
 
 type NodeNetworkProfileModel struct {
@@ -810,28 +810,28 @@ func expandClusterNodePoolKubeletConfigTyped(input []KubeletConfigModel) *manage
 		result.CpuCfsQuotaPeriod = pointer.To(config.CPUCfsQuotaPeriod)
 	}
 	if config.ImageGcHighThreshold != 0 {
-		result.ImageGcHighThreshold = pointer.To(int64(config.ImageGcHighThreshold))
+		result.ImageGcHighThreshold = pointer.To(config.ImageGcHighThreshold)
 	}
 	if config.ImageGcLowThreshold != 0 {
-		result.ImageGcLowThreshold = pointer.To(int64(config.ImageGcLowThreshold))
+		result.ImageGcLowThreshold = pointer.To(config.ImageGcLowThreshold)
 	}
 	if config.TopologyManagerPolicy != "" {
 		result.TopologyManagerPolicy = pointer.To(config.TopologyManagerPolicy)
 	}
 	if config.ContainerLogMaxSizeMB != 0 {
-		result.ContainerLogMaxSizeMB = pointer.To(int64(config.ContainerLogMaxSizeMB))
+		result.ContainerLogMaxSizeMB = pointer.To(config.ContainerLogMaxSizeMB)
 	}
-	if config.ContainerLogMaxLine != 0 {
-		result.ContainerLogMaxFiles = pointer.To(int64(config.ContainerLogMaxLine))
+	if config.ContainerLogMaxFiles != 0 {
+		result.ContainerLogMaxFiles = pointer.To(config.ContainerLogMaxFiles)
 	}
 	if config.PodMaxPid != 0 {
-		result.PodMaxPids = pointer.To(int64(config.PodMaxPid))
+		result.PodMaxPids = pointer.To(config.PodMaxPid)
 	}
 
 	return result
 }
 
-func expandClusterNodePoolLinuxOSConfigTyped(input []LinuxOSConfigModel) (*managedclusters.LinuxOSConfig, error) {
+func expandAutomaticClusterNodePoolLinuxOSConfig(input []LinuxOSConfigModel) (*managedclusters.LinuxOSConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -853,7 +853,7 @@ func expandClusterNodePoolLinuxOSConfigTyped(input []LinuxOSConfigModel) (*manag
 		result.TransparentHugePageDefrag = pointer.To(config.TransparentHugePageDefrag)
 	}
 	if config.SwapFileSizeMB != 0 {
-		result.SwapFileSizeMB = pointer.To(int64(config.SwapFileSizeMB))
+		result.SwapFileSizeMB = pointer.To(config.SwapFileSizeMB)
 	}
 
 	return result, nil
@@ -870,43 +870,43 @@ func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managed
 	}
 
 	if config.NetCoreSomaxconn != 0 {
-		result.NetCoreSomaxconn = pointer.To(int64(config.NetCoreSomaxconn))
+		result.NetCoreSomaxconn = pointer.To(config.NetCoreSomaxconn)
 	}
 	if config.NetCoreNetdevMaxBacklog != 0 {
-		result.NetCoreNetdevMaxBacklog = pointer.To(int64(config.NetCoreNetdevMaxBacklog))
+		result.NetCoreNetdevMaxBacklog = pointer.To(config.NetCoreNetdevMaxBacklog)
 	}
 	if config.NetCoreRmemDefault != 0 {
-		result.NetCoreRmemDefault = pointer.To(int64(config.NetCoreRmemDefault))
+		result.NetCoreRmemDefault = pointer.To(config.NetCoreRmemDefault)
 	}
 	if config.NetCoreRmemMax != 0 {
-		result.NetCoreRmemMax = pointer.To(int64(config.NetCoreRmemMax))
+		result.NetCoreRmemMax = pointer.To(config.NetCoreRmemMax)
 	}
 	if config.NetCoreWmemDefault != 0 {
-		result.NetCoreWmemDefault = pointer.To(int64(config.NetCoreWmemDefault))
+		result.NetCoreWmemDefault = pointer.To(config.NetCoreWmemDefault)
 	}
 	if config.NetCoreWmemMax != 0 {
-		result.NetCoreWmemMax = pointer.To(int64(config.NetCoreWmemMax))
+		result.NetCoreWmemMax = pointer.To(config.NetCoreWmemMax)
 	}
 	if config.NetCoreOptmemMax != 0 {
-		result.NetCoreOptmemMax = pointer.To(int64(config.NetCoreOptmemMax))
+		result.NetCoreOptmemMax = pointer.To(config.NetCoreOptmemMax)
 	}
 	if config.NetIPv4TCPMaxSynBacklog != 0 {
-		result.NetIPv4TcpMaxSynBacklog = pointer.To(int64(config.NetIPv4TCPMaxSynBacklog))
+		result.NetIPv4TcpMaxSynBacklog = pointer.To(config.NetIPv4TCPMaxSynBacklog)
 	}
 	if config.NetIPv4TCPMaxTwBuckets != 0 {
-		result.NetIPv4TcpMaxTwBuckets = pointer.To(int64(config.NetIPv4TCPMaxTwBuckets))
+		result.NetIPv4TcpMaxTwBuckets = pointer.To(config.NetIPv4TCPMaxTwBuckets)
 	}
 	if config.NetIPv4TCPFinTimeout != 0 {
-		result.NetIPv4TcpFinTimeout = pointer.To(int64(config.NetIPv4TCPFinTimeout))
+		result.NetIPv4TcpFinTimeout = pointer.To(config.NetIPv4TCPFinTimeout)
 	}
 	if config.NetIPv4TCPKeepaliveTime != 0 {
-		result.NetIPv4TcpKeepaliveTime = pointer.To(int64(config.NetIPv4TCPKeepaliveTime))
+		result.NetIPv4TcpKeepaliveTime = pointer.To(config.NetIPv4TCPKeepaliveTime)
 	}
 	if config.NetIPv4TCPKeepaliveProbes != 0 {
-		result.NetIPv4TcpKeepaliveProbes = pointer.To(int64(config.NetIPv4TCPKeepaliveProbes))
+		result.NetIPv4TcpKeepaliveProbes = pointer.To(config.NetIPv4TCPKeepaliveProbes)
 	}
 	if config.NetIPv4TCPKeepaliveIntvl != 0 {
-		result.NetIPv4TcpkeepaliveIntvl = pointer.To(int64(config.NetIPv4TCPKeepaliveIntvl))
+		result.NetIPv4TcpkeepaliveIntvl = pointer.To(config.NetIPv4TCPKeepaliveIntvl)
 	}
 
 	if (config.NetIPv4IPLocalPortRangeMin != 0 && config.NetIPv4IPLocalPortRangeMax == 0) ||
@@ -921,43 +921,43 @@ func expandClusterNodePoolSysctlConfigTyped(input []SysctlConfigModel) (*managed
 	}
 
 	if config.NetIPv4NeighDefaultGcThresh1 != 0 {
-		result.NetIPv4NeighDefaultGcThresh1 = pointer.To(int64(config.NetIPv4NeighDefaultGcThresh1))
+		result.NetIPv4NeighDefaultGcThresh1 = pointer.To(config.NetIPv4NeighDefaultGcThresh1)
 	}
 	if config.NetIPv4NeighDefaultGcThresh2 != 0 {
-		result.NetIPv4NeighDefaultGcThresh2 = pointer.To(int64(config.NetIPv4NeighDefaultGcThresh2))
+		result.NetIPv4NeighDefaultGcThresh2 = pointer.To(config.NetIPv4NeighDefaultGcThresh2)
 	}
 	if config.NetIPv4NeighDefaultGcThresh3 != 0 {
-		result.NetIPv4NeighDefaultGcThresh3 = pointer.To(int64(config.NetIPv4NeighDefaultGcThresh3))
+		result.NetIPv4NeighDefaultGcThresh3 = pointer.To(config.NetIPv4NeighDefaultGcThresh3)
 	}
 	if config.NetNetfilterNfConntrackMax != 0 {
-		result.NetNetfilterNfConntrackMax = pointer.To(int64(config.NetNetfilterNfConntrackMax))
+		result.NetNetfilterNfConntrackMax = pointer.To(config.NetNetfilterNfConntrackMax)
 	}
 	if config.NetNetfilterNfConntrackBuckets != 0 {
-		result.NetNetfilterNfConntrackBuckets = pointer.To(int64(config.NetNetfilterNfConntrackBuckets))
+		result.NetNetfilterNfConntrackBuckets = pointer.To(config.NetNetfilterNfConntrackBuckets)
 	}
 	if config.FsAioMaxNr != 0 {
-		result.FsAioMaxNr = pointer.To(int64(config.FsAioMaxNr))
+		result.FsAioMaxNr = pointer.To(config.FsAioMaxNr)
 	}
 	if config.FsInotifyMaxUserWatches != 0 {
-		result.FsInotifyMaxUserWatches = pointer.To(int64(config.FsInotifyMaxUserWatches))
+		result.FsInotifyMaxUserWatches = pointer.To(config.FsInotifyMaxUserWatches)
 	}
 	if config.FsFileMax != 0 {
-		result.FsFileMax = pointer.To(int64(config.FsFileMax))
+		result.FsFileMax = pointer.To(config.FsFileMax)
 	}
 	if config.FsNrOpen != 0 {
-		result.FsNrOpen = pointer.To(int64(config.FsNrOpen))
+		result.FsNrOpen = pointer.To(config.FsNrOpen)
 	}
 	if config.KernelThreadsMax != 0 {
-		result.KernelThreadsMax = pointer.To(int64(config.KernelThreadsMax))
+		result.KernelThreadsMax = pointer.To(config.KernelThreadsMax)
 	}
 	if config.VMMaxMapCount != 0 {
-		result.VMMaxMapCount = pointer.To(int64(config.VMMaxMapCount))
+		result.VMMaxMapCount = pointer.To(config.VMMaxMapCount)
 	}
 	if config.VMSwappiness != 0 {
-		result.VMSwappiness = pointer.To(int64(config.VMSwappiness))
+		result.VMSwappiness = pointer.To(config.VMSwappiness)
 	}
 	if config.VMVfsCachePressure != 0 {
-		result.VMVfsCachePressure = pointer.To(int64(config.VMVfsCachePressure))
+		result.VMVfsCachePressure = pointer.To(config.VMVfsCachePressure)
 	}
 
 	return result, nil
@@ -975,10 +975,10 @@ func expandClusterNodePoolUpgradeSettingsTyped(input []UpgradeSettingsModel) *ma
 		result.MaxSurge = pointer.To(config.MaxSurge)
 	}
 	if config.DrainTimeoutInMinutes != 0 {
-		result.DrainTimeoutInMinutes = pointer.To(int64(config.DrainTimeoutInMinutes))
+		result.DrainTimeoutInMinutes = pointer.To(config.DrainTimeoutInMinutes)
 	}
 	if config.NodeSoakDurationInMinutes != 0 {
-		result.NodeSoakDurationInMinutes = pointer.To(int64(config.NodeSoakDurationInMinutes))
+		result.NodeSoakDurationInMinutes = pointer.To(config.NodeSoakDurationInMinutes)
 	}
 
 	return result
@@ -1011,28 +1011,28 @@ func flattenClusterNodePoolKubeletConfigTyped(input *managedclusters.KubeletConf
 		result.CPUCfsQuotaPeriod = *input.CpuCfsQuotaPeriod
 	}
 	if input.ImageGcHighThreshold != nil {
-		result.ImageGcHighThreshold = int(*input.ImageGcHighThreshold)
+		result.ImageGcHighThreshold = *input.ImageGcHighThreshold
 	}
 	if input.ImageGcLowThreshold != nil {
-		result.ImageGcLowThreshold = int(*input.ImageGcLowThreshold)
+		result.ImageGcLowThreshold = *input.ImageGcLowThreshold
 	}
 	if input.TopologyManagerPolicy != nil {
 		result.TopologyManagerPolicy = *input.TopologyManagerPolicy
 	}
 	if input.ContainerLogMaxSizeMB != nil {
-		result.ContainerLogMaxSizeMB = int(*input.ContainerLogMaxSizeMB)
+		result.ContainerLogMaxSizeMB = *input.ContainerLogMaxSizeMB
 	}
 	if input.ContainerLogMaxFiles != nil {
-		result.ContainerLogMaxLine = int(*input.ContainerLogMaxFiles)
+		result.ContainerLogMaxFiles = *input.ContainerLogMaxFiles
 	}
 	if input.PodMaxPids != nil {
-		result.PodMaxPid = int(*input.PodMaxPids)
+		result.PodMaxPid = *input.PodMaxPids
 	}
 
 	return []KubeletConfigModel{result}
 }
 
-func flattenClusterNodePoolLinuxOSConfigTyped(input *managedclusters.LinuxOSConfig) ([]LinuxOSConfigModel, error) {
+func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]LinuxOSConfigModel, error) {
 	if input == nil {
 		return []LinuxOSConfigModel{}, nil
 	}
@@ -1053,7 +1053,7 @@ func flattenClusterNodePoolLinuxOSConfigTyped(input *managedclusters.LinuxOSConf
 		result.TransparentHugePageDefrag = *input.TransparentHugePageDefrag
 	}
 	if input.SwapFileSizeMB != nil {
-		result.SwapFileSizeMB = int(*input.SwapFileSizeMB)
+		result.SwapFileSizeMB = *input.SwapFileSizeMB
 	}
 
 	return []LinuxOSConfigModel{result}, nil
@@ -1074,48 +1074,48 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 	}
 
 	if input.NetCoreSomaxconn != nil {
-		result.NetCoreSomaxconn = int(*input.NetCoreSomaxconn)
+		result.NetCoreSomaxconn = *input.NetCoreSomaxconn
 	}
 	if input.NetCoreNetdevMaxBacklog != nil {
-		result.NetCoreNetdevMaxBacklog = int(*input.NetCoreNetdevMaxBacklog)
+		result.NetCoreNetdevMaxBacklog = *input.NetCoreNetdevMaxBacklog
 	}
 	if input.NetCoreRmemDefault != nil {
-		result.NetCoreRmemDefault = int(*input.NetCoreRmemDefault)
+		result.NetCoreRmemDefault = *input.NetCoreRmemDefault
 	}
 	if input.NetCoreRmemMax != nil {
-		result.NetCoreRmemMax = int(*input.NetCoreRmemMax)
+		result.NetCoreRmemMax = *input.NetCoreRmemMax
 	}
 	if input.NetCoreWmemDefault != nil {
-		result.NetCoreWmemDefault = int(*input.NetCoreWmemDefault)
+		result.NetCoreWmemDefault = *input.NetCoreWmemDefault
 	}
 	if input.NetCoreWmemMax != nil {
-		result.NetCoreWmemMax = int(*input.NetCoreWmemMax)
+		result.NetCoreWmemMax = *input.NetCoreWmemMax
 	}
 	if input.NetCoreOptmemMax != nil {
-		result.NetCoreOptmemMax = int(*input.NetCoreOptmemMax)
+		result.NetCoreOptmemMax = *input.NetCoreOptmemMax
 	}
 	if input.NetIPv4TcpMaxSynBacklog != nil {
-		result.NetIPv4TCPMaxSynBacklog = int(*input.NetIPv4TcpMaxSynBacklog)
+		result.NetIPv4TCPMaxSynBacklog = *input.NetIPv4TcpMaxSynBacklog
 	}
 	if input.NetIPv4TcpMaxTwBuckets != nil {
-		result.NetIPv4TCPMaxTwBuckets = int(*input.NetIPv4TcpMaxTwBuckets)
+		result.NetIPv4TCPMaxTwBuckets = *input.NetIPv4TcpMaxTwBuckets
 	}
 	if input.NetIPv4TcpFinTimeout != nil {
-		result.NetIPv4TCPFinTimeout = int(*input.NetIPv4TcpFinTimeout)
+		result.NetIPv4TCPFinTimeout = *input.NetIPv4TcpFinTimeout
 	}
 	if input.NetIPv4TcpKeepaliveTime != nil {
-		result.NetIPv4TCPKeepaliveTime = int(*input.NetIPv4TcpKeepaliveTime)
+		result.NetIPv4TCPKeepaliveTime = *input.NetIPv4TcpKeepaliveTime
 	}
 	if input.NetIPv4TcpKeepaliveProbes != nil {
-		result.NetIPv4TCPKeepaliveProbes = int(*input.NetIPv4TcpKeepaliveProbes)
+		result.NetIPv4TCPKeepaliveProbes = *input.NetIPv4TcpKeepaliveProbes
 	}
 	if input.NetIPv4TcpkeepaliveIntvl != nil {
-		result.NetIPv4TCPKeepaliveIntvl = int(*input.NetIPv4TcpkeepaliveIntvl)
+		result.NetIPv4TCPKeepaliveIntvl = *input.NetIPv4TcpkeepaliveIntvl
 	}
 
 	if input.NetIPv4IPLocalPortRange != nil {
 		portRange := *input.NetIPv4IPLocalPortRange
-		var min, max int
+		var min, max int64
 		if _, err := fmt.Sscanf(portRange, "%d %d", &min, &max); err == nil {
 			result.NetIPv4IPLocalPortRangeMin = min
 			result.NetIPv4IPLocalPortRangeMax = max
@@ -1123,43 +1123,43 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 	}
 
 	if input.NetIPv4NeighDefaultGcThresh1 != nil {
-		result.NetIPv4NeighDefaultGcThresh1 = int(*input.NetIPv4NeighDefaultGcThresh1)
+		result.NetIPv4NeighDefaultGcThresh1 = *input.NetIPv4NeighDefaultGcThresh1
 	}
 	if input.NetIPv4NeighDefaultGcThresh2 != nil {
-		result.NetIPv4NeighDefaultGcThresh2 = int(*input.NetIPv4NeighDefaultGcThresh2)
+		result.NetIPv4NeighDefaultGcThresh2 = *input.NetIPv4NeighDefaultGcThresh2
 	}
 	if input.NetIPv4NeighDefaultGcThresh3 != nil {
-		result.NetIPv4NeighDefaultGcThresh3 = int(*input.NetIPv4NeighDefaultGcThresh3)
+		result.NetIPv4NeighDefaultGcThresh3 = *input.NetIPv4NeighDefaultGcThresh3
 	}
 	if input.NetNetfilterNfConntrackMax != nil {
-		result.NetNetfilterNfConntrackMax = int(*input.NetNetfilterNfConntrackMax)
+		result.NetNetfilterNfConntrackMax = *input.NetNetfilterNfConntrackMax
 	}
 	if input.NetNetfilterNfConntrackBuckets != nil {
-		result.NetNetfilterNfConntrackBuckets = int(*input.NetNetfilterNfConntrackBuckets)
+		result.NetNetfilterNfConntrackBuckets = *input.NetNetfilterNfConntrackBuckets
 	}
 	if input.FsAioMaxNr != nil {
-		result.FsAioMaxNr = int(*input.FsAioMaxNr)
+		result.FsAioMaxNr = *input.FsAioMaxNr
 	}
 	if input.FsInotifyMaxUserWatches != nil {
-		result.FsInotifyMaxUserWatches = int(*input.FsInotifyMaxUserWatches)
+		result.FsInotifyMaxUserWatches = *input.FsInotifyMaxUserWatches
 	}
 	if input.FsFileMax != nil {
-		result.FsFileMax = int(*input.FsFileMax)
+		result.FsFileMax = *input.FsFileMax
 	}
 	if input.FsNrOpen != nil {
-		result.FsNrOpen = int(*input.FsNrOpen)
+		result.FsNrOpen = *input.FsNrOpen
 	}
 	if input.KernelThreadsMax != nil {
-		result.KernelThreadsMax = int(*input.KernelThreadsMax)
+		result.KernelThreadsMax = *input.KernelThreadsMax
 	}
 	if input.VMMaxMapCount != nil {
-		result.VMMaxMapCount = int(*input.VMMaxMapCount)
+		result.VMMaxMapCount = *input.VMMaxMapCount
 	}
 	if input.VMSwappiness != nil {
-		result.VMSwappiness = int(*input.VMSwappiness)
+		result.VMSwappiness = *input.VMSwappiness
 	}
 	if input.VMVfsCachePressure != nil {
-		result.VMVfsCachePressure = int(*input.VMVfsCachePressure)
+		result.VMVfsCachePressure = *input.VMVfsCachePressure
 	}
 
 	return []SysctlConfigModel{result}, nil
@@ -1263,6 +1263,247 @@ func flattenClusterPoolNetworkProfileNodePublicIPTagsTyped(input *[]managedclust
 	}
 
 	return result
+}
+
+func expandClusterPoolNetworkProfileTyped(input []NodeNetworkProfileModel) *managedclusters.AgentPoolNetworkProfile {
+	if len(input) == 0 {
+		return nil
+	}
+
+	profile := input[0]
+	result := &managedclusters.AgentPoolNetworkProfile{
+		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPortsTyped(profile.AllowedHostPorts),
+		ApplicationSecurityGroups: &profile.ApplicationSecurityGroupIDs,
+		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTagsTyped(profile.NodePublicIPTags),
+	}
+
+	return result
+}
+
+func expandClusterPoolNetworkProfileAllowedHostPortsTyped(input []AllowedHostPortsModel) *[]managedclusters.PortRange {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]managedclusters.PortRange, 0, len(input))
+	for _, v := range input {
+		out = append(out, managedclusters.PortRange{
+			PortEnd:   pointer.To(v.PortEnd),
+			PortStart: pointer.To(v.PortStart),
+			Protocol:  pointer.To(managedclusters.Protocol(v.Protocol)),
+		})
+	}
+	return &out
+}
+
+func expandClusterPoolNetworkProfileNodePublicIPTagsTyped(input map[string]string) *[]managedclusters.IPTag {
+	if len(input) == 0 {
+		return nil
+	}
+
+	out := make([]managedclusters.IPTag, 0, len(input))
+	for key, val := range input {
+		ipTag := managedclusters.IPTag{
+			IPTagType: pointer.To(key),
+			Tag:       pointer.To(val),
+		}
+		out = append(out, ipTag)
+	}
+	return &out
+}
+
+// ExpandDefaultNodePoolTyped converts a DefaultNodePoolModel to ManagedClusterAgentPoolProfile
+func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedclusters.ManagedClusterAgentPoolProfile, error) {
+	if len(input) == 0 {
+		return nil, fmt.Errorf("default_node_pool must be specified")
+	}
+
+	raw := input[0]
+	enableAutoScaling := raw.AutoScalingEnabled
+
+	// Convert map[string]string to *map[string]string for node labels
+	var nodeLabels *map[string]string
+	if len(raw.NodeLabels) > 0 {
+		nodeLabels = &raw.NodeLabels
+	}
+	var nodeTaints *[]string
+
+	if raw.OnlyCriticalAddonsEnabled {
+		nodeTaints = pointer.To([]string{"CriticalAddonsOnly=true:NoSchedule"})
+	}
+
+	profile := managedclusters.ManagedClusterAgentPoolProfile{
+		EnableAutoScaling:      pointer.To(enableAutoScaling),
+		EnableFIPS:             pointer.To(raw.FipsEnabled),
+		EnableNodePublicIP:     pointer.To(raw.NodePublicIPEnabled),
+		EnableEncryptionAtHost: pointer.To(raw.HostEncryptionEnabled),
+		KubeletDiskType:        pointer.To(managedclusters.KubeletDiskType(raw.KubeletDiskType)),
+		Name:                   raw.Name,
+		NodeLabels:             nodeLabels,
+		NodeTaints:             nodeTaints,
+		Tags:                   tags.Expand(raw.Tags),
+		Type:                   pointer.To(managedclusters.AgentPoolType(raw.Type)),
+		VMSize:                 pointer.To(raw.VMSize),
+
+		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
+		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
+		// Windows agents can be configured via the separate node pool resource
+		OsType: pointer.To(managedclusters.OSTypeLinux),
+
+		// without this set the API returns:
+		// Code="MustDefineAtLeastOneSystemPool" Message="Must define at least one system pool."
+		// since this is the "default" node pool we can assume this is a system node pool
+		Mode: pointer.To(managedclusters.AgentPoolModeSystem),
+
+		UpgradeSettings: expandClusterNodePoolUpgradeSettingsTyped(raw.UpgradeSettings),
+	}
+
+	if len(raw.Zones) > 0 {
+		profile.AvailabilityZones = &raw.Zones
+	}
+
+	if raw.MaxPods > 0 {
+		profile.MaxPods = pointer.To(raw.MaxPods)
+	}
+
+	if raw.NodePublicIPPrefixID != "" {
+		profile.NodePublicIPPrefixID = pointer.To(raw.NodePublicIPPrefixID)
+	}
+
+	if raw.OSDiskSizeGB > 0 {
+		profile.OsDiskSizeGB = pointer.To(raw.OSDiskSizeGB)
+	}
+
+	profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeManaged)
+	if raw.OSDiskType != "" {
+		profile.OsDiskType = pointer.To(managedclusters.OSDiskType(raw.OSDiskType))
+	}
+
+	if raw.OSSKU != "" {
+		profile.OsSKU = pointer.To(managedclusters.OSSKU(raw.OSSKU))
+	}
+
+	if raw.PodSubnetID != "" {
+		profile.PodSubnetID = pointer.To(raw.PodSubnetID)
+	}
+
+	scaleDownModeDelete := managedclusters.ScaleDownModeDelete
+	profile.ScaleDownMode = &scaleDownModeDelete
+	if raw.ScaleDownMode != "" {
+		profile.ScaleDownMode = pointer.To(managedclusters.ScaleDownMode(raw.ScaleDownMode))
+	}
+
+	if raw.SnapshotID != "" {
+		profile.CreationData = &managedclusters.CreationData{
+			SourceResourceId: pointer.To(raw.SnapshotID),
+		}
+	}
+
+	if raw.UltraSSDEnabled {
+		profile.EnableUltraSSD = pointer.To(raw.UltraSSDEnabled)
+	}
+
+	if raw.VnetSubnetID != "" {
+		profile.VnetSubnetID = pointer.To(raw.VnetSubnetID)
+	}
+
+	if raw.HostGroupID != "" {
+		profile.HostGroupID = pointer.To(raw.HostGroupID)
+	}
+
+	if raw.OrchestratorVersion != "" {
+		profile.OrchestratorVersion = pointer.To(raw.OrchestratorVersion)
+	}
+
+	if raw.ProximityPlacementGroupID != "" {
+		profile.ProximityPlacementGroupID = pointer.To(raw.ProximityPlacementGroupID)
+	}
+
+	if raw.WorkloadRuntime != "" {
+		profile.WorkloadRuntime = pointer.To(managedclusters.WorkloadRuntime(raw.WorkloadRuntime))
+	}
+
+	if raw.CapacityReservationGroupID != "" {
+		profile.CapacityReservationGroupID = pointer.To(raw.CapacityReservationGroupID)
+	}
+
+	if raw.GPUInstance != "" {
+		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(raw.GPUInstance))
+	}
+
+	if raw.GPUDriver != "" {
+		profile.GpuProfile = &managedclusters.GPUProfile{
+			Driver: pointer.To(managedclusters.GPUDriver(raw.GPUDriver)),
+		}
+	}
+
+	count := raw.NodeCount
+	maxCount := raw.MaxCount
+	minCount := raw.MinCount
+
+	// Count must always be set (see #6094), RP behaviour has changed
+	// since the API version upgrade in v2.1.0 making Count required
+	// for all create/update requests
+	profile.Count = pointer.To(count)
+
+	if enableAutoScaling {
+		// if Count has not been set use min count
+		if count == 0 {
+			count = minCount
+			profile.Count = pointer.To(count)
+		}
+
+		// // Count must be set for the initial creation when using AutoScaling but cannot be updated
+		// if hasNodeCountChange && !isNewResource {
+		// 	return nil, fmt.Errorf("cannot change `node_count` when `auto_scaling_enabled` is set to `true`")
+		// }
+
+		// if maxCount > 0 {
+		// 	profile.MaxCount = pointer.To(maxCount)
+
+		// 	if maxCount < count && isNewResource {
+		// 		return nil, fmt.Errorf("`node_count`(%d) must be equal to or less than `max_count`(%d) when `auto_scaling_enabled` is set to `true`", count, maxCount)
+		// 	}
+		// } else {
+		// 	return nil, fmt.Errorf("`max_count` must be configured when `auto_scaling_enabled` is set to `true`")
+		// }
+
+		// if minCount > 0 {
+		// 	profile.MinCount = pointer.To(minCount)
+
+		// 	if minCount > count && isNewResource {
+		// 		return nil, fmt.Errorf("`node_count`(%d) must be equal to or greater than `min_count`(%d) when `auto_scaling_enabled` is set to `true`", count, minCount)
+		// 	}
+		// } else {
+		// 	return nil, fmt.Errorf("`min_count` must be configured when `auto_scaling_enabled` is set to `true`")
+		// }
+
+		if minCount > maxCount {
+			return nil, fmt.Errorf("`max_count` must be >= `min_count`")
+		}
+	} else if minCount > 0 || maxCount > 0 {
+		return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
+	}
+
+	if len(raw.KubeletConfig) > 0 {
+		profile.KubeletConfig = expandClusterNodePoolKubeletConfigTyped(raw.KubeletConfig)
+	}
+
+	if len(raw.LinuxOSConfig) > 0 {
+		linuxOSConfig, err := expandAutomaticClusterNodePoolLinuxOSConfig(raw.LinuxOSConfig)
+		if err != nil {
+			return nil, err
+		}
+		profile.LinuxOSConfig = linuxOSConfig
+	}
+
+	if len(raw.NodeNetworkProfile) > 0 {
+		profile.NetworkProfile = expandClusterPoolNetworkProfileTyped(raw.NodeNetworkProfile)
+	}
+
+	return &[]managedclusters.ManagedClusterAgentPoolProfile{
+		profile,
+	}, nil
 }
 
 func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoolProfile) ([]DefaultNodePoolModel, error) {
@@ -1418,7 +1659,7 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 
 	result.UpgradeSettings = flattenClusterNodePoolUpgradeSettingsTyped(agentPool.UpgradeSettings)
 
-	linuxOSConfig, err := flattenClusterNodePoolLinuxOSConfigTyped(agentPool.LinuxOSConfig)
+	linuxOSConfig, err := flattenAutomaticClusterNodePoolLinuxOSConfig(agentPool.LinuxOSConfig)
 	if err != nil {
 		return nil, err
 	}

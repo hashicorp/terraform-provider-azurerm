@@ -1990,7 +1990,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			requiredValues := getAutomaticClusterRequiredValues()
 
-			agentProfiles, err := ExpandDefaultNodePool(metadata.ResourceData)
+			agentProfiles, err := ExpandDefaultNodePoolTyped(model.DefaultNodePool)
 			if err != nil {
 				return fmt.Errorf("expanding `default_node_pool`: %+v", err)
 			}
@@ -3378,9 +3378,7 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 		networkProfile.ServiceCidrs = &config.ServiceCIDRs
 	}
 
-	if len(config.AdvancedNetworking) > 0 {
-		networkProfile.AdvancedNetworking = expandKubernetesAutomaticClusterAdvancedNetworking(config.AdvancedNetworking)
-	}
+	networkProfile.AdvancedNetworking = expandKubernetesAutomaticClusterAdvancedNetworking(config.AdvancedNetworking)
 
 	return &networkProfile, nil
 }
@@ -4524,6 +4522,7 @@ func expandKubernetesAutomaticClusterWebAppRouting(input []WebAppRoutingModel, h
 	out := managedclusters.ManagedClusterIngressProfile{
 		WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 			Enabled: pointer.To(true),
+			Nginx:   &managedclusters.ManagedClusterIngressProfileNginx{(*managedclusters.NginxIngressControllerType)(pointer.To(config.DefaultNginxController))},
 		},
 	}
 
@@ -4542,6 +4541,11 @@ func flattenKubernetesAutomaticClusterWebAppRouting(input *managedclusters.Manag
 	dnsZoneIDs := make([]string, 0)
 	if input.WebAppRouting.DnsZoneResourceIds != nil {
 		dnsZoneIDs = *input.WebAppRouting.DnsZoneResourceIds
+	}
+
+	defaultNginxController := managedclusters.NginxIngressControllerTypeAnnotationControlled
+	if input.WebAppRouting.Nginx != nil {
+		defaultNginxController = *input.WebAppRouting.Nginx.DefaultIngressControllerType
 	}
 
 	webAppRoutingIdentity := make([]WebAppRoutingIdentityModel, 0)
@@ -4567,8 +4571,9 @@ func flattenKubernetesAutomaticClusterWebAppRouting(input *managedclusters.Manag
 	}
 
 	return []WebAppRoutingModel{{
-		DNSZoneIDs:            dnsZoneIDs,
-		WebAppRoutingIdentity: webAppRoutingIdentity,
+		DNSZoneIDs:             dnsZoneIDs,
+		DefaultNginxController: string(defaultNginxController),
+		WebAppRoutingIdentity:  webAppRoutingIdentity,
 	}}
 }
 
