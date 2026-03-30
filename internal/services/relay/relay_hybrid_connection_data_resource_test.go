@@ -28,7 +28,6 @@ func TestAccRelayHybridConnectionDataDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("user_metadata").Exists(),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 

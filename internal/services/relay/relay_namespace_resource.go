@@ -101,7 +101,7 @@ func (r RelayNamespaceResource) ModelObject() interface{} {
 }
 
 func (r RelayNamespaceResource) ResourceType() string {
-	return "azurerm_relay_hybrid_connection"
+	return "azurerm_relay_namespace"
 }
 
 func (r RelayNamespaceResource) Create() sdk.ResourceFunc {

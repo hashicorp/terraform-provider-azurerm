@@ -33,7 +33,6 @@ func TestAccRelayNamespaceAuthorizationRuleDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("manage").Exists(),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 

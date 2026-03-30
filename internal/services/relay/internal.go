@@ -15,6 +15,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+type RelayAuthorizationRuleArgumentsModel struct {
+	Listen bool `tfschema:"listen"`
+	Send   bool `tfschema:"send"`
+	Manage bool `tfschema:"manage"`
+}
+
 func authorizationRuleArgumentsFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	s["listen"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,

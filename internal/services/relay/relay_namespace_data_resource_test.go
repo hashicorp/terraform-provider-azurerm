@@ -14,7 +14,7 @@ import (
 type RelayNamespaceDataResource struct{}
 
 func TestAccRelayNamespaceDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_relay_namespace", "test")
+	data := acceptance.BuildTestData(t, "data.azurerm_relay_namespace", "test")
 	r := RelayNamespaceDataResource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -29,7 +29,6 @@ func TestAccRelayNamespaceDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("sku_name").HasValue("Standard"),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
