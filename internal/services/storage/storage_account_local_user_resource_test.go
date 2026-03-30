@@ -184,14 +184,14 @@ func TestAccLocalUser_requiresImport(t *testing.T) {
 }
 
 func (r StorageAccountLocalUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Storage.ResourceManager.LocalUsers
+	client := clients.Storage.ResourceManager.LocalUserOperationGroup
 
-	id, err := localusers.ParseLocalUserID(state.ID)
+	id, err := localuseroperationgroup.ParseLocalUserID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp, err := client.Get(ctx, *id); err != nil {
+	if resp, err := client.LocalUsersGet(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}

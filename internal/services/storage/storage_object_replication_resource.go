@@ -137,7 +137,7 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("checking for present of existing Storage Object Replication for destination %q): %+v", dstAccount, err)
 		}
 	}
-	if resp.Model != nil && resp.Model != nil {
+	if resp.Model != nil {
 		for _, existing := range *resp.Model {
 			if existing.Name != nil && *existing.Name != "" {
 				if prop := existing.Properties; prop != nil && (
