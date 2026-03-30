@@ -2339,6 +2339,7 @@ provider "azurerm" {
       purge_soft_deleted_hardware_security_modules_on_destroy = true
     }
   }
+}
 
 data "azurerm_client_config" "current" {}
 
