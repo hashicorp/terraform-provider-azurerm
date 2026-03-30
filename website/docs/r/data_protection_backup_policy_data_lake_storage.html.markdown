@@ -85,17 +85,17 @@ A `retention_rule` block supports the following:
 
 * `duration` - (Required) The retention duration up to which the backups are to be retained in the data stores. It should follow `ISO 8601` duration format. Changing this forces a new resource to be created.
 
-* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new resource to be created.
+* `absolute_criteria` - (Optional) Specifies the absolute criteria for the retention rule. Possible values include `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth`, and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new resource to be created.
 
-* `days_of_week` - (Optional) Possible values are `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`. Changing this forces a new resource to be created.
+* `days_of_week` - (Optional) Specifies a list of days of the week on which the retention rule applies. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday`, and `Sunday`. Changing this forces a new resource to be created.
 
-* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new resource to be created.
+* `weeks_of_month` - (Optional) Specifies a list of weeks of the month on which the retention rule applies. Possible values include `First`, `Second`, `Third`, `Fourth`, and `Last`. Changing this forces a new resource to be created.
 
-* `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new resource to be created.
+* `months_of_year` - (Optional) Specifies a list of months of the year on which the retention rule applies. Possible values include `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November`, and `December`. Changing this forces a new resource to be created.
 
 * `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new resource to be created.
 
--> **Note:** At lease one of `absolute_criteria` or `days_of_week` must be used. `weeks_of_month` and `months_of_year` are optional, both can be supplied together. Multiple intervals may be set using multiple `retention_rule` blocks.
+~> **Note:** At least one of `absolute_criteria` or `days_of_week` must be specified. `weeks_of_month` and `months_of_year` are optional and can be supplied together. Multiple intervals may be set using multiple `retention_rule` blocks.
 
 ## Attributes Reference
 

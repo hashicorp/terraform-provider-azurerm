@@ -18,10 +18,10 @@ else
 fi
 
 detailed=false
-if [ "$POST_GITHUB_COMMENT_DETAILED" = "true" ]; then
-  echo "Detailed GitHub commenting enabled."
-  detailed=true
-fi
+#if [ "$POST_GITHUB_COMMENT_DETAILED" = "true" ]; then
+#  echo "Detailed GitHub commenting enabled."
+#  detailed=true
+#fi
 
 BUILD_ID="%teamcity.build.id%"
 

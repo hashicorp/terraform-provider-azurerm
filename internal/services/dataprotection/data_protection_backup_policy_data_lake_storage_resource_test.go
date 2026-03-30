@@ -117,8 +117,8 @@ func (r DataProtectionBackupPolicyDataLakeStorageResource) requiresImport(data a
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "import" {
   name                            = azurerm_data_protection_backup_policy_data_lake_storage.test.name
   data_protection_backup_vault_id = azurerm_data_protection_backup_policy_data_lake_storage.test.data_protection_backup_vault_id
-  backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W"]
-  default_retention_duration      = "P4M"
+  backup_schedule                 = azurerm_data_protection_backup_policy_data_lake_storage.test.backup_schedule
+  default_retention_duration      = azurerm_data_protection_backup_policy_data_lake_storage.test.default_retention_duration
 }
 `, r.basic(data))
 }
