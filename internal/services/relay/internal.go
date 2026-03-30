@@ -6,7 +6,6 @@ package relay
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
@@ -14,12 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
-
-type RelayAuthorizationRuleArgumentsModel struct {
-	Listen bool `tfschema:"listen"`
-	Send   bool `tfschema:"send"`
-	Manage bool `tfschema:"manage"`
-}
 
 func authorizationRuleArgumentsFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	s["listen"] = &pluginsdk.Schema{
@@ -146,11 +139,6 @@ func flattenHybridConnectionAuthorizationRuleRights(rights []hybridconnections.A
 }
 
 func authorizationRuleCustomizeDiff(ctx context.Context, metadata sdk.ResourceMetaData) error {
-	var config RelayAuthorizationRuleArgumentsModel
-	if err := metadata.Decode(&config); err != nil {
-		return fmt.Errorf("decoding: %+v", err)
-	}
-
 	listen, hasListen := metadata.ResourceDiff.GetOk("listen")
 	send, hasSend := metadata.ResourceDiff.GetOk("send")
 	manage, hasManage := metadata.ResourceDiff.GetOk("manage")
