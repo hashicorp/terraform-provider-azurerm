@@ -162,6 +162,7 @@ func TestAccPublicIp_standard_withIPv4(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccPublicIp_standardVTwo(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIpResource{}
@@ -452,6 +453,7 @@ func (PublicIpResource) Destroy(ctx context.Context, client *clients.Client, sta
 
 	return pointer.To(true), nil
 }
+
 func (PublicIpResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -468,7 +470,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "StandardV2"
+  sku                 = "Standard"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
