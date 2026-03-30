@@ -1,13 +1,18 @@
 package cosmos
 
-import "github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
+)
 
-func isServerlessCapacityMode(accResp documentdb.DatabaseAccountGetResults) bool {
-	if props := accResp.DatabaseAccountGetProperties; props != nil && props.Capabilities != nil {
-		for _, v := range *props.Capabilities {
-			if v.Name != nil && *v.Name == "EnableServerless" {
-				return true
-			}
+func isServerlessCapacityMode(input *cosmosdb.DatabaseAccountGetResults) bool {
+	if input == nil || input.Properties == nil || input.Properties.Capabilities == nil {
+		return false
+	}
+
+	for _, v := range *input.Properties.Capabilities {
+		if pointer.From(v.Name) == "EnableServerless" {
+			return true
 		}
 	}
 
