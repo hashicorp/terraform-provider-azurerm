@@ -6,7 +6,6 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -90,19 +89,6 @@ func TestAccNatGateway_standardVTwo(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-func TestAccNatGateway_standardVTwoWithoutZones(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway", "test")
-	r := NatGatewayResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.standardVTwoWithoutZones(data),
-			ExpectError: regexp.MustCompile(regexp.QuoteMeta("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU")),
-		},
-	})
-}
-
 func (t NatGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := natgateways.ParseNatGatewayID(state.ID)
 	if err != nil {
@@ -238,27 +224,6 @@ resource "azurerm_nat_gateway_public_ip_prefix_association" "test" {
 }
 
 func (NatGatewayResource) standardVTwo(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-network-%d"
-  location = "%s"
-}
-
-resource "azurerm_nat_gateway" "test" {
-  name                = "acctestnatGateway-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "StandardV2"
-  zones               = ["1", "2", "3"]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (NatGatewayResource) standardVTwoWithoutZones(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

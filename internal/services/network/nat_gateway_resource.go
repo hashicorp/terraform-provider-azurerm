@@ -7,8 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"slices"
-	"sort"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -52,31 +50,17 @@ func resourceNatGateway() *pluginsdk.Resource {
 			SchemaFunc: pluginsdk.GenerateIdentitySchema(&natgateways.NatGatewayId{}),
 		},
 
-		Schema: resourceNatGatewaySchema(),
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-			skuName := d.Get("sku_name").(string)
-
-			if skuName == string(natgateways.NatGatewaySkuNameStandardVTwo) {
-				zonesRaw := d.Get("zones").(*schema.Set).List()
-				if len(zonesRaw) == 0 {
-					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU")
-				}
-
-				zones := make([]string, 0, len(zonesRaw))
-				for _, z := range zonesRaw {
-					zones = append(zones, z.(string))
-				}
-
-				sort.Strings(zones)
-
-				if !slices.Equal(zones, []string{"1", "2", "3"}) {
-					return fmt.Errorf("`zones` must be set to [1, 2, 3] when using `StandardV2` SKU")
+		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+			if diff.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo) {
+				if !diff.GetRawConfig().AsValueMap()["zones"].IsNull() {
+					return fmt.Errorf("%s resources with `sku_name` set to `%s` are zone-redundant by default, Azure automatically deploys across all available zones. The `zones` argument must be omitted", natGatewayResourceName, natgateways.NatGatewaySkuNameStandardVTwo)
 				}
 			}
 
 			return nil
-		}),
+		},
+
+		Schema: resourceNatGatewaySchema(),
 	}
 }
 
@@ -103,11 +87,24 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			Default:      string(natgateways.NatGatewaySkuNameStandard),
 			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": {
+			Type:                  schema.TypeSet,
+			Optional:              true,
+			ForceNew:              true,
+			DiffSuppressOnRefresh: true,
+			DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+				return d.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo)
+			},
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 
 		"resource_guid": {
 			Type:     pluginsdk.TypeString,
@@ -250,11 +247,14 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceNatGatewayFlatten(d, id, resp.Model)
+}
 
+func resourceNatGatewayFlatten(d *pluginsdk.ResourceData, id *natgateways.NatGatewayId, model *natgateways.NatGateway) error {
 	d.Set("name", id.NatGatewayName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		sku := ""
 		if model.Sku != nil {

@@ -10,16 +10,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
 func TestAccDataProtectionBackupPolicyKubernetesCluster_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_kubernetes_cluster", "test")
 	r := DataProtectionBackupPolicyKubernetesClusterResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"backup_vault_name":   {},
+		"name":                {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_protection_backup_policy_kubernetes_cluster.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_data_protection_backup_policy_kubernetes_cluster.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_protection_backup_policy_kubernetes_cluster.test", tfjsonpath.New("backup_vault_name"), tfjsonpath.New("vault_name")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_protection_backup_policy_kubernetes_cluster.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
