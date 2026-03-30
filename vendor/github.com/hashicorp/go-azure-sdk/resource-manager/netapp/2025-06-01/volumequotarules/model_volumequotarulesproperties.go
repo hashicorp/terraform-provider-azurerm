@@ -7,5 +7,5 @@ type VolumeQuotaRulesProperties struct {
 	ProvisioningState *NetAppProvisioningState `json:"provisioningState,omitempty"`
 	QuotaSizeInKiBs   *int64                   `json:"quotaSizeInKiBs,omitempty"`
 	QuotaTarget       *string                  `json:"quotaTarget,omitempty"`
-	QuotaType         *Type                    `json:"quotaType,omitempty"`
+	QuotaType         *QuotaType               `json:"quotaType,omitempty"`
 }

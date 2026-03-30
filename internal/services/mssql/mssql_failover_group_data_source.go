@@ -49,7 +49,7 @@ func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 }
 
 func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
-	return nil
+	return &MsSqlFailoverGroupDataSourceModel{}
 }
 
 func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
