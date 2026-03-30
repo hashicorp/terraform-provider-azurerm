@@ -80,33 +80,35 @@ func (r NATGatewayPublicIpPrefixV6AssociationResource) Create() sdk.ResourceFunc
 				}
 				return fmt.Errorf("retrieving %s: %+v", *natGatewayId, err)
 			}
+			if natGateway.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *natGatewayId)
+			}
+			if natGateway.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *natGatewayId)
+			}
 
 			id := commonids.NewCompositeResourceID(natGatewayId, publicIpPrefixId)
 
-			if model := natGateway.Model; model != nil {
-				if props := model.Properties; props != nil {
-					publicIpPrefixesV6 := make([]natgateways.SubResource, 0)
+			publicIpPrefixesV6 := make([]natgateways.SubResource, 0)
 
-					if v := props.PublicIPPrefixesV6; v != nil {
-						for _, existingPublicIPPrefix := range *v {
-							if existingPublicIPPrefix.Id == nil {
-								continue
-							}
-
-							if strings.EqualFold(*existingPublicIPPrefix.Id, publicIpPrefixId.ID()) {
-								return metadata.ResourceRequiresImport(r.ResourceType(), id)
-							}
-
-							publicIpPrefixesV6 = append(publicIpPrefixesV6, existingPublicIPPrefix)
-						}
+			if v := natGateway.Model.Properties.PublicIPPrefixesV6; v != nil {
+				for _, existingPublicIPPrefix := range *v {
+					if existingPublicIPPrefix.Id == nil {
+						continue
 					}
 
-					publicIpPrefixesV6 = append(publicIpPrefixesV6, natgateways.SubResource{
-						Id: pointer.To(publicIpPrefixId.ID()),
-					})
-					props.PublicIPPrefixesV6 = pointer.To(publicIpPrefixesV6)
+					if strings.EqualFold(*existingPublicIPPrefix.Id, publicIpPrefixId.ID()) {
+						return metadata.ResourceRequiresImport(r.ResourceType(), id)
+					}
+
+					publicIpPrefixesV6 = append(publicIpPrefixesV6, existingPublicIPPrefix)
 				}
 			}
+
+			publicIpPrefixesV6 = append(publicIpPrefixesV6, natgateways.SubResource{
+				Id: pointer.To(publicIpPrefixId.ID()),
+			})
+			natGateway.Model.Properties.PublicIPPrefixesV6 = pointer.To(publicIpPrefixesV6)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *natGatewayId, err)
@@ -193,25 +195,27 @@ func (NATGatewayPublicIpPrefixV6AssociationResource) Delete() sdk.ResourceFunc {
 				}
 				return fmt.Errorf("retrieving %s: %+v", *id.First, err)
 			}
+			if natGateway.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id.First)
+			}
+			if natGateway.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id.First)
+			}
 
-			if model := natGateway.Model; model != nil {
-				if props := model.Properties; props != nil {
-					publicIpPrefixesV6 := make([]natgateways.SubResource, 0)
+			publicIpPrefixesV6 := make([]natgateways.SubResource, 0)
 
-					if v := props.PublicIPPrefixesV6; v != nil {
-						for _, publicIPPrefix := range *v {
-							if publicIPPrefix.Id == nil {
-								continue
-							}
-
-							if !strings.EqualFold(*publicIPPrefix.Id, id.Second.ID()) {
-								publicIpPrefixesV6 = append(publicIpPrefixesV6, publicIPPrefix)
-							}
-						}
+			if v := natGateway.Model.Properties.PublicIPPrefixesV6; v != nil {
+				for _, publicIPPrefix := range *v {
+					if publicIPPrefix.Id == nil {
+						continue
 					}
-					props.PublicIPPrefixesV6 = pointer.To(publicIpPrefixesV6)
+
+					if !strings.EqualFold(*publicIPPrefix.Id, id.Second.ID()) {
+						publicIpPrefixesV6 = append(publicIpPrefixesV6, publicIPPrefix)
+					}
 				}
 			}
+			natGateway.Model.Properties.PublicIPPrefixesV6 = pointer.To(publicIpPrefixesV6)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id.First, *natGateway.Model); err != nil {
 				return fmt.Errorf("removing association between %s and %s: %+v", *id.First, *id.Second, err)
