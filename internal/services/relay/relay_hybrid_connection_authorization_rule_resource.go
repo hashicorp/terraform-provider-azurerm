@@ -5,7 +5,6 @@ package relay
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -23,22 +22,18 @@ var _ sdk.ResourceWithUpdate = RelayHybridConnectionAuthorizationRule{}
 
 type RelayHybridConnectionAuthorizationRule struct{}
 
-type relayHybridConnectionAuthorizationRuleModel struct {
-	Name                      string `tfschema:"name"`
-	ResourceGroupName         string `tfschema:"resource_group_name"`
-	RelayNamespaceName        string `tfschema:"relay_namespace_name"`
-	HybridConnectionName      string `tfschema:"hybrid_connection_name"`
-	Listen                    bool   `tfschema:"listen"`
-	Send                      bool   `tfschema:"send"`
-	Manage                    bool   `tfschema:"manage"`
-	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
-	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
-	PrimaryKey                string `tfschema:"primary_key"`
-	SecondaryKey              string `tfschema:"secondary_key"`
+type RelayHybridConnectionAuthorizationRuleModel struct {
+	Name                 string `tfschema:"name"`
+	ResourceGroupName    string `tfschema:"resource_group_name"`
+	RelayNamespaceName   string `tfschema:"relay_namespace_name"`
+	HybridConnectionName string `tfschema:"hybrid_connection_name"`
+
+	RelayAuthorizationRuleArgumentsModel
+	RelayAuthorizationRuleAttributesModel
 }
 
 func (r RelayHybridConnectionAuthorizationRule) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return authorizationRuleArgumentsFrom(map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -61,57 +56,15 @@ func (r RelayHybridConnectionAuthorizationRule) Arguments() map[string]*pluginsd
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-
-		"listen": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"send": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"manage": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-	}
+	})
 }
 
 func (r RelayHybridConnectionAuthorizationRule) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-	}
+	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{})
 }
 
 func (RelayHybridConnectionAuthorizationRule) ModelObject() interface{} {
-	return &relayHybridConnectionAuthorizationRuleModel{}
+	return &RelayHybridConnectionAuthorizationRuleModel{}
 }
 
 func (r RelayHybridConnectionAuthorizationRule) Create() sdk.ResourceFunc {
@@ -124,7 +77,7 @@ func (r RelayHybridConnectionAuthorizationRule) Create() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
 
-			var config relayHybridConnectionAuthorizationRuleModel
+			var config RelayHybridConnectionAuthorizationRuleModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -166,7 +119,7 @@ func (r RelayHybridConnectionAuthorizationRule) Update() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
 
-			var config relayHybridConnectionAuthorizationRuleModel
+			var config RelayHybridConnectionAuthorizationRuleModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -251,11 +204,6 @@ func (r RelayHybridConnectionAuthorizationRule) Read() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay HybridConnection Authorization Rule creation.")
 
-			var config relayHybridConnectionAuthorizationRuleModel
-			if err := metadata.Decode(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
 			id, err := hybridconnections.ParseHybridConnectionAuthorizationRuleID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -275,7 +223,7 @@ func (r RelayHybridConnectionAuthorizationRule) Read() sdk.ResourceFunc {
 				return fmt.Errorf("listing keys for %s: %+v", id, err)
 			}
 
-			state := relayHybridConnectionAuthorizationRuleModel{}
+			state := RelayHybridConnectionAuthorizationRuleModel{}
 
 			state.ResourceGroupName = id.ResourceGroupName
 			state.RelayNamespaceName = id.NamespaceName
@@ -307,25 +255,6 @@ func (r RelayHybridConnectionAuthorizationRule) CustomizeDiff() sdk.ResourceFunc
 	return sdk.ResourceFunc{
 		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var config relayHybridConnectionAuthorizationRuleModel
-			if err := metadata.Decode(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			listen, hasListen := metadata.ResourceDiff.GetOk("listen")
-			send, hasSend := metadata.ResourceDiff.GetOk("send")
-			manage, hasManage := metadata.ResourceDiff.GetOk("manage")
-
-			if !hasListen && !hasSend && !hasManage {
-				return errors.New("one of the `listen`, `send` or `manage` properties needs to be set")
-			}
-
-			if manage.(bool) && (!listen.(bool) || !send.(bool)) {
-				return errors.New("if `manage` is set both `listen` and `send` must be set to true too")
-			}
-
-			return nil
-		},
+		Func: authorizationRuleCustomizeDiff,
 	}
 }

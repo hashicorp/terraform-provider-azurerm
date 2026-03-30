@@ -4,6 +4,7 @@
 package relay
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -12,145 +13,238 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-func resourceRelayNamespaceAuthorizationRule() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceRelayNamespaceAuthorizationRuleCreateUpdate,
-		Read:   resourceRelayNamespaceAuthorizationRuleRead,
-		Update: resourceRelayNamespaceAuthorizationRuleCreateUpdate,
-		Delete: resourceRelayNamespaceAuthorizationRuleDelete,
+var _ sdk.ResourceWithUpdate = RelayNamespaceAuthorizationResource{}
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := namespaces.ParseAuthorizationRuleID(id)
-			return err
-		}),
+type RelayNamespaceAuthorizationResource struct{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
-		},
+type RelayNamespaceAuthorizationResourceModel struct {
+	RelayAuthorizationRuleArgumentsModel
+	RelayAuthorizationRuleAttributesModel
 
-		// function takes a schema map and adds the authorization rule properties to it
-		Schema: authorizationRuleSchemaFrom(map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"namespace_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
-			"resource_group_name": commonschema.ResourceGroupName(),
-		}),
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(authorizationRuleCustomizeDiff),
-	}
+	Name               string `tfschema:"name"`
+	ResourceGroupName  string `tfschema:"resource_group_name"`
+	RelayNamespaceName string `tfschema:"relay_namespace_name"`
 }
 
-func resourceRelayNamespaceAuthorizationRuleCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Relay.NamespacesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (RelayNamespaceAuthorizationResource) Arguments() map[string]*pluginsdk.Schema {
+	return authorizationRuleArgumentsFrom(map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
 
-	log.Printf("[INFO] preparing arguments for Relay Namespace Authorization Rule creation.")
+		"resource_group_name": commonschema.ResourceGroupName(),
 
-	resourceId := namespaces.NewAuthorizationRuleID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.GetAuthorizationRule(ctx, resourceId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", resourceId, err)
+		"relay_namespace_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+	})
+}
+
+func (RelayNamespaceAuthorizationResource) Attributes() map[string]*pluginsdk.Schema {
+	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{})
+}
+
+func (RelayNamespaceAuthorizationResource) ModelObject() interface{} {
+	return &RelayNamespaceAuthorizationResourceModel{}
+}
+
+func (RelayNamespaceAuthorizationResource) ResourceType() string {
+	return "azurerm_relay_namespace_authorization_rule"
+}
+
+func (r RelayNamespaceAuthorizationResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.NamespacesClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			log.Printf("[INFO] preparing arguments for Relay Namespace Authorization Rule creation.")
+
+			var config RelayNamespaceAuthorizationResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
-		}
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_relay_namespace_authorization_rule", resourceId.ID())
-		}
-	}
 
-	parameters := namespaces.AuthorizationRule{
-		Name: pointer.To(resourceId.AuthorizationRuleName),
-		Properties: &namespaces.AuthorizationRuleProperties{
-			Rights: expandAuthorizationRuleRights(d),
+			id := namespaces.NewAuthorizationRuleID(subscriptionId, config.ResourceGroupName, config.RelayNamespaceName, config.Name)
+
+			existing, err := client.GetAuthorizationRule(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+			}
+
+			parameters := namespaces.AuthorizationRule{
+				Name: pointer.To(config.Name),
+				Properties: &namespaces.AuthorizationRuleProperties{
+					Rights: expandAuthorizationRuleRights(config),
+				},
+			}
+
+			if _, err := client.CreateOrUpdateAuthorizationRule(ctx, id, parameters); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+
+			return nil
 		},
 	}
-
-	if _, err := client.CreateOrUpdateAuthorizationRule(ctx, resourceId, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", resourceId, err)
-	}
-
-	d.SetId(resourceId.ID())
-
-	return resourceRelayNamespaceAuthorizationRuleRead(d, meta)
 }
 
-func resourceRelayNamespaceAuthorizationRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Relay.NamespacesClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r RelayNamespaceAuthorizationResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
-	id, err := namespaces.ParseAuthorizationRuleID(d.Id())
-	if err != nil {
-		return err
-	}
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.NamespacesClient
 
-	resp, err := client.GetAuthorizationRule(ctx, *id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			d.SetId("")
+			log.Printf("[INFO] preparing arguments for Relay Namespace Authorization Rule creation.")
+
+			var config RelayNamespaceAuthorizationResourceModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id, err := namespaces.ParseAuthorizationRuleID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.GetAuthorizationRule(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving: %s: %+v", id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
+			parameters := namespaces.AuthorizationRule{
+				Name: pointer.To(config.Name),
+				Properties: &namespaces.AuthorizationRuleProperties{
+					Rights: expandAuthorizationRuleRights(config),
+				},
+			}
+
+			if _, err := client.CreateOrUpdateAuthorizationRule(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("updating %s: %+v", id, err)
+			}
+
 			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+		},
 	}
-
-	keysResp, err := client.ListKeys(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("listing keys for %s: %+v", id, err)
-	}
-
-	d.Set("name", id.AuthorizationRuleName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		listen, send, manage := flattenAuthorizationRuleRights(model.Properties.Rights)
-		d.Set("manage", manage)
-		d.Set("listen", listen)
-		d.Set("send", send)
-	}
-
-	d.Set("primary_key", keysResp.Model.PrimaryKey)
-	d.Set("primary_connection_string", keysResp.Model.PrimaryConnectionString)
-	d.Set("secondary_key", keysResp.Model.SecondaryKey)
-	d.Set("secondary_connection_string", keysResp.Model.SecondaryConnectionString)
-
-	return nil
 }
 
-func resourceRelayNamespaceAuthorizationRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Relay.NamespacesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r RelayNamespaceAuthorizationResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
 
-	id, err := namespaces.ParseAuthorizationRuleID(d.Id())
-	if err != nil {
-		return err
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.NamespacesClient
+
+			id, err := namespaces.ParseAuthorizationRuleID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.GetAuthorizationRule(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+
+				return fmt.Errorf("retrieving: %s: %+v", id, err)
+			}
+
+			keysResp, err := client.ListKeys(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing keys for %s: %+v", id, err)
+			}
+
+			state := RelayNamespaceAuthorizationResourceModel{}
+
+			state.Name = id.AuthorizationRuleName
+			state.RelayNamespaceName = id.NamespaceName
+			state.ResourceGroupName = id.ResourceGroupName
+
+			if model := resp.Model; model != nil {
+				listen, send, manage := flattenAuthorizationRuleRights(model.Properties.Rights)
+				state.Manage = manage
+				state.Listen = listen
+				state.Send = send
+			}
+
+			state.PrimaryConnectionString = pointer.From(keysResp.Model.PrimaryConnectionString)
+			state.PrimaryKey = pointer.From(keysResp.Model.PrimaryKey)
+			state.SecondaryConnectionString = pointer.From(keysResp.Model.SecondaryConnectionString)
+			state.SecondaryKey = pointer.From(keysResp.Model.SecondaryKey)
+
+			return metadata.Encode(&state)
+		},
 	}
+}
 
-	if _, err = client.DeleteAuthorizationRule(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", id, err)
+func (r RelayNamespaceAuthorizationResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
+
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Relay.NamespacesClient
+
+			id, err := namespaces.ParseAuthorizationRuleID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			if _, err = client.DeleteAuthorizationRule(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
 	}
+}
 
-	return nil
+func (r RelayNamespaceAuthorizationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return func(input interface{}, key string) (warnings []string, errors []error) {
+		v, ok := input.(string)
+		if !ok {
+			errors = append(errors, fmt.Errorf("expected %q to be a string", key))
+			return
+		}
+
+		if _, err := namespaces.ParseAuthorizationRuleID(v); err != nil {
+			errors = append(errors, err)
+		}
+
+		return
+	}
+}
+
+func (r RelayNamespaceAuthorizationResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
+
+		Func: authorizationRuleCustomizeDiff,
+	}
 }

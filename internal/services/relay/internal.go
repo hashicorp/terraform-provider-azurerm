@@ -4,25 +4,92 @@
 package relay
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"log"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func expandAuthorizationRuleRights(d *pluginsdk.ResourceData) []namespaces.AccessRights {
+type RelayAuthorizationRuleArgumentsModel struct {
+	Listen bool `tfschema:"listen"`
+	Send   bool `tfschema:"send"`
+	Manage bool `tfschema:"manage"`
+}
+
+type RelayAuthorizationRuleAttributesModel struct {
+	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
+	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
+	PrimaryKey                string `tfschema:"primary_key"`
+	SecondaryKey              string `tfschema:"secondary_key"`
+}
+
+func authorizationRuleArgumentsFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	s["listen"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+
+	s["send"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+
+	s["manage"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Optional: true,
+		Default:  false,
+	}
+
+	return s
+}
+
+func authorizationRuleAttributesFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	s["primary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+
+	s["primary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+
+	s["secondary_key"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+
+	s["secondary_connection_string"] = &pluginsdk.Schema{
+		Type:      pluginsdk.TypeString,
+		Computed:  true,
+		Sensitive: true,
+	}
+
+	return s
+}
+
+func expandAuthorizationRuleRights(config RelayNamespaceAuthorizationResourceModel) []namespaces.AccessRights {
 	rights := make([]namespaces.AccessRights, 0)
 
-	if d.Get("listen").(bool) {
+	if config.Listen {
 		rights = append(rights, namespaces.AccessRightsListen)
 	}
 
-	if d.Get("send").(bool) {
+	if config.Send {
 		rights = append(rights, namespaces.AccessRightsSend)
 	}
 
-	if d.Get("manage").(bool) {
+	if config.Manage {
 		rights = append(rights, namespaces.AccessRightsManage)
 	}
 
@@ -48,7 +115,7 @@ func flattenAuthorizationRuleRights(rights []namespaces.AccessRights) (listen, s
 	return listen, send, manage
 }
 
-func expandHybridConnectionAuthorizationRuleRights(config relayHybridConnectionAuthorizationRuleModel) []hybridconnections.AccessRights {
+func expandHybridConnectionAuthorizationRuleRights(config RelayHybridConnectionAuthorizationRuleModel) []hybridconnections.AccessRights {
 	rights := make([]hybridconnections.AccessRights, 0)
 
 	if config.Listen {
@@ -83,4 +150,25 @@ func flattenHybridConnectionAuthorizationRuleRights(rights []hybridconnections.A
 	}
 
 	return listen, send, manage
+}
+
+func authorizationRuleCustomizeDiff(ctx context.Context, metadata sdk.ResourceMetaData) error {
+	var config RelayAuthorizationRuleArgumentsModel
+	if err := metadata.Decode(&config); err != nil {
+		return fmt.Errorf("decoding: %+v", err)
+	}
+
+	listen, hasListen := metadata.ResourceDiff.GetOk("listen")
+	send, hasSend := metadata.ResourceDiff.GetOk("send")
+	manage, hasManage := metadata.ResourceDiff.GetOk("manage")
+
+	if !hasListen && !hasSend && !hasManage {
+		return errors.New("one of the `listen`, `send` or `manage` properties needs to be set")
+	}
+
+	if manage.(bool) && (!listen.(bool) || !send.(bool)) {
+		return errors.New("if `manage` is set both `listen` and `send` must be set to true too")
+	}
+
+	return nil
 }

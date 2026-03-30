@@ -43,14 +43,8 @@ func (r Registration) Resources() []sdk.Resource {
 		RelayHybridConnectionAuthorizationRule{},
 		RelayHybridConnectionResource{},
 		RelayNamespaceResource{},
+		RelayNamespaceAuthorizationResource{},
 	}
-
-	// return map[string]*pluginsdk.Resource{
-	// 	"azurerm_relay_hybrid_connection":                    resourceArmRelayHybridConnection(),
-	// 	"azurerm_relay_hybrid_connection_authorization_rule": resourceRelayHybridConnectionAuthorizationRule(),
-	// 	"azurerm_relay_namespace":                            resourceRelayNamespace(),
-	// 	"azurerm_relay_namespace_authorization_rule":         resourceRelayNamespaceAuthorizationRule(),
-	// }
 }
 
 func (r Registration) Actions() []func() action.Action {
