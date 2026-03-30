@@ -1293,9 +1293,9 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 		diskType = string(*input.DiskConfigurationType)
 	}
 
-	var systemDbOnDataDisk *bool
+	systemDbOnDataDisk := false
 	if input.SqlSystemDbOnDataDisk != nil {
-		systemDbOnDataDisk = input.SqlSystemDbOnDataDisk
+		systemDbOnDataDisk = *input.SqlSystemDbOnDataDisk
 	}
 
 	output := map[string]interface{}{
@@ -1309,7 +1309,8 @@ func flattenSqlVirtualMachineStorageConfigurationSettings(input *sqlvirtualmachi
 
 	if output["storage_workload_type"].(string) == "" && output["disk_type"] == "" &&
 		len(output["data_settings"].([]interface{})) == 0 &&
-		len(output["log_settings"].([]interface{})) == 0 {
+		len(output["log_settings"].([]interface{})) == 0 &&
+		len(output["temp_db_settings"].([]interface{})) == 0 {
 		return []interface{}{}
 	}
 
@@ -1379,7 +1380,16 @@ func expandSqlVirtualMachineTempDbSettings(input []interface{}, lunsInConfig boo
 }
 
 func flattenSqlVirtualMachineTempDbSettings(input *sqlvirtualmachines.SQLTempDbSettings) []interface{} {
-	if input == nil {
+	if input == nil || (input.DataFileCount == nil &&
+		input.DataFileSize == nil &&
+		input.DataGrowth == nil &&
+		input.DefaultFilePath == nil &&
+		input.LogFileSize == nil &&
+		input.LogGrowth == nil &&
+		input.Luns == nil &&
+		input.PersistFolder == nil &&
+		input.PersistFolderPath == nil &&
+		input.UseStoragePool == nil) {
 		return []interface{}{}
 	}
 	attrs := make(map[string]interface{})
