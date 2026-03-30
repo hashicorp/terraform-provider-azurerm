@@ -23,13 +23,17 @@ var _ sdk.DataSource = RelayHybridConnectionAuthorizationRuleDataResource{}
 type RelayHybridConnectionAuthorizationRuleDataResource struct{}
 
 type RelayHybridConnectionAuthorizationRuleDataResourceModel struct {
-	Name                 string `tfschema:"name"`
-	ResourceGroupName    string `tfschema:"resource_group_name"`
-	RelayNamespaceName   string `tfschema:"relay_namespace_name"`
-	HybridConnectionName string `tfschema:"hybrid_connection_name"`
-
-	RelayAuthorizationRuleArgumentsModel
-	RelayAuthorizationRuleAttributesModel
+	Name                      string `tfschema:"name"`
+	ResourceGroupName         string `tfschema:"resource_group_name"`
+	RelayNamespaceName        string `tfschema:"relay_namespace_name"`
+	HybridConnectionName      string `tfschema:"hybrid_connection_name"`
+	PrimaryConnectionString   string `tfschema:"primary_connection_string"`
+	SecondaryConnectionString string `tfschema:"secondary_connection_string"`
+	PrimaryKey                string `tfschema:"primary_key"`
+	SecondaryKey              string `tfschema:"secondary_key"`
+	Listen                    bool   `tfschema:"listen"`
+	Send                      bool   `tfschema:"send"`
+	Manage                    bool   `tfschema:"manage"`
 }
 
 func (r RelayHybridConnectionAuthorizationRuleDataResource) Arguments() map[string]*pluginsdk.Schema {
