@@ -89,6 +89,7 @@ func TestAccNatGateway_standardVTwo(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (t NatGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := natgateways.ParseNatGatewayID(state.ID)
 	if err != nil {
