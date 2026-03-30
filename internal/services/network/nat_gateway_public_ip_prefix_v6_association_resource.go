@@ -228,8 +228,7 @@ func (NATGatewayPublicIpPrefixV6AssociationResource) Delete() sdk.ResourceFunc {
 
 func (r NATGatewayPublicIpPrefixV6AssociationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return func(input interface{}, key string) (warnings []string, errors []error) {
-		_, err := commonids.ParseCompositeResourceID(input.(string), &natgateways.NatGatewayId{}, &publicipprefixes.PublicIPPrefixId{})
-		if err != nil {
+		if _, err := commonids.ParseCompositeResourceID(input.(string), &natgateways.NatGatewayId{}, &publicipprefixes.PublicIPPrefixId{}); err != nil {
 			errors = append(errors, err)
 		}
 		return warnings, errors
