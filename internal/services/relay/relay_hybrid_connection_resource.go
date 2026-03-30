@@ -24,7 +24,7 @@ var _ sdk.ResourceWithUpdate = RelayHybridConnectionResource{}
 
 type RelayHybridConnectionResource struct{}
 
-type ArmRelayHybridConnectionResourceModel struct {
+type RelayHybridConnectionResourceModel struct {
 	Name                        string `tfschema:"name"`
 	ResourceGroupName           string `tfschema:"resource_group_name"`
 	RelayNamespaceName          string `tfschema:"relay_namespace_name"`
@@ -70,7 +70,7 @@ func (RelayHybridConnectionResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (RelayHybridConnectionResource) ModelObject() interface{} {
-	return &ArmRelayHybridConnectionResourceModel{}
+	return &RelayHybridConnectionResourceModel{}
 }
 
 func (RelayHybridConnectionResource) ResourceType() string {
@@ -87,7 +87,7 @@ func (r RelayHybridConnectionResource) Create() sdk.ResourceFunc {
 
 			log.Printf("[INFO] preparing arguments for Relay Hybrid Connection creation.")
 
-			var config ArmRelayHybridConnectionResourceModel
+			var config RelayHybridConnectionResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -133,7 +133,7 @@ func (r RelayHybridConnectionResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var config ArmRelayHybridConnectionResourceModel
+			var config RelayHybridConnectionResourceModel
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -187,7 +187,7 @@ func (RelayHybridConnectionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving: %s: %+v", id, err)
 			}
 
-			state := ArmRelayHybridConnectionResourceModel{}
+			state := RelayHybridConnectionResourceModel{}
 
 			state.ResourceGroupName = id.ResourceGroupName
 			state.RelayNamespaceName = id.NamespaceName
