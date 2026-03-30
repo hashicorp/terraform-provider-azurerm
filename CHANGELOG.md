@@ -1,6 +1,7 @@
 ## 4.67.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_logic_app_standard` - add support for the `site_config.ip_restriction_default_action` property [GH-31816]
 * Data Source: `azurerm_application_gateway` - export the `backend`, `listener`, and `routing_rule` properties [GH-30376]
 * `azurerm_application_gateway` - add support for the `backend`, `listener`, and `routing_rule` properties [GH-30376]
 * dependencies: `go-azure-sdk` - upgrade to `v0.20260326.1151219` [GH-32047]
