@@ -32,7 +32,6 @@ resource "azurerm_nat_gateway" "example" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku_name            = "StandardV2"
-  zones               = [1, 2, 3]
 }
 
 resource "azurerm_nat_gateway_public_ip_v6_association" "example" {

@@ -42,7 +42,7 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "msi_linked" {
   description     = "ADB Linked Service via MSI"
   adb_domain      = "https://${azurerm_databricks_workspace.example.workspace_url}"
 
-  msi_work_space_resource_id = azurerm_databricks_workspace.example.id
+  msi_workspace_id = azurerm_databricks_workspace.example.id
 
   new_cluster_config {
     node_type             = "Standard_NC12"
@@ -126,7 +126,7 @@ You must specify exactly one of the following authentication blocks:
 
 * `key_vault_password` - (Optional) Authenticate to ADB via Azure Key Vault Linked Service as defined in the `key_vault_password` block below.
 
-* `msi_work_space_resource_id` - (Optional) Authenticate to ADB via managed service identity.
+* `msi_workspace_id` - (Optional) Authenticate to ADB via managed service identity.
 
 ---
 

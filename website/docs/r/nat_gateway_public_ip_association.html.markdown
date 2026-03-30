@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `public_ip_address_id` - (Required) The ID of the Public IP which this NAT Gateway which should be connected to. Changing this forces a new resource to be created.
 
+~> **Note:** When `nat_gateway_id` references a `StandardV2` NAT Gateway, `public_ip_address_id` must reference a `StandardV2` Public IP. Azure rejects `Standard` Public IPs with `StandardV2` NAT Gateways, and this incompatibility is not validated during terraform plan phase.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

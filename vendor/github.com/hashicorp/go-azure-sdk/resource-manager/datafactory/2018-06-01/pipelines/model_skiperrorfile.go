@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SkipErrorFile struct {
-	DataInconsistency *bool `json:"dataInconsistency,omitempty"`
-	FileMissing       *bool `json:"fileMissing,omitempty"`
+	DataInconsistency *interface{} `json:"dataInconsistency,omitempty"`
+	FileMissing       *interface{} `json:"fileMissing,omitempty"`
 }

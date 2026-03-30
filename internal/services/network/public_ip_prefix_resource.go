@@ -4,8 +4,11 @@
 package network
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -108,6 +111,17 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				skuTier := d.Get("sku_tier").(string)
+				sku := d.Get("sku").(string)
+				if strings.EqualFold(skuTier, string(publicipprefixes.PublicIPPrefixSkuTierGlobal)) && !strings.EqualFold(sku, string(publicipprefixes.PublicIPPrefixSkuNameStandard)) {
+					return errors.New("`sku` must be set to `Standard` when `sku_tier` is set to `Global`")
+				}
+				return nil
+			}),
+		),
 	}
 }
 
