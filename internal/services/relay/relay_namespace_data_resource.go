@@ -44,14 +44,14 @@ func (r RelayNamespaceDataResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: r.IDValidationFunc(),
 		},
 
-		"location": commonschema.Location(),
-
 		"resource_group_name": commonschema.ResourceGroupName(),
 	}
 }
 
 func (r RelayNamespaceDataResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
+
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
