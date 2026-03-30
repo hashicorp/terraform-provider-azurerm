@@ -180,7 +180,7 @@ func resourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta inter
 		if props := resp.Model.Properties; props != nil {
 			d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
-			d.Set("type", props.Type)
+			d.Set("type", pointer.FromEnum(props.Type))
 
 			if err := d.Set("permissions", flattenSqlRoleDefinitionPermissions(props.Permissions)); err != nil {
 				return fmt.Errorf("setting `permissions`: %+v", err)

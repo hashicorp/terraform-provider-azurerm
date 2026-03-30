@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
@@ -103,7 +104,7 @@ func dataSourceCosmosDbSQLRoleDefinitionRead(d *pluginsdk.ResourceData, meta int
 		if props := resp.Model.Properties; props != nil {
 			d.Set("assignable_scopes", utils.FlattenStringSlice(props.AssignableScopes))
 			d.Set("name", props.RoleName)
-			d.Set("type", props.Type)
+			d.Set("type", pointer.FromEnum(props.Type))
 
 			if err := d.Set("permissions", flattenSqlRoleDefinitionPermissions(props.Permissions)); err != nil {
 				return fmt.Errorf("setting `permissions`: %+v", err)

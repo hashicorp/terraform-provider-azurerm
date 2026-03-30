@@ -320,7 +320,6 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 	if resp.Model != nil {
 		if props := resp.Model.Properties; props != nil {
 			if res := props.Resource; res != nil {
-
 				// you can only have one
 				if l := len(pointer.From(res.ShardKey)); l > 2 {
 					return fmt.Errorf("unexpected number of shard keys: %d", l)
