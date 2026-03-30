@@ -18,13 +18,13 @@ import (
 var _ pollers.PollerType = &DataPlaneFileShareAvailabilityPoller{}
 
 type DataPlaneFileShareAvailabilityPoller struct {
-	client           *fileservice.FileServiceClient
+	client           *fileservices.FileServicesClient
 	storageAccountId commonids.StorageAccountId
 }
 
 func NewDataPlaneFileShareAvailabilityPoller(client *storageClients.Client, account *storageClients.AccountDetails) (*DataPlaneFileShareAvailabilityPoller, error) {
 	return &DataPlaneFileShareAvailabilityPoller{
-		client:           client.ResourceManager.FileService,
+		client:           client.ResourceManager.FileServices,
 		storageAccountId: account.StorageAccountId,
 	}, nil
 }

@@ -568,7 +568,7 @@ func dataSourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 	d.SetId(id.ID())
 
 	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
-	listKeysOpts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
+	listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
 	keys, err := client.ListKeys(ctx, id, listKeysOpts)
 	if err != nil {
 		hasWriteLock := response.WasConflict(keys.HttpResponse)
