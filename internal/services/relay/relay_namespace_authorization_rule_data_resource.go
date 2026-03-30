@@ -113,6 +113,7 @@ func (r RelayNamespaceAuthorizationRuleDataResource) Read() sdk.ResourceFunc {
 			state.SecondaryConnectionString = pointer.From(keysResp.Model.SecondaryConnectionString)
 			state.SecondaryKey = pointer.From(keysResp.Model.SecondaryKey)
 
+			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}

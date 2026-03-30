@@ -121,6 +121,7 @@ func (r RelayHybridConnectionAuthorizationRuleDataResource) Read() sdk.ResourceF
 			state.SecondaryConnectionString = pointer.From(keysResp.Model.SecondaryConnectionString)
 			state.SecondaryKey = pointer.From(keysResp.Model.SecondaryKey)
 
+			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}

@@ -154,6 +154,7 @@ func (r RelayNamespaceDataResource) Read() sdk.ResourceFunc {
 				state.SecondaryKey = pointer.From(model.SecondaryKey)
 			}
 
+			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}
