@@ -232,7 +232,6 @@ func (RelayHybridConnectionResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-
 }
 
 func (RelayHybridConnectionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
