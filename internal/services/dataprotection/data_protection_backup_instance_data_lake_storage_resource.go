@@ -59,7 +59,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Arguments() map[str
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&basebackuppolicyresources.BackupVaultId{}),
+		"data_protection_backup_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&backupvaultresources.BackupVaultId{}),
 
 		"location": commonschema.Location(),
 
@@ -264,17 +264,19 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Update() sdk.Resour
 
 			existing, err := client.BackupInstancesGet(ctx, *id)
 			if err != nil {
-				if response.WasNotFound(existing.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
-
 				return fmt.Errorf("reading %s: %+v", *id, err)
 			}
+
 			if existing.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", id)
 			}
 
 			parameters := *existing.Model
+			if parameters.Properties == nil {
+				parameters.Properties = &backupinstanceresources.BackupInstance{
+					PolicyInfo: backupinstanceresources.PolicyInfo{},
+				}
+			}
 
 			if metadata.ResourceData.HasChange("backup_policy_id") {
 				policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
