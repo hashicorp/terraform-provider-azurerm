@@ -99,14 +99,14 @@ func (r LinuxVirtualMachineScaleSetResource) automaticZoneRebalancing(data accep
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2ads_v7"
-  instances           = 2
-  admin_username      = "adminuser"
-  disable_password_authentication = true
-  zones               = ["1", "2"]
+  name                               = "acctestvmss-%d"
+  resource_group_name                = azurerm_resource_group.test.name
+  location                           = azurerm_resource_group.test.location
+  sku                                = "Standard_F2ads_v7"
+  instances                          = 2
+  admin_username                     = "adminuser"
+  disable_password_authentication    = true
+  zones                              = ["1", "2"]
   automatic_zone_rebalancing_enabled = %t
 
   source_image_reference {
