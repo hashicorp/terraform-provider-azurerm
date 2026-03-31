@@ -230,11 +230,7 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Read() sdk.Resource
 						if dataStoreParas := policyParas.BackupDatasourceParametersList; dataStoreParas != nil {
 							if dsp := pointer.From(dataStoreParas); len(dsp) > 0 {
 								if parameter, ok := dsp[0].(backupinstanceresources.AdlsBlobBackupDatasourceParameters); ok {
-									containerNames := parameter.ContainersList
-									state.StorageContainerNames = make([]string, len(containerNames))
-									for i, v := range containerNames {
-										state.StorageContainerNames[i] = v
-									}
+									state.StorageContainerNames = parameter.ContainersList
 								}
 							}
 						}
