@@ -408,7 +408,7 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 	result["scm_type"] = string(pointer.From(input.ScmType))
 	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
-
+	result["scm_ip_restriction_default_action"] = pointer.FromEnum(input.ScmIPSecurityRestrictionsDefaultAction)
 	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
 	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
@@ -535,6 +535,11 @@ func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
 				},
 
 				"scm_ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
+
+				"scm_ip_restriction_default_action": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
 				"scm_use_main_ip_restriction": {
 					Type:     pluginsdk.TypeBool,

@@ -1268,6 +1268,7 @@ resource "azurerm_logic_app_standard" "test" {
         x_forwarded_host  = ["example.com"]
       }
     }
+    scm_ip_restriction_default_action = "Deny"
   }
 
   connection_string {
@@ -1402,6 +1403,7 @@ resource "azurerm_logic_app_standard" "test" {
         x_forwarded_host  = ["example.com"]
       }
     }
+    scm_ip_restriction_default_action = "Allow"
   }
 
   connection_string {
