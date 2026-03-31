@@ -423,7 +423,7 @@ A `default_node_pool` block supports the following:
 
 * `os_disk_type` - (Optional) The type of disk which should be used for the Operating System. Possible values are `Ephemeral` and `Managed`. Defaults to `Managed`. `temporary_name_for_rotation` must be specified when attempting a change.
 
-* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
+* `os_sku` - (Optional) Specifies the OS SKU used by the agent pool. Possible values are `AzureLinux`, `AzureLinux3`, `Ubuntu`, `Ubuntu2204`, `Ubuntu2404`, `Windows2019` and `Windows2022`. If not specified, the default is `Ubuntu` when os_type=Linux or `Windows2019` if os_type=Windows (`Windows2022` Kubernetes ≥1.33). Changing between `AzureLinux` and `Ubuntu` does not replace the resource; otherwise `temporary_name_for_rotation` must be specified when attempting a change.
 
 -> **Note:** `Windows2019` is deprecated and not supported for Kubernetes version ≥1.33.
 
@@ -724,7 +724,7 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
 
-* `advanced_networking` - (Optional) An `advanced_networking` block as defined below. This can only be specified when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
+* `advanced_networking` - (Optional) An `advanced_networking` block as defined below.
 
 ---
 
@@ -732,7 +732,7 @@ An `advanced_networking` block supports the following:
 
 * `observability_enabled` - (Optional) Is observability enabled? Defaults to `false`.
 
-* `security_enabled` - (Optional) Is security enabled? Defaults to `false`.
+* `security_enabled` - (Optional) Is security enabled? Defaults to `false`. This can only be enabled (set to `true`) when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
 
 ---
 

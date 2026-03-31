@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -136,6 +137,11 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 			if p.latestResponse != nil {
 				retryDuration = p.latestResponse.PollInterval
 			}
+
+			if p.skipPollingDelay(ctx) {
+				retryDuration = 0
+			}
+
 			endTime := time.Now().Add(retryDuration)
 
 			<-time.After(time.Until(endTime))
@@ -242,4 +248,26 @@ func (p *Poller) FinalResult(model interface{}) error {
 	}
 
 	return nil
+}
+
+func (p *Poller) skipPollingDelay(ctx context.Context) bool {
+	if ShouldSkipPollingDelay(ctx) {
+		return true
+	}
+
+	if os.Getenv("GO_AZURE_SDK_SKIP_POLLING_DELAY") == "true" {
+		return true
+	}
+
+	if skipper, ok := p.poller.(delaySkipper); ok && skipper.SkipDelay() {
+		return true
+	}
+
+	if p.latestResponse != nil && p.latestResponse.HttpResponse != nil && p.latestResponse.HttpResponse.Response != nil && p.latestResponse.HttpResponse.Header != nil {
+		if p.latestResponse.HttpResponse.Header.Get("X-Go-Azure-SDK-Skip-Polling-Delay") == "true" {
+			return true
+		}
+	}
+
+	return false
 }

@@ -166,7 +166,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260312.1165223
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20260326.1151219
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -442,6 +442,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/f
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-04-01/updateruns
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/fleetupdatestrategies
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-03-01/updateruns
+github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/deploymentsafeguards
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations
 github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters
@@ -784,7 +785,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgatewayconnections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/webapplicationfirewallpolicies
-github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-01-01/bastionhosts
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/adminrulecollections
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/adminrules
@@ -1244,7 +1244,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20260312.1165223
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260326.1151219
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1604,6 +1604,10 @@ github.com/zclconf/go-cty/cty/function/stdlib
 github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/json
 github.com/zclconf/go-cty/cty/set
+# go.yaml.in/yaml/v4 v4.0.0-rc.3
+## explicit; go 1.18
+go.yaml.in/yaml/v4
+go.yaml.in/yaml/v4/internal/libyaml
 # golang.org/x/crypto v0.47.0
 ## explicit; go 1.24.0
 golang.org/x/crypto/argon2
@@ -1823,6 +1827,10 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
+# gopkg.in/dnaeon/go-vcr.v4 v4.0.6
+## explicit; go 1.24
+gopkg.in/dnaeon/go-vcr.v4/pkg/cassette
+gopkg.in/dnaeon/go-vcr.v4/pkg/recorder
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

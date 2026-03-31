@@ -7,7 +7,7 @@ type NetezzaLinkedServiceTypeProperties struct {
 	ConnectionString    *interface{}                  `json:"connectionString,omitempty"`
 	Database            *interface{}                  `json:"database,omitempty"`
 	EncryptedCredential *string                       `json:"encryptedCredential,omitempty"`
-	Port                *int64                        `json:"port,omitempty"`
+	Port                *interface{}                  `json:"port,omitempty"`
 	Pwd                 *AzureKeyVaultSecretReference `json:"pwd,omitempty"`
 	SecurityLevel       *NetezzaSecurityLevelType     `json:"securityLevel,omitempty"`
 	Server              *interface{}                  `json:"server,omitempty"`
