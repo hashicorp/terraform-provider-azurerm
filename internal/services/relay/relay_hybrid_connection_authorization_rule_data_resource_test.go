@@ -44,7 +44,7 @@ func (r RelayHybridConnectionAuthorizationRuleDataResource) dataSource(data acce
 data "azurerm_relay_hybrid_connection_authorization_rule" "test" {
   depends_on = [azurerm_relay_hybrid_connection_authorization_rule.test]
 
-  name       			 = azurerm_relay_hybrid_connection_authorization_rule.test.name
+  name                   = azurerm_relay_hybrid_connection_authorization_rule.test.name
   namespace_name         = azurerm_relay_namespace.test.name
   hybrid_connection_name = azurerm_relay_hybrid_connection.test.name
   resource_group_name    = azurerm_resource_group.test.name

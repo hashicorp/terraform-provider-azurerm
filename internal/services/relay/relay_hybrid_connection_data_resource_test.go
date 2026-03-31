@@ -38,7 +38,7 @@ func (RelayHybridConnectionDataResource) dataSource(data acceptance.TestData) st
 data "azurerm_relay_hybrid_connection" "test" {
   depends_on = [azurerm_relay_hybrid_connection.test]
 
-  name       		   = azurerm_relay_hybrid_connection.test.name
+  name                 = azurerm_relay_hybrid_connection.test.name
   relay_namespace_name = azurerm_relay_namespace.test.name
   resource_group_name  = azurerm_resource_group.test.name
 }
