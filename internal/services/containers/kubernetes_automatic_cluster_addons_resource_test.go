@@ -1,5 +1,5 @@
-// Copyright IBM Corp. 2014, 2025
-// SPDX-License-Identifier: MPL-2.0
+//  Copyright IBM Corp. 2014, 2025
+//  SPDX-License-Identifier: MPL-2.0
 
 package containers_test
 
@@ -40,38 +40,6 @@ func TestAccKubernetesAutomaticCluster_addonProfileAciConnectorLinuxDisabled(t *
 		data.ImportStep(),
 	})
 }
-
-//func TestAccKubernetesAutomaticCluster_addonProfileAzurePolicy(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			// Enable with V2
-//			Config: r.addonProfileAzurePolicyConfig(data, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			// Disable it
-//			Config: r.addonProfileAzurePolicyConfig(data, false),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			// Enable with V2
-//			Config: r.addonProfileAzurePolicyConfig(data, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_addonProfileOMS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -212,7 +180,7 @@ func TestAccKubernetesAutomaticCluster_addonProfileOpenServiceMesh(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// Enable OSM
+			//  Enable OSM
 			Config: r.addonProfileOpenServiceMeshConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -229,30 +197,6 @@ func TestAccKubernetesAutomaticCluster_addonProfileOpenServiceMesh(t *testing.T)
 		data.ImportStep(),
 	})
 }
-
-//func TestAccKubernetesAutomaticCluster_addonProfileAzureKeyVaultSecretsProvider(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			// Enable AzureKeyvaultSecretsProvider
-//			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, "2m"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			// Disable AzureKeyvaultSecretsProvider
-//			Config: r.addonProfileAzureKeyVaultSecretsProviderConfig(data, false, "2m"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_addonProfileConfidentialComputing(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -306,8 +250,8 @@ func TestAccKubernetesAutomaticCluster_addonProfileServiceMeshProfile_certificat
 }
 
 func TestAccKubernetesAutomaticCluster_addonProfileServiceMeshProfile_revisions(t *testing.T) {
-	// retrieve available revisions using `az aks mesh get-revisions --location {location}`
-	// TODO: function to make the revision dynamic so we don't have to keep updating it
+	//  retrieve available revisions using `az aks mesh get-revisions --location {location}`
+	//  TODO: function to make the revision dynamic so we don't have to keep updating it
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 

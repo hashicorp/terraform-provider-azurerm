@@ -13,22 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingKubenet(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingConfig(data, "kubenet"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_advancedNetworkingBlock(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -76,18 +60,6 @@ func TestAccKubernetesAutomaticCluster_advancedNetworkingBlock(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingNetworkPluginError(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config:      r.advancedNetworkingBlock(data, "kubenet", "cilium"),
-//			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `azure`"),
-//		},
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_advancedNetworkingNetworkDataplane(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -184,37 +156,6 @@ func TestAccKubernetesAutomaticCluster_advancedNetworkingIPVersionsIPv4(t *testi
 	})
 }
 
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingIPVersionsDualStack(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingConfigWithIPVersions(data, []string{"IPv4", "IPv6"}),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingKubenetComplete(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingCompleteConfig(data, "kubenet"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("kubenet"),
-//			),
-//		},
-//		data.ImportStep("network_profile.0.docker_bridge_cidr"),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_advancedNetworkingAzure(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -230,22 +171,6 @@ func TestAccKubernetesAutomaticCluster_advancedNetworkingAzure(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingNone(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingConfig(data, "none"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("none"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -278,24 +203,6 @@ func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureWithoutDockerBridg
 		data.ImportStep(),
 	})
 }
-
-//
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
-//				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureCiliumPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -333,163 +240,6 @@ func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureCiliumPolicyUpdate
 		data.ImportStep(),
 	})
 }
-
-//
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingAzurePolicyUpdate(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingConfig(data, "azure"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingCalicoPolicyUpdate(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingConfig(data, "azure"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "calico"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "calico"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
-//				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureCalicoPolicyNetworkModeTransparent(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingWithPolicyNetworkMode(data, "azure", "calico", "transparent"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
-//				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("calico"),
-//				check.That(data.ResourceName).Key("network_profile.0.network_mode").HasValue("transparent"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingWithPolicyConfig(data, "azure", "azure"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
-//				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "azure"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
-//				check.That(data.ResourceName).Key("network_profile.0.network_policy").HasValue("azure"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_upgradeNetworkDataPlaneAndPolicyCalicoToCilium(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.upgradeNetworkDataPlaneAndPolicyConfig(data, "azure", "calico"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.upgradeNetworkDataPlaneAndPolicyConfig(data, "cilium", "cilium"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_upgradeNetworkDataPlaneAndPolicyAzureToCilium(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.upgradeNetworkDataPlaneAndPolicyConfig(data, "azure", "azure"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.upgradeNetworkDataPlaneAndPolicyConfig(data, "cilium", "cilium"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_enableNodePublicIP(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -649,21 +399,6 @@ func TestAccKubernetesAutomaticCluster_privateClusterOnWithPrivateDNSZone(t *tes
 	})
 }
 
-//func TestAccKubernetesAutomaticCluster_privateClusterOnWithPrivateDNSZoneAndServicePrincipal(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.privateClusterWithPrivateDNSZoneAndServicePrincipalConfig(data, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
-//			),
-//		},
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_privateClusterOnWithPrivateDNSZoneSubDomain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -725,22 +460,6 @@ func TestAccKubernetesAutomaticCluster_podCidrs(t *testing.T) {
 	})
 }
 
-//
-//func TestAccKubernetesAutomaticCluster_podCidrsDualStack(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.podCidrsDualStack(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_serviceCidrs(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -755,22 +474,6 @@ func TestAccKubernetesAutomaticCluster_serviceCidrs(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-//
-//func TestAccKubernetesAutomaticCluster_serviceCidrsDualStack(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.serviceCidrsDualStack(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_standardLoadBalancer(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")

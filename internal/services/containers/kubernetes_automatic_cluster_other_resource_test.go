@@ -21,21 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
-//func TestAccKubernetesAutomaticCluster_sameSizeVMSSConfig(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.sameSize(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_basicVMSS(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -257,21 +242,6 @@ func TestAccKubernetesAutomaticCluster_upgradeSkuTier(t *testing.T) {
 	})
 }
 
-//func TestAccKubernetesAutomaticCluster_podSubnet(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.podSubnet(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_upgrade(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -351,9 +321,7 @@ func TestAccKubernetesAutomaticCluster_windowsProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("windows_profile.0.admin_username").Exists(),
 			),
 		},
-		data.ImportStep(
-			"windows_profile.0.admin_password",
-		),
+		data.ImportStep(),
 	})
 }
 
@@ -368,9 +336,7 @@ func TestAccKubernetesAutomaticCluster_windowsProfileGMSA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"windows_profile.0.admin_password",
-		),
+		data.ImportStep(),
 	})
 }
 
@@ -385,9 +351,7 @@ func TestAccKubernetesAutomaticCluster_windowsProfileLicense(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"windows_profile.0.admin_password",
-		),
+		data.ImportStep(),
 	})
 }
 
@@ -697,46 +661,6 @@ func TestAccKubernetesAutomaticCluster_osSku(t *testing.T) {
 	})
 }
 
-//func TestAccKubernetesAutomaticCluster_osSkuUpdate(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		//{
-//		//	Config: r.osSku(data, "Ubuntu"),
-//		//	Check: acceptance.ComposeTestCheckFunc(
-//		//		check.That(data.ResourceName).ExistsInAzure(r),
-//		//		check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
-//		//	),
-//		//},
-//		//data.ImportStep(),
-//		{
-//			Config: r.osSku(data, "AzureLinux"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux"),
-//			),
-//		},
-//		data.ImportStep(),
-//		//{
-//		//	Config: r.osSku(data, "Ubuntu2204"),
-//		//	Check: acceptance.ComposeTestCheckFunc(
-//		//		check.That(data.ResourceName).ExistsInAzure(r),
-//		//		check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu2204"),
-//		//	),
-//		//},
-//		//data.ImportStep(),
-//		{
-//			Config: r.osSku(data, "AzureLinux3"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux3"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_microsoftDefender(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -758,57 +682,6 @@ func TestAccKubernetesAutomaticCluster_microsoftDefender(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-
-//
-//func TestAccKubernetesAutomaticCluster_oidcIssuer(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.oidcIssuer(data, false),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("false"),
-//				check.That(data.ResourceName).Key("oidc_issuer_url").HasValue(""),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.oidcIssuer(data, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
-//				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-//
-//func TestAccKubernetesAutomaticCluster_workloadIdentity(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.workloadIdentity(data, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("true"),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.workloadIdentity(data, false),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("workload_identity_enabled").HasValue("false"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_webAppRoutingWithMultipleDnsZone(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -919,33 +792,6 @@ func TestAccKubernetesAutomaticCluster_azureMonitorKubernetesMetrics(t *testing.
 	})
 }
 
-//func TestAccKubernetesAutomaticCluster_nodeOsUpgradeChannel(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	nodeOsUpgradeChannel := "node_os_upgrade_channel"
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		// Note: "Unmanaged" and "None" are not compatible with Automatic SKU
-//		// which requires automatic_upgrade_channel = "stable"
-//		{
-//			Config: r.nodeOsUpgradeChannel(data, "NodeImage"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("NodeImage"),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.nodeOsUpgradeChannel(data, "SecurityPatch"),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key(nodeOsUpgradeChannel).HasValue("SecurityPatch"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_snapshotId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -975,8 +821,7 @@ func TestAccKubernetesAutomaticCluster_snapshotId(t *testing.T) {
 							},
 						},
 					}
-					_, err = client.CreateOrUpdate(ctx, id, snapshot)
-					if err != nil {
+					if _, err = client.CreateOrUpdate(ctx, id, snapshot); err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
@@ -1006,8 +851,8 @@ func TestAccKubernetesAutomaticCluster_snapshotId(t *testing.T) {
 					}
 					poolId := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, "default")
 					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
-					_, err = client.Delete(ctx, id)
-					if err != nil {
+
+					if _, err = client.Delete(ctx, id); err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
@@ -1046,21 +891,6 @@ func TestAccKubernetesAutomaticCluster_supportPlanKubernetesOfficial(t *testing.
 		data.ImportStep(),
 	})
 }
-
-//func TestAccKubernetesAutomaticCluster_supportPlanAKSLongTermSupport(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.supportPlanAKSLongTermSupport(data),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_costAnalysis(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
@@ -2177,8 +2007,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
     gmsa {
-      dns_server  = ""
-      root_domain = ""
+      dns_server  = "vnet"
+      root_domain = "vnet"
     }
   }
 
