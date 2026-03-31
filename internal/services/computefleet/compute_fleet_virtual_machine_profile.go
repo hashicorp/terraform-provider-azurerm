@@ -370,10 +370,12 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 				},
 
 				"domain_name_label": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ForceNew: true,
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^[a-z][a-z0-9-]{1,52}[a-z0-9]$`),
+						"`domain_name_label` must be between 1 - 54 characters long (inclusive), contain only lower case letters, numbers, and hyphens, start with a letter, and end with a letter"),
 				},
 
 				"domain_name_label_scope": {

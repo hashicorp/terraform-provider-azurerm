@@ -77,7 +77,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_D1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -114,9 +114,9 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -148,7 +148,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_D1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -185,9 +185,9 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 
@@ -289,7 +289,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_D1_v2"
+    name = "Standard_F1alds_v7"
   }
 
   compute_api_version = "2024-03-01"
@@ -326,9 +326,9 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     source_image_reference {
-      publisher = "Canonical"
-      offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      publisher = "canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
       version   = "latest"
     }
 

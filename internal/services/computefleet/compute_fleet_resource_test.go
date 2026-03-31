@@ -332,7 +332,7 @@ resource "azurerm_compute_fleet" "test" {
     eviction_policy           = "Delete"
     max_hourly_price_per_vm   = -1
     min_capacity              = 0
-    maintain_capacity_enabled = false
+    maintain_capacity_enabled = true
     capacity                  = 1
   }
 
@@ -344,6 +344,14 @@ resource "azurerm_compute_fleet" "test" {
 
   vm_sizes_profile {
     name = "Standard_D2_v3"
+  }
+
+  vm_sizes_profile {
+    name = "Standard_F1alds_v7"
+  }
+
+  vm_sizes_profile {
+    name = "Standard_F1als_v7"
   }
 
   virtual_machine_profile {

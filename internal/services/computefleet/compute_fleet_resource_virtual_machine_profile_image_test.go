@@ -300,6 +300,7 @@ resource "azurerm_image" "test" {
   name                      = "test"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
+  hyper_v_generation        = "V2"
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
 }
 
@@ -314,7 +315,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_F1alds_v7"
+    name = "Standard_D2as_v5"
   }
 
   compute_api_version = "2024-03-01"
@@ -362,6 +363,7 @@ resource "azurerm_image" "test" {
   name                      = "test"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
+  hyper_v_generation        = "V2"
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
 }
 
@@ -376,6 +378,7 @@ resource "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  hyper_v_generation  = "V2"
   os_type             = "Linux"
 
   identifier {
@@ -410,7 +413,7 @@ resource "azurerm_compute_fleet" "image_id" {
     min_capacity = 1
   }
   vm_sizes_profile {
-    name = "Standard_F1alds_v7"
+    name = "Standard_D2as_v5"
   }
 
   compute_api_version = "2024-03-01"
@@ -453,12 +456,14 @@ resource "azurerm_compute_fleet" "image_id" {
 func (r ComputeFleetTestResource) imageFromSharedImageGalleryVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_image" "test" {
   name                      = "test"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
+  hyper_v_generation        = "V2"
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
 }
 
@@ -473,6 +478,7 @@ resource "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  hyper_v_generation  = "V2"
   os_type             = "Linux"
 
   identifier {
@@ -508,7 +514,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_F1alds_v7"
+    name = "Standard_D2as_v5"
   }
 
   compute_api_version = "2024-03-01"
@@ -555,6 +561,7 @@ resource "azurerm_image" "test" {
   name                      = "test"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
+  hyper_v_generation        = "V2"
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
 }
 
@@ -579,6 +586,7 @@ resource "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  hyper_v_generation  = "V2"
   os_type             = "Linux"
 
   identifier {
@@ -614,7 +622,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_F1alds_v7"
+    name = "Standard_D2as_v5"
   }
 
   compute_api_version = "2024-03-01"
@@ -661,6 +669,7 @@ resource "azurerm_image" "test" {
   name                      = "test"
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
+  hyper_v_generation        = "V2"
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
 }
 
@@ -685,6 +694,7 @@ resource "azurerm_shared_image" "test" {
   gallery_name        = azurerm_shared_image_gallery.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+  hyper_v_generation  = "V2"
   os_type             = "Linux"
 
   identifier {
@@ -720,7 +730,7 @@ resource "azurerm_compute_fleet" "image_id" {
   }
 
   vm_sizes_profile {
-    name = "Standard_F1alds_v7"
+    name = "Standard_D2as_v5"
   }
 
   compute_api_version = "2024-03-01"
