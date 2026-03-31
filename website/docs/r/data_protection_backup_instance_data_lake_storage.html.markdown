@@ -3,12 +3,12 @@ subcategory: "DataProtection"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_protection_backup_instance_data_lake_storage"
 description: |-
-  Manages a Backup Instance to back up Azure Data Lake Storage.
+  Manages a Backup Instance to back up Data Lake Storage.
 ---
 
 # azurerm_data_protection_backup_instance_data_lake_storage
 
-Manages a Backup Instance to back up Azure Data Lake Storage.
+Manages a Backup Instance to back up Data Lake Storage.
 
 ## Example Usage
 
@@ -58,7 +58,7 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "example" {
   location                        = azurerm_resource_group.example.location
   storage_account_id              = azurerm_storage_account.example.id
   backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.example.id
-  storage_account_container_names = ["container1", "container2"]
+  storage_container_names         = ["container1", "container2"]
 
   depends_on = [azurerm_role_assignment.example]
 }
@@ -68,17 +68,17 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Backup Instance Data Lake Storage. Changing this forces a new resource to be created.
+* `name` - (Required) The name which should be used for this Backup Instance Data Lake Storage. Changing this forces a new Data Protection Backup instance of Backup Instance Data Lake Storage to be created.
 
-* `data_protection_backup_vault_id` - (Required) The ID of the Backup Vault within which the Backup Instance Data Lake Storage should exist. Changing this forces a new resource to be created.
+* `data_protection_backup_vault_id` - (Required) The ID of the Backup Vault within which the Backup Instance Data Lake Storage should exist. Changing this forces a new Data Protection Backup instance of Backup Instance Data Lake Storage to be created.
 
-* `location` - (Required) The location of the source Storage Account. Changing this forces a new resource to be created.
+* `location` - (Required) The location of the source Storage Account. Changing this forces a new Data Protection Backup instance of Backup Instance Data Lake Storage to be created.
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
-* `storage_account_id` - (Required) The ID of the source Storage Account. The Storage Account must have Hierarchical Namespace enabled. Changing this forces a new resource to be created.
+* `storage_account_id` - (Required) The ID of the source Storage Account. The Storage Account must have Hierarchical Namespace enabled. Changing this forces a new Data Protection Backup instance of Backup Instance Data Lake Storage to be created.
 
-* `storage_account_container_names` - (Required) The list of the container names of the source Storage Account.
+* `storage_container_names` - (Required) The list of the storage container names of the source Storage Account.
 
 ## Attributes Reference
 

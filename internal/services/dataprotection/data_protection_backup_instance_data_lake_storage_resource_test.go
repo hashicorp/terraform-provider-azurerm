@@ -122,11 +122,6 @@ resource "azurerm_storage_container" "test" {
   storage_account_id = azurerm_storage_account.test.id
 }
 
-resource "azurerm_storage_container" "another" {
-  name               = "testaccsc2%[3]d"
-  storage_account_id = azurerm_storage_account.test.id
-}
-
 resource "azurerm_data_protection_backup_vault" "test" {
   name                = "acctest-dataprotection-vault-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -152,9 +147,20 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 
   default_retention_duration = "P4M"
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+}
+
+func (r DataProtectionBackupInstanceDataLakeStorageResource) templateComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "another" {
+  name               = "testaccsc2%[2]d"
+  storage_account_id = azurerm_storage_account.test.id
+}
 
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "another" {
-  name                            = "acctest-dbp-other-%[1]d"
+  name                            = "acctest-dbp-other-%[3]d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W", "R/2021-05-24T03:40:00+00:00/P1W"]
   time_zone                       = "Coordinated Universal Time"
@@ -183,7 +189,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "another" {
     scheduled_backup_times = ["2021-05-23T02:30:00Z", "2021-05-24T03:40:00Z"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
+`, r.template(data), data.RandomIntOfLength(8), data.RandomInteger)
 }
 
 func (r DataProtectionBackupInstanceDataLakeStorageResource) basic(data acceptance.TestData) string {
@@ -196,7 +202,7 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
   location                        = azurerm_resource_group.test.location
   storage_account_id              = azurerm_storage_account.test.id
   backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.test.id
-  storage_account_container_names = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
+  storage_container_names         = [azurerm_storage_container.test.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
@@ -213,7 +219,7 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "import" {
   location                        = azurerm_data_protection_backup_instance_data_lake_storage.test.location
   storage_account_id              = azurerm_data_protection_backup_instance_data_lake_storage.test.storage_account_id
   backup_policy_id                = azurerm_data_protection_backup_instance_data_lake_storage.test.backup_policy_id
-  storage_account_container_names = azurerm_data_protection_backup_instance_data_lake_storage.test.storage_account_container_names
+  storage_container_names         = azurerm_data_protection_backup_instance_data_lake_storage.test.storage_container_names
 
   depends_on = [azurerm_role_assignment.test]
 }
@@ -230,11 +236,11 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
   location                        = azurerm_resource_group.test.location
   storage_account_id              = azurerm_storage_account.test.id
   backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.another.id
-  storage_account_container_names = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
+  storage_container_names         = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateComplete(data), data.RandomInteger)
 }
 
 func (r DataProtectionBackupInstanceDataLakeStorageResource) update(data acceptance.TestData) string {
@@ -247,9 +253,9 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
   location                        = azurerm_resource_group.test.location
   storage_account_id              = azurerm_storage_account.test.id
   backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.another.id
-  storage_account_container_names = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
+  storage_container_names         = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateComplete(data), data.RandomInteger)
 }
