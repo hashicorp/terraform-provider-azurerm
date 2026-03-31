@@ -106,8 +106,7 @@ terraform import azurerm_data_protection_backup_instance_data_lake_storage.examp
 ```
 
 ## API Providers
-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-- `Microsoft.DataProtection` - 2025-07-01
+* `Microsoft.DataProtection` - 2025-07-01
