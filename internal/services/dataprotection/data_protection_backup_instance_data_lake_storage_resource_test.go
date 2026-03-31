@@ -118,13 +118,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                 = "testaccsc%[3]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "testaccsc%[3]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_storage_container" "another" {
-  name                 = "testaccsc2%[3]d"
-  storage_account_name = azurerm_storage_account.test.name
+  name               = "testaccsc2%[3]d"
+  storage_account_id = azurerm_storage_account.test.id
 }
 
 resource "azurerm_data_protection_backup_vault" "test" {
@@ -156,9 +156,32 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "test" {
 resource "azurerm_data_protection_backup_policy_data_lake_storage" "another" {
   name                            = "acctest-dbp-other-%[1]d"
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W"]
+  backup_schedule                 = ["R/2021-05-23T02:30:00+00:00/P1W", "R/2021-05-24T03:40:00+00:00/P1W"]
+  time_zone                       = "Coordinated Universal Time"
 
   default_retention_duration = "P4M"
+
+  retention_rule {
+    name              = "weekly"
+    duration          = "P6M"
+    absolute_criteria = "FirstOfWeek"
+  }
+
+  retention_rule {
+    name                   = "thursday"
+    duration               = "P1W"
+    days_of_week           = ["Thursday", "Friday"]
+    months_of_year         = ["November", "December"]
+    scheduled_backup_times = ["2021-05-23T02:30:00Z"]
+  }
+
+  retention_rule {
+    name                   = "monthly"
+    duration               = "P1D"
+    weeks_of_month         = ["First", "Last"]
+    days_of_week           = ["Tuesday"]
+    scheduled_backup_times = ["2021-05-23T02:30:00Z", "2021-05-24T03:40:00Z"]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(8))
 }
@@ -206,8 +229,8 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
   data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
   location                        = azurerm_resource_group.test.location
   storage_account_id              = azurerm_storage_account.test.id
-  backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.test.id
-  storage_account_container_names = [azurerm_storage_container.test.name]
+  backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.another.id
+  storage_account_container_names = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
