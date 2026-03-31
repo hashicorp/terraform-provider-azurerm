@@ -1,6 +1,7 @@
 ## 4.67.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `storage` - update to API version `2025-06-01` [GH-32071]
 * `azurerm_logic_app_standard` - add support for the `site_config.scm_ip_restriction_default_action` property [GH-32043]
 * `azurerm_kubernetes_cluster` - add support for the `Ubuntu2404` OS SKU [GH-32070]
 * `azurerm_kubernetes_cluster_node_pool` - add support for the `Ubuntu2404` OS SKU [GH-32070]
