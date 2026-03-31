@@ -460,8 +460,6 @@ func resourceFirewallPolicyRuleCollectionGroup() *pluginsdk.Resource {
 
 func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	policyId, err := firewallpolicies.ParseFirewallPolicyID(d.Get("firewall_policy_id").(string))
 	if err != nil {
@@ -469,6 +467,16 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 	}
 
 	id := firewallpolicyrulecollectiongroups.NewRuleCollectionGroupID(policyId.SubscriptionId, policyId.ResourceGroupName, policyId.FirewallPolicyName, d.Get("name").(string))
+
+	// NOTE: Acquire the lock before creating the timeout context. Azure enforces serial processing
+	// on firewall policy rule collection groups within the same policy, responding with 409
+	// AnotherOperationInProgress for concurrent requests. The timeout context must be created after
+	// the lock is acquired so that time spent waiting for the lock does not consume the timeout budget.
+	locks.ByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	defer locks.UnlockByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
+
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	if d.IsNewResource() {
 		resp, err := client.Get(ctx, id)
@@ -482,9 +490,6 @@ func resourceFirewallPolicyRuleCollectionGroupCreateUpdate(d *pluginsdk.Resource
 			return tf.ImportAsExistsError("azurerm_firewall_policy_rule_collection_group", id.ID())
 		}
 	}
-
-	locks.ByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
-	defer locks.UnlockByName(policyId.FirewallPolicyName, AzureFirewallPolicyResourceName)
 
 	param := firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroup{
 		Properties: &firewallpolicyrulecollectiongroups.FirewallPolicyRuleCollectionGroupProperties{
@@ -568,16 +573,21 @@ func resourceFirewallPolicyRuleCollectionGroupSetFlatten(d *pluginsdk.ResourceDa
 
 func resourceFirewallPolicyRuleCollectionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.FirewallPolicyRuleCollectionGroups
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
 
 	id, err := firewallpolicyrulecollectiongroups.ParseRuleCollectionGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
+	// NOTE: Acquire the lock before creating the timeout context. Azure enforces serial processing
+	// on firewall policy rule collection groups within the same policy, responding with 409
+	// AnotherOperationInProgress for concurrent requests. The timeout context must be created after
+	// the lock is acquired so that time spent waiting for the lock does not consume the timeout budget.
 	locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
 
 	if err = client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
