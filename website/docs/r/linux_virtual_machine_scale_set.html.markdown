@@ -128,6 +128,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 -> **Note:** For more information about Automatic Instance Repair, please refer to the [product documentation](https://docs.microsoft.com/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-automatic-instance-repairs).
 
+* `automatic_zone_rebalancing_enabled` - (Optional) Whether to enable automatic zone balance. Defaults to `false`.
+
+-> **Note:** For more information about automatic zone balance, please refer to the [product documentation](https://learn.microsoft.com/azure/virtual-machine-scale-sets/auto-zone-balance-overview).
+
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block as defined below.
 
 * `capacity_reservation_group_id` - (Optional) Specifies the ID of the Capacity Reservation Group which the Virtual Machine Scale Set should be allocated to. Changing this forces a new resource to be created.
