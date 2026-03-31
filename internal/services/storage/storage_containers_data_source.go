@@ -120,7 +120,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("parsing Account ID: %v", err)
 			}
 
-			resp, err := blobServicesClient.ListCompleteMatchingPredicate(ctx, *id, blobservices.BlobServicePropertiesOperationPredicate{})
+			resp, err := blobServicesClient.BlobContainersListCompleteMatchingPredicate(ctx, *id, blobservices.BlobContainersListOperationOptions{}, blobservices.ListContainerItemOperationPredicate{})
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
@@ -138,7 +138,7 @@ func (r storageContainersDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenStorageContainersContainers(l []blobservices.BlobServiceProperties, accountId accounts.AccountId, prefix string) []containerModel {
+func flattenStorageContainersContainers(l []blobservices.ListContainerItem, accountId accounts.AccountId, prefix string) []containerModel {
 	output := make([]containerModel, 0, len(l))
 	for _, item := range l {
 		var name string
