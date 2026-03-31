@@ -26,7 +26,7 @@ import (
 
 type ResourceProviderFeatureRegistrationResource struct{}
 
-func TestAccResourceFeatureRegistration_basic(t *testing.T) {
+func TestAccResourceProviderFeatureRegistration_basic(t *testing.T) {
 	if os.Getenv("ARM_SUBSCRIPTION_ID_ALT") == "" {
 		t.Skip("Skipping as `ARM_SUBSCRIPTION_ID_ALT` was not specified")
 	}
@@ -51,7 +51,7 @@ func TestAccResourceFeatureRegistration_basic(t *testing.T) {
 	})
 }
 
-func TestAccResourceFeatureRegistration_requiresImport(t *testing.T) {
+func TestAccResourceProviderFeatureRegistration_requiresImport(t *testing.T) {
 	if os.Getenv("ARM_SUBSCRIPTION_ID_ALT") == "" {
 		t.Skip("Skipping as `ARM_SUBSCRIPTION_ID_ALT` was not specified")
 	}
