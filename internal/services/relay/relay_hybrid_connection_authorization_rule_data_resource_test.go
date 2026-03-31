@@ -21,12 +21,12 @@ func TestAccRelayHybridConnectionAuthorizationRuleDataSource_basic(t *testing.T)
 		{
 			Config: r.dataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("name").HasValue("default"),
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestrnak-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("namespace_name").Exists(),
 				check.That(data.ResourceName).Key("hybrid_connection_name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("primary_access_key").Exists(),
-				check.That(data.ResourceName).Key("secondary_access_key").Exists(),
+				check.That(data.ResourceName).Key("primary_key").Exists(),
+				check.That(data.ResourceName).Key("secondary_key").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("listen").Exists(),

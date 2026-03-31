@@ -21,6 +21,7 @@ func TestAccRelayNamespaceDataSource_basic(t *testing.T) {
 		{
 			Config: r.dataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctestrn-%d", data.RandomInteger)),
 				check.That(data.ResourceName).Key("metric_id").Exists(),
 				check.That(data.ResourceName).Key("primary_connection_string").Exists(),
 				check.That(data.ResourceName).Key("secondary_connection_string").Exists(),
