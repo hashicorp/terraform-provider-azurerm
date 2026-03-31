@@ -378,13 +378,16 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 	}
 }
 
-func ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
+func ExpandVirtualMachineScaleSetResiliency(newResouce, automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
 	result := &virtualmachinescalesets.ResiliencyPolicy{}
 
-	result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
-		Enabled:           pointer.To(automaticZoneRebalancingEnabled),
-		RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
-		RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),
+	// Skip sending AutomaticZoneRebalancingPolicy on create when disabled, because the API requires the feature to be registered in the subscription and will return an error otherwise. On update, always send it to allow disabling.
+	if !newResouce || automaticZoneRebalancingEnabled {
+		result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
+			Enabled:           pointer.To(automaticZoneRebalancingEnabled),
+			RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
+			RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),
+		}
 	}
 
 	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
