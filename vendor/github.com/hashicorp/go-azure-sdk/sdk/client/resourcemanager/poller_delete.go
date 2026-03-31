@@ -106,6 +106,13 @@ func (p deletePoller) Poll(ctx context.Context) (result *pollers.PollResult, err
 	return
 }
 
+func (p deletePoller) SkipDelay() bool {
+	if p.client != nil {
+		return client.IsVcrReplaying(p.client.Transport)
+	}
+	return false
+}
+
 var _ client.Options = deleteOptions{}
 
 type deleteOptions struct {

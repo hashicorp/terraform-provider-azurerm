@@ -3,12 +3,15 @@ subcategory: "Machine Learning"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ai_foundry_project"
 description: |-
-  Manages an AI Foundry Project.
+  Manages a Microsoft Foundry Hub (classic) Project resource.
 ---
 
 # azurerm_ai_foundry_project
 
-Manages an AI Foundry Project.
+Manages a Microsoft Foundry Hub (classic) Project resource.
+
+~> **Note:** Hub‑based projects are considered legacy and are not compatible with the new Foundry experience. Microsoft recommends using the new Microsoft Foundry project resource, which should be provisioned using
+[`azurerm_cognitive_account`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account) and [`azurerm_cognitive_account_project`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cognitive_account_project).
 
 ## Example Usage
 

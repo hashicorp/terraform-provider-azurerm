@@ -133,6 +133,8 @@ The `site_config` block exports the following:
 
 * `ip_restriction` - A list of `ip_restriction` objects representing IP restrictions as defined below.
 
+* `ip_restriction_default_action` - The default action taken when no `ip_restriction` rules match. 
+
 * `scm_ip_restriction` - A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
   
 * `scm_ip_restriction_default_action` - The default action taken when no `scm_ip_restriction` rules match.

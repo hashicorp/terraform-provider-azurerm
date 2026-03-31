@@ -984,6 +984,8 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []helpers.Logi
 
 	result.VNETRouteAllEnabled = pointer.From(input.VnetRouteAllEnabled)
 
+	result.IpRestrictionDefaultAction = pointer.FromEnum(input.IPSecurityRestrictionsDefaultAction)
+
 	if !features.FivePointOh() {
 		result.PublicNetworkAccessEnabled = strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessEnabled)
 	}
@@ -1112,6 +1114,8 @@ func expandLogicAppStandardSiteConfigForCreate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
 	}
 
+	siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
+
 	return siteConfig, nil
 }
 
@@ -1216,6 +1220,10 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		}
 
 		siteConfig.AppSettings = mergeAppSettings(appSettings, o.(map[string]interface{}), n.(map[string]interface{}), metadata)
+	}
+
+	if metadata.ResourceData.HasChange("site_config.0.ip_restriction_default_action") {
+		siteConfig.IPSecurityRestrictionsDefaultAction = pointer.ToEnum[webapps.DefaultAction](config.IpRestrictionDefaultAction)
 	}
 
 	return siteConfig, nil
