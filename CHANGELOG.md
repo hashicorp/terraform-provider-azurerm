@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 * `azurerm_kusto_attached_database_configuration` - add support for the `database_name_override`, database_name_prefix`, `sharing.functions_to_exclude`, and `sharing.functions_to_include` properties [GH-31470]
 * `azurerm_mssql_elasticpool` - add support for the `high_availability_replica_count` property [GH-31761]
+* Data Source: `azurerm_mssql_elasticpool` - export the `high_availability_replica_count` property [GH-31761]
 * dependencies: `storage` - update to API version `2025-06-01` [GH-32071]
 * `azurerm_logic_app_standard` - add support for the `site_config.scm_ip_restriction_default_action` property [GH-32043]
 * `azurerm_kubernetes_cluster` - add support for the `Ubuntu2404` OS SKU [GH-32070]
