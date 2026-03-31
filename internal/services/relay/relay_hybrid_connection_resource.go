@@ -208,7 +208,7 @@ func (RelayHybridConnectionResource) Read() sdk.ResourceFunc {
 
 func (RelayHybridConnectionResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: *pluginsdk.DefaultTimeout(5 * time.Minute),
+		Timeout: *pluginsdk.DefaultTimeout(30 * time.Minute),
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Relay.HybridConnectionsClient
