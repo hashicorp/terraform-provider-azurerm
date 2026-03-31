@@ -203,11 +203,11 @@ The `site_config` block supports the following:
 
 -> **Note:** User has to explicitly set `ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below. Possible values are `Allow` and `Deny`.
+* `scm_ip_restriction` - (Optional) A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
 
 -> **Note:** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
-* `scm_ip_restriction_default_action` - (Optional) Default action for main access restriction if no `scm_ip_restriction` rules are matched.
+* `scm_ip_restriction_default_action` - (Optional) The action to take when no `scm_ip_restriction` rules match. Possible values are `Allow` and `Deny`.
   
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 

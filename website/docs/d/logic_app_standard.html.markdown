@@ -135,7 +135,7 @@ The `site_config` block exports the following:
 
 * `scm_ip_restriction` - A list of `scm_ip_restriction` objects representing SCM IP restrictions as defined below.
   
-* `scm_ip_restriction_default_action` - Default action for main access restriction if no `scm_ip_restriction` rules are matched.
+* `scm_ip_restriction_default_action` - The default action taken when no `scm_ip_restriction` rules match.
 
 * `scm_use_main_ip_restriction` - Should the Logic App `ip_restriction` configuration be used for the SCM too.
 
