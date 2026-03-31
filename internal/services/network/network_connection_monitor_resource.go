@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkwatchers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/connectionmonitors"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/connectionmonitors"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -578,8 +578,8 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 		networkWatcherId := networkwatchers.NewNetworkWatcherID(id.SubscriptionId, id.ResourceGroupName, id.NetworkWatcherName)
 		d.Set("network_watcher_id", networkWatcherId.ID())
 
-		if location := model.Location; location != nil {
-			d.Set("location", azure.NormalizeLocation(*location))
+		if loc := model.Location; loc != nil {
+			d.Set("location", location.Normalize(*loc))
 		}
 
 		if props := model.Properties; props != nil {
@@ -605,7 +605,9 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -737,7 +739,7 @@ func expandNetworkConnectionMonitorTestConfiguration(input []interface{}) *[]con
 			Protocol:          connectionmonitors.ConnectionMonitorTestConfigurationProtocol(v["protocol"].(string)),
 			SuccessThreshold:  expandNetworkConnectionMonitorSuccessThreshold(v["success_threshold"].([]interface{})),
 			TcpConfiguration:  expandNetworkConnectionMonitorTCPConfiguration(v["tcp_configuration"].([]interface{})),
-			TestFrequencySec:  utils.Int64(int64(v["test_frequency_in_seconds"].(int))),
+			TestFrequencySec:  pointer.To(int64(v["test_frequency_in_seconds"].(int))),
 		}
 
 		if preferredIPVersion := v["preferred_ip_version"]; preferredIPVersion != "" {
@@ -759,7 +761,7 @@ func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *conne
 
 	props := &connectionmonitors.ConnectionMonitorHTTPConfiguration{
 		Method:         pointer.To(connectionmonitors.HTTPConfigurationMethod(v["method"].(string))),
-		PreferHTTPS:    utils.Bool(v["prefer_https"].(bool)),
+		PreferHTTPS:    pointer.To(v["prefer_https"].(bool)),
 		RequestHeaders: expandNetworkConnectionMonitorHTTPHeader(v["request_header"].(*pluginsdk.Set).List()),
 	}
 
@@ -768,7 +770,7 @@ func expandNetworkConnectionMonitorHTTPConfiguration(input []interface{}) *conne
 	}
 
 	if port := v["port"]; port != 0 {
-		props.Port = utils.Int64(int64(port.(int)))
+		props.Port = pointer.To(int64(port.(int)))
 	}
 
 	if ranges := v["valid_status_code_ranges"].(*pluginsdk.Set).List(); len(ranges) != 0 {
@@ -786,8 +788,8 @@ func expandNetworkConnectionMonitorTCPConfiguration(input []interface{}) *connec
 	v := input[0].(map[string]interface{})
 
 	result := &connectionmonitors.ConnectionMonitorTcpConfiguration{
-		Port:              utils.Int64(int64(v["port"].(int))),
-		DisableTraceRoute: utils.Bool(!v["trace_route_enabled"].(bool)),
+		Port:              pointer.To(int64(v["port"].(int))),
+		DisableTraceRoute: pointer.To(!v["trace_route_enabled"].(bool)),
 	}
 
 	if destinationPortBehavior := v["destination_port_behavior"].(string); destinationPortBehavior != "" {
@@ -805,7 +807,7 @@ func expandNetworkConnectionMonitorIcmpConfiguration(input []interface{}) *conne
 	v := input[0].(map[string]interface{})
 
 	return &connectionmonitors.ConnectionMonitorIcmpConfiguration{
-		DisableTraceRoute: utils.Bool(!v["trace_route_enabled"].(bool)),
+		DisableTraceRoute: pointer.To(!v["trace_route_enabled"].(bool)),
 	}
 }
 
@@ -817,8 +819,8 @@ func expandNetworkConnectionMonitorSuccessThreshold(input []interface{}) *connec
 	v := input[0].(map[string]interface{})
 
 	return &connectionmonitors.ConnectionMonitorSuccessThreshold{
-		ChecksFailedPercent: utils.Int64(int64(v["checks_failed_percent"].(int))),
-		RoundTripTimeMs:     utils.Float(v["round_trip_time_ms"].(float64)),
+		ChecksFailedPercent: pointer.To(int64(v["checks_failed_percent"].(int))),
+		RoundTripTimeMs:     pointer.To(v["round_trip_time_ms"].(float64)),
 	}
 }
 
@@ -852,7 +854,7 @@ func expandNetworkConnectionMonitorTestGroup(input []interface{}) *[]connectionm
 		result := connectionmonitors.ConnectionMonitorTestGroup{
 			Name:               v["name"].(string),
 			Destinations:       *utils.ExpandStringSlice(v["destination_endpoints"].(*pluginsdk.Set).List()),
-			Disable:            utils.Bool(!v["enabled"].(bool)),
+			Disable:            pointer.To(!v["enabled"].(bool)),
 			Sources:            *utils.ExpandStringSlice(v["source_endpoints"].(*pluginsdk.Set).List()),
 			TestConfigurations: *utils.ExpandStringSlice(v["test_configuration_names"].(*pluginsdk.Set).List()),
 		}

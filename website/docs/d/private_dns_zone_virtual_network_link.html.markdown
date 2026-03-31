@@ -24,7 +24,7 @@ output "private_dns_a_record_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Private DNS Zone Virtual Network Link.
 

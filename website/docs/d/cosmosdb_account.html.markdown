@@ -23,7 +23,7 @@ output "cosmosdb_account_endpoint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

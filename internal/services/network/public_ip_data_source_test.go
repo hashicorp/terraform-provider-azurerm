@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -39,7 +39,7 @@ func TestAccDataSourcePublicIP_static(t *testing.T) {
 	})
 }
 
-func TestAccDataSourcePublicIP_dynamic(t *testing.T) {
+func TestAccDataSourcePublicIP_staticMinimal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_public_ip", "test")
 	r := PublicIPDataSource{}
 
@@ -48,13 +48,13 @@ func TestAccDataSourcePublicIP_dynamic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.dynamic(data, "IPv4"),
+			Config: r.staticMinimal(data, "IPv4"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(""),
 				check.That(data.ResourceName).Key("fqdn").HasValue(""),
-				check.That(data.ResourceName).Key("ip_address").HasValue(""),
+				check.That(data.ResourceName).Key("ip_address").Exists(),
 				check.That(data.ResourceName).Key("ip_version").HasValue("IPv4"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("test"),
@@ -100,7 +100,7 @@ data "azurerm_public_ip" "test" {
 `, resourceGroupName, data.Locations.Primary, name, data.RandomInteger)
 }
 
-func (PublicIPDataSource) dynamic(data acceptance.TestData, ipVersion string) string {
+func (PublicIPDataSource) staticMinimal(data acceptance.TestData, ipVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -115,8 +115,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctestpublicip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 
   ip_version = "%s"
 

@@ -50,11 +50,49 @@ func parseAadAuthFailureMode(input string) (*AadAuthFailureMode, error) {
 	return &out, nil
 }
 
+type CheckNameAvailabilityInputType string
+
+const (
+	CheckNameAvailabilityInputTypeSearchServices CheckNameAvailabilityInputType = "searchServices"
+)
+
+func PossibleValuesForCheckNameAvailabilityInputType() []string {
+	return []string{
+		string(CheckNameAvailabilityInputTypeSearchServices),
+	}
+}
+
+func (s *CheckNameAvailabilityInputType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCheckNameAvailabilityInputType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseCheckNameAvailabilityInputType(input string) (*CheckNameAvailabilityInputType, error) {
+	vals := map[string]CheckNameAvailabilityInputType{
+		"searchservices": CheckNameAvailabilityInputTypeSearchServices,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CheckNameAvailabilityInputType(input)
+	return &out, nil
+}
+
 type ComputeType string
 
 const (
-	ComputeTypeConfidential ComputeType = "confidential"
-	ComputeTypeDefault      ComputeType = "default"
+	ComputeTypeConfidential ComputeType = "Confidential"
+	ComputeTypeDefault      ComputeType = "Default"
 )
 
 func PossibleValuesForComputeType() []string {
@@ -94,8 +132,8 @@ func parseComputeType(input string) (*ComputeType, error) {
 type HostingMode string
 
 const (
-	HostingModeDefault     HostingMode = "default"
-	HostingModeHighDensity HostingMode = "highDensity"
+	HostingModeDefault     HostingMode = "Default"
+	HostingModeHighDensity HostingMode = "HighDensity"
 )
 
 func PossibleValuesForHostingMode() []string {
@@ -279,14 +317,16 @@ func parseProvisioningState(input string) (*ProvisioningState, error) {
 type PublicNetworkAccess string
 
 const (
-	PublicNetworkAccessDisabled PublicNetworkAccess = "disabled"
-	PublicNetworkAccessEnabled  PublicNetworkAccess = "enabled"
+	PublicNetworkAccessDisabled           PublicNetworkAccess = "Disabled"
+	PublicNetworkAccessEnabled            PublicNetworkAccess = "Enabled"
+	PublicNetworkAccessSecuredByPerimeter PublicNetworkAccess = "SecuredByPerimeter"
 )
 
 func PossibleValuesForPublicNetworkAccess() []string {
 	return []string{
 		string(PublicNetworkAccessDisabled),
 		string(PublicNetworkAccessEnabled),
+		string(PublicNetworkAccessSecuredByPerimeter),
 	}
 }
 
@@ -305,8 +345,9 @@ func (s *PublicNetworkAccess) UnmarshalJSON(bytes []byte) error {
 
 func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
 	vals := map[string]PublicNetworkAccess{
-		"disabled": PublicNetworkAccessDisabled,
-		"enabled":  PublicNetworkAccessEnabled,
+		"disabled":           PublicNetworkAccessDisabled,
+		"enabled":            PublicNetworkAccessEnabled,
+		"securedbyperimeter": PublicNetworkAccessSecuredByPerimeter,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -314,44 +355,6 @@ func parsePublicNetworkAccess(input string) (*PublicNetworkAccess, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := PublicNetworkAccess(input)
-	return &out, nil
-}
-
-type ResourceType string
-
-const (
-	ResourceTypeSearchServices ResourceType = "searchServices"
-)
-
-func PossibleValuesForResourceType() []string {
-	return []string{
-		string(ResourceTypeSearchServices),
-	}
-}
-
-func (s *ResourceType) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parseResourceType(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parseResourceType(input string) (*ResourceType, error) {
-	vals := map[string]ResourceType{
-		"searchservices": ResourceTypeSearchServices,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := ResourceType(input)
 	return &out, nil
 }
 

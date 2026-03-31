@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name capacity_reservation -service-package-name compute -properties "name" -compare-values "subscription_id:capacity_reservation_group_id,resource_group_name:capacity_reservation_group_id,capacity_reservation_group_name:capacity_reservation_group_id"
@@ -138,6 +137,10 @@ func resourceCapacityReservationCreate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceCapacityReservationRead(d, meta)
 }
 
@@ -230,8 +233,8 @@ func resourceCapacityReservationDelete(d *pluginsdk.ResourceData, meta interface
 func expandCapacityReservationSku(input []interface{}) capacityreservations.Sku {
 	v := input[0].(map[string]interface{})
 	return capacityreservations.Sku{
-		Name:     utils.String(v["name"].(string)),
-		Capacity: utils.Int64(int64(v["capacity"].(int))),
+		Name:     pointer.To(v["name"].(string)),
+		Capacity: pointer.To(int64(v["capacity"].(int))),
 	}
 }
 

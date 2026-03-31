@@ -41,7 +41,7 @@ resource "azurerm_cosmosdb_mongo_collection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -163,7 +164,7 @@ func resourceDataFactoryLinkedServiceKustoCreateUpdate(d *pluginsdk.ResourceData
 			Endpoint: d.Get("kusto_endpoint").(string),
 			Database: d.Get("kusto_database_name").(string),
 		},
-		Description: utils.String(d.Get("description").(string)),
+		Description: pointer.To(d.Get("description").(string)),
 		Type:        datafactory.TypeBasicLinkedServiceTypeAzureDataExplorer,
 	}
 
@@ -178,10 +179,10 @@ func resourceDataFactoryLinkedServiceKustoCreateUpdate(d *pluginsdk.ResourceData
 			Database:           d.Get("kusto_database_name").(string),
 			ServicePrincipalID: v.(string),
 			ServicePrincipalKey: &datafactory.SecureString{
-				Value: utils.String(d.Get("service_principal_key").(string)),
+				Value: pointer.To(d.Get("service_principal_key").(string)),
 				Type:  datafactory.TypeSecureString,
 			},
-			Tenant: utils.String(d.Get("tenant").(string)),
+			Tenant: pointer.To(d.Get("tenant").(string)),
 		}
 	} else {
 		return fmt.Errorf("one of Managed Identity and service principal authentication must be set")

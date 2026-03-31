@@ -57,7 +57,7 @@ data "azurerm_eventhub_sas" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `connection_string` - The connection string for the Event Hub to which this SAS applies.
 

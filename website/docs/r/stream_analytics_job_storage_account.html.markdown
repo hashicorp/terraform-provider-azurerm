@@ -67,7 +67,7 @@ resource "azurerm_stream_analytics_job_storage_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -47,7 +47,7 @@ resource "azurerm_eventgrid_event_subscription" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

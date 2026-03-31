@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cognitive_test
@@ -162,6 +162,10 @@ resource "azurerm_cognitive_account_rai_blocklist" "test" {
   name                 = "acctest-crb-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   description          = "Acceptance test data new azurerm resource"
+  tags = {
+    Acceptance  = "Test"
+    Environment = "Dev"
+  }
 }
 		`, template, data.RandomInteger)
 }
@@ -174,6 +178,11 @@ resource "azurerm_cognitive_account_rai_blocklist" "test" {
   name                 = "acctest-crb-%d"
   cognitive_account_id = azurerm_cognitive_account.test.id
   description          = "Acceptance test data new azurerm resource updated"
+  tags = {
+    Acceptance  = "TestUpdated"
+    Environment = "Dev"
+    Updated     = "true"
+  }
 }
 		`, template, data.RandomInteger)
 }

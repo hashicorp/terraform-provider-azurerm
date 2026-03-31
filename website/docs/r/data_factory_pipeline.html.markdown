@@ -56,7 +56,7 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

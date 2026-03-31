@@ -35,7 +35,7 @@ resource "azurerm_api_management_identity_provider_google" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

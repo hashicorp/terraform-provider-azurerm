@@ -61,7 +61,7 @@ resource "azurerm_backup_policy_file_share" "policy" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -84,6 +84,12 @@ The following arguments are supported:
 * `retention_monthly` - (Optional) Configures the policy monthly retention as documented in the `retention_monthly` block below.
 
 * `retention_yearly` - (Optional) Configures the policy yearly retention as documented in the `retention_yearly` block below.
+
+* `snapshot_retention_in_days` - (Optional) The number of days to retain the snapshots. Defaults to `0`.
+
+* `backup_tier` - (Optional) The backup tier to use. Possible values are `vault-standard` and `snapshot`. Defaults to `snapshot`.
+
+-> **Note:** When `backup_tier` is set to `vault-standard`, the `snapshot_retention_in_days` value must be less than the `retention_daily` count.
 
 ---
 

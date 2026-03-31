@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,7 +6,6 @@ package network
 import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
-	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -42,6 +41,8 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ManagerNetworkGroupDataSource{},
 		ManagerConnectivityConfigurationDataSource{},
 		ManagerIpamPoolDataSource{},
+		NetworkSecurityPerimeterProfileDataSource{},
+		NetworkSecurityPerimeterDataSource{},
 		VPNServerConfigurationDataSource{},
 		VirtualNetworkPeeringDataSource{},
 	}
@@ -61,12 +62,17 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerResource{},
 		ManagerRoutingConfigurationResource{},
 		ManagerRoutingRuleCollectionResource{},
+		ManagerRoutingRuleResource{},
 		ManagerScopeConnectionResource{},
 		ManagerSecurityAdminConfigurationResource{},
 		ManagerStaticMemberResource{},
 		ManagerSubscriptionConnectionResource{},
 		ManagerVerifierWorkspaceResource{},
 		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
+		NetworkSecurityPerimeterAccessRuleResource{},
+		NetworkSecurityPerimeterAssociationResource{},
+		NetworkSecurityPerimeterResource{},
+		NetworkSecurityPerimeterProfileResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},
@@ -197,9 +203,24 @@ func (r Registration) Actions() []func() action.Action {
 	return []func() action.Action{}
 }
 
-func (r Registration) ListResources() []func() list.ListResource {
-	return []func() list.ListResource{
-		NewVirtualNetworkListResource,
+func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
+	return []sdk.FrameworkListWrappedResource{
+		ApplicationGatewayListResource{},
+		ApplicationSecurityGroupListResource{},
+		IpGroupListResource{},
+		NatGatewayListResource{},
+		NetworkDDoSProtectionPlanListResource{},
+		NetworkInterfaceListResource{},
+		NetworkProfileListResource{},
+		NetworkSecurityGroupListResource{},
+		NetworkSecurityRuleListResource{},
+		PrivateEndpointListResource{},
+		PublicIpListResource{},
+		RouteListResource{},
+		RouteTableListResource{},
+		VirtualNetworkListResource{},
+		VirtualNetworkPeeringListResource{},
+		WebApplicationFirewallPolicyListResource{},
 	}
 }
 

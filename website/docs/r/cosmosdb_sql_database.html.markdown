@@ -26,7 +26,7 @@ resource "azurerm_cosmosdb_sql_database" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

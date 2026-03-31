@@ -52,7 +52,7 @@ resource "azurerm_redis_firewall_rule" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

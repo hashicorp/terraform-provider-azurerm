@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package workloads_test
@@ -10,20 +10,20 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type WorkloadsSAPSingleNodeVirtualInstanceResource struct{}
+type WorkloadsSapSingleNodeVirtualInstanceResource struct{}
 
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
-	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
+	r := WorkloadsSapSingleNodeVirtualInstanceResource{}
 	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -39,7 +39,7 @@ func TestAccWorkloadsSAPSingleNodeVirtualInstance_basic(t *testing.T) {
 
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
-	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
+	r := WorkloadsSapSingleNodeVirtualInstanceResource{}
 	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -58,7 +58,7 @@ func TestAccWorkloadsSAPSingleNodeVirtualInstance_requiresImport(t *testing.T) {
 
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
-	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
+	r := WorkloadsSapSingleNodeVirtualInstanceResource{}
 	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -74,7 +74,7 @@ func TestAccWorkloadsSAPSingleNodeVirtualInstance_complete(t *testing.T) {
 
 func TestAccWorkloadsSAPSingleNodeVirtualInstance_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_workloads_sap_single_node_virtual_instance", "test")
-	r := WorkloadsSAPSingleNodeVirtualInstanceResource{}
+	r := WorkloadsSapSingleNodeVirtualInstanceResource{}
 	sapVISNameSuffix := SAPSingleNodeVirtualInstanceNameSuffix()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -102,7 +102,7 @@ func TestAccWorkloadsSAPSingleNodeVirtualInstance_update(t *testing.T) {
 	})
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WorkloadsSapSingleNodeVirtualInstanceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := sapvirtualinstances.ParseSapVirtualInstanceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -112,14 +112,14 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Exists(ctx context.Contex
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) template(data acceptance.TestData) string {
+func (r WorkloadsSapSingleNodeVirtualInstanceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "tls_private_key" "test" {
   algorithm = "RSA"
@@ -177,7 +177,7 @@ resource "azurerm_resource_group" "app" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) basic(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapSingleNodeVirtualInstanceResource) basic(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -236,7 +236,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
 `, r.template(data), sapVISNameSuffix, data.RandomInteger)
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) requiresImport(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapSingleNodeVirtualInstanceResource) requiresImport(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -283,7 +283,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "import" {
 `, r.basic(data, sapVISNameSuffix))
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) complete(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapSingleNodeVirtualInstanceResource) complete(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -403,7 +403,7 @@ resource "azurerm_workloads_sap_single_node_virtual_instance" "test" {
 `, r.template(data), sapVISNameSuffix, data.RandomInteger)
 }
 
-func (r WorkloadsSAPSingleNodeVirtualInstanceResource) update(data acceptance.TestData, sapVISNameSuffix int) string {
+func (r WorkloadsSapSingleNodeVirtualInstanceResource) update(data acceptance.TestData, sapVISNameSuffix int) string {
 	return fmt.Sprintf(`
 %s
 

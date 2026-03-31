@@ -78,7 +78,7 @@ resource "azurerm_iothub_endpoint_cosmosdb_account" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

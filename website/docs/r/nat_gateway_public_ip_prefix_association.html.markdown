@@ -40,13 +40,15 @@ resource "azurerm_nat_gateway_public_ip_prefix_association" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `nat_gateway_id` - (Required) The ID of the NAT Gateway. Changing this forces a new resource to be created.
 
 * `public_ip_prefix_id` - (Required) The ID of the Public IP Prefix which this NAT Gateway which should be connected to. Changing this forces a new resource to be created.
+
+~> **Note:** When `nat_gateway_id` references a `StandardV2` NAT Gateway, `public_ip_prefix_id` must reference a `StandardV2` Public IP Prefix. Azure rejects `Standard` Public IP Prefixes with `StandardV2` NAT Gateways, and this incompatibility is not validated during terraform plan phase.
 
 ## Attributes Reference
 
@@ -76,4 +78,4 @@ terraform import azurerm_nat_gateway_public_ip_prefix_association.example "/subs
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

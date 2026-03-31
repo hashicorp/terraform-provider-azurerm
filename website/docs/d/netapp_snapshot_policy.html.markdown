@@ -48,7 +48,7 @@ output "monthly_schedule" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

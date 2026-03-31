@@ -25,7 +25,7 @@ output "app_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the App Service.
 

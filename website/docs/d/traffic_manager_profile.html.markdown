@@ -24,7 +24,7 @@ output "traffic_routing_method" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the Traffic Manager Profile.
 

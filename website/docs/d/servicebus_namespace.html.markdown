@@ -23,7 +23,7 @@ output "location" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - Specifies the name of the ServiceBus Namespace.
 

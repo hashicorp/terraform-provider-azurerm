@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -25,7 +24,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceBackupProtectionPolicyVM() *pluginsdk.Resource {
@@ -115,12 +113,8 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 	log.Printf("[DEBUG] Creating %s", id)
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
-	timeOfDay := d.Get("backup.0.time").(string)
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s:00Z", time.Now().Format("2006-01-02"), timeOfDay))
-	if err != nil {
-		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
-	}
-	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
+	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
+	times := append(make([]string, 0), timeOfDay)
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -145,7 +139,7 @@ func resourceBackupProtectionPolicyVMCreate(d *pluginsdk.ResourceData, meta inte
 
 	policyType := protectionpolicies.IAASVMPolicyType(d.Get("policy_type").(string))
 	vmProtectionPolicyProperties := &protectionpolicies.AzureIaaSVMProtectionPolicy{
-		TimeZone:         utils.String(d.Get("timezone").(string)),
+		TimeZone:         pointer.To(d.Get("timezone").(string)),
 		PolicyType:       pointer.To(policyType),
 		SchedulePolicy:   schedulePolicy,
 		TieringPolicy:    expandBackupProtectionPolicyVMTieringPolicy(d.Get("tiering_policy").([]interface{})),
@@ -290,12 +284,8 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	log.Printf("[DEBUG] Updating %s", id)
 
 	// getting this ready now because its shared between *everything*, time is... complicated for this resource
-	timeOfDay := d.Get("backup.0.time").(string)
-	dateOfDay, err := time.Parse(time.RFC3339, fmt.Sprintf("%sT%s:00Z", time.Now().Format("2006-01-02"), timeOfDay))
-	if err != nil {
-		return fmt.Errorf("generating time from %q for %s: %+v", timeOfDay, id, err)
-	}
-	times := append(make([]string, 0), date.Time{Time: dateOfDay}.String())
+	timeOfDay := fmt.Sprintf("%s:00Z", d.Get("backup.0.time").(string))
+	times := append(make([]string, 0), timeOfDay)
 
 	// Less than 7 daily backups is no longer supported for create/update
 	if d.HasChange("retention_daily.0.count") && (d.Get("retention_daily.0.count").(int) > 1 && d.Get("retention_daily.0.count").(int) < 7) {
@@ -337,14 +327,15 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("timezone") {
-		properties.TimeZone = utils.String(d.Get("timezone").(string))
+		properties.TimeZone = pointer.To(d.Get("timezone").(string))
 	}
 
 	if d.HasChange("instant_restore_resource_group") {
 		properties.InstantRPDetails = expandBackupProtectionPolicyVMResourceGroup(d)
 	}
 
-	if d.HasChange("backup") {
+	// If anything changes inside any of the `retention_*` fields, update the `schedulePolicy` object as the API requires all timestamps match
+	if d.HasChanges("backup", "retention_daily", "retention_weekly", "retention_monthly", "retention_yearly") {
 		schedulePolicy, err := expandBackupProtectionPolicyVMSchedule(d, times)
 		if err != nil {
 			return err
@@ -352,7 +343,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.SchedulePolicy = schedulePolicy
 	}
 
-	if d.HasChange("retention_daily") || d.HasChange("backup.0.time") {
+	if d.HasChanges("retention_daily", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
@@ -365,7 +356,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.RetentionPolicy = retentionPolicy
 	}
 
-	if d.HasChange("retention_weekly") {
+	if d.HasChanges("retention_weekly", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
@@ -378,7 +369,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.RetentionPolicy = retentionPolicy
 	}
 
-	if d.HasChange("retention_monthly") {
+	if d.HasChanges("retention_monthly", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
@@ -391,7 +382,7 @@ func resourceBackupProtectionPolicyVMUpdate(d *pluginsdk.ResourceData, meta inte
 		properties.RetentionPolicy = retentionPolicy
 	}
 
-	if d.HasChange("retention_yearly") {
+	if d.HasChanges("retention_yearly", "backup.0.time") {
 		if properties.RetentionPolicy == nil {
 			properties.RetentionPolicy = &protectionpolicies.LongTermRetentionPolicy{}
 		}
@@ -535,10 +526,10 @@ func expandBackupProtectionPolicyVMResourceGroup(d *pluginsdk.ResourceData) *pro
 	if v, ok := d.Get("instant_restore_resource_group").([]interface{}); ok && len(v) > 0 {
 		rgRaw := v[0].(map[string]interface{})
 		output := &protectionpolicies.InstantRPAdditionalDetails{
-			AzureBackupRGNamePrefix: utils.String(rgRaw["prefix"].(string)),
+			AzureBackupRGNamePrefix: pointer.To(rgRaw["prefix"].(string)),
 		}
 		if suffix, ok := rgRaw["suffix"]; ok && suffix != "" {
-			output.AzureBackupRGNameSuffix = utils.String(suffix.(string))
+			output.AzureBackupRGNameSuffix = pointer.To(suffix.(string))
 		}
 		return output
 	}
@@ -1007,8 +998,7 @@ func resourceBackupProtectionPolicyVMWaitForUpdate(ctx context.Context, client *
 		state.Timeout = d.Timeout(pluginsdk.TimeoutUpdate)
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 
@@ -1025,8 +1015,7 @@ func resourceBackupProtectionPolicyVMWaitForDeletion(ctx context.Context, client
 		Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
 	}
 
-	_, err := state.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err := state.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to provision: %+v", id, err)
 	}
 

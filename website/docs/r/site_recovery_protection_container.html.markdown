@@ -45,7 +45,7 @@ resource "azurerm_site_recovery_protection_container" "protection-container" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -39,7 +39,7 @@ resource "azurerm_iothub_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -97,7 +97,7 @@ resource "azurerm_app_service_plan" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

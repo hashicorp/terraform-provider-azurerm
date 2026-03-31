@@ -40,7 +40,7 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

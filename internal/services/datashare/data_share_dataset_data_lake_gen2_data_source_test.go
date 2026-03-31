@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datashare_test
@@ -38,5 +38,5 @@ data "azurerm_data_share_dataset_data_lake_gen2" "test" {
   name     = azurerm_data_share_dataset_data_lake_gen2.test.name
   share_id = azurerm_data_share_dataset_data_lake_gen2.test.share_id
 }
-`, DataShareDataSetDataLakeGen2Resource{}.basicFile(data))
+`, DataShareDatasetDataLakeGen2Resource{}.basicFile(data))
 }

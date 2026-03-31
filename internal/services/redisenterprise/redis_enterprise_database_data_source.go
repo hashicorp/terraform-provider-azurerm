@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package redisenterprise
@@ -56,6 +56,8 @@ func dataSourceRedisEnterpriseDatabase() *pluginsdk.Resource {
 	}
 
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_redis_enterprise_database` data source has been deprecated in favor of `azurerm_managed_redis_database`",
+
 		Read: dataSourceRedisEnterpriseDatabaseRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{

@@ -76,7 +76,7 @@ resource "azurerm_iothub_fallback_route" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

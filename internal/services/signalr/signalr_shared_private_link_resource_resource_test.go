@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package signalr_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SignalrSharedPrivateLinkResource struct{}
@@ -70,11 +70,11 @@ func (r SignalrSharedPrivateLinkResource) Exists(ctx context.Context, clients *c
 	resp, err := clients.SignalR.SignalRClient.SharedPrivateLinkResourcesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SignalrSharedPrivateLinkResource) basic(data acceptance.TestData) string {
@@ -82,7 +82,7 @@ func (r SignalrSharedPrivateLinkResource) basic(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 resource "azurerm_key_vault" "test" {
-  name                       = "acctest%d"
+  name                       = "acctestkv-%s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -110,7 +110,7 @@ resource "azurerm_signalr_shared_private_link_resource" "test" {
   target_resource_id = azurerm_key_vault.test.id
   request_message    = "please approve"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.RandomInteger)
 }
 
 func (r SignalrSharedPrivateLinkResource) requiresImport(data acceptance.TestData) string {

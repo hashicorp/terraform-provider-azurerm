@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -239,6 +239,23 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 		},
 
 		Blocks: map[string]schema.Block{
+			"enhanced_validation": schema.ListNestedBlock{
+				Validators: []validator.List{
+					listvalidator.SizeAtMost(1),
+				},
+				NestedObject: schema.NestedBlockObject{
+					Attributes: map[string]schema.Attribute{
+						"locations": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? When enabled, invalid locations are caught at plan time; when disabled, they are caught at apply time.",
+						},
+						"resource_providers": schema.BoolAttribute{
+							Optional:    true,
+							Description: "Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? When enabled, invalid resource providers are caught at plan time; when disabled, they are caught at apply time.",
+						},
+					},
+				},
+			},
 			"features": schema.ListNestedBlock{
 				Validators: []validator.List{
 					listvalidator.SizeBetween(1, 1),
@@ -591,7 +608,13 @@ func (p *azureRmFrameworkProvider) ListResources(_ context.Context) []func() lis
 	var output []func() list.ListResource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.ListResources()...)
+		for _, l := range service.ListResources() {
+			fwl := sdk.FrameworkListResourceWrapper{
+				ResourceMetadata:             sdk.ResourceMetadata{},
+				FrameworkListWrappedResource: l,
+			}
+			output = append(output, fwl.Resource())
+		}
 	}
 
 	return output

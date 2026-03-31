@@ -40,7 +40,7 @@ resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

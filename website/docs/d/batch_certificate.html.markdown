@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access information about an existing certificate in a Batch Account.
 
+-> **Note:** The `azurerm_batch_certificate` data source has been deprecated due to Azure retiring the Azure Batch Account Certificates Feature, and will be removed in v5.0 of the AzureRM provider.
+
 ## Example Usage
 
 ```hcl
@@ -25,7 +27,7 @@ output "thumbprint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Batch certificate.
 

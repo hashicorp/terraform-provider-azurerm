@@ -85,7 +85,9 @@ The following arguments are supported:
 
 * `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
 
-* `runtime_version` - (Required) The Runtime version of the Linux Function App. The values are diff from different runtime version. The supported values are `8.0`, `9.0` for `dotnet-isolated`, `20` for `node`, `3.10`, `3.11` for `python`, `11`, `17` for `java`, `7.4` for `powershell`.
+* `runtime_version` - (Required) The Runtime version of the Linux Function App. Accepted values varies with the value of `runtime_name`.
+
+~> **Note:** To get the most up-to-date list of supported versions, use command `az functionapp list-runtimes` or visit [Supported languages in Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/supported-languages)
 
 ---
 
@@ -131,7 +133,7 @@ The following arguments are supported:
 
 * `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
 
-* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
+* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to. The supported value are from `1` to `1000`.
 
 * `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
 
@@ -159,9 +161,9 @@ The following arguments are supported:
 
 An `always_ready` block supports the following:
 
-* `name`  - (Required) The name of the `always_ready` of the Function App.
+* `name` - (Required) The name of the `always_ready` of the Function App.
 
-* `instance_count` - (Required) The instance count of the `always_ready` of the  Function App. The minimum number is `0`. The total number of `instance_count` should not exceed the `maximum_instance_count`.
+* `instance_count` - (Optional) The instance count of the `always_ready` of the Function App. The minimum number is `0`. The total number of `instance_count` should not exceed the `maximum_instance_count`.
 
 ---
 
@@ -661,7 +663,7 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Linux Web App  Linux Function App use a 32-bit worker. Defaults to `false`.
+* `use_32_bit_worker` - (Optional) Should the Linux Web App Linux Function App use a 32-bit worker. Defaults to `false`.
 
 * `vnet_route_all_enabled` - (Optional) Should the Linux Function App route all traffic through the virtual network. Defaults to `false`.
 

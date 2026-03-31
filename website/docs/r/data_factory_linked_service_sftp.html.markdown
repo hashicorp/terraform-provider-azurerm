@@ -37,7 +37,7 @@ resource "azurerm_data_factory_linked_service_sftp" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following supported arguments are common across all Azure Data Factory Linked Services:
 

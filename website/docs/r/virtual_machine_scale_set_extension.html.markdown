@@ -61,7 +61,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

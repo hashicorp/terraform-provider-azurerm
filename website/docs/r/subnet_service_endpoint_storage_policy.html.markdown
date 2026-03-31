@@ -38,6 +38,7 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "example" {
     service_resources = [
       "/services/Azure",
       "/services/Azure/Batch",
+      "/services/Azure/Databricks",
       "/services/Azure/DataFactory",
       "/services/Azure/MachineLearning",
       "/services/Azure/ManagedInstance",
@@ -114,4 +115,4 @@ terraform import azurerm_subnet_service_endpoint_storage_policy.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-05-01
+* `Microsoft.Network` - 2025-01-01

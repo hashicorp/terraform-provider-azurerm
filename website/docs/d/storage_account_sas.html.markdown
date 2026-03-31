@@ -76,7 +76,7 @@ output "sas_url_query_string" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `connection_string` - The connection string for the storage account to which this SAS applies. Typically directly from the `primary_connection_string` attribute of a terraform created `azurerm_storage_account` resource.
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.

@@ -24,7 +24,7 @@ resource "azurerm_app_service_source_control_token" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -33,6 +33,12 @@ The following arguments are supported:
 * `token` - (Required) The OAuth access token.
 
 * `token_secret` - (Optional) The OAuth access token secret.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the App Service Source Control Token.
 
 ## Timeouts
 

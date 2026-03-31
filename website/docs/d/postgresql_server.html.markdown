@@ -25,7 +25,7 @@ output "postgresql_server_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the PostgreSQL Server.
 

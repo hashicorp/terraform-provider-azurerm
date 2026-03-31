@@ -31,7 +31,7 @@ resource "azurerm_bot_channels_registration" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

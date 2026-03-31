@@ -77,7 +77,7 @@ resource "azurerm_hdinsight_spark_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `security_profile` - (Optional) A `security_profile` block as defined below. Changing this forces a new resource to be created.
 
-* `zones` - (Optional) A list of Availability Zones which should be used for this HDInsight Spark Cluster. Chaning this forces a new resource to be created.
+* `zones` - (Optional) A list of Availability Zones which should be used for this HDInsight Spark Cluster. Changing this forces a new resource to be created.
 
 ---
 
@@ -245,21 +245,21 @@ A `private_link_configuration` block supports the following:
 
 * `group_id` - (Required) The ID of the private link service group.
 
-* `private_link_service_connection` - (Required) A `private_link_service_connection` block as defined below.
+* `ip_configuration` - (Required) An `ip_configuration` block as defined below.
 
 ---
 
-A `private_link_service_connection` block supports the following:
+An `ip_configuration` block supports the following:
 
-* `name` - (Required) The name of the private link service connection.
+* `name` - (Required) The name of the IP configuration.
 
 * `primary` - (Optional) Indicates whether this IP configuration is primary.
 
-* `private_ip_allocation_method` - (Optional) The private IP allocation method. The only possible value now is `Dynamic`.
+* `private_ip_allocation_method` - (Optional) The private IP allocation method. Possible values are `Dynamic` and `Static`.
 
 * `private_ip_address` - (Optional) The private IP address of the IP configuration.
 
-* `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the private link service connection should be provisioned within.
+* `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the IP configuration should be provisioned.
 
 ---
 

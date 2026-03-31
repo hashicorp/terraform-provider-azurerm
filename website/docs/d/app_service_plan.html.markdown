@@ -25,7 +25,7 @@ output "app_service_plan_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the App Service Plan.
 * `resource_group_name` - The Name of the Resource Group where the App Service Plan exists.

@@ -37,7 +37,7 @@ resource "azurerm_advanced_threat_protection" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

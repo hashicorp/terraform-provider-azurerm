@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -9,13 +9,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/availabilitygrouplisteners"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlVirtualMachineAvailabilityGroupListenerResource struct{}
@@ -70,14 +70,14 @@ func (MsSqlVirtualMachineAvailabilityGroupListenerResource) Exists(ctx context.C
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.VirtualMachinesAvailabilityGroupListenersClient.Get(ctx, *id, availabilitygrouplisteners.GetOperationOptions{Expand: utils.String("*")})
+	resp, err := client.MSSQL.VirtualMachinesAvailabilityGroupListenersClient.Get(ctx, *id, availabilitygrouplisteners.GetOperationOptions{Expand: pointer.To("*")})
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("%s does not exist", *id)
 		}
 		return nil, fmt.Errorf("reading %s: %v", *id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) loadBalancerConfiguration(data acceptance.TestData) string {

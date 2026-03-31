@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -579,8 +579,7 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 			// Verify that the scrubbing_rule's are valid...
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				if v, ok := diff.GetOk("log_scrubbing"); ok {
-					_, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{}))
-					if err != nil {
+					if _, err := expandCdnFrontDoorFirewallLogScrubbingPolicy(v.([]interface{})); err != nil {
 						return err
 					}
 				}
@@ -704,8 +703,8 @@ func resourceCdnFrontDoorFirewallPolicyCreate(d *pluginsdk.ResourceData, meta in
 			captchaExpirationInMinutes = v.(int)
 		}
 
-		payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
-		payload.Properties.PolicySettings.CaptchaExpirationInMinutes = pointer.FromInt64(int64(captchaExpirationInMinutes))
+		payload.Properties.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(jsChallengeExpirationInMinutes))
+		payload.Properties.PolicySettings.CaptchaExpirationInMinutes = pointer.To(int64(captchaExpirationInMinutes))
 	}
 
 	if managedRules != nil {
@@ -796,8 +795,8 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 				captchaExpirationInMinutes = v.(int)
 			}
 
-			props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.FromInt64(int64(jsChallengeExpirationInMinutes))
-			props.PolicySettings.CaptchaExpirationInMinutes = pointer.FromInt64(int64(captchaExpirationInMinutes))
+			props.PolicySettings.JavascriptChallengeExpirationInMinutes = pointer.To(int64(jsChallengeExpirationInMinutes))
+			props.PolicySettings.CaptchaExpirationInMinutes = pointer.To(int64(captchaExpirationInMinutes))
 		}
 
 		if redirectUrl := d.Get("redirect_url").(string); redirectUrl != "" {

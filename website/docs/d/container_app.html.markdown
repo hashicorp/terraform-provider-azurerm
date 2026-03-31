@@ -19,13 +19,15 @@ data "azurerm_container_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the Container App.
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Container App exists.
+
+* `read_secrets` - (Optional) Should the data source read the secrets from the Container App? Defaults to `true`.
 
 ## Attributes Reference
 
@@ -76,6 +78,10 @@ A `template` block exports the following:
 * `max_replicas` - The maximum number of replicas for this container.
 
 * `min_replicas` - The minimum number of replicas for this container.
+
+* `cooldown_period_in_seconds` - The number of seconds to wait before scaling down the number of instances again.
+
+* `polling_interval_in_seconds` - The interval in seconds used for polling KEDA.
 
 * `revision_suffix` - The suffix for the revision.
 

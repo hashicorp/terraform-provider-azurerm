@@ -38,7 +38,7 @@ resource "azurerm_iot_security_solution" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

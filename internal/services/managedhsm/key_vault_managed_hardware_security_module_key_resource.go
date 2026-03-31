@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedhsm
@@ -219,7 +219,7 @@ func (r KeyVaultMHSMKeyResource) Create() sdk.ResourceFunc {
 				Kty:    keyvault.JSONWebKeyType(config.KeyType),
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),
@@ -383,7 +383,7 @@ func (r KeyVaultMHSMKeyResource) Update() sdk.ResourceFunc {
 			parameters := keyvault.KeyUpdateParameters{
 				KeyOps: expandKeyVaultKeyOptions(config.KeyOpts),
 				KeyAttributes: &keyvault.KeyAttributes{
-					Enabled: utils.Bool(true),
+					Enabled: pointer.To(true),
 				},
 
 				Tags: tags.Expand(config.Tags),

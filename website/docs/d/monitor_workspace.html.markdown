@@ -23,7 +23,7 @@ output "query_endpoint" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 - `name` - Specifies the name of the Workspace.
 

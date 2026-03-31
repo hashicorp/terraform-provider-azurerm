@@ -24,7 +24,7 @@ output "compliance_status" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Guest Configuration Assignment.
 

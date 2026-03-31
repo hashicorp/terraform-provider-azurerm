@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdnfrontdoorruleconditions
@@ -283,8 +283,7 @@ func ExpandCdnFrontDoorRemoteAddressCondition(input []interface{}) (*[]rules.Del
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			_, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
-			if err != nil {
+			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}
 		}
@@ -741,8 +740,7 @@ func ExpandCdnFrontDoorSocketAddressCondition(input []interface{}) (*[]rules.Del
 			}
 
 			// Check for CIDR overlap and CIDR duplicates in the match values
-			_, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values")
-			if err != nil {
+			if _, err := validate.FrontDoorRuleCidrOverlap(item["match_values"].([]interface{}), "match_values"); err != nil {
 				return nil, fmt.Errorf("%q is invalid: %+v", conditionMapping.ConfigName, err)
 			}
 		}

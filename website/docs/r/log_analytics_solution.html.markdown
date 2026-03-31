@@ -48,7 +48,7 @@ resource "azurerm_log_analytics_solution" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -75,6 +75,12 @@ A `plan` block includes:
 * `product` - (Required) The product name of the solution. For example `OMSGallery/Containers`. Changing this forces a new resource to be created.
 
 * `promotion_code` - (Optional) A promotion code to be used with the solution. Changing this forces a new resource to be created.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Log Analytics Solution.
 
 ## Timeouts
 

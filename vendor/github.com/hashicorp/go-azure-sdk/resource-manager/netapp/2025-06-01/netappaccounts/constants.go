@@ -59,6 +59,47 @@ func parseActiveDirectoryStatus(input string) (*ActiveDirectoryStatus, error) {
 	return &out, nil
 }
 
+type ApplicationType string
+
+const (
+	ApplicationTypeORACLE          ApplicationType = "ORACLE"
+	ApplicationTypeSAPNegativeHANA ApplicationType = "SAP-HANA"
+)
+
+func PossibleValuesForApplicationType() []string {
+	return []string{
+		string(ApplicationTypeORACLE),
+		string(ApplicationTypeSAPNegativeHANA),
+	}
+}
+
+func (s *ApplicationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseApplicationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseApplicationType(input string) (*ApplicationType, error) {
+	vals := map[string]ApplicationType{
+		"oracle":   ApplicationTypeORACLE,
+		"sap-hana": ApplicationTypeSAPNegativeHANA,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ApplicationType(input)
+	return &out, nil
+}
+
 type KeySource string
 
 const (

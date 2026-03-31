@@ -29,7 +29,7 @@ resource "azurerm_bot_web_app" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

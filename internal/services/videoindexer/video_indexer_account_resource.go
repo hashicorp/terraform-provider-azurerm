@@ -1,7 +1,9 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package videoindexer
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name video_indexer_account -service-package-name videoindexer -properties "resource_group_name,name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 import (
 	"context"
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/videoindexer/2025-04-01/accounts"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -24,7 +27,14 @@ import (
 
 type AccountResource struct{}
 
-var _ sdk.ResourceWithUpdate = AccountResource{}
+var (
+	_ sdk.ResourceWithUpdate   = AccountResource{}
+	_ sdk.ResourceWithIdentity = AccountResource{}
+)
+
+func (r AccountResource) Identity() resourceids.ResourceId {
+	return &accounts.AccountId{}
+}
 
 type AccountModel struct {
 	Name                string                                     `tfschema:"name"`
@@ -146,6 +156,9 @@ func (r AccountResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -170,32 +183,7 @@ func (r AccountResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := AccountModel{
-				Name:          id.AccountName,
-				ResourceGroup: id.ResourceGroupName,
-			}
-
-			if model := account.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.Tags = pointer.From(model.Tags)
-
-				flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				state.Identity = flattenedIdentity
-
-				if props := model.Properties; props != nil {
-					state.Storage, err = flattenStorage(props.StorageServices)
-					if err != nil {
-						return fmt.Errorf("flattening `storage`: %+v", err)
-					}
-
-					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
-				}
-			}
-
-			return metadata.Encode(&state)
+			return r.flatten(metadata, id, account.Model)
 		},
 	}
 }
@@ -318,4 +306,37 @@ func flattenStorage(input *accounts.StorageServicesForPutRequest) ([]StorageMode
 	}
 
 	return []StorageModel{storage}, nil
+}
+
+func (AccountResource) flatten(metadata sdk.ResourceMetaData, id *accounts.AccountId, model *accounts.Account) error {
+	state := AccountModel{
+		Name:          id.AccountName,
+		ResourceGroup: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.Tags = pointer.From(model.Tags)
+
+		flattenedIdentity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		state.Identity = flattenedIdentity
+
+		if props := model.Properties; props != nil {
+			state.Storage, err = flattenStorage(props.StorageServices)
+			if err != nil {
+				return fmt.Errorf("flattening `storage`: %+v", err)
+			}
+
+			state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }

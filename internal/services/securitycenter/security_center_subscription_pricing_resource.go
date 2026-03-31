@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package securitycenter
@@ -259,8 +259,7 @@ func resourceSecurityCenterSubscriptionPricingUpdate(d *pluginsdk.ResourceData, 
 	if requiredAdditionalUpdate {
 		extensions := expandSecurityCenterSubscriptionPricingExtensions(realCfgExtensions, &extensionsStatusFromBackend)
 		update.Properties.Extensions = extensions
-		_, err := client.Update(ctx, *id, update)
-		if err != nil {
+		if _, err := client.Update(ctx, *id, update); err != nil {
 			return fmt.Errorf("updating %s: %+v", id, err)
 		}
 	}

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package voiceservices_test
@@ -8,20 +8,20 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/voiceservices/2023-04-03/communicationsgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VoiceServicesCommunicationsGatewayTestResource struct{}
+type VoiceServicesCommunicationsGatewayResource struct{}
 
 func TestAccVoiceServicesCommunicationsGateway_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_voice_services_communications_gateway", "test")
-	r := VoiceServicesCommunicationsGatewayTestResource{}
+	r := VoiceServicesCommunicationsGatewayResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccVoiceServicesCommunicationsGateway_basic(t *testing.T) {
 
 func TestAccVoiceServicesCommunicationsGateway_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_voice_services_communications_gateway", "test")
-	r := VoiceServicesCommunicationsGatewayTestResource{}
+	r := VoiceServicesCommunicationsGatewayResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccVoiceServicesCommunicationsGateway_requiresImport(t *testing.T) {
 
 func TestAccVoiceServicesCommunicationsGateway_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_voice_services_communications_gateway", "test")
-	r := VoiceServicesCommunicationsGatewayTestResource{}
+	r := VoiceServicesCommunicationsGatewayResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -63,7 +63,7 @@ func TestAccVoiceServicesCommunicationsGateway_complete(t *testing.T) {
 
 func TestAccVoiceServicesCommunicationsGateway_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_voice_services_communications_gateway", "test")
-	r := VoiceServicesCommunicationsGatewayTestResource{}
+	r := VoiceServicesCommunicationsGatewayResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -89,7 +89,7 @@ func TestAccVoiceServicesCommunicationsGateway_update(t *testing.T) {
 	})
 }
 
-func (r VoiceServicesCommunicationsGatewayTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r VoiceServicesCommunicationsGatewayResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := communicationsgateways.ParseCommunicationsGatewayID(state.ID)
 	if err != nil {
 		return nil, err
@@ -99,14 +99,14 @@ func (r VoiceServicesCommunicationsGatewayTestResource) Exists(ctx context.Conte
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (r VoiceServicesCommunicationsGatewayTestResource) template(data acceptance.TestData) string {
+func (r VoiceServicesCommunicationsGatewayResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,7 +119,7 @@ resource "azurerm_resource_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r VoiceServicesCommunicationsGatewayTestResource) basic(data acceptance.TestData) string {
+func (r VoiceServicesCommunicationsGatewayResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -147,7 +147,7 @@ resource "azurerm_voice_services_communications_gateway" "test" {
 `, template, data.RandomString, data.Locations.Primary)
 }
 
-func (r VoiceServicesCommunicationsGatewayTestResource) requiresImport(data acceptance.TestData) string {
+func (r VoiceServicesCommunicationsGatewayResource) requiresImport(data acceptance.TestData) string {
 	config := r.basic(data)
 	return fmt.Sprintf(`
 %s
@@ -179,7 +179,7 @@ resource "azurerm_voice_services_communications_gateway" "import" {
 `, config)
 }
 
-func (r VoiceServicesCommunicationsGatewayTestResource) complete(data acceptance.TestData) string {
+func (r VoiceServicesCommunicationsGatewayResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 
@@ -224,7 +224,7 @@ resource "azurerm_voice_services_communications_gateway" "test" {
 `, template, data.RandomString, data.Locations.Primary)
 }
 
-func (r VoiceServicesCommunicationsGatewayTestResource) update(data acceptance.TestData) string {
+func (r VoiceServicesCommunicationsGatewayResource) update(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 

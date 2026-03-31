@@ -80,7 +80,7 @@ resource "azurerm_data_factory_credential_service_principal" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - (Required) Specifies the name of the Credential. Changing this forces a new resource to be created.
 
@@ -90,7 +90,7 @@ resource "azurerm_data_factory_credential_service_principal" "example" {
 
 * `service_principal_id` - (Required) The Client ID of the Service Principal.
 
-* `service_principal_key` - (Required) A `service_principal_key` block as defined below.
+* `service_principal_key` - (Optional) A `service_principal_key` block as defined below.
 
 * `annotations` - (Optional) List of tags that can be used for describing the Data Factory Credential.
 

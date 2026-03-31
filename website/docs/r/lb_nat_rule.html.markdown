@@ -68,7 +68,7 @@ resource "azurerm_lb_nat_rule" "example1" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

@@ -75,7 +75,7 @@ resource "azurerm_data_factory_linked_service_snowflake" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

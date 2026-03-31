@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BackupProtectionPolicyVMResource struct{}
@@ -43,9 +43,20 @@ func TestAccBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 			Config: r.basicDaily(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("backup.0.frequency").HasValue("Daily"),
-				check.That(data.ResourceName).Key("backup.0.time").HasValue("23:00"),
-				check.That(data.ResourceName).Key("retention_daily.0.count").HasValue("10"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicDailyWithTime(data, "V1", "22:00"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicDaily(data, "V1"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -94,6 +105,20 @@ func TestAccBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 	r := BackupProtectionPolicyVMResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWeekly(data, "V1"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicWeeklyWithTime(data, "V1", "22:00"),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basicWeekly(data, "V1"),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
@@ -615,7 +640,7 @@ func TestAccBackupProtectionPolicyVM_updateBackupTime(t *testing.T) {
 	})
 }
 
-func (t BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
@@ -623,10 +648,10 @@ func (t BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *c
 
 	resp, err := clients.RecoveryServices.ProtectionPoliciesClient.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Recovery Service Protection Policy (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (BackupProtectionPolicyVMResource) template(data acceptance.TestData) string {
@@ -645,8 +670,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -699,26 +722,30 @@ resource "azurerm_backup_policy_vm" "test" {
 }
 
 func (r BackupProtectionPolicyVMResource) basicDaily(data acceptance.TestData, policyType string) string {
+	return r.basicDailyWithTime(data, policyType, "23:00")
+}
+
+func (r BackupProtectionPolicyVMResource) basicDailyWithTime(data acceptance.TestData, policyType, time string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_backup_policy_vm" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Daily"
-    time      = "23:00"
+    time      = "%[4]s"
   }
 
   retention_daily {
     count = 10
   }
 
-  policy_type = "%s"
+  policy_type = "%[3]s"
 }
-`, r.template(data), data.RandomInteger, policyType)
+`, r.template(data), data.RandomInteger, policyType, time)
 }
 
 func (r BackupProtectionPolicyVMResource) requiresImport(data acceptance.TestData) string {
@@ -743,17 +770,21 @@ resource "azurerm_backup_policy_vm" "import" {
 }
 
 func (r BackupProtectionPolicyVMResource) basicWeekly(data acceptance.TestData, policyType string) string {
+	return r.basicWeeklyWithTime(data, policyType, "23:00")
+}
+
+func (r BackupProtectionPolicyVMResource) basicWeeklyWithTime(data acceptance.TestData, policyType, time string) string {
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_backup_policy_vm" "test" {
-  name                = "acctest-%d"
+  name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   recovery_vault_name = azurerm_recovery_services_vault.test.name
 
   backup {
     frequency = "Weekly"
-    time      = "23:00"
+    time      = "%[4]s"
     weekdays  = ["Sunday", "Wednesday"]
   }
 
@@ -762,9 +793,9 @@ resource "azurerm_backup_policy_vm" "test" {
     weekdays = ["Sunday", "Wednesday"]
   }
 
-  policy_type = "%s"
+  policy_type = "%[3]s"
 }
-`, r.template(data), data.RandomInteger, policyType)
+`, r.template(data), data.RandomInteger, policyType, time)
 }
 
 func (r BackupProtectionPolicyVMResource) completeHourly(data acceptance.TestData, policyType string) string {

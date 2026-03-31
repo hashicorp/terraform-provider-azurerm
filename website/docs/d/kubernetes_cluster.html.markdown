@@ -22,7 +22,7 @@ data "azurerm_kubernetes_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -43,6 +43,8 @@ The following attributes are exported:
 * `azure_active_directory_role_based_access_control` - An `azure_active_directory_role_based_access_control` block as documented below.
 
 * `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
+
+* `bootstrap_profile` - A `bootstrap_profile` block as documented below.
 
 * `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
@@ -172,6 +174,14 @@ An `azure_active_directory_role_based_access_control` block exports the followin
 
 ---
 
+A `bootstrap_profile` block exports the following:
+
+* `artifact_source` - The source from which artifacts are pulled during bootstrap.
+
+* `container_registry_id` - The ID of the Azure Container Registry used for caching artifacts during bootstrap.
+
+---
+
 A `upgrade_settings` block exports the following:
 
 * `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
@@ -179,6 +189,8 @@ A `upgrade_settings` block exports the following:
 * `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
 
 * `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
+
+* `undrainable_node_behavior` - The action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
 
 ---
 
@@ -260,6 +272,8 @@ A `network_profile` block exports the following:
 * `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
 
 * `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
+
+* `outbound_type` - The outbound (egress) routing method which is used for cluster egress traffic.
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
@@ -406,4 +420,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-07-01
+* `Microsoft.ContainerService` - 2025-10-01

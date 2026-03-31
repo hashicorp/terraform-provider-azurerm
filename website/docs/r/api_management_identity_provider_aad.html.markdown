@@ -36,7 +36,7 @@ resource "azurerm_api_management_identity_provider_aad" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

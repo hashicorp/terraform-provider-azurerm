@@ -228,7 +228,7 @@ resource "azurerm_key_vault_certificate" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 

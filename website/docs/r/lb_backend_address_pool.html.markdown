@@ -44,7 +44,7 @@ resource "azurerm_lb_backend_address_pool" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
