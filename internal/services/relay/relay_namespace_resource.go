@@ -64,36 +64,12 @@ func (r RelayNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r RelayNamespaceResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{
 		"metric_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
-		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-	}
+	})
 }
 
 func (r RelayNamespaceResource) ModelObject() interface{} {

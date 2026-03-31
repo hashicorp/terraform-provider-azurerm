@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
+// Provides listen, send, manage input Arguments for resource schema
 func authorizationRuleArgumentsFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	s["listen"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
@@ -31,6 +32,26 @@ func authorizationRuleArgumentsFrom(s map[string]*pluginsdk.Schema) map[string]*
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
 		Default:  false,
+	}
+
+	return s
+}
+
+// Provides listen, send, manage output Attributes for resource schema
+func authorizationRuleArgumentsComputedFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	s["listen"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Computed: true,
+	}
+
+	s["send"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Computed: true,
+	}
+
+	s["manage"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Computed: true,
 	}
 
 	return s

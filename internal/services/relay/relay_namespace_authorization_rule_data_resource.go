@@ -35,7 +35,7 @@ type RelayNamespaceAuthorizationRuleDataResourceModel struct {
 }
 
 func (RelayNamespaceAuthorizationRuleDataResource) Arguments() map[string]*pluginsdk.Schema {
-	return authorizationRuleArgumentsFrom(map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -51,11 +51,11 @@ func (RelayNamespaceAuthorizationRuleDataResource) Arguments() map[string]*plugi
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-	})
+	}
 }
 
 func (RelayNamespaceAuthorizationRuleDataResource) Attributes() map[string]*pluginsdk.Schema {
-	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{})
+	return authorizationRuleArgumentsComputedFrom(authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{}))
 }
 
 func (RelayNamespaceAuthorizationRuleDataResource) ModelObject() interface{} {

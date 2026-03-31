@@ -47,7 +47,7 @@ func (r RelayNamespaceDataResource) Arguments() map[string]*pluginsdk.Schema {
 }
 
 func (r RelayNamespaceDataResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
 		"sku_name": {
@@ -61,31 +61,7 @@ func (r RelayNamespaceDataResource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
-		"primary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_connection_string": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"primary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"secondary_key": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-	}
+	})
 }
 
 func (r RelayNamespaceDataResource) ModelObject() interface{} {

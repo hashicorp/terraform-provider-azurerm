@@ -37,7 +37,7 @@ type RelayHybridConnectionAuthorizationRuleDataResourceModel struct {
 }
 
 func (r RelayHybridConnectionAuthorizationRuleDataResource) Arguments() map[string]*pluginsdk.Schema {
-	return authorizationRuleArgumentsFrom(map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -60,11 +60,11 @@ func (r RelayHybridConnectionAuthorizationRuleDataResource) Arguments() map[stri
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
-	})
+	}
 }
 
 func (r RelayHybridConnectionAuthorizationRuleDataResource) Attributes() map[string]*pluginsdk.Schema {
-	return authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{})
+	return authorizationRuleArgumentsComputedFrom(authorizationRuleAttributesFrom(map[string]*pluginsdk.Schema{}))
 }
 
 func (RelayHybridConnectionAuthorizationRuleDataResource) ModelObject() interface{} {
