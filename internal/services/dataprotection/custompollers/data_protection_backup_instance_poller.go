@@ -6,6 +6,7 @@ package custompollers
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,16 +17,18 @@ import (
 var _ pollers.PollerType = &dataProtectionBackupInstancePoller{}
 
 type dataProtectionBackupInstancePoller struct {
-	client      *backupinstanceresources.BackupInstanceResourcesClient
-	id          backupinstanceresources.BackupInstanceId
-	targetState backupinstanceresources.CurrentProtectionState
+	client        *backupinstanceresources.BackupInstanceResourcesClient
+	id            backupinstanceresources.BackupInstanceId
+	pendingStates []backupinstanceresources.CurrentProtectionState
+	targetState   backupinstanceresources.CurrentProtectionState
 }
 
-func NewDataProtectionBackupInstancePoller(client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId, targetState backupinstanceresources.CurrentProtectionState) *dataProtectionBackupInstancePoller {
+func NewDataProtectionBackupInstancePoller(client *backupinstanceresources.BackupInstanceResourcesClient, id backupinstanceresources.BackupInstanceId, targetState backupinstanceresources.CurrentProtectionState, pendingStates []backupinstanceresources.CurrentProtectionState) *dataProtectionBackupInstancePoller {
 	return &dataProtectionBackupInstancePoller{
-		client:      client,
-		id:          id,
-		targetState: targetState,
+		client:        client,
+		id:            id,
+		pendingStates: pendingStates,
+		targetState:   targetState,
 	}
 }
 
@@ -51,8 +54,12 @@ func (p dataProtectionBackupInstancePoller) Poll(ctx context.Context) (*pollers.
 		}, nil
 	}
 
-	return &pollers.PollResult{
-		PollInterval: 1 * time.Minute,
-		Status:       pollers.PollingStatusInProgress,
-	}, nil
+	if slices.Contains(p.pendingStates, currentState) {
+		return &pollers.PollResult{
+			PollInterval: 1 * time.Minute,
+			Status:       pollers.PollingStatusInProgress,
+		}, nil
+	}
+
+	return nil, fmt.Errorf("waiting for %s to reach state `%s` but got unexpected state `%s`", p.id, string(p.targetState), string(currentState))
 }

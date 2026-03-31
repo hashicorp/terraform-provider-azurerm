@@ -166,7 +166,9 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, id, backupinstanceresources.CurrentProtectionStateProtectionConfigured)
+			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
+				backupinstanceresources.CurrentProtectionStateConfiguringProtection,
+			})
 			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
@@ -296,7 +298,9 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Update() sdk.Resour
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
-			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, *id, backupinstanceresources.CurrentProtectionStateProtectionConfigured)
+			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, *id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
+				backupinstanceresources.CurrentProtectionStateUpdatingProtection,
+			})
 			poller := pollers.NewPoller(pollerType, 1*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 			if err := poller.PollUntilDone(ctx); err != nil {
 				return fmt.Errorf("waiting for %s to become available: %+v", id, err)
