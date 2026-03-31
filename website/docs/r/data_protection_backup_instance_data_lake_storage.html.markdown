@@ -27,6 +27,16 @@ resource "azurerm_storage_account" "example" {
   is_hns_enabled           = true
 }
 
+resource "azurerm_storage_container" "example" {
+  name               = "example-container"
+  storage_account_id = azurerm_storage_account.example.id
+}
+
+resource "azurerm_storage_container" "example2" {
+  name               = "example-container2"
+  storage_account_id = azurerm_storage_account.example.id
+}
+
 resource "azurerm_data_protection_backup_vault" "example" {
   name                = "example-backup-vault"
   resource_group_name = azurerm_resource_group.example.name
@@ -58,7 +68,7 @@ resource "azurerm_data_protection_backup_instance_data_lake_storage" "example" {
   location                        = azurerm_resource_group.example.location
   storage_account_id              = azurerm_storage_account.example.id
   backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.example.id
-  storage_container_names         = ["container1", "container2"]
+  storage_container_names         = [azurerm_storage_container.example.name, azurerm_storage_container.example2.name]
 
   depends_on = [azurerm_role_assignment.example]
 }

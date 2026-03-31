@@ -6,6 +6,7 @@ package dataprotection
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,13 +14,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/basebackuppolicyresources"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -34,9 +35,18 @@ type BackupInstanceDataLakeStorageModel struct {
 	ProtectionState             string   `tfschema:"protection_state"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name data_protection_backup_instance_data_lake_storage -service-package-name dataprotection -properties "name" -compare-values "subscription_id:data_protection_backup_vault_id,resource_group_name:data_protection_backup_vault_id,backup_vault_name:data_protection_backup_vault_id"
+
 type DataProtectionBackupInstanceDataLakeStorageResource struct{}
 
-var _ sdk.Resource = DataProtectionBackupInstanceDataLakeStorageResource{}
+var (
+	_ sdk.Resource             = DataProtectionBackupInstanceDataLakeStorageResource{}
+	_ sdk.ResourceWithIdentity = DataProtectionBackupInstanceDataLakeStorageResource{}
+)
+
+func (r DataProtectionBackupInstanceDataLakeStorageResource) Identity() resourceids.ResourceId {
+	return &backupinstanceresources.BackupInstanceId{}
+}
 
 func (r DataProtectionBackupInstanceDataLakeStorageResource) ResourceType() string {
 	return "azurerm_data_protection_backup_instance_data_lake_storage"
@@ -72,8 +82,11 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Arguments() map[str
 			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: storageValidate.StorageContainerName,
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.All(
+					validation.StringLenBetween(3, 63),
+					validation.StringMatch(regexp.MustCompile(`^[0-9a-z][0-9a-z-]*$`), "only lowercase alphanumeric characters and hyphens are allowed, and the value must not start with a hyphen"),
+				),
 			},
 		},
 	}
@@ -176,6 +189,9 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -238,6 +254,9 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Read() sdk.Resource
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}
