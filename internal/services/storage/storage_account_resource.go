@@ -1248,10 +1248,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		}
 
 		resource.Schema["min_tls_version"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
-			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(storageaccounts.MinimumTlsVersionTLSOneZero),
+				string(storageaccounts.MinimumTlsVersionTLSOneOne),
+				string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+			}, false),
 		}
 
 		resource.Schema["queue_properties"] = &pluginsdk.Schema{
