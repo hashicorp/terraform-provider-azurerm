@@ -54,7 +54,7 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
 
 resource "azurerm_data_protection_backup_instance_data_lake_storage" "example" {
   name                            = "example-data-protection-backup-instance-data-lake-storage"
-  vault_id                        = azurerm_data_protection_backup_vault.example.id
+  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
   location                        = azurerm_resource_group.example.location
   storage_account_id              = azurerm_storage_account.example.id
   backup_policy_id                = azurerm_data_protection_backup_policy_data_lake_storage.example.id
