@@ -132,6 +132,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	mysqlProperties := &datafactory.MySQLLinkedServiceTypeProperties{
+		DriverVersion:    "V2",
 		ConnectionString: &secureString,
 	}
 
