@@ -6,21 +6,29 @@ package resource
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2021-07-01/features"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ResourceProviderFeatureRegistrationResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_provider_feature_registration -properties "name,provider_name" -known-values "subscription_id:data.Subscriptions.Secondary" -test-name "basicForResourceIdentity"
+
+var _ sdk.ResourceWithIdentity = ResourceProviderFeatureRegistrationResource{}
 
 type ResourceProviderFeatureRegistrationResource struct{}
+
+func (r ResourceProviderFeatureRegistrationResource) Identity() resourceids.ResourceId {
+	return new(features.FeatureId)
+}
 
 type ResourceProviderFeatureRegistrationModel struct {
 	Name         string `tfschema:"name"`
@@ -54,21 +62,20 @@ func (r ResourceProviderFeatureRegistrationResource) ModelObject() interface{} {
 }
 
 func (r ResourceProviderFeatureRegistrationResource) ResourceType() string {
-	return "azurerm_resource_feature_registration"
+	return "azurerm_resource_provider_feature_registration"
 }
 
 func (r ResourceProviderFeatureRegistrationResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Resource.FeaturesClient
-			account := metadata.Client.Account
 
 			var obj ResourceProviderFeatureRegistrationModel
 			if err := metadata.Decode(&obj); err != nil {
 				return err
 			}
 
-			featureId := features.NewFeatureID(account.SubscriptionId, obj.ProviderName, obj.Name)
+			featureId := features.NewFeatureID(metadata.Client.Account.SubscriptionId, obj.ProviderName, obj.Name)
 
 			provider, err := client.Get(ctx, featureId)
 			if err != nil {
@@ -76,7 +83,7 @@ func (r ResourceProviderFeatureRegistrationResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("%s was not found", featureId)
 				}
 
-				return fmt.Errorf("retrieving %q: %+v", featureId, err)
+				return fmt.Errorf("retrieving %s: %+v", featureId, err)
 			}
 
 			registrationState := ""
@@ -93,13 +100,12 @@ func (r ResourceProviderFeatureRegistrationResource) Create() sdk.ResourceFunc {
 			}
 
 			if strings.EqualFold(registrationState, Pending) {
-				return fmt.Errorf("%s which requires manual approval can not be managed by terraform", featureId)
+				return fmt.Errorf("%s which requires manual approval can not be managed by Terraform", featureId)
 			}
 
-			log.Printf("[DEBUG] Registering %s..", featureId)
 			resp, err := client.Register(ctx, featureId)
 			if err != nil {
-				return fmt.Errorf("error registering feature %q: %+v", featureId, err)
+				return fmt.Errorf("registering %s: %+v", featureId, err)
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.State != nil {
@@ -108,29 +114,17 @@ func (r ResourceProviderFeatureRegistrationResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+			pollerType := custompollers.NewResourceProviderFeatureRegistrationPoller(client, featureId, Registered)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for registration of %s: %+v", featureId, err)
 			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{Registering},
-				Target:     []string{Registered},
-				Refresh:    r.featureRegisteringStateRefreshFunc(ctx, client, featureId),
-				MinTimeout: 3 * time.Minute,
-				Timeout:    time.Until(deadline),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s registering to be completed: %+v", featureId, err)
-			}
-
-			log.Printf("[DEBUG] Registered Resource Provider %q.", featureId)
 
 			metadata.SetID(featureId)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &featureId)
 		},
 
-		Timeout: 120 * time.Minute,
+		Timeout: 30 * time.Minute,
 	}
 }
 
@@ -159,8 +153,11 @@ func (r ResourceProviderFeatureRegistrationResource) Read() sdk.ResourceFunc {
 			}
 
 			if !strings.EqualFold(registrationState, Registered) {
-				log.Printf("[WARN] %s was not registered - removing from state", *featureId)
 				return metadata.MarkAsGone(featureId)
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, featureId); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&ResourceProviderFeatureRegistrationModel{
@@ -179,53 +176,18 @@ func (r ResourceProviderFeatureRegistrationResource) Delete() sdk.ResourceFunc {
 
 			featureId, err := features.ParseFeatureID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("error checking for existing feature %q: %+v", *featureId, err)
+				return err
 			}
 
-			existing, err := client.Get(ctx, *featureId)
-			if err != nil {
-				return fmt.Errorf("get feature %q: %+v", *featureId, err)
+			if _, err := client.Unregister(ctx, *featureId); err != nil {
+				return fmt.Errorf("unregistering %s: %+v", featureId, err)
 			}
 
-			if existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.State != nil {
-				if strings.EqualFold(*existing.Model.Properties.State, Pending) {
-					return fmt.Errorf("%s which requires manual approval should not be managed by terraform", *featureId)
-				}
-				if strings.EqualFold(*existing.Model.Properties.State, Unregistered) {
-					return nil
-				}
+			pollerType := custompollers.NewResourceProviderFeatureRegistrationPoller(client, *featureId, Unregistered)
+			poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("waiting for registration of %s: %+v", featureId, err)
 			}
-
-			log.Printf("[INFO] unregistering feature %q.", *featureId)
-
-			resp, err := client.Unregister(ctx, *featureId)
-			if err != nil {
-				return fmt.Errorf("unregistering feature %q: %+v", *featureId, err)
-			}
-
-			if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.State != nil {
-				if strings.EqualFold(*resp.Model.Properties.State, Pending) {
-					return fmt.Errorf("%s requires manual registration approval and can not be managed by terraform", *featureId)
-				}
-			}
-
-			deadline, ok := ctx.Deadline()
-			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
-			}
-			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{Unregistering},
-				Target:     []string{NotRegistered, Unregistered},
-				Refresh:    r.featureRegisteringStateRefreshFunc(ctx, client, *featureId),
-				MinTimeout: 3 * time.Minute,
-				Timeout:    time.Until(deadline),
-			}
-
-			if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-				return fmt.Errorf("waiting for %s to be complete unregistering: %+v", *featureId, err)
-			}
-
-			log.Printf("[DEBUG] Unregistered Feature %q.", *featureId)
 
 			return nil
 		},
@@ -235,18 +197,4 @@ func (r ResourceProviderFeatureRegistrationResource) Delete() sdk.ResourceFunc {
 
 func (r ResourceProviderFeatureRegistrationResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return features.ValidateFeatureID
-}
-
-func (r ResourceProviderFeatureRegistrationResource) featureRegisteringStateRefreshFunc(ctx context.Context, client *features.FeaturesClient, id features.FeatureId) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id)
-		if err != nil {
-			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
-		}
-		if res.Model == nil || res.Model.Properties == nil || res.Model.Properties.State == nil {
-			return nil, "", fmt.Errorf("error reading %s registering status: %+v", id, err)
-		}
-
-		return res, *res.Model.Properties.State, nil
-	}
 }
