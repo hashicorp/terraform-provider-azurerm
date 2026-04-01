@@ -91,7 +91,7 @@ func (r RelayHybridConnectionAuthorizationRuleDataResource) Read() sdk.ResourceF
 			resp, err := client.GetAuthorizationRule(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
+					return fmt.Errorf("%s was not found", id)
 				}
 
 				return fmt.Errorf("retrieving: %s: %+v", id, err)
