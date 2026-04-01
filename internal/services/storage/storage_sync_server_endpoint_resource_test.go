@@ -16,14 +16,25 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type StorageSyncServerEndpointTestResource struct{}
+type StorageSyncServerEndpointResource struct{}
 
-func TestAccStorageSyncServerEndpoint_basic(t *testing.T) {
+func TestAccStorageSyncServerEndpointSequential(t *testing.T) {
 	t.Skip("@mbfrahry: temporarily skipping as the server must be registered manually. Will come back to this when the server can be registered programmatically")
-	data := acceptance.BuildTestData(t, "azurerm_storage_sync_server_endpoint", "test")
-	r := StorageSyncServerEndpointTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"storageSyncServerEndpoint": {
+			"basic":            testAccStorageSyncServerEndpoint_basic,
+			"complete":         testAccStorageSyncServerEndpoint_complete,
+			"resourceIdentity": testAccStorageSyncServerEndpoint_resourceIdentity,
+		},
+	})
+}
+
+func testAccStorageSyncServerEndpoint_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_sync_server_endpoint", "test")
+	r := StorageSyncServerEndpointResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,12 +45,11 @@ func TestAccStorageSyncServerEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccStorageSyncServerEndpoint_complete(t *testing.T) {
-	t.Skip("@mbfrahry: temporarily skipping as the server must be registered manually. Will come back to this when the server can be registered programmatically")
+func testAccStorageSyncServerEndpoint_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_sync_server_endpoint", "test")
-	r := StorageSyncServerEndpointTestResource{}
+	r := StorageSyncServerEndpointResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -64,7 +74,7 @@ func TestAccStorageSyncServerEndpoint_complete(t *testing.T) {
 	})
 }
 
-func (r StorageSyncServerEndpointTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageSyncServerEndpointResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := serverendpointresource.ParseServerEndpointID(state.ID)
 	if err != nil {
 		return nil, err
@@ -78,7 +88,7 @@ func (r StorageSyncServerEndpointTestResource) Exists(ctx context.Context, clien
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r StorageSyncServerEndpointTestResource) basic(data acceptance.TestData) string {
+func (r StorageSyncServerEndpointResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -94,7 +104,7 @@ resource "azurerm_storage_sync_server_endpoint" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r StorageSyncServerEndpointTestResource) complete(data acceptance.TestData) string {
+func (r StorageSyncServerEndpointResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -115,7 +125,7 @@ resource "azurerm_storage_sync_server_endpoint" "test" {
 `, r.template(data), data.RandomString)
 }
 
-func (r StorageSyncServerEndpointTestResource) template(data acceptance.TestData) string {
+func (r StorageSyncServerEndpointResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-StorageSync-%[1]d"
