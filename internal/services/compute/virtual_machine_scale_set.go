@@ -378,11 +378,34 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 	}
 }
 
-func ExpandVirtualMachineScaleSetResiliency(newResouce, automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
+func ExpandVirtualMachineScaleSetResiliency(automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
 	result := &virtualmachinescalesets.ResiliencyPolicy{}
 
-	// Skip sending AutomaticZoneRebalancingPolicy on create when disabled, because the API requires the feature to be registered in the subscription and will return an error otherwise. On update, always send it to allow disabling.
-	if !newResouce || automaticZoneRebalancingEnabled {
+	// Skip sending AutomaticZoneRebalancingPolicy on create when disabled, because the API requires the feature to be registered in the subscription and will return an error otherwise.
+	if automaticZoneRebalancingEnabled {
+		result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
+			Enabled:           pointer.To(automaticZoneRebalancingEnabled),
+			RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
+			RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),
+		}
+	}
+
+	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
+		Enabled: pointer.To(resilientVMCreationEnabled),
+	}
+
+	result.ResilientVMDeletionPolicy = &virtualmachinescalesets.ResilientVMDeletionPolicy{
+		Enabled: pointer.To(resilientVMDeletionEnabled),
+	}
+
+	return result
+}
+
+func ExpandVirtualMachineScaleSetResiliencyUpdate(automaticZoneRebalancingConfigIsChanged, automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
+	result := &virtualmachinescalesets.ResiliencyPolicy{}
+
+	// Only include AutomaticZoneRebalancingPolicy in the update payload if the setting has changed, to avoid hitting the same API error as create when the feature isn't registered, while still allowing users to disable it after it's been enabled.
+	if automaticZoneRebalancingConfigIsChanged {
 		result.AutomaticZoneRebalancingPolicy = &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
 			Enabled:           pointer.To(automaticZoneRebalancingEnabled),
 			RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),

@@ -447,7 +447,7 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
-	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(true, d.Get("automatic_zone_rebalancing_enabled").(bool), d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("automatic_zone_rebalancing_enabled").(bool), d.Get("resilient_vm_creation_enabled").(bool), d.Get("resilient_vm_deletion_enabled").(bool))
 
 	if len(zones) > 0 {
 		props.Zones = &zones
@@ -727,7 +727,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		automaticZoneRebalancingEnabled := d.Get("automatic_zone_rebalancing_enabled").(bool)
 		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
 		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
-		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(false, automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliencyUpdate(d.HasChange("automatic_zone_rebalancing_enabled"), automaticZoneRebalancingEnabled, resilientVMCreationEnabled, resilientVMDeletionEnabled)
 	}
 
 	if d.HasChange("termination_notification") {
