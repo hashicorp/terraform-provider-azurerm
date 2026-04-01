@@ -9,18 +9,18 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespacetopics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type EventGridNamespaceTopicResource struct{}
+type EventgridNamespaceTopicResource struct{}
 
-func TestAccEventGridNamespaceTopicResource_basic(t *testing.T) {
+func TestAccEventgridNamespaceTopicResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
-	r := EventGridNamespaceTopicResource{}
+	r := EventgridNamespaceTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccEventGridNamespaceTopicResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventGridNamespaceTopicResource_requiresImport(t *testing.T) {
+func TestAccEventgridNamespaceTopicResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
-	r := EventGridNamespaceTopicResource{}
+	r := EventgridNamespaceTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,16 +44,13 @@ func TestAccEventGridNamespaceTopicResource_requiresImport(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		{
-			Config:      r.requiresImport(data),
-			ExpectError: acceptance.RequiresImportError("azurerm_eventgrid_namespace_topic"),
-		},
+		data.RequiresImportErrorStep(r.requiresImport),
 	})
 }
 
-func TestAccEventGridNamespaceTopicResource_complete(t *testing.T) {
+func TestAccEventgridNamespaceTopicResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
-	r := EventGridNamespaceTopicResource{}
+	r := EventgridNamespaceTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -66,9 +63,9 @@ func TestAccEventGridNamespaceTopicResource_complete(t *testing.T) {
 	})
 }
 
-func TestAccEventGridNamespaceTopicResource_update(t *testing.T) {
+func TestAccEventgridNamespaceTopicResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
-	r := EventGridNamespaceTopicResource{}
+	r := EventgridNamespaceTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +85,7 @@ func TestAccEventGridNamespaceTopicResource_update(t *testing.T) {
 	})
 }
 
-func (r EventGridNamespaceTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r EventgridNamespaceTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := namespacetopics.ParseNamespaceTopicID(state.ID)
 	if err != nil {
 		return nil, err
@@ -102,7 +99,41 @@ func (r EventGridNamespaceTopicResource) Exists(ctx context.Context, clients *cl
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r EventGridNamespaceTopicResource) template(data acceptance.TestData) string {
+func (r EventgridNamespaceTopicResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_namespace_topic" "test" {
+  name                   = "acctest-egnt-%d"
+  eventgrid_namespace_id = azurerm_eventgrid_namespace.test.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r EventgridNamespaceTopicResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_namespace_topic" "import" {
+  name                   = azurerm_eventgrid_namespace_topic.test.name
+  eventgrid_namespace_id = azurerm_eventgrid_namespace_topic.test.eventgrid_namespace_id
+}
+`, r.basic(data))
+}
+
+func (r EventgridNamespaceTopicResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_eventgrid_namespace_topic" "test" {
+  name                    = "acctest-egnt-%d"
+  eventgrid_namespace_id  = azurerm_eventgrid_namespace.test.id
+  event_retention_in_days = 1
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r EventgridNamespaceTopicResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -119,40 +150,4 @@ resource "azurerm_eventgrid_namespace" "test" {
   location            = azurerm_resource_group.test.location
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r EventGridNamespaceTopicResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_eventgrid_namespace_topic" "test" {
-  name                = "acctest-egnt-%d"
-	namespace_id        = azurerm_eventgrid_namespace.test.id
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r EventGridNamespaceTopicResource) requiresImport(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_eventgrid_namespace_topic" "import" {
-  name                = azurerm_eventgrid_namespace_topic.test.name
-  namespace_id        = azurerm_eventgrid_namespace_topic.test.namespace_id
-}
-`, r.basic(data))
-}
-
-func (r EventGridNamespaceTopicResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_eventgrid_namespace_topic" "test" {
-  name                    = "acctest-egnt-%d"
-	namespace_id            = azurerm_eventgrid_namespace.test.id
-	event_retention_in_days = 1
-	input_schema            = "CloudEventSchemaV1_0"
-	publisher_type          = "Custom"
-}
-`, r.template(data), data.RandomInteger)
 }

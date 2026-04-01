@@ -11,23 +11,27 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespacetopics"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/namespacetopics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.ResourceWithUpdate = EventGridNamespaceTopicResource{}
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name eventgrid_namespace_topic -properties "name" -compare-values "subscription_id:eventgrid_namespace_id,resource_group_name:eventgrid_namespace_id,namespace_name:eventgrid_namespace_id"
+
+var (
+	_ sdk.ResourceWithUpdate   = EventGridNamespaceTopicResource{}
+	_ sdk.ResourceWithIdentity = EventGridNamespaceTopicResource{}
+)
 
 type EventGridNamespaceTopicResource struct{}
 
 type EventGridNamespaceTopicResourceModel struct {
 	Name                 string `tfschema:"name"`
-	NamespaceId          string `tfschema:"namespace_id"`
+	EventgridNamespaceId string `tfschema:"eventgrid_namespace_id"`
 	EventRetentionInDays int64  `tfschema:"event_retention_in_days"`
-	InputSchema          string `tfschema:"input_schema"`
-	PublisherType        string `tfschema:"publisher_type"`
 }
 
 func (r EventGridNamespaceTopicResource) Arguments() map[string]*pluginsdk.Schema {
@@ -45,7 +49,7 @@ func (r EventGridNamespaceTopicResource) Arguments() map[string]*pluginsdk.Schem
 			),
 		},
 
-		"namespace_id": {
+		"eventgrid_namespace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -57,24 +61,6 @@ func (r EventGridNamespaceTopicResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:     true,
 			Default:      7,
 			ValidateFunc: validation.IntBetween(1, 7),
-		},
-
-		"input_schema": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "CloudEventSchemaV1_0",
-			ValidateFunc: validation.StringInSlice([]string{
-				"CloudEventSchemaV1_0",
-			}, false),
-		},
-
-		"publisher_type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Custom",
-			ValidateFunc: validation.StringInSlice([]string{
-				"Custom",
-			}, false),
 		},
 	}
 }
@@ -99,23 +85,15 @@ func (r EventGridNamespaceTopicResource) Create() sdk.ResourceFunc {
 
 			var model EventGridNamespaceTopicResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := ""
-			namespaceName := ""
-			resourceGroupName := ""
-			if v := model.NamespaceId; v != "" {
-				namespaceId, err := namespaces.ParseNamespaceID(v)
-				if err != nil {
-					return err
-				}
-				subscriptionId = namespaceId.SubscriptionId
-				namespaceName = namespaceId.NamespaceName
-				resourceGroupName = namespaceId.ResourceGroupName
+			namespaceId, err := namespaces.ParseNamespaceID(model.EventgridNamespaceId)
+			if err != nil {
+				return err
 			}
 
-			id := namespacetopics.NewNamespaceTopicID(subscriptionId, resourceGroupName, namespaceName, model.Name)
+			id := namespacetopics.NewNamespaceTopicID(namespaceId.SubscriptionId, namespaceId.ResourceGroupName, namespaceId.NamespaceName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil {
@@ -132,8 +110,8 @@ func (r EventGridNamespaceTopicResource) Create() sdk.ResourceFunc {
 				Name: pointer.To(model.Name),
 				Properties: &namespacetopics.NamespaceTopicProperties{
 					EventRetentionInDays: pointer.To(model.EventRetentionInDays),
-					InputSchema:          pointer.To(namespacetopics.EventInputSchema(model.InputSchema)),
-					PublisherType:        pointer.To(namespacetopics.PublisherType(model.PublisherType)),
+					InputSchema:          pointer.To(namespacetopics.EventInputSchemaCloudEventSchemaVOneZero),
+					PublisherType:        pointer.To(namespacetopics.PublisherTypeCustom),
 				},
 			}
 
@@ -142,8 +120,7 @@ func (r EventGridNamespaceTopicResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -156,7 +133,7 @@ func (r EventGridNamespaceTopicResource) Update() sdk.ResourceFunc {
 
 			var model EventGridNamespaceTopicResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id, err := namespacetopics.ParseNamespaceTopicID(metadata.ResourceData.Id())
@@ -173,10 +150,8 @@ func (r EventGridNamespaceTopicResource) Update() sdk.ResourceFunc {
 			}
 
 			if err = client.UpdateThenPoll(ctx, *id, payload); err != nil {
-				return fmt.Errorf("creating %s: %+v", *id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -203,16 +178,18 @@ func (r EventGridNamespaceTopicResource) Read() sdk.ResourceFunc {
 			}
 
 			state := EventGridNamespaceTopicResourceModel{
-				Name:        id.TopicName,
-				NamespaceId: namespacetopics.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName).ID(),
+				Name:                 id.TopicName,
+				EventgridNamespaceId: namespacetopics.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.EventRetentionInDays = int64(pointer.From(props.EventRetentionInDays))
-					state.InputSchema = string(pointer.From(props.InputSchema))
-					state.PublisherType = string(pointer.From(props.PublisherType))
+					state.EventRetentionInDays = pointer.From(props.EventRetentionInDays)
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
@@ -242,4 +219,8 @@ func (r EventGridNamespaceTopicResource) Delete() sdk.ResourceFunc {
 
 func (r EventGridNamespaceTopicResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return namespacetopics.ValidateNamespaceTopicID
+}
+
+func (r EventGridNamespaceTopicResource) Identity() resourceids.ResourceId {
+	return new(namespacetopics.NamespaceTopicId)
 }
