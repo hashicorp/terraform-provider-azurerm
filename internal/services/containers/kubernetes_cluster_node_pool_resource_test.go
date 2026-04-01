@@ -800,6 +800,22 @@ func TestAccKubernetesClusterNodePool_windows2022(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesClusterNodePool_windows2025(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.windows2025Config(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("tags.Os").HasValue("Windows"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_windowsAndLinux(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -2756,6 +2772,32 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_count            = 1
   os_type               = "Windows"
   os_sku                = "Windows2022"
+  tags = {
+    Os = "Windows"
+  }
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, r.templateWindowsConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) windows2025Config(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "windoz"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  os_type               = "Windows"
+  os_sku                = "Windows2025"
+  fips_enabled          = true
   tags = {
     Os = "Windows"
   }

@@ -20,6 +20,7 @@ const (
 	OSSKUUbuntuTwoTwoZeroFour  OSSKU = "Ubuntu2204"
 	OSSKUWindowsTwoZeroOneNine OSSKU = "Windows2019"
 	OSSKUWindowsTwoZeroTwoTwo  OSSKU = "Windows2022"
+	OSSKUWindowsTwoZeroTwoFive OSSKU = "Windows2025"
 )
 
 func PossibleValuesForOSSKU() []string {
@@ -32,6 +33,7 @@ func PossibleValuesForOSSKU() []string {
 		string(OSSKUUbuntuTwoTwoZeroFour),
 		string(OSSKUWindowsTwoZeroOneNine),
 		string(OSSKUWindowsTwoZeroTwoTwo),
+		string(OSSKUWindowsTwoZeroTwoFive),
 	}
 }
 
@@ -58,6 +60,7 @@ func parseOSSKU(input string) (*OSSKU, error) {
 		"ubuntu2204":  OSSKUUbuntuTwoTwoZeroFour,
 		"windows2019": OSSKUWindowsTwoZeroOneNine,
 		"windows2022": OSSKUWindowsTwoZeroTwoTwo,
+		"windows2025": OSSKUWindowsTwoZeroTwoFive,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
