@@ -63,12 +63,12 @@ resource "azurerm_data_protection_backup_policy_data_lake_storage" "example" {
 }
 
 resource "azurerm_data_protection_backup_instance_data_lake_storage" "example" {
-  name                            = "example-data-protection-backup-instance-data-lake-storage"
-  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.example.id
-  location                        = azurerm_resource_group.example.location
-  storage_account_id              = azurerm_storage_account.example.id
+  name                               = "example-data-protection-backup-instance-data-lake-storage"
+  data_protection_backup_vault_id    = azurerm_data_protection_backup_vault.example.id
+  location                           = azurerm_resource_group.example.location
+  storage_account_id                 = azurerm_storage_account.example.id
   backup_policy_data_lake_storage_id = azurerm_data_protection_backup_policy_data_lake_storage.example.id
-  storage_container_names         = [azurerm_storage_container.example.name, azurerm_storage_container.example2.name]
+  storage_container_names            = [azurerm_storage_container.example.name, azurerm_storage_container.example2.name]
 
   depends_on = [azurerm_role_assignment.example]
 }
