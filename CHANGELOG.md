@@ -19,6 +19,7 @@ ENHANCEMENTS:
 * `azurerm_public_ip_prefix` - add support for the `StandardV2` SKU [GH-31197]
 
 FEATURES:
+* **New List Resource**: `azurerm_storage_sync` [GH-31995]
 * **New Resource**: `azurerm_resource_provider_feature_registration` [GH-28303]
 * **New Resource**: `azurerm_kubernetes_cluster_deployment_safeguard` [GH-31670]
 * **New Resource**: `azurerm_data_protection_backup_policy_data_lake_storage` [GH-31179]
