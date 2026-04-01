@@ -318,9 +318,8 @@ func (r SearchServiceDatasourceBlobResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			prefer := datasources.PreferReturnRepresentation
 			opts := datasources.CreateOrUpdateOperationOptions{
-				Prefer: &prefer,
+				Prefer: pointer.To(datasources.PreferReturnRepresentation),
 			}
 			if _, err := client.CreateOrUpdate(ctx, *resourceId, existing, opts); err != nil {
 				return fmt.Errorf("updating %s: %+v", *resourceId, err)

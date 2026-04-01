@@ -143,10 +143,10 @@ func (r SearchServiceDatasourceBlobResource) Exists(ctx context.Context, c *clie
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil
 		}
-		return nil, fmt.Errorf("%s could not be retrieved: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	return pointer.To(true), nil
 }
 
 func (SearchServiceDatasourceBlobResource) template(data acceptance.TestData) string {

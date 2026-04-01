@@ -68,11 +68,15 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, fmt.Errorf("unable to build authorizer for Key Vault API: %+v", err)
 	}
 
-	searchAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Search)
-	if err != nil {
-		return nil, fmt.Errorf("unable to build authorizer for Search API: %+v", err)
+	if builder.AuthConfig.Environment.Search.Available() {
+		searchAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Search)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build authorizer for Search API: %+v", err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Search Authorizer since this is not supported in the current Azure Environment")
 	}
-
+	
 	if builder.AuthConfig.Environment.Synapse.Available() {
 		synapseAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Synapse)
 		if err != nil {

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Search Service Blob Data Source. Changing this forces a new resource to be created.
 
-~> **Note:** The `name` must be 2-128 characters, start and end with a lowercase letter or digit, and contain only lowercase letters, digits, or dashes.
+~> **Note:** The `name` must be 2-128 characters long, start and end with a lowercase letter or digit, and contain only lowercase letters, digits, or dashes.
 
 * `search_service_id` - (Required) The ID of the Search Service in which this Blob Data Source should be created. Changing this forces a new resource to be created.
 
@@ -112,3 +112,9 @@ A Search Service Blob Data Source can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_search_service_datasource_blob.example https://searchservice1.search.windows.net/datasources/datasource1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Search` - 2025-05-01
