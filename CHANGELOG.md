@@ -10,8 +10,6 @@ ENHANCEMENTS:
 * dependencies: `Go` - upgrade to version 1.25.8 ([#31907](https://github.com/hashicorp/terraform-provider-azurerm/issues/31907))
 * `azurerm_bastion_host` - Upgrade API to `2025-01-01` ([#32030](https://github.com/hashicorp/terraform-provider-azurerm/issues/32030))
 * `azurerm_kubernetes_cluster` - add support for migration from Azure or Kubenet CNI to Azure CNI Overlay ([#30959](https://github.com/hashicorp/terraform-provider-azurerm/issues/30959))
-* `azurerm_kubernetes_cluster` - add support for the `Windows2025` `os_sku` value ([#XXXXX](https://github.com/hashicorp/terraform-provider-azurerm/issues/XXXXX))
-* `azurerm_kubernetes_cluster_node_pool` - add support for the `Windows2025` `os_sku` value ([#XXXXX](https://github.com/hashicorp/terraform-provider-azurerm/issues/XXXXX))
 * `azurerm_search_service`: add support for `endpoint` attribute ([#32010](https://github.com/hashicorp/terraform-provider-azurerm/issues/32010))
 * `cognitive_account_rai_blocklist_resource` - add support for the `tags` property ([#31871](https://github.com/hashicorp/terraform-provider-azurerm/issues/31871))
 
