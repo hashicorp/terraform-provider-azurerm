@@ -99,8 +99,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Front Door Security Policy.
 
--> **Note:** The `name` must begin and end with an alphanumeric character, and may contain only alphanumeric characters and hyphens.
-
 * `profile_name` - (Required) The name of the Front Door Profile.
 
 * `resource_group_name` - (Required) The name of the resource group.

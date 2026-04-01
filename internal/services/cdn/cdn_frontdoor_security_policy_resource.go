@@ -172,12 +172,11 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 		return errors.New("profileModel is 'nil'")
 	}
 
-	isStandardSku := true
-	if skuName := pointer.FromEnum(profileModel.Sku.Name); skuName != "" {
-		isStandardSku = strings.HasPrefix(strings.ToLower(skuName), "standard")
+	if profileModel.Sku.Name == nil {
+		return errors.New("profileModel.Sku.Name is 'nil'")
 	}
 
-	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
+	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
 	if err != nil {
 		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
@@ -268,12 +267,11 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta in
 		return errors.New("profileModel is 'nil'")
 	}
 
-	isStandardSku := true
-	if skuName := pointer.FromEnum(profileModel.Sku.Name); skuName != "" {
-		isStandardSku = strings.HasPrefix(strings.ToLower(skuName), "standard")
+	if profileModel.Sku.Name == nil {
+		return errors.New("profileModel.Sku.Name is 'nil'")
 	}
 
-	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
+	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), strings.EqualFold(pointer.FromEnum(profileModel.Sku.Name), string(profiles.SkuNameStandardAzureFrontDoor)))
 	if err != nil {
 		return fmt.Errorf("expanding 'security_policies': %+v", err)
 	}
@@ -335,7 +333,7 @@ func expandCdnFrontdoorFirewallPolicyParameters(input []interface{}, isStandardS
 	for _, item := range configAssociations {
 		v := item.(map[string]interface{})
 		domains := expandSecurityPoliciesActivatedResourceReference(v["domain"].([]interface{}))
-		domainCount := len(pointer.From(domains))
+		domainCount := len(*domains)
 
 		if isStandardSku {
 			if domainCount > 100 {
@@ -388,9 +386,9 @@ func flattenSecurityPoliciesActivatedResourceReference(input *[]securitypolicies
 	for _, item := range *input {
 		frontDoorDomainId := ""
 		if item.Id != nil {
-			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := parse.FrontDoorCustomDomainIDInsensitively(pointer.From(item.Id)); frontDoorCustomDomainIdErr == nil {
+			if parsedFrontDoorCustomDomainId, frontDoorCustomDomainIdErr := parse.FrontDoorCustomDomainIDInsensitively(*item.Id); frontDoorCustomDomainIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorCustomDomainId.ID()
-			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := parse.FrontDoorEndpointIDInsensitively(pointer.From(item.Id)); frontDoorEndpointIdErr == nil {
+			} else if parsedFrontDoorEndpointId, frontDoorEndpointIdErr := parse.FrontDoorEndpointIDInsensitively(*item.Id); frontDoorEndpointIdErr == nil {
 				frontDoorDomainId = parsedFrontDoorEndpointId.ID()
 			} else {
 				return nil, fmt.Errorf("flattening `cdn_frontdoor_domain_id`: %+v; %+v", frontDoorCustomDomainIdErr, frontDoorEndpointIdErr)
