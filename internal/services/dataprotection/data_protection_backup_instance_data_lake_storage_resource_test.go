@@ -197,12 +197,12 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) basic(data acceptan
 %s
 
 resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
-  name                            = "acctest-dbi-%d"
-  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  location                        = azurerm_resource_group.test.location
-  storage_account_id              = azurerm_storage_account.test.id
+  name                               = "acctest-dbi-%d"
+  data_protection_backup_vault_id    = azurerm_data_protection_backup_vault.test.id
+  location                           = azurerm_resource_group.test.location
+  storage_account_id                 = azurerm_storage_account.test.id
   backup_policy_data_lake_storage_id = azurerm_data_protection_backup_policy_data_lake_storage.test.id
-  storage_container_names         = [azurerm_storage_container.test.name]
+  storage_container_names            = [azurerm_storage_container.test.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
@@ -214,12 +214,12 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) requiresImport(data
 %s
 
 resource "azurerm_data_protection_backup_instance_data_lake_storage" "import" {
-  name                            = azurerm_data_protection_backup_instance_data_lake_storage.test.name
-  data_protection_backup_vault_id = azurerm_data_protection_backup_instance_data_lake_storage.test.data_protection_backup_vault_id
-  location                        = azurerm_data_protection_backup_instance_data_lake_storage.test.location
-  storage_account_id              = azurerm_data_protection_backup_instance_data_lake_storage.test.storage_account_id
+  name                               = azurerm_data_protection_backup_instance_data_lake_storage.test.name
+  data_protection_backup_vault_id    = azurerm_data_protection_backup_instance_data_lake_storage.test.data_protection_backup_vault_id
+  location                           = azurerm_data_protection_backup_instance_data_lake_storage.test.location
+  storage_account_id                 = azurerm_data_protection_backup_instance_data_lake_storage.test.storage_account_id
   backup_policy_data_lake_storage_id = azurerm_data_protection_backup_instance_data_lake_storage.test.backup_policy_data_lake_storage_id
-  storage_container_names         = azurerm_data_protection_backup_instance_data_lake_storage.test.storage_container_names
+  storage_container_names            = azurerm_data_protection_backup_instance_data_lake_storage.test.storage_container_names
 
   depends_on = [azurerm_role_assignment.test]
 }
@@ -231,12 +231,12 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) complete(data accep
 %s
 
 resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
-  name                            = "acctest-dbi-%d"
-  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  location                        = azurerm_resource_group.test.location
-  storage_account_id              = azurerm_storage_account.test.id
+  name                               = "acctest-dbi-%d"
+  data_protection_backup_vault_id    = azurerm_data_protection_backup_vault.test.id
+  location                           = azurerm_resource_group.test.location
+  storage_account_id                 = azurerm_storage_account.test.id
   backup_policy_data_lake_storage_id = azurerm_data_protection_backup_policy_data_lake_storage.another.id
-  storage_container_names         = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
+  storage_container_names            = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
@@ -248,12 +248,12 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) update(data accepta
 %s
 
 resource "azurerm_data_protection_backup_instance_data_lake_storage" "test" {
-  name                            = "acctest-dbi-%d"
-  data_protection_backup_vault_id = azurerm_data_protection_backup_vault.test.id
-  location                        = azurerm_resource_group.test.location
-  storage_account_id              = azurerm_storage_account.test.id
+  name                               = "acctest-dbi-%d"
+  data_protection_backup_vault_id    = azurerm_data_protection_backup_vault.test.id
+  location                           = azurerm_resource_group.test.location
+  storage_account_id                 = azurerm_storage_account.test.id
   backup_policy_data_lake_storage_id = azurerm_data_protection_backup_policy_data_lake_storage.another.id
-  storage_container_names         = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
+  storage_container_names            = [azurerm_storage_container.test.name, azurerm_storage_container.another.name]
 
   depends_on = [azurerm_role_assignment.test]
 }
