@@ -13,9 +13,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -432,6 +432,54 @@ func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *vol
 
 	return &volumes.VolumePatchPropertiesDataProtection{
 		Backup: &backupPolicyObject,
+	}
+}
+
+func expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(input []interface{}) *volumes.VolumePropertiesDataProtection {
+	if len(input) == 0 {
+		return &volumes.VolumePropertiesDataProtection{}
+	}
+
+	arpObject := volumes.RansomwareProtectionSettings{}
+
+	arpRaw := input[0].(map[string]interface{})
+
+	if v, ok := arpRaw["protection_enabled"]; ok {
+		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
+		if v.(bool) {
+			desiredState = volumes.DesiredRansomwareProtectionStateEnabled
+		}
+		arpObject.DesiredRansomwareProtectionState = pointer.To(desiredState)
+	}
+
+	return &volumes.VolumePropertiesDataProtection{
+		RansomwareProtection: &arpObject,
+	}
+}
+
+func expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
+	if len(input) == 0 {
+		return &volumes.VolumePatchPropertiesDataProtection{
+			RansomwareProtection: &volumes.RansomwareProtectionPatchSettings{
+				DesiredRansomwareProtectionState: pointer.To(volumes.DesiredRansomwareProtectionStateDisabled),
+			},
+		}
+	}
+
+	arpObject := volumes.RansomwareProtectionPatchSettings{}
+
+	arpRaw := input[0].(map[string]interface{})
+
+	if v, ok := arpRaw["protection_enabled"]; ok {
+		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
+		if v.(bool) {
+			desiredState = volumes.DesiredRansomwareProtectionStateEnabled
+		}
+		arpObject.DesiredRansomwareProtectionState = pointer.To(desiredState)
+	}
+
+	return &volumes.VolumePatchPropertiesDataProtection{
+		RansomwareProtection: &arpObject,
 	}
 }
 

@@ -16,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -366,6 +366,21 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				},
 			},
 
+			"data_protection_advanced_ransomware": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"protection_enabled": {
+							Type:        pluginsdk.TypeBool,
+							Required:    true,
+							Description: "Enable or disable the Advanced Ransomware Protection feature.",
+						},
+					},
+				},
+			},
+
 			"azure_vmware_data_store_enabled": {
 				Type:     pluginsdk.TypeBool,
 				ForceNew: true,
@@ -676,6 +691,9 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	dataProtectionBackupPolicyRaw := d.Get("data_protection_backup_policy").([]interface{})
 	dataProtectionBackupPolicy := expandNetAppVolumeDataProtectionBackupPolicy(dataProtectionBackupPolicyRaw)
 
+	dataProtectionARPRaw := d.Get("data_protection_advanced_ransomware").([]interface{})
+	dataProtectionARP := expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(dataProtectionARPRaw)
+
 	authorizeReplication := false
 	volumeType := ""
 	endpointType := ""
@@ -787,9 +805,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 			VolumeType:                pointer.To(volumeType),
 			SnapshotId:                pointer.To(snapshotID),
 			DataProtection: &volumes.VolumePropertiesDataProtection{
-				Replication: dataProtectionReplication.Replication,
-				Snapshot:    dataProtectionSnapshotPolicy.Snapshot,
-				Backup:      dataProtectionBackupPolicy.Backup,
+				Replication:          dataProtectionReplication.Replication,
+				Snapshot:             dataProtectionSnapshotPolicy.Snapshot,
+				Backup:               dataProtectionBackupPolicy.Backup,
+				RansomwareProtection: dataProtectionARP.RansomwareProtection,
 			},
 			AvsDataStore:             &avsDataStoreEnabled,
 			SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
@@ -947,6 +966,16 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
 		}
 		update.Properties.DataProtection.Backup = dataProtectionBackupPolicy.Backup
+	}
+
+	if d.HasChange("data_protection_advanced_ransomware") {
+		dataProtectionARPRaw := d.Get("data_protection_advanced_ransomware").([]interface{})
+		dataProtectionARP := expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(dataProtectionARPRaw)
+
+		if update.Properties.DataProtection == nil {
+			update.Properties.DataProtection = &volumes.VolumePatchPropertiesDataProtection{}
+		}
+		update.Properties.DataProtection.RansomwareProtection = dataProtectionARP.RansomwareProtection
 	}
 
 	if d.HasChange("throughput_in_mibps") {
@@ -1133,6 +1162,9 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		}
 		if err := d.Set("data_protection_backup_policy", flattenNetAppVolumeDataProtectionBackupPolicy(props.DataProtection)); err != nil {
 			return fmt.Errorf("setting `data_protection_backup_policy`: %+v", err)
+		}
+		if err := d.Set("data_protection_advanced_ransomware", flattenNetAppVolumeDataProtectionAdvancedRansomwareProtection(props.DataProtection)); err != nil {
+			return fmt.Errorf("setting `data_protection_advanced_ransomware`: %+v", err)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -1592,6 +1624,30 @@ func flattenNetAppVolumeDataProtectionBackupPolicy(input *volumes.VolumeProperti
 			"backup_policy_id": backupPolicyID,
 			"policy_enabled":   policyEnforced,
 			"backup_vault_id":  backupVaultID,
+		},
+	}
+}
+
+func flattenNetAppVolumeDataProtectionAdvancedRansomwareProtection(input *volumes.VolumePropertiesDataProtection) []interface{} {
+	if input == nil || input.RansomwareProtection == nil {
+		return []interface{}{}
+	}
+
+	desiredState := ""
+	if input.RansomwareProtection.DesiredRansomwareProtectionState != nil {
+		desiredState = string(pointer.From(input.RansomwareProtection.DesiredRansomwareProtectionState))
+	}
+
+	// Only return the block if a desired state has been set
+	if desiredState == "" {
+		return []interface{}{}
+	}
+
+	protectionEnabled := strings.EqualFold(desiredState, string(volumes.DesiredRansomwareProtectionStateEnabled))
+
+	return []interface{}{
+		map[string]interface{}{
+			"protection_enabled": protectionEnabled,
 		},
 	}
 }

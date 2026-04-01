@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/backuppolicies"
 )
 
 const (
