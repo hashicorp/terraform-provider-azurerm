@@ -26,16 +26,16 @@ type SearchServiceDatasourceBlobResource struct{}
 var _ sdk.ResourceWithUpdate = SearchServiceDatasourceBlobResource{}
 
 type SearchServiceDatasourceBlobModel struct {
-	Name                  string                                        `tfschema:"name"`
-	SearchServiceId       string                                        `tfschema:"search_service_id"`
-	ContainerName         string                                        `tfschema:"container_name"`
-	ConnectionString      string                                        `tfschema:"connection_string"`
-	Description           string                                        `tfschema:"description"`
-	ContainerQuery        string                                        `tfschema:"container_query"`
-	SoftDeleteColumnName  string                                        `tfschema:"soft_delete_column_name"`
-	SoftDeleteMarkerValue string                                        `tfschema:"soft_delete_marker_value"`
+	Name                  string                                            `tfschema:"name"`
+	SearchServiceId       string                                            `tfschema:"search_service_id"`
+	ContainerName         string                                            `tfschema:"container_name"`
+	ConnectionString      string                                            `tfschema:"connection_string"`
+	Description           string                                            `tfschema:"description"`
+	ContainerQuery        string                                            `tfschema:"container_query"`
+	SoftDeleteColumnName  string                                            `tfschema:"soft_delete_column_name"`
+	SoftDeleteMarkerValue string                                            `tfschema:"soft_delete_marker_value"`
 	EncryptionKey         []searchSchema.SearchDatasourceEncryptionKeyModel `tfschema:"encryption_key"`
-	Etag                  string                                        `tfschema:"etag"`
+	Etag                  string                                            `tfschema:"etag"`
 }
 
 func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.Schema {
@@ -57,17 +57,17 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: services.ValidateSearchServiceID,
 		},
 
-		"container_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.StorageContainerName,
-		},
-
 		"connection_string": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"container_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.StorageContainerName,
 		},
 
 		"container_query": {
