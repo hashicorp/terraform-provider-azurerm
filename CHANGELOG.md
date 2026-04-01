@@ -19,11 +19,12 @@ ENHANCEMENTS:
 * `azurerm_public_ip_prefix` - add support for the `StandardV2` SKU [GH-31197]
 
 FEATURES:
+* **New Resource**: `azurerm_resource_provider_feature_registration` [GH-28303]
 * **New Resource**: `azurerm_kubernetes_cluster_deployment_safeguard` [GH-31670]
 * **New Resource**: `azurerm_data_protection_backup_policy_data_lake_storage` [GH-31179]
 
 BUG FIXES:
-* `azurerm_search_service` - mark `query_keys` value as sensitive (#32053) [GH-32053]
+* `azurerm_search_service` - mark `query_keys.key` value as sensitive (#32053) [GH-32053]
 * `azurerm_machine_learning_compute_instance` - fix setting `node_public_ip_enabled` into state [GH-31725]
 * `azurerm_cosmosdb_account` - fix an API error caused by `backup.interval_in_minutes` and `backup.retention_in_hours` being set to `0` in the API payload when not defined in config [GH-32037]
 * `azurerm_backup_policy_vm` - fix the Update function to properly set all timestamps when any of `backup.time`, `retention_daily`, `retention_weekly`, `retention_montly`, or `retention_yearly` change [GH-31969]
