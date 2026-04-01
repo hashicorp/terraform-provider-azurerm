@@ -4,18 +4,17 @@
 package signalr_test
 
 import (
-	"testing"
-
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
+	"testing"
 )
 
-func TestAccSignalRService_resourceIdentity(t *testing.T) {
+func TestAccSignalrService_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service", "test")
-	r := SignalRServiceResource{}
+	r := SignalrServiceResource{}
 
 	checkedFields := map[string]struct{}{
 		"subscription_id":     {},
