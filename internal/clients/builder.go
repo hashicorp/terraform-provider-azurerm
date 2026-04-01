@@ -76,7 +76,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	} else {
 		log.Printf("[DEBUG] Skipping building the Search Authorizer since this is not supported in the current Azure Environment")
 	}
-	
+
 	if builder.AuthConfig.Environment.Synapse.Available() {
 		synapseAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Synapse)
 		if err != nil {
