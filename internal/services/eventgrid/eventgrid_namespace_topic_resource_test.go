@@ -18,7 +18,7 @@ import (
 
 type EventgridNamespaceTopicResource struct{}
 
-func TestAccEventgridNamespaceTopicResource_basic(t *testing.T) {
+func TestAccEventgridNamespaceTopic_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
 	r := EventgridNamespaceTopicResource{}
 
@@ -33,7 +33,7 @@ func TestAccEventgridNamespaceTopicResource_basic(t *testing.T) {
 	})
 }
 
-func TestAccEventgridNamespaceTopicResource_requiresImport(t *testing.T) {
+func TestAccEventgridNamespaceTopic_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
 	r := EventgridNamespaceTopicResource{}
 
@@ -48,7 +48,7 @@ func TestAccEventgridNamespaceTopicResource_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccEventgridNamespaceTopicResource_complete(t *testing.T) {
+func TestAccEventgridNamespaceTopic_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
 	r := EventgridNamespaceTopicResource{}
 
@@ -63,7 +63,7 @@ func TestAccEventgridNamespaceTopicResource_complete(t *testing.T) {
 	})
 }
 
-func TestAccEventgridNamespaceTopicResource_update(t *testing.T) {
+func TestAccEventgridNamespaceTopic_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_namespace_topic", "test")
 	r := EventgridNamespaceTopicResource{}
 
