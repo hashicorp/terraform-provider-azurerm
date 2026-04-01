@@ -29,7 +29,7 @@ type BackupInstanceDataLakeStorageModel struct {
 	Name                        string   `tfschema:"name"`
 	DataProtectionBackupVaultId string   `tfschema:"data_protection_backup_vault_id"`
 	Location                    string   `tfschema:"location"`
-	BackupPolicyId              string   `tfschema:"backup_policy_id"`
+	BackupPolicyId              string   `tfschema:"backup_policy_data_lake_storage_id"`
 	StorageAccountId            string   `tfschema:"storage_account_id"`
 	StorageContainerNames       []string `tfschema:"storage_container_names"`
 	ProtectionState             string   `tfschema:"protection_state"`
@@ -73,14 +73,15 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Arguments() map[str
 
 		"location": commonschema.Location(),
 
-		"backup_policy_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
+		"backup_policy_data_lake_storage_id": commonschema.ResourceIDReferenceRequired(&basebackuppolicyresources.BackupPolicyId{}),
 
 		"storage_account_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.StorageAccountId{}),
 
 		"storage_container_names": {
-			Type:     pluginsdk.TypeList,
+			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
+			MaxItems: 100,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.All(
@@ -180,6 +181,8 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
+			// the built-in poller is for the LRO to be finished, but the service requires additional time to finish the configure for backup
+			// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/41986
 			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
 				backupinstanceresources.CurrentProtectionStateConfiguringProtection,
 			})
@@ -289,12 +292,10 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Update() sdk.Resour
 
 			parameters := *existing.Model
 			if parameters.Properties == nil {
-				parameters.Properties = &backupinstanceresources.BackupInstance{
-					PolicyInfo: backupinstanceresources.PolicyInfo{},
-				}
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("backup_policy_id") {
+			if metadata.ResourceData.HasChange("backup_policy_data_lake_storage_id") {
 				policyId, err := basebackuppolicyresources.ParseBackupPolicyID(model.BackupPolicyId)
 				if err != nil {
 					return err
@@ -303,11 +304,12 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Update() sdk.Resour
 			}
 
 			if metadata.ResourceData.HasChange("storage_container_names") {
-				parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{
-					BackupDatasourceParametersList: &[]backupinstanceresources.BackupDatasourceParameters{
-						backupinstanceresources.AdlsBlobBackupDatasourceParameters{
-							ContainersList: model.StorageContainerNames,
-						},
+				if parameters.Properties.PolicyInfo.PolicyParameters == nil {
+					parameters.Properties.PolicyInfo.PolicyParameters = &backupinstanceresources.PolicyParameters{}
+				}
+				parameters.Properties.PolicyInfo.PolicyParameters.BackupDatasourceParametersList = &[]backupinstanceresources.BackupDatasourceParameters{
+					backupinstanceresources.AdlsBlobBackupDatasourceParameters{
+						ContainersList: model.StorageContainerNames,
 					},
 				}
 			}
@@ -316,6 +318,8 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Update() sdk.Resour
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
+			// the built-in poller is for the LRO to be finished, but the service requires additional time to finish the configure for backup
+			// Tracked on https://github.com/Azure/azure-rest-api-specs/issues/41986
 			pollerType := custompollers.NewDataProtectionBackupInstancePoller(client, *id, backupinstanceresources.CurrentProtectionStateProtectionConfigured, []backupinstanceresources.CurrentProtectionState{
 				backupinstanceresources.CurrentProtectionStateUpdatingProtection,
 			})
