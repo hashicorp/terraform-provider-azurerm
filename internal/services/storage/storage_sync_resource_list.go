@@ -26,7 +26,7 @@ func (r StorageSyncListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r StorageSyncListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_storage_sync"
+	response.TypeName = storageSyncResourceName
 }
 
 func (r StorageSyncListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
@@ -49,7 +49,7 @@ func (r StorageSyncListResource) List(ctx context.Context, request list.ListRequ
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.StorageSyncServicesListByResourceGroup(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_storage_sync"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", storageSyncResourceName), err)
 			return
 		}
 
@@ -59,7 +59,7 @@ func (r StorageSyncListResource) List(ctx context.Context, request list.ListRequ
 	default:
 		resp, err := client.StorageSyncServicesListBySubscription(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_storage_sync"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", storageSyncResourceName), err)
 			return
 		}
 
@@ -83,7 +83,7 @@ func (r StorageSyncListResource) List(ctx context.Context, request list.ListRequ
 			rd.SetId(id.ID())
 
 			if err := resourceStorageSyncFlatten(ctx, rd, id, &item, metadata.Client.Storage.SyncRegisteredServerClient, request.IncludeResource); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_storage_sync"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", storageSyncResourceName), err)
 				return
 			}
 

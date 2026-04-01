@@ -25,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const storageSyncResourceName = "azurerm_storage_sync"
+
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceStorageSync() *pluginsdk.Resource {
@@ -96,7 +98,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_sync", id.ID())
+		return tf.ImportAsExistsError(storageSyncResourceName, id.ID())
 	}
 
 	parameters := storagesyncservicesresource.StorageSyncServiceCreateParameters{
