@@ -151,20 +151,29 @@ func (r SearchServiceDatasourceBlobResource) Exists(ctx context.Context, c *clie
 
 func (SearchServiceDatasourceBlobResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-search-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_search_service" "test" {
-  name                = "acctestsearch%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "standard"
+  name                        = "acctestsearch%[1]d"
+  resource_group_name         = azurerm_resource_group.test.name
+  location                    = azurerm_resource_group.test.location
+  sku                         = "standard"
+  authentication_failure_mode = "http403"
 
   identity {
     type = "SystemAssigned"
   }
+}
+
+resource "azurerm_role_assignment" "current_user_search" {
+  scope                = azurerm_search_service.test.id
+  role_definition_name = "Search Service Contributor"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 resource "azurerm_storage_account" "test" {
@@ -183,7 +192,6 @@ resource "azurerm_storage_container" "test" {
 }
 
 func (r SearchServiceDatasourceBlobResource) basic(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -196,12 +204,13 @@ resource "azurerm_search_service_datasource_blob" "test" {
   search_service_id = azurerm_search_service.test.id
   container_name    = azurerm_storage_container.test.name
   connection_string = azurerm_storage_account.test.primary_connection_string
+
+  depends_on = [azurerm_role_assignment.current_user_search]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SearchServiceDatasourceBlobResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -211,11 +220,10 @@ resource "azurerm_search_service_datasource_blob" "import" {
   container_name    = azurerm_storage_container.test.name
   connection_string = azurerm_storage_account.test.primary_connection_string
 }
-`, template, data.RandomInteger)
+`, r.basic(data), data.RandomInteger)
 }
 
 func (r SearchServiceDatasourceBlobResource) complete(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -232,12 +240,13 @@ resource "azurerm_search_service_datasource_blob" "test" {
   description              = "test description"
   soft_delete_column_name  = "IsDeleted"
   soft_delete_marker_value = "true"
+
+  depends_on = [azurerm_role_assignment.current_user_search]
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r SearchServiceDatasourceBlobResource) encryptionKeyTemplate(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -283,11 +292,10 @@ resource "azurerm_key_vault_key" "test" {
 
   depends_on = [azurerm_role_assignment.current_user_keyvault]
 }
-`, template, data.RandomString, data.RandomString)
+`, r.template(data), data.RandomString, data.RandomString)
 }
 
 func (r SearchServiceDatasourceBlobResource) withEncryptionKey(data acceptance.TestData) string {
-	template := r.encryptionKeyTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -307,13 +315,12 @@ resource "azurerm_search_service_datasource_blob" "test" {
     key_vault_uri = azurerm_key_vault.test.vault_uri
   }
 
-  depends_on = [azurerm_role_assignment.search_keyvault]
+  depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault]
 }
-`, template, data.RandomInteger)
+`, r.encryptionKeyTemplate(data), data.RandomInteger)
 }
 
 func (r SearchServiceDatasourceBlobResource) withEncryptionKeyAndAppCredentials(data acceptance.TestData, appClientId, appClientSecret string) string {
-	template := r.encryptionKeyTemplate(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -341,7 +348,7 @@ resource "azurerm_search_service_datasource_blob" "test" {
     application_secret = %q
   }
 
-  depends_on = [azurerm_role_assignment.search_keyvault, azurerm_role_assignment.app_keyvault]
+  depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault, azurerm_role_assignment.app_keyvault]
 }
-`, template, data.RandomInteger, appClientId, appClientSecret)
+`, r.encryptionKeyTemplate(data), data.RandomInteger, appClientId, appClientSecret)
 }
