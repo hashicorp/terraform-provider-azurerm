@@ -26,3 +26,11 @@ jobs:
         with:
           go-version-file: ./.go-version
       - run: bash ./scripts/run-static-analysis.sh
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Static Analysis failed."
+          echo ""
+          echo "Run 'bash ./scripts/run-static-analysis.sh' locally to reproduce."
+          echo "This check looks for common code patterns that may indicate bugs or"
+          echo "deviations from project conventions."
