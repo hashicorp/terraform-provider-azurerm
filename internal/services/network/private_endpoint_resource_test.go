@@ -1065,3 +1065,76 @@ resource "azurerm_private_endpoint" "test" {
 }
 `, r.template(data, r.serviceAutoApprove(data)), data.RandomInteger)
 }
+
+func TestAccPrivateEndpoint_parallelKeyVaultLink(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_private_endpoint", "test")
+	r := PrivateEndpointResource{}
+
+	instanceCount := 5
+	var checks []pluginsdk.TestCheckFunc
+	for i := 0; i < instanceCount; i++ {
+		checks = append(checks, check.That(fmt.Sprintf("%s.%d", data.ResourceName, i)).ExistsInAzure(r))
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.parallelKeyVaultLink(data),
+			Check:  acceptance.ComposeTestCheckFunc(checks...),
+		},
+	})
+}
+
+func (PrivateEndpointResource) parallelKeyVaultLink(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-privatelink-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvnet-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.5.0.0/16"]
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "acctestsnetendpoint-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.5.2.0/24"]
+
+  private_endpoint_network_policies = "Disabled"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_private_endpoint" "test" {
+  count               = 5
+  name                = "acctest-privatelink-%[1]d-${count.index}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = "acctest-privatelink-kv-%[1]d-${count.index}"
+    private_connection_resource_id = azurerm_key_vault.test.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}

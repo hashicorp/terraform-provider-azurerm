@@ -382,7 +382,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 					}
 				}
 
-				retryableErrorCodes := []string{"RetryableError", "StorageAccountOperationInProgress"}
+				retryableErrorCodes := []string{"ConflictError", "RetryableError", "StorageAccountOperationInProgress"}
 				if slices.Contains(retryableErrorCodes, lroError.Error.Code) {
 					log.Printf("[WARN] Retry polling %q on error code: %q", id, lroError.Error.Code)
 					return &pluginsdk.RetryError{
