@@ -4,7 +4,7 @@
 provider "azurerm" {
   features {
     netapp {
-      prevent_volume_destruction             = false
+      prevent_volume_destruction             = true
       delete_backups_on_backup_vault_destroy = true
     }
   }
@@ -70,8 +70,6 @@ resource "azurerm_netapp_volume" "example" {
   storage_quota_in_gb = 100
 
   # Enabling Advanced Ransomware Protection (ARP)
-  # Note: ARP is currently in preview and requires feature registration.
-  # See https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure
   data_protection_advanced_ransomware {
     protection_enabled = true
   }
