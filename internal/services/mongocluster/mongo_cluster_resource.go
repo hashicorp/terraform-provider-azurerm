@@ -724,28 +724,28 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 
 			switch state.CreateMode {
 			case string(mongoclusters.CreateModeDefault):
-				if state.AdministratorUserName == "" {
-					return fmt.Errorf("`administrator_username` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+				if isNativeAuthRequired(metadata) && state.AdministratorUserName == "" {
+					return fmt.Errorf("`administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured")
 				}
 
 				if state.ComputeTier == "" {
-					return fmt.Errorf("`compute_tier` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`compute_tier` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.StorageSizeInGb == 0 {
-					return fmt.Errorf("`storage_size_in_gb` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`storage_size_in_gb` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.HighAvailabilityMode == "" {
-					return fmt.Errorf("`high_availability_mode` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`high_availability_mode` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.ShardCount == 0 {
-					return fmt.Errorf("`shard_count` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`shard_count` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 
 				if state.Version == "" {
-					return fmt.Errorf("`version` is required when `create_mode` is %s", string(mongoclusters.CreateModeDefault))
+					return fmt.Errorf("`version` is required when `create_mode` is `%s`", string(mongoclusters.CreateModeDefault))
 				}
 			case string(mongoclusters.CreateModeGeoReplica):
 				if state.SourceLocation == "" {
@@ -953,4 +953,20 @@ func flattenMongoClusterAuthConfig(input *mongoclusters.AuthConfigProperties) []
 	}
 
 	return results
+}
+
+func isNativeAuthRequired(metadata sdk.ResourceMetaData) bool {
+	authMethodsRaw := metadata.ResourceDiff.GetRawConfig().AsValueMap()["authentication_methods"]
+	nativeAuthRequired := false
+	if authMethodsRaw.IsNull() || !authMethodsRaw.IsKnown() {
+		nativeAuthRequired = true
+	} else {
+		for _, v := range authMethodsRaw.AsValueSet().Values() {
+			if v.AsString() == string(mongoclusters.AuthenticationModeNativeAuth) {
+				nativeAuthRequired = true
+				break
+			}
+		}
+	}
+	return nativeAuthRequired
 }
