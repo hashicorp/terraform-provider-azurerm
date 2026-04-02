@@ -163,7 +163,6 @@ func (r DataProtectionBackupInstanceDataLakeStorageResource) Create() sdk.Resour
 						ResourceType:     pointer.To("Microsoft.Storage/storageAccounts"),
 						ResourceUri:      pointer.To(storageAccountId.ID()),
 					},
-					FriendlyName: pointer.To(id.BackupInstanceName),
 					PolicyInfo: backupinstanceresources.PolicyInfo{
 						PolicyId: policyId.ID(),
 						PolicyParameters: &backupinstanceresources.PolicyParameters{
