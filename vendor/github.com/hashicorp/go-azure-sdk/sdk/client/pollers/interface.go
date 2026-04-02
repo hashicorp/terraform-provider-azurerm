@@ -27,6 +27,7 @@ type PollerType interface {
 	Poll(ctx context.Context) (*PollResult, error)
 }
 
+// delaySkipper is consulted only when there is no HTTP response available to inspect.
 type delaySkipper interface {
 	SkipDelay() bool
 }

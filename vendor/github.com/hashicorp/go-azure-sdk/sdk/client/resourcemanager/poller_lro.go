@@ -113,7 +113,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	result.HttpResponse, err = req.Execute(ctx)
 	if err != nil {
 		var e *url.Error
-		if errors.As(err, &e) {
+		if errors.As(err, &e) && !client.IsVCRReplayMissError(e) {
 			p.droppedConnectionCount++
 			if p.droppedConnectionCount < p.maxDroppedConnections {
 				result.Status = pollers.PollingStatusUnknown
@@ -215,10 +215,7 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 }
 
 func (p *longRunningOperationPoller) SkipDelay() bool {
-	if p.client != nil {
-		return client.IsVcrReplaying(p.client.Transport)
-	}
-	return false
+	return client.IsVCRReplaying(p.client)
 }
 
 type operationResult struct {

@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -172,7 +172,7 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 			}
 
 			if p.latestError != nil {
-				if !pointer.From(p.retryOnError) {
+				if !pointer.From(p.retryOnError) || client.IsVCRReplayMissErrorDeprecated(p.latestError) {
 					break
 				}
 			}
@@ -255,19 +255,12 @@ func (p *Poller) skipPollingDelay(ctx context.Context) bool {
 		return true
 	}
 
-	if os.Getenv("GO_AZURE_SDK_SKIP_POLLING_DELAY") == "true" {
-		return true
+	if p.latestResponse != nil && p.latestResponse.HttpResponse != nil && p.latestResponse.HttpResponse.Response != nil {
+		return strings.EqualFold(p.latestResponse.HttpResponse.Header.Get(client.SkipPollingDelayHeader), "true")
 	}
 
 	if skipper, ok := p.poller.(delaySkipper); ok && skipper.SkipDelay() {
 		return true
 	}
-
-	if p.latestResponse != nil && p.latestResponse.HttpResponse != nil && p.latestResponse.HttpResponse.Response != nil && p.latestResponse.HttpResponse.Header != nil {
-		if p.latestResponse.HttpResponse.Header.Get("X-Go-Azure-SDK-Skip-Polling-Delay") == "true" {
-			return true
-		}
-	}
-
 	return false
 }
