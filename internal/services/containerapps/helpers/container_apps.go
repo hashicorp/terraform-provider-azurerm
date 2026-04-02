@@ -1103,9 +1103,9 @@ func ContainerTemplateSchemaComputed() *pluginsdk.Schema {
 	}
 }
 
-func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.ResourceMetaData) *containerapps.Template {
+func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.ResourceMetaData) (*containerapps.Template, error) {
 	if len(input) != 1 {
-		return nil
+		return nil, nil
 	}
 
 	config := input[0]
@@ -1147,11 +1147,14 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		template.Scale.PollingInterval = pointer.To(config.PollingInterval)
 	}
 
-	if rules := config.expandContainerAppScaleRules(); len(rules) != 0 {
+	rules, err := config.expandContainerAppScaleRules()
+	if err != nil {
+		return nil, err
+	}
+	if len(rules) != 0 {
 		if template.Scale == nil {
 			template.Scale = &containerapps.Scale{}
 		}
-
 		template.Scale.Rules = pointer.To(rules)
 	}
 
@@ -1161,7 +1164,7 @@ func ExpandContainerAppTemplate(input []ContainerTemplate, metadata sdk.Resource
 		}
 	}
 
-	return template
+	return template, nil
 }
 
 func FlattenContainerAppTemplate(input *containerapps.Template) []ContainerTemplate {
@@ -3073,7 +3076,6 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
-		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -3090,9 +3092,8 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 
 				"account_name": {
 					Type:         pluginsdk.TypeString,
-					Required:     true,
+					Optional:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					Description:  "The name of the Azure Storage Account for the queue.",
 				},
 
 				"queue_name": {
@@ -3111,7 +3112,6 @@ func AzureQueueScaleRuleSchema() *pluginsdk.Schema {
 				"authentication": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
-					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"secret_name": {
@@ -3154,9 +3154,14 @@ func AzureQueueScaleRuleSchemaComputed() *pluginsdk.Schema {
 					Computed: true,
 				},
 
+				"identity": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The user-assigned managed identity resource ID to use for queue access.",
+				},
+
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3226,7 +3231,6 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3275,7 +3279,6 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3322,7 +3325,6 @@ func HTTPScaleRuleSchema() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3363,7 +3365,6 @@ func HTTPScaleRuleSchemaComputed() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3411,7 +3412,6 @@ func TCPScaleRuleSchema() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3452,7 +3452,6 @@ func TCPScaleRuleSchemaComputed() *pluginsdk.Schema {
 
 				"authentication": {
 					Type:     pluginsdk.TypeList,
-					Optional: true,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -3478,20 +3477,45 @@ type ScaleRuleAuthentication struct {
 	TriggerParam string `tfschema:"trigger_parameter"`
 }
 
-func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.ScaleRule {
+func ValidateAzureQueueScaleRule(rule AzureQueueScaleRule) error {
+	if rule.Identity != "" && len(rule.Authentications) > 0 {
+		return fmt.Errorf("`identity` and `authentication` are mutually exclusive in azure_queue_scale_rule %q", rule.Name)
+	}
+	if rule.Identity == "" && len(rule.Authentications) == 0 {
+		return fmt.Errorf("must supply either `identity` or `authentication` in azure_queue_scale_rule %q", rule.Name)
+	}
+	if rule.Identity != "" && rule.AccountName == "" {
+		return fmt.Errorf("`account_name` is required when `identity` is specified in azure_queue_scale_rule %q", rule.Name)
+	}
+	return nil
+}
+
+func (c *ContainerTemplate) expandContainerAppScaleRules() ([]containerapps.ScaleRule, error) {
 	if len(c.AzureQueueScaleRules) == 0 && len(c.CustomScaleRules) == 0 && len(c.HTTPScaleRules) == 0 && len(c.TCPScaleRules) == 0 {
-		return nil
+		return nil, nil
 	}
 	result := make([]containerapps.ScaleRule, 0)
 	for _, v := range c.AzureQueueScaleRules {
+
+		if err := ValidateAzureQueueScaleRule(v); err != nil {
+			return nil, err
+		}
+
 		r := containerapps.ScaleRule{
 			Name: pointer.To(v.Name),
 			AzureQueue: &containerapps.QueueScaleRule{
-				AccountName: pointer.To(v.AccountName),
 				QueueLength: pointer.To(v.QueueLength),
 				QueueName:   pointer.To(v.QueueName),
-				Identity:    pointer.To(v.Identity),
 			},
+		}
+		// Only set AccountName if provided
+		if v.AccountName != "" {
+			r.AzureQueue.AccountName = pointer.To(v.AccountName)
+		}
+
+		// Only set Identity if provided
+		if v.Identity != "" {
+			r.AzureQueue.Identity = pointer.To(v.Identity)
 		}
 
 		auths := make([]containerapps.ScaleRuleAuth, 0)
@@ -3579,7 +3603,7 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() []containerapps.Scale
 		result = append(result, r)
 	}
 
-	return result
+	return result, nil
 }
 
 func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps.ScaleRule) {
@@ -3595,6 +3619,8 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 					Name:        pointer.From(v.Name),
 					QueueLength: pointer.From(q.QueueLength),
 					QueueName:   pointer.From(q.QueueName),
+					AccountName: pointer.From(q.AccountName),
+					Identity:    pointer.From(q.Identity),
 				}
 
 				authentications := make([]ScaleRuleAuthentication, 0)
