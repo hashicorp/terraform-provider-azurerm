@@ -184,6 +184,7 @@ github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/roledefinitions
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/secrets
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/settings
 github.com/hashicorp/go-azure-sdk/data-plane/keyvault/7-4/storage
+github.com/hashicorp/go-azure-sdk/data-plane/synapse/2021-06-01-preview/managedprivateendpoints
 # github.com/hashicorp/go-azure-sdk/resource-manager v0.20260417.1195006
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
@@ -1229,6 +1230,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2020-03-01/tr
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/outputs
 github.com/hashicorp/go-azure-sdk/resource-manager/streamanalytics/2021-10-01-preview/streamingjobs
 github.com/hashicorp/go-azure-sdk/resource-manager/subscription/2021-10-01/subscriptions
+github.com/hashicorp/go-azure-sdk/resource-manager/synapse/2021-06-01/workspaces
 github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07
 github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/availabilitysets
 github.com/hashicorp/go-azure-sdk/resource-manager/systemcentervirtualmachinemanager/2023-10-07/clouds
@@ -1529,7 +1531,6 @@ github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral
 github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub
 github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault
 github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights
-github.com/jackofallops/kermit/sdk/synapse/2019-06-01-preview/synapse
 github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse
 github.com/jackofallops/kermit/sdk/web/2022-09-01/web
