@@ -177,7 +177,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "CreatedOnDate"    = "2023-08-17T08:01:00Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true",
     "SkipNRMSNSG"      = "true"
   }
@@ -189,7 +189,7 @@ resource "azurerm_network_security_group" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2023-08-17T08:01:00Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -201,7 +201,7 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.88.0.0/16"]
 
   tags = {
-    "CreatedOnDate"    = "2023-08-17T08:01:00Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -233,7 +233,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2023-08-17T08:01:00Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
@@ -248,7 +248,7 @@ resource "azurerm_netapp_pool" "test" {
   qos_type            = "Auto"
 
   tags = {
-    "CreatedOnDate"    = "2023-08-17T08:01:00Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }

@@ -923,7 +923,7 @@ resource "azurerm_private_endpoint" "test" {
   }
 
   tags = {
-    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 

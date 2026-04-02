@@ -297,7 +297,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 

@@ -173,7 +173,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate"    = "2023-08-17T08:01:00Z",
+    "CreatedOnDate"    = "2022-07-08T23-50-21Z",
     "SkipASMAzSecPack" = "true"
   }
 }
