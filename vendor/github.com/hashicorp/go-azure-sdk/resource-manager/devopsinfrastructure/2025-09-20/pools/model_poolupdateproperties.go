@@ -9,21 +9,23 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type PoolUpdateProperties struct {
-	AgentProfile               AgentProfile        `json:"agentProfile"`
-	DevCenterProjectResourceId *string             `json:"devCenterProjectResourceId,omitempty"`
-	FabricProfile              FabricProfile       `json:"fabricProfile"`
-	MaximumConcurrency         *int64              `json:"maximumConcurrency,omitempty"`
-	OrganizationProfile        OrganizationProfile `json:"organizationProfile"`
-	ProvisioningState          *ProvisioningState  `json:"provisioningState,omitempty"`
+	AgentProfile               AgentProfile          `json:"agentProfile"`
+	DevCenterProjectResourceId *string               `json:"devCenterProjectResourceId,omitempty"`
+	FabricProfile              FabricProfile         `json:"fabricProfile"`
+	MaximumConcurrency         *int64                `json:"maximumConcurrency,omitempty"`
+	OrganizationProfile        OrganizationProfile   `json:"organizationProfile"`
+	ProvisioningState          *ProvisioningState    `json:"provisioningState,omitempty"`
+	RuntimeConfiguration       *RuntimeConfiguration `json:"runtimeConfiguration,omitempty"`
 }
 
 var _ json.Unmarshaler = &PoolUpdateProperties{}
 
 func (s *PoolUpdateProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		DevCenterProjectResourceId *string            `json:"devCenterProjectResourceId,omitempty"`
-		MaximumConcurrency         *int64             `json:"maximumConcurrency,omitempty"`
-		ProvisioningState          *ProvisioningState `json:"provisioningState,omitempty"`
+		DevCenterProjectResourceId *string               `json:"devCenterProjectResourceId,omitempty"`
+		MaximumConcurrency         *int64                `json:"maximumConcurrency,omitempty"`
+		ProvisioningState          *ProvisioningState    `json:"provisioningState,omitempty"`
+		RuntimeConfiguration       *RuntimeConfiguration `json:"runtimeConfiguration,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
@@ -32,6 +34,7 @@ func (s *PoolUpdateProperties) UnmarshalJSON(bytes []byte) error {
 	s.DevCenterProjectResourceId = decoded.DevCenterProjectResourceId
 	s.MaximumConcurrency = decoded.MaximumConcurrency
 	s.ProvisioningState = decoded.ProvisioningState
+	s.RuntimeConfiguration = decoded.RuntimeConfiguration
 
 	var temp map[string]json.RawMessage
 	if err := json.Unmarshal(bytes, &temp); err != nil {

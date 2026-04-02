@@ -223,4 +223,4 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DevOpsInfrastructure` - 2025-01-21
+* `Microsoft.DevOpsInfrastructure` - 2025-09-20

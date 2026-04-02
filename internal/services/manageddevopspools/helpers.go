@@ -8,7 +8,7 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-01-21/pools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -358,7 +358,7 @@ func expandVmssFabricModel(input []VmssFabricModel) pools.FabricProfile {
 
 	if fabricProfile.SubnetId != "" {
 		vmssFabricProfile.NetworkProfile = &pools.NetworkProfile{
-			SubnetId: fabricProfile.SubnetId,
+			SubnetId: pointer.To(fabricProfile.SubnetId),
 		}
 	}
 
@@ -600,7 +600,7 @@ func flattenVmssFabricToModel(input pools.VMSSFabricProfile) []VmssFabricModel {
 	}
 
 	if input.NetworkProfile != nil {
-		vmssFabricModel.SubnetId = input.NetworkProfile.SubnetId
+		vmssFabricModel.SubnetId = pointer.From(input.NetworkProfile.SubnetId)
 	}
 
 	return []VmssFabricModel{vmssFabricModel}

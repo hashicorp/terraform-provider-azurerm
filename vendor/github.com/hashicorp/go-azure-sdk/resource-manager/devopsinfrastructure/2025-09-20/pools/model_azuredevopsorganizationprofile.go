@@ -11,6 +11,7 @@ import (
 var _ OrganizationProfile = AzureDevOpsOrganizationProfile{}
 
 type AzureDevOpsOrganizationProfile struct {
+	Alias             *string                       `json:"alias,omitempty"`
 	Organizations     []Organization                `json:"organizations"`
 	PermissionProfile *AzureDevOpsPermissionProfile `json:"permissionProfile,omitempty"`
 

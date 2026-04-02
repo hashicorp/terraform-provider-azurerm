@@ -292,4 +292,4 @@ terraform import azurerm_managed_devops_pool.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevOpsInfrastructure` - 2025-01-21
+* `Microsoft.DevOpsInfrastructure` - 2025-09-20
