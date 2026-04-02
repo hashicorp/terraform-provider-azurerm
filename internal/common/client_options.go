@@ -64,6 +64,9 @@ type ClientOptions struct {
 	// Transport exposes the go-azure-sdk mechanism to attach / replace the default transport. Primarily for go-vcr
 	// testing
 	Transport http.RoundTripper
+
+	// TransportMode to pass vcr mode
+	TransportMode client.TransportMode
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
@@ -72,7 +75,7 @@ func (o ClientOptions) Configure(c client.BaseClient, authorizer auth.Authorizer
 	c.SetUserAgent(userAgent(c.GetUserAgent(), o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID))
 
 	if o.Transport != nil {
-		c.SetTransport(o.Transport)
+		c.SetTransport(o.Transport, o.TransportMode)
 	}
 
 	if !o.DisableCorrelationRequestID {

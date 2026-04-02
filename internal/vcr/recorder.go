@@ -5,22 +5,18 @@ package vcr
 
 import (
 	"bytes"
-	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"sync"
-	"time"
 
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"gopkg.in/dnaeon/go-vcr.v4/pkg/cassette"
 	"gopkg.in/dnaeon/go-vcr.v4/pkg/recorder"
 )
@@ -162,22 +158,7 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 	})
 
 	// Note: this needs to match the same struct from go-azure-sdk/sdk/client/client.go:retryableClient()
-	defaultTransport := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			d := &net.Dialer{Resolver: &net.Resolver{}}
-			return d.DialContext(ctx, network, addr)
-		},
-		TLSClientConfig: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-		},
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		ForceAttemptHTTP2:     true,
-		MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-	}
+	defaultTransport := client.GetDefaultHttpTransport()
 
 	r, err := recorder.New(cassettePath,
 		recorder.WithMode(mode),
@@ -199,6 +180,17 @@ func GetRecorder(testName string, subscriptionId string) (*recorder.Recorder, er
 			redactHeaders(i.Response.Headers)
 			return nil
 		}, recorder.BeforeSaveHook),
+		recorder.WithHook(func(i *cassette.Interaction) error {
+			delete(i.Response.Headers, client.VCRReplayHeader)
+			delete(i.Response.Headers, client.SkipPollingDelayHeader)
+			return nil
+		}, recorder.BeforeSaveHook),
+		recorder.WithHook(func(i *cassette.Interaction) error {
+			if i.WasReplayed() {
+				i.Response.Headers.Set(client.VCRReplayHeader, "true")
+			}
+			return nil
+		}, recorder.BeforeResponseReplayHook),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create recorder for %s: %v", testName, err)
@@ -221,4 +213,17 @@ func StopRecorder(testName string) error {
 		}
 	}
 	return nil
+}
+
+func GetTransportMode(vcrMode recorder.Mode) client.TransportMode {
+	switch vcrMode {
+	case recorder.ModeRecordOnly:
+		return client.TransportModeVCRRecord
+	case recorder.ModeReplayOnly:
+		return client.TransportModeVCRReplay
+	case recorder.ModeReplayWithNewEpisodes:
+		return client.TransportModeVCRReplayWithNewEpisodes
+	default:
+		return client.TransportModeDefault
+	}
 }
