@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupinstanceresources"
+	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 )
 
@@ -61,5 +62,10 @@ func (p dataProtectionBackupInstancePoller) Poll(ctx context.Context) (*pollers.
 		}, nil
 	}
 
-	return nil, fmt.Errorf("waiting for %s to reach state `%s` but got unexpected state `%s`", p.id, string(p.targetState), string(currentState))
+	return nil, pollers.PollingFailedError{
+		HttpResponse: &client.Response{
+			Response: resp.HttpResponse,
+		},
+		Message: fmt.Sprintf("waiting for %s to reach state `%s` but got unexpected state `%s`", p.id, string(p.targetState), string(currentState)),
+	}
 }
