@@ -382,7 +382,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 					}
 				}
 
-				retryableErrorCodes := []string{"ConflictError", "RetryableError", "StorageAccountOperationInProgress"}
+				retryableErrorCodes := []string{"RetryableError", "StorageAccountOperationInProgress", "ConflictError", "InvalidPrivateLinkServiceId"}
 				if slices.Contains(retryableErrorCodes, lroError.Error.Code) {
 					log.Printf("[WARN] Retry polling %q on error code: %q", id, lroError.Error.Code)
 					return &pluginsdk.RetryError{
@@ -532,20 +532,29 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		return err
 	}
 
-	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutUpdate), func() *pluginsdk.RetryError {
 		if err = client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
 			switch {
-			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
+			case strings.Contains(err.Error(), "is missing required parameter 'group Id'"):
 				{
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("updating %s due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id, err),
+						Err:       fmt.Errorf("updating %s: missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id, err),
 						Retryable: false,
 					}
 				}
-			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
+			case strings.Contains(err.Error(), "ConflictError"):
 				{
+					// Updating private endpoints on some resources (like KeyVault) can trigger update conflict errors.
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("creating Private Endpoint %s: %+v", id, err),
+						Err:       fmt.Errorf("updating %s: %+v", id, err),
+						Retryable: true,
+					}
+				}
+			case strings.Contains(err.Error(), "InvalidPrivateLinkServiceId"):
+				{
+					// This is required due to a bug in the API: https://github.com/Azure/azure-rest-api-specs/issues/20289
+					return &pluginsdk.RetryError{
+						Err:       fmt.Errorf("updating %s: %+v", id, err),
 						Retryable: true,
 					}
 				}
