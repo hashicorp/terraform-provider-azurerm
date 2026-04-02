@@ -1,3 +1,39 @@
+## 4.67.0 (April 02, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_storage_sync` ([#31995](https://github.com/hashicorp/terraform-provider-azurerm/issues/31995))
+* **New Resource**: `azurerm_data_protection_backup_policy_data_lake_storage` ([#31179](https://github.com/hashicorp/terraform-provider-azurerm/issues/31179))
+* **New Resource**: `azurerm_eventgrid_namespace_topic` ([#30104](https://github.com/hashicorp/terraform-provider-azurerm/issues/30104))
+* **New Resource**: `azurerm_kubernetes_cluster_deployment_safeguard` ([#31670](https://github.com/hashicorp/terraform-provider-azurerm/issues/31670))
+* **New Resource**: `azurerm_resource_provider_feature_registration` ([#28303](https://github.com/hashicorp/terraform-provider-azurerm/issues/28303))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - upgrade to `v0.20260326.1151219` ([#32047](https://github.com/hashicorp/terraform-provider-azurerm/issues/32047))
+* dependencies: `storage` - update to API version `2025-06-01` ([#32071](https://github.com/hashicorp/terraform-provider-azurerm/issues/32071))
+* Data Source: `azurerm_application_gateway` - export the `backend`, `listener`, and `routing_rule` properties ([#30376](https://github.com/hashicorp/terraform-provider-azurerm/issues/30376))
+* Data Source: `azurerm_logic_app_standard` - export the `site_config.ip_restriction_default_action` property ([#31816](https://github.com/hashicorp/terraform-provider-azurerm/issues/31816))
+* Data Source: `azurerm_mssql_elasticpool` - export the `high_availability_replica_count` property ([#31761](https://github.com/hashicorp/terraform-provider-azurerm/issues/31761))
+* `azurerm_application_gateway` - add support for the `backend`, `listener`, and `routing_rule` properties ([#30376](https://github.com/hashicorp/terraform-provider-azurerm/issues/30376))
+* `azurerm_kubernetes_cluster` - add support for the `Ubuntu2404` OS SKU ([#32070](https://github.com/hashicorp/terraform-provider-azurerm/issues/32070))
+* `azurerm_kubernetes_cluster` - improve validation for `network_profile.0.advanced_networking` ([#31497](https://github.com/hashicorp/terraform-provider-azurerm/issues/31497))
+* `azurerm_kubernetes_cluster_node_pool` - add support for the `Ubuntu2404` OS SKU ([#32070](https://github.com/hashicorp/terraform-provider-azurerm/issues/32070))
+* `azurerm_kusto_attached_database_configuration` - add support for the `database_name_override`, `database_name_prefix`, `sharing.functions_to_exclude`, and `sharing.functions_to_include` properties ([#31470](https://github.com/hashicorp/terraform-provider-azurerm/issues/31470))
+* `azurerm_logic_app_standard` - add support for the `site_config.scm_ip_restriction_default_action` property ([#32043](https://github.com/hashicorp/terraform-provider-azurerm/issues/32043))
+* `azurerm_logic_app_standard` - add support for the `site_config.ip_restriction_default_action` property ([#31816](https://github.com/hashicorp/terraform-provider-azurerm/issues/31816))
+* `azurerm_mssql_elasticpool` - add support for the `high_availability_replica_count` property ([#31761](https://github.com/hashicorp/terraform-provider-azurerm/issues/31761))
+* `azurerm_nat_gateway` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
+* `azurerm_public_ip` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
+* `azurerm_public_ip_prefix` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
+
+BUG FIXES:
+
+* `azurerm_backup_policy_vm` - fix the Update function to properly set all timestamps when any of `backup.time`, `retention_daily`, `retention_weekly`, `retention_montly`, or `retention_yearly` change ([#31969](https://github.com/hashicorp/terraform-provider-azurerm/issues/31969))
+* `azurerm_cosmosdb_account` - fix an API error caused by `backup.interval_in_minutes` and `backup.retention_in_hours` being set to `0` in the API payload when not defined in config ([#32037](https://github.com/hashicorp/terraform-provider-azurerm/issues/32037))
+* `azurerm_machine_learning_compute_instance` - fix setting `node_public_ip_enabled` into state ([#31725](https://github.com/hashicorp/terraform-provider-azurerm/issues/31725))
+* `azurerm_search_service` - mark `query_keys.key` value as sensitive (#32053) ([#32053](https://github.com/hashicorp/terraform-provider-azurerm/issues/32053))
+
 ## 4.66.0 (March 26, 2026)
 
 FEATURES:
