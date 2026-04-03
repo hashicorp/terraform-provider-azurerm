@@ -1,0 +1,245 @@
+package {{ToLower .ServicePackageName }}
+
+import (
+	"context"
+	"fmt"
+	"reflect"
+	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
+	"github.com/hashicorp/go-azure-helpers/framework/convert"
+	"github.com/hashicorp/go-azure-helpers/framework/identity"
+	"github.com/hashicorp/go-azure-helpers/framework/location"
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	rmidentity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/{{ .RPName }}/{{ .APIVersion }}/{{ .SDKName }}"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+)
+
+type {{ToCamel .Name }}Resource struct{}
+
+var _ sdk.FrameworkWrappedResourceWithUpdate = &{{ToCamel .Name }}Resource{}
+
+{{if .ConfigValidators -}}
+var _ sdk.FrameworkWrappedResourceWithConfigValidators = &{{ToCamel .Name }}Resource{}
+{{- end }}
+
+func (r {{ToCamel .Name }}Resource) ModelObject() any {
+	return new({{ToCamel .Name }}ResourceModel)
+}
+
+func (r {{ToCamel .Name }}Resource) ResourceType() string {
+	return "azurerm_{{ToSnake .Name}}"
+}
+
+func (r {{ToCamel .Name }}Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse, metadata sdk.ResourceMetadata) {
+	if req.ID == "" {
+		resourceIdentity := &{{ToCamel .Name }}ResourceIdentityModel{}
+		req.Identity.Get(ctx, resourceIdentity)
+		id := pointer.To({{NewIDResourceIdentityFormatter .IdTypeParts .ResourceIdentitySegments "resourceIdentity"}})
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id.ID())...)
+	}
+
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
+
+func (r {{ToCamel .Name }}Resource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			commonschema.Name: schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(), // TODO - Assumes the `name` is ForceNew, if not, then remove this
+				},
+				Validators: []validator.String{
+					// TODO - Add validation here for the name. Either re-use existing validator, or implement a custom StringValidator
+					// typehelpers.WrappedStringValidator{
+					// 	 Func: nil,
+					// },
+				},
+			},
+
+			commonschema.ResourceGroupName: commonschema.ResourceGroupNameAttribute(),
+
+			// TODO - Uncomment the following line if the resource supports location (i.e. can be different to the RG's location value)
+			// commonschema.Location: location.LocationAttribute(),
+			// TODO -  Tags are an assumed schema property - remove this if the resource does not support tags
+			commonschema.Tags: commonschema.TagsResourceAttribute(ctx),
+		},
+		// TODO - If there are no block type properties, this can be removed.
+		Blocks: map[string]schema.Block{
+			// Uncomment the following line if the resource supports identity
+			// "identity": identity.IdentityResourceBlockSchema(ctx),
+		},
+	}
+}
+
+{{if .ConfigValidators -}}
+func (r {{ToCamel .Name }}Resource) ConfigValidators(_ context.Context) []resource.ConfigValidator {
+	return []resource.ConfigValidator{}
+}
+{{ end }}
+
+func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.CreateRequest, resp *resource.CreateResponse, metadata sdk.ResourceMetadata, decodedPlan any) {
+	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
+
+	data := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedPlan, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	id := {{NewIDCreateFormatter .IdTypeParts .ResourceIdentitySegments "data" }}
+
+	existing, err := client.Get(ctx, id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing %s: %+v", id, err), err.Error())
+			return
+		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		metadata.ResourceRequiresImport(r.ResourceType(), id, resp)
+		return
+	}
+
+	// TODO - Code for creating the resource goes here - Recommended to use an exported function to build the payload for future feature compatibility
+	// TODO - Uncomment the below when the API_MODEL is known and initialised.
+	{{ if .UsesLROCRUD }}
+	// 	if err = client.CreateOrUpdateThenPoll(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}, API_MODEL); err != nil {
+	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", *id), err.Error())
+	//	return
+	// }
+	{{ else }}
+	//  if _, err = client.CreateOrUpdate(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}); err != nil {
+	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", id), err.Error())
+	//  return
+	// }
+	{{ end -}}
+
+
+	data.ID = types.StringValue(id.ID())
+
+	// Get computed values to satisfy known after Apply requirements
+	existing, err = client.Get(ctx, id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+			metadata.MarkAsGone(id, &resp.State, &resp.Diagnostics)
+			return
+		}
+
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving %s:", id), err)
+		return
+	}
+
+	if model := existing.Model; model != nil {
+		// TODO - Set all values marked as computed in the schema _*everything must*_ have a value set.
+
+	}
+}
+
+func (r {{ToCamel .Name }}Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState any) {
+	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
+	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	id, err := {{ index .IdTypeParts 0 }}.Parse{{ IdToID (index .IdTypeParts 1) }}(state.ID.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
+		return
+	}
+
+	existing, err := client.Get(ctx, *id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+			metadata.MarkAsGone(id, &resp.State, &resp.Diagnostics)
+			return
+		}
+
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving %s:", id), err)
+		return
+	}
+
+	// TODO - Set state values for properties belonging to the ID
+
+	if model := existing.Model; model != nil {
+		// TODO - Set state values for properties belonging to the model / props etc
+	}
+}
+
+{{ if .Updatable -}}
+func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse, metadata sdk.ResourceMetadata, decodedPlan any, decodedState any) {
+	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
+	// TODO - uncomment the following line to access the plan data
+	// plan := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedPlan, resp)
+	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	id, err := {{ index .IdTypeParts 0 }}.Parse{{ IdToID (index .IdTypeParts 1) }}(state.ID.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
+		return
+	}
+
+	existing, err := client.Get(ctx, *id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+		metadata.MarkAsGone(id, &resp.State, &resp.Diagnostics)
+		return
+	}
+
+	sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving %s:", id), err)
+	return
+}
+
+}
+{{ end }}
+func (r {{ToCamel .Name }}Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse, metadata sdk.ResourceMetadata, decodedState any) {
+	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
+	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	id, err := {{ index .IdTypeParts 0 }}.Parse{{ IdToID (index .IdTypeParts 1) }}(state.ID.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
+		return
+	}
+
+	// TODO - Some Delete operations use `Options`, if this is the case, add them to the client.Delete below or regenerate this file with the `UseDeleteOptions=true` set.
+	{{ if .UsesLROCRUD }}
+	if err = client.DeleteThenPoll(ctx, *id{{ if .UseDeleteOptions}}, {{ClientToPackageName .ClientName}}.DefaultDeleteOperationOptions(){{ end -}}); err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("deleting %s:", *id), err.Error())
+		return
+	}
+	{{ else }}
+	if _, err = client.Delete(ctx, *id{{ if .UseDeleteOptions}}, {{ClientToPackageName .ClientName}}.DefaultDeleteOperationOptions(){{ end -}}); err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("deleting %s:", *id), err.Error())
+	}
+	{{ end -}}
+}
+
+func (r {{ToCamel .Name }}Resource) Identity() (id resourceids.ResourceId, idType []sdk.ResourceTypeForIdentity) {
+	return &{{ index .IdTypeParts 0 }}.{{ index .IdTypeParts 1}}{}, []sdk.ResourceTypeForIdentity{sdk.ResourceTypeForIdentityDefault}
+}

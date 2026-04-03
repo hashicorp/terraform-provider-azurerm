@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -290,7 +290,7 @@ func (r DataFactoryDatasetAzureSQLTableResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("table") {
-					azureSqlTable.AzureSQLTableDatasetTypeProperties.Table = data.Table
+					azureSqlTable.Table = data.Table
 				}
 			}
 

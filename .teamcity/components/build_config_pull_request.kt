@@ -24,6 +24,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTestsForPullRequest(packageName)
+                PostTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -32,6 +33,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
 
             features {
                 Golang()
+                BuildCacheFeature()
             }
 
             params {
@@ -40,6 +42,7 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
                 TerraformShouldPanicForSchemaErrors()
                 TerraformCoreBinaryTesting()
                 ReadOnlySettings()
+                GoCache()
 
                 text("SERVICES", "portal")
             }
@@ -47,6 +50,6 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
     }
 
     fun uniqueID(provider : String) : String {
-        return "%s_PR_%s".format(provider.toUpperCase(), environment.toUpperCase())
+        return "%s_PR_%s".format(provider.uppercase(), environment.uppercase())
     }
 }

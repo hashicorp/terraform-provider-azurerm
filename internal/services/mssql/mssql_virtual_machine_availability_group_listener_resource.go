@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql
@@ -89,7 +89,7 @@ func (r MsSqlVirtualMachineAvailabilityGroupListenerResource) Arguments() map[st
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: sqlvirtualmachines.ValidateSqlVirtualMachineGroupID,
+			ValidateFunc: availabilitygrouplisteners.ValidateSqlVirtualMachineGroupID,
 		},
 
 		"availability_group_name": {

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx_test
@@ -175,12 +175,11 @@ resource "azurerm_subnet" "test" {
 }
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[1]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standardv2_Monthly"
-  capacity                 = 10
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = false
+  name                = "acctest-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv3_Monthly"
+  capacity            = 10
+  location            = azurerm_resource_group.test.location
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]

@@ -6,7 +6,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
     val environment = environment
     val vcsRootId = vcsRootId
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
             id(uniqueID(providerName))
@@ -22,6 +22,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 ConfigureGoEnv()
                 DownloadTerraformBinary()
                 RunAcceptanceTests(packageName)
+                PostTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -31,6 +32,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
 
             features {
                 Golang()
+                BuildCacheFeature()
             }
 
             params {
@@ -40,15 +42,16 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
                 TerraformShouldPanicForSchemaErrors()
                 ReadOnlySettings()
                 WorkingDirectory(packageName)
+                GoCache()
             }
 
             triggers {
-                RunNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth)
+                RunNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth, disableTriggers)
             }
         }
     }
 
     fun uniqueID(provider : String) : String {
-        return "%s_SERVICE_%s_%s".format(provider.toUpperCase(), environment.toUpperCase(), packageName.toUpperCase())
+        return "%s_SERVICE_%s_%s".format(provider.uppercase(), environment.uppercase(), packageName.uppercase())
     }
 }

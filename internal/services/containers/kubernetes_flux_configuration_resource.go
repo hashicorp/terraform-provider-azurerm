@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -12,13 +12,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2023-05-01/fluxconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
@@ -83,6 +82,7 @@ type GitRepositoryDefinitionModel struct {
 	HttpsUser             string `tfschema:"https_user"`
 	HttpsKey              string `tfschema:"https_key_base64"`
 	LocalAuthRef          string `tfschema:"local_auth_reference"`
+	Provider              string `tfschema:"provider"`
 	ReferenceType         string `tfschema:"reference_type"`
 	ReferenceValue        string `tfschema:"reference_value"`
 	SshKnownHosts         string `tfschema:"ssh_known_hosts_base64"`
@@ -549,6 +549,12 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.ssh_private_key_base64", "git_repository.0.ssh_known_hosts_base64"},
 					},
 
+					"provider": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForProviderType(), false),
+					},
+
 					"ssh_private_key_base64": {
 						Type:          pluginsdk.TypeString,
 						Optional:      true,
@@ -636,7 +642,7 @@ func (r KubernetesFluxConfigurationResource) Create() sdk.ResourceFunc {
 				Properties: &fluxconfiguration.FluxConfigurationProperties{
 					Kustomizations: expandKustomizationDefinitionModel(model.Kustomizations),
 					Scope:          pointer.To(fluxconfiguration.ScopeType(model.Scope)),
-					Suspend:        utils.Bool(!model.ContinuousReconciliationEnabled),
+					Suspend:        pointer.To(!model.ContinuousReconciliationEnabled),
 				},
 			}
 
@@ -746,7 +752,7 @@ func (r KubernetesFluxConfigurationResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("continuous_reconciliation_enabled") {
-				properties.Properties.Suspend = utils.Bool(!model.ContinuousReconciliationEnabled)
+				properties.Properties.Suspend = pointer.To(!model.ContinuousReconciliationEnabled)
 			}
 
 			if properties.Properties.ConfigurationProtectedSettings == nil {
@@ -921,7 +927,7 @@ func expandKustomizationDefinitionModel(inputList []KustomizationDefinitionModel
 		}
 
 		if input.Path != "" {
-			output.Path = utils.String(input.Path)
+			output.Path = pointer.To(input.Path)
 		}
 
 		outputList[input.Name] = output
@@ -1009,7 +1015,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 
 	input := &inputList[0]
 	output := fluxconfiguration.BucketDefinition{
-		Insecure:              utils.Bool(!input.TlsEnabled),
+		Insecure:              pointer.To(!input.TlsEnabled),
 		SyncIntervalInSeconds: &input.SyncIntervalInSeconds,
 		TimeoutInSeconds:      &input.TimeoutInSeconds,
 	}
@@ -1079,6 +1085,10 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 
 	if input.Url != "" {
 		output.Url = &input.Url
+	}
+
+	if input.Provider != "" {
+		output.Provider = pointer.To(fluxconfiguration.ProviderType(input.Provider))
 	}
 
 	configSettings := make(map[string]string)
@@ -1270,6 +1280,7 @@ func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryD
 		HttpsCACert:           pointer.From(input.HTTPSCACert),
 		HttpsUser:             pointer.From(input.HTTPSUser),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
+		Provider:              string(pointer.From(input.Provider)),
 		SshKnownHosts:         pointer.From(input.SshKnownHosts),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),

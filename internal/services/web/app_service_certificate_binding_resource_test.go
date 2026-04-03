@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web_test
@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -84,32 +85,32 @@ func (t AppServiceCertificateBindingResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	binding, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.SiteName, id.HostnameBindingId.Name)
+	binding, err := clients.Web.AppServicesClient.GetHostNameBinding(ctx, id.HostnameBindingId.ResourceGroup, id.SiteName, id.HostnameBindingId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(binding.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Hostname Binding %q (resource group %q) to check for Certificate Binding %q: %+v", id.HostnameBindingId.Name, id.HostnameBindingId.ResourceGroup, id.HostnameBindingId.Name, err)
 	}
 	certificate, err := clients.Web.CertificatesClient.Get(ctx, id.CertificateId.ResourceGroup, id.CertificateId.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(certificate.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving App Service Certificate %q (resource group %q) to check for Certificate Binding: %+v", id.CertificateId.Name, id.CertificateId.ResourceGroup, err)
 	}
 	bindingProps := binding.HostNameBindingProperties
 	if bindingProps == nil || bindingProps.Thumbprint == nil {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
 	certProps := certificate.CertificateProperties
 	if certProps == nil || certProps.Thumbprint == nil {
 		return nil, fmt.Errorf("reading Certificate thumbprint for verification on binding")
 	}
 	if *certProps.Thumbprint != *bindingProps.Thumbprint {
-		return utils.Bool(false), nil
+		return pointer.To(false), nil
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (t AppServiceCertificateBindingResource) basic(data acceptance.TestData) string {

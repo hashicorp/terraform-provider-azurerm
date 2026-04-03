@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package policy
@@ -95,6 +95,10 @@ func resourceArmSubscriptionPolicyRemediation() *pluginsdk.Resource {
 			"policy_definition_reference_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// The API does not honour the provided casing, instead returning values in all lowercase
+				// https://github.com/Azure/azure-rest-api-specs/issues/37823
+				DiffSuppressFunc:      suppress.CaseDifference,
+				DiffSuppressOnRefresh: true,
 			},
 
 			"resource_discovery_mode": {

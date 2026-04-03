@@ -24,7 +24,7 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `resource_id` - The ID of an existing Resource which Monitor Diagnostics Categories should be retrieved for.
 
@@ -40,7 +40,7 @@ data "azurerm_monitor_diagnostic_categories" "example" {
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Monitor Diagnostics Categories.
 
@@ -48,4 +48,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2021-05-01-preview
+* `Microsoft.Insights` - 2021-05-01-preview

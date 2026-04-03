@@ -23,12 +23,10 @@ resource "azurerm_recovery_services_vault" "vault" {
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -55,8 +53,6 @@ The following arguments are supported:
 * `cross_region_restore_enabled` - (Optional) Is cross region restore enabled for this Vault? Only can be `true`, when `storage_mode_type` is `GeoRedundant`. Defaults to `false`.
 
 -> **Note:** Once `cross_region_restore_enabled` is set to `true`, changing it back to `false` forces a new Recovery Service Vault to be created.
-
-* `soft_delete_enabled` - (Optional) Is soft delete enable for this Vault? Defaults to `true`.
 
 * `encryption` - (Optional) An `encryption` block as defined below. Required with `identity`.
 
@@ -120,7 +116,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Recovery Services Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Vault.
@@ -139,4 +135,4 @@ terraform import azurerm_recovery_services_vault.vault1 /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RecoveryServices`: 2024-04-01, 2024-01-01
+* `Microsoft.RecoveryServices` - 2024-04-01, 2024-01-01

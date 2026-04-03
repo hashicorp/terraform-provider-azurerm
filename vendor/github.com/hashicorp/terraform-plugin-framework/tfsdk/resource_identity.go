@@ -70,6 +70,16 @@ func (s *ResourceIdentity) Set(ctx context.Context, val interface{}) diag.Diagno
 //
 // Lists can only have the next element added according to the current length.
 func (s *ResourceIdentity) SetAttribute(ctx context.Context, path path.Path, val interface{}) diag.Diagnostics {
+	// If s is nil, then calling s.data triggers a nil pointer error so we return the error diag here
+	if s == nil {
+		return diag.Diagnostics{
+			diag.NewErrorDiagnostic(
+				"Missing Identity Definition",
+				"An unexpected error was encountered when attempting to set a resource identity attribute. The resource does not indicate support via a resource identity schema.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer."),
+		}
+	}
+
 	data := s.data()
 	diags := data.SetAtPath(ctx, path, val)
 

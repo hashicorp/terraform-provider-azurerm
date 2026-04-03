@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualwans"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -67,6 +67,12 @@ func resourceVirtualHub() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.CIDR,
+			},
+
+			"branch_to_branch_traffic_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"sku": {
@@ -177,8 +183,9 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	parameters := virtualwans.VirtualHub{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &virtualwans.VirtualHubProperties{
-			RouteTable:           expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
-			HubRoutingPreference: pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
+			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
+			RouteTable:                 expandVirtualHubRoute(d.Get("route").(*pluginsdk.Set).List()),
+			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -221,12 +228,14 @@ func resourceVirtualHubCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceVirtualHubRead(d, meta)
 }
@@ -260,6 +269,10 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	if d.HasChange("branch_to_branch_traffic_enabled") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool))
 	}
 
 	if d.HasChange("route") {
@@ -300,8 +313,7 @@ func resourceVirtualHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		ContinuousTargetOccurence: 3,
 		Timeout:                   time.Until(timeout),
 	}
-	_, err = stateConf.WaitForStateContext(ctx)
-	if err != nil {
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for %s provisioning route: %+v", id, err)
 	}
 
@@ -340,6 +352,7 @@ func resourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("address_prefix", props.AddressPrefix)
+			d.Set("branch_to_branch_traffic_enabled", pointer.From(props.AllowBranchToBranchTraffic))
 			d.Set("sku", props.Sku)
 
 			if err := d.Set("route", flattenVirtualHubRoute(props.RouteTable)); err != nil {

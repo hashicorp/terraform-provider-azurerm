@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource_test
@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: this can be moved up a level when all the others are
@@ -32,6 +31,12 @@ func TestAccResourceProviderRegistration_basic(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				if err := r.unRegisterProviders(data.Subscriptions.Primary, "Microsoft.BlockchainTokens"); err != nil {
+					t.Fatalf("Failed to reset feature registration with error: %+v", err)
+				}
+			},
 			Config: r.basic("Microsoft.BlockchainTokens"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -46,13 +51,19 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 	r := ResourceProviderRegistrationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic("Microsoft.AgFoodPlatform"),
+			PreConfig: func() {
+				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
+				if err := r.unRegisterProviders(data.Subscriptions.Primary, "Microsoft.AppLink"); err != nil {
+					t.Fatalf("Failed to reset feature registration with error: %+v", err)
+				}
+			},
+			Config: r.basic("Microsoft.AppLink"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.RequiresImportErrorStep(func(data acceptance.TestData) string {
-			return r.requiresImport("Microsoft.AgFoodPlatform")
+			return r.requiresImport("Microsoft.AppLink")
 		}),
 	})
 }
@@ -60,36 +71,41 @@ func TestAccResourceProviderRegistration_requiresImport(t *testing.T) {
 func TestAccResourceProviderRegistration_feature(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_provider_registration", "test")
 	r := ResourceProviderRegistrationResource{}
+
+	if data.Subscriptions.Secondary == "" {
+		t.Skip("Skipping test as secondary subscription ID was empty. To run this test, set `ARM_SUBSCRIPTION_ID_ALT")
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			PreConfig: func() {
 				// Last error may cause resource provider still in `Registered` status.Need to unregister it before a new test.
-				if err := r.unRegisterProviders("Microsoft.ApiSecurity"); err != nil {
+				if err := r.unRegisterProviders(data.Subscriptions.Secondary, "Microsoft.DevCenter"); err != nil {
 					t.Fatalf("Failed to reset feature registration with error: %+v", err)
 				}
 			},
-			Config: r.multiFeature(true, true),
+			Config: r.multiFeature(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.multiFeature(true, false),
+			Config: r.multiFeature(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.multiFeature(false, true),
+			Config: r.multiFeature(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.multiFeature(false, false),
+			Config: r.multiFeature(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -107,7 +123,7 @@ func (ResourceProviderRegistrationResource) Exists(ctx context.Context, client *
 	resp, err := client.Resource.ResourceProvidersClient.Get(ctx, *id, providers.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
@@ -147,14 +163,14 @@ resource "azurerm_resource_provider_registration" "import" {
 `, template)
 }
 
-func (r ResourceProviderRegistrationResource) unRegisterProviders(resourceProviders ...string) error {
+func (r ResourceProviderRegistrationResource) unRegisterProviders(subscriptionID string, resourceProviders ...string) error {
 	client, err := testclient.Build()
 	if err != nil {
 		return fmt.Errorf("building client: %+v", err)
 	}
 
 	for _, rp := range resourceProviders {
-		if err = r.unRegisterProvider(client, rp); err != nil {
+		if err = r.unRegisterProvider(client, subscriptionID, rp); err != nil {
 			return err
 		}
 	}
@@ -162,12 +178,12 @@ func (r ResourceProviderRegistrationResource) unRegisterProviders(resourceProvid
 	return nil
 }
 
-func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients.Client, resourceProvider string) error {
+func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients.Client, subscriptionID, resourceProvider string) error {
 	ctx, cancel := context.WithDeadline(client.StopContext, time.Now().Add(30*time.Minute))
 	defer cancel()
 
 	providersClient := client.Resource.ResourceProvidersClient
-	id := providers.NewSubscriptionProviderID(client.Account.SubscriptionId, resourceProvider)
+	id := providers.NewSubscriptionProviderID(subscriptionID, resourceProvider)
 	provider, err := providersClient.Get(ctx, id, providers.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -189,7 +205,7 @@ func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients
 		return fmt.Errorf("unregistering %s: %+v", id, err)
 	}
 
-	pollerType := custompollers.NewResourceProviderUnregistrationPoller(providersClient, id)
+	pollerType := custompollers.NewResourceProviderRegistrationPollerDefault(providersClient, id, "Unregistered")
 	poller := pollers.NewPoller(pollerType, 10*time.Minute, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 	if err := poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for %s to become unregistered: %+v", id, err)
@@ -198,23 +214,32 @@ func (r ResourceProviderRegistrationResource) unRegisterProvider(client *clients
 	return nil
 }
 
-func (ResourceProviderRegistrationResource) multiFeature(registered1 bool, registered2 bool) string {
+func (ResourceProviderRegistrationResource) multiFeature(data acceptance.TestData, registered1 bool, registered2 bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
+  subscription_id = "%[1]s"
+
   features {}
   skip_provider_registration = true
 }
 
 resource "azurerm_resource_provider_registration" "test" {
-  name = "Microsoft.ApiSecurity"
+  name = "Microsoft.DevCenter"
   feature {
-    name       = "PP2CanaryAccessDEV"
-    registered = %t
+    name       = "AutoDeletePreview"
+    registered = %[2]t
   }
   feature {
-    name       = "PP3CanaryAccessDEV"
-    registered = %t
+    name       = "DevTunnelsPreview"
+    registered = %[3]t
+  }
+
+  # ServerlessGpuPreview cannot be registered but is returned by the API
+  # FeatureRegistrationUnsupported: unexpected status 409 (409 Conflict) with error: FeatureRegistrationUnsupported: The feature 'ServerlessGpuPreview' does not support registration.
+  feature {
+    name       = "ServerlessGpuPreview"
+    registered = false
   }
 }
-`, registered1, registered2)
+`, data.Subscriptions.Secondary, registered1, registered2)
 }

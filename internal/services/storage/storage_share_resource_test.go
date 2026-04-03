@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/fileshares"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -945,7 +945,7 @@ resource "azurerm_storage_share" "import" {
   storage_account_name = azurerm_storage_share.test.storage_account_name
   quota                = azurerm_storage_share.test.quota
 }
-`, r.template(data))
+`, r.basicDeprecated(data))
 }
 
 func (r StorageShareResource) requiresImport(data acceptance.TestData) string {

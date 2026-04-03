@@ -6,9 +6,11 @@ package provider
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 )
 
@@ -120,6 +122,32 @@ type ProviderWithMetaSchema interface {
 	// break without warning. It is not protected by version compatibility
 	// guarantees.
 	MetaSchema(context.Context, MetaSchemaRequest, *MetaSchemaResponse)
+}
+
+type ProviderWithListResources interface {
+	Provider
+
+	// ListResources returns a slice of functions to instantiate each Resource
+	// List implementation.
+	//
+	// The resource type name is determined by the ListResource implementing
+	// the Metadata method. All ListResources must have unique names.
+	ListResources(context.Context) []func() list.ListResource
+}
+
+// ProviderWithActions is an interface type that extends Provider to
+// include actions for usage in practitioner configurations.
+//
+// Actions are supported in Terraform version 1.14 and later.
+type ProviderWithActions interface {
+	Provider
+
+	// Actions returns a slice of functions to instantiate each Action
+	// implementation.
+	//
+	// The action type is determined by the Action implementing
+	// the Metadata method. All action types must have unique names.
+	Actions(context.Context) []func() action.Action
 }
 
 // ProviderWithValidateConfig is an interface type that extends Provider to include imperative validation.

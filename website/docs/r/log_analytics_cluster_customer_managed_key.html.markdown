@@ -113,7 +113,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the Log Analytics Cluster Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Cluster Customer Managed Key.
@@ -132,4 +132,4 @@ terraform import azurerm_log_analytics_cluster_customer_managed_key.example /sub
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2022-10-01
+* `Microsoft.OperationalInsights` - 2022-10-01

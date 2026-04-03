@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -6,7 +6,7 @@ package client
 import (
 	"fmt"
 
-	storage_v2023_01_01 "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01"
+	storage "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/cloudendpointresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/serverendpointresource"
@@ -23,7 +23,7 @@ var StorageDomainSuffix *string
 type Client struct {
 	StorageDomainSuffix string
 
-	ResourceManager *storage_v2023_01_01.Client
+	ResourceManager *storage.Client
 	// TODO: import the Storage Sync Meta Client and use that
 	SyncCloudEndpointsClient   *cloudendpointresource.CloudEndpointResourceClient
 	SyncGroupsClient           *syncgroupresource.SyncGroupResourceClient
@@ -43,7 +43,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	// Set global variable for post-configure validation
 	StorageDomainSuffix = storageSuffix
 
-	resourceManager, err := storage_v2023_01_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	resourceManager, err := storage.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

@@ -17,7 +17,7 @@ import (
 
 // ApplyResourceChangeRequest returns the *fwserver.ApplyResourceChangeRequest
 // equivalent of a *tfprotov6.ApplyResourceChangeRequest.
-func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyResourceChangeRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema, identitySchema fwschema.Schema) (*fwserver.ApplyResourceChangeRequest, diag.Diagnostics) {
+func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyResourceChangeRequest, resource resource.Resource, resourceSchema fwschema.Schema, providerMetaSchema fwschema.Schema, resourceBehavior resource.ResourceBehavior, identitySchema fwschema.Schema) (*fwserver.ApplyResourceChangeRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -39,9 +39,10 @@ func ApplyResourceChangeRequest(ctx context.Context, proto6 *tfprotov6.ApplyReso
 	}
 
 	fw := &fwserver.ApplyResourceChangeRequest{
-		ResourceSchema: resourceSchema,
-		IdentitySchema: identitySchema,
-		Resource:       resource,
+		ResourceSchema:   resourceSchema,
+		ResourceBehavior: resourceBehavior,
+		IdentitySchema:   identitySchema,
+		Resource:         resource,
 	}
 
 	config, configDiags := Config(ctx, proto6.Config, resourceSchema)

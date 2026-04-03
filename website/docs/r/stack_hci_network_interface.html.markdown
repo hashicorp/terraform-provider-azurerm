@@ -112,7 +112,7 @@ An `ip_configuration` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Stack HCI Network Interface.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Stack HCI Network Interface.
@@ -131,4 +131,4 @@ terraform import azurerm_stack_hci_network_interface.example /subscriptions/0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AzureStackHCI`: 2024-01-01
+* `Microsoft.AzureStackHCI` - 2024-01-01

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package apimanagement
@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -269,46 +269,65 @@ func expandApiManagementCustomDomains(input *pluginsdk.ResourceData) *[]apimanag
 
 	if managementRawVal, ok := input.GetOk("management"); ok {
 		vs := managementRawVal.([]interface{})
-		for _, rawVal := range vs {
+		for idx, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeManagement)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeManagement, fmt.Sprintf("management.%d", idx))
+			}
 			results = append(results, output)
 		}
 	}
+
 	if portalRawVal, ok := input.GetOk("portal"); ok {
 		vs := portalRawVal.([]interface{})
-		for _, rawVal := range vs {
+		for idx, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypePortal)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypePortal, fmt.Sprintf("portal.%d", idx))
+			}
 			results = append(results, output)
 		}
 	}
+
 	if developerPortalRawVal, ok := input.GetOk("developer_portal"); ok {
 		vs := developerPortalRawVal.([]interface{})
-		for _, rawVal := range vs {
+		for idx, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeDeveloperPortal)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeDeveloperPortal, fmt.Sprintf("developer_portal.%d", idx))
+			}
 			results = append(results, output)
 		}
 	}
 
 	if gatewayRawVal, ok := input.GetOk("gateway"); ok {
 		vs := gatewayRawVal.([]interface{})
-		for _, rawVal := range vs {
+		for idx, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeProxy)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeProxy, fmt.Sprintf("gateway.%d", idx))
+			}
+
 			if value, ok := v["default_ssl_binding"]; ok {
 				output.DefaultSslBinding = pointer.To(value.(bool))
 			}
+
 			results = append(results, output)
 		}
 	}
 
 	if scmRawVal, ok := input.GetOk("scm"); ok {
 		vs := scmRawVal.([]interface{})
-		for _, rawVal := range vs {
+		for idx, rawVal := range vs {
 			v := rawVal.(map[string]interface{})
 			output := expandApiManagementCommonHostnameConfiguration(v, apimanagementservice.HostnameTypeScm)
+			if !features.FivePointOh() {
+				output = expandApiManagementCommonHostnameConfigurationFourPointOh(input, v, apimanagementservice.HostnameTypeScm, fmt.Sprintf("scm.%d", idx))
+			}
 			results = append(results, output)
 		}
 	}

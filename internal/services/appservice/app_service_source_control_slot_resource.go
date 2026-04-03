@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SourceControlSlotResource struct{}
@@ -201,19 +200,18 @@ func (r SourceControlSlotResource) Create() sdk.ResourceFunc {
 				}
 
 				if appSourceControlSlot.RepoURL != "" {
-					sourceControl.Properties.RepoURL = utils.String(appSourceControlSlot.RepoURL)
+					sourceControl.Properties.RepoURL = pointer.To(appSourceControlSlot.RepoURL)
 				}
 
 				if appSourceControlSlot.Branch != "" {
-					sourceControl.Properties.Branch = utils.String(appSourceControlSlot.Branch)
+					sourceControl.Properties.Branch = pointer.To(appSourceControlSlot.Branch)
 				}
 
 				if ghaConfig := expandGithubActionConfig(appSourceControlSlot.GithubActionConfiguration, usesLinux); ghaConfig != nil {
 					sourceControl.Properties.GitHubActionConfiguration = ghaConfig
 				}
 
-				_, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl)
-				if err != nil {
+				if _, err = client.UpdateSourceControlSlot(ctx, *id, sourceControl); err != nil {
 					return fmt.Errorf("creating Source Control configuration for %s: %v", id, err)
 				}
 			}

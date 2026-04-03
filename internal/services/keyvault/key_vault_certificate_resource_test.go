@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault_test
@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultCertificateResource struct{}
@@ -452,7 +452,7 @@ func (t KeyVaultCertificateResource) Exists(ctx context.Context, clients *client
 		return nil, fmt.Errorf("reading Key Vault Certificate: %+v", err)
 	}
 
-	return utils.Bool(cert.ID != nil), nil
+	return pointer.To(cert.ID != nil), nil
 }
 
 func (KeyVaultCertificateResource) destroyParentKeyVault(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
@@ -484,7 +484,7 @@ func (KeyVaultCertificateResource) Destroy(ctx context.Context, client *clients.
 		return nil, fmt.Errorf("Bad: Delete on keyVaultManagementClient: %+v", err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r KeyVaultCertificateResource) basicImportPFX(data acceptance.TestData) string {

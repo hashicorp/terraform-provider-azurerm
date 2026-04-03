@@ -101,7 +101,6 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 	}
 
 	// If the resource supports identity and there is no planned identity data, pre-populate with a null value.
-	// TODO:ResourceIdentity: This logic is likely useless since plan should already handle this, probably should remove.
 	if req.PlannedIdentity == nil && req.IdentitySchema != nil {
 		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 
@@ -168,6 +167,17 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 		)
 
 		return
+	}
+
+	if req.IdentitySchema != nil {
+		if resp.NewIdentity.Raw.IsFullyNull() {
+			resp.Diagnostics.AddError(
+				"Missing Resource Identity After Create",
+				"The Terraform Provider unexpectedly returned no resource identity data after having no errors in the resource create. "+
+					"This is always an issue in the Terraform Provider and should be reported to the provider developers.",
+			)
+			return
+		}
 	}
 
 	semanticEqualityReq := SchemaSemanticEqualityRequest{
