@@ -88,7 +88,7 @@ func (r CognitiveAccountRaiPolicyResource) Arguments() map[string]*pluginsdk.Sch
 					},
 					"severity_threshold": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: validation.StringInSlice(raipolicies.PossibleValuesForContentLevel(), false),
 					},
 					"source": {
@@ -311,13 +311,18 @@ func expandRaiPolicyContentFilters(filters []AccountRaiPolicyContentFilter) *[]r
 
 	contentFilters := make([]raipolicies.RaiPolicyContentFilter, 0, len(filters))
 	for _, filter := range filters {
-		contentFilters = append(contentFilters, raipolicies.RaiPolicyContentFilter{
-			Name:              pointer.To(filter.Name),
-			Enabled:           pointer.To(filter.FilterEnabled),
-			Blocking:          pointer.To(filter.BlockEnabled),
-			SeverityThreshold: pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold)),
-			Source:            pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
-		})
+		f := raipolicies.RaiPolicyContentFilter{
+			Name:     pointer.To(filter.Name),
+			Enabled:  pointer.To(filter.FilterEnabled),
+			Blocking: pointer.To(filter.BlockEnabled),
+			Source:   pointer.To(raipolicies.RaiPolicyContentSource(filter.Source)),
+		}
+
+		if filter.SeverityThreshold != "" {
+			f.SeverityThreshold = pointer.To(raipolicies.ContentLevel(filter.SeverityThreshold))
+		}
+
+		contentFilters = append(contentFilters, f)
 	}
 	return &contentFilters
 }
