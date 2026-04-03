@@ -43,6 +43,20 @@ func TestAccComputeFleet_virtualMachineProfileDataDisk_complete(t *testing.T) {
 	})
 }
 
+func TestAccComputeFleet_dataDiskCreatedFromImage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
+	r := ComputeFleetTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataDiskCreatedFromImage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
 func (r ComputeFleetTestResource) dataDiskBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
@@ -281,4 +295,70 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
 `, data.RandomString, data.RandomInteger)
+}
+
+func (r ComputeFleetTestResource) dataDiskCreatedFromImage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_marketplace_agreement" "test" {
+  publisher = "micro-focus"
+  offer     = "arcsight-logger"
+  plan      = "arcsight_logger_72_byol"
+}
+
+resource "azurerm_compute_fleet" "test" {
+  name                = "acctest-fleet-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+
+  plan {
+    name           = "arcsight_logger_72_byol"
+    product        = "arcsight-logger"
+    publisher      = "micro-focus"
+    promotion_code = "test"
+  }
+
+  spot_priority_profile {
+    maintain_capacity_enabled = false
+    capacity                  = 1
+  }
+
+  virtual_machine_profile {
+    source_image_reference {
+      publisher = "micro-focus"
+      offer     = "arcsight-logger"
+      sku       = "arcsight_logger_72_byol"
+      version   = "latest"
+    }
+
+    os_profile {
+      linux_configuration {
+        admin_username                  = local.admin_username
+        admin_password                  = local.admin_password
+        password_authentication_enabled = true
+      }
+    }
+
+    data_disk {
+      caching              = "ReadWrite"
+      create_option        = "FromImage"
+      storage_account_type = "Standard_LRS"
+    }
+
+    network_interface {
+      name = "networkProTest"
+
+      ip_configuration {
+        name      = "TestIPConfiguration"
+        subnet_id = azurerm_subnet.test.id
+      }
+    }
+  }
+
+  vm_sizes_profile {
+    name = "Standard_D2as_v5"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }

@@ -311,7 +311,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 					},
 
 					"capacity_reservation_group_id": commonschema.ResourceIDReferenceOptionalForceNew(&capacityreservationgroups.CapacityReservationGroupId{}),
@@ -361,6 +361,10 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						// `Default` set according to portal behavior
 						Default: string(fleets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^\d{4}-\d{2}-\d{2}(-preview)?$`),
+							"`network_api_version` must be in the format `YYYY-MM-DD` with an optional `-preview` suffix",
+						),
 					},
 
 					"os_disk": storageProfileOsDiskSchema(),
@@ -929,12 +933,12 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 
 					if dataDisk.CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
 						if dataDisk.DiskSizeInGiB == 0 {
-							return fmt.Errorf("`virtual_machine_profile.0.data_disk.%d.disk_size_in_gib` is required when`create_option` is `Empty`", i)
+							return fmt.Errorf("`virtual_machine_profile.0.data_disk.%d.disk_size_in_gib` is required when `create_option` is `Empty`", i)
 						}
 
 						lunExist := metadata.ResourceDiff.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["data_disk"].AsValueSlice()[i].AsValueMap()["lun"]
 						if lunExist.IsNull() {
-							return fmt.Errorf("`virtual_machine_profile.0.data_disk.%d.lun` is required when`create_option` is `Empty`", i)
+							return fmt.Errorf("`virtual_machine_profile.0.data_disk.%d.lun` is required when `create_option` is `Empty`", i)
 						}
 					}
 

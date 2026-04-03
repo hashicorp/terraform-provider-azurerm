@@ -254,7 +254,7 @@ func networkInterfaceSchema() *pluginsdk.Schema {
 					ForceNew: true,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsIPAddress,
 					},
 				},
 
@@ -858,7 +858,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(1, 32767),
+					ValidateFunc: validation.IntBetween(1, 4095),
 					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
@@ -1464,8 +1464,13 @@ func validateWindowsSetting(inputList []VirtualMachineProfileModel, d *schema.Re
 
 		isHotPatchEnabledImage := isValidHotPatchSourceImageReference(input.SourceImageReference)
 		hasHealthExtension := false
-		if v := input.Extension; len(v) > 0 && (v[0].Type == "ApplicationHealthLinux" || v[0].Type == "ApplicationHealthWindows") {
-			hasHealthExtension = true
+		if extensions := input.Extension; len(extensions) > 0 {
+			for _, extension := range extensions {
+				if extension.Type == "ApplicationHealthWindows" {
+					hasHealthExtension = true
+					break
+				}
+			}
 		}
 
 		if isHotPatchEnabledImage {
@@ -1536,7 +1541,7 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 		bypassPlatformSafetyChecksEnabledExist := d.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["os_profile"].AsValueSlice()[0].AsValueMap()["linux_configuration"].AsValueSlice()[0].AsValueMap()["bypass_platform_safety_checks_enabled"]
 		if !bypassPlatformSafetyChecksEnabledExist.IsNull() || rebootSetting != "" {
 			if patchMode != string(fleets.LinuxVMGuestPatchModeAutomaticByPlatform) {
-				return fmt.Errorf("`bypass_platform_safety_checks_enabled` and `patch_rebooting` cannot be set if the `PatchMode` is not `AutomaticByPlatform`")
+				return fmt.Errorf("`bypass_platform_safety_checks_enabled` and `patch_rebooting` cannot be set if the `patch_mode` is not `AutomaticByPlatform`")
 			}
 		}
 
@@ -1545,8 +1550,13 @@ func validateLinuxSetting(inputList []VirtualMachineProfileModel, d *schema.Reso
 		}
 
 		hasHealthExtension := false
-		if v := input.Extension; len(v) > 0 && (v[0].Type == "ApplicationHealthLinux" || v[0].Type == "ApplicationHealthWindows") {
-			hasHealthExtension = true
+		if extensions := input.Extension; len(extensions) > 0 {
+			for _, extension := range extensions {
+				if extension.Type == "ApplicationHealthLinux" {
+					hasHealthExtension = true
+					break
+				}
+			}
 		}
 
 		if patchMode == string(fleets.LinuxVMGuestPatchModeAutomaticByPlatform) {
@@ -1776,19 +1786,17 @@ func expandOSDiskModel(input *VirtualMachineProfileModel) *fleets.VirtualMachine
 		CreateOption: fleets.DiskCreateOptionTypesFromImage,
 	}
 
-	if inputOsDisk != nil {
-		if inputOsDisk.DiffDiskOption != "" {
-			output.DiffDiskSettings = &fleets.DiffDiskSettings{
-				Option: pointer.To(fleets.DiffDiskOptions(inputOsDisk.DiffDiskOption)),
-			}
+	if inputOsDisk.DiffDiskOption != "" {
+		output.DiffDiskSettings = &fleets.DiffDiskSettings{
+			Option: pointer.To(fleets.DiffDiskOptions(inputOsDisk.DiffDiskOption)),
 		}
+	}
 
-		if inputOsDisk.DiffDiskPlacement != "" {
-			if output.DiffDiskSettings == nil {
-				output.DiffDiskSettings = &fleets.DiffDiskSettings{}
-			}
-			output.DiffDiskSettings.Placement = pointer.To(fleets.DiffDiskPlacement(inputOsDisk.DiffDiskPlacement))
+	if inputOsDisk.DiffDiskPlacement != "" {
+		if output.DiffDiskSettings == nil {
+			output.DiffDiskSettings = &fleets.DiffDiskSettings{}
 		}
+		output.DiffDiskSettings.Placement = pointer.To(fleets.DiffDiskPlacement(inputOsDisk.DiffDiskPlacement))
 	}
 
 	if inputOsDisk.DiskSizeInGiB > 0 {

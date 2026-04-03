@@ -92,7 +92,9 @@ resource "azurerm_compute_fleet" "test" {
       }
     }
 
-    os_disk {}
+    os_disk {
+      caching = "ReadWrite"
+    }
 
     source_image_reference {
       publisher = "canonical"
