@@ -3496,7 +3496,6 @@ func (c *ContainerTemplate) expandContainerAppScaleRules() ([]containerapps.Scal
 	}
 	result := make([]containerapps.ScaleRule, 0)
 	for _, v := range c.AzureQueueScaleRules {
-
 		if err := ValidateAzureQueueScaleRule(v); err != nil {
 			return nil, err
 		}

@@ -792,7 +792,7 @@ resource "azurerm_container_app" "test" {
       queue_length = 1
       identity     = azurerm_user_assigned_identity.test.id
     }
-    
+
     revision_suffix = "%[4]s"
   }
 }
