@@ -35,6 +35,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ContainerAppDataSource{},
 		ContainerAppEnvironmentDataSource{},
 		ContainerAppEnvironmentCertificateDataSource{},
+		ContainerAppEnvironmentHttpRouteConfigDataSource{},
 		ContainerAppEnvironmentStorageDataSource{},
 	}
 }
@@ -44,6 +45,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerAppEnvironmentCertificateResource{},
 		ContainerAppEnvironmentCustomDomainResource{},
 		ContainerAppEnvironmentDaprComponentResource{},
+		ContainerAppEnvironmentHttpRouteConfigResource{},
 		ContainerAppEnvironmentResource{},
 		ContainerAppEnvironmentStorageResource{},
 		ContainerAppResource{},

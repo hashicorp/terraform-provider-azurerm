@@ -411,6 +411,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/cert
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerappsrevisions
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents
+github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/httprouteconfig
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments
 github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironmentsstorages
