@@ -147,8 +147,6 @@ The following arguments are supported:
 
 A `virtual_machine_profile` block supports the following:
 
-* `network_api_version` - (Required) Specifies the Microsoft.Network API version used when creating networking resources in the network interface configurations for the Compute Fleet. Changing this forces a new resource to be created.
-
 * `network_interface` - (Required) One or more `network_interface` blocks as defined above. Changing this forces a new resource to be created.
 
 * `os_profile` - (Required) A `os_profile` block as defined above. Changing this forces a new resource to be created.
@@ -174,6 +172,8 @@ A `virtual_machine_profile` block supports the following:
 * `license_type` - (Optional) Specifies the type of on-premise license (also known as Azure Hybrid Use Benefit) which should be used for the Compute Fleet. Possible values are `RHEL_BYOS`, `SLES_BYOS`, `Windows_Client` and `Windows_Server`. Changing this forces a new resource to be created.
 
 * `os_disk` - (Optional) A `os_disk` block as defined above. Changing this forces a new resource to be created.
+
+* `network_api_version` - (Optional) Specifies the Microsoft.Network API version used when creating networking resources in the network interface configurations for the Compute Fleet. Defaults to `2020-11-01` Changing this forces a new resource to be created.
 
 * `scheduled_event_os_image_timeout_duration` - (Optional) Specifies the length of time a virtual machine being deleted will have to potentially approve the terminate scheduled event before the event is auto approved (timed out). The configuration must be specified in ISO 8601 format. The only possible value is `PT15M`. Changing this forces a new resource to be created.
 
@@ -361,7 +361,7 @@ A `linux_configuration` block supports the following:
 
 * `admin_username` - (Required) Specifies the name of the administrator account. Changing this forces a new resource to be created.
 
-* `computer_name_prefix` - (Required) Specifies the computer name prefix for all the linux virtual machines in the Compute Fleet. Changing this forces a new resource to be created.
+* `computer_name_prefix` - (Required) Specifies the computer name prefix for all the linux virtual machines in the Compute Fleet. Defaults to first 9 characters of Compute Fleet `name`. Changing this forces a new resource to be created.
 
 * `admin_password` - (Optional) Specifies the password of the administrator account. Changing this forces a new resource to be created.
 
@@ -415,7 +415,7 @@ A `plan` block supports the following:
 
 * `publisher` - (Required) Specifies the publisher of the image. Changing this forces a new resource to be created.
 
-* `promotion_code` - (Optional) Specifies the promotion code of the image from the marketplace.
+* `promotion_code` - (Optional) Specifies the promotion code of the image from the marketplace. Changing this forces a new resource to be created.
 
 ---
 
@@ -509,13 +509,13 @@ A `windows_configuration` block supports the following:
 
 * `admin_password` - (Required) Specifies the password of the administrator account. Changing this forces a new resource to be created.
 
-* `computer_name_prefix` - (Required) Specifies the computer name prefix for all the windows virtual machines in the Compute Fleet. Changing this forces a new resource to be created.
-
 * `additional_unattend_content` - (Optional) One or more `additional_unattend_content` blocks as defined above. Changing this forces a new resource to be created.
 
 * `automatic_updates_enabled` - (Optional) Whether to enable the automatic updates of the virtual machines. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `bypass_platform_safety_checks_enabled` - (Optional) Whether to bypass platform safety checks. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `computer_name_prefix` - (Optional) Specifies the computer name prefix for all the windows virtual machines in the Compute Fleet. Defaults to first 9 characters of Compute Fleet `name`. Changing this forces a new resource to be created.
 
 * `hot_patching_enabled` - (Optional) Whether to enable the customers to patch the virtual machines without requiring a reboot. Defaults to `false`. Changing this forces a new resource to be created.
 

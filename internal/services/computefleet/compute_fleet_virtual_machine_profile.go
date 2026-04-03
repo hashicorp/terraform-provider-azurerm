@@ -453,13 +453,6 @@ func osProfileSchema() *pluginsdk.Schema {
 								ValidateFunc: computeValidate.LinuxAdminUsername,
 							},
 
-							"computer_name_prefix": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: computeValidate.LinuxComputerNamePrefix,
-							},
-
 							"admin_password": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
@@ -483,6 +476,14 @@ func osProfileSchema() *pluginsdk.Schema {
 								Optional: true,
 								ForceNew: true,
 								Default:  false,
+							},
+
+							"computer_name_prefix": {
+								Type:             pluginsdk.TypeString,
+								Optional:         true,
+								ForceNew:         true,
+								ValidateFunc:     computeValidate.LinuxComputerNamePrefix,
+								DiffSuppressFunc: computeFleetComputerNamePrefixDiffSuppress,
 							},
 
 							"password_authentication_enabled": {
@@ -576,13 +577,6 @@ func osProfileSchema() *pluginsdk.Schema {
 								ValidateFunc: computeValidate.WindowsAdminPassword,
 							},
 
-							"computer_name_prefix": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: computeValidate.WindowsComputerNamePrefix,
-							},
-
 							"additional_unattend_content": {
 								Type:     pluginsdk.TypeList,
 								Optional: true,
@@ -617,6 +611,14 @@ func osProfileSchema() *pluginsdk.Schema {
 								Optional: true,
 								ForceNew: true,
 								Default:  false,
+							},
+
+							"computer_name_prefix": {
+								Type:             pluginsdk.TypeString,
+								Optional:         true,
+								ForceNew:         true,
+								ValidateFunc:     computeValidate.WindowsComputerNamePrefix,
+								DiffSuppressFunc: computeFleetComputerNamePrefixDiffSuppress,
 							},
 
 							"hot_patching_enabled": {
@@ -777,7 +779,7 @@ func storageProfileDataDiskSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 2000),
+					ValidateFunc: validation.IntBetween(0, 63),
 				},
 
 				"storage_account_type": {
@@ -816,6 +818,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 						string(fleets.CachingTypesReadOnly),
 						string(fleets.CachingTypesReadWrite),
 					}, false),
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"delete_option": {
@@ -824,6 +827,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					ForceNew:     true,
 					Default:      string(fleets.DiskDeleteOptionTypesDelete),
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiskDeleteOptionTypes(), false),
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"diff_disk_option": {
@@ -831,6 +835,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiffDiskOptions(), false),
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"diff_disk_placement": {
@@ -838,6 +843,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForDiffDiskPlacement(), false),
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"disk_encryption_set_id": {
@@ -845,6 +851,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: computeValidate.DiskEncryptionSetID,
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"disk_size_in_gib": {
@@ -852,6 +859,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.IntBetween(1, 32767),
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"security_encryption_type": {
@@ -859,6 +867,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 					Optional:     true,
 					ForceNew:     true,
 					ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForSecurityEncryptionTypes(), false),
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"storage_account_type": {
@@ -873,13 +882,15 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 						string(fleets.StorageAccountTypesStandardSSDLRS),
 						string(fleets.StorageAccountTypesStandardSSDZRS),
 					}, false),
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 
 				"write_accelerator_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					ForceNew: true,
-					Default:  false,
+					Type:         pluginsdk.TypeBool,
+					Optional:     true,
+					ForceNew:     true,
+					Default:      false,
+					AtLeastOneOf: computeFleetVirtualMachineProfileOsDiskConstraint(),
 				},
 			},
 		},
@@ -923,17 +934,21 @@ func storageProfileSourceImageReferenceSchema() *pluginsdk.Schema {
 				},
 			},
 		},
+		ExactlyOneOf: []string{
+			"virtual_machine_profile.0.source_image_reference",
+			"virtual_machine_profile.0.source_image_id",
+		},
 	}
 }
 
-func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d *schema.ResourceData) (*fleets.BaseVirtualMachineProfile, error) {
+func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, computeFleetModel *ComputeFleetResourceModel, d *schema.ResourceData) (*fleets.BaseVirtualMachineProfile, error) {
 	if len(inputList) == 0 {
 		return nil, nil
 	}
 
 	input := &inputList[0]
 	output := fleets.BaseVirtualMachineProfile{
-		OsProfile:          expandOSProfileModel(inputList),
+		OsProfile:          expandOSProfileModel(inputList, computeFleetModel),
 		ApplicationProfile: expandApplicationProfileModel(input.GalleryApplicationProfile),
 		DiagnosticsProfile: &fleets.DiagnosticsProfile{
 			BootDiagnostics: &fleets.BootDiagnostics{
@@ -942,7 +957,6 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 			},
 		},
 		NetworkProfile: &fleets.VirtualMachineScaleSetNetworkProfile{
-			NetworkApiVersion:              pointer.To(fleets.NetworkApiVersion(input.NetworkApiVersion)),
 			NetworkInterfaceConfigurations: expandNetworkInterfaceModel(input.NetworkInterface),
 		},
 		StorageProfile: &fleets.VirtualMachineScaleSetStorageProfile{
@@ -950,6 +964,11 @@ func expandVirtualMachineProfileModel(inputList []VirtualMachineProfileModel, d 
 			OsDisk:         expandOSDiskModel(input),
 			DataDisks:      expandDataDiskModel(input.DataDisks),
 		},
+	}
+
+	output.NetworkProfile.NetworkApiVersion = pointer.To(fleets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne)
+	if input.NetworkApiVersion != "" {
+		output.NetworkProfile.NetworkApiVersion = pointer.ToEnum[fleets.NetworkApiVersion](input.NetworkApiVersion)
 	}
 
 	if input.ScheduledEventTerminationTimeoutDuration != "" {
@@ -1278,7 +1297,7 @@ func expandPublicIPAddressModel(inputList []PublicIPAddressModel) *fleets.Virtua
 	return &output
 }
 
-func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.VirtualMachineScaleSetOSProfile {
+func expandOSProfileModel(inputList []VirtualMachineProfileModel, computeFleetModel *ComputeFleetResourceModel) *fleets.VirtualMachineScaleSetOSProfile {
 	osProfile := &inputList[0].OsProfile[0]
 	output := fleets.VirtualMachineScaleSetOSProfile{
 		AllowExtensionOperations: pointer.To(inputList[0].ExtensionOperationsEnabled),
@@ -1317,6 +1336,13 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 		if lConfig[0].AdminPassword != "" {
 			output.AdminPassword = pointer.To(lConfig[0].AdminPassword)
 		}
+
+		// `ComputerNamePrefix` default is the first 9 characters of the compute fleet name according to Azure portal
+		defaultComputerNamePrefix := computeFleetModel.Name
+		if len(defaultComputerNamePrefix) > 9 {
+			defaultComputerNamePrefix = defaultComputerNamePrefix[:9]
+		}
+		output.ComputerNamePrefix = pointer.To(defaultComputerNamePrefix)
 		if lConfig[0].ComputerNamePrefix != "" {
 			output.ComputerNamePrefix = pointer.To(lConfig[0].ComputerNamePrefix)
 		}
@@ -1378,6 +1404,13 @@ func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.Virtua
 		if winConfig[0].AdminPassword != "" {
 			output.AdminPassword = pointer.To(winConfig[0].AdminPassword)
 		}
+
+		// `ComputerNamePrefix` default is the first 9 characters of the compute fleet name according to Azure portal
+		defaultComputerNamePrefix := computeFleetModel.Name
+		if len(defaultComputerNamePrefix) > 9 {
+			defaultComputerNamePrefix = defaultComputerNamePrefix[:9]
+		}
+		output.ComputerNamePrefix = pointer.To(defaultComputerNamePrefix)
 		if winConfig[0].ComputerNamePrefix != "" {
 			output.ComputerNamePrefix = pointer.To(winConfig[0].ComputerNamePrefix)
 		}
@@ -1794,6 +1827,7 @@ func flattenVirtualMachineProfileModel(input *fleets.BaseVirtualMachineProfile, 
 		UserDataBase64:            pointer.From(input.UserData),
 	}
 
+	output.NetworkApiVersion = string(fleets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne)
 	if v := input.NetworkProfile; v != nil {
 		output.NetworkApiVersion = string(pointer.From(v.NetworkApiVersion))
 	}
@@ -2395,4 +2429,32 @@ func flattenSubResourceId(inputList []fleets.SubResource) []string {
 		outputList = append(outputList, pointer.From(input.Id))
 	}
 	return outputList
+}
+
+// Suppress difference from default when `computer_name_prefix` is not set. The default of `computer_name_prefix` is the first 9 characters of the compute fleet name according to Azure portal.
+func computeFleetComputerNamePrefixDiffSuppress(_, old, new string, d *pluginsdk.ResourceData) bool {
+	defaultComputerNamePrefix := d.Get("name").(string)
+	if len(defaultComputerNamePrefix) > 9 {
+		defaultComputerNamePrefix = defaultComputerNamePrefix[:9]
+	}
+
+	if new == "" && old == defaultComputerNamePrefix {
+		return true
+	}
+
+	return false
+}
+
+func computeFleetVirtualMachineProfileOsDiskConstraint() []string {
+	return []string{
+		"virtual_machine_profile.0.os_disk.0.caching",
+		"virtual_machine_profile.0.os_disk.0.delete_option",
+		"virtual_machine_profile.0.os_disk.0.diff_disk_option",
+		"virtual_machine_profile.0.os_disk.0.diff_disk_placement",
+		"virtual_machine_profile.0.os_disk.0.disk_encryption_set_id",
+		"virtual_machine_profile.0.os_disk.0.disk_size_in_gib",
+		"virtual_machine_profile.0.os_disk.0.security_encryption_type",
+		"virtual_machine_profile.0.os_disk.0.storage_account_type",
+		"virtual_machine_profile.0.os_disk.0.write_accelerator_enabled",
+	}
 }

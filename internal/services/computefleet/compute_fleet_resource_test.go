@@ -91,6 +91,20 @@ func TestAccComputeFleet_update(t *testing.T) {
 	})
 }
 
+func TestAccComputeFleet_dataDiskCreatedFromImage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_compute_fleet", "test")
+	r := ComputeFleetTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dataDiskCreatedFromImage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
+	})
+}
+
 func (r ComputeFleetTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := fleets.ParseFleetID(state.ID)
 	if err != nil {
@@ -184,7 +198,6 @@ resource "azurerm_compute_fleet" "test" {
   location            = "%[3]s"
 
   spot_priority_profile {
-    min_capacity              = 1
     maintain_capacity_enabled = false
     capacity                  = 1
   }
@@ -194,7 +207,6 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   virtual_machine_profile {
-    network_api_version = "2020-11-01"
     source_image_reference {
       offer     = "0001-com-ubuntu-server-focal"
       publisher = "canonical"
@@ -204,7 +216,6 @@ resource "azurerm_compute_fleet" "test" {
 
     os_profile {
       linux_configuration {
-        computer_name_prefix            = "testvm"
         admin_username                  = local.admin_username
         admin_password                  = local.admin_password
         password_authentication_enabled = true
@@ -212,17 +223,11 @@ resource "azurerm_compute_fleet" "test" {
     }
 
     network_interface {
-      name                              = "networkProTest"
-      primary_network_interface_enabled = true
+      name = "networkProTest"
+
       ip_configuration {
-        name                             = "TestIPConfiguration"
-        subnet_id                        = azurerm_subnet.test.id
-        primary_ip_configuration_enabled = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
+        name      = "TestIPConfiguration"
+        subnet_id = azurerm_subnet.test.id
       }
     }
   }
@@ -240,7 +245,6 @@ resource "azurerm_compute_fleet" "import" {
   location            = azurerm_compute_fleet.test.location
 
   spot_priority_profile {
-    min_capacity              = 1
     maintain_capacity_enabled = false
     capacity                  = 1
   }
@@ -250,7 +254,6 @@ resource "azurerm_compute_fleet" "import" {
   }
 
   virtual_machine_profile {
-    network_api_version = "2020-11-01"
     source_image_reference {
       offer     = "0001-com-ubuntu-server-focal"
       publisher = "canonical"
@@ -260,7 +263,6 @@ resource "azurerm_compute_fleet" "import" {
 
     os_profile {
       linux_configuration {
-        computer_name_prefix            = "testvm"
         admin_username                  = local.admin_username
         admin_password                  = local.admin_password
         password_authentication_enabled = true
@@ -268,17 +270,11 @@ resource "azurerm_compute_fleet" "import" {
     }
 
     network_interface {
-      name                              = "networkProTest"
-      primary_network_interface_enabled = true
+      name = "networkProTest"
+
       ip_configuration {
-        name                             = "TestIPConfiguration"
-        subnet_id                        = azurerm_subnet.test.id
-        primary_ip_configuration_enabled = true
-        public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
+        name      = "TestIPConfiguration"
+        subnet_id = azurerm_subnet.test.id
       }
     }
   }
@@ -291,9 +287,9 @@ func (r ComputeFleetTestResource) completeExceptVMSS(data acceptance.TestData) s
 	%[1]s
 
 resource "azurerm_marketplace_agreement" "barracuda" {
-  publisher = "micro-focus"
-  offer     = "arcsight-logger"
-  plan      = "arcsight_logger_72_byol"
+  publisher = "nvidia"
+  offer     = "ngc_azure_17_11"
+  plan      = "ngc-base-version-25_9_1_gen2"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -321,9 +317,9 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   plan {
-    name           = "arcsight_logger_72_byol"
-    product        = "arcsight-logger"
-    publisher      = "micro-focus"
+    name           = "ngc-base-version-25_9_1_gen2"
+    product        = "ngc_azure_17_11"
+    publisher      = "nvidia"
     promotion_code = "test"
   }
 
@@ -337,30 +333,33 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   regular_priority_profile {
-    allocation_strategy = "LowestPrice"
+    allocation_strategy = "Prioritized"
     capacity            = 1
     min_capacity        = 0
   }
 
   vm_sizes_profile {
-    name = "Standard_D2_v3"
+    name = "Standard_F1as_v7"
+    rank = 0
   }
 
   vm_sizes_profile {
     name = "Standard_F1alds_v7"
+    rank = 1
   }
 
   vm_sizes_profile {
     name = "Standard_F1als_v7"
+    rank = 2
   }
 
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "micro-focus"
-      offer     = "arcsight-logger"
-      sku       = "arcsight_logger_72_byol"
-      version   = "7.2.0"
+      publisher = "nvidia"
+      offer     = "ngc_azure_17_11"
+      sku       = "ngc-base-version-25_9_1_gen2"
+      version   = "latest"
     }
 
     os_disk {
@@ -370,7 +369,9 @@ resource "azurerm_compute_fleet" "test" {
 
     data_disk {
       caching              = "ReadWrite"
-      create_option        = "FromImage"
+      create_option        = "Empty"
+      disk_size_in_gib     = 10
+      lun                  = 42
       storage_account_type = "Standard_LRS"
     }
 
@@ -413,9 +414,9 @@ func (r ComputeFleetTestResource) completeExceptVMSSUpdate(data acceptance.TestD
 	%[1]s
 
 resource "azurerm_marketplace_agreement" "barracuda" {
-  publisher = "micro-focus"
-  offer     = "arcsight-logger"
-  plan      = "arcsight_logger_72_byol"
+  publisher = "nvidia"
+  offer     = "ngc_azure_17_11"
+  plan      = "ngc-base-version-25_9_1_gen2"
 }
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -443,9 +444,9 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   plan {
-    name           = "arcsight_logger_72_byol"
-    product        = "arcsight-logger"
-    publisher      = "micro-focus"
+    name           = "ngc-base-version-25_9_1_gen2"
+    product        = "ngc_azure_17_11"
+    publisher      = "nvidia"
     promotion_code = "test"
   }
 
@@ -454,27 +455,43 @@ resource "azurerm_compute_fleet" "test" {
     eviction_policy           = "Delete"
     max_hourly_price_per_vm   = -1
     min_capacity              = 0
-    maintain_capacity_enabled = false
-    capacity                  = 1
+    maintain_capacity_enabled = true
+    capacity                  = 0
   }
 
   regular_priority_profile {
-    allocation_strategy = "LowestPrice"
-    capacity            = 1
+    allocation_strategy = "Prioritized"
+    capacity            = 2
     min_capacity        = 0
   }
 
   vm_sizes_profile {
-    name = "Standard_D2_v3"
+    name = "Standard_F1as_v7"
+    rank = 0
+  }
+
+  vm_sizes_profile {
+    name = "Standard_F1als_v7"
+    rank = 1
+  }
+
+  vm_sizes_profile {
+    name = "Standard_F1alds_v7"
+    rank = 2
+  }
+
+  vm_sizes_profile {
+    name = "Standard_F1ads_v7"
+    rank = 3
   }
 
   virtual_machine_profile {
     network_api_version = "2020-11-01"
     source_image_reference {
-      publisher = "micro-focus"
-      offer     = "arcsight-logger"
-      sku       = "arcsight_logger_72_byol"
-      version   = "7.2.0"
+      publisher = "nvidia"
+      offer     = "ngc_azure_17_11"
+      sku       = "ngc-base-version-25_9_1_gen2"
+      version   = "latest"
     }
 
     os_disk {
@@ -484,7 +501,9 @@ resource "azurerm_compute_fleet" "test" {
 
     data_disk {
       caching              = "ReadWrite"
-      create_option        = "FromImage"
+      create_option        = "Empty"
+      disk_size_in_gib     = 10
+      lun                  = 42
       storage_account_type = "Standard_LRS"
     }
 
@@ -520,6 +539,72 @@ resource "azurerm_compute_fleet" "test" {
   zones = ["1", "2", "3"]
 }
 		`, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ComputeFleetTestResource) dataDiskCreatedFromImage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_marketplace_agreement" "test" {
+  publisher = "micro-focus"
+  offer     = "arcsight-logger"
+  plan      = "arcsight_logger_72_byol"
+}
+
+resource "azurerm_compute_fleet" "test" {
+  name                = "acctest-fleet-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+
+  plan {
+    name           = "arcsight_logger_72_byol"
+    product        = "arcsight-logger"
+    publisher      = "micro-focus"
+    promotion_code = "test"
+  }
+
+  spot_priority_profile {
+    maintain_capacity_enabled = false
+    capacity                  = 1
+  }
+
+  virtual_machine_profile {
+    source_image_reference {
+      publisher = "micro-focus"
+      offer     = "arcsight-logger"
+      sku       = "arcsight_logger_72_byol"
+      version   = "latest"
+    }
+
+    os_profile {
+      linux_configuration {
+        admin_username                  = local.admin_username
+        admin_password                  = local.admin_password
+        password_authentication_enabled = true
+      }
+    }
+
+    data_disk {
+      caching              = "ReadWrite"
+      create_option        = "FromImage"
+      storage_account_type = "Standard_LRS"
+    }
+
+    network_interface {
+      name = "networkProTest"
+
+      ip_configuration {
+        name      = "TestIPConfiguration"
+        subnet_id = azurerm_subnet.test.id
+      }
+    }
+  }
+
+  vm_sizes_profile {
+    name = "Standard_D2as_v5"
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) basicBaseLinuxVirtualMachineProfile() string {

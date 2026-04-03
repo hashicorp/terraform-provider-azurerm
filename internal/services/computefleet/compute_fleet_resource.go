@@ -296,13 +296,6 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"network_api_version": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-
 					"network_interface": networkInterfaceSchema(),
 
 					"os_profile": osProfileSchema(),
@@ -362,6 +355,14 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						}, false),
 					},
 
+					"network_api_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ForceNew: true,
+						// `Default` set according to portal behavior
+						Default: string(fleets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
+					},
+
 					"os_disk": storageProfileOsDiskSchema(),
 
 					"scheduled_event_os_image_timeout_duration": {
@@ -400,6 +401,10 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 							computeValidate.SharedGalleryImageID,
 							computeValidate.SharedGalleryImageVersionID,
 						),
+						ExactlyOneOf: []string{
+							"virtual_machine_profile.0.source_image_reference",
+							"virtual_machine_profile.0.source_image_id",
+						},
 					},
 
 					"source_image_reference": storageProfileSourceImageReferenceSchema(),
@@ -493,6 +498,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					"promotion_code": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
+						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
@@ -528,7 +534,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntBetween(1, 10000),
+						ValidateFunc: validation.IntBetween(0, 10000),
 					},
 
 					"allocation_strategy": {
@@ -560,7 +566,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					"capacity": {
 						Type:         pluginsdk.TypeInt,
 						Required:     true,
-						ValidateFunc: validation.IntBetween(1, 10000),
+						ValidateFunc: validation.IntBetween(0, 10000),
 					},
 
 					"allocation_strategy": {
@@ -673,7 +679,7 @@ func (r ComputeFleetResource) Create() sdk.ResourceFunc {
 				computeProfile.ComputeApiVersion = pointer.To(model.ComputeApiVersion)
 			}
 
-			baseVirtualMachineProfileValue, err := expandVirtualMachineProfileModel(model.VirtualMachineProfile, metadata.ResourceData)
+			baseVirtualMachineProfileValue, err := expandVirtualMachineProfileModel(model.VirtualMachineProfile, &model, metadata.ResourceData)
 			if err != nil {
 				return err
 			}
@@ -905,36 +911,43 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if len(state.RegularPriorityProfile) > 0 {
 				if state.RegularPriorityProfile[0].MinCapacity > state.RegularPriorityProfile[0].Capacity {
-					return errors.New("`RegularPriorityProfile.0.min_capacity` must be between `0` and `RegularPriorityProfile.0.capacity`, inclusive")
+					return errors.New("`regular_priority_profile.0.min_capacity` must be between `0` and `regular_priority_profile.0.capacity`, inclusive")
 				}
 			}
 
 			if v := state.VirtualMachineProfile[0].DataDisks; len(v) > 0 {
-				storageAccountType := v[0].StorageAccountType
 				ultraSSDEnabled := false
 				if ac := state.AdditionalCapabilities; len(ac) > 0 {
 					ultraSSDEnabled = ac[0].UltraSsdEnabled
 				}
 
-				if !ultraSSDEnabled && storageAccountType == string(fleets.StorageAccountTypesUltraSSDLRS) {
-					return errors.New("`UltraSSD_LRS` storage account type can be used only when `ultra_ssd_enabled` is enabled")
-				}
-
-				if v[0].CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
-					if v[0].DiskSizeInGiB == 0 {
-						return errors.New("`disk_size_in_gib` is required when`create_option` is `Empty`")
+				for i, dataDisk := range v {
+					storageAccountType := dataDisk.StorageAccountType
+					if !ultraSSDEnabled && storageAccountType == string(fleets.StorageAccountTypesUltraSSDLRS) {
+						return errors.New("`UltraSSD_LRS` storage account type can be used only when `ultra_ssd_enabled` is enabled")
 					}
 
-					lunExist := metadata.ResourceDiff.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["data_disk"].AsValueSlice()[0].AsValueMap()["lun"]
-					if lunExist.IsNull() {
-						return errors.New("`lun` is required when`create_option` is `Empty`")
+					if dataDisk.CreateOption == string(fleets.DiskCreateOptionTypesEmpty) {
+						if dataDisk.DiskSizeInGiB == 0 {
+							return fmt.Errorf("`virtual_machine_profile.0.data_disk.%d.disk_size_in_gib` is required when`create_option` is `Empty`", i)
+						}
+
+						lunExist := metadata.ResourceDiff.GetRawConfig().AsValueMap()["virtual_machine_profile"].AsValueSlice()[0].AsValueMap()["data_disk"].AsValueSlice()[i].AsValueMap()["lun"]
+						if lunExist.IsNull() {
+							return fmt.Errorf("`virtual_machine_profile.0.data_disk.%d.lun` is required when`create_option` is `Empty`", i)
+						}
+					}
+
+					if dataDisk.Caching != "" && dataDisk.DiskSizeInGiB > 4095 {
+						return fmt.Errorf("`virtual_machine_profile.0.data_disk.%d.disk_size_in_gib` cannot be greater than 4095 GiB when `caching` is specified", i)
 					}
 				}
 			}
 
-			vmProfile := state.VirtualMachineProfile[0]
-			if vmProfile.SourceImageId != "" && len(vmProfile.SourceImageReference) > 0 {
-				return errors.New("only one of `source_image_id` and `source_image_reference` in `virtual_machine_profile` must be specified")
+			for i := range state.VMSizesProfile {
+				if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["vm_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() && (len(state.RegularPriorityProfile) == 0 || state.RegularPriorityProfile[0].AllocationStrategy != string(fleets.RegularPriorityAllocationStrategyPrioritized)) {
+					return errors.New("`regular_priority_profile.0.allocation_strategy` should be `Prioritized` when `virtual_machine_profile.0.vm_sizes_profile.#.rank` is specified")
+				}
 			}
 
 			err := validateSecuritySetting(state.VirtualMachineProfile)
