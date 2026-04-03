@@ -111,9 +111,9 @@ A `custom_domain` block supports the following:
 
 * `name` - (Required) The hostname.
 
-* `binding_type` - (Optional) The binding type. Possible values are `Auto`, `Disabled` and `SniEnabled`.
+* `binding_type` - (Optional) The binding type. Possible values are `Auto`, `Disabled` and `SniEnabled`. Defaults to `Auto`.
 
-* `certificate_id` - (Optional) The ID of the Certificate to bind to this hostname. Must exist in the Managed Environment.
+* `certificate_id` - (Optional) The ID of the Certificate to bind to this hostname. Must be a managed or unmanaged certificate in the Managed Environment.
 
 ---
 

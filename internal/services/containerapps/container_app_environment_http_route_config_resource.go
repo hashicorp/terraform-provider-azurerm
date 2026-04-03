@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/httprouteconfig"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -101,19 +102,23 @@ func (r ContainerAppEnvironmentHttpRouteConfigResource) Arguments() map[string]*
 					"binding_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						Default:  string(httprouteconfig.BindingTypeAuto),
 						ValidateFunc: validation.StringInSlice([]string{
 							string(httprouteconfig.BindingTypeAuto),
 							string(httprouteconfig.BindingTypeDisabled),
 							string(httprouteconfig.BindingTypeSniEnabled),
 						}, false),
-						Description: "The Binding type. Possible values include `Auto`, `Disabled` and `SniEnabled`.",
+						Description: "The Binding type. Possible values include `Auto`, `Disabled` and `SniEnabled`. Defaults to `Auto`.",
 					},
 
 					"certificate_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-						Description:  "The ID of the Certificate bound to this hostname.",
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.Any(
+							managedenvironments.ValidateCertificateID,
+							managedenvironments.ValidateManagedCertificateID,
+						),
+						Description: "The ID of the Certificate to bind to this hostname. Must be a managed or unmanaged certificate in the Managed Environment.",
 					},
 
 					"name": {
