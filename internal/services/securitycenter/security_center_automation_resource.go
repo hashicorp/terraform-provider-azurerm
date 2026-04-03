@@ -268,6 +268,31 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
+	// the API appears to be eventually consistent, poll until the resource is readable
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"NotFound"},
+		Target:     []string{"Found"},
+		MinTimeout: 10 * time.Second,
+		Timeout:    time.Until(deadline),
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.Get(ctx, automationId)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return resp, "NotFound", nil
+				}
+				return resp, "Error", err
+			}
+			return resp, "Found", nil
+		},
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to become available after create/update: %+v", id, err)
+	}
+
 	d.SetId(id.ID())
 	return resourceSecurityCenterAutomationRead(d, meta)
 }
