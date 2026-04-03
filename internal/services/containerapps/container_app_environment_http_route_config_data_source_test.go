@@ -21,9 +21,9 @@ func TestAccContainerAppEnvironmentHttpRouteConfigDataSource_basic(t *testing.T)
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("rules.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rules.0.targets.#").HasValue("1"),
-				check.That(data.ResourceName).Key("rules.0.targets.0.container_app").IsNotEmpty(),
+				check.That(data.ResourceName).Key("rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.target.#").HasValue("1"),
+				check.That(data.ResourceName).Key("rule.0.target.0.container_app").IsNotEmpty(),
 			),
 		},
 	})

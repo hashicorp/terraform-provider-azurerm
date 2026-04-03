@@ -42,11 +42,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Container App Environment HTTP Route Config.
 
-* `custom_domains` - A `custom_domains` block as defined below.
+* `custom_domain` - A `custom_domain` block as defined below.
 
 * `fqdn` - The FQDN of the HTTP Route Config.
 
-* `rules` - A `rules` block as defined below.
+* `rule` - A `rule` block as defined below.
 
 ---
 
@@ -56,7 +56,7 @@ A `action` block exports the following:
 
 ---
 
-A `custom_domains` block exports the following:
+A `custom_domain` block exports the following:
 
 * `binding_type` - The binding type.
 
@@ -78,7 +78,7 @@ A `match` block exports the following:
 
 ---
 
-A `routes` block exports the following:
+A `route` block exports the following:
 
 * `action` - A `action` block as defined above.
 
@@ -86,17 +86,17 @@ A `routes` block exports the following:
 
 ---
 
-A `rules` block exports the following:
+A `rule` block exports the following:
 
 * `description` - The description of the rule.
 
-* `routes` - A `routes` block as defined above.
+* `route` - A `route` block as defined above.
 
-* `targets` - A `targets` block as defined below.
+* `target` - A `target` block as defined below.
 
 ---
 
-A `targets` block exports the following:
+A `target` block exports the following:
 
 * `container_app` - The Container App name to route requests to.
 

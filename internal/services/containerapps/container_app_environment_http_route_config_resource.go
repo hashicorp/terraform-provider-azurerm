@@ -22,8 +22,8 @@ type ContainerAppEnvironmentHttpRouteConfigResource struct{}
 type ContainerAppEnvironmentHttpRouteConfigModel struct {
 	Name                      string                       `tfschema:"name"`
 	ContainerAppEnvironmentId string                       `tfschema:"container_app_environment_id"`
-	CustomDomains             []HttpRouteCustomDomainModel `tfschema:"custom_domains"`
-	Rules                     []HttpRouteRuleModel         `tfschema:"rules"`
+	CustomDomains             []HttpRouteCustomDomainModel `tfschema:"custom_domain"`
+	Rules                     []HttpRouteRuleModel         `tfschema:"rule"`
 	Fqdn                      string                       `tfschema:"fqdn"`
 }
 
@@ -35,8 +35,8 @@ type HttpRouteCustomDomainModel struct {
 
 type HttpRouteRuleModel struct {
 	Description string                 `tfschema:"description"`
-	Routes      []HttpRouteModel       `tfschema:"routes"`
-	Targets     []HttpRouteTargetModel `tfschema:"targets"`
+	Routes      []HttpRouteModel       `tfschema:"route"`
+	Targets     []HttpRouteTargetModel `tfschema:"target"`
 }
 
 type HttpRouteModel struct {
@@ -93,7 +93,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigResource) Arguments() map[string]*
 			Description:  "The ID of the Container App Environment.",
 		},
 
-		"custom_domains": {
+		"custom_domain": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			Elem: &pluginsdk.Resource{
@@ -126,7 +126,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigResource) Arguments() map[string]*
 			},
 		},
 
-		"rules": {
+		"rule": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
@@ -139,7 +139,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigResource) Arguments() map[string]*
 						Description:  "Description of the rule.",
 					},
 
-					"routes": {
+					"route": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{
@@ -200,7 +200,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigResource) Arguments() map[string]*
 						},
 					},
 
-					"targets": {
+					"target": {
 						Type:     pluginsdk.TypeList,
 						Required: true,
 						MinItems: 1,
@@ -369,11 +369,11 @@ func (r ContainerAppEnvironmentHttpRouteConfigResource) Update() sdk.ResourceFun
 				return fmt.Errorf("retrieving %s for update: %+v", *id, err)
 			}
 
-			if metadata.ResourceData.HasChange("custom_domains") {
+			if metadata.ResourceData.HasChange("custom_domain") {
 				existing.Model.Properties.CustomDomains = expandHttpRouteCustomDomains(state.CustomDomains)
 			}
 
-			if metadata.ResourceData.HasChange("rules") {
+			if metadata.ResourceData.HasChange("rule") {
 				existing.Model.Properties.Rules = expandHttpRouteRules(state.Rules)
 			}
 

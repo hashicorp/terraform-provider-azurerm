@@ -64,10 +64,10 @@ resource "azurerm_container_app_environment_http_route_config" "example" {
   name                         = "myhttproute"
   container_app_environment_id = azurerm_container_app_environment.example.id
 
-  rules {
+  rule {
     description = "Route API traffic"
 
-    routes {
+    route {
       match {
         prefix         = "/api"
         case_sensitive = true
@@ -78,7 +78,7 @@ resource "azurerm_container_app_environment_http_route_config" "example" {
       }
     }
 
-    targets {
+    target {
       container_app = azurerm_container_app.example.name
     }
   }
@@ -93,11 +93,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Container App Environment HTTP Route Config. Must be between 3 and 63 characters, consisting of lower case letters and digits, starting with a letter. Changing this forces a new resource to be created.
 
-* `rules` - (Required) One or more `rules` blocks as defined below.
+* `rule` - (Required) One or more `rule` blocks as defined below.
 
 ---
 
-* `custom_domains` - (Optional) One or more `custom_domains` blocks as defined below.
+* `custom_domain` - (Optional) One or more `custom_domain` blocks as defined below.
 
 ---
 
@@ -107,7 +107,7 @@ A `action` block supports the following:
 
 ---
 
-A `custom_domains` block supports the following:
+A `custom_domain` block supports the following:
 
 * `name` - (Required) The hostname.
 
@@ -129,7 +129,7 @@ A `match` block supports the following:
 
 ---
 
-A `routes` block supports the following:
+A `route` block supports the following:
 
 * `match` - (Required) A `match` block as defined above.
 
@@ -137,17 +137,17 @@ A `routes` block supports the following:
 
 ---
 
-A `rules` block supports the following:
+A `rule` block supports the following:
 
-* `targets` - (Required) One or more `targets` blocks as defined below.
+* `target` - (Required) One or more `target` blocks as defined below.
 
 * `description` - (Optional) A description of the rule.
 
-* `routes` - (Optional) One or more `routes` blocks as defined above.
+* `route` - (Optional) One or more `route` blocks as defined above.
 
 ---
 
-A `targets` block supports the following:
+A `target` block supports the following:
 
 * `container_app` - (Required) The name of the Container App to route requests to.
 

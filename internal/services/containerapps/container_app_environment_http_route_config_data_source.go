@@ -21,8 +21,8 @@ type ContainerAppEnvironmentHttpRouteConfigDataSource struct{}
 type ContainerAppEnvironmentHttpRouteConfigDataSourceModel struct {
 	Name                      string                       `tfschema:"name"`
 	ContainerAppEnvironmentId string                       `tfschema:"container_app_environment_id"`
-	CustomDomains             []HttpRouteCustomDomainModel `tfschema:"custom_domains"`
-	Rules                     []HttpRouteRuleModel         `tfschema:"rules"`
+	CustomDomains             []HttpRouteCustomDomainModel `tfschema:"custom_domain"`
+	Rules                     []HttpRouteRuleModel         `tfschema:"rule"`
 	Fqdn                      string                       `tfschema:"fqdn"`
 }
 
@@ -58,7 +58,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigDataSource) Arguments() map[string
 
 func (r ContainerAppEnvironmentHttpRouteConfigDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"custom_domains": {
+		"custom_domain": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -84,7 +84,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigDataSource) Attributes() map[strin
 			},
 		},
 
-		"rules": {
+		"rule": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -95,7 +95,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigDataSource) Attributes() map[strin
 						Description: "Description of the rule.",
 					},
 
-					"routes": {
+					"route": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -149,7 +149,7 @@ func (r ContainerAppEnvironmentHttpRouteConfigDataSource) Attributes() map[strin
 						},
 					},
 
-					"targets": {
+					"target": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{

@@ -115,8 +115,8 @@ resource "azurerm_container_app_environment_http_route_config" "test" {
   name                         = "testroute%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  rules {
-    targets {
+  rule {
+    target {
       container_app = azurerm_container_app.test.name
     }
   }
@@ -132,8 +132,8 @@ resource "azurerm_container_app_environment_http_route_config" "import" {
   name                         = azurerm_container_app_environment_http_route_config.test.name
   container_app_environment_id = azurerm_container_app_environment_http_route_config.test.container_app_environment_id
 
-  rules {
-    targets {
+  rule {
+    target {
       container_app = azurerm_container_app.test.name
     }
   }
@@ -153,10 +153,10 @@ resource "azurerm_container_app_environment_http_route_config" "test" {
   name                         = "testroute%[2]d"
   container_app_environment_id = azurerm_container_app_environment.test.id
 
-  rules {
+  rule {
     description = "Main routing rule"
 
-    routes {
+    route {
       match {
         prefix         = "/api"
         case_sensitive = true
@@ -167,21 +167,21 @@ resource "azurerm_container_app_environment_http_route_config" "test" {
       }
     }
 
-    targets {
+    target {
       container_app = azurerm_container_app.test.name
     }
   }
 
-  rules {
+  rule {
     description = "Fallback rule"
 
-    routes {
+    route {
       match {
         prefix = "/"
       }
     }
 
-    targets {
+    target {
       container_app = azurerm_container_app.test.name
     }
   }
