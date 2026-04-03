@@ -796,7 +796,7 @@ resource "azurerm_container_app" "test" {
     revision_suffix = "%[4]s"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString, revisionSuffix)
 }
 
 func (r ContainerAppResource) withSystemAndUserIdentity(data acceptance.TestData) string {
