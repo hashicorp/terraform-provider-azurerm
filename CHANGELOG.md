@@ -26,6 +26,7 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `costmanagement` - update to API version `2025-03-01` ([#32102](https://github.com/hashicorp/terraform-provider-azurerm/issues/32102))
 * `azurerm_cdn_frontdoor_firewall_policy` - add support for the `429`, `990`, `991`, `992`, `993`, `994`, `995`, `996`, `997`, `998`, and `999` values in the `custom_block_response_status_code` property ([#32312](https://github.com/hashicorp/terraform-provider-azurerm/issues/32312))
 * `azurerm_container_app_job` - add support for `identity_id` property to `scaling.rules` ([#31312](https://github.com/hashicorp/terraform-provider-azurerm/issues/31312))
 * `azurerm_databricks_workspace` - add support for the values `FEDRAMP_MODERATE`, `IRAP_PROTECTED`, `FEDRAMP_HIGH`, `FEDRAMP_IL5`, `ITAR_EAR`, `CYBER_ESSENTIAL_PLUS`, `CANADA_PROTECTED_B`, `ISMAP`, `HITRUST`, `K_FSI`, `GERMANY_C5`, and `GERMANY_TISAX` in the `compliance_security_profile_standards` property ([#32163](https://github.com/hashicorp/terraform-provider-azurerm/issues/32163))
