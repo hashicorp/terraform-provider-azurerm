@@ -102,6 +102,10 @@ The following arguments are supported:
 
 ~> **Note:** `session_recording_enabled` is only supported when `sku` is `Premium`.
 
+* `private_only_enabled` - (Optional) Is Private-Only deployment enabled for the Bastion Host. When `true`, the Bastion Host is deployed without a public IP address and can only be accessed through private connectivity. Defaults to `false`.
+
+~> **Note:** `private_only_enabled` is only supported when `sku` is `Premium`. When `private_only_enabled` is `true`, the `public_ip_address_id` in the `ip_configuration` block is not required.
+
 * `virtual_network_id` - (Optional) The ID of the Virtual Network for the Developer Bastion Host. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -118,7 +122,9 @@ A `ip_configuration` block supports the following:
 
 ~> **Note:** The Subnet used for the Bastion Host must have the name `AzureBastionSubnet` and the subnet mask must be at least a `/26`.
 
-* `public_ip_address_id` - (Required) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
+* `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
+
+~> **Note:** `public_ip_address_id` is required when `private_only_enabled` is `false`.
 
 ## Attributes Reference
 
