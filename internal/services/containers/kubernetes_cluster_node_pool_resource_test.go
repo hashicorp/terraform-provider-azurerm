@@ -36,6 +36,7 @@ func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 			Config: r.autoScaleConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_image_version").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -2822,6 +2823,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -2866,6 +2874,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -2894,6 +2909,13 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 
   windows_profile {
