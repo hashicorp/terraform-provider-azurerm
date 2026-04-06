@@ -162,6 +162,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		builder.Features.EnhancedValidation.Locations = false
 		if r, err := vcr.GetRecorder(builder.TestName, account.SubscriptionId); err == nil {
 			o.Transport = r
+			o.TransportMode = vcr.GetTransportMode(r.Mode())
 		} else {
 			return nil, fmt.Errorf("getting vcr recorder: %w", err)
 		}

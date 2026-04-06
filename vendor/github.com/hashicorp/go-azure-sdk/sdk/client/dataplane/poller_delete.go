@@ -71,11 +71,11 @@ func (p deletePoller) Poll(ctx context.Context) (result *pollers.PollResult, err
 	}
 	req, err := p.client.NewRequest(ctx, opts)
 	if err != nil {
-		return nil, fmt.Errorf("building request: %+v", err)
+		return nil, fmt.Errorf("building request: %w", err)
 	}
 	resp, err := p.client.Execute(ctx, req)
 	if err != nil {
-		return nil, fmt.Errorf("executing request: %+v", err)
+		return nil, fmt.Errorf("executing request: %w", err)
 	}
 	if resp == nil {
 		return nil, pollers.PollingDroppedConnectionError{}
@@ -107,10 +107,7 @@ func (p deletePoller) Poll(ctx context.Context) (result *pollers.PollResult, err
 }
 
 func (p deletePoller) SkipDelay() bool {
-	if p.client != nil {
-		return client.IsVcrReplaying(p.client.Transport)
-	}
-	return false
+	return p.client != nil && client.IsVCRReplaying(p.client.Client)
 }
 
 var _ client.Options = deleteOptions{}

@@ -90,7 +90,7 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 	resp, err := p.client.Execute(ctx, req)
 	if err != nil {
 		var e *url.Error
-		if errors.As(err, &e) {
+		if errors.As(err, &e) && !client.IsVCRReplayMissError(err) {
 			p.droppedConnectionCount++
 			if p.droppedConnectionCount < p.maxDroppedConnections {
 				return &pollers.PollResult{
@@ -100,7 +100,7 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 			}
 		}
 
-		return nil, fmt.Errorf("executing request: %+v", err)
+		return nil, fmt.Errorf("executing request: %w", err)
 	}
 
 	p.droppedConnectionCount = 0
@@ -160,10 +160,7 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 }
 
 func (p *provisioningStatePoller) SkipDelay() bool {
-	if p.client != nil {
-		return client.IsVcrReplaying(p.client.Transport)
-	}
-	return false
+	return p.client != nil && client.IsVCRReplaying(p.client.Client)
 }
 
 type provisioningStateResult struct {

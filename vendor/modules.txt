@@ -1245,7 +1245,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20260326.1151219
+# github.com/hashicorp/go-azure-sdk/sdk v0.20260326.1151219 => ../sdk-vcr/sdk
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
@@ -1839,3 +1839,4 @@ gopkg.in/yaml.v3
 ## explicit; go 1.19
 software.sslmate.com/src/go-pkcs12
 software.sslmate.com/src/go-pkcs12/internal/rc2
+# github.com/hashicorp/go-azure-sdk/sdk => ../sdk-vcr/sdk
