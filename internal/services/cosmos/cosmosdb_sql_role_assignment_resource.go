@@ -5,6 +5,7 @@ package cosmos
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -147,7 +148,7 @@ func resourceCosmosDbSQLRoleAssignmentRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.DatabaseAccountName)
+	d.Set("name", strings.TrimPrefix(id.RoleAssignmentId, "/"))
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.DatabaseAccountName)
 

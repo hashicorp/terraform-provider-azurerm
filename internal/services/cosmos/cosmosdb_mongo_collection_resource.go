@@ -309,7 +309,7 @@ func resourceCosmosDbMongoCollectionRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.DatabaseAccountName)
 	d.Set("database_name", id.MongodbDatabaseName)
-	d.Set("name", id.MongodbDatabaseName)
+	d.Set("name", id.CollectionName)
 
 	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
 	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)

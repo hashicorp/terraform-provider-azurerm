@@ -108,7 +108,7 @@ func resourceCosmosDbSQLTriggerCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	createUpdateSqlTriggerParameters := cosmosdb.SqlTriggerCreateUpdateParameters{
 		Properties: cosmosdb.SqlTriggerCreateUpdateProperties{
 			Resource: cosmosdb.SqlTriggerResource{
-				Id:               id.SqlDatabaseName,
+				Id:               id.TriggerName,
 				Body:             pointer.To(d.Get("body").(string)),
 				TriggerType:      pointer.ToEnum[cosmosdb.TriggerType](d.Get("type").(string)),
 				TriggerOperation: pointer.ToEnum[cosmosdb.TriggerOperation](d.Get("operation").(string)),

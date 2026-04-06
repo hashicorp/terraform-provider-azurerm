@@ -230,7 +230,7 @@ func resourceCosmosDbSQLRoleDefinitionUpdate(d *pluginsdk.ResourceData, meta int
 		parameters.Properties.RoleName = pointer.To(d.Get("name").(string))
 	}
 
-	if d.HasChange("permission") {
+	if d.HasChange("permissions") {
 		parameters.Properties.Permissions = expandSqlRoleDefinitionPermissions(d.Get("permissions").(*pluginsdk.Set).List())
 	}
 
