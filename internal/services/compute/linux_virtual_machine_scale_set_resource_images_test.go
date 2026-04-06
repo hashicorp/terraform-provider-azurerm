@@ -362,8 +362,8 @@ resource "azurerm_public_ip" "source" {
   name                = "source-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
-  sku                 = "Basic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "source" {

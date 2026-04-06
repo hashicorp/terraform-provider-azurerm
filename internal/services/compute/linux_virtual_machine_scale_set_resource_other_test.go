@@ -2207,8 +2207,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2216,7 +2216,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2317,8 +2317,8 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 
@@ -2326,7 +2326,7 @@ resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id
@@ -2426,15 +2426,15 @@ resource "azurerm_public_ip" "test" {
   name                    = "acctestpip-%[2]d"
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
-  allocation_method       = "Dynamic"
-  sku                     = "Basic"
+  allocation_method       = "Static"
+  sku                     = "Standard"
   idle_timeout_in_minutes = 4
 }
 resource "azurerm_lb" "test" {
   name                = "acctestlb-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
+  sku                 = "Standard"
   frontend_ip_configuration {
     name                 = "internal"
     public_ip_address_id = azurerm_public_ip.test.id

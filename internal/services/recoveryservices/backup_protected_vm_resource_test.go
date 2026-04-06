@@ -360,8 +360,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
   domain_name_label   = "acctestip%d"
 }
 
@@ -506,8 +506,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
   domain_name_label   = "acctestip%[1]d"
 }
 
@@ -650,8 +650,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
   domain_name_label   = "acctestip%d"
 }
 
@@ -796,8 +796,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
   domain_name_label   = "acctestip%d"
 }
 
@@ -871,8 +871,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
   domain_name_label   = "acctestip%d"
 }
 
@@ -1051,8 +1051,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
   domain_name_label   = "acctestip%d"
 }
 
@@ -1335,8 +1335,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
-  allocation_method   = "Dynamic"
+  sku                 = "Standard"
+  allocation_method   = "Static"
   domain_name_label   = "acctestip%[1]d"
 }
 
