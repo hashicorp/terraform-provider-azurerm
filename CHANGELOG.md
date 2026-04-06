@@ -1,6 +1,7 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_cosmosdb_account` - add support for the `EnableFabricNetworkAclBypass` capability [GH-31836]
 
 FEATURES:
 * **New Resource**: `azurerm_data_protection_backup_instance_data_lake_storage` [GH-32044]
