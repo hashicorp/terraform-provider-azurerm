@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* `azurerm_private_dns_cname_record` identity and list resource (#31833) [GH-31833]
 
 BUG FIXES:
 
