@@ -1,6 +1,7 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_netapp_volume` - add support for `data_protection_advanced_ransomware` [GH-32099]
 * `azurerm_cosmosdb_account` - add support for the `EnableFabricNetworkAclBypass` capability [GH-31836]
 
 FEATURES:
