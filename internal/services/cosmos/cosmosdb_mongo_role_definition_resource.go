@@ -250,7 +250,7 @@ func (r CosmosDbMongoRoleDefinitionResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if properties := model.Properties; properties != nil {
-					databaseId := cosmosdb.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, *properties.DatabaseName)
+					databaseId := cosmosdb.NewMongodbDatabaseID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName, pointer.From(properties.DatabaseName))
 
 					state.CosmosMongoDatabaseId = databaseId.ID()
 					state.RoleName = pointer.From(properties.RoleName)
