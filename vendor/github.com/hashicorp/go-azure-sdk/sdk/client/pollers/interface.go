@@ -27,6 +27,10 @@ type PollerType interface {
 	Poll(ctx context.Context) (*PollResult, error)
 }
 
+type delaySkipper interface {
+	SkipDelay() bool
+}
+
 type PollResult struct {
 	// HttpResponse is a copy of the HttpResponse returned from the API in the last request.
 	HttpResponse *client.Response

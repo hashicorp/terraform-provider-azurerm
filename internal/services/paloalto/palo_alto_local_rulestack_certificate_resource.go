@@ -10,12 +10,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	certificateobjectlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/certificateobjectlocalrulestackresources"
 	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyvaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -42,7 +43,7 @@ func (r LocalRuleStackCertificate) ResourceType() string {
 }
 
 func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -70,7 +71,7 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: keyvaultValidate.VersionlessNestedItemId,
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeCertificate),
 			ExactlyOneOf: []string{"self_signed", "key_vault_certificate_id"},
 		},
 
@@ -82,6 +83,12 @@ func (r LocalRuleStackCertificate) Arguments() map[string]*schema.Schema {
 			ExactlyOneOf: []string{"key_vault_certificate_id", "self_signed"},
 		},
 	}
+
+	if !features.FivePointOh() {
+		args["key_vault_certificate_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (r LocalRuleStackCertificate) Attributes() map[string]*schema.Schema {

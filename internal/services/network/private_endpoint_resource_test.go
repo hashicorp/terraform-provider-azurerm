@@ -1034,8 +1034,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-
   identity {
     type = "SystemAssigned"
   }
