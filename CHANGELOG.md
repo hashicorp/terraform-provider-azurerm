@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* **New Resource**: `azurerm_data_protection_backup_instance_data_lake_storage` [GH-32044]
 * `azurerm_private_dns_cname_record` identity and list resource (#31833) [GH-31833]
 
 BUG FIXES:
