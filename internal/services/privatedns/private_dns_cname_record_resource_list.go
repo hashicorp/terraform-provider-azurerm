@@ -35,7 +35,7 @@ func (r PrivateDnsCNameRecordListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r PrivateDnsCNameRecordListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_private_dns_cname_record"
+	response.TypeName = azurePrivateDnsCNameRecordResourceName
 }
 
 func (r PrivateDnsCNameRecordListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
@@ -69,13 +69,13 @@ func (r PrivateDnsCNameRecordListResource) List(ctx context.Context, request lis
 		privateDnsZoneId := privatedns.NewPrivateZoneID(privatezoneId.SubscriptionId, privatezoneId.ResourceGroupName, privatezoneId.PrivateDnsZoneName, privatedns.RecordTypeCNAME)
 
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing privatedns PrivateDnsZone ID for `%s`", "azurerm_private_dns_cname_record"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("parsing Private DNS Zone ID for `%s`", azurePrivateDnsCNameRecordResourceName), err)
 			return
 		}
 
 		resp, err := client.RecordSetsListByTypeComplete(ctx, privateDnsZoneId, privatedns.DefaultRecordSetsListByTypeOperationOptions())
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_private_dns_cname_record"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", azurePrivateDnsCNameRecordResourceName), err)
 			return
 		}
 
@@ -92,14 +92,14 @@ func (r PrivateDnsCNameRecordListResource) List(ctx context.Context, request lis
 
 			id, err := privatedns.ParseRecordTypeID(pointer.From(cnamerecord.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing PrivateDns CNameRecord ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Private DNS CNAME Record ID", err)
 				return
 			}
 
 			rd.SetId(id.ID())
 
 			if err := resourcePrivateDnsCNameRecordFlatten(rd, id, &cnamerecord); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", "azurerm_private_dns_cname_record"), err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, fmt.Sprintf("encoding `%s` resource data", azurePrivateDnsCNameRecordResourceName), err)
 				return
 			}
 

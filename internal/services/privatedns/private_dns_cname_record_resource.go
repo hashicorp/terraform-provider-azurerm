@@ -26,6 +26,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_cname_record -properties "name,private_dns_zone_name:zone_name,resource_group_name" -compare-values "record_type:id"
 
+const azurePrivateDnsCNameRecordResourceName = "azurerm_private_dns_cname_record"
+
 func resourcePrivateDnsCNameRecord() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePrivateDnsCNameRecordCreateUpdate,
@@ -116,7 +118,7 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_private_dns_cname_record", id.ID())
+			return tf.ImportAsExistsError(azurePrivateDnsCNameRecordResourceName, id.ID())
 		}
 	}
 

@@ -3,12 +3,12 @@ subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_cname_record"
 description: |-
-    Lists Private Dns Cname Record resources.
+    Lists Private DNS CNAME Record resources.
 ---
 
 # List resource: azurerm_private_dns_cname_record
 
-Lists Private Dns Cname Record resources.
+Lists Private DNS CNAME Record resources.
 
 ## Example Usage
 
@@ -27,4 +27,4 @@ list "azurerm_private_dns_cname_record" "example" {
 
 This list resource supports the following arguments:
 
-* `private_dns_zone_id` - (Required) The ID of the Private Dns Zone to query.
+* `private_dns_zone_id` - (Required) The ID of the Private DNS Zone to query.
