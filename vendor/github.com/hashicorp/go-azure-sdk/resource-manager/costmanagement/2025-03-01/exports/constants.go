@@ -9,6 +9,129 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type CompressionModeType string
+
+const (
+	CompressionModeTypeGzip   CompressionModeType = "gzip"
+	CompressionModeTypeNone   CompressionModeType = "none"
+	CompressionModeTypeSnappy CompressionModeType = "snappy"
+)
+
+func PossibleValuesForCompressionModeType() []string {
+	return []string{
+		string(CompressionModeTypeGzip),
+		string(CompressionModeTypeNone),
+		string(CompressionModeTypeSnappy),
+	}
+}
+
+func (s *CompressionModeType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseCompressionModeType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseCompressionModeType(input string) (*CompressionModeType, error) {
+	vals := map[string]CompressionModeType{
+		"gzip":   CompressionModeTypeGzip,
+		"none":   CompressionModeTypeNone,
+		"snappy": CompressionModeTypeSnappy,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := CompressionModeType(input)
+	return &out, nil
+}
+
+type DataOverwriteBehaviorType string
+
+const (
+	DataOverwriteBehaviorTypeCreateNewReport         DataOverwriteBehaviorType = "CreateNewReport"
+	DataOverwriteBehaviorTypeOverwritePreviousReport DataOverwriteBehaviorType = "OverwritePreviousReport"
+)
+
+func PossibleValuesForDataOverwriteBehaviorType() []string {
+	return []string{
+		string(DataOverwriteBehaviorTypeCreateNewReport),
+		string(DataOverwriteBehaviorTypeOverwritePreviousReport),
+	}
+}
+
+func (s *DataOverwriteBehaviorType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDataOverwriteBehaviorType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDataOverwriteBehaviorType(input string) (*DataOverwriteBehaviorType, error) {
+	vals := map[string]DataOverwriteBehaviorType{
+		"createnewreport":         DataOverwriteBehaviorTypeCreateNewReport,
+		"overwritepreviousreport": DataOverwriteBehaviorTypeOverwritePreviousReport,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DataOverwriteBehaviorType(input)
+	return &out, nil
+}
+
+type DestinationType string
+
+const (
+	DestinationTypeAzureBlob DestinationType = "AzureBlob"
+)
+
+func PossibleValuesForDestinationType() []string {
+	return []string{
+		string(DestinationTypeAzureBlob),
+	}
+}
+
+func (s *DestinationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseDestinationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseDestinationType(input string) (*DestinationType, error) {
+	vals := map[string]DestinationType{
+		"azureblob": DestinationTypeAzureBlob,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := DestinationType(input)
+	return &out, nil
+}
+
 type ExecutionStatus string
 
 const (
@@ -109,15 +232,25 @@ func parseExecutionType(input string) (*ExecutionType, error) {
 type ExportType string
 
 const (
-	ExportTypeActualCost    ExportType = "ActualCost"
-	ExportTypeAmortizedCost ExportType = "AmortizedCost"
-	ExportTypeUsage         ExportType = "Usage"
+	ExportTypeActualCost                 ExportType = "ActualCost"
+	ExportTypeAmortizedCost              ExportType = "AmortizedCost"
+	ExportTypeFocusCost                  ExportType = "FocusCost"
+	ExportTypePriceSheet                 ExportType = "PriceSheet"
+	ExportTypeReservationDetails         ExportType = "ReservationDetails"
+	ExportTypeReservationRecommendations ExportType = "ReservationRecommendations"
+	ExportTypeReservationTransactions    ExportType = "ReservationTransactions"
+	ExportTypeUsage                      ExportType = "Usage"
 )
 
 func PossibleValuesForExportType() []string {
 	return []string{
 		string(ExportTypeActualCost),
 		string(ExportTypeAmortizedCost),
+		string(ExportTypeFocusCost),
+		string(ExportTypePriceSheet),
+		string(ExportTypeReservationDetails),
+		string(ExportTypeReservationRecommendations),
+		string(ExportTypeReservationTransactions),
 		string(ExportTypeUsage),
 	}
 }
@@ -137,9 +270,14 @@ func (s *ExportType) UnmarshalJSON(bytes []byte) error {
 
 func parseExportType(input string) (*ExportType, error) {
 	vals := map[string]ExportType{
-		"actualcost":    ExportTypeActualCost,
-		"amortizedcost": ExportTypeAmortizedCost,
-		"usage":         ExportTypeUsage,
+		"actualcost":                 ExportTypeActualCost,
+		"amortizedcost":              ExportTypeAmortizedCost,
+		"focuscost":                  ExportTypeFocusCost,
+		"pricesheet":                 ExportTypePriceSheet,
+		"reservationdetails":         ExportTypeReservationDetails,
+		"reservationrecommendations": ExportTypeReservationRecommendations,
+		"reservationtransactions":    ExportTypeReservationTransactions,
+		"usage":                      ExportTypeUsage,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -150,15 +288,61 @@ func parseExportType(input string) (*ExportType, error) {
 	return &out, nil
 }
 
+type FilterItemNames string
+
+const (
+	FilterItemNamesLookBackPeriod   FilterItemNames = "LookBackPeriod"
+	FilterItemNamesReservationScope FilterItemNames = "ReservationScope"
+	FilterItemNamesResourceType     FilterItemNames = "ResourceType"
+)
+
+func PossibleValuesForFilterItemNames() []string {
+	return []string{
+		string(FilterItemNamesLookBackPeriod),
+		string(FilterItemNamesReservationScope),
+		string(FilterItemNamesResourceType),
+	}
+}
+
+func (s *FilterItemNames) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFilterItemNames(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseFilterItemNames(input string) (*FilterItemNames, error) {
+	vals := map[string]FilterItemNames{
+		"lookbackperiod":   FilterItemNamesLookBackPeriod,
+		"reservationscope": FilterItemNamesReservationScope,
+		"resourcetype":     FilterItemNamesResourceType,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := FilterItemNames(input)
+	return &out, nil
+}
+
 type FormatType string
 
 const (
-	FormatTypeCsv FormatType = "Csv"
+	FormatTypeCsv     FormatType = "Csv"
+	FormatTypeParquet FormatType = "Parquet"
 )
 
 func PossibleValuesForFormatType() []string {
 	return []string{
 		string(FormatTypeCsv),
+		string(FormatTypeParquet),
 	}
 }
 
@@ -177,7 +361,8 @@ func (s *FormatType) UnmarshalJSON(bytes []byte) error {
 
 func parseFormatType(input string) (*FormatType, error) {
 	vals := map[string]FormatType{
-		"csv": FormatTypeCsv,
+		"csv":     FormatTypeCsv,
+		"parquet": FormatTypeParquet,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -191,12 +376,14 @@ func parseFormatType(input string) (*FormatType, error) {
 type GranularityType string
 
 const (
-	GranularityTypeDaily GranularityType = "Daily"
+	GranularityTypeDaily   GranularityType = "Daily"
+	GranularityTypeMonthly GranularityType = "Monthly"
 )
 
 func PossibleValuesForGranularityType() []string {
 	return []string{
 		string(GranularityTypeDaily),
+		string(GranularityTypeMonthly),
 	}
 }
 
@@ -215,7 +402,8 @@ func (s *GranularityType) UnmarshalJSON(bytes []byte) error {
 
 func parseGranularityType(input string) (*GranularityType, error) {
 	vals := map[string]GranularityType{
-		"daily": GranularityTypeDaily,
+		"daily":   GranularityTypeDaily,
+		"monthly": GranularityTypeMonthly,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -320,6 +508,7 @@ const (
 	TimeframeTypeBillingMonthToDate  TimeframeType = "BillingMonthToDate"
 	TimeframeTypeCustom              TimeframeType = "Custom"
 	TimeframeTypeMonthToDate         TimeframeType = "MonthToDate"
+	TimeframeTypeTheCurrentMonth     TimeframeType = "TheCurrentMonth"
 	TimeframeTypeTheLastBillingMonth TimeframeType = "TheLastBillingMonth"
 	TimeframeTypeTheLastMonth        TimeframeType = "TheLastMonth"
 	TimeframeTypeWeekToDate          TimeframeType = "WeekToDate"
@@ -330,6 +519,7 @@ func PossibleValuesForTimeframeType() []string {
 		string(TimeframeTypeBillingMonthToDate),
 		string(TimeframeTypeCustom),
 		string(TimeframeTypeMonthToDate),
+		string(TimeframeTypeTheCurrentMonth),
 		string(TimeframeTypeTheLastBillingMonth),
 		string(TimeframeTypeTheLastMonth),
 		string(TimeframeTypeWeekToDate),
@@ -354,6 +544,7 @@ func parseTimeframeType(input string) (*TimeframeType, error) {
 		"billingmonthtodate":  TimeframeTypeBillingMonthToDate,
 		"custom":              TimeframeTypeCustom,
 		"monthtodate":         TimeframeTypeMonthToDate,
+		"thecurrentmonth":     TimeframeTypeTheCurrentMonth,
 		"thelastbillingmonth": TimeframeTypeTheLastBillingMonth,
 		"thelastmonth":        TimeframeTypeTheLastMonth,
 		"weektodate":          TimeframeTypeWeekToDate,
