@@ -1,6 +1,7 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_key_vault` - Improve validation for the `name` field to prevent apply time errors [GH-30453]
 * Data Source: `azurerm_bastion_host` - export `private_only_enabled` [GH-32042]
 * `azurerm_bastion_host` - add support for a "Private-only" deployment and export `private_only_enabled` [GH-32042]
 * `azurerm_storage_account` - the `is_hns_enabled` property is now validated at plan time [GH-30536]
