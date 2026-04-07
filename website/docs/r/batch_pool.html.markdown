@@ -361,7 +361,7 @@ A `bind_mount` block supports the following:
 
 * `source` - (Required) The path which will be mounted to container task's container. Possible values include `Applications`, `JobPrep`, `Shared`, `Startup`, `Task`, and `VfsMounts`.
 
-* `read_only_enabled` - (Optional) Whether to mount this source path as read-only mode. Defaults to `false` (read/write mode).
+* `read_only_enabled` - (Optional) Whether to mount this source path as read-only. Defaults to `false` (read/write mode).
 
 ---
 
