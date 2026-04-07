@@ -12,3 +12,4 @@ func normalizeResourceId(resourceId string) string {
 func normalizeEndpoint(endpoint string) string {
 	return strings.TrimRight(endpoint, "/")
 }
+

@@ -118,9 +118,7 @@ A `ip_configuration` block supports the following:
 
 ~> **Note:** The Subnet used for the Bastion Host must have the name `AzureBastionSubnet` and the subnet mask must be at least a `/26`.
 
-* `public_ip_address_id` - (Optional) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
-
-~> **Note:** `public_ip_address_id` is required when `sku` is `Basic` or `Standard`. When `sku` is `Premium` and `public_ip_address_id` is omitted, the Bastion Host is deployed in Private-Only mode (`private_only_enabled` will be `true`).
+* `public_ip_address_id` - (Required) Reference to a Public IP Address to associate with this Bastion Host. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -129,8 +127,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Bastion Host.
 
 * `dns_name` - The FQDN for the Bastion Host.
-
-* `private_only_enabled` - Whether Private-Only deployment is enabled for the Bastion Host. 
 
 ## Timeouts
 
