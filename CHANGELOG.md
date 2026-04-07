@@ -15,6 +15,7 @@ FEATURES:
 * **New List Resource**: `azurerm_private_dns_cname_record` [GH-31833]
 
 BUG FIXES:
+* `azurerm_databricks_workspace` - fix the update behaviour for the `access_connector_id` property [GH-32025]
 * `azurerm_public_ip` - `domain_name_label`, `reverse_fqdn`, `domain_name_label_scope` can now be set to empty [GH-31699]
 * `azurerm_function_app_flex_consumption` - add locking on `virtual_network_subnet_id` to prevent conflicts if the same subnet is used for multiple deployments [GH-32091]
 * `azurerm_storage_account` - Remove `TLS1_3` as a valid value for `min_tls_version` [GH-32072]
