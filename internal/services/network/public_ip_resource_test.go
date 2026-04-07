@@ -716,7 +716,7 @@ resource "azurerm_public_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
 }
 
-func (PublicIPResource) standard_withReverseFqdn(data acceptance.TestData, dnsNameLabel string) string {
+func (PublicIpResource) standard_withReverseFqdn(data acceptance.TestData, dnsNameLabel string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
