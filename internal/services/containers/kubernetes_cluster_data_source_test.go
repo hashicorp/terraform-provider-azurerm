@@ -157,6 +157,7 @@ func TestAccDataSourceKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
+				check.That(data.ResourceName).Key("network_profile.0.outbound_type").Exists(),
 			),
 		},
 	})
@@ -650,6 +651,22 @@ func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_bootstrapProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.bootstrapProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("bootstrap_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("bootstrap_profile.0.artifact_source").HasValue("Cache"),
+				check.That(data.ResourceName).Key("bootstrap_profile.0.container_registry_id").Exists(),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -995,4 +1012,14 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileServiceMeshProfileRevisionsConfig(data, revisions))
+}
+
+func (KubernetesClusterDataSource) bootstrapProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.networkIsolatedBootstrapProfileArtifactSourceCache(data))
 }
