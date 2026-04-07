@@ -10,6 +10,7 @@ FEATURES:
 * `azurerm_private_dns_cname_record` identity and list resource (#31833) [GH-31833]
 
 BUG FIXES:
+* `azurerm_storage_account` - Remove `TLS1_3` as a valid value for `min_tls_version` [GH-32072] [GH-32072]
 
 ## 4.67.0 (April 02, 2026)
 
