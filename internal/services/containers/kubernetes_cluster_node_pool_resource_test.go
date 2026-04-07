@@ -1520,6 +1520,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -1615,6 +1622,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -1672,6 +1686,13 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 
@@ -1743,6 +1764,13 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 
   network_profile {
@@ -1822,6 +1850,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 
   depends_on = [
@@ -2240,6 +2275,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
@@ -2313,6 +2355,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 resource "azurerm_proximity_placement_group" "test" {
@@ -2712,6 +2761,13 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
+
   windows_profile {
     admin_username = "azureuser"
     admin_password = "P@55W0rd1234!h@2h1C0rP"
@@ -3070,6 +3126,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                        = "internal"
@@ -3109,6 +3172,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -3181,6 +3251,13 @@ resource "azurerm_kubernetes_cluster" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -3248,6 +3325,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
@@ -3285,6 +3369,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -3325,6 +3416,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
   network_profile {
     network_plugin = "azure"
@@ -3381,6 +3479,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -3432,6 +3537,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 
@@ -3485,6 +3597,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "source" {
@@ -3524,6 +3643,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 
@@ -3584,6 +3710,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -3625,6 +3758,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 
@@ -3697,6 +3837,13 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 
   network_profile {
@@ -3772,6 +3919,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
+  }
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
@@ -3846,6 +4000,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
   identity {
     type = "SystemAssigned"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      oidc_issuer_enabled,
+      oidc_issuer_url,
+    ]
   }
 }
 
