@@ -313,10 +313,9 @@ resource "azurerm_compute_fleet" "test" {
   location            = "%[3]s"
 
   plan {
-    name           = "arcsight_logger_72_byol"
-    product        = "arcsight-logger"
-    publisher      = "micro-focus"
-    promotion_code = "test"
+    name      = "arcsight_logger_72_byol"
+    product   = "arcsight-logger"
+    publisher = "micro-focus"
   }
 
   spot_priority_profile {

@@ -481,11 +481,11 @@ A `spot_priority_profile` block supports the following:
 
 * `capacity` - (Required) The total number of the spot virtual machines in the Compute Fleet.
 
+* `maintain_capacity_enabled` - (Required) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines. Changing this forces a new resource to be created.
+
 * `allocation_strategy` - (Optional) Specifies the allocation strategy for the Compute Fleet on which the Azure spot virtual machines will be allocated. Defaults to `PriceCapacityOptimized`. Possible values are `LowestPrice`, `PriceCapacityOptimized`, `CapacityOptimized`. Changing this forces a new resource to be created.
 
 * `eviction_policy` - (Optional) The policy which should be used by spot virtual machines that are evicted from the Compute Fleet. Defaults to `Delete`. Possible values are `Deallocate` and `Delete`. Changing this forces a new resource to be created.
-
-* `maintain_capacity_enabled` - (Optional) Whether to enable the continuous goal seeking for the desired capacity and restoration of evicted spot virtual machines. Defaults to `true`. Changing this forces a new resource to be created.
 
 * `max_hourly_price_per_vm` - (Optional) The maximum price per hour of each spot virtual machine. Defaults to `-1`. Changing this forces a new resource to be created.
 

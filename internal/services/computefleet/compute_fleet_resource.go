@@ -443,9 +443,8 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"rank": {
-						Type:         pluginsdk.TypeInt,
-						Optional:     true,
-						ValidateFunc: validation.IntBetween(0, 65535),
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
 					},
 				},
 			},
@@ -519,11 +518,15 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 		"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 		"compute_api_version": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C Azure generates a value if not specified
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^\d{4}-\d{2}-\d{2}(-preview)?$`),
+				"`network_api_version` must be in the format `YYYY-MM-DD` with an optional `-preview` suffix",
+			),
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
@@ -573,6 +576,12 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validation.IntBetween(0, 10000),
 					},
 
+					"maintain_capacity_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+						ForceNew: true,
+					},
+
 					"allocation_strategy": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -587,13 +596,6 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew:     true,
 						Default:      string(fleets.EvictionPolicyDelete),
 						ValidateFunc: validation.StringInSlice(fleets.PossibleValuesForEvictionPolicy(), false),
-					},
-
-					"maintain_capacity_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						ForceNew: true,
-						Default:  true,
 					},
 
 					"max_hourly_price_per_vm": {
@@ -948,9 +950,13 @@ func (r ComputeFleetResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			for i := range state.VMSizesProfile {
+			for i, vmSizesProfile := range state.VMSizesProfile {
 				if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["vm_sizes_profile"].AsValueSlice()[i].AsValueMap()["rank"].IsNull() && (len(state.RegularPriorityProfile) == 0 || state.RegularPriorityProfile[0].AllocationStrategy != string(fleets.RegularPriorityAllocationStrategyPrioritized)) {
-					return errors.New("`regular_priority_profile.0.allocation_strategy` should be `Prioritized` when `virtual_machine_profile.0.vm_sizes_profile.#.rank` is specified")
+					return errors.New("`regular_priority_profile` should be specified with `allocation_strategy` equal to `Prioritized` when `virtual_machine_profile.0.vm_sizes_profile.#.rank` is specified")
+				}
+
+				if vmSizesProfile.Rank >= int64(len(state.VMSizesProfile)) {
+					return fmt.Errorf("`virtual_machine_profile.0.vm_sizes_profile.%d.rank` must be less than the number of `vm_sizes_profile` blocks", i)
 				}
 			}
 
