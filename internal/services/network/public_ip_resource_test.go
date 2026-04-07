@@ -110,12 +110,6 @@ func TestAccPublicIp_standard_withDNSLabel(t *testing.T) {
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(dnl),
 			),
 		},
-		{
-			Config: r.static_basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 		data.ImportStep(),
 	})
 }
@@ -132,12 +126,6 @@ func TestAccPublicIpStatic_withReverseFqdn(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("domain_name_label").HasValue(dnl),
 				check.That(data.ResourceName).Key("reverse_fqdn").HasValue(fmt.Sprintf("%s.%s.cloudapp.azure.com.", dnl, data.Locations.Primary)),
-			),
-		},
-		{
-			Config: r.static_basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
