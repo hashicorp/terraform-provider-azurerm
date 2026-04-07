@@ -1884,7 +1884,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
-	enableOidcIssuer := d.Get("enable_oidc_issuer").(bool)
+	enableOidcIssuer := d.Get("oidc_issuer_enabled").(bool)
 	oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
 	if !features.FivePointOh() {
 		oidcIssuerProfile = nil // preserves 4.x default of `nil`, meaning Azure decides
