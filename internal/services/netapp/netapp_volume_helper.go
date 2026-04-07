@@ -13,9 +13,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -314,9 +314,9 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(in
 	}
 }
 
-func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.ReplicationObject {
+func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.VolumePropertiesDataProtection {
 	if len(input) == 0 {
-		return nil
+		return &volumes.VolumePropertiesDataProtection{}
 	}
 
 	replicationObject := volumes.ReplicationObject{}
@@ -338,12 +338,14 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.R
 		replicationObject.ReplicationSchedule = pointer.To(replicationSchedule)
 	}
 
-	return &replicationObject
+	return pointer.To(volumes.VolumePropertiesDataProtection{
+		Replication: pointer.To(replicationObject),
+	})
 }
 
-func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumeSnapshotProperties {
+func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
 	if len(input) == 0 {
-		return nil
+		return &volumes.VolumePropertiesDataProtection{}
 	}
 
 	snapshotObject := volumes.VolumeSnapshotProperties{}
@@ -354,13 +356,17 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volume
 		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
 	}
 
-	return &snapshotObject
+	return &volumes.VolumePropertiesDataProtection{
+		Snapshot: &snapshotObject,
+	}
 }
 
-func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumeSnapshotProperties {
+func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
 	if len(input) == 0 {
-		return &volumes.VolumeSnapshotProperties{
-			SnapshotPolicyId: pointer.To(""),
+		return &volumes.VolumePatchPropertiesDataProtection{
+			Snapshot: &volumes.VolumeSnapshotProperties{
+				SnapshotPolicyId: pointer.To(""),
+			},
 		}
 	}
 
@@ -372,12 +378,14 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
 	}
 
-	return &snapshotObject
+	return &volumes.VolumePatchPropertiesDataProtection{
+		Snapshot: &snapshotObject,
+	}
 }
 
-func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumeBackupProperties {
+func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
 	if len(input) == 0 || input == nil {
-		return nil
+		return &volumes.VolumePropertiesDataProtection{}
 	}
 
 	backupPolicyObject := volumes.VolumeBackupProperties{}
@@ -396,12 +404,14 @@ func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.
 		backupPolicyObject.BackupVaultId = pointer.To(v.(string))
 	}
 
-	return &backupPolicyObject
+	return &volumes.VolumePropertiesDataProtection{
+		Backup: &backupPolicyObject,
+	}
 }
 
-func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumeBackupProperties {
+func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
 	if len(input) == 0 || input == nil {
-		return nil
+		return &volumes.VolumePatchPropertiesDataProtection{}
 	}
 
 	backupPolicyObject := volumes.VolumeBackupProperties{}
@@ -420,49 +430,9 @@ func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *vol
 		backupPolicyObject.BackupVaultId = pointer.To(v.(string))
 	}
 
-	return &backupPolicyObject
-}
-
-func expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(input []interface{}) *volumes.RansomwareProtectionSettings {
-	if len(input) == 0 {
-		return nil
+	return &volumes.VolumePatchPropertiesDataProtection{
+		Backup: &backupPolicyObject,
 	}
-
-	arpObject := volumes.RansomwareProtectionSettings{}
-
-	arpRaw := input[0].(map[string]interface{})
-
-	if v, ok := arpRaw["protection_enabled"]; ok {
-		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
-		if v.(bool) {
-			desiredState = volumes.DesiredRansomwareProtectionStateEnabled
-		}
-		arpObject.DesiredRansomwareProtectionState = pointer.To(desiredState)
-	}
-
-	return &arpObject
-}
-
-func expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(input []interface{}) *volumes.RansomwareProtectionPatchSettings {
-	if len(input) == 0 {
-		return &volumes.RansomwareProtectionPatchSettings{
-			DesiredRansomwareProtectionState: pointer.To(volumes.DesiredRansomwareProtectionStateDisabled),
-		}
-	}
-
-	arpObject := volumes.RansomwareProtectionPatchSettings{}
-
-	arpRaw := input[0].(map[string]interface{})
-
-	if v, ok := arpRaw["protection_enabled"]; ok {
-		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
-		if v.(bool) {
-			desiredState = volumes.DesiredRansomwareProtectionStateEnabled
-		}
-		arpObject.DesiredRansomwareProtectionState = pointer.To(desiredState)
-	}
-
-	return &arpObject
 }
 
 func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]netAppModels.NetAppVolumeGroupSAPHanaVolume, error) {

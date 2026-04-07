@@ -4,7 +4,6 @@
 package privatedns
 
 import (
-	"context"
 	"fmt"
 	"math"
 	"time"
@@ -14,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,22 +22,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_cname_record -properties "name,private_dns_zone_name:zone_name,resource_group_name" -compare-values "record_type:id"
-
-const azurePrivateDnsCNameRecordResourceName = "azurerm_private_dns_cname_record"
-
 func resourcePrivateDnsCNameRecord() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourcePrivateDnsCNameRecordCreateUpdate,
 		Read:   resourcePrivateDnsCNameRecordRead,
 		Update: resourcePrivateDnsCNameRecordCreateUpdate,
 		Delete: resourcePrivateDnsCNameRecordDelete,
-
-		Importer: pluginsdk.ImporterValidatingIdentityThen(&privatedns.RecordTypeId{}, resourcePrivateDnsCNameRecordImporter),
-
-		Identity: &schema.ResourceIdentity{
-			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatedns.RecordTypeId{}),
-		},
+		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+			resourceId, err := privatedns.ParseRecordTypeID(id)
+			if err != nil {
+				return err
+			}
+			if resourceId.RecordType != privatedns.RecordTypeCNAME {
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, privatedns.RecordTypeCNAME, resourceId.RecordType)
+			}
+			return nil
+		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -91,17 +89,6 @@ func resourcePrivateDnsCNameRecord() *pluginsdk.Resource {
 	}
 }
 
-func resourcePrivateDnsCNameRecordImporter(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
-	resourceId, err := privatedns.ParseRecordTypeID(d.Id())
-	if err != nil {
-		return []*pluginsdk.ResourceData{d}, err
-	}
-	if resourceId.RecordType != privatedns.RecordTypeCNAME {
-		return []*pluginsdk.ResourceData{d}, fmt.Errorf("importing %s wrong type received: expected %s received %s", resourceId, privatedns.RecordTypeCNAME, resourceId.RecordType)
-	}
-	return []*pluginsdk.ResourceData{d}, nil
-}
-
 func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).PrivateDns.RecordSetsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -118,7 +105,7 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 		}
 
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError(azurePrivateDnsCNameRecordResourceName, id.ID())
+			return tf.ImportAsExistsError("azurerm_private_dns_cname_record", id.ID())
 		}
 	}
 
@@ -142,10 +129,6 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	d.SetId(id.ID())
-	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
-		return err
-	}
-
 	return resourcePrivateDnsCNameRecordRead(d, meta)
 }
 
@@ -168,15 +151,12 @@ func resourcePrivateDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return resourcePrivateDnsCNameRecordFlatten(d, id, resp.Model)
-}
 
-func resourcePrivateDnsCNameRecordFlatten(d *pluginsdk.ResourceData, id *privatedns.RecordTypeId, model *privatedns.RecordSet) error {
 	d.Set("name", id.RelativeRecordSetName)
 	d.Set("zone_name", id.PrivateDnsZoneName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model != nil {
+	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("ttl", props.Ttl)
 			d.Set("fqdn", props.Fqdn)
@@ -191,7 +171,7 @@ func resourcePrivateDnsCNameRecordFlatten(d *pluginsdk.ResourceData, id *private
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, id)
+	return nil
 }
 
 func resourcePrivateDnsCNameRecordDelete(d *pluginsdk.ResourceData, meta interface{}) error {

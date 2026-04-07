@@ -729,32 +729,6 @@ func TestAccCosmosDBAccount_capabilities_EnableNoSQLFullTextSearch(t *testing.T)
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLFullTextSearch"})
 }
 
-func TestAccCosmosDBAccount_capabilities_EnableFabricNetworkAclBypass(t *testing.T) {
-	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableFabricNetworkAclBypass"})
-}
-
-func TestAccCosmosDBAccount_capabilities_EnableFabricNetworkAclBypassAdd(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
-	r := CosmosDBAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, cosmosdb.DefaultConsistencyLevelStrong),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableFabricNetworkAclBypass"}),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"})
 }

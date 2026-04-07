@@ -42,5 +42,5 @@ data "azurerm_private_dns_cname_record" "test" {
   resource_group_name = azurerm_resource_group.test.name
   zone_name           = azurerm_private_dns_zone.test.name
 }
-`, PrivateDnsCnameRecordResource{}.basic(data))
+`, PrivateDnsCNameRecordResource{}.basic(data))
 }
