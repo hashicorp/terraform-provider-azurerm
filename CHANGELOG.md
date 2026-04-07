@@ -1,17 +1,20 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* Data Source: `azurerm_bastion_host` - export `private_only_enabled` [GH-32042]
+* `azurerm_bastion_host` - add support for a "Private-only" deployment and export `private_only_enabled` [GH-32042]
 * `azurerm_storage_account` - the `is_hns_enabled` property is now validated at plan time [GH-30536]
-* `dependencies`: `go-azure-sdk` - upgrade to `v0.20260407.1111603` [GH-32112]
+* dependencies: `go-azure-sdk` - upgrade to `v0.20260407.1111603` [GH-32112]
 * `azurerm_netapp_volume` - add support for `data_protection_advanced_ransomware` [GH-32099]
 * `azurerm_cosmosdb_account` - add support for the `EnableFabricNetworkAclBypass` capability [GH-31836]
 
 FEATURES:
 * **New Resource**: `azurerm_data_protection_backup_instance_data_lake_storage` [GH-32044]
-* `azurerm_private_dns_cname_record` identity and list resource (#31833) [GH-31833]
+* **New List Resource**: `azurerm_private_dns_cname_record` [GH-31833]
 
 BUG FIXES:
-* `azurerm_storage_account` - Remove `TLS1_3` as a valid value for `min_tls_version` [GH-32072] [GH-32072]
+* `azurerm_function_app_flex_consumption` - add locking on `virtual_network_subnet_id` to prevent conflicts if the same subnet is used for multiple deployments [GH-32091]
+* `azurerm_storage_account` - Remove `TLS1_3` as a valid value for `min_tls_version` [GH-32072]
 
 ## 4.67.0 (April 02, 2026)
 
