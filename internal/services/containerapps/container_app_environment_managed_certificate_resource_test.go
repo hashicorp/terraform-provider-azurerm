@@ -103,6 +103,44 @@ func TestAccContainerAppEnvironmentManagedCertificate_domainControlValidationHTT
 	})
 }
 
+func TestAccContainerAppEnvironmentManagedCertificate_domainControlValidationCNAME(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_managed_certificate", "test")
+	r := ContainerAppEnvironmentManagedCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.domainControlValidationCNAME(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppEnvironmentManagedCertificate_domainControlValidationTXT(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_managed_certificate", "test")
+	r := ContainerAppEnvironmentManagedCertificateResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.domainControlValidationTXT(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ContainerAppEnvironmentManagedCertificateResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedenvironments.ParseManagedCertificateID(state.ID)
 	if err != nil {
@@ -222,6 +260,62 @@ resource "azurerm_container_app_environment_managed_certificate" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r ContainerAppEnvironmentManagedCertificateResource) domainControlValidationCNAME(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_custom_domain" "test" {
+  name             = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
+  container_app_id = azurerm_container_app.test.id
+
+  lifecycle {
+    ignore_changes = [certificate_binding_type, container_app_environment_certificate_id]
+  }
+}
+
+resource "azurerm_container_app_environment_managed_certificate" "test" {
+  name                         = "acctest-cacertmgd%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  subject_name                 = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
+  domain_control_validation    = "CNAME"
+
+  depends_on = [azurerm_container_app_custom_domain.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentManagedCertificateResource) domainControlValidationTXT(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_custom_domain" "test" {
+  name             = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
+  container_app_id = azurerm_container_app.test.id
+
+  lifecycle {
+    ignore_changes = [certificate_binding_type, container_app_environment_certificate_id]
+  }
+}
+
+resource "azurerm_container_app_environment_managed_certificate" "test" {
+  name                         = "acctest-cacertmgd%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  subject_name                 = trimsuffix(trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid."), ".")
+  domain_control_validation    = "TXT"
+
+  depends_on = [azurerm_container_app_custom_domain.test]
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r ContainerAppEnvironmentManagedCertificateResource) template(data acceptance.TestData) string {
 	dnsZone := os.Getenv("ARM_TEST_DNS_ZONE")
 	dataResourceGroup := os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP")
@@ -281,7 +375,7 @@ resource "azurerm_container_app" "test" {
 }
 
 resource "azurerm_dns_cname_record" "test" {
-  name                = "containerapp%[1]d"
+  name                = "contapp%[1]d"
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   zone_name           = data.azurerm_dns_zone.test.name
   ttl                 = 300
@@ -289,7 +383,7 @@ resource "azurerm_dns_cname_record" "test" {
 }
 
 resource "azurerm_dns_txt_record" "test" {
-  name                = "asuid.containerapp%[1]d"
+  name                = "asuid.contapp%[1]d"
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   zone_name           = data.azurerm_dns_zone.test.name
   ttl                 = 60

@@ -128,7 +128,11 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.Resource
 
 			env, err := client.Get(ctx, *envId)
 			if err != nil {
-				return fmt.Errorf("reading %s for %s: %+v", *envId, id, err)
+				return fmt.Errorf("retrieving %s: %+v", *envId, err)
+			}
+
+			if env.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", envId)
 			}
 
 			certificate := managedenvironments.ManagedCertificate{
@@ -167,7 +171,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Read() sdk.ResourceFu
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", *id, err)
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
 			var state ContainerAppEnvironmentManagedCertificateModel
@@ -180,7 +184,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Read() sdk.ResourceFu
 
 				if props := model.Properties; props != nil {
 					state.SubjectName = pointer.From(props.SubjectName)
-					state.DomainControlValidation = string(pointer.From(props.DomainControlValidation))
+					state.DomainControlValidation = pointer.FromEnum(props.DomainControlValidation)
 					state.ValidationToken = pointer.From(props.ValidationToken)
 				}
 			}
@@ -233,7 +237,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Update() sdk.Resource
 				}
 
 				if _, err = client.ManagedCertificatesUpdate(ctx, *id, patch); err != nil {
-					return fmt.Errorf("updating tags for %s: %+v", *id, err)
+					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}
 

@@ -33,11 +33,49 @@ resource "azurerm_container_app_environment" "example" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
+resource "azurerm_container_app" "example" {
+  name                         = "example-app"
+  resource_group_name          = azurerm_resource_group.example.name
+  container_app_environment_id = azurerm_container_app_environment.example.id
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "example-container"
+      image  = "mcr.microsoft.com/k8se/quickstart:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+
+  ingress {
+    external_enabled = true
+    target_port      = 80
+    transport        = "http"
+
+    traffic_weight {
+      latest_revision = true
+      percentage      = 100
+    }
+  }
+}
+
+resource "azurerm_container_app_custom_domain" "example" {
+  name             = "example.com"
+  container_app_id = azurerm_container_app.example.id
+
+  lifecycle {
+    ignore_changes = [certificate_binding_type, container_app_environment_certificate_id]
+  }
+}
+
 resource "azurerm_container_app_environment_managed_certificate" "example" {
   name                         = "example-managed-cert"
   container_app_environment_id = azurerm_container_app_environment.example.id
   subject_name                 = "example.com"
   domain_control_validation    = "HTTP"
+
+  depends_on = [azurerm_container_app_custom_domain.example]
 }
 ```
 
