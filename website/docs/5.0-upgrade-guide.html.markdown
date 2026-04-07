@@ -393,6 +393,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
 * The `node_provisioning_profile` block is now required.
+* The `oidc_issuer_enabled` property now defaults to `true`.
 
 ### `azurerm_kubernetes_cluster_node_pool`
 
