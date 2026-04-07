@@ -841,6 +841,9 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					model.Properties.VirtualNetworkSubnetId = empty
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
+
+					locks.ByID(subnetId)
+					defer locks.UnlockByID(subnetId)
 				}
 			}
 
