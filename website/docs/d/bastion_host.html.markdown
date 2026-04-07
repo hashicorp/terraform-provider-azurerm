@@ -58,6 +58,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `session_recording_enabled` - Is Session Recording feature enabled for the Bastion Host.
 
+* `private_only_enabled` - Whether Private-Only deployment is enabled for the Bastion Host. 
+
 * `dns_name` - The FQDN for the Bastion Host.
 
 * `tags` - A mapping of tags assigned to the Bastion Host.

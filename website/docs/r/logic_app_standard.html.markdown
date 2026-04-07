@@ -211,6 +211,8 @@ The `site_config` block supports the following:
 
 -> **Note:** User has to explicitly set `scm_ip_restriction` to empty slice (`[]`) to remove it.
 
+* `scm_ip_restriction_default_action` - (Optional) The action to take when no `scm_ip_restriction` rules match. Possible values are `Allow` and `Deny`.
+  
 * `scm_use_main_ip_restriction` - (Optional) Should the Logic App `ip_restriction` configuration be used for the SCM too. Defaults to `false`.
 
 * `scm_min_tls_version` - (Optional) Configures the minimum version of TLS required for SSL requests to the SCM site. Possible values are `1.0`, `1.1`, `1.2` and `1.3`.
