@@ -137,13 +137,6 @@ func TestAccKubernetesAutomaticCluster_nodeProvisioningProfileUpdate(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		//data.ImportStep(),
-		//{
-		//	Config: r.nodeProvisioningProfile(data, "Manual", "None"),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
 		data.ImportStep(),
 		{
 			Config: r.nodeProvisioningProfile(data, "Auto", "Auto"),

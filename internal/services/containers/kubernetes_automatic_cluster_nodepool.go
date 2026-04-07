@@ -1037,10 +1037,7 @@ func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOS
 		return []LinuxOSConfigModel{}, nil
 	}
 
-	sysctlConfig, err := flattenClusterNodePoolSysctlConfigTyped(input.Sysctls)
-	if err != nil {
-		return nil, err
-	}
+	sysctlConfig := flattenClusterNodePoolSysctlConfigTyped(input.Sysctls)
 
 	result := LinuxOSConfigModel{
 		SysctlConfig: sysctlConfig,
@@ -1059,9 +1056,9 @@ func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOS
 	return []LinuxOSConfigModel{result}, nil
 }
 
-func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig) ([]SysctlConfigModel, error) {
+func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig) []SysctlConfigModel {
 	if input == nil {
-		return []SysctlConfigModel{}, nil
+		return []SysctlConfigModel{}
 	}
 
 	netIPv4TcpTwReuse := false
@@ -1162,7 +1159,7 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 		result.VMVfsCachePressure = *input.VMVfsCachePressure
 	}
 
-	return []SysctlConfigModel{result}, nil
+	return []SysctlConfigModel{result}
 }
 
 func flattenClusterNodePoolUpgradeSettingsTyped(input *managedclusters.AgentPoolUpgradeSettings) []UpgradeSettingsModel {
@@ -1176,10 +1173,10 @@ func flattenClusterNodePoolUpgradeSettingsTyped(input *managedclusters.AgentPool
 		result.MaxSurge = *input.MaxSurge
 	}
 	if input.DrainTimeoutInMinutes != nil {
-		result.DrainTimeoutInMinutes = int64(*input.DrainTimeoutInMinutes)
+		result.DrainTimeoutInMinutes = pointer.From(input.DrainTimeoutInMinutes)
 	}
 	if input.NodeSoakDurationInMinutes != nil {
-		result.NodeSoakDurationInMinutes = int64(*input.NodeSoakDurationInMinutes)
+		result.NodeSoakDurationInMinutes = pointer.From(input.NodeSoakDurationInMinutes)
 	}
 
 	return []UpgradeSettingsModel{result}
@@ -1237,10 +1234,10 @@ func flattenClusterPoolNetworkProfileAllowedHostPortsTyped(input *[]managedclust
 	for _, portRange := range *input {
 		model := AllowedHostPortsModel{}
 		if portRange.PortEnd != nil {
-			model.PortEnd = int64(*portRange.PortEnd)
+			model.PortEnd = pointer.From(portRange.PortEnd)
 		}
 		if portRange.PortStart != nil {
-			model.PortStart = int64(*portRange.PortStart)
+			model.PortStart = pointer.From(portRange.PortStart)
 		}
 		if portRange.Protocol != nil {
 			model.Protocol = string(*portRange.Protocol)
@@ -1521,63 +1518,63 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 	}
 
 	if agentPool.Count != nil {
-		result.NodeCount = int64(*agentPool.Count)
+		result.NodeCount = pointer.From(agentPool.Count)
 	}
 
 	if agentPool.EnableUltraSSD != nil {
-		result.UltraSSDEnabled = *agentPool.EnableUltraSSD
+		result.UltraSSDEnabled = pointer.From(agentPool.EnableUltraSSD)
 	}
 
 	if agentPool.EnableAutoScaling != nil {
-		result.AutoScalingEnabled = *agentPool.EnableAutoScaling
+		result.AutoScalingEnabled = pointer.From(agentPool.EnableAutoScaling)
 	}
 
 	if agentPool.EnableFIPS != nil {
-		result.FipsEnabled = *agentPool.EnableFIPS
+		result.FipsEnabled = pointer.From(agentPool.EnableFIPS)
 	}
 
 	if agentPool.EnableNodePublicIP != nil {
-		result.NodePublicIPEnabled = *agentPool.EnableNodePublicIP
+		result.NodePublicIPEnabled = pointer.From(agentPool.EnableNodePublicIP)
 	}
 
 	if agentPool.EnableEncryptionAtHost != nil {
-		result.HostEncryptionEnabled = *agentPool.EnableEncryptionAtHost
+		result.HostEncryptionEnabled = pointer.From(agentPool.EnableEncryptionAtHost)
 	}
 
 	if agentPool.GpuInstanceProfile != nil {
-		result.GPUInstance = string(*agentPool.GpuInstanceProfile)
+		result.GPUInstance = string(pointer.From(agentPool.GpuInstanceProfile))
 	}
 
 	if agentPool.GpuProfile != nil && agentPool.GpuProfile.Driver != nil {
-		result.GPUDriver = string(*agentPool.GpuProfile.Driver)
+		result.GPUDriver = string(pointer.From(agentPool.GpuProfile.Driver))
 	}
 
 	if agentPool.MaxCount != nil {
-		result.MaxCount = int64(*agentPool.MaxCount)
+		result.MaxCount = pointer.From(agentPool.MaxCount)
 	}
 
 	if agentPool.MaxPods != nil {
-		result.MaxPods = int64(*agentPool.MaxPods)
+		result.MaxPods = pointer.From(agentPool.MaxPods)
 	}
 
 	if agentPool.MinCount != nil {
-		result.MinCount = int64(*agentPool.MinCount)
+		result.MinCount = pointer.From(agentPool.MinCount)
 	}
 
 	if agentPool.NodeLabels != nil {
 		result.NodeLabels = make(map[string]string)
-		for k, v := range *agentPool.NodeLabels {
+		for k, v := range pointer.From(agentPool.NodeLabels) {
 			result.NodeLabels[k] = v
 		}
 	}
 
 	if agentPool.NodePublicIPPrefixID != nil {
-		result.NodePublicIPPrefixID = *agentPool.NodePublicIPPrefixID
+		result.NodePublicIPPrefixID = pointer.From(agentPool.NodePublicIPPrefixID)
 	}
 
 	// Check for CriticalAddonsOnly taint
 	if agentPool.NodeTaints != nil {
-		for _, taint := range *agentPool.NodeTaints {
+		for _, taint := range pointer.From(agentPool.NodeTaints) {
 			if taint == "CriticalAddonsOnly=true:NoSchedule" {
 				result.OnlyCriticalAddonsEnabled = true
 				break
@@ -1586,47 +1583,47 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 	}
 
 	if agentPool.OsDiskSizeGB != nil {
-		result.OSDiskSizeGB = int64(*agentPool.OsDiskSizeGB)
+		result.OSDiskSizeGB = pointer.From(agentPool.OsDiskSizeGB)
 	}
 
 	if agentPool.OsDiskType != nil {
-		result.OSDiskType = string(*agentPool.OsDiskType)
+		result.OSDiskType = string(pointer.From(agentPool.OsDiskType))
 	} else {
 		result.OSDiskType = string(managedclusters.OSDiskTypeManaged)
 	}
 
 	if agentPool.PodSubnetID != nil {
-		result.PodSubnetID = *agentPool.PodSubnetID
+		result.PodSubnetID = pointer.From(agentPool.PodSubnetID)
 	}
 
 	if agentPool.VnetSubnetID != nil {
-		result.VnetSubnetID = *agentPool.VnetSubnetID
+		result.VnetSubnetID = pointer.From(agentPool.VnetSubnetID)
 	}
 
 	if agentPool.HostGroupID != nil {
-		result.HostGroupID = *agentPool.HostGroupID
+		result.HostGroupID = pointer.From(agentPool.HostGroupID)
 	}
 
 	// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0)
 	// Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion
 	if agentPool.OrchestratorVersion != nil {
-		result.OrchestratorVersion = *agentPool.OrchestratorVersion
+		result.OrchestratorVersion = pointer.From(agentPool.OrchestratorVersion)
 	} else if agentPool.CurrentOrchestratorVersion != nil {
-		result.OrchestratorVersion = *agentPool.CurrentOrchestratorVersion
+		result.OrchestratorVersion = pointer.From(agentPool.CurrentOrchestratorVersion)
 	}
 
 	if agentPool.ProximityPlacementGroupID != nil {
-		result.ProximityPlacementGroupID = *agentPool.ProximityPlacementGroupID
+		result.ProximityPlacementGroupID = pointer.From(agentPool.ProximityPlacementGroupID)
 	}
 
 	if agentPool.ScaleDownMode != nil {
-		result.ScaleDownMode = string(*agentPool.ScaleDownMode)
+		result.ScaleDownMode = string(pointer.From(agentPool.ScaleDownMode))
 	} else {
 		result.ScaleDownMode = string(managedclusters.ScaleDownModeDelete)
 	}
 
 	if agentPool.CreationData != nil && agentPool.CreationData.SourceResourceId != nil {
-		id, err := snapshots.ParseSnapshotIDInsensitively(*agentPool.CreationData.SourceResourceId)
+		id, err := snapshots.ParseSnapshotIDInsensitively(pointer.From(agentPool.CreationData.SourceResourceId))
 		if err != nil {
 			return nil, err
 		}
@@ -1634,27 +1631,27 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 	}
 
 	if agentPool.VMSize != nil {
-		result.VMSize = *agentPool.VMSize
+		result.VMSize = pointer.From(agentPool.VMSize)
 	}
 
 	if agentPool.CapacityReservationGroupID != nil {
-		result.CapacityReservationGroupID = *agentPool.CapacityReservationGroupID
+		result.CapacityReservationGroupID = pointer.From(agentPool.CapacityReservationGroupID)
 	}
 
 	if agentPool.WorkloadRuntime != nil {
-		result.WorkloadRuntime = string(*agentPool.WorkloadRuntime)
+		result.WorkloadRuntime = string(pointer.From(agentPool.WorkloadRuntime))
 	}
 
 	if agentPool.KubeletDiskType != nil {
-		result.KubeletDiskType = string(*agentPool.KubeletDiskType)
+		result.KubeletDiskType = string(pointer.From(agentPool.KubeletDiskType))
 	}
 
 	if agentPool.OsSKU != nil {
-		result.OSSKU = string(*agentPool.OsSKU)
+		result.OSSKU = string(pointer.From(agentPool.OsSKU))
 	}
 
 	if agentPool.Type != nil {
-		result.Type = string(*agentPool.Type)
+		result.Type = string(pointer.From(agentPool.Type))
 	}
 
 	result.UpgradeSettings = flattenClusterNodePoolUpgradeSettingsTyped(agentPool.UpgradeSettings)
@@ -1669,7 +1666,7 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 	result.NodeNetworkProfile = flattenClusterPoolNetworkProfileTyped(agentPool.NetworkProfile)
 
 	if agentPool.AvailabilityZones != nil {
-		result.Zones = *agentPool.AvailabilityZones
+		result.Zones = pointer.From(agentPool.AvailabilityZones)
 	}
 
 	if agentPool.Tags != nil {

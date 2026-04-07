@@ -382,8 +382,7 @@ func (r KubernetesAutomaticClusterResource) IDValidationFunc() pluginsdk.SchemaV
 			return
 		}
 
-		_, err := commonids.ParseKubernetesClusterID(idRaw)
-		if err != nil {
+		if _, err := commonids.ParseKubernetesClusterID(idRaw); err != nil {
 			errs = append(errs, fmt.Errorf("parsing %q: %+v", idRaw, err))
 		}
 		return
@@ -2072,11 +2071,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.Identity) > 0 {
-				expandedIdentity, err := expandIdentityModel(model.Identity)
-				if err != nil {
-					return fmt.Errorf("expanding identity: %+v", err)
-				}
-				parameters.Identity = expandedIdentity
+				parameters.Identity = expandIdentityModel(model.Identity)
 				parameters.Properties.ServicePrincipalProfile = &managedclusters.ManagedClusterServicePrincipalProfile{
 					ClientId: "msi",
 				}
@@ -2201,19 +2196,19 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 				// Only set tags if non-empty to avoid empty map in state
 				// if model.Tags != nil {
 				state.Tags = tags.Flatten(model.Tags)
-				//}
+				// }
 
-				//skuTier := string(managedclusters.ManagedClusterSKUTierStandard)
-				//skuName := string(managedclusters.ManagedClusterSKUNameAutomatic)
+				// skuTier := string(managedclusters.ManagedClusterSKUTierStandard)
+				// skuName := string(managedclusters.ManagedClusterSKUNameAutomatic)
 				//// #TODO dont need this
-				//if model.Sku != nil {
+				// if model.Sku != nil {
 				//	if model.Sku.Tier != nil && *model.Sku.Tier != "" {
 				//		skuTier = string(*model.Sku.Tier)
 				//	}
 				//	if model.Sku.Name != nil && *model.Sku.Name != "" {
 				//		skuName = string(*model.Sku.Name)
 				//	}
-				//}
+				// }
 				state.SKUTier = string(*model.Sku.Tier)
 				state.SKUName = string(*model.Sku.Name)
 
@@ -2231,7 +2226,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 						state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, state.NodeResourceGroup).ID()
 					}
 
-					//upgradeChannel := ""
+					// upgradeChannel := ""
 					//nodeOSUpgradeChannel := ""
 					//if profile := props.AutoUpgradeProfile; profile != nil {
 					//	if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
@@ -2316,17 +2311,12 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 
 					state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
 					state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
-					state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, "")
+					state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, metadata)
 					state.WorkloadAutoscalerProfile = flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
 					state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
 					state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
 
-					if props.BootstrapProfile != nil {
-						state.BootstrapProfile = []BootstrapProfileModel{{
-							ArtifactSource:      string(pointer.From(props.BootstrapProfile.ArtifactSource)),
-							ContainerRegistryID: pointer.From(props.BootstrapProfile.ContainerRegistryId),
-						}}
-					}
+					state.BootstrapProfile = flattenKubernetesAutomaticClusterBootstrapProfile(props.BootstrapProfile)
 					state.UpgradeOverride = flattenKubernetesAutomaticClusterUpgradeOverride(props.UpgradeSettings)
 
 					if props.StorageProfile != nil {
@@ -2348,16 +2338,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					}
 					state.RoleBasedAccessControlEnabled = rbacEnabled
 
-					if props.AadProfile != nil && props.AadProfile.Managed != nil && *props.AadProfile.Managed {
-						aadRbac := AzureActiveDirectoryRBACModel{
-							TenantID:         pointer.From(props.AadProfile.TenantID),
-							AzureRBACEnabled: pointer.From(props.AadProfile.EnableAzureRBAC),
-						}
-						if props.AadProfile.AdminGroupObjectIDs != nil {
-							aadRbac.AdminGroupObjectIDs = *props.AadProfile.AdminGroupObjectIDs
-						}
-						state.AzureActiveDirectoryRBAC = []AzureActiveDirectoryRBACModel{aadRbac}
-					}
+					state.AzureActiveDirectoryRBAC = flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(props.AadProfile, props.DisableLocalAccounts)
 
 					if props.ServicePrincipalProfile != nil &&
 						props.ServicePrincipalProfile.ClientId != "" &&
@@ -2377,18 +2358,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					oidcIssuerEnabled := false
-					oidcIssuerUrl := ""
-					if props.OidcIssuerProfile != nil {
-						if props.OidcIssuerProfile.Enabled != nil {
-							oidcIssuerEnabled = *props.OidcIssuerProfile.Enabled
-						}
-						if props.OidcIssuerProfile.IssuerURL != nil {
-							oidcIssuerUrl = *props.OidcIssuerProfile.IssuerURL
-						}
-					}
-					state.OIDCIssuerEnabled = oidcIssuerEnabled
-					state.OIDCIssuerURL = oidcIssuerUrl
+					state.OIDCIssuerEnabled, state.OIDCIssuerURL = flattenKubernetesAutomaticClusterOidcIssuerProfile(props.OidcIssuerProfile)
 
 					workloadIdentity := false
 					if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
@@ -2426,11 +2396,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				flattenedIdentity, err := flattenIdentityModel(resp.Model.Identity)
-				if err != nil {
-					return fmt.Errorf("flattening `identity`: %+v", err)
-				}
-				state.Identity = flattenedIdentity
+				state.Identity = flattenIdentityModel(resp.Model.Identity)
 
 				kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(credentials.Model, "clusterUser")
 				state.KubeConfigRaw = pointer.From(kubeConfigRaw)
@@ -2694,7 +2660,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				metadata.ResourceData.HasChange("image_cleaner_interval_hours") ||
 				metadata.ResourceData.HasChange("key_management_service") ||
 				metadata.ResourceData.HasChange("custom_ca_trust_certificates_base64") {
-
 				if props.SecurityProfile == nil {
 					props.SecurityProfile = &managedclusters.ManagedClusterSecurityProfile{}
 				}
@@ -3153,21 +3118,27 @@ func expandKubernetesAutomaticClusterWindowsProfile(input []WindowsProfileModel)
 	return &managedclusters.ManagedClusterWindowsProfile{
 		AdminUsername: config.AdminUsername,
 		AdminPassword: pointer.To(config.AdminPassword),
-		LicenseType:   &license,
+		LicenseType:   pointer.To(license),
 		GmsaProfile:   gmsaProfile,
 	}
 }
 
-func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, adminPassword string) []WindowsProfileModel {
+func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, metadata sdk.ResourceMetaData) []WindowsProfileModel {
 	if profile == nil {
 		return []WindowsProfileModel{}
 	}
 
 	adminUsername := profile.AdminUsername
 
+	rawConfig := metadata.ResourceData.GetRawConfig()
+
+	adminPassword := ""
+	if !rawConfig.IsNull() {
+		adminPassword = rawConfig.AsValueMap()["windows_profile"].AsValueSlice()[0].AsValueMap()["admin_password"].AsString()
+	}
 	license := ""
-	if profile.LicenseType != nil && *profile.LicenseType != managedclusters.LicenseTypeNone {
-		license = string(*profile.LicenseType)
+	if profile.LicenseType != nil && pointer.From(profile.LicenseType) != managedclusters.LicenseTypeNone {
+		license = string(pointer.From(profile.LicenseType))
 	}
 
 	gmsaProfile := flattenAutomaticGMSAProfile(profile.GmsaProfile)
@@ -3190,7 +3161,7 @@ func expandAutomaticGMSAProfile(input []GMSAModel) *managedclusters.WindowsGmsaP
 	config := input[0]
 
 	// If the model has empty values, return enabled profile with empty strings
-	if config.DNSServer == "" && config.RootDomain == "" {
+	if config.DNSServer == "vnet" && config.RootDomain == "vnet" {
 		return &managedclusters.WindowsGmsaProfile{
 			Enabled:        pointer.To(true),
 			DnsServer:      pointer.To(""),
@@ -3210,14 +3181,14 @@ func flattenAutomaticGMSAProfile(profile *managedclusters.WindowsGmsaProfile) []
 		return []GMSAModel{}
 	}
 
-	dnsServer := ""
+	dnsServer := "vnet"
 	if dns := profile.DnsServer; dns != nil {
-		dnsServer = *dns
+		dnsServer = pointer.From(dns)
 	}
 
-	rootDomainName := ""
+	rootDomainName := "vnet"
 	if domain := profile.RootDomainName; domain != nil {
-		rootDomainName = *domain
+		rootDomainName = pointer.From(domain)
 	}
 
 	return []GMSAModel{
@@ -4522,7 +4493,9 @@ func expandKubernetesAutomaticClusterWebAppRouting(input []WebAppRoutingModel, h
 	out := managedclusters.ManagedClusterIngressProfile{
 		WebAppRouting: &managedclusters.ManagedClusterIngressProfileWebAppRouting{
 			Enabled: pointer.To(true),
-			Nginx:   &managedclusters.ManagedClusterIngressProfileNginx{(*managedclusters.NginxIngressControllerType)(pointer.To(config.DefaultNginxController))},
+			Nginx: &managedclusters.ManagedClusterIngressProfileNginx{
+				DefaultIngressControllerType: (*managedclusters.NginxIngressControllerType)(pointer.To(config.DefaultNginxController)),
+			},
 		},
 	}
 
@@ -4799,12 +4772,12 @@ func flattenKubernetesAutomaticClusterUpgradeOverride(input *managedclusters.Clu
 
 	forceUpgradeEnabled := false
 	if input.OverrideSettings.ForceUpgrade != nil {
-		forceUpgradeEnabled = *input.OverrideSettings.ForceUpgrade
+		forceUpgradeEnabled = pointer.From(input.OverrideSettings.ForceUpgrade)
 	}
 
 	effectiveUntil := ""
 	if input.OverrideSettings.Until != nil {
-		effectiveUntil = *input.OverrideSettings.Until
+		effectiveUntil = pointer.From(input.OverrideSettings.Until)
 	}
 
 	return []UpgradeOverrideModel{{
@@ -4889,7 +4862,7 @@ func flattenKubernetesAutomaticClusterMaintenanceConfigurationNodeOS(input *main
 		result.DayOfMonth = int64(v)
 	}
 	if input.StartDate != nil {
-		result.StartDate = *input.StartDate + "T00:00:00Z"
+		result.StartDate = pointer.From(input.StartDate) + "T00:00:00Z"
 	}
 
 	results = append(results, result)
@@ -4902,11 +4875,22 @@ func expandKubernetesAutomaticClusterOidcIssuerProfile(input bool) *managedclust
 	}
 }
 
-func flattenKubernetesAutomaticClusterOidcIssuerProfile(profile *managedclusters.ManagedClusterOIDCIssuerProfile) bool {
-	if profile == nil || profile.Enabled == nil {
-		return false
+func flattenKubernetesAutomaticClusterOidcIssuerProfile(profile *managedclusters.ManagedClusterOIDCIssuerProfile) (bool, string) {
+	if profile == nil {
+		return false, ""
 	}
-	return *profile.Enabled
+
+	enabled := false
+	if profile.Enabled != nil {
+		enabled = pointer.From(profile.Enabled)
+	}
+
+	issuerURL := ""
+	if profile.IssuerURL != nil {
+		issuerURL = pointer.From(profile.IssuerURL)
+	}
+
+	return enabled, issuerURL
 }
 
 func expandKubernetesAutomaticClusterEdgeZone(input string) *edgezones.Model {
@@ -4927,9 +4911,9 @@ func flattenKubernetesAutomaticClusterEdgeZone(input *edgezones.Model) string {
 	return edgezones.NormalizeNilable(&input.Name)
 }
 
-func expandIdentityModel(input []IdentityModel) (*identity.SystemOrUserAssignedMap, error) {
+func expandIdentityModel(input []IdentityModel) *identity.SystemOrUserAssignedMap {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	config := input[0]
@@ -4943,12 +4927,12 @@ func expandIdentityModel(input []IdentityModel) (*identity.SystemOrUserAssignedM
 	return &identity.SystemOrUserAssignedMap{
 		Type:        identityType,
 		IdentityIds: identityIds,
-	}, nil
+	}
 }
 
-func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) ([]IdentityModel, error) {
+func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) []IdentityModel {
 	if input == nil {
-		return []IdentityModel{}, nil
+		return []IdentityModel{}
 	}
 
 	// Only set IdentityIds for UserAssigned type to avoid empty array in plan
@@ -4977,5 +4961,5 @@ func flattenIdentityModel(input *identity.SystemOrUserAssignedMap) ([]IdentityMo
 		IdentityIds: identityIds,
 		PrincipalId: principalId,
 		TenantId:    tenantId,
-	}}, nil
+	}}
 }

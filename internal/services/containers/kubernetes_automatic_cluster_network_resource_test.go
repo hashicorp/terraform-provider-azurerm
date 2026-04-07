@@ -820,13 +820,6 @@ func TestAccKubernetesAutomaticCluster_clusterPoolNetworkProfileUpdate(t *testin
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		//{
-		//	Config: r.clusterPoolNodePublicIPTags(data),
-		//	Check: acceptance.ComposeTestCheckFunc(
-		//		check.That(data.ResourceName).ExistsInAzure(r),
-		//	),
-		//},
-		//data.ImportStep(),
 		{
 			Config: r.clusterPoolNetworkProfileComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
