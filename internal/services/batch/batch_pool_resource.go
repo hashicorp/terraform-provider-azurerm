@@ -1544,7 +1544,7 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 							string(pool.ContainerWorkingDirectoryContainerImageDefault),
 						}, false),
 					},
-					"host_directory_mount": {
+					"bind_mount": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
 						Elem: &pluginsdk.Resource{

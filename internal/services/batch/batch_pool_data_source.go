@@ -617,7 +617,7 @@ func startTaskDSSchema() map[string]*pluginsdk.Schema {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"host_directory_mount": {
+					"bind_mount": {
 						Type:     pluginsdk.TypeList,
 						Computed: true,
 						Elem: &pluginsdk.Resource{

@@ -136,7 +136,7 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 				}
 				tempDirectoryMounts = append(tempDirectoryMounts, m)
 			}
-			containerSettings["host_directory_mount"] = tempDirectoryMounts
+			containerSettings["bind_mount"] = tempDirectoryMounts
 		}
 
 		result["container"] = []interface{}{
@@ -587,32 +587,26 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 	return &containerRegistry, nil
 }
 
-func expandBatchPoolContainerHostDirectoryMounts(list []interface{}) (*[]pool.ContainerHostBatchBindMountEntry, error) {
+func expandBatchPoolContainerBindMounts(list []interface{}) *[]pool.ContainerHostBatchBindMountEntry {
 	result := make([]pool.ContainerHostBatchBindMountEntry, 0, len(list))
 
 	for _, temp := range list {
 		if item, ok := temp.(map[string]interface{}); ok {
-			containerHostBatchBindMountEntry := expandBatchPoolContainerHostDirectoryMount(item)
+			containerHostBatchBindMountEntry := expandBatchPoolContainerBindMount(item)
 			result = append(result, *containerHostBatchBindMountEntry)
-		} else {
-			return nil, fmt.Errorf("batch pool container host directory mount contains parsing errors")
 		}
 	}
 
-	return &result, nil
+	return &result
 }
 
-func expandBatchPoolContainerHostDirectoryMount(ref map[string]interface{}) *pool.ContainerHostBatchBindMountEntry {
-
+func expandBatchPoolContainerBindMount(ref map[string]interface{}) *pool.ContainerHostBatchBindMountEntry {
 	entry := pool.ContainerHostBatchBindMountEntry{}
-	if v := ref["source"]; v != nil && v != "" {
-		entry.Source = pointer.To(pool.ContainerHostDataPath(ref["source"].(string)))
-	}
+	entry.Source = pointer.ToEnum[pool.ContainerHostDataPath](ref["source"].(string))
 	if v, ok := ref["read_only_enabled"]; ok {
 		entry.IsReadOnly = pointer.To(v.(bool))
 	}
 	return &entry
-
 }
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
@@ -784,12 +778,8 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 			if workingDir, ok := settingMap["working_directory"]; ok {
 				containerSettings.WorkingDirectory = pointer.To(pool.ContainerWorkingDirectory(workingDir.(string)))
 			}
-			if hostDirectoryMount, ok := settingMap["host_directory_mount"].([]interface{}); ok && len(hostDirectoryMount) > 0 {
-				if hostDirectoryMounts, err := expandBatchPoolContainerHostDirectoryMounts(hostDirectoryMount); err == nil {
-					containerSettings.ContainerHostBatchBindMounts = hostDirectoryMounts
-				} else {
-					return nil, err
-				}
+			if bindMounts, ok := settingMap["bind_mount"].([]interface{}); ok && len(bindMounts) > 0 {
+				containerSettings.ContainerHostBatchBindMounts = expandBatchPoolContainerBindMounts(bindMounts)
 			}
 		}
 		startTask.ContainerSettings = &containerSettings
