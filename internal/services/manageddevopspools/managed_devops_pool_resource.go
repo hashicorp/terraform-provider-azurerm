@@ -41,6 +41,7 @@ type ManagedDevOpsPoolModel struct {
 	Name                    string                         `tfschema:"name"`
 	AzureDevOpsOrganization []AzureDevOpsOrganizationModel `tfschema:"azure_devops_organization"`
 	ResourceGroupName       string                         `tfschema:"resource_group_name"`
+	WorkFolder              string                         `tfschema:"work_folder"`
 	Tags                    map[string]string              `tfschema:"tags"`
 	StatefulAgent           []StatefulAgentModel           `tfschema:"stateful_agent"`
 	StatelessAgent          []StatelessAgentModel          `tfschema:"stateless_agent"`
@@ -373,6 +374,12 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ExactlyOneOf: []string{"stateful_agent", "stateless_agent"},
 		},
 
+		"work_folder": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -423,8 +430,6 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 				agentProfile = expandStatelessAgentModel(config.StatelessAgent)
 			}
 
-			azureDevOpsOrganization := expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization)
-			fabricProfile := expandVmssFabricModel(config.VmssFabric)
 			payload := pools.Pool{
 				Name:     pointer.To(config.Name),
 				Location: config.Location,
@@ -433,8 +438,9 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 					DevCenterProjectResourceId: config.DevCenterProjectId,
 					MaximumConcurrency:         config.MaximumConcurrency,
 					AgentProfile:               agentProfile,
-					OrganizationProfile:        azureDevOpsOrganization,
-					FabricProfile:              fabricProfile,
+					OrganizationProfile:        expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization),
+					FabricProfile:              expandVmssFabricModel(config.VmssFabric),
+					RuntimeConfiguration:       expandRuntimeConfiguration(config.WorkFolder),
 				},
 				Tags: pointer.To(config.Tags),
 			}
@@ -517,6 +523,10 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				payload.Properties.FabricProfile = vmssFabric
 			}
 
+			if metadata.ResourceData.HasChange("work_folder") {
+				payload.Properties.RuntimeConfiguration = expandRuntimeConfiguration(config.WorkFolder)
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				payload.Tags = pointer.To(config.Tags)
 			}
@@ -590,6 +600,8 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 							state.VmssFabric = flattenVmssFabricToModel(vmssFabric)
 						}
 					}
+
+					state.WorkFolder = flattenRuntimeConfiguration(props.RuntimeConfiguration)
 				}
 			}
 

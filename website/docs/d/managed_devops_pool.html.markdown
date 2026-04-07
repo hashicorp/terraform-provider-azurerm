@@ -47,6 +47,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `maximum_concurrency` - The maximum number of agents that can be created.
 
+* `work_folder` - The work folder for every agent in the pool.
+
 * `stateful_agent` - A `stateful_agent` block as defined below.
 
 * `stateless_agent` - A `stateless_agent` block as defined below.

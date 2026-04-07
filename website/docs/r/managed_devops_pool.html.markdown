@@ -83,6 +83,8 @@ The following arguments are supported:
 
 ~> **Note:** Exactly one of `stateful_agent` or `stateless_agent` must be specified.
 
+* `work_folder` - (Optional) Specifies the work folder for every agent in the pool.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Managed DevOps Pool.
 
 ---

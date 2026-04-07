@@ -33,6 +33,7 @@ type ManagedDevOpsPoolDataSourceModel struct {
 	Name                    string                         `tfschema:"name"`
 	AzureDevOpsOrganization []AzureDevOpsOrganizationModel `tfschema:"azure_devops_organization"`
 	ResourceGroupName       string                         `tfschema:"resource_group_name"`
+	WorkFolder              string                         `tfschema:"work_folder"`
 	Tags                    map[string]string              `tfschema:"tags"`
 	StatefulAgent           []StatefulAgentModel           `tfschema:"stateful_agent"`
 	StatelessAgent          []StatelessAgentModel          `tfschema:"stateless_agent"`
@@ -301,6 +302,11 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"work_folder": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"tags": commonschema.TagsDataSource(),
 	}
 }
@@ -374,6 +380,8 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 							state.VmssFabric = flattenVmssFabricToModel(vmssFabric)
 						}
 					}
+
+					state.WorkFolder = flattenRuntimeConfiguration(props.RuntimeConfiguration)
 				}
 			}
 

@@ -137,6 +137,23 @@ func TestAccManagedDevOpsPool_update(t *testing.T) {
 	})
 }
 
+func TestAccManagedDevOpsPool_CompleteWithPermission(t *testing.T) {
+	requiresCompleteEnvVars(t)
+
+	data := acceptance.BuildTestData(t, "azurerm_managed_devops_pool", "test")
+	r := ManagedDevOpsPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.completeWithPermission(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedDevOpsPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := pools.ParsePoolID(state.ID)
 	if err != nil {
@@ -394,6 +411,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   maximum_concurrency   = 2
   dev_center_project_id = azurerm_dev_center_project.test2.id
+  work_folder           = "D:\\a\\_work"
 
   azure_devops_organization {
     organization {
@@ -509,6 +527,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   maximum_concurrency   = 2
   dev_center_project_id = azurerm_dev_center_project.test2.id
+  work_folder           = "D:\\a\\_work"
 
   azure_devops_organization {
     organization {
@@ -593,6 +612,130 @@ resource "azurerm_managed_devops_pool" "test" {
   ]
 }
 `, r.template(data), r.keyVaultConfig(), r.networkingConfig(data), r.roleAssignmentsConfig(), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL_UPDATED"), os.Getenv("ARM_MANAGED_DEVOPS_ORG_PROJECT"))
+}
+
+func (r ManagedDevOpsPoolResource) completeWithPermission(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_dev_center_project" "test2" {
+  name                = "acctestproj2-${var.random_string}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  dev_center_id       = azurerm_dev_center.test.id
+}
+
+%s
+
+%s
+
+resource "azurerm_managed_devops_pool" "test" {
+  name                = "acctest-pool-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  maximum_concurrency   = 2
+  dev_center_project_id = azurerm_dev_center_project.test2.id
+
+  work_folder = "D:\\a\\_work"
+
+  azure_devops_organization {
+    organization {
+      parallelism = 2
+      url         = "%s"
+      projects    = ["%s"]
+    }
+
+    permission {
+      kind = "SpecificAccounts"
+      administrator_account {
+        users = ["%s"]
+      }
+    }
+  }
+
+  stateful_agent {
+    grace_period_time_span = "00:10:00"
+    max_agent_lifetime     = "08:00:00"
+    manual_resource_prediction {
+      time_zone_name = "UTC-11"
+      monday_schedule {
+        time  = "09:00:00"
+        count = 1
+      }
+      monday_schedule {
+        time  = "17:00:00"
+        count = 0
+      }
+      tuesday_schedule {
+        time  = "09:00:00"
+        count = 1
+      }
+      tuesday_schedule {
+        time  = "17:00:00"
+        count = 0
+      }
+    }
+  }
+
+  vmss_fabric {
+    image {
+      id      = data.azurerm_platform_image.test.id
+      aliases = ["marketplace image"]
+      buffer  = "0"
+    }
+    image {
+      aliases               = ["well known image", "22.04 version"]
+      well_known_image_name = "ubuntu-24.04/latest"
+      buffer                = "100"
+    }
+    sku_name  = "Standard_B1ms"
+    subnet_id = azurerm_subnet.test.id
+    security {
+      interactive_logon_enabled = true
+      key_vault_management {
+        certificate_store_location = "/"
+        certificate_store_name     = "My"
+
+        key_export_enabled = false
+        key_vault_certificate_ids = [
+          azurerm_key_vault_certificate.test.versionless_secret_id
+        ]
+      }
+    }
+    os_disk_storage_account_type = "Standard"
+    storage {
+      caching              = "None"
+      disk_size_in_gb      = 10
+      drive_letter         = "F"
+      storage_account_type = "Standard_LRS"
+    }
+  }
+
+  tags = {
+    Environment = "ppe"
+    Project     = "Terraform"
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+
+  depends_on = [
+    azurerm_role_assignment.devops_infrastructure_vnet_reader,
+    azurerm_role_assignment.devops_infrastructure_vnet_network_contributor,
+  ]
+}
+`, r.template(data), r.keyVaultConfig(), r.networkingConfig(data), r.roleAssignmentsConfig(), data.RandomInteger, os.Getenv("ARM_MANAGED_DEVOPS_ORG_URL_UPDATED"), os.Getenv("ARM_MANAGED_DEVOPS_ORG_PROJECT"), os.Getenv("ARM_MANAGED_DEVOPS_ADMIN_EMAIL"))
 }
 
 func (ManagedDevOpsPoolResource) template(data acceptance.TestData) string {

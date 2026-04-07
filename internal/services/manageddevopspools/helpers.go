@@ -343,6 +343,24 @@ func expandAzureDevOpsOrganizationModel(input []AzureDevOpsOrganizationModel) po
 	return azureDevOpsOrganizationProfile
 }
 
+func expandRuntimeConfiguration(workFolder string) *pools.RuntimeConfiguration {
+	if workFolder == "" {
+		return nil
+	}
+
+	return &pools.RuntimeConfiguration{
+		WorkFolder: pointer.To(workFolder),
+	}
+}
+
+func flattenRuntimeConfiguration(input *pools.RuntimeConfiguration) string {
+	if input == nil {
+		return ""
+	}
+
+	return pointer.From(input.WorkFolder)
+}
+
 func expandVmssFabricModel(input []VmssFabricModel) pools.FabricProfile {
 	if len(input) == 0 {
 		return nil
