@@ -1,6 +1,7 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* `dependencies`: `go-azure-sdk` - upgrade to `v0.20260407.1111603` [GH-32112]
 * `azurerm_netapp_volume` - add support for `data_protection_advanced_ransomware` [GH-32099]
 * `azurerm_cosmosdb_account` - add support for the `EnableFabricNetworkAclBypass` capability [GH-31836]
 
