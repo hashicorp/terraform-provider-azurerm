@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
@@ -533,6 +534,8 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			if functionAppFlexConsumption.VirtualNetworkSubnetID != "" {
 				siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(functionAppFlexConsumption.VirtualNetworkSubnetID)
+				locks.ByID(functionAppFlexConsumption.VirtualNetworkSubnetID)
+				defer locks.UnlockByID(functionAppFlexConsumption.VirtualNetworkSubnetID)
 			}
 
 			if functionAppFlexConsumption.ClientCertExclusionPaths != "" {
@@ -838,6 +841,9 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					model.Properties.VirtualNetworkSubnetId = empty
 				} else {
 					model.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
+
+					locks.ByID(subnetId)
+					defer locks.UnlockByID(subnetId)
 				}
 			}
 
