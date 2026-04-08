@@ -52,9 +52,9 @@ The following arguments are supported:
 
 ---
 
-* An `identity` block supports the following:
+An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity assigned to this Arc Machine. At this time the only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
+* `type` - (Required) Specifies the type of Managed Service Identity assigned to this Arc Machine. At this time the only possible value is `SystemAssigned`.
 
 ## Attributes Reference
 
@@ -74,7 +74,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Arc Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Arc Machine.

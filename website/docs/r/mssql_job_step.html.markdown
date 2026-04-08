@@ -43,8 +43,8 @@ resource "azurerm_mssql_job_agent" "example" {
 resource "azurerm_mssql_job_credential" "example" {
   name         = "example-job-credential"
   job_agent_id = azurerm_mssql_job_agent.example.id
-  username     = "testusername"
-  password     = "testpassword"
+  username     = "exampleusername"
+  password     = "examplepassword"
 }
 
 resource "azurerm_mssql_job_target_group" "example" {
@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `retry_attempts` - (Optional) The number of retry attempts. Defaults to `10`.
 
-* `retry_interval_backoff_multiplier` - (Optional) The multiplier for time between retries. Defaults to `2`.
+* `retry_interval_backoff_multiplier` - (Optional) The multiplier for time between retries. Defaults to `2.0`.
 
 * `timeout_seconds` - (Optional) The execution timeout in seconds for this Elastic Job Step. Defaults to `43200`.
 
@@ -123,11 +123,11 @@ The following arguments are supported:
 
 A `output_target` block supports the following:
 
-* `job_credential_id` - (Required) The ID of the Elastic Job Credential to use when connecting to the output destination.
-
 * `mssql_database_id` - (Required) The ID of the output database.
 
 * `table_name` - (Required) The name of the output table.
+
+* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when connecting to the output destination.
 
 * `schema_name` - (Optional) The name of the output schema. Defaults to `dbo`.
 
@@ -139,7 +139,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Elastic Job Step.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Elastic Job Step.

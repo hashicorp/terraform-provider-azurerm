@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory_test
@@ -40,6 +40,35 @@ func TestAccDataFactoryCustomerManagedKey_userAssignedIdentity(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentityKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDataFactoryCustomerManagedKey_systemAssignedUserAssignedUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_customer_managed_key", "test")
+	r := DataFactoryCustomerManagedKeyTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedUserAssignedUpdate(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedUserAssignedUpdate(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedUserAssignedUpdate(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -117,6 +146,23 @@ resource "azurerm_data_factory_customer_managed_key" "test" {
 `, r.userAssignedTemplate(data))
 }
 
+func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedUserAssignedUpdate(data acceptance.TestData, userAssigned bool) string {
+	userAssignedIdentityId := ""
+	if userAssigned {
+		userAssignedIdentityId = "user_assigned_identity_id = azurerm_user_assigned_identity.test.id"
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_data_factory_customer_managed_key" "test" {
+  data_factory_id         = azurerm_data_factory.test.id
+  customer_managed_key_id = azurerm_key_vault_key.test.id
+  %[2]s
+}
+`, r.systemAssignedUserAssignedTemplate(data), userAssignedIdentityId)
+}
+
 func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -166,6 +212,37 @@ resource "azurerm_data_factory" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r DataFactoryCustomerManagedKeyTestResource) systemAssignedUserAssignedTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_key_vault_access_policy" "datafactory" {
+  key_vault_id = azurerm_key_vault.test.id
+  tenant_id    = azurerm_data_factory.test.identity[0].tenant_id
+  object_id    = azurerm_data_factory.test.identity[0].principal_id
+
+  key_permissions = [
+    "Get",
+    "WrapKey",
+    "UnwrapKey",
+  ]
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctest%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r DataFactoryCustomerManagedKeyTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -191,12 +268,13 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                     = "acckv%[1]d"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = true
+  name                       = "acctest%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
 }
 
 resource "azurerm_key_vault_access_policy" "test" {
@@ -260,5 +338,5 @@ resource "azurerm_key_vault_key" "test2" {
 
   depends_on = [azurerm_key_vault_access_policy.test, azurerm_key_vault_access_policy.userassigned]
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

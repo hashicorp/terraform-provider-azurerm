@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics
@@ -230,6 +230,17 @@ func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.Res
 		}
 	}
 
+	// if local_authentication_enabled/local_authentication_enabled is not defined in config, check if local_authentication_enabled is set to the default value of true, and if not, set it to retain the default
+	if !features.FivePointOh() && d.GetRawConfig().AsValueMap()["local_authentication_disabled"].IsNull() && d.GetRawConfig().AsValueMap()["local_authentication_enabled"].IsNull() {
+		_, n := d.GetChange("local_authentication_enabled")
+		if !n.(bool) {
+			err := d.SetNew("local_authentication_enabled", true)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -317,7 +328,13 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if !features.FivePointOh() {
-		if v, ok := d.GetOk("local_authentication_disabled"); ok {
+		// In v4.0, we can not set default values for those O+C properties, we can only set the values manually.
+		// `GetOk()` can not determine if the it's just zero-value (false) or the user specified `false`
+		if pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_enabled") {
+			parameters.Properties.Features.DisableLocalAuth = pointer.To(false)
+		}
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "local_authentication_disabled") {
+			v := d.Get("local_authentication_disabled")
 			parameters.Properties.Features.DisableLocalAuth = pointer.To(v.(bool))
 		}
 	}

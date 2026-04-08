@@ -133,6 +133,8 @@ A `authentication_credentials` block supports the following:
 
 ~> **Note:** Be aware that you will need to permit the Identity that is created for the Container Registry to have `get` on secrets to the Key Vault, e.g. using the `azurerm_key_vault_access_policy` resource.
 
+---
+
 An `identity` block supports the following:
 
 * `type` - (Required) The type of Managed Service Identity that is configured on for the Container Registry Credential Set. Currently the only possible value is `SystemAssigned`.
@@ -154,7 +156,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry Credential Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Credential Set.

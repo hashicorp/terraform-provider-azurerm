@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/automationaccount"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/connectiontype"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/automationaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/connectiontype"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -145,8 +145,7 @@ func (m AutomationConnectionTypeResource) Create() sdk.ResourceFunc {
 					Type:        field.Type,
 				}
 			}
-			_, err = client.CreateOrUpdate(ctx, id, param)
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id, err)
 			}
 

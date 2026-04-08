@@ -65,3 +65,21 @@ type OpenEphemeralResourceClientCapabilities struct {
 	// handle deferred responses from the provider.
 	DeferralAllowed bool
 }
+
+// PlanActionClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the PlanAction RPC,
+// such as forward-compatible Terraform behavior changes.
+type PlanActionClientCapabilities struct {
+	// DeferralAllowed signals that the request from Terraform is able to
+	// handle deferred responses from the provider.
+	DeferralAllowed bool
+}
+
+// InvokeActionClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the InvokeAction RPC,
+// such as forward-compatible Terraform behavior changes.
+//
+// Maintainer Note: This is in the protocol in Terraform Core,
+// but currently they are not sending any capabilities for this RPC.
+type InvokeActionClientCapabilities struct {
+}

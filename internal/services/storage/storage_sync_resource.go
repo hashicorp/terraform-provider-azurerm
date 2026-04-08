@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -23,6 +25,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const storageSyncResourceName = "azurerm_storage_sync"
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_sync -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceStorageSync() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceStorageSyncCreate,
@@ -30,10 +36,11 @@ func resourceStorageSync() *pluginsdk.Resource {
 		Update: resourceStorageSyncUpdate,
 		Delete: resourceStorageSyncDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := storagesyncservicesresource.ParseStorageSyncServiceID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&storagesyncservicesresource.StorageSyncServiceId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&storagesyncservicesresource.StorageSyncServiceId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -91,7 +98,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 	if !response.WasNotFound(existing.HttpResponse) {
-		return tf.ImportAsExistsError("azurerm_storage_sync", id.ID())
+		return tf.ImportAsExistsError(storageSyncResourceName, id.ID())
 	}
 
 	parameters := storagesyncservicesresource.StorageSyncServiceCreateParameters{
@@ -107,6 +114,10 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.SetId(id.ID())
+	if err = pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceStorageSyncRead(d, meta)
 }
 
@@ -130,41 +141,49 @@ func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+
+	return resourceStorageSyncFlatten(ctx, d, id, resp.Model, registeredServerClient, true)
+}
+
+func resourceStorageSyncFlatten(ctx context.Context, d *pluginsdk.ResourceData, id *storagesyncservicesresource.StorageSyncServiceId, model *storagesyncservicesresource.StorageSyncService, registeredServerClient *registeredserverresource.RegisteredServerResourceClient, includeRegisteredServers bool) error {
 	d.Set("name", id.StorageSyncServiceName)
 	d.Set("resource_group_name", id.ResourceGroupName)
-	if model := resp.Model; model != nil {
+
+	if model != nil {
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("incoming_traffic_policy", string(pointer.From(props.IncomingTrafficPolicy)))
 		}
 
-		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
 		}
 	}
 
-	storageSyncId := registeredserverresource.NewStorageSyncServiceID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName)
-	registeredServersResp, err := registeredServerClient.RegisteredServersListByStorageSyncService(ctx, storageSyncId)
-	if err != nil {
-		if !response.WasNotFound(registeredServersResp.HttpResponse) {
-			return fmt.Errorf("retrieving registered servers for %s: %+v", id, err)
-		}
-	}
-
-	if model := registeredServersResp.Model; model != nil && model.Value != nil {
-		registeredServers := make([]interface{}, 0)
-		for _, registeredServer := range *model.Value {
-			if registeredServer.Id != nil {
-				registeredServers = append(registeredServers, *registeredServer.Id)
+	if includeRegisteredServers {
+		storageSyncId := registeredserverresource.NewStorageSyncServiceID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName)
+		registeredServersResp, err := registeredServerClient.RegisteredServersListByStorageSyncService(ctx, storageSyncId)
+		if err != nil {
+			if !response.WasNotFound(registeredServersResp.HttpResponse) {
+				return fmt.Errorf("retrieving registered servers for %s: %+v", id, err)
 			}
 		}
-		if err = d.Set("registered_servers", registeredServers); err != nil {
-			return fmt.Errorf("setting `registered_servers`: %+v", err)
+
+		if serverModel := registeredServersResp.Model; serverModel != nil && serverModel.Value != nil {
+			registeredServers := make([]interface{}, 0, len(*serverModel.Value))
+			for _, registeredServer := range *serverModel.Value {
+				if registeredServer.Id != nil {
+					registeredServers = append(registeredServers, *registeredServer.Id)
+				}
+			}
+			if err := d.Set("registered_servers", registeredServers); err != nil {
+				return fmt.Errorf("setting `registered_servers`: %+v", err)
+			}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceStorageSyncUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

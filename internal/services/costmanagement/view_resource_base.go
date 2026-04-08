@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package costmanagement
@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type costManagementViewBaseResource struct{}
@@ -193,7 +192,7 @@ func (br costManagementViewBaseResource) createFunc(resourceName, scopeFieldName
 			props := views.View{
 				Properties: &views.ViewProperties{
 					Accumulated: pointer.To(accumulated),
-					DisplayName: utils.String(metadata.ResourceData.Get("display_name").(string)),
+					DisplayName: pointer.To(metadata.ResourceData.Get("display_name").(string)),
 					Chart:       pointer.To(views.ChartType(metadata.ResourceData.Get("chart_type").(string))),
 					Query: &views.ReportConfigDefinition{
 						DataSet:   expandDataset(metadata.ResourceData.Get("dataset").([]interface{})),
@@ -205,8 +204,7 @@ func (br costManagementViewBaseResource) createFunc(resourceName, scopeFieldName
 				},
 			}
 
-			_, err = client.CreateOrUpdateByScope(ctx, id, props)
-			if err != nil {
+			if _, err = client.CreateOrUpdateByScope(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -317,7 +315,7 @@ func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("display_name") {
-				model.Properties.DisplayName = utils.String(metadata.ResourceData.Get("display_name").(string))
+				model.Properties.DisplayName = pointer.To(metadata.ResourceData.Get("display_name").(string))
 			}
 
 			if metadata.ResourceData.HasChange("chart_type") {
@@ -339,8 +337,7 @@ func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
 				model.Properties.Pivots = expandPivots(metadata.ResourceData.Get("pivot").([]interface{}))
 			}
 
-			_, err = client.CreateOrUpdateByScope(ctx, *id, *model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -436,7 +433,7 @@ func expandKpis(input []interface{}) *[]views.KpiProperties {
 		v := item.(map[string]interface{})
 		outputKpis = append(outputKpis, views.KpiProperties{
 			Type:    pointer.To(views.KpiTypeType(v["type"].(string))),
-			Enabled: utils.Bool(true),
+			Enabled: pointer.To(true),
 		})
 	}
 
@@ -453,7 +450,7 @@ func expandPivots(input []interface{}) *[]views.PivotProperties {
 		v := item.(map[string]interface{})
 		outputPivots = append(outputPivots, views.PivotProperties{
 			Type: pointer.To(views.PivotTypeType(v["type"].(string))),
-			Name: utils.String((v["name"].(string))),
+			Name: pointer.To((v["name"].(string))),
 		})
 	}
 

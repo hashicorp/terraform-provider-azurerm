@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -126,6 +126,36 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
+	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
+	if !providerfeatures.FivePointOh() {
+		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
+			diags.Append(diag.NewErrorDiagnostic("validating enhanced validation environment variables", err.Error()))
+			return
+		}
+	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
+		return
+	}
+
+	// Read enhanced_validation block
+	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
+	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
+	if !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
+		var evList []EnhancedValidationModel
+		d := data.EnhancedValidation.ElementsAs(ctx, &evList, true)
+		diags.Append(d...)
+		if diags.HasError() {
+			return
+		}
+		if len(evList) > 0 {
+			if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
+				enhancedValidationLocations = evList[0].Locations.ValueBool()
+			}
+			if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
+				enhancedValidationResourceProviders = evList[0].ResourceProviders.ValueBool()
+			}
+		}
+	}
 
 	f := providerfeatures.UserFeatures{}
 
@@ -521,6 +551,9 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		}
 	}
 
+	f.EnhancedValidation.Locations = enhancedValidationLocations
+	f.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
+
 	p.clientBuilder.Features = f
 	p.clientBuilder.AuthConfig = authConfig
 	p.clientBuilder.CustomCorrelationRequestID = os.Getenv("ARM_CORRELATION_REQUEST_ID")
@@ -538,7 +571,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 	client.StopContext = ctx
 
-	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsCore)
+	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone)
 	if !providerfeatures.FivePointOh() {
 		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
 	}
@@ -572,9 +605,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
-		diags.AddError("registering resource providers", err.Error())
-		return
+	// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
+			diags.AddError("registering resource providers", err.Error())
+			return
+		}
 	}
 
 	p.Client = client
