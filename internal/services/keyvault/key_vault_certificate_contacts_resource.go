@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -43,7 +44,7 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 
 		"contact": {
 			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -66,6 +67,11 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 				},
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		schema["contact"].Required = false
+		schema["contact"].Optional = true
 	}
 
 	return schema

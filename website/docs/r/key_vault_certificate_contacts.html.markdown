@@ -10,8 +10,6 @@ description: |-
 
 Manages Key Vault Certificate Contacts.
 
-~> **Note:** To remove all certificate contacts from the Key Vault, delete this resource rather than removing all `contact` blocks from the configuration. Removing all `contact` blocks will result in a configuration error during apply.
-
 ## Example Usage
 
 ```hcl
@@ -74,7 +72,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
 
-* `contact` - (Optional) One or more `contact` blocks as defined below.
+* `contact` - (Required) One or more `contact` blocks as defined below.
 
 ---
 
