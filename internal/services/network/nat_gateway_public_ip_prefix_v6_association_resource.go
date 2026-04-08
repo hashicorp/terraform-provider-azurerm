@@ -218,7 +218,7 @@ func (NATGatewayPublicIpPrefixV6AssociationResource) Delete() sdk.ResourceFunc {
 			natGateway.Model.Properties.PublicIPPrefixesV6 = pointer.To(publicIpPrefixesV6)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id.First, *natGateway.Model); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
