@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -365,8 +364,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"id": {
-							Type:     pluginsdk
-              .TypeString,
+							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 
@@ -5535,15 +5533,15 @@ func applicationGatewayBackendSettingsHash(v interface{}) int {
 			buf.WriteString(fmt.Sprintf("%d", v.(int)))
 		}
 		if !features.FivePointOh() {
-      if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
-        for _, ac := range authCert {
-          if ac == nil {
-            continue
-          }
-          config := ac.(map[string]interface{})
-          buf.WriteString(config["name"].(string))
-        }
-      }
+			if authCert, ok := m["authentication_certificate"].([]interface{}); ok {
+				for _, ac := range authCert {
+					if ac == nil {
+						continue
+					}
+					config := ac.(map[string]interface{})
+					buf.WriteString(config["name"].(string))
+				}
+			}
 		}
 		if connectionDraining, ok := m["connection_draining"].([]interface{}); ok {
 			for _, ac := range connectionDraining {
