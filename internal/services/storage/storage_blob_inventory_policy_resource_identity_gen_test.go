@@ -16,10 +16,17 @@ func TestAccStorageBlobInventoryPolicy_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob_inventory_policy", "test")
 	r := StorageBlobInventoryPolicyResource{}
 
+	checkedFields := map[string]struct{}{
+		"resource_group_name":  {},
+		"storage_account_name": {},
+		"subscription_id":      {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_storage_blob_inventory_policy.test", checkedFields),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_blob_inventory_policy.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("storage_account_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_blob_inventory_policy.test", tfjsonpath.New("storage_account_name"), tfjsonpath.New("storage_account_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_storage_blob_inventory_policy.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("storage_account_id")),

@@ -16,10 +16,19 @@ func TestAccGalleryApplicationVersion_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                {},
+		"application_name":    {},
+		"gallery_name":        {},
+		"resource_group_name": {},
+		"subscription_id":     {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_gallery_application_version.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("application_name"), tfjsonpath.New("gallery_application_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_gallery_application_version.test", tfjsonpath.New("gallery_name"), tfjsonpath.New("gallery_application_id")),

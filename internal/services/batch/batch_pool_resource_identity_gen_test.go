@@ -10,16 +10,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	customstatecheck "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/statecheck"
 )
 
 func TestAccBatchPool_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_pool", "test")
 	r := BatchPoolResource{}
 
+	checkedFields := map[string]struct{}{
+		"subscription_id":     {},
+		"batch_account_name":  {},
+		"name":                {},
+		"resource_group_name": {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_batch_pool.test", checkedFields),
 				statecheck.ExpectIdentityValue("azurerm_batch_pool.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_pool.test", tfjsonpath.New("batch_account_name"), tfjsonpath.New("account_name")),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_batch_pool.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
