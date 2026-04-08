@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Managed DevOps Pool.
 
-* `vmss_fabric` - A `vmss_fabric` block as defined below.
+* `virtual_machine_scale_set_fabric` - A `virtual_machine_scale_set_fabric` block as defined below.
 
 ---
 
@@ -177,7 +177,7 @@ A `stateful_agent` block exports the following:
 
 * `manual_resource_prediction` - A `manual_resource_prediction` block as defined below.
 
-* `max_agent_lifetime` - The maximum duration an agent in a `stateful` pool can run before it is shut down and discarded.
+* `maximum_agent_lifetime` - The maximum duration an agent in a `stateful` pool can run before it is shut down and discarded.
 
 ---
 
@@ -201,7 +201,7 @@ A `storage` block exports the following:
 
 ---
 
-A `vmss_fabric` block exports the following:
+A `virtual_machine_scale_set_fabric` block exports the following:
 
 * `image` - One or more `image` blocks as defined below.
 

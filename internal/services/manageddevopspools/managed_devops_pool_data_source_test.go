@@ -31,8 +31,8 @@ func TestAccManagedDevOpsPoolDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("maximum_concurrency").HasValue("1"),
 				check.That(data.ResourceName).Key("dev_center_project_id").Exists(),
 				check.That(data.ResourceName).Key("azure_devops_organization.0.organization.0.url").Exists(),
-				check.That(data.ResourceName).Key("vmss_fabric.0.sku_name").HasValue("Standard_B1s"),
-				check.That(data.ResourceName).Key("vmss_fabric.0.image.0.well_known_image_name").HasValue("ubuntu-24.04/latest"),
+				check.That(data.ResourceName).Key("virtual_machine_scale_set_fabric.0.sku_name").HasValue("Standard_B1s"),
+				check.That(data.ResourceName).Key("virtual_machine_scale_set_fabric.0.image.0.well_known_image_name").HasValue("ubuntu-24.04/latest"),
 			),
 		},
 	})

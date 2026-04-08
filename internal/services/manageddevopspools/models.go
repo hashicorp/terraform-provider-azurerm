@@ -5,7 +5,7 @@ package manageddevopspools
 
 type StatefulAgentModel struct {
 	GracePeriodTimeSpan         string                             `tfschema:"grace_period_time_span"`
-	MaxAgentLifetime            string                             `tfschema:"max_agent_lifetime"`
+	MaximumAgentLifetime        string                             `tfschema:"maximum_agent_lifetime"`
 	ManualResourcePrediction    []ManualResourcePredictionModel    `tfschema:"manual_resource_prediction"`
 	AutomaticResourcePrediction []AutomaticResourcePredictionModel `tfschema:"automatic_resource_prediction"`
 }
@@ -46,7 +46,7 @@ type AutomaticResourcePredictionModel struct {
 	PredictionPreference string `tfschema:"prediction_preference"`
 }
 
-type VmssFabricModel struct {
+type VirtualMachineScaleSetFabricModel struct {
 	Images                   []ImageModel    `tfschema:"image"`
 	SubnetId                 string          `tfschema:"subnet_id"`
 	Security                 []SecurityModel `tfschema:"security"`

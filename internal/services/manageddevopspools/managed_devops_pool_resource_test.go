@@ -341,7 +341,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   stateless_agent {}
 
-  vmss_fabric {
+  virtual_machine_scale_set_fabric {
     image {
       well_known_image_name = "ubuntu-24.04/latest"
     }
@@ -372,7 +372,7 @@ resource "azurerm_managed_devops_pool" "import" {
 
   stateless_agent {}
 
-  vmss_fabric {
+  virtual_machine_scale_set_fabric {
     image {
       well_known_image_name = "ubuntu-24.04/latest"
       buffer                = "*"
@@ -423,7 +423,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   stateful_agent {
     grace_period_time_span = "00:10:00"
-    max_agent_lifetime     = "08:00:00"
+    maximum_agent_lifetime = "08:00:00"
     manual_resource_prediction {
       time_zone_name = "UTC-11"
       monday_schedule {
@@ -445,7 +445,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 
-  vmss_fabric {
+  virtual_machine_scale_set_fabric {
     image {
       id      = data.azurerm_platform_image.test.id
       aliases = ["marketplace image"]
@@ -472,7 +472,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
     os_disk_storage_account_type = "Standard"
     storage {
-      caching              = "None"
+      caching              = "ReadOnly"
       disk_size_in_gb      = 10
       drive_letter         = "F"
       storage_account_type = "Standard_LRS"
@@ -539,7 +539,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   stateful_agent {
     grace_period_time_span = "00:10:00"
-    max_agent_lifetime     = "08:00:00"
+    maximum_agent_lifetime = "08:00:00"
     manual_resource_prediction {
       time_zone_name = "UTC-11"
       monday_schedule {
@@ -561,7 +561,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 
-  vmss_fabric {
+  virtual_machine_scale_set_fabric {
     image {
       id      = data.azurerm_platform_image.test.id
       aliases = ["marketplace image"]
@@ -587,7 +587,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
     os_disk_storage_account_type = "Standard"
     storage {
-      caching              = "None"
+      caching              = "ReadOnly"
       disk_size_in_gb      = 10
       drive_letter         = "F"
       storage_account_type = "Standard_LRS"
@@ -662,7 +662,7 @@ resource "azurerm_managed_devops_pool" "test" {
 
   stateful_agent {
     grace_period_time_span = "00:10:00"
-    max_agent_lifetime     = "08:00:00"
+    maximum_agent_lifetime = "08:00:00"
     manual_resource_prediction {
       time_zone_name = "UTC-11"
       monday_schedule {
@@ -684,7 +684,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
   }
 
-  vmss_fabric {
+  virtual_machine_scale_set_fabric {
     image {
       id      = data.azurerm_platform_image.test.id
       aliases = ["marketplace image"]
@@ -711,7 +711,7 @@ resource "azurerm_managed_devops_pool" "test" {
     }
     os_disk_storage_account_type = "Standard"
     storage {
-      caching              = "None"
+      caching              = "ReadOnly"
       disk_size_in_gb      = 10
       drive_letter         = "F"
       storage_account_type = "Standard_LRS"

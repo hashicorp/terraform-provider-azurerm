@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devopsinfrastructure/2025-09-20/pools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -25,18 +26,18 @@ var _ sdk.DataSource = ManagedDevOpsPoolDataSource{}
 type ManagedDevOpsPoolDataSource struct{}
 
 type ManagedDevOpsPoolDataSourceModel struct {
-	DevCenterProjectId      string                         `tfschema:"dev_center_project_id"`
-	VmssFabric              []VmssFabricModel              `tfschema:"vmss_fabric"`
-	Identity                []identity.ModelUserAssigned   `tfschema:"identity"`
-	Location                string                         `tfschema:"location"`
-	MaximumConcurrency      int64                          `tfschema:"maximum_concurrency"`
-	Name                    string                         `tfschema:"name"`
-	AzureDevOpsOrganization []AzureDevOpsOrganizationModel `tfschema:"azure_devops_organization"`
-	ResourceGroupName       string                         `tfschema:"resource_group_name"`
-	WorkFolder              string                         `tfschema:"work_folder"`
-	Tags                    map[string]string              `tfschema:"tags"`
-	StatefulAgent           []StatefulAgentModel           `tfschema:"stateful_agent"`
-	StatelessAgent          []StatelessAgentModel          `tfschema:"stateless_agent"`
+	DevCenterProjectId           string                              `tfschema:"dev_center_project_id"`
+	VirtualMachineScaleSetFabric []VirtualMachineScaleSetFabricModel `tfschema:"virtual_machine_scale_set_fabric"`
+	Identity                     []identity.ModelUserAssigned        `tfschema:"identity"`
+	Location                     string                              `tfschema:"location"`
+	MaximumConcurrency           int64                               `tfschema:"maximum_concurrency"`
+	Name                         string                              `tfschema:"name"`
+	AzureDevOpsOrganization      []AzureDevOpsOrganizationModel      `tfschema:"azure_devops_organization"`
+	ResourceGroupName            string                              `tfschema:"resource_group_name"`
+	WorkFolder                   string                              `tfschema:"work_folder"`
+	Tags                         map[string]string                   `tfschema:"tags"`
+	StatefulAgent                []StatefulAgentModel                `tfschema:"stateful_agent"`
+	StatelessAgent               []StatelessAgentModel               `tfschema:"stateless_agent"`
 }
 
 func (ManagedDevOpsPoolDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -152,7 +153,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"max_agent_lifetime": {
+					"maximum_agent_lifetime": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -176,7 +177,7 @@ func (ManagedDevOpsPoolDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"vmss_fabric": {
+		"virtual_machine_scale_set_fabric": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
@@ -358,7 +359,12 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-					state.DevCenterProjectId = props.DevCenterProjectResourceId
+					devCenterProjectId, err := projects.ParseProjectID(props.DevCenterProjectResourceId)
+					if err != nil {
+						return fmt.Errorf("parsing `dev_center_project_id`: %+v", err)
+					}
+
+					state.DevCenterProjectId = devCenterProjectId.ID()
 					state.MaximumConcurrency = props.MaximumConcurrency
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
@@ -377,11 +383,13 @@ func (ManagedDevOpsPoolDataSource) Read() sdk.ResourceFunc {
 
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
 						if vmssFabric, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
-							state.VmssFabric = flattenVmssFabricToModel(vmssFabric)
+							state.VirtualMachineScaleSetFabric = flattenVirtualMachineScaleSetFabricToModel(vmssFabric)
 						}
 					}
 
-					state.WorkFolder = flattenRuntimeConfiguration(props.RuntimeConfiguration)
+					if runtimeConfig := props.RuntimeConfiguration; runtimeConfig != nil {
+						state.WorkFolder = pointer.From(runtimeConfig.WorkFolder)
+					}
 				}
 			}
 

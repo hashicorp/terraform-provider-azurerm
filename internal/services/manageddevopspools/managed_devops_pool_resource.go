@@ -33,18 +33,18 @@ var (
 type ManagedDevOpsPoolResource struct{}
 
 type ManagedDevOpsPoolModel struct {
-	DevCenterProjectId      string                         `tfschema:"dev_center_project_id"`
-	VmssFabric              []VmssFabricModel              `tfschema:"vmss_fabric"`
-	Identity                []identity.ModelUserAssigned   `tfschema:"identity"`
-	Location                string                         `tfschema:"location"`
-	MaximumConcurrency      int64                          `tfschema:"maximum_concurrency"`
-	Name                    string                         `tfschema:"name"`
-	AzureDevOpsOrganization []AzureDevOpsOrganizationModel `tfschema:"azure_devops_organization"`
-	ResourceGroupName       string                         `tfschema:"resource_group_name"`
-	WorkFolder              string                         `tfschema:"work_folder"`
-	Tags                    map[string]string              `tfschema:"tags"`
-	StatefulAgent           []StatefulAgentModel           `tfschema:"stateful_agent"`
-	StatelessAgent          []StatelessAgentModel          `tfschema:"stateless_agent"`
+	DevCenterProjectId           string                              `tfschema:"dev_center_project_id"`
+	VirtualMachineScaleSetFabric []VirtualMachineScaleSetFabricModel `tfschema:"virtual_machine_scale_set_fabric"`
+	Identity                     []identity.ModelUserAssigned        `tfschema:"identity"`
+	Location                     string                              `tfschema:"location"`
+	MaximumConcurrency           int64                               `tfschema:"maximum_concurrency"`
+	Name                         string                              `tfschema:"name"`
+	AzureDevOpsOrganization      []AzureDevOpsOrganizationModel      `tfschema:"azure_devops_organization"`
+	ResourceGroupName            string                              `tfschema:"resource_group_name"`
+	WorkFolder                   string                              `tfschema:"work_folder"`
+	Tags                         map[string]string                   `tfschema:"tags"`
+	StatefulAgent                []StatefulAgentModel                `tfschema:"stateful_agent"`
+	StatelessAgent               []StatelessAgentModel               `tfschema:"stateless_agent"`
 }
 
 func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
@@ -54,7 +54,6 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.All(
-				validation.StringLenBetween(3, 44),
 				validation.StringMatch(
 					regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-.]{1,42}[a-zA-Z0-9-]$`),
 					"`name` can only include alphanumeric characters, periods (.) and hyphens (-). It must also start with alphanumeric characters and cannot end with periods (.) and length between 3 and 44.",
@@ -175,7 +174,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.IntBetween(1, 10000),
 		},
 
-		"vmss_fabric": {
+		"virtual_machine_scale_set_fabric": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MaxItems: 1,
@@ -297,9 +296,12 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"caching": {
-									Type:         pluginsdk.TypeString,
-									Optional:     true,
-									ValidateFunc: validation.StringInSlice(pools.PossibleValuesForCachingType(), false),
+									Type:     pluginsdk.TypeString,
+									Optional: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										string(pools.CachingTypeReadOnly),
+										string(pools.CachingTypeReadWrite),
+									}, false),
 								},
 
 								"disk_size_in_gb": {
@@ -345,7 +347,7 @@ func (ManagedDevOpsPoolResource) Arguments() map[string]*pluginsdk.Schema {
 						ValidateFunc: validate.AgentLifetime,
 					},
 
-					"max_agent_lifetime": {
+					"maximum_agent_lifetime": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
 						Default:      "7.00:00:00",
@@ -439,8 +441,10 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 					MaximumConcurrency:         config.MaximumConcurrency,
 					AgentProfile:               agentProfile,
 					OrganizationProfile:        expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization),
-					FabricProfile:              expandVmssFabricModel(config.VmssFabric),
-					RuntimeConfiguration:       expandRuntimeConfiguration(config.WorkFolder),
+					FabricProfile:              expandVirtualMachineScaleSetFabricModel(config.VirtualMachineScaleSetFabric),
+					RuntimeConfiguration: 		&pools.RuntimeConfiguration{
+						WorkFolder: pointer.To(config.WorkFolder),
+					},
 				},
 				Tags: pointer.To(config.Tags),
 			}
@@ -501,7 +505,7 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 				payload.Properties.MaximumConcurrency = config.MaximumConcurrency
 			}
 
-			if metadata.ResourceData.HasChange("stateful_agent") || metadata.ResourceData.HasChange("stateless_agent") {
+			if metadata.ResourceData.HasChanges("stateful_agent", "stateless_agent") {
 				var agentProfile pools.AgentProfile
 
 				if _, ok := metadata.ResourceData.GetOk("stateful_agent"); ok {
@@ -514,17 +518,17 @@ func (r ManagedDevOpsPoolResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("azure_devops_organization") {
-				organization := expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization)
-				payload.Properties.OrganizationProfile = organization
+				payload.Properties.OrganizationProfile = expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization)
 			}
 
-			if metadata.ResourceData.HasChange("vmss_fabric") {
-				vmssFabric := expandVmssFabricModel(config.VmssFabric)
-				payload.Properties.FabricProfile = vmssFabric
+			if metadata.ResourceData.HasChange("virtual_machine_scale_set_fabric") {
+				payload.Properties.FabricProfile = expandVirtualMachineScaleSetFabricModel(config.VirtualMachineScaleSetFabric)
 			}
 
 			if metadata.ResourceData.HasChange("work_folder") {
-				payload.Properties.RuntimeConfiguration = expandRuntimeConfiguration(config.WorkFolder)
+				payload.Properties.RuntimeConfiguration = &pools.RuntimeConfiguration{
+					WorkFolder: pointer.To(config.WorkFolder),
+				}
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -578,7 +582,12 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 				}
 
 				if props := model.Properties; props != nil {
-					state.DevCenterProjectId = props.DevCenterProjectResourceId
+					devCenterProjectId, err := projects.ParseProjectID(props.DevCenterProjectResourceId)
+					if err != nil {
+						return fmt.Errorf("parsing `dev_center_project_id`: %+v", err)
+					}
+
+					state.DevCenterProjectId = devCenterProjectId.ID()
 					state.MaximumConcurrency = props.MaximumConcurrency
 
 					if agentProfile := props.AgentProfile; agentProfile != nil {
@@ -597,11 +606,13 @@ func (ManagedDevOpsPoolResource) Read() sdk.ResourceFunc {
 
 					if fabricProfile := props.FabricProfile; fabricProfile != nil {
 						if vmssFabric, ok := fabricProfile.(pools.VMSSFabricProfile); ok {
-							state.VmssFabric = flattenVmssFabricToModel(vmssFabric)
+							state.VirtualMachineScaleSetFabric = flattenVirtualMachineScaleSetFabricToModel(vmssFabric)
 						}
 					}
 
-					state.WorkFolder = flattenRuntimeConfiguration(props.RuntimeConfiguration)
+					if runtimeConfig := props.RuntimeConfiguration; runtimeConfig != nil {
+						state.WorkFolder = pointer.From(runtimeConfig.WorkFolder)
+					}
 				}
 			}
 
@@ -642,7 +653,7 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("DecodeDiff: %+v", err)
 			}
 
-			if err := validateVmssFabricImages(metadata, model.VmssFabric); err != nil {
+			if err := validateVirtualMachineScaleSetFabricImages(metadata, model.VirtualMachineScaleSetFabric); err != nil {
 				return err
 			}
 
@@ -652,7 +663,7 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 				for _, perm := range org.Permission {
 					if perm.Kind != string(pools.AzureDevOpsPermissionTypeSpecificAccounts) {
 						if len(perm.AdministratorAccounts) > 0 {
-							return fmt.Errorf("`administrator_account` block is not required when `permission` kind is `%s`", perm.Kind)
+							return fmt.Errorf("`administrator_account` must not be set when `permission` kind is `%s`", perm.Kind)
 						}
 					}
 				}
@@ -690,10 +701,10 @@ func (ManagedDevOpsPoolResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func validateVmssFabricImages(metadata sdk.ResourceMetaData, vmssFabrics []VmssFabricModel) error {
+func validateVirtualMachineScaleSetFabricImages(metadata sdk.ResourceMetaData, vmssFabrics []VirtualMachineScaleSetFabricModel) error {
 	rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
 
-	vmssFabricValue, exists := rawConfig["vmss_fabric"]
+	vmssFabricValue, exists := rawConfig["virtual_machine_scale_set_fabric"]
 	if !exists || vmssFabricValue.IsNull() {
 		return nil
 	}
@@ -708,11 +719,11 @@ func validateVmssFabricImages(metadata sdk.ResourceMetaData, vmssFabrics []VmssF
 			haveWellKnownImageName := image.WellKnownImageName != ""
 
 			if !haveResourceId && !haveWellKnownImageName {
-				return fmt.Errorf("one of `id` or `well_known_image_name` must be specified for image %d in `vmss_fabric`", i)
+				return fmt.Errorf("one of `id` or `well_known_image_name` must be specified for image %d in `virtual_machine_scale_set_fabric`", i)
 			}
 
 			if haveResourceId && haveWellKnownImageName {
-				return fmt.Errorf("only one of `id` or `well_known_image_name` can be specified for image %d in `vmss_fabric`", i)
+				return fmt.Errorf("only one of `id` or `well_known_image_name` can be specified for image %d in `virtual_machine_scale_set_fabric`", i)
 			}
 		}
 	}

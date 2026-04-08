@@ -47,7 +47,7 @@ resource "azurerm_managed_devops_pool" "example" {
 
   stateless_agent {}
 
-  vmss_fabric {
+  virtual_machine_scale_set_fabric {
     sku_name = "Standard_D2ads_v5"
 
     image {
@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `maximum_concurrency` - (Required) Defines how many resources can there be created at any given time. Possible values range between `1` and `10000`.
 
-* `vmss_fabric` - (Required) A `vmss_fabric` block as defined below.
+* `virtual_machine_scale_set_fabric` - (Required) A `virtual_machine_scale_set_fabric` block as defined below.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -223,7 +223,7 @@ A `stateful_agent` block supports the following:
 
 * `manual_resource_prediction` - (Optional) A `manual_resource_prediction` block as defined below.
 
-* `max_agent_lifetime` - (Optional) Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss` or `hh:mm:ss`. Defaults to `7.00:00:00`.
+* `maximum_agent_lifetime` - (Optional) Configures the maximum duration an agent in a `stateful` pool can run before it is shut down and discarded. The format for Max time to live for standby agents is `dd.hh:mm:ss` or `hh:mm:ss`. Defaults to `7.00:00:00`.
 
 ~> **Note:** Exactly one of `manual_resource_prediction` or `automatic_resource_prediction` may be specified.
 
@@ -251,7 +251,7 @@ A `storage` block supports the following:
 
 ---
 
-A `vmss_fabric` block supports the following:
+A `virtual_machine_scale_set_fabric` block supports the following:
 
 * `image` - (Required) One or more `image` blocks as defined below.
 

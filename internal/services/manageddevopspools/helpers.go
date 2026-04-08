@@ -203,7 +203,7 @@ func expandStatefulAgentModel(input []StatefulAgentModel) pools.AgentProfile {
 	agentProfile := input[0]
 
 	stateful.GracePeriodTimeSpan = pointer.To(agentProfile.GracePeriodTimeSpan)
-	stateful.MaxAgentLifetime = pointer.To(agentProfile.MaxAgentLifetime)
+	stateful.MaxAgentLifetime = pointer.To(agentProfile.MaximumAgentLifetime)
 
 	if len(agentProfile.ManualResourcePrediction) > 0 {
 		manualResourcePrediction := agentProfile.ManualResourcePrediction[0]
@@ -343,25 +343,7 @@ func expandAzureDevOpsOrganizationModel(input []AzureDevOpsOrganizationModel) po
 	return azureDevOpsOrganizationProfile
 }
 
-func expandRuntimeConfiguration(workFolder string) *pools.RuntimeConfiguration {
-	if workFolder == "" {
-		return nil
-	}
-
-	return &pools.RuntimeConfiguration{
-		WorkFolder: pointer.To(workFolder),
-	}
-}
-
-func flattenRuntimeConfiguration(input *pools.RuntimeConfiguration) string {
-	if input == nil {
-		return ""
-	}
-
-	return pointer.From(input.WorkFolder)
-}
-
-func expandVmssFabricModel(input []VmssFabricModel) pools.FabricProfile {
+func expandVirtualMachineScaleSetFabricModel(input []VirtualMachineScaleSetFabricModel) pools.FabricProfile {
 	if len(input) == 0 {
 		return nil
 	}
@@ -436,7 +418,12 @@ func expandStorageModel(osDiskStorageAccountType string, input []StorageModel) *
 
 	if len(input) > 0 {
 		disk := input[0]
-		cachingType := pools.CachingType(disk.Caching)
+
+		cachingType := pools.CachingTypeNone
+		if disk.Caching != "" {
+			cachingType = pools.CachingType(disk.Caching)
+		}
+
 		storageAccountType := pools.StorageAccountType(disk.StorageAccountType)
 		diskOut := pools.DataDisk{
 			Caching:            pointer.To(cachingType),
@@ -475,8 +462,8 @@ func expandKeyVaultManagementSettingsModel(input []KeyVaultManagementSettingsMod
 
 func flattenStatefulAgentToModel(input pools.Stateful) []StatefulAgentModel {
 	statefulAgentModel := StatefulAgentModel{
-		GracePeriodTimeSpan: pointer.From(input.GracePeriodTimeSpan),
-		MaxAgentLifetime:    pointer.From(input.MaxAgentLifetime),
+		GracePeriodTimeSpan:  pointer.From(input.GracePeriodTimeSpan),
+		MaximumAgentLifetime: pointer.From(input.MaxAgentLifetime),
 	}
 
 	if input.ResourcePredictionsProfile != nil {
@@ -608,8 +595,8 @@ func flattenOrganizationsToModel(input []pools.Organization) []OrganizationModel
 	return output
 }
 
-func flattenVmssFabricToModel(input pools.VMSSFabricProfile) []VmssFabricModel {
-	vmssFabricModel := VmssFabricModel{
+func flattenVirtualMachineScaleSetFabricToModel(input pools.VMSSFabricProfile) []VirtualMachineScaleSetFabricModel {
+	vmssFabricModel := VirtualMachineScaleSetFabricModel{
 		Images:                   flattenImagesToModel(input.Images),
 		SkuName:                  input.Sku.Name,
 		OsDiskStorageAccountType: flattenOsDiskStorageAccountType(input.StorageProfile),
@@ -621,7 +608,7 @@ func flattenVmssFabricToModel(input pools.VMSSFabricProfile) []VmssFabricModel {
 		vmssFabricModel.SubnetId = pointer.From(input.NetworkProfile.SubnetId)
 	}
 
-	return []VmssFabricModel{vmssFabricModel}
+	return []VirtualMachineScaleSetFabricModel{vmssFabricModel}
 }
 
 func flattenSecurityToModel(input *pools.OsProfile) []SecurityModel {
@@ -694,10 +681,16 @@ func flattenStorageToModel(input *pools.StorageProfile) []StorageModel {
 	}
 
 	disk := pointer.From(input.DataDisks)[0]
+
+	caching := ""
+	if v := pointer.From(disk.Caching); v != pools.CachingTypeNone {
+		caching = string(v)
+	}
+
 	return []StorageModel{{
-		Caching:            string(pointer.From(disk.Caching)),
+		Caching:            caching,
 		DiskSizeInGB:       pointer.From(disk.DiskSizeGiB),
 		DriveLetter:        pointer.From(disk.DriveLetter),
-		StorageAccountType: string(pointer.From(disk.StorageAccountType)),
+		StorageAccountType: pointer.FromEnum(disk.StorageAccountType),
 	}}
 }
