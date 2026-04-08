@@ -1,6 +1,7 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_kubernetes_cluster` - changing `oidc_issuer_enabled` from `true` to `false` now forces resource recreation as the API does not support this [GH-32117]
 * `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors [GH-30453]
 * Data Source: `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors [GH-30453]
 * Data Source: `azurerm_bastion_host` - export `private_only_enabled` [GH-32042]
@@ -15,6 +16,8 @@ FEATURES:
 * **New List Resource**: `azurerm_private_dns_cname_record` [GH-31833]
 
 BUG FIXES:
+* `azurerm_kubernetes_cluster` - fix an issue that prevented `oidc_issuer_enabled = false` from being set on create [GH-32117]
+* `azurerm_kubernetes_cluster` - fix a diff caused by Azure's default value for `oidc_issuer_enabled` changing in AKS 1.34+ [GH-32117]
 * `azurerm_resource_group` - fix parallelism issue in create_poller [GH-32123]
 * `azurerm_databricks_workspace` - fix the update behaviour for the `access_connector_id` property [GH-32025]
 * `azurerm_public_ip` - `domain_name_label`, `reverse_fqdn`, `domain_name_label_scope` can now be set to empty [GH-31699]
