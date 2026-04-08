@@ -447,7 +447,6 @@ resource "azurerm_public_ip" "vm" {
   name                = "acctest-PIP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
 }
 
