@@ -138,7 +138,7 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if features.FivePointOh() {
+			if !features.FivePointOh() {
 				if len(*contacts.ContactList) == 0 {
 					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
 						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
@@ -234,7 +234,7 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if features.FivePointOh() {
+			if !features.FivePointOh() {
 				if len(*existing.ContactList) == 0 {
 					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
 						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
