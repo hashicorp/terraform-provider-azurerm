@@ -6,6 +6,7 @@ package mssqlmanagedinstance_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -86,25 +87,52 @@ func TestAccMsSqlManagedInstance_databaseFormat(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlManagedInstance_isGeneralPurposeV2(t *testing.T) {
+func TestAccMsSqlManagedInstance_GeneralPurposeV2Enabled(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
 	r := MsSqlManagedInstanceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.isGeneralPurposeV2(data, true),
+			Config: r.generalPurposeV2Enabled(data, "GP_Gen5", true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
 		{
-			Config: r.isGeneralPurposeV2(data, false),
+			Config: r.generalPurposeV2Enabled(data, "GP_Gen5", false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.generalPurposeV2Enabled(data, "GP_Gen5", true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+		{
+			Config: r.generalPurposeV2Enabled(data, "BC_Gen5", false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
+func TestAccMsSqlManagedInstance_GeneralPurposeV2EnabledOnBCSKU(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_managed_instance", "test")
+	r := MsSqlManagedInstanceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.generalPurposeV2Enabled(data, "BC_Gen5", true),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile("`general_purpose_v2_enabled` cannot be set to `true` on Business Critical SKUs"),
+		},
 	})
 }
 
@@ -512,7 +540,7 @@ resource "azurerm_mssql_managed_instance" "test" {
 `, r.template(data, data.Locations.Primary), data.RandomInteger, databaseFormat)
 }
 
-func (r MsSqlManagedInstanceResource) isGeneralPurposeV2(data acceptance.TestData, isGeneralPurposeV2 bool) string {
+func (r MsSqlManagedInstanceResource) generalPurposeV2Enabled(data acceptance.TestData, sku string, generalPurposeV2Enabled bool) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -534,7 +562,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   location            = azurerm_resource_group.test.location
 
   license_type       = "BasePrice"
-  sku_name           = "GP_Gen5"
+  sku_name           = "%[3]s"
   storage_size_in_gb = 32
   subnet_id          = azurerm_subnet.test.id
   vcores             = 4
@@ -542,7 +570,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   administrator_login          = "missadministrator"
   administrator_login_password = "NCC-1701-D"
 
-  is_general_purpose_v2 = "%[3]t"
+  general_purpose_v2_enabled = "%[4]t"
 
   depends_on = [
     azurerm_subnet_network_security_group_association.test,
@@ -554,7 +582,7 @@ resource "azurerm_mssql_managed_instance" "test" {
     database    = "test"
   }
 }
-`, r.template(data, data.Locations.Primary), data.RandomInteger, isGeneralPurposeV2)
+`, r.template(data, data.Locations.Primary), data.RandomInteger, sku, generalPurposeV2Enabled)
 }
 
 func (r MsSqlManagedInstanceResource) hybridSecondaryUsage(data acceptance.TestData, hybridSecondaryUsage string) string {

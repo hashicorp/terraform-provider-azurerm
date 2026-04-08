@@ -249,7 +249,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `is_general_purpose_v2` - (Optional) Specifies if the SQL Managed Instance is using the Next-gen General Purpose service tier.
+* `general_purpose_v2_enabled` - (Optional) Specifies whether the SQL Managed Instance should use the Next-gen General Purpose service tier.
 
 * `maintenance_configuration_name` - (Optional) The name of the Public Maintenance Configuration window to apply to the SQL Managed Instance. Valid values include `SQL_Default` or an Azure Location in the format `SQL_{Location}_MI_{Size}`(for example `SQL_EastUS_MI_1`). Defaults to `SQL_Default`.
 
