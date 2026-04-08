@@ -24,7 +24,7 @@ type Client struct {
 	ConfigurationsClient      *configurations.ConfigurationsClient
 	CosmosDBClient            *cosmosdb.CosmosDBClient
 	FirewallRulesClient       *firewallrules.FirewallRulesClient
-  FleetsClient              *fleets.FleetsClient
+	FleetsClient              *fleets.FleetsClient
 	ManagedCassandraClient    *managedcassandras.ManagedCassandrasClient
 	MongoRBACClient           *mongorbacs.MongorbacsClient
 	RolesClient               *roles.RolesClient
@@ -131,7 +131,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ConfigurationsClient:      configurationsClient,
 		CosmosDBClient:            cosmosdbClient,
 		FirewallRulesClient:       firewallRulesClient,
-    FleetsClient:              fleetsClient,
+		FleetsClient:              fleetsClient,
 		MongoRBACClient:           mongorbacsClient,
 		RolesClient:               rolesClient,
 		SqlDedicatedGatewayClient: sqlDedicatedGatewayClient,
