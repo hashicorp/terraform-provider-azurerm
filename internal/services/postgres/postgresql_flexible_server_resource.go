@@ -175,9 +175,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Default:  string(servers.StorageTypePremiumLRS),
-				ValidateFunc: validation.StringInSlice(
-					servers.PossibleValuesForStorageType(),
-					false),
+				ValidateFunc: validation.StringInSlice(servers.PossibleValuesForStorageType(), false),
 			},
 
 			"version": {
