@@ -19,6 +19,9 @@ import (
 
 type CustomCertWebPubsubResource struct{}
 
+// Alias retained for generated identity test naming.
+type WebPubsubCustomCertificateResource = CustomCertWebPubsubResource
+
 func TestAccCustomCertWebPubsub_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_custom_certificate", "test")
 	r := CustomCertWebPubsubResource{}

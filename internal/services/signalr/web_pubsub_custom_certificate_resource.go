@@ -3,6 +3,8 @@
 
 package signalr
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub_custom_certificate -service-package-name signalr -properties "name" -compare-values "subscription_id:web_pubsub_id,resource_group_name:web_pubsub_id,web_pub_sub_name:web_pubsub_id"
+
 import (
 	"context"
 	"fmt"
@@ -12,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,7 +31,14 @@ type CustomCertWebPubsubModel struct {
 
 type CustomCertWebPubsubResource struct{}
 
-var _ sdk.Resource = CustomCertWebPubsubResource{}
+var (
+	_ sdk.Resource             = CustomCertWebPubsubResource{}
+	_ sdk.ResourceWithIdentity = CustomCertWebPubsubResource{}
+)
+
+func (r CustomCertWebPubsubResource) Identity() resourceids.ResourceId {
+	return &webpubsub.CustomCertificateId{}
+}
 
 func (r CustomCertWebPubsubResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -124,6 +134,9 @@ func (r CustomCertWebPubsubResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 			return nil
 		},
 	}
@@ -153,8 +166,6 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 			}
 
 			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
-			certName := resp.Model.Properties.KeyVaultSecretName
-
 			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
 			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, vaultBasedUri)
 			if err != nil {
@@ -166,22 +177,14 @@ func (r CustomCertWebPubsubResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
 				}
 			}
-			certVersion := ""
-			if resp.Model.Properties.KeyVaultSecretVersion != nil {
-				certVersion = *resp.Model.Properties.KeyVaultSecretVersion
-			}
-			nestedItem, err := keyvault.NewNestedItemID(vaultBasedUri, keyvault.NestedItemTypeCertificate, certName, certVersion)
+
+			state, err := flattenCustomCertWebPubsubModel(*id, resp.Model)
 			if err != nil {
 				return err
 			}
 
-			certId := nestedItem.ID()
-
-			state := CustomCertWebPubsubModel{
-				Name:               id.CustomCertificateName,
-				CustomCertId:       certId,
-				WebPubsubId:        webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
-				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
@@ -247,4 +250,26 @@ func webPubsubCustomCertificateDeleteRefreshFunc(ctx context.Context, client *we
 
 		return res, "Exists", nil
 	}
+}
+
+func flattenCustomCertWebPubsubModel(id webpubsub.CustomCertificateId, model *webpubsub.CustomCertificate) (CustomCertWebPubsubModel, error) {
+	if model == nil {
+		return CustomCertWebPubsubModel{}, fmt.Errorf("retrieving %s: got nil model", id)
+	}
+
+	vaultBasedUri := model.Properties.KeyVaultBaseUri
+	certName := model.Properties.KeyVaultSecretName
+
+	certVersion := pointer.From(model.Properties.KeyVaultSecretVersion)
+	nestedItem, err := keyvault.NewNestedItemID(vaultBasedUri, keyvault.NestedItemTypeCertificate, certName, certVersion)
+	if err != nil {
+		return CustomCertWebPubsubModel{}, err
+	}
+
+	return CustomCertWebPubsubModel{
+		Name:               id.CustomCertificateName,
+		CustomCertId:       nestedItem.ID(),
+		WebPubsubId:        webpubsub.NewWebPubSubID(id.SubscriptionId, id.ResourceGroupName, id.WebPubSubName).ID(),
+		CertificateVersion: certVersion,
+	}, nil
 }
