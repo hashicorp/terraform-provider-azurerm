@@ -69,7 +69,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 A NAT Gateway and IPv6 Public IP Address association can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_nat_gateway_public_ip_v6_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/natGateways/natGateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/publicIPAddresses/publicIPAddress1"
+terraform import azurerm_nat_gateway_public_ip_v6_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/publicIPAddresses/address1"
 ```
 
 -> **Note:** This is a Terraform Specific ID in the format `{natGatewayID}|{publicIPAddressID}`

@@ -56,7 +56,7 @@ func (r NatGatewayPublicIpV6AssociationResource) Create() sdk.ResourceFunc {
 
 			var state NatGatewayPublicIpV6AssociationModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			publicIpAddressId, err := commonids.ParsePublicIPAddressID(state.PublicIpAddressId)
@@ -111,7 +111,7 @@ func (r NatGatewayPublicIpV6AssociationResource) Create() sdk.ResourceFunc {
 			natGateway.Model.Properties.PublicIPAddressesV6 = pointer.To(publicIpAddressesV6)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
-				return fmt.Errorf("updating %s: %+v", *natGatewayId, err)
+				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -218,7 +218,7 @@ func (r NatGatewayPublicIpV6AssociationResource) Delete() sdk.ResourceFunc {
 			natGateway.Model.Properties.PublicIPAddressesV6 = pointer.To(publicIpAddressesV6)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id.First, *natGateway.Model); err != nil {
-				return fmt.Errorf("removing association between %s and %s: %+v", *id.First, *id.Second, err)
+				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
 			return nil
