@@ -35,7 +35,7 @@ func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 func TestAccVirtualHubBgpConnection_virtualWan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
 	r := VirtualHubBgpConnectionResource{}
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualWan(data),
 			Check: acceptance.ComposeTestCheckFunc(
