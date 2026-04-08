@@ -82,7 +82,7 @@ func (r StorageAccountResource) basicQueryByResourceGroup(data acceptance.TestDa
 list "azurerm_storage_account" "test" {
   provider = azurerm
   config {
-	resource_group_name = "acctestRG-storage-%d"
+    resource_group_name = "acctestRG-storage-%d"
   }
 }
 `, data.RandomInteger)

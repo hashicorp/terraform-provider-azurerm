@@ -75,6 +75,7 @@ func resourceVirtualHubBgpConnection() *pluginsdk.Resource {
 			"virtual_network_connection_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: virtualwans.ValidateHubVirtualNetworkConnectionID,
 			},
 		},
