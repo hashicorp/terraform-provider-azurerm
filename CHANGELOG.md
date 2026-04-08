@@ -1,6 +1,7 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_private_endpoint` - the `request_message` and `is_manual_connection` properties are now validated at plan time [GH-31705]
 * `azurerm_app_configuration_feature` - Add support for `custom_filter` [GH-30160]
 * `azurerm_kubernetes_cluster` - changing `oidc_issuer_enabled` from `true` to `false` now forces resource recreation as the API does not support this [GH-32117]
 * `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors [GH-30453]
