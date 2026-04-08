@@ -344,6 +344,10 @@ A `os_disk` block supports the following:
 
 -> **Note:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
 
+* `tier` - (Optional) Specifies the tier of the managed disk for the OS Disk. Possible values are `P1`, `P2`, `P3`, `P4`, `P6`, `P10`, `P15`, `P20`, `P30`, `P40`, `P50`, `P60`, `P70`, `P80`, etc. This can be used to select a performance tier for Premium disks.
+
+-> **Note:** The `tier` can only be specified when `storage_account_type` is set to `Premium_LRS` or `Premium_ZRS`.
+
 ---
 
 A `plan` block supports the following:
@@ -425,6 +429,8 @@ An `identity` block exports the following:
 An `os_disk` block exports the following:
 
 * `id` - The ID of the OS disk.
+
+* `tier` - The UltraSSD tier of the OS disk.
 
 ## Timeouts
 
