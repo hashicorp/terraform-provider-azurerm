@@ -442,7 +442,7 @@ func (r ManagedDevOpsPoolResource) Create() sdk.ResourceFunc {
 					AgentProfile:               agentProfile,
 					OrganizationProfile:        expandAzureDevOpsOrganizationModel(config.AzureDevOpsOrganization),
 					FabricProfile:              expandVirtualMachineScaleSetFabricModel(config.VirtualMachineScaleSetFabric),
-					RuntimeConfiguration: 		&pools.RuntimeConfiguration{
+					RuntimeConfiguration: &pools.RuntimeConfiguration{
 						WorkFolder: pointer.To(config.WorkFolder),
 					},
 				},

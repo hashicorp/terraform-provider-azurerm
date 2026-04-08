@@ -243,7 +243,7 @@ A `storage` block supports the following:
 
 * `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values range between `1` and `32767`.
 
-* `caching` - (Optional) The type of caching for the data disk. Possible values are `None`, `ReadOnly`, and `ReadWrite`.
+* `caching` - (Optional) The type of caching for the data disk. Possible values are `ReadOnly`, and `ReadWrite`.
 
 * `drive_letter` - (Optional) The drive letter for the data disk.
 
