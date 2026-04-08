@@ -13,8 +13,8 @@ var _ FormatWriteSettings = DelimitedTextWriteSettings{}
 type DelimitedTextWriteSettings struct {
 	FileExtension  interface{}  `json:"fileExtension"`
 	FileNamePrefix *interface{} `json:"fileNamePrefix,omitempty"`
-	MaxRowsPerFile *int64       `json:"maxRowsPerFile,omitempty"`
-	QuoteAllText   *bool        `json:"quoteAllText,omitempty"`
+	MaxRowsPerFile *interface{} `json:"maxRowsPerFile,omitempty"`
+	QuoteAllText   *interface{} `json:"quoteAllText,omitempty"`
 
 	// Fields inherited from FormatWriteSettings
 

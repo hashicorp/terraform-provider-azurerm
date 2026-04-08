@@ -3,7 +3,7 @@ name: Add waiting-response on failures
 
 on:
   workflow_run:
-    workflows: ['Check for new usages of deprecated functionality', 'GoLang Linting', 'Website Linting', 'Generation Check', 'Validate Examples', 'Unit Tests', 'Terraform Schema Linting', '32 Bit Build', 'Provider Tests', 'Vendor Dependencies Check']
+    workflows: ['Check for new usages of deprecated functionality', 'GoLang Linting', 'Website Linting', 'Generation Check', 'Validate Examples', 'Unit Tests', 'Terraform Schema Linting', 'Provider Tests', 'Vendor Dependencies Check']
     types: [completed]
 
 permissions:

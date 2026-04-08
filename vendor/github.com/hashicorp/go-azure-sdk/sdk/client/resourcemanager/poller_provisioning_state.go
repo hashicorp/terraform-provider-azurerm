@@ -159,6 +159,13 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 	}, nil
 }
 
+func (p *provisioningStatePoller) SkipDelay() bool {
+	if p.client != nil {
+		return client.IsVcrReplaying(p.client.Transport)
+	}
+	return false
+}
+
 type provisioningStateResult struct {
 	Properties provisioningStateResultProperties `json:"properties"`
 

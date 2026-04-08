@@ -173,9 +173,8 @@ func (a DeploymentResource) basic(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -206,9 +205,8 @@ func (a DeploymentResource) basicPrivate(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_private {
@@ -241,9 +239,8 @@ func (a DeploymentResource) basicAutoscaling(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -284,9 +281,8 @@ func (a DeploymentResource) basicAutoscaling_update(data acceptance.TestData) st
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -325,11 +321,10 @@ func (a DeploymentResource) update(data acceptance.TestData) string {
 %s
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standardv2_Monthly"
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = false
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv3_Monthly"
+  location            = azurerm_resource_group.test.location
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -359,9 +354,8 @@ func (a DeploymentResource) updateNetworkInterface(data acceptance.TestData) str
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_private {
@@ -394,9 +388,8 @@ func (a DeploymentResource) updateFrontendPrivate(data acceptance.TestData) stri
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_private {
@@ -429,9 +422,8 @@ func (a DeploymentResource) updateFrontendPublic(data acceptance.TestData) strin
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -462,7 +454,7 @@ func (a DeploymentResource) systemAssignedIdentity(data acceptance.TestData) str
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standardv2_Monthly"
+  sku                 = "standardv3_Monthly"
   location            = azurerm_resource_group.test.location
 
   identity {
@@ -499,7 +491,7 @@ resource "azurerm_user_assigned_identity" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standardv2_Monthly"
+  sku                 = "standardv3_Monthly"
   location            = azurerm_resource_group.test.location
 
   identity {
@@ -528,9 +520,8 @@ func (a DeploymentResource) basicNginxAppProtect(data acceptance.TestData) strin
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {

@@ -3,7 +3,7 @@
 
 package communication
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain_sender_username -service-package-name communication -properties "name" -compare-values "resource_group_name:email_service_domain_id,email_service_name:email_service_domain_id,domain_name:email_service_domain_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name email_communication_service_domain_sender_username -service-package-name communication -properties "name" -compare-values "subscription_id:email_service_domain_id,resource_group_name:email_service_domain_id,email_service_name:email_service_domain_id,domain_name:email_service_domain_id"
 
 import (
 	"context"

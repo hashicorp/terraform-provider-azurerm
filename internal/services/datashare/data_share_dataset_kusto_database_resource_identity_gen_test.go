@@ -6,7 +6,6 @@ package datashare_test
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,15 +16,24 @@ func TestAccDataShareDatasetKustoDatabase_resourceIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_share_dataset_kusto_database", "test")
 	r := DataShareDatasetKustoDatabaseResource{}
 
+	checkedFields := map[string]struct{}{
+		"name":                {},
+		"account_name":        {},
+		"resource_group_name": {},
+		"share_name":          {},
+		"subscription_id":     {},
+	}
+
 	data.ResourceIdentityTest(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			ConfigStateChecks: []statecheck.StateCheck{
-				statecheck.ExpectIdentityValue("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
+				customstatecheck.ExpectAllIdentityFieldsAreChecked("azurerm_data_share_dataset_kusto_database.test", checkedFields),
 				statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("account_name"), tfjsonpath.New("share_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("share_id")),
 				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("share_name"), tfjsonpath.New("share_id")),
+				customstatecheck.ExpectStateContainsIdentityValueAtPath("azurerm_data_share_dataset_kusto_database.test", tfjsonpath.New("subscription_id"), tfjsonpath.New("share_id")),
 			},
 		},
 		data.ImportBlockWithResourceIdentityStep(false),

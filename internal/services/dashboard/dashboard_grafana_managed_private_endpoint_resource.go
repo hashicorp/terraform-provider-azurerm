@@ -22,7 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana_managed_private_endpoint -service-package-name dashboard -properties "name" -compare-values "resource_group_name:grafana_id,grafana_name:grafana_id" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dashboard_grafana_managed_private_endpoint -service-package-name dashboard -properties "name" -compare-values "subscription_id:grafana_id,resource_group_name:grafana_id,grafana_name:grafana_id"
 
 type ManagedPrivateEndpointResource struct{}
 
