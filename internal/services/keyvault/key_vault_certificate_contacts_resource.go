@@ -150,8 +150,8 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				}
 			} else {
 				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-						return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
-					}
+					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+				}
 			}
 
 			metadata.SetID(id)
