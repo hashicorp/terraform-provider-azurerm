@@ -54,7 +54,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The (Terraform specific) ID of the Association between the NAT Gateway and the IPv6 Public IP.
+* `id` - The ID of the Association between the NAT Gateway and the IPv6 Public IP.
 
 ## Timeouts
 

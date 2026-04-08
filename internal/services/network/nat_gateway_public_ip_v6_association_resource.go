@@ -218,7 +218,7 @@ func (r NatGatewayPublicIpV6AssociationResource) Delete() sdk.ResourceFunc {
 			natGateway.Model.Properties.PublicIPAddressesV6 = pointer.To(publicIpAddressesV6)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id.First, *natGateway.Model); err != nil {
-				return fmt.Errorf("deleting %s: %+v", *id, err)
+				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
 			return nil
