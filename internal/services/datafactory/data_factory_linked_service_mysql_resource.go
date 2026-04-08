@@ -238,7 +238,7 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if driverVersion := mysql.MySQLLinkedServiceTypeProperties.DriverVersion; driverVersion != nil {
+	if driverVersion := mysql.DriverVersion; driverVersion != nil {
 		d.Set("driver_version", driverVersion)
 	}
 
