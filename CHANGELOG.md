@@ -12,6 +12,8 @@ ENHANCEMENTS:
 * `azurerm_cosmosdb_account` - add support for the `EnableFabricNetworkAclBypass` capability [GH-31836]
 
 FEATURES:
+* **New Resource**: `azurerm_managed_devops_pool` [GH-28325]
+* **New Data Source**: `azurerm_managed_devops_pool` [GH-28325]
 * **New Resource**: `azurerm_data_protection_backup_instance_data_lake_storage` [GH-32044]
 * **New List Resource**: `azurerm_private_dns_cname_record` [GH-31833]
 
