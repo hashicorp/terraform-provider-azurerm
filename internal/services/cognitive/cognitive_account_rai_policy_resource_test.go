@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-12-01/raipolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -82,7 +82,7 @@ func TestCognitiveAccountRaiPolicy_update(t *testing.T) {
 }
 
 func (r RaiPolicyTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := raipolicies.ParseRaiPolicyID(state.ID)
+	id, err := raipolicies.ParseAccountRaiPolicyID(state.ID)
 	if err != nil {
 		return nil, err
 	}
