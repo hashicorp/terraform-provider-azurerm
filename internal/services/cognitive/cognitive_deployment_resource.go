@@ -168,6 +168,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"rai_policy_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      "Microsoft.DefaultV2",
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
