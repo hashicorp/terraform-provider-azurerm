@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis
@@ -16,12 +16,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/databases"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-07-01/redisenterprise"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -90,7 +91,7 @@ type ModuleModel struct {
 const defaultDatabaseName = "default"
 
 func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -105,7 +106,6 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 		"sku_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSkuName(), false),
 		},
 
@@ -118,7 +118,7 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 					"key_vault_key_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemId,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 					},
 
 					"user_assigned_identity_id": {
@@ -263,6 +263,12 @@ func (r ManagedRedisResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return args
 }
 
 func (r ManagedRedisResource) Attributes() map[string]*pluginsdk.Schema {
@@ -506,6 +512,11 @@ func (r ManagedRedisResource) Update() sdk.ResourceFunc {
 				clusterUpdateRequired = true
 			}
 
+			if metadata.ResourceData.HasChange("sku_name") {
+				clusterParams.Sku.Name = redisenterprise.SkuName(state.SkuName)
+				clusterUpdateRequired = true
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				clusterParams.Tags = pointer.To(state.Tags)
 				clusterUpdateRequired = true
@@ -650,6 +661,10 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 				return err
 			}
 
+			if metadata.ResourceDiff.Id() == "" && len(model.DefaultDatabase) == 0 {
+				return fmt.Errorf("`default_database` must be provided when creating a new resource")
+			}
+
 			if len(model.DefaultDatabase) > 0 {
 				dbModel := model.DefaultDatabase[0]
 
@@ -676,6 +691,19 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 								return fmt.Errorf("invalid clustering_policy %q, when using RediSearch module, clustering_policy must be set to EnterpriseCluster", dbModel.ClusteringPolicy)
 							}
 						}
+					}
+				}
+			}
+
+			if metadata.ResourceDiff.HasChanges("sku_name") {
+				if resId := metadata.ResourceDiff.Id(); resId != "" {
+					clusterId, err := redisenterprise.ParseRedisEnterpriseID(resId)
+					if err != nil {
+						return err
+					}
+					clusterClient := metadata.Client.ManagedRedis.Client
+					if !isSkuAllowedForScaling(ctx, clusterClient, clusterId, model.SkuName) {
+						metadata.ResourceDiff.ForceNew("sku_name")
 					}
 				}
 			}
@@ -858,4 +886,20 @@ func flattenPersistenceRDB(input *databases.Persistence) string {
 	}
 
 	return ""
+}
+
+func isSkuAllowedForScaling(ctx context.Context, clusterClient *redisenterprise.RedisEnterpriseClient, clusterId *redisenterprise.RedisEnterpriseId, targetSkuName string) bool {
+	skusForScaling, err := clusterClient.ListSkusForScaling(ctx, *clusterId)
+	if err != nil {
+		log.Printf("[WARN] SKU scaling cannot be validated due to an error whilst retrieving the list. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale: %+v", err)
+		return true
+	}
+	if skusForScaling.Model == nil || skusForScaling.Model.Skus == nil {
+		log.Printf("[WARN] SKU scaling cannot be validated due to Azure returning no information. The deployment might fail, check resource documentation for more information: https://learn.microsoft.com/azure/redis/how-to-scale.")
+		return true
+	}
+
+	return slices.ContainsFunc(pointer.From(skusForScaling.Model.Skus), func(sku redisenterprise.SkuDetails) bool {
+		return pointer.From(sku.Name) == targetSkuName
+	})
 }

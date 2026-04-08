@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/queueservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storagequeues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -78,7 +78,7 @@ func dataSourceStorageQueue() *pluginsdk.Resource {
 
 func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	queueClient := meta.(*clients.Client).Storage.ResourceManager.QueueService
+	queueClient := meta.(*clients.Client).Storage.ResourceManager.StorageQueues
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -143,7 +143,7 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return err
 	}
 
-	id := queueservice.NewQueueID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, queueName)
+	id := storagequeues.NewQueueID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, queueName)
 
 	resp, err := queueClient.QueueGet(ctx, id)
 	if err != nil {

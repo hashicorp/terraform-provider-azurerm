@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 
@@ -9,6 +9,7 @@ do
     r) release=${OPTARG};;
     u) milestone_url=${OPTARG};;
     t) token=${OPTARG};;
+    *) echo "Unknown flag: ${flag}"; exit 1;;
   esac
 done
 
@@ -20,13 +21,13 @@ milestones=$(curl -L \
 "${milestone_url}?state=open&sort=due_on&direction=desc")
 
 milestone_number=0
-milestones_json=$(echo "$milestones" | jq -c -r '.[]')
-for milestone in ${milestones_json[@]}; do
-  if [[ $(echo $milestone | jq -r .title) == "$release" ]]; then
-    milestone_number=$(echo $milestone | jq -r .number)
+# Parse milestones JSON into array
+while IFS= read -r milestone; do
+  if [[ $(echo "$milestone" | jq -r .title) == "$release" ]]; then
+    milestone_number=$(echo "$milestone" | jq -r .number)
     break
   fi
-done
+done < <(echo "$milestones" | jq -c -r '.[]')
 
 if [[ $milestone_number != 0 ]]; then
 

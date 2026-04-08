@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -78,7 +78,7 @@ func (r StorageAccountListResource) List(ctx context.Context, request list.ListR
 			result.DisplayName = pointer.From(account.Name)
 			id, err := commonids.ParseStorageAccountID(*account.Id)
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "parsing Storage Account ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Storage Account ID", err)
 				return
 			}
 
@@ -89,29 +89,29 @@ func (r StorageAccountListResource) List(ctx context.Context, request list.ListR
 			rd.SetId(id.ID())
 
 			if err := resourceStorageAccountFlatten(ctx, rd, *id, pointer.To(account), metadata.Client); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "encoding Resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding Resource data", err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Identity State", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Identity data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Identity data", err)
 				return
 			}
 
 			tfTypeResource, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "converting Resource State data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Resource State data", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetListIteratorErrorDiagnostic(result, push, "setting Resource data", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Resource data", err)
 				return
 			}
 

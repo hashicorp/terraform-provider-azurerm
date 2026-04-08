@@ -41,8 +41,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `auto_scale_profile` - An `auto_scale_profile` block as defined below.
 
-* `diagnose_support_enabled` - Whether metrics are exported to Azure Monitor.
-
 * `email` - Preferred email associated with the NGINX Deployment.
 
 * `frontend_private` - A `frontend_private` block as defined below.

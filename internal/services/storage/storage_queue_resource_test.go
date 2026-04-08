@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage_test
@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/queueservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storagequeues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -253,11 +253,11 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 		return pointer.To(queue != nil), nil
 	}
 
-	id, err := queueservice.ParseQueueID(state.ID)
+	id, err := storagequeues.ParseQueueID(state.ID)
 	if err != nil {
 		return nil, err
 	}
-	existing, err := client.Storage.ResourceManager.QueueService.QueueGet(ctx, *id)
+	existing, err := client.Storage.ResourceManager.StorageQueues.QueueGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

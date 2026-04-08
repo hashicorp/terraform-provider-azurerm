@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedredis_test
@@ -25,20 +25,6 @@ func TestAccManagedRedis_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccManagedRedis_withDefaultDb(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
-	r := ManagedRedisResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withDefaultDb(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -87,7 +73,28 @@ func TestAccManagedRedis_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.update(data),
+			Config: r.update(data, "Balanced_B3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedis_updateSku(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.update(data, "Balanced_B3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data, "Balanced_B5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -194,7 +201,7 @@ func TestAccManagedRedis_dbPersistence(t *testing.T) {
 	r := ManagedRedisResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withDefaultDb(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -215,7 +222,7 @@ func TestAccManagedRedis_dbPersistence(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withDefaultDb(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -246,6 +253,45 @@ func TestAccManagedRedis_dbPersistenceConflictsWithGeoReplication(t *testing.T) 
 	})
 }
 
+func TestAccManagedRedis_cannotCreateWithoutDefaultDatabase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withoutDefaultDatabase(data),
+			ExpectError: regexp.MustCompile("`default_database` must be provided when creating a new resource"),
+		},
+	})
+}
+
+func TestAccManagedRedis_recreateDefaultDbForTroubleshooting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withoutDefaultDatabase(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ManagedRedisResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := redisenterprise.ParseRedisEnterpriseID(state.ID)
 	if err != nil {
@@ -259,27 +305,6 @@ func (r ManagedRedisResource) Exists(ctx context.Context, client *clients.Client
 }
 
 func (r ManagedRedisResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-managedRedis-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_managed_redis" "test" {
-  name                = "acctest-amr-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location = "%[2]s"
-  sku_name = "Balanced_B0"
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r ManagedRedisResource) withDefaultDb(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -434,7 +459,7 @@ resource "azurerm_managed_redis" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r ManagedRedisResource) update(data acceptance.TestData) string {
+func (r ManagedRedisResource) update(data acceptance.TestData, skuName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -450,7 +475,7 @@ resource "azurerm_managed_redis" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   location = "%[2]s"
-  sku_name = "Balanced_B3"
+  sku_name = "%[3]s"
 
   default_database {
     access_keys_authentication_enabled = false
@@ -473,10 +498,11 @@ resource "azurerm_managed_redis" "test" {
   high_availability_enabled = true
 
   tags = {
-    ENV = "Test"
+    ENV    = "Test",
+    Method = "Update"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, skuName)
 }
 
 func (r ManagedRedisResource) withPrivateEndpoint(data acceptance.TestData) string {
@@ -670,6 +696,8 @@ resource "azurerm_managed_redis" "test" {
   location              = "%[2]s"
   sku_name              = "Balanced_B0"
   public_network_access = "%[3]s"
+
+  default_database {}
 }
 `, data.RandomInteger, data.Locations.Primary, enabled)
 }
@@ -763,4 +791,25 @@ resource "azurerm_managed_redis" "test" {
     persistence_redis_database_backup_frequency = "1h"
   }
 }`
+}
+
+func (r ManagedRedisResource) withoutDefaultDatabase(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_managed_redis" "test" {
+  name                = "acctest-amr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location = "%[2]s"
+  sku_name = "Balanced_B0"
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

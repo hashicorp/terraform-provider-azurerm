@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package managedidentity
@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/federatedidentitycredentials"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -26,12 +27,16 @@ func (r FederatedIdentityCredentialResource) ModelObject() interface{} {
 }
 
 type FederatedIdentityCredentialResourceSchema struct {
-	Audience          []string `tfschema:"audience"`
-	Issuer            string   `tfschema:"issuer"`
-	Name              string   `tfschema:"name"`
-	ResourceGroupName string   `tfschema:"resource_group_name"`
-	ResourceName      string   `tfschema:"parent_id"`
-	Subject           string   `tfschema:"subject"`
+	Audience []string `tfschema:"audience"`
+	Issuer   string   `tfschema:"issuer"`
+	Name     string   `tfschema:"name"`
+
+	// TODO: Remove this in V5.0
+	ResourceGroupName string `tfschema:"resource_group_name,removedInNextMajorVersion"`
+
+	ParentId               string `tfschema:"parent_id,removedInNextMajorVersion"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
+	Subject                string `tfschema:"subject"`
 }
 
 func (r FederatedIdentityCredentialResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -43,7 +48,7 @@ func (r FederatedIdentityCredentialResource) ResourceType() string {
 }
 
 func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"audience": {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -63,9 +68,7 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Required: true,
 			Type:     pluginsdk.TypeString,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
-		"parent_id": {
-			// TODO: this wants renaming to `user_assigned_identity_id` (and `resource_group_name` removing in 4.0)
+		"user_assigned_identity_id": {
 			Type:         pluginsdk.TypeString,
 			ForceNew:     true,
 			Required:     true,
@@ -77,6 +80,30 @@ func (r FederatedIdentityCredentialResource) Arguments() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeString,
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema["resource_group_name"] = commonschema.ResourceGroupNameDeprecatedComputed()
+
+		schema["parent_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Computed:     true,
+			Deprecated:   "`parent_id` has been renamed to `user_assigned_identity_id` and will be removed in v5.0 of the AzureRM Provider",
+			ExactlyOneOf: []string{"user_assigned_identity_id", "parent_id"},
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		}
+		schema["user_assigned_identity_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			ForceNew:     true,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"user_assigned_identity_id", "parent_id"},
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		}
+	}
+
+	return schema
 }
 
 func (r FederatedIdentityCredentialResource) Attributes() map[string]*pluginsdk.Schema {
@@ -95,7 +122,13 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+
+			userAssignedIdentityId := config.UserAssignedIdentityId
+			if !features.FivePointOh() && userAssignedIdentityId == "" {
+				userAssignedIdentityId = config.ParentId
+			}
+
+			parentId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentityId)
 			if err != nil {
 				return fmt.Errorf("parsing parent resource ID: %+v", err)
 			}
@@ -103,7 +136,7 @@ func (r FederatedIdentityCredentialResource) Create() sdk.ResourceFunc {
 			locks.ByID(parentId.ID())
 			defer locks.UnlockByID(parentId.ID())
 
-			id := federatedidentitycredentials.NewFederatedIdentityCredentialID(subscriptionId, config.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
+			id := federatedidentitycredentials.NewFederatedIdentityCredentialID(subscriptionId, parentId.ResourceGroupName, parentId.UserAssignedIdentityName, config.Name)
 			if metadata.ResourceData.IsNewResource() {
 				existing, err := client.Get(ctx, id)
 				if err != nil {
@@ -151,10 +184,15 @@ func (r FederatedIdentityCredentialResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				schema.Name = id.FederatedIdentityCredentialName
-				schema.ResourceGroupName = id.ResourceGroupName
 				parentId := commonids.NewUserAssignedIdentityID(id.SubscriptionId, id.ResourceGroupName, id.UserAssignedIdentityName)
-				schema.ResourceName = parentId.ID()
+				schema.UserAssignedIdentityId = parentId.ID()
+
 				r.mapFederatedIdentityCredentialToFederatedIdentityCredentialResourceSchema(*model, &schema)
+
+				if !features.FivePointOh() {
+					schema.ParentId = parentId.ID()
+					schema.ResourceGroupName = id.ResourceGroupName
+				}
 			}
 
 			return metadata.Encode(&schema)
@@ -177,7 +215,12 @@ func (r FederatedIdentityCredentialResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parentId, err := commonids.ParseUserAssignedIdentityID(config.ResourceName)
+			userAssignedIdentityId := config.UserAssignedIdentityId
+			if !features.FivePointOh() && userAssignedIdentityId == "" {
+				userAssignedIdentityId = config.ParentId
+			}
+
+			parentId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentityId)
 			if err != nil {
 				return fmt.Errorf("parsing parent resource ID: %+v", err)
 			}

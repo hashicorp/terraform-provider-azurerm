@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package eventhub
@@ -137,7 +137,9 @@ func resourceEventHubClusterRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("sku_name", flattenEventHubClusterSkuName(model.Sku))
 		d.Set("location", location.NormalizeNilable(model.Location))
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil

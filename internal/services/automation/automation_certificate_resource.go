@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/certificate"
@@ -20,9 +21,9 @@ import (
 
 func resourceAutomationCertificate() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceAutomationCertificateCreateUpdate,
+		Create: resourceAutomationCertificateCreate,
 		Read:   resourceAutomationCertificateRead,
-		Update: resourceAutomationCertificateCreateUpdate,
+		Update: resourceAutomationCertificateUpdate,
 		Delete: resourceAutomationCertificateDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -83,49 +84,84 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.Certificate
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Certificate creation.")
 
 	id := certificate.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
-	exportable := d.Get("exportable").(bool)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_certificate", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	description := d.Get("description").(string)
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_certificate", id.ID())
+	}
 
 	parameters := certificate.CertificateCreateOrUpdateParameters{
 		Name: id.CertificateName,
 		Properties: certificate.CertificateCreateOrUpdateProperties{
-			Description:  &description,
-			IsExportable: &exportable,
+			Description:  pointer.To(d.Get("description").(string)),
+			Base64Value:  d.Get("base64").(string),
+			IsExportable: pointer.To(d.Get("exportable").(bool)),
 		},
 	}
 
-	if v, ok := d.GetOk("base64"); ok {
-		parameters.Properties.Base64Value = v.(string)
-	}
-
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationCertificateRead(d, meta)
+}
+
+func resourceAutomationCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.Certificate
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := certificate.ParseCertificateID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+	}
+
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving existing %s: model or properties were nil", *id)
+	}
+
+	parameters := certificate.CertificateCreateOrUpdateParameters{
+		Name: id.CertificateName,
+		Properties: certificate.CertificateCreateOrUpdateProperties{
+			Description:  existing.Model.Properties.Description,
+			IsExportable: existing.Model.Properties.IsExportable,
+			Base64Value:  d.Get("base64").(string), // value is sensitive so we must grab it with a d.get
+		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("exportable") {
+		parameters.Properties.IsExportable = pointer.To(d.Get("exportable").(bool))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", *id, err)
+	}
 
 	return resourceAutomationCertificateRead(d, meta)
 }

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package helpers
@@ -9,12 +9,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/containerapps"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/daprcomponents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -2066,8 +2066,8 @@ func ContainerAppReadinessProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 30),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 48),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -2153,7 +2153,7 @@ func ContainerAppReadinessProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `48`. Defaults to `3`.",
 				},
 
 				"success_count_threshold": {
@@ -2636,8 +2636,8 @@ func ContainerAppStartupProbeSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      3,
-					ValidateFunc: validation.IntBetween(1, 30),
-					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					ValidateFunc: validation.IntBetween(1, 240),
+					Description:  "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.",
 				},
 			},
 		},
@@ -2721,7 +2721,7 @@ func ContainerAppStartupProbeSchemaComputed() *pluginsdk.Schema {
 				"failure_count_threshold": {
 					Type:        pluginsdk.TypeInt,
 					Computed:    true,
-					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.",
+					Description: "The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `240`. Defaults to `3`.",
 				},
 			},
 		},
@@ -2851,7 +2851,7 @@ type Secret struct {
 }
 
 func SecretsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:      pluginsdk.TypeSet,
 		Optional:  true,
 		Sensitive: true,
@@ -2870,7 +2870,7 @@ func SecretsSchema() *pluginsdk.Schema {
 				"key_vault_secret_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 					Description:  "The Key Vault Secret ID. Could be either one of `id` or `versionless_id`.",
 				},
 
@@ -2890,6 +2890,12 @@ func SecretsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["key_vault_secret_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func SecretsDataSourceSchema() *pluginsdk.Schema {

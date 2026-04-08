@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
@@ -326,7 +326,7 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 		}
 
-		d.Set("node_public_ip_enabled", props.Properties.ConnectivityEndpoints != nil && props.Properties.ConnectivityEndpoints.PublicIPAddress != nil)
+		d.Set("node_public_ip_enabled", pointer.From(props.Properties.EnableNodePublicIP))
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)

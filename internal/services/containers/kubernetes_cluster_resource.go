@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -18,12 +18,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/maintenanceconfigurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
@@ -37,8 +38,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
-	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -96,8 +95,36 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return true
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_data_plane", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old != ""
+				oldStr := old.(string)
+				newStr := new.(string)
+
+				if oldStr == "" {
+					return false
+				}
+
+				if oldStr == "azure" && newStr == "cilium" {
+					return false
+				}
+
+				return true
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if d.HasChange("network_profile.0.network_plugin") {
+					old, new := d.GetChange("network_profile.0.network_plugin")
+					oldStr := old.(string)
+					newStr := new.(string)
+
+					if oldStr == "kubenet" && newStr == "azure" {
+						networkPluginMode := d.Get("network_profile.0.network_plugin_mode").(string)
+						if strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
+							return nil
+						}
+					}
+
+					return d.ForceNew("network_profile.0.network_plugin")
+				}
+				return nil
+			},
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if d.HasChange("oidc_issuer_enabled") {
 					d.SetNewComputed("oidc_issuer_url")
@@ -108,14 +135,29 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				return !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay))
 			}),
 			pluginsdk.ForceNewIfChange("network_profile.0.network_policy", func(ctx context.Context, old, new, meta interface{}) bool {
-				// Following scenarios are not supported as in-place update:
-				// * Updating from Cilium, Azure or Calico
-				// * Removing network policy if it has been set
-				//
-				// Omit network_policy does not uninstall the network policy, since it requires an explicit 'none' value.
-				// And an uninstallation of network policy engine is not GA yet.
-				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
+				// Azure supports in-place upgrade from Azure Network Policy Manager to Cilium and Calico to Cilium
+				// Other transitions (removing policy, etc.) require cluster recreation
+				oldStr := old.(string)
+				newStr := new.(string)
+
+				if oldStr == "" {
+					return false
+				}
+
+				if oldStr == "azure" && newStr == "cilium" {
+					return false
+				}
+				if oldStr == "calico" && newStr == "cilium" {
+					return false
+				}
+
+				return true
+			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidr", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) != ""
+			}),
+			pluginsdk.ForceNewIfChange("network_profile.0.pod_cidrs", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0
 			}),
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				outboundType := d.Get("network_profile.0.outbound_type").(string)
@@ -129,17 +171,20 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
 				if len(d.Get("network_profile.0.advanced_networking").([]interface{})) == 1 {
-					if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
-						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
-					}
-					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
-						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+					securityEnabled := d.Get("network_profile.0.advanced_networking.0.security_enabled").(bool)
+
+					if securityEnabled {
+						if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+						}
+						if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
+							return fmt.Errorf("when `network_profile.0.advanced_networking` has `security_enabled` set to `true`, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+						}
 					}
 				}
 				return nil
 			},
 		),
-
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -1020,7 +1065,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeKey),
 						},
 						"key_vault_network_access": {
 							Type:         pluginsdk.TypeString,
@@ -1058,7 +1103,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"network_plugin": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.NetworkPluginAzure),
 								string(managedclusters.NetworkPluginKubenet),
@@ -1120,7 +1164,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ForceNew:     true,
 							ValidateFunc: validate.CIDR,
 						},
 
@@ -1128,7 +1171,6 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							Computed: true,
-							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringIsNotEmpty,
@@ -1651,6 +1693,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"node_provisioning_profile": {
+				Type:     pluginsdk.TypeList,
+				Required: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      managedclusters.NodeProvisioningModeManual,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
+						},
+						"default_node_pools": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      managedclusters.NodeProvisioningDefaultNodePoolsAuto,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningDefaultNodePools(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
+						},
+					},
+				},
+			},
+
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1664,6 +1730,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["node_provisioning_profile"].Required = false
+		// NOTE: O+C The API returns default values here even if not set in the request
+		resource.Schema["node_provisioning_profile"].Optional = true
+		resource.Schema["node_provisioning_profile"].Computed = true
+
 		resource.Schema["default_node_pool"].Elem.(*pluginsdk.Resource).Schema["linux_os_config"].Elem.(*pluginsdk.Resource).Schema["transparent_huge_page"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
@@ -1687,6 +1758,8 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				"never",
 			}, false),
 		}
+
+		resource.Schema["key_management_service"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
 	}
 
 	return resource
@@ -1774,6 +1847,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	workloadAutoscalerProfileRaw := d.Get("workload_autoscaler_profile").([]interface{})
 	workloadAutoscalerProfile := expandKubernetesClusterWorkloadAutoscalerProfile(workloadAutoscalerProfileRaw, d)
+
+	nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+	nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
 
 	apiAccessProfile := expandKubernetesClusterAPIAccessProfile(d)
 	if !(*apiAccessProfile.EnablePrivateCluster) && dnsPrefix == "" {
@@ -1877,6 +1953,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AadProfile:                azureADProfile,
 			AddonProfiles:             addonProfiles,
 			AgentPoolProfiles:         agentProfiles,
+			NodeProvisioningProfile:   nodeProvisioningProfile,
 			AutoScalerProfile:         autoScalerProfile,
 			AutoUpgradeProfile:        autoUpgradeProfile,
 			AzureMonitorProfile:       azureMonitorProfile,
@@ -2299,6 +2376,26 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			existing.Model.Properties.NetworkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(d.Get("network_profile.0.network_data_plane").(string)))
 		}
 
+		if key := "network_profile.0.network_plugin"; d.HasChange(key) {
+			networkPlugin := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkPlugin = pointer.To(managedclusters.NetworkPlugin(networkPlugin))
+		}
+
+		if key := "network_profile.0.network_plugin_mode"; d.HasChange(key) {
+			networkPluginMode := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(networkPluginMode))
+		}
+
+		if key := "network_profile.0.pod_cidr"; d.HasChange(key) {
+			podCidr := d.Get(key).(string)
+			existing.Model.Properties.NetworkProfile.PodCidr = pointer.To(podCidr)
+		}
+
+		if key := "network_profile.0.pod_cidrs"; d.HasChange(key) {
+			podCidrs := d.Get(key).([]interface{})
+			existing.Model.Properties.NetworkProfile.PodCidrs = utils.ExpandStringSlice(podCidrs)
+		}
+
 		if key := "network_profile.0.outbound_type"; d.HasChange(key) {
 			outboundType := managedclusters.OutboundType(d.Get(key).(string))
 			existing.Model.Properties.NetworkProfile.OutboundType = pointer.To(outboundType)
@@ -2456,6 +2553,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		existing.Model.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
 			Enabled: pointer.To(d.Get("ai_toolchain_operator_enabled").(bool)),
 		}
+	}
+
+	if d.HasChange("node_provisioning_profile") {
+		updateCluster = true
+		nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+		nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
+		existing.Model.Properties.NodeProvisioningProfile = nodeProvisioningProfile
 	}
 
 	if d.HasChanges("workload_identity_enabled") {
@@ -2979,6 +3083,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 			}
 
+			nodeProvisioningProfile := flattenKubernetesClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
+			if err := d.Set("node_provisioning_profile", nodeProvisioningProfile); err != nil {
+				return fmt.Errorf("setting `node_provisioning_profile`: %+v", err)
+			}
+
 			aiToolchainOperatorEnabled := false
 			if props.AiToolchainOperatorProfile != nil {
 				aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
@@ -3383,6 +3492,23 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pl
 	return &workloadAutoscalerProfile
 }
 
+func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *managedclusters.ManagedClusterNodeProvisioningProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+	config := input[0].(map[string]interface{})
+	profile := &managedclusters.ManagedClusterNodeProvisioningProfile{}
+	if v := config["mode"].(string); v != "" {
+		mv := managedclusters.NodeProvisioningMode(v)
+		profile.Mode = &mv
+	}
+	if v := config["default_node_pools"].(string); v != "" {
+		dv := managedclusters.NodeProvisioningDefaultNodePools(v)
+		profile.DefaultNodePools = &dv
+	}
+	return profile
+}
+
 func expandGmsaProfile(input []interface{}) *managedclusters.WindowsGmsaProfile {
 	if len(input) == 0 {
 		return nil
@@ -3456,6 +3582,16 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 			"vertical_pod_autoscaler_enabled": vpaEnabled,
 		},
 	}
+}
+
+func flattenKubernetesClusterNodeProvisioningProfile(profile *managedclusters.ManagedClusterNodeProvisioningProfile) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+	return []interface{}{map[string]interface{}{
+		"mode":               pointer.From(profile.Mode),
+		"default_node_pools": pointer.From(profile.DefaultNodePools),
+	}}
 }
 
 func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface{} {
@@ -4204,13 +4340,19 @@ func expandKubernetesClusterAzureKeyVaultKms(ctx context.Context, keyVaultsClien
 	// Set Key vault Resource ID in case public access is disabled
 	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
 		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
-		keyVaultKeyId, err := keyVaultParse.ParseNestedItemID(*azureKeyVaultKms.KeyId)
+
+		nestedItemType := keyvault.NestedItemTypeKey
+		if !features.FivePointOh() {
+			nestedItemType = keyvault.NestedItemTypeAny
+		}
+
+		keyVaultKeyId, err := keyvault.ParseNestedItemID(*azureKeyVaultKms.KeyId, keyvault.VersionTypeVersioned, nestedItemType)
 		if err != nil {
 			return nil, err
 		}
-		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseUrl)
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseURL)
 		if err != nil {
-			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseUrl, err)
+			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseURL, err)
 		}
 
 		azureKeyVaultKms.KeyVaultResourceId = keyVaultID

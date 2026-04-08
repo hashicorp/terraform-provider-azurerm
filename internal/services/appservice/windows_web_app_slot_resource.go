@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -423,8 +423,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			siteConfigUpdate := webapps.SiteConfigResource{
 				Properties: siteConfig,
 			}
-			_, err = client.UpdateConfigurationSlot(ctx, id, siteConfigUpdate)
-			if err != nil {
+			if _, err = client.UpdateConfigurationSlot(ctx, id, siteConfigUpdate); err != nil {
 				return fmt.Errorf("updating %s site config: %+v", id, err)
 			}
 
@@ -488,9 +487,7 @@ func (r WindowsWebAppSlotResource) Create() sdk.ResourceFunc {
 			storageConfig := helpers.ExpandStorageConfig(webAppSlot.StorageAccounts)
 			if storageConfig.Properties != nil {
 				if _, err := client.UpdateAzureStorageAccountsSlot(ctx, id, *storageConfig); err != nil {
-					if err != nil {
-						return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
-					}
+					return fmt.Errorf("setting Storage Accounts for Windows %s: %+v", id, err)
 				}
 			}
 
@@ -920,8 +917,7 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 			siteConfigUpdate := webapps.SiteConfigResource{
 				Properties: model.Properties.SiteConfig,
 			}
-			_, err = client.UpdateConfigurationSlot(ctx, *id, siteConfigUpdate)
-			if err != nil {
+			if _, err = client.UpdateConfigurationSlot(ctx, *id, siteConfigUpdate); err != nil {
 				return fmt.Errorf("updating %s site config: %+v", *id, err)
 			}
 
@@ -978,6 +974,10 @@ func (r WindowsWebAppSlotResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("auth_settings_v2") {
 				authV2Update := helpers.ExpandAuthV2Settings(state.AuthV2Settings)
+				// (@toddgiguere) - in the case of a removal of this block, we need to zero these settings
+				if authV2Update.Properties == nil {
+					authV2Update.Properties = helpers.DefaultAuthV2SettingsProperties()
+				}
 				if _, err := client.UpdateAuthSettingsV2Slot(ctx, *id, *authV2Update); err != nil {
 					return fmt.Errorf("updating AuthV2 Settings for Linux %s: %+v", *id, err)
 				}

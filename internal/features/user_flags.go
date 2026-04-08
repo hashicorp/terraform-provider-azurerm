@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package features
@@ -8,6 +8,7 @@ type UserFeatures struct {
 	AppConfiguration         AppConfigurationFeatures
 	ApplicationInsights      ApplicationInsightFeatures
 	CognitiveAccount         CognitiveAccountFeatures
+	EnhancedValidation       EnhancedValidationFeatures
 	VirtualMachine           VirtualMachineFeatures
 	VirtualMachineScaleSet   VirtualMachineScaleSetFeatures
 	KeyVault                 KeyVaultFeatures
@@ -27,6 +28,11 @@ type UserFeatures struct {
 
 type CognitiveAccountFeatures struct {
 	PurgeSoftDeleteOnDestroy bool
+}
+
+type EnhancedValidationFeatures struct {
+	Locations         bool
+	ResourceProviders bool
 }
 
 type VirtualMachineFeatures struct {
