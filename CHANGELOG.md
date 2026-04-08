@@ -1,6 +1,7 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_app_configuration_feature` - Add support for `custom_filter` [GH-30160]
 * `azurerm_kubernetes_cluster` - changing `oidc_issuer_enabled` from `true` to `false` now forces resource recreation as the API does not support this [GH-32117]
 * `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors [GH-30453]
 * Data Source: `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors [GH-30453]
