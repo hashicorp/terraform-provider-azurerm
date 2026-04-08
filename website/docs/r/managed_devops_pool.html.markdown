@@ -201,7 +201,7 @@ An `organization` block supports the following:
 
 A `permission` block supports the following:
 
-* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `Inherit`, and `SpecificAccounts`. Changing this forces a new resource to be created.
+* `kind` - (Required) Determines who has admin permissions to the Azure DevOps pool. Possible values are `Inherit` and `SpecificAccounts`. Changing this forces a new resource to be created.
 
 * `administrator_account` - (Optional) An `administrator_account` block as defined below. This block is only valid when `kind` is set to `SpecificAccounts`. Changing this forces a new resource to be created.
 
@@ -243,7 +243,7 @@ A `storage` block supports the following:
 
 * `disk_size_in_gb` - (Required) The initial disk size in gigabytes. Possible values range between `1` and `32767`.
 
-* `caching` - (Optional) The type of caching for the data disk. Possible values are `ReadOnly`, and `ReadWrite`.
+* `caching` - (Optional) The type of caching for the data disk. Possible values are `ReadOnly` and `ReadWrite`.
 
 * `drive_letter` - (Optional) The drive letter for the data disk.
 
