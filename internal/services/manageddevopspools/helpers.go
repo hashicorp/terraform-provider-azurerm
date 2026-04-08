@@ -411,9 +411,8 @@ func expandSecurityModel(input []SecurityModel) *pools.OsProfile {
 }
 
 func expandStorageModel(osDiskStorageAccountType string, input []StorageModel) *pools.StorageProfile {
-	osDiskType := pools.OsDiskStorageAccountType(osDiskStorageAccountType)
 	output := &pools.StorageProfile{
-		OsDiskStorageAccountType: &osDiskType,
+		OsDiskStorageAccountType: pointer.ToEnum[pools.OsDiskStorageAccountType](osDiskStorageAccountType),
 	}
 
 	if len(input) > 0 {
@@ -424,12 +423,11 @@ func expandStorageModel(osDiskStorageAccountType string, input []StorageModel) *
 			cachingType = pools.CachingType(disk.Caching)
 		}
 
-		storageAccountType := pools.StorageAccountType(disk.StorageAccountType)
 		diskOut := pools.DataDisk{
 			Caching:            pointer.To(cachingType),
 			DiskSizeGiB:        pointer.To(disk.DiskSizeInGB),
 			DriveLetter:        pointer.To(disk.DriveLetter),
-			StorageAccountType: pointer.To(storageAccountType),
+			StorageAccountType: pointer.ToEnum[pools.StorageAccountType](disk.StorageAccountType),
 		}
 		output.DataDisks = &[]pools.DataDisk{diskOut}
 	}
@@ -453,8 +451,7 @@ func expandKeyVaultManagementSettingsModel(input []KeyVaultManagementSettingsMod
 	}
 
 	if keyVaultManagementSettings.CertificateStoreName != "" {
-		certificateStoreName := pools.CertificateStoreNameOption(keyVaultManagementSettings.CertificateStoreName)
-		output.CertificateStoreName = pointer.To(certificateStoreName)
+		output.CertificateStoreName = pointer.ToEnum[pools.CertificateStoreNameOption](keyVaultManagementSettings.CertificateStoreName)
 	}
 
 	return output
@@ -470,7 +467,7 @@ func flattenStatefulAgentToModel(input pools.Stateful) []StatefulAgentModel {
 		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
 			statefulAgentModel.AutomaticResourcePrediction = []AutomaticResourcePredictionModel{
 				{
-					PredictionPreference: string(pointer.From(automatic.PredictionPreference)),
+					PredictionPreference: pointer.FromEnum(automatic.PredictionPreference),
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
@@ -494,7 +491,7 @@ func flattenStatelessAgentToModel(input pools.StatelessAgentProfile) []Stateless
 		if automatic, ok := input.ResourcePredictionsProfile.(pools.AutomaticResourcePredictionsProfile); ok {
 			statelessAgentModel.AutomaticResourcePrediction = []AutomaticResourcePredictionModel{
 				{
-					PredictionPreference: string(pointer.From(automatic.PredictionPreference)),
+					PredictionPreference: pointer.FromEnum(automatic.PredictionPreference),
 				},
 			}
 		} else if _, ok := input.ResourcePredictionsProfile.(pools.ManualResourcePredictionsProfile); ok {
@@ -642,7 +639,7 @@ func flattenKeyVaultManagementSettingsToModel(input *pools.SecretsManagementSett
 	}
 
 	if input.CertificateStoreName != nil {
-		keyvaultManagementSettingsModel.CertificateStoreName = string(pointer.From(input.CertificateStoreName))
+		keyvaultManagementSettingsModel.CertificateStoreName = pointer.FromEnum(input.CertificateStoreName)
 	}
 
 	return []KeyVaultManagementSettingsModel{keyvaultManagementSettingsModel}
@@ -672,7 +669,7 @@ func flattenOsDiskStorageAccountType(input *pools.StorageProfile) string {
 	if input == nil || input.OsDiskStorageAccountType == nil {
 		return string(pools.OsDiskStorageAccountTypeStandard)
 	}
-	return string(pointer.From(input.OsDiskStorageAccountType))
+	return pointer.FromEnum(input.OsDiskStorageAccountType)
 }
 
 func flattenStorageToModel(input *pools.StorageProfile) []StorageModel {
