@@ -171,6 +171,15 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"storage_type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(servers.StorageTypePremiumLRS),
+				ValidateFunc: validation.StringInSlice(
+					servers.PossibleValuesForStorageType(),
+					false),
+			},
+
 			"version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -839,6 +848,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				if storage.Tier != nil {
 					d.Set("storage_tier", string(*storage.Tier))
 				}
+
+				if storage.Type != nil {
+					d.Set("storage_type", pointer.FromEnum(storage.Type))
+				}
 			}
 
 			if backup := props.Backup; backup != nil {
@@ -1023,7 +1036,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
+	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier", "storage_type") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storage := expandArmServerStorage(d)
 
@@ -1199,6 +1212,10 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 
 	if v, ok := d.GetOk("storage_tier"); ok {
 		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTier(v.(string)))
+	}
+
+	if v, ok := d.GetOk("storage_type"); ok {
+		storage.Type = pointer.ToEnum[servers.StorageType](v.(string))
 	}
 
 	return &storage

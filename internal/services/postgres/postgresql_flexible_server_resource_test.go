@@ -974,6 +974,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                       = "13"
   backup_retention_days         = 7
   storage_mb                    = 32768
+  storage_type                  = "PremiumV2_LRS"
   delegated_subnet_id           = azurerm_subnet.test.id
   private_dns_zone_id           = azurerm_private_dns_zone.test.id
   public_network_access_enabled = false
