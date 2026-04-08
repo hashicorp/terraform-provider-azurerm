@@ -138,14 +138,20 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if len(*contacts.ContactList) == 0 {
-				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+			if features.FivePointOh() {
+				if len(*contacts.ContactList) == 0 {
+					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+						return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+					}
 				}
 			} else {
 				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
-					return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
-				}
+						return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+					}
 			}
 
 			metadata.SetID(id)
@@ -228,9 +234,15 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if len(*existing.ContactList) == 0 {
-				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+			if features.FivePointOh() {
+				if len(*existing.ContactList) == 0 {
+					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+						return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
+					}
 				}
 			} else {
 				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
