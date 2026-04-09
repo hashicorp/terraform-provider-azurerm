@@ -15,9 +15,9 @@ type SquareLinkedServiceTypeProperties struct {
 	EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 	Host                  *interface{} `json:"host,omitempty"`
 	RedirectUri           *interface{} `json:"redirectUri,omitempty"`
-	UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
-	UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
-	UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
+	UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+	UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+	UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 }
 
 var _ json.Unmarshaler = &SquareLinkedServiceTypeProperties{}
@@ -29,9 +29,9 @@ func (s *SquareLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 		EncryptedCredential   *string      `json:"encryptedCredential,omitempty"`
 		Host                  *interface{} `json:"host,omitempty"`
 		RedirectUri           *interface{} `json:"redirectUri,omitempty"`
-		UseEncryptedEndpoints *bool        `json:"useEncryptedEndpoints,omitempty"`
-		UseHostVerification   *bool        `json:"useHostVerification,omitempty"`
-		UsePeerVerification   *bool        `json:"usePeerVerification,omitempty"`
+		UseEncryptedEndpoints *interface{} `json:"useEncryptedEndpoints,omitempty"`
+		UseHostVerification   *interface{} `json:"useHostVerification,omitempty"`
+		UsePeerVerification   *interface{} `json:"usePeerVerification,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

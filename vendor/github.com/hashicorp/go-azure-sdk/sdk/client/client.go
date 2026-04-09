@@ -17,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -290,6 +291,8 @@ func (r *Response) Unmarshal(model interface{}) error {
 	return fmt.Errorf("internal-error: unimplemented unmarshal function for content type %q", contentType)
 }
 
+var _ BaseClient = &Client{}
+
 // Client is a base client to be used by API-specific clients. It satisfies the BaseClient interface.
 type Client struct {
 	// BaseUri is the base endpoint for this API.
@@ -318,6 +321,10 @@ type Client struct {
 
 	// ResponseMiddlewares is a slice of functions that are called in order before a response is parsed and returned
 	ResponseMiddlewares *[]ResponseMiddleware
+
+	// Transport allows overriding the http.RoundTripper used by the client.
+	// When nil, a default transport will be used.
+	Transport http.RoundTripper
 }
 
 // NewClient returns a new Client configured with sensible defaults
@@ -332,9 +339,78 @@ func NewClient(baseUri string, serviceName, apiVersion string) *Client {
 	}
 }
 
+// SetTransport configures the transport to be used by the client
+func (c *Client) SetTransport(transport http.RoundTripper) {
+	c.Transport = transport
+}
+
 // SetAuthorizer configures the request authorizer for the client
 func (c *Client) SetAuthorizer(authorizer auth.Authorizer) {
 	c.Authorizer = authorizer
+}
+
+// IsVcrReplaying returns true if the provided transport appears to be a VCR recorder in replay mode.
+func IsVcrReplaying(transport http.RoundTripper) bool {
+	if transport == nil {
+		return false
+	}
+
+	// We use reflection to avoid a hard dependency on the go-vcr package in the SDK.
+	// We check for "recorder" in the type name and then attempt to call the Mode() method.
+	t := reflect.TypeOf(transport)
+	if !strings.Contains(strings.ToLower(t.String()), "recorder") {
+		return false
+	}
+
+	v := reflect.ValueOf(transport)
+	// If it's a pointer, get the underlying value (MethodByName works on both)
+	modeMethod := v.MethodByName("Mode")
+	if !modeMethod.IsValid() {
+		return false
+	}
+
+	results := modeMethod.Call(nil)
+	if len(results) != 1 {
+		return false
+	}
+
+	// Mode is normally an int (or an alias of int).
+	// In go-vcr v1/v2, ModeReplay is 1.
+	// In go-vcr v3/v4, ModeReplayOnly is 1 and ModeReplayWithNewEpisodes is 2.
+	// Support for RecordOnce (3) mode: skip only if cassette is NOT new.
+	if results[0].Kind() == reflect.Int {
+		mode := results[0].Int()
+		if mode == 1 || mode == 2 {
+			return true
+		}
+
+		if mode == 3 {
+			// use reflection to get the unexported cassette field
+			v := reflect.ValueOf(transport)
+			if v.Kind() == reflect.Ptr {
+				v = v.Elem()
+			}
+			if v.Kind() == reflect.Struct {
+				cassetteField := v.FieldByName("cassette")
+				if cassetteField.IsValid() {
+					cassette := cassetteField
+					if cassette.Kind() == reflect.Ptr && !cassette.IsNil() {
+						cassette = cassette.Elem()
+					}
+
+					if cassette.Kind() == reflect.Struct {
+						isNewField := cassette.FieldByName("IsNew")
+						if isNewField.IsValid() && isNewField.Kind() == reflect.Bool {
+							// If the cassette is NOT new, we are replaying
+							return !isNewField.Bool()
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return false
 }
 
 // SetUserAgent configures the user agent to be included in requests
@@ -394,7 +470,7 @@ func (c *Client) NewRequest(ctx context.Context, input RequestOptions) (*Request
 		req.Header.Add("X-Ms-Correlation-Request-Id", c.CorrelationId)
 	}
 
-	path := strings.TrimPrefix(input.Path, "/")
+	path := strings.TrimLeft(input.Path, "/")
 	u, err := url.ParseRequestURI(fmt.Sprintf("%s/%s", c.BaseUri, path))
 	if err != nil {
 		return nil, err
@@ -518,6 +594,11 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			}
 			resp.Response = r
 		}
+	}
+
+	// If we're running with a VCR transport in REPLAY mode, we mark the response so that the poller knows to skip the delay
+	if IsVcrReplaying(c.Transport) {
+		resp.Header.Add("X-Go-Azure-SDK-Skip-Polling-Delay", "true")
 	}
 
 	// Extract OData from response, intentionally ignoring any errors as it's not crucial to extract
@@ -706,7 +787,7 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 	// This results into the following N(t) (by guaranteeing T(n) <= t):
 	// - n = floor(log(t+1)) - 1 		(0<=t<=63)
 	// - n = (t - 63)/61 + 6 			(t > 63)
-	var safeRetryNumber = func(t time.Duration) int {
+	safeRetryNumber := func(t time.Duration) int {
 		sec := t.Seconds()
 		if sec <= 63 {
 			return int(math.Floor(math.Log2(sec+1))) - 1
@@ -723,24 +804,30 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
-	tlsConfig := tls.Config{
-		MinVersion: tls.VersionTLS12,
-	}
-	r.HTTPClient = &http.Client{
-		Transport: &http.Transport{
+	var transport http.RoundTripper
+	if c.Transport != nil {
+		transport = c.Transport
+	} else {
+		transport = &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 				d := &net.Dialer{Resolver: &net.Resolver{}}
 				return d.DialContext(ctx, network, addr)
 			},
-			TLSClientConfig:       &tlsConfig,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   10 * time.Second,
 			ExpectContinueTimeout: 1 * time.Second,
 			ForceAttemptHTTP2:     true,
 			MaxIdleConnsPerHost:   runtime.GOMAXPROCS(0) + 1,
-		},
+		}
+	}
+
+	r.HTTPClient = &http.Client{
+		Transport: transport,
 	}
 
 	return

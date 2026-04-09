@@ -126,6 +126,11 @@ resource "azurerm_netapp_volume" "example" {
     policy_enabled   = true
   }
 
+  # Enabling Advanced Ransomware Protection (ARP)
+  data_protection_advanced_ransomware {
+    protection_enabled = true
+  }
+
   # prevent the possibility of accidental data loss
   lifecycle {
     prevent_destroy = true
@@ -184,6 +189,8 @@ The following arguments are supported:
 * `data_protection_snapshot_policy` - (Optional) A `data_protection_snapshot_policy` block as defined below.
 
 * `data_protection_backup_policy` - (Optional) A `data_protection_backup_policy` block as defined below.
+
+* `data_protection_advanced_ransomware` - (Optional) A `data_protection_advanced_ransomware` block as defined below.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
@@ -295,6 +302,16 @@ For more information on Azure NetApp Files Backup feature please see [Understand
   
 ---
 
+A `data_protection_advanced_ransomware` block is used to configure the Advanced Ransomware Protection (ARP) feature for an Azure NetApp Files volume. ARP uses machine learning to develop a profile of your volumes, alerting you of perceived threats based on file extension types, data entropy patterns, and I/OPS patterns. It supports the following:
+
+* `protection_enabled` - (Required) Enable or disable the Advanced Ransomware Protection feature.
+
+~> **Note:** Advanced Ransomware Protection is currently in preview and requires feature registration. For performance considerations and supported regions, please refer to the [Azure documentation](https://learn.microsoft.com/en-us/azure/azure-netapp-files/ransomware-configure).
+
+~> **Note:** It is recommended to enable no more than five volumes per Azure region with ARP to mitigate performance issues, and to increase QoS capacity by 5 to 10 percent due to potential performance impacts.
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -324,4 +341,4 @@ terraform import azurerm_netapp_volume.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2025-12-01

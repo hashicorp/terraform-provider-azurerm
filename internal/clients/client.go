@@ -93,12 +93,12 @@ import (
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
+	manageddevopspools "github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
 	managementgroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/client"
 	maps "github.com/hashicorp/terraform-provider-azurerm/internal/services/maps/client"
-	mobilenetwork "github.com/hashicorp/terraform-provider-azurerm/internal/services/mobilenetwork/client"
 	mongocluster "github.com/hashicorp/terraform-provider-azurerm/internal/services/mongocluster/client"
 	monitor "github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/client"
 	mssql "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/client"
@@ -231,13 +231,13 @@ type Client struct {
 	MachineLearning                   *machinelearning.Client
 	Maintenance                       *maintenance.Client
 	ManagedApplication                *managedapplication.Client
+	ManagedDevOpsPools                *manageddevopspools.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
 	ManagedIdentity                   *managedidentity.Client
 	ManagedRedis                      *managedredis.Client
 	Maps                              *maps.Client
 	Monitor                           *monitor.Client
-	MobileNetwork                     *mobilenetwork.Client
 	MongoCluster                      *mongocluster.Client
 	MSSQL                             *mssql.Client
 	MSSQLManagedInstance              *mssqlmanagedinstance.Client
@@ -514,6 +514,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
 	}
+	if client.ManagedDevOpsPools, err = manageddevopspools.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed DevOps Pools: %+v", err)
+	}
 	if client.ManagementGroups, err = managementgroup.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Management Groups: %+v", err)
 	}
@@ -531,9 +534,6 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.Monitor, err = monitor.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Monitor: %+v", err)
-	}
-	if client.MobileNetwork, err = mobilenetwork.NewClient(o); err != nil {
-		return fmt.Errorf("building clients for Mobile Network: %+v", err)
 	}
 	if client.MongoCluster, err = mongocluster.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Mongo Cluster: %+v", err)
