@@ -5,6 +5,7 @@ package managedredis
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"slices"
