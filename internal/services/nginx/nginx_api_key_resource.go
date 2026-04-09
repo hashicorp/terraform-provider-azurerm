@@ -119,8 +119,7 @@ func (m APIKeyResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			_, err = client.ApiKeysCreateOrUpdate(ctx, id, req)
-			if err != nil {
+			if _, err = client.ApiKeysCreateOrUpdate(ctx, id, req); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
