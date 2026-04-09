@@ -68,8 +68,7 @@ func (r CdnFrontDoorRuleSetResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	_, err = client.Get(ctx, *id)
-	if err != nil {
+	if _, err = client.Get(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

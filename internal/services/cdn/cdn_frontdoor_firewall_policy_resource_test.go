@@ -809,8 +809,7 @@ func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	_, err = clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id)
-	if err != nil {
+	if _, err = clients.Cdn.FrontDoorFirewallPoliciesClient.PoliciesGet(ctx, *id); err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

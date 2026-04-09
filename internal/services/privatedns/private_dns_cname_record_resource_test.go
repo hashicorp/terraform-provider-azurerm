@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PrivateDnsCNameRecordResource struct{}
+type PrivateDnsCnameRecordResource struct{}
 
 func TestAccPrivateDnsCNameRecord_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	r := PrivateDnsCNameRecordResource{}
+	r := PrivateDnsCnameRecordResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -35,7 +35,7 @@ func TestAccPrivateDnsCNameRecord_basic(t *testing.T) {
 
 func TestAccPrivateDnsCNameRecord_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	r := PrivateDnsCNameRecordResource{}
+	r := PrivateDnsCnameRecordResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -49,7 +49,7 @@ func TestAccPrivateDnsCNameRecord_requiresImport(t *testing.T) {
 
 func TestAccPrivateDnsCNameRecord_subdomain(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	r := PrivateDnsCNameRecordResource{}
+	r := PrivateDnsCnameRecordResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.subdomain(data),
@@ -64,7 +64,7 @@ func TestAccPrivateDnsCNameRecord_subdomain(t *testing.T) {
 
 func TestAccPrivateDnsCNameRecord_updateRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	r := PrivateDnsCNameRecordResource{}
+	r := PrivateDnsCnameRecordResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -83,7 +83,7 @@ func TestAccPrivateDnsCNameRecord_updateRecords(t *testing.T) {
 
 func TestAccPrivateDnsCNameRecord_withTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_private_dns_cname_record", "test")
-	r := PrivateDnsCNameRecordResource{}
+	r := PrivateDnsCnameRecordResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withTags(data),
@@ -103,7 +103,7 @@ func TestAccPrivateDnsCNameRecord_withTags(t *testing.T) {
 	})
 }
 
-func (t PrivateDnsCNameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t PrivateDnsCnameRecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := privatedns.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (t PrivateDnsCNameRecordResource) Exists(ctx context.Context, clients *clie
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (PrivateDnsCNameRecordResource) basic(data acceptance.TestData) string {
+func (PrivateDnsCnameRecordResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -143,7 +143,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (r PrivateDnsCNameRecordResource) requiresImport(data acceptance.TestData) string {
+func (r PrivateDnsCnameRecordResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -157,7 +157,7 @@ resource "azurerm_private_dns_cname_record" "import" {
 `, r.basic(data))
 }
 
-func (PrivateDnsCNameRecordResource) subdomain(data acceptance.TestData) string {
+func (PrivateDnsCnameRecordResource) subdomain(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -183,7 +183,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PrivateDnsCNameRecordResource) updateRecords(data acceptance.TestData) string {
+func (PrivateDnsCnameRecordResource) updateRecords(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -209,7 +209,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PrivateDnsCNameRecordResource) withTags(data acceptance.TestData) string {
+func (PrivateDnsCnameRecordResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -240,7 +240,7 @@ resource "azurerm_private_dns_cname_record" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PrivateDnsCNameRecordResource) withTagsUpdate(data acceptance.TestData) string {
+func (PrivateDnsCnameRecordResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
