@@ -1072,7 +1072,7 @@ func (r MssqlVirtualMachineResource) storageConfiguration(data acceptance.TestDa
 %[1]s
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "accmd-sqlvm-%[2]d"
+  name                 = "acctest-sqlvm-%[2]d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
@@ -1124,7 +1124,7 @@ func (r MssqlVirtualMachineResource) storageConfigurationRevert(data acceptance.
 %[1]s
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "accmd-sqlvm-%[2]d"
+  name                 = "acctest-sqlvm-%[2]d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
@@ -1155,7 +1155,7 @@ func (r MssqlVirtualMachineResource) storageConfigurationSystemDbOnDataDisk(data
 %[1]s
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "accmd-sqlvm-%[2]d"
+  name                 = "acctest-sqlvm-%[2]d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
@@ -1209,7 +1209,7 @@ func (r MssqlVirtualMachineResource) storageConfigurationTempDbWithLuns(data acc
 %[1]s
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "accmd-sqlvm-%[2]d"
+  name                 = "acctest-sqlvm-%[2]d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
@@ -1261,7 +1261,7 @@ func (r MssqlVirtualMachineResource) storageConfigurationTempDbWithoutLuns(data 
 %[1]s
 
 resource "azurerm_managed_disk" "test" {
-  name                 = "accmd-sqlvm-%[2]d"
+  name                 = "acctest-sqlvm-%[2]d"
   location             = azurerm_resource_group.test.location
   resource_group_name  = azurerm_resource_group.test.name
   storage_account_type = "Standard_LRS"
