@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &VirtualWANId{}
 
-// VirtualWANId is a struct representing the Resource ID for a Virtual W A N
+// VirtualWANId is a struct representing the Resource ID for a Virtual WAN
 type VirtualWANId struct {
 	SubscriptionId    string
 	ResourceGroupName string
@@ -84,7 +84,7 @@ func (id *VirtualWANId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateVirtualWANID checks that 'input' can be parsed as a Virtual W A N ID
+// ValidateVirtualWANID checks that 'input' can be parsed as a Virtual WAN ID
 func ValidateVirtualWANID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateVirtualWANID(input interface{}, key string) (warnings []string, err
 	return
 }
 
-// ID returns the formatted Virtual W A N ID
+// ID returns the formatted Virtual WAN ID
 func (id VirtualWANId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualWans/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.VirtualWanName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Virtual W A N ID
+// Segments returns a slice of Resource ID Segments which comprise this Virtual WAN ID
 func (id VirtualWANId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id VirtualWANId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Virtual W A N ID
+// String returns a human-readable description of this Virtual WAN ID
 func (id VirtualWANId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Virtual Wan Name: %q", id.VirtualWanName),
 	}
-	return fmt.Sprintf("Virtual W A N (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Virtual WAN (%s)", strings.Join(components, "\n"))
 }

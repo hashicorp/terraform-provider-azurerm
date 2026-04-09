@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices_test
@@ -9,12 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotecteditems"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SiteRecoveryReplicatedVmResource struct{}
@@ -286,8 +286,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {
@@ -490,8 +488,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {
@@ -785,13 +781,14 @@ resource "azurerm_resource_group" "test2" {
 
 
 resource "azurerm_key_vault" "test" {
-  name                        = "kv%[1]d"
+  name                        = "acctest%[4]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "standard"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 
@@ -969,8 +966,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {
@@ -1154,7 +1149,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     azurerm_site_recovery_network_mapping.test,
   ]
 }
-`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
 }
 
 func (SiteRecoveryReplicatedVmResource) zone2zone(data acceptance.TestData) string {
@@ -1182,8 +1177,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {
@@ -1603,13 +1596,14 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_key_vault" "test1" {
-  name                        = "acckv-%[1]d"
+  name                        = "acctest-%[4]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -1656,8 +1650,6 @@ resource "azurerm_recovery_services_vault" "test" {
   name                = "acctest-vault-%[1]d"
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
-  sku                 = "Standard"
-  soft_delete_enabled = false
 }
 resource "azurerm_site_recovery_fabric" "test1" {
   resource_group_name = azurerm_resource_group.test2.name
@@ -2047,8 +2039,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_site_recovery_fabric" "test1" {
@@ -2541,5 +2531,5 @@ func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("reading site recovery replicated vm (%s): model is nil", id.String())
 	}
 
-	return utils.Bool(model.Id != nil), nil
+	return pointer.To(model.Id != nil), nil
 }

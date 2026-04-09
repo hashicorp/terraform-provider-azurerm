@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network_test
@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -146,7 +146,7 @@ func (t IpGroupResource) Exists(ctx context.Context, clients *clients.Client, st
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.IPGroups.Get(ctx, *id, ipgroups.DefaultGetOperationOptions())
+	resp, err := clients.Network.IPGroups.Get(ctx, *id, ipgroups.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

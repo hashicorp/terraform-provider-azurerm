@@ -1,11 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package machinelearning
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func expandIdentity(input []interface{}) (*identity.LegacySystemAndUserAssignedMap, error) {
@@ -55,10 +55,10 @@ func flattenIdentity(input *identity.LegacySystemAndUserAssignedMap) (*[]interfa
 				details := identity.UserAssignedIdentityDetails{}
 
 				if v.ClientId != nil {
-					details.ClientId = utils.String(*v.ClientId)
+					details.ClientId = pointer.To(*v.ClientId)
 				}
 				if v.PrincipalId != nil {
-					details.PrincipalId = utils.String(*v.PrincipalId)
+					details.PrincipalId = pointer.To(*v.PrincipalId)
 				}
 
 				identityIds[k] = details

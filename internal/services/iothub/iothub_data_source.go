@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package iothub
@@ -58,7 +58,7 @@ func dataSourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: %s was not found", id)
+			return fmt.Errorf("%s was not found", id)
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -87,7 +87,7 @@ func dataSourceFlattenIotHubIdentityDetails(input *devices.ArmIdentity) (*[]inte
 
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
+			Type:        identity.Type(input.Type),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 

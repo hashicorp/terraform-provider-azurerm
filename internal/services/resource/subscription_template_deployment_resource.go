@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -121,7 +122,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, met
 	}
 
 	deployment := resources.Deployment{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &resources.DeploymentProperties{
 			DebugSetting: expandTemplateDeploymentDebugSetting(d.Get("debug_level").(string)),
 			Mode:         resources.DeploymentModeIncremental,
@@ -139,7 +140,7 @@ func subscriptionTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, met
 
 	if templateSpecVersionID, ok := d.GetOk("template_spec_version_id"); ok {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(templateSpecVersionID.(string)),
+			ID: pointer.To(templateSpecVersionID.(string)),
 		}
 	}
 
@@ -230,7 +231,7 @@ func subscriptionTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, met
 
 	if d.HasChange("template_spec_version_id") {
 		deployment.Properties.TemplateLink = &resources.TemplateLink{
-			ID: utils.String(d.Get("template_spec_version_id").(string)),
+			ID: pointer.To(d.Get("template_spec_version_id").(string)),
 		}
 
 		if d.Get("template_spec_version_id").(string) != "" {

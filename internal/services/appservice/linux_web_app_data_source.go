@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package appservice
@@ -276,7 +276,7 @@ func (r LinuxWebAppDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("Linux %s not found", *id)
+					return fmt.Errorf("the Linux %s was not found", *id)
 				}
 				return fmt.Errorf("retreiving Linux %s: %+v", id, err)
 			}

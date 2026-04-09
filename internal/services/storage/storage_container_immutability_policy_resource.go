@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobcontainers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/immutabilitypolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -127,7 +127,7 @@ func (r StorageContainerImmutabilityPolicyResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.BlobContainers
+			client := metadata.Client.Storage.ResourceManager.ImmutabilityPolicies
 
 			var model ContainerImmutabilityPolicyModel
 			if err := metadata.Decode(&model); err != nil {
@@ -141,7 +141,7 @@ func (r StorageContainerImmutabilityPolicyResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewStorageContainerImmutabilityPolicyID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName, "default", containerId.ContainerName, "default")
 
-			existing, err := client.GetImmutabilityPolicy(ctx, *containerId, blobcontainers.DefaultGetImmutabilityPolicyOperationOptions())
+			existing, err := client.BlobContainersGetImmutabilityPolicy(ctx, *containerId, immutabilitypolicies.DefaultBlobContainersGetImmutabilityPolicyOperationOptions())
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -151,15 +151,15 @@ func (r StorageContainerImmutabilityPolicyResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			input := blobcontainers.ImmutabilityPolicy{
-				Properties: blobcontainers.ImmutabilityPolicyProperty{
+			input := immutabilitypolicies.ImmutabilityPolicy{
+				Properties: immutabilitypolicies.ImmutabilityPolicyProperty{
 					AllowProtectedAppendWrites:            pointer.To(model.ProtectedAppendWritesEnabled),
 					AllowProtectedAppendWritesAll:         pointer.To(model.ProtectedAppendWritesAllEnabled),
 					ImmutabilityPeriodSinceCreationInDays: pointer.To(model.ImmutabilityPeriodInDays),
 				},
 			}
 
-			resp, err := client.CreateOrUpdateImmutabilityPolicy(ctx, *containerId, input, blobcontainers.DefaultCreateOrUpdateImmutabilityPolicyOperationOptions())
+			resp, err := client.BlobContainersCreateOrUpdateImmutabilityPolicy(ctx, *containerId, input, immutabilitypolicies.DefaultBlobContainersCreateOrUpdateImmutabilityPolicyOperationOptions())
 			if err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -173,11 +173,11 @@ func (r StorageContainerImmutabilityPolicyResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("preparing to lock %s: model was nil", id)
 				}
 
-				options := blobcontainers.LockImmutabilityPolicyOperationOptions{
+				options := immutabilitypolicies.BlobContainersLockImmutabilityPolicyOperationOptions{
 					IfMatch: resp.Model.Etag,
 				}
 
-				if _, err = client.LockImmutabilityPolicy(ctx, *containerId, options); err != nil {
+				if _, err = client.BlobContainersLockImmutabilityPolicy(ctx, *containerId, options); err != nil {
 					return fmt.Errorf("locking %s: %+v", id, err)
 				}
 			}
@@ -191,7 +191,7 @@ func (r StorageContainerImmutabilityPolicyResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.BlobContainers
+			client := metadata.Client.Storage.ResourceManager.ImmutabilityPolicies
 
 			id, err := parse.StorageContainerImmutabilityPolicyID(metadata.ResourceData.Id())
 			if err != nil {
@@ -208,7 +208,7 @@ func (r StorageContainerImmutabilityPolicyResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.GetImmutabilityPolicy(ctx, *containerId, blobcontainers.DefaultGetImmutabilityPolicyOperationOptions())
+			resp, err := client.BlobContainersGetImmutabilityPolicy(ctx, *containerId, immutabilitypolicies.DefaultBlobContainersGetImmutabilityPolicyOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) || r.isDeleted(resp.Model) {
 					return nil
@@ -220,19 +220,19 @@ func (r StorageContainerImmutabilityPolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			input := blobcontainers.ImmutabilityPolicy{
-				Properties: blobcontainers.ImmutabilityPolicyProperty{
+			input := immutabilitypolicies.ImmutabilityPolicy{
+				Properties: immutabilitypolicies.ImmutabilityPolicyProperty{
 					AllowProtectedAppendWrites:            pointer.To(model.ProtectedAppendWritesEnabled),
 					AllowProtectedAppendWritesAll:         pointer.To(model.ProtectedAppendWritesAllEnabled),
 					ImmutabilityPeriodSinceCreationInDays: pointer.To(model.ImmutabilityPeriodInDays),
 				},
 			}
 
-			options := blobcontainers.CreateOrUpdateImmutabilityPolicyOperationOptions{
+			options := immutabilitypolicies.BlobContainersCreateOrUpdateImmutabilityPolicyOperationOptions{
 				IfMatch: resp.Model.Etag,
 			}
 
-			updateResp, err := client.CreateOrUpdateImmutabilityPolicy(ctx, *containerId, input, options)
+			updateResp, err := client.BlobContainersCreateOrUpdateImmutabilityPolicy(ctx, *containerId, input, options)
 			if err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
@@ -244,11 +244,11 @@ func (r StorageContainerImmutabilityPolicyResource) Update() sdk.ResourceFunc {
 					return fmt.Errorf("preparing to lock %s: model was nil", id)
 				}
 
-				lockOptions := blobcontainers.LockImmutabilityPolicyOperationOptions{
+				lockOptions := immutabilitypolicies.BlobContainersLockImmutabilityPolicyOperationOptions{
 					IfMatch: updateResp.Model.Etag,
 				}
 
-				if _, err = client.LockImmutabilityPolicy(ctx, *containerId, lockOptions); err != nil {
+				if _, err = client.BlobContainersLockImmutabilityPolicy(ctx, *containerId, lockOptions); err != nil {
 					return fmt.Errorf("locking %s: %+v", id, err)
 				}
 			}
@@ -263,7 +263,7 @@ func (r StorageContainerImmutabilityPolicyResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.BlobContainers
+			client := metadata.Client.Storage.ResourceManager.ImmutabilityPolicies
 
 			id, err := parse.StorageContainerImmutabilityPolicyID(metadata.ResourceData.Id())
 			if err != nil {
@@ -272,7 +272,7 @@ func (r StorageContainerImmutabilityPolicyResource) Read() sdk.ResourceFunc {
 
 			containerId := commonids.NewStorageContainerID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.ContainerName)
 
-			resp, err := client.GetImmutabilityPolicy(ctx, containerId, blobcontainers.DefaultGetImmutabilityPolicyOperationOptions())
+			resp, err := client.BlobContainersGetImmutabilityPolicy(ctx, containerId, immutabilitypolicies.DefaultBlobContainersGetImmutabilityPolicyOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) || r.isDeleted(resp.Model) {
 					return metadata.MarkAsGone(id)
@@ -296,7 +296,7 @@ func (r StorageContainerImmutabilityPolicyResource) Read() sdk.ResourceFunc {
 					state.ImmutabilityPeriodInDays = *props.ImmutabilityPeriodSinceCreationInDays
 				}
 				if props.State != nil {
-					state.Locked = *props.State == blobcontainers.ImmutabilityPolicyStateLocked
+					state.Locked = *props.State == immutabilitypolicies.ImmutabilityPolicyStateLocked
 				}
 			}
 
@@ -309,7 +309,7 @@ func (r StorageContainerImmutabilityPolicyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.BlobContainers
+			client := metadata.Client.Storage.ResourceManager.ImmutabilityPolicies
 
 			id, err := parse.StorageContainerImmutabilityPolicyID(metadata.ResourceData.Id())
 			if err != nil {
@@ -318,7 +318,7 @@ func (r StorageContainerImmutabilityPolicyResource) Delete() sdk.ResourceFunc {
 
 			containerId := commonids.NewStorageContainerID(id.SubscriptionId, id.ResourceGroup, id.StorageAccountName, id.ContainerName)
 
-			resp, err := client.GetImmutabilityPolicy(ctx, containerId, blobcontainers.DefaultGetImmutabilityPolicyOperationOptions())
+			resp, err := client.BlobContainersGetImmutabilityPolicy(ctx, containerId, immutabilitypolicies.DefaultBlobContainersGetImmutabilityPolicyOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) || r.isDeleted(resp.Model) {
 					return nil
@@ -330,11 +330,11 @@ func (r StorageContainerImmutabilityPolicyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			options := blobcontainers.DeleteImmutabilityPolicyOperationOptions{
+			options := immutabilitypolicies.BlobContainersDeleteImmutabilityPolicyOperationOptions{
 				IfMatch: resp.Model.Etag,
 			}
 
-			if _, err := client.DeleteImmutabilityPolicy(ctx, containerId, options); err != nil {
+			if _, err := client.BlobContainersDeleteImmutabilityPolicy(ctx, containerId, options); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -343,7 +343,7 @@ func (r StorageContainerImmutabilityPolicyResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r StorageContainerImmutabilityPolicyResource) isDeleted(input *blobcontainers.ImmutabilityPolicy) bool {
+func (r StorageContainerImmutabilityPolicyResource) isDeleted(input *immutabilitypolicies.ImmutabilityPolicy) bool {
 	if input == nil {
 		return true
 	}

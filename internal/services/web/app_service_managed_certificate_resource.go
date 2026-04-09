@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package web
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -115,10 +116,10 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 
 	name := customHostnameBindingId.Name
 
-	if appService.SiteProperties == nil || appService.SiteProperties.ServerFarmID == nil {
+	if appService.SiteProperties == nil || appService.ServerFarmID == nil {
 		return fmt.Errorf("could not get App Service Plan ID for Custom Hostname Binding %q (resource group %q)", customHostnameBindingId.Name, customHostnameBindingId.ResourceGroup)
 	}
-	appServicePlanIDRaw := *appService.SiteProperties.ServerFarmID
+	appServicePlanIDRaw := *appService.ServerFarmID
 
 	appServicePlanID, err := commonids.ParseAppServicePlanIDInsensitively(appServicePlanIDRaw)
 	if err != nil {
@@ -149,11 +150,11 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 
 	certificate := web.Certificate{
 		CertificateProperties: &web.CertificateProperties{
-			CanonicalName: utils.String(customHostnameBindingId.Name),
-			ServerFarmID:  utils.String(appServicePlanIDRaw),
+			CanonicalName: pointer.To(customHostnameBindingId.Name),
+			ServerFarmID:  pointer.To(appServicePlanIDRaw),
 			Password:      new(string),
 		},
-		Location: utils.String(appServiceLocation),
+		Location: pointer.To(appServiceLocation),
 		Tags:     tags.Expand(t),
 	}
 

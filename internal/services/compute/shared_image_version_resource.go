@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceSharedImageVersion() *pluginsdk.Resource {
@@ -288,7 +287,7 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 				TargetRegions:     targetRegions,
 			},
 			SafetyProfile: &galleryimageversions.GalleryImageVersionSafetyProfile{
-				AllowDeletionOfReplicatedLocations: utils.Bool(d.Get("deletion_of_replicated_locations_enabled").(bool)),
+				AllowDeletionOfReplicatedLocations: pointer.To(d.Get("deletion_of_replicated_locations_enabled").(bool)),
 			},
 			StorageProfile:  galleryimageversions.GalleryImageVersionStorageProfile{},
 			SecurityProfile: &galleryimageversions.ImageVersionSecurityProfile{},
@@ -307,11 +306,11 @@ func resourceSharedImageVersionCreate(d *pluginsdk.ResourceData, meta interface{
 		_, err := virtualmachines.ParseVirtualMachineID(v.(string))
 		if err == nil {
 			version.Properties.StorageProfile.Source = &galleryimageversions.GalleryArtifactVersionFullSource{
-				VirtualMachineId: utils.String(v.(string)),
+				VirtualMachineId: pointer.To(v.(string)),
 			}
 		} else {
 			version.Properties.StorageProfile.Source = &galleryimageversions.GalleryArtifactVersionFullSource{
-				Id: utils.String(v.(string)),
+				Id: pointer.To(v.(string)),
 			}
 		}
 	}
@@ -502,7 +501,9 @@ func resourceSharedImageVersionRead(d *pluginsdk.ResourceData, meta interface{})
 				d.Set("uefi_settings", flattenUefiSettings(securityProfile.UefiSettings))
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

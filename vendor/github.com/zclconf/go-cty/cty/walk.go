@@ -1,10 +1,18 @@
 package cty
 
+import (
+	"io"
+	"iter"
+)
+
 // Walk visits all of the values in a possibly-complex structure, calling
 // a given function for each value.
 //
 // For example, given a list of strings the callback would first be called
 // with the whole list and then called once for each element of the list.
+//
+// New callers may prefer to use [DeepValues] instead, because that returns
+// a result usable with a normal for loop.
 //
 // The callback function may prevent recursive visits to child values by
 // returning false. The callback function my halt the walk altogether by
@@ -17,6 +25,26 @@ package cty
 func Walk(val Value, cb func(Path, Value) (bool, error)) error {
 	var path Path
 	return walk(path, val, cb)
+}
+
+// DeepValues returns an iterable sequence containing at least the given
+// value but also, if it is of a collection or structural type, the other values
+// nested within it recursively.
+//
+// The [Path] values in different elements of the sequence may share a backing
+// array to reduce garbage generated during iteration, so if a caller wishes to
+// preserve a path outside of a single loop iteration the caller must copy it to
+// a separate Path value with its own separate backing array, such as by calling
+// [Path.Copy].
+func DeepValues(val Value) iter.Seq2[Path, Value] {
+	return func(yield func(Path, Value) bool) {
+		Walk(val, func(p Path, v Value) (bool, error) {
+			if !yield(p, v) {
+				return false, io.EOF // arbitrary error just to get Walk to stop
+			}
+			return true, nil
+		})
+	}
 }
 
 func walk(path Path, val Value, cb func(Path, Value) (bool, error)) error {

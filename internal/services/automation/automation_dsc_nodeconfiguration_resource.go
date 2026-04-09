@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package automation
@@ -9,23 +9,23 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/dscnodeconfiguration"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/dscnodeconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Create: resourceAutomationDscNodeConfigurationCreate,
 		Read:   resourceAutomationDscNodeConfigurationRead,
-		Update: resourceAutomationDscNodeConfigurationCreateUpdate,
+		Update: resourceAutomationDscNodeConfigurationUpdate,
 		Delete: resourceAutomationDscNodeConfigurationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -71,57 +71,85 @@ func resourceAutomationDscNodeConfiguration() *pluginsdk.Resource {
 	}
 }
 
-func resourceAutomationDscNodeConfigurationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAutomationDscNodeConfigurationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Automation.DscNodeConfiguration
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Node Configuration creation.")
 
 	id := dscnodeconfiguration.NewNodeConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	content := d.Get("content_embedded").(string)
-
-	// configuration name is always the first part of the dsc node configuration
-	// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
-
-	configurationName := strings.Split(id.NodeConfigurationName, ".")[0]
-
-	contentSourceType := dscnodeconfiguration.ContentSourceTypeEmbeddedContent
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_automation_dsc_nodeconfiguration", id.ID())
+	}
 
 	parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
 		Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
 			Source: dscnodeconfiguration.ContentSource{
-				Type:  &contentSourceType,
-				Value: utils.String(content),
+				Type:  pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
+				Value: pointer.To(d.Get("content_embedded").(string)),
 			},
+			// configuration name is always the first part of the dsc node configuration
+			// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
 			Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
-				Name: utils.String(configurationName),
+				Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
 			},
 		},
-		Name: utils.String(id.NodeConfigurationName),
+		Name: pointer.To(id.NodeConfigurationName),
 	}
 
-	err := client.CreateOrUpdateThenPoll(ctx, id, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationDscNodeConfigurationRead(d, meta)
+}
+
+func resourceAutomationDscNodeConfigurationUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Automation.DscNodeConfiguration
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := dscnodeconfiguration.ParseNodeConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// there is only one property that can be updated and is not force new: content_embedded
+	// if content_embedded is changed, we need to update the dsc node configuration
+	// otherwise we can just return as the resource is already in the desired state
+	if d.HasChange("content_embedded") {
+		parameters := dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParameters{
+			Properties: &dscnodeconfiguration.DscNodeConfigurationCreateOrUpdateParametersProperties{
+				Source: dscnodeconfiguration.ContentSource{
+					Type: pointer.To(dscnodeconfiguration.ContentSourceTypeEmbeddedContent),
+					// content_embedded is not returned by the API, so we get it from d.Get
+					Value: pointer.To(d.Get("content_embedded").(string)),
+				},
+				// configuration name is always the first part of the dsc node configuration
+				// e.g. webserver.prod or webserver.local will be associated to the dsc configuration webserver
+				Configuration: dscnodeconfiguration.DscConfigurationAssociationProperty{
+					Name: pointer.To(strings.Split(id.NodeConfigurationName, ".")[0]),
+				},
+			},
+			Name: pointer.To(id.NodeConfigurationName),
+		}
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("updating %s: %+v", *id, err)
+		}
+	}
 
 	return resourceAutomationDscNodeConfigurationRead(d, meta)
 }

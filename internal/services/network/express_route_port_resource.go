@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -6,6 +6,7 @@ package network
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -42,19 +43,12 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 			"macsec_cipher": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
-				Default: "GcmAes128",
-				// Default: string(expressrouteports.GcmAes128),
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
+				Default:  string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
 				ValidateFunc: validation.StringInSlice([]string{
-					"GcmAes128",
-					"GcmAes256",
-					// string(expressrouteports.GcmAes128),
-					// string(expressrouteports.GcmAes256),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesTwoFiveSix),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnOneTwoEight),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnTwoFiveSix),
 				}, false),
 			},
 			"macsec_ckn_keyvault_secret_id": {
@@ -113,10 +107,10 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(120 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(120 * time.Minute),
+			Delete: pluginsdk.DefaultTimeout(120 * time.Minute),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -274,6 +268,24 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 
 	payload := existing.Model
 
+	// Normalize the identity type - Azure API returns lowercase (e.g. "userAssigned")
+	// but the SDK MarshalJSON expects exact case match (e.g. "UserAssigned")
+	// Without normalization, MarshalJSON defaults to "None" and removes the identity
+	if payload.Identity != nil {
+		// Use string comparison to normalize the type
+		switch strings.ToLower(string(payload.Identity.Type)) {
+		case "systemassigned":
+			payload.Identity.Type = identity.TypeSystemAssigned
+		case "userassigned":
+			payload.Identity.Type = identity.TypeUserAssigned
+		case "systemassigned, userassigned", "systemassigned,userassigned":
+			payload.Identity.Type = identity.TypeSystemAssignedUserAssigned
+		case "none":
+			payload.Identity.Type = identity.TypeNone
+		}
+		log.Printf("[DEBUG] Normalized identity type from %q to %q", existing.Model.Identity.Type, payload.Identity.Type)
+	}
+
 	if d.HasChange("identity") {
 		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
@@ -299,8 +311,6 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	// a lock is needed here for subresource express_route_port_authorization needs a lock.
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
-
-	payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
@@ -363,7 +373,9 @@ func resourceArmExpressRoutePortRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("guid", props.ResourceGuid)
 			d.Set("mtu", props.Mtu)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -24,7 +24,7 @@ output "id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -58,6 +58,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `session_recording_enabled` - Is Session Recording feature enabled for the Bastion Host.
 
+* `private_only_enabled` - Whether Private-Only deployment is enabled for the Bastion Host. 
+
 * `dns_name` - The FQDN for the Bastion Host.
 
 * `tags` - A mapping of tags assigned to the Bastion Host.
@@ -76,7 +78,7 @@ A `ip_configuration` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Bastion Host.
 
@@ -84,4 +86,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2024-01-01
+* `Microsoft.Network` - 2025-01-01

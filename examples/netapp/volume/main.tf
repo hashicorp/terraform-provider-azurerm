@@ -1,4 +1,4 @@
-# Copyright (c) HashiCorp, Inc.
+# Copyright IBM Corp. 2014, 2025
 # SPDX-License-Identifier: MPL-2.0
 
 provider "azurerm" {
@@ -8,6 +8,9 @@ provider "azurerm" {
 resource "azurerm_resource_group" "example" {
   name     = "${var.prefix}-resources"
   location = var.location
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
 }
 
 resource "azurerm_virtual_network" "example" {
@@ -61,7 +64,7 @@ resource "azurerm_netapp_volume" "example" {
   volume_path         = "my-unique-file-path"
   service_level       = "Premium"
   subnet_id           = azurerm_subnet.example.id
-  protocols           = ["NFSv4.1"]
+  protocols           = ["NFSv3"]
   storage_quota_in_gb = 100
 
   export_policy_rule {

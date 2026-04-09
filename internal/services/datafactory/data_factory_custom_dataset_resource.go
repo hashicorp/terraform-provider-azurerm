@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package datafactory
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -185,7 +186,7 @@ func resourceDataFactoryCustomDatasetCreateUpdate(d *pluginsdk.ResourceData, met
 
 	if v, ok := d.GetOk("folder"); ok {
 		props["folder"] = &datafactory.DatasetFolder{
-			Name: utils.String(v.(string)),
+			Name: pointer.To(v.(string)),
 		}
 	}
 
@@ -382,8 +383,8 @@ func expandDataFactoryLinkedService(input []interface{}) *datafactory.LinkedServ
 
 	v := input[0].(map[string]interface{})
 	return &datafactory.LinkedServiceReference{
-		ReferenceName: utils.String(v["name"].(string)),
-		Type:          utils.String("LinkedServiceReference"),
+		ReferenceName: pointer.To(v["name"].(string)),
+		Type:          pointer.To("LinkedServiceReference"),
 		Parameters:    v["parameters"].(map[string]interface{}),
 	}
 }

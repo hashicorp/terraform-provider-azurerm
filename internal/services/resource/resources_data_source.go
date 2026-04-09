@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package resource
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -86,7 +87,7 @@ func dataSourceResourcesRead(d *pluginsdk.ResourceData, meta interface{}) error 
 	requiredTags := d.Get("required_tags").(map[string]interface{})
 
 	if resourceGroupName == "" && resourceName == "" && resourceType == "" {
-		return fmt.Errorf("At least one of `name`, `resource_group_name` or `type` must be specified")
+		return errors.New("at least one of `name`, `resource_group_name` or `type` must be specified")
 	}
 
 	var filter string

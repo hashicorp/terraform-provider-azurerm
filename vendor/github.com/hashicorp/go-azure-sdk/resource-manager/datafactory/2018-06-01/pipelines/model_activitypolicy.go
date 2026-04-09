@@ -4,7 +4,7 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ActivityPolicy struct {
-	Retry                  *int64       `json:"retry,omitempty"`
+	Retry                  *interface{} `json:"retry,omitempty"`
 	RetryIntervalInSeconds *int64       `json:"retryIntervalInSeconds,omitempty"`
 	SecureInput            *bool        `json:"secureInput,omitempty"`
 	SecureOutput           *bool        `json:"secureOutput,omitempty"`

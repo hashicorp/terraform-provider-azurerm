@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package validate
@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumequotarules"
 )
 
 func TestValidateNetAppVolumeQuotaRulesQuotaType(t *testing.T) {
@@ -20,7 +20,7 @@ func TestValidateNetAppVolumeQuotaRulesQuotaType(t *testing.T) {
 			Name: "ValidateIndividualUserQuotaTargetIsDefined",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
 				QuotaTarget: pointer.To("1001"),
-				QuotaType:   pointer.To(volumequotarules.TypeIndividualUserQuota),
+				QuotaType:   pointer.To(volumequotarules.QuotaTypeIndividualUserQuota),
 			},
 			Errors: 0,
 		},
@@ -28,21 +28,21 @@ func TestValidateNetAppVolumeQuotaRulesQuotaType(t *testing.T) {
 			Name: "ValidateIndividualGroupQuotaTargetIsDefined",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
 				QuotaTarget: pointer.To("1001"),
-				QuotaType:   pointer.To(volumequotarules.TypeIndividualGroupQuota),
+				QuotaType:   pointer.To(volumequotarules.QuotaTypeIndividualGroupQuota),
 			},
 			Errors: 0,
 		},
 		{
 			Name: "ValidateDefaultUserQuotaTargetIsNotDefined",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
-				QuotaType: pointer.To(volumequotarules.TypeDefaultUserQuota),
+				QuotaType: pointer.To(volumequotarules.QuotaTypeDefaultUserQuota),
 			},
 			Errors: 0,
 		},
 		{
 			Name: "ValidateIndividualGroupQuotaTargetIsNotDefined",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
-				QuotaType: pointer.To(volumequotarules.TypeDefaultGroupQuota),
+				QuotaType: pointer.To(volumequotarules.QuotaTypeDefaultGroupQuota),
 			},
 			Errors: 0,
 		},
@@ -50,14 +50,14 @@ func TestValidateNetAppVolumeQuotaRulesQuotaType(t *testing.T) {
 		{
 			Name: "ValidateIndividualUserQuotaTargetIsDefinedFailsWhenMissingTarget",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
-				QuotaType: pointer.To(volumequotarules.TypeIndividualUserQuota),
+				QuotaType: pointer.To(volumequotarules.QuotaTypeIndividualUserQuota),
 			},
 			Errors: 1,
 		},
 		{
 			Name: "ValidateIndividualGroupQuotaTargetIsDefinedFailsWhenMissingTarget",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
-				QuotaType: pointer.To(volumequotarules.TypeIndividualGroupQuota),
+				QuotaType: pointer.To(volumequotarules.QuotaTypeIndividualGroupQuota),
 			},
 			Errors: 1,
 		},
@@ -65,7 +65,7 @@ func TestValidateNetAppVolumeQuotaRulesQuotaType(t *testing.T) {
 			Name: "ValidateDefaultUserQuotaTargetFailsWhenDefiningTarget",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
 				QuotaTarget: pointer.To("1001"),
-				QuotaType:   pointer.To(volumequotarules.TypeDefaultUserQuota),
+				QuotaType:   pointer.To(volumequotarules.QuotaTypeDefaultUserQuota),
 			},
 			Errors: 1,
 		},
@@ -73,7 +73,7 @@ func TestValidateNetAppVolumeQuotaRulesQuotaType(t *testing.T) {
 			Name: "ValidateIndividualGroupQuotaTargetFailsWhenDefiningTarget",
 			VolumeQuotaRulesData: volumequotarules.VolumeQuotaRulesProperties{
 				QuotaTarget: pointer.To("1001"),
-				QuotaType:   pointer.To(volumequotarules.TypeDefaultGroupQuota),
+				QuotaType:   pointer.To(volumequotarules.QuotaTypeDefaultGroupQuota),
 			},
 			Errors: 1,
 		},

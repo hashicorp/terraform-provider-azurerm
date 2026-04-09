@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -19,17 +19,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-// VirtualMachineRestorePointCollectionResource remove this in 4.0, the resource is renamed
 type VirtualMachineRestorePointCollectionResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate                = VirtualMachineRestorePointCollectionResource{}
-	_ sdk.ResourceWithDeprecationReplacedBy = VirtualMachineRestorePointCollectionResource{}
-)
-
-func (r VirtualMachineRestorePointCollectionResource) DeprecatedInFavourOfResource() string {
-	return "azurerm_virtual_machine_restore_point_collection"
-}
+var _ sdk.ResourceWithUpdate = VirtualMachineRestorePointCollectionResource{}
 
 func (r VirtualMachineRestorePointCollectionResource) ModelObject() interface{} {
 	return &VirtualMachineRestorePointCollectionResourceModel{}

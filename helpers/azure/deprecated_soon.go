@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package azure
@@ -6,17 +6,10 @@ package azure
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 )
-
-// NormalizeLocation will be deprecated in the near future, use `location.Normalize()` instead.
-func NormalizeLocation(input interface{}) string {
-	loc := input.(string)
-	return location.Normalize(loc)
-}
 
 // SchemaResourceGroupNameDiffSuppress will be deprecated in the near future
 // use `commonschema.ResourceGroupName()` instead
@@ -47,7 +40,7 @@ func ValidateResourceID(i interface{}, k string) (warnings []string, errors []er
 	}
 
 	if _, err := ParseAzureResourceID(v); err != nil {
-		errors = append(errors, fmt.Errorf("Can not parse %q as a resource id: %v", k, err))
+		errors = append(errors, fmt.Errorf("cannot parse %q as a resource id: %v", k, err))
 	}
 
 	return warnings, errors

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -9,11 +9,12 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -307,7 +308,7 @@ func flattenBootDiagnosticsVMSS(input *virtualmachinescalesets.DiagnosticsProfil
 }
 
 func linuxSecretSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -326,7 +327,7 @@ func linuxSecretSchema() *pluginsdk.Schema {
 							"url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 							},
 						},
 					},
@@ -334,6 +335,12 @@ func linuxSecretSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func expandLinuxSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {
@@ -865,7 +872,7 @@ func flattenSourceImageReferenceVMSS(input *virtualmachinescalesets.ImageReferen
 }
 
 func winRmListenerSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// Whilst the SDK allows you to modify this, the API does not:
@@ -889,15 +896,21 @@ func winRmListenerSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["certificate_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func winRmListenerSchemaVM() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		// Whilst the SDK allows you to modify this, the API does not:
@@ -921,7 +934,7 @@ func winRmListenerSchemaVM() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: keyVaultValidate.NestedItemId,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 				},
 			},
 		},
@@ -929,6 +942,12 @@ func winRmListenerSchemaVM() *pluginsdk.Schema {
 			"os_managed_disk_id",
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["certificate_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func expandWinRMListener(input []interface{}) *virtualmachines.WinRMConfiguration {
@@ -1022,7 +1041,7 @@ func flattenWinRMListenerVMSS(input *virtualmachinescalesets.WinRMConfiguration)
 }
 
 func windowsSecretSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -1043,7 +1062,7 @@ func windowsSecretSchema() *pluginsdk.Schema {
 							"url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 							},
 						},
 					},
@@ -1051,10 +1070,16 @@ func windowsSecretSchema() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func windowsSecretSchemaVM() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Elem: &pluginsdk.Resource{
@@ -1075,7 +1100,7 @@ func windowsSecretSchemaVM() *pluginsdk.Schema {
 							"url": {
 								Type:         pluginsdk.TypeString,
 								Required:     true,
-								ValidateFunc: keyVaultValidate.NestedItemId,
+								ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeSecret),
 							},
 						},
 					},
@@ -1086,6 +1111,12 @@ func windowsSecretSchemaVM() *pluginsdk.Schema {
 			"os_managed_disk_id",
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["certificate"].Elem.(*pluginsdk.Resource).Schema["url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+	}
+
+	return s
 }
 
 func expandWindowsSecrets(input []interface{}) *[]virtualmachines.VaultSecretGroup {

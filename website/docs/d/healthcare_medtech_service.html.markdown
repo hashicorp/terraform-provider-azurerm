@@ -23,7 +23,7 @@ output "azurerm_healthcare_medtech_service_id" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 * `name` - The name of the Healthcare Med Tech Service.
 
@@ -56,7 +56,7 @@ An `identity` block supports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service.
 

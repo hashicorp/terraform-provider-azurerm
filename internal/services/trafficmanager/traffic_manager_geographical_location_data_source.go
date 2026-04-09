@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package trafficmanager
@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/geographichierarchies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/trafficmanagergeographichierarchies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -38,14 +38,14 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	results, err := client.GetDefault(ctx)
+	results, err := client.GeographicHierarchiesGetDefault(ctx)
 	if err != nil {
 		return fmt.Errorf("loading Traffic Manager Geographical Hierarchies: %+v", err)
 	}
 
 	name := d.Get("name").(string)
 
-	var result *geographichierarchies.Region
+	var result *trafficmanagergeographichierarchies.Region
 	if model := results.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if topLevelRegion := props.GeographicHierarchy; topLevelRegion != nil {
@@ -58,7 +58,7 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 	}
 
 	if result == nil || result.Code == nil {
-		return fmt.Errorf("Couldn't find a Traffic Manager Geographic Location with the name %q", name)
+		return fmt.Errorf("couldn't find a Traffic Manager Geographic Location with the name %q", name)
 	}
 
 	// NOTE: @tombuildsstuff: this is a unique data source that outputs the location as the ID, so this is fine
@@ -67,7 +67,7 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 	return nil
 }
 
-func filterGeographicalRegions(input *[]geographichierarchies.Region, name string) *geographichierarchies.Region {
+func filterGeographicalRegions(input *[]trafficmanagergeographichierarchies.Region, name string) *trafficmanagergeographichierarchies.Region {
 	if regions := input; regions != nil {
 		for _, region := range *regions {
 			if geographicalRegionIsMatch(&region, name) {
@@ -84,6 +84,6 @@ func filterGeographicalRegions(input *[]geographichierarchies.Region, name strin
 	return nil
 }
 
-func geographicalRegionIsMatch(input *geographichierarchies.Region, name string) bool {
+func geographicalRegionIsMatch(input *trafficmanagergeographichierarchies.Region, name string) bool {
 	return strings.EqualFold(*input.Name, name)
 }
