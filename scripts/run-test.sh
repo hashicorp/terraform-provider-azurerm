@@ -5,7 +5,9 @@
 
 function runTests {
   echo "==> Running Unit Tests..."
+  # shellcheck disable=SC2086
   go test -i $TEST || exit 1
+  # shellcheck disable=SC2086
   go test -v $TEST "$TESTARGS" -timeout=30s -parallel=20
 }
 

@@ -13,9 +13,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,16 +108,8 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 	results := make([]volumegroups.VolumeGroupVolumeProperties, 0)
 
 	for _, item := range input {
-		name := item.Name
-		volumePath := item.VolumePath
-		serviceLevel := volumegroups.ServiceLevel(item.ServiceLevel)
-		subnetID := item.SubnetId
-		capacityPoolID := item.CapacityPoolId
-		protocols := item.Protocols
-		snapshotDirectoryVisible := item.SnapshotDirectoryVisible
-		securityStyle := volumegroups.SecurityStyle(item.SecurityStyle)
 		storageQuotaInGB := item.StorageQuotaInGB * 1073741824
-		exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy)
+
 		dataProtectionReplication := expandNetAppVolumeGroupDataProtectionReplication(item.DataProtectionReplication)
 		dataProtectionSnapshotPolicy := expandNetAppVolumeGroupDataProtectionSnapshotPolicy(item.DataProtectionSnapshotPolicy)
 
@@ -130,30 +122,42 @@ func expandNetAppVolumeGroupSAPHanaVolumes(input []netAppModels.NetAppVolumeGrou
 		}
 
 		volumeProperties := &volumegroups.VolumeGroupVolumeProperties{
-			Name: pointer.To(name),
+			Name: pointer.To(item.Name),
 			Properties: volumegroups.VolumeProperties{
-				CapacityPoolResourceId:   pointer.To(capacityPoolID),
-				CreationToken:            volumePath,
-				ServiceLevel:             &serviceLevel,
-				SubnetId:                 subnetID,
-				ProtocolTypes:            &protocols,
-				SecurityStyle:            &securityStyle,
+				CapacityPoolResourceId:   pointer.To(item.CapacityPoolId),
+				CreationToken:            item.VolumePath,
+				ServiceLevel:             pointer.To(volumegroups.ServiceLevel(item.ServiceLevel)),
+				SubnetId:                 item.SubnetId,
+				ProtocolTypes:            pointer.To(item.Protocols),
+				SecurityStyle:            pointer.To(volumegroups.SecurityStyle(item.SecurityStyle)),
 				UsageThreshold:           storageQuotaInGB,
-				ExportPolicy:             exportPolicyRule,
-				SnapshotDirectoryVisible: pointer.To(snapshotDirectoryVisible),
+				ExportPolicy:             expandNetAppVolumeGroupVolumeExportPolicyRule(item.ExportPolicy),
+				SnapshotDirectoryVisible: pointer.To(item.SnapshotDirectoryVisible),
 				ThroughputMibps:          pointer.To(item.ThroughputInMibps),
 				VolumeSpecName:           pointer.To(item.VolumeSpecName),
+				NetworkFeatures:          pointer.To(volumegroups.NetworkFeatures(item.NetworkFeatures)),
 				DataProtection:           dataProtection,
 			},
 			Tags: &item.Tags,
 		}
 
 		if v := item.ProximityPlacementGroupId; v != "" {
-			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(pointer.From(pointer.To(v)))
+			volumeProperties.Properties.ProximityPlacementGroup = pointer.To(v)
 		}
 
-		if dataProtectionReplication != nil &&
-			dataProtectionReplication.Replication != nil &&
+		if v := item.Zone; v != "" {
+			volumeProperties.Zones = pointer.To([]string{v})
+		}
+
+		if v := item.EncryptionKeySource; v != "" {
+			volumeProperties.Properties.EncryptionKeySource = pointer.To(volumegroups.EncryptionKeySource(v))
+		}
+
+		if v := item.KeyVaultPrivateEndpointId; v != "" {
+			volumeProperties.Properties.KeyVaultPrivateEndpointResourceId = pointer.To(v)
+		}
+
+		if dataProtectionReplication != nil && dataProtectionReplication.Replication != nil &&
 			dataProtectionReplication.Replication.EndpointType != nil &&
 			strings.EqualFold(string(pointer.From(dataProtectionReplication.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
 			volumeProperties.Properties.VolumeType = pointer.To("DataProtection")
@@ -310,9 +314,9 @@ func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(in
 	}
 }
 
-func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.VolumePropertiesDataProtection {
+func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.ReplicationObject {
 	if len(input) == 0 {
-		return &volumes.VolumePropertiesDataProtection{}
+		return nil
 	}
 
 	replicationObject := volumes.ReplicationObject{}
@@ -334,14 +338,12 @@ func expandNetAppVolumeDataProtectionReplication(input []interface{}) *volumes.V
 		replicationObject.ReplicationSchedule = pointer.To(replicationSchedule)
 	}
 
-	return pointer.To(volumes.VolumePropertiesDataProtection{
-		Replication: pointer.To(replicationObject),
-	})
+	return &replicationObject
 }
 
-func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
+func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volumes.VolumeSnapshotProperties {
 	if len(input) == 0 {
-		return &volumes.VolumePropertiesDataProtection{}
+		return nil
 	}
 
 	snapshotObject := volumes.VolumeSnapshotProperties{}
@@ -352,17 +354,13 @@ func expandNetAppVolumeDataProtectionSnapshotPolicy(input []interface{}) *volume
 		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
 	}
 
-	return &volumes.VolumePropertiesDataProtection{
-		Snapshot: &snapshotObject,
-	}
+	return &snapshotObject
 }
 
-func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
+func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *volumes.VolumeSnapshotProperties {
 	if len(input) == 0 {
-		return &volumes.VolumePatchPropertiesDataProtection{
-			Snapshot: &volumes.VolumeSnapshotProperties{
-				SnapshotPolicyId: pointer.To(""),
-			},
+		return &volumes.VolumeSnapshotProperties{
+			SnapshotPolicyId: pointer.To(""),
 		}
 	}
 
@@ -374,14 +372,12 @@ func expandNetAppVolumeDataProtectionSnapshotPolicyPatch(input []interface{}) *v
 		snapshotObject.SnapshotPolicyId = pointer.To(v.(string))
 	}
 
-	return &volumes.VolumePatchPropertiesDataProtection{
-		Snapshot: &snapshotObject,
-	}
+	return &snapshotObject
 }
 
-func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumePropertiesDataProtection {
+func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.VolumeBackupProperties {
 	if len(input) == 0 || input == nil {
-		return &volumes.VolumePropertiesDataProtection{}
+		return nil
 	}
 
 	backupPolicyObject := volumes.VolumeBackupProperties{}
@@ -400,14 +396,12 @@ func expandNetAppVolumeDataProtectionBackupPolicy(input []interface{}) *volumes.
 		backupPolicyObject.BackupVaultId = pointer.To(v.(string))
 	}
 
-	return &volumes.VolumePropertiesDataProtection{
-		Backup: &backupPolicyObject,
-	}
+	return &backupPolicyObject
 }
 
-func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumePatchPropertiesDataProtection {
+func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *volumes.VolumeBackupProperties {
 	if len(input) == 0 || input == nil {
-		return &volumes.VolumePatchPropertiesDataProtection{}
+		return nil
 	}
 
 	backupPolicyObject := volumes.VolumeBackupProperties{}
@@ -426,9 +420,49 @@ func expandNetAppVolumeDataProtectionBackupPolicyPatch(input []interface{}) *vol
 		backupPolicyObject.BackupVaultId = pointer.To(v.(string))
 	}
 
-	return &volumes.VolumePatchPropertiesDataProtection{
-		Backup: &backupPolicyObject,
+	return &backupPolicyObject
+}
+
+func expandNetAppVolumeDataProtectionAdvancedRansomwareProtection(input []interface{}) *volumes.RansomwareProtectionSettings {
+	if len(input) == 0 {
+		return nil
 	}
+
+	arpObject := volumes.RansomwareProtectionSettings{}
+
+	arpRaw := input[0].(map[string]interface{})
+
+	if v, ok := arpRaw["protection_enabled"]; ok {
+		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
+		if v.(bool) {
+			desiredState = volumes.DesiredRansomwareProtectionStateEnabled
+		}
+		arpObject.DesiredRansomwareProtectionState = pointer.To(desiredState)
+	}
+
+	return &arpObject
+}
+
+func expandNetAppVolumeDataProtectionAdvancedRansomwareProtectionPatch(input []interface{}) *volumes.RansomwareProtectionPatchSettings {
+	if len(input) == 0 {
+		return &volumes.RansomwareProtectionPatchSettings{
+			DesiredRansomwareProtectionState: pointer.To(volumes.DesiredRansomwareProtectionStateDisabled),
+		}
+	}
+
+	arpObject := volumes.RansomwareProtectionPatchSettings{}
+
+	arpRaw := input[0].(map[string]interface{})
+
+	if v, ok := arpRaw["protection_enabled"]; ok {
+		desiredState := volumes.DesiredRansomwareProtectionStateDisabled
+		if v.(bool) {
+			desiredState = volumes.DesiredRansomwareProtectionStateEnabled
+		}
+		arpObject.DesiredRansomwareProtectionState = pointer.To(desiredState)
+	}
+
+	return &arpObject
 }
 
 func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volumegroups.VolumeGroupVolumeProperties, metadata sdk.ResourceMetaData) ([]netAppModels.NetAppVolumeGroupSAPHanaVolume, error) {
@@ -452,9 +486,22 @@ func flattenNetAppVolumeGroupSAPHanaVolumes(ctx context.Context, input *[]volume
 		volumeGroupVolume.SnapshotDirectoryVisible = pointer.From(props.SnapshotDirectoryVisible)
 		volumeGroupVolume.ThroughputInMibps = pointer.From(props.ThroughputMibps)
 		volumeGroupVolume.Tags = pointer.From(item.Tags)
+		volumeGroupVolume.NetworkFeatures = string(pointer.From(props.NetworkFeatures))
 
 		if props.ProximityPlacementGroup != nil {
 			volumeGroupVolume.ProximityPlacementGroupId = pointer.From(props.ProximityPlacementGroup)
+		}
+
+		if item.Zones != nil && len(pointer.From(item.Zones)) > 0 {
+			volumeGroupVolume.Zone = (pointer.From(item.Zones))[0]
+		}
+
+		if props.EncryptionKeySource != nil {
+			volumeGroupVolume.EncryptionKeySource = pointer.From((*string)(props.EncryptionKeySource))
+		}
+
+		if props.KeyVaultPrivateEndpointResourceId != nil {
+			volumeGroupVolume.KeyVaultPrivateEndpointId = pointer.From(props.KeyVaultPrivateEndpointResourceId)
 		}
 
 		volumeGroupVolume.VolumeSpecName = pointer.From(props.VolumeSpecName)

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-12-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -210,7 +210,7 @@ resource "azurerm_netapp_account" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -226,7 +226,7 @@ resource "azurerm_netapp_account" "import" {
   resource_group_name = azurerm_netapp_account.test.resource_group_name
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
   }
 }
 `, r.basicConfig(data))
@@ -259,7 +259,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
   }
 }
@@ -280,7 +280,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "FoO"           = "BaR"
   }
 }
@@ -297,7 +297,7 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   tags = {
-    CreatedOnDate = "2023-10-03T19:58:43.6509795Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 
@@ -314,7 +314,7 @@ resource "azurerm_netapp_account" "test" {
   }
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+    "CreatedOnDate" = "2022-07-08T23-50-21Z"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -340,7 +340,7 @@ resource "azurerm_resource_group" "test" {
   location = "%[2]s"
 
   tags = {
-    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+    "CreatedOnDate" = "2022-07-08T23-50-21Z",
     "SkipNRMSNSG"   = "true"
   }
 }

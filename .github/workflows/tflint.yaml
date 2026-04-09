@@ -3,6 +3,7 @@ name: Terraform Schema Linting
 
 permissions:
   contents: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -21,12 +22,21 @@ jobs:
     runs-on: custom-linux-medium
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make tflint
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Terraform Schema Linting failed."
+          echo ""
+          echo "Run 'make tflint' locally to reproduce and fix the errors."
+          echo "This check validates Terraform schema definitions in your resource and data source code."
+          echo "Common issues include: missing descriptions, incorrect type definitions,"
+          echo "or schema validation rules that don't match the API."
   save-artifacts-on-fail:
     needs: tflint
     if: ${{ failure() }}

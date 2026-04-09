@@ -250,7 +250,9 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("replication_region", location.Normalize(replicationRegion))
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
