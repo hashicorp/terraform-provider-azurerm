@@ -183,15 +183,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"storage_iops": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes IOPs for Premium_LRS
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(3000, 80000),
 			},
 
 			"storage_throughput": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C Azure computes throughput for Premium_LRS
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(125, 1200),
 			},
@@ -917,9 +919,11 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
+				storageType := string(servers.StorageTypePremiumLRS)
 				if storage.Type != nil {
-					d.Set("storage_type", pointer.FromEnum(storage.Type))
+					storageType = pointer.FromEnum(storage.Type)
 				}
+				d.Set("storage_type", storageType)
 
 				if storage.Iops != nil {
 					d.Set("storage_iops", int(*storage.Iops))
