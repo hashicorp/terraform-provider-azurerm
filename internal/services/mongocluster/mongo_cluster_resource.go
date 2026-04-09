@@ -5,6 +5,7 @@ package mongocluster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -725,7 +726,7 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 			switch state.CreateMode {
 			case string(mongoclusters.CreateModeDefault):
 				if isNativeAuthRequired(metadata) && state.AdministratorUserName == "" {
-					return fmt.Errorf("`administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured")
+					return errors.New("`administrator_username` is required when `authentication_methods` contains `NativeAuth` or is not configured")
 				}
 
 				if state.ComputeTier == "" {
