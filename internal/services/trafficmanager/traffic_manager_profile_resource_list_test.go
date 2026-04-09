@@ -97,5 +97,5 @@ list "azurerm_traffic_manager_profile" "list" {
     resource_group_name = azurerm_resource_group.test.name
   }
 }
-`, data.RandomInteger)
+`)
 }
