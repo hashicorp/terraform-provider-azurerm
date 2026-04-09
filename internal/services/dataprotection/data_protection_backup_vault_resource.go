@@ -21,9 +21,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -208,9 +208,9 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 
 	encryptionEnabledWithSystemAssignedIdentity := false
 	id := backupvaultresources.NewBackupVaultID(subscriptionId, resourceGroup, name)
+	existing, err := client.BackupVaultsGet(ctx, id)
 
 	if d.IsNewResource() {
-		existing, err := client.BackupVaultsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for existing DataProtection BackupVault (%q): %+v", id, err)
@@ -222,7 +222,7 @@ func resourceDataProtectionBackupVaultCreateUpdate(d *pluginsdk.ResourceData, me
 	} else {
 		if securitySettings := existing.Model.Properties.SecuritySettings; securitySettings != nil {
 			if encryptionSettings := securitySettings.EncryptionSettings; encryptionSettings != nil {
-				if kekIdentity := encryptionSettings.KekIdentity; kekIdentity != nil && *kekIdentity.IdentityType == backupvaults.IdentityTypeSystemAssigned {
+				if kekIdentity := encryptionSettings.KekIdentity; kekIdentity != nil && *kekIdentity.IdentityType == backupvaultresources.IdentityTypeSystemAssigned {
 					encryptionEnabledWithSystemAssignedIdentity = true
 				}
 			}
@@ -436,18 +436,18 @@ func flattenBackupVaultDppIdentityDetails(input *backupvaultresources.DppIdentit
 	return identity.FlattenSystemAndUserAssignedMap(config)
 }
 
-func expandBackupVaultEncryptionSettings(input []interface{}) (*backupvaults.EncryptionSettings, error) {
+func expandBackupVaultEncryptionSettings(input []interface{}) (*backupvaultresources.EncryptionSettings, error) {
 	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	}
 
 	v := input[0].(map[string]interface{})
-	output := &backupvaults.EncryptionSettings{
-		KekIdentity: &backupvaults.CmkKekIdentity{
+	output := &backupvaultresources.EncryptionSettings{
+		KekIdentity: &backupvaultresources.CmkKekIdentity{
 			IdentityId:   pointer.To(v["identity_id"].(string)),
-			IdentityType: pointer.To(backupvaults.IdentityTypeUserAssigned),
+			IdentityType: pointer.To(backupvaultresources.IdentityTypeUserAssigned),
 		},
-		State: pointer.To(backupvaults.EncryptionStateEnabled),
+		State: pointer.To(backupvaultresources.EncryptionStateEnabled),
 	}
 
 	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
@@ -455,20 +455,20 @@ func expandBackupVaultEncryptionSettings(input []interface{}) (*backupvaults.Enc
 		return nil, err
 	}
 
-	output.KeyVaultProperties = &backupvaults.CmkKeyVaultProperties{
+	output.KeyVaultProperties = &backupvaultresources.CmkKeyVaultProperties{
 		KeyUri: pointer.To(keyId.ID()),
 	}
 
 	if v["infrastructure_encryption_enabled"].(bool) {
-		output.InfrastructureEncryption = pointer.To(backupvaults.InfrastructureEncryptionStateEnabled)
+		output.InfrastructureEncryption = pointer.To(backupvaultresources.InfrastructureEncryptionStateEnabled)
 	} else {
-		output.InfrastructureEncryption = pointer.To(backupvaults.InfrastructureEncryptionStateDisabled)
+		output.InfrastructureEncryption = pointer.To(backupvaultresources.InfrastructureEncryptionStateDisabled)
 	}
 
 	return output, nil
 }
 
-func flattenBackupVaultEncryptionSettings(input *backupvaults.EncryptionSettings) *[]interface{} {
+func flattenBackupVaultEncryptionSettings(input *backupvaultresources.EncryptionSettings) *[]interface{} {
 	if input == nil {
 		return &[]interface{}{}
 	}
@@ -484,7 +484,7 @@ func flattenBackupVaultEncryptionSettings(input *backupvaults.EncryptionSettings
 	}
 
 	if input.InfrastructureEncryption != nil {
-		output["infrastructure_encryption_enabled"] = pointer.From(input.InfrastructureEncryption) == backupvaults.InfrastructureEncryptionStateEnabled
+		output["infrastructure_encryption_enabled"] = pointer.From(input.InfrastructureEncryption) == backupvaultresources.InfrastructureEncryptionStateEnabled
 	}
 
 	return &[]interface{}{output}

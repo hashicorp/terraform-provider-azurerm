@@ -104,7 +104,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Create() sdk.Resour
 
 			if resp.Model.Properties.SecuritySettings != nil && resp.Model.Properties.SecuritySettings.EncryptionSettings != nil {
 				if kekIdentity := resp.Model.Properties.SecuritySettings.EncryptionSettings.KekIdentity; kekIdentity != nil {
-					if *kekIdentity.IdentityType == backupvaults.IdentityTypeUserAssigned {
+					if *kekIdentity.IdentityType == backupvaultresources.IdentityTypeUserAssigned {
 						return errors.New("customer managed keys settings have been specified in `encryption_settings` block of `azurerm_data_protection_backup_vault` resource. `azurerm_data_protection_backup_vault_customer_managed_key` resource is not required and should be removed")
 					}
 				}
@@ -194,12 +194,12 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Delete() sdk.Resour
 				return err
 			}
 
-			id, err := backupvaults.ParseBackupVaultID(cmk.DataProtectionBackupVaultID)
+			id, err := backupvaultresources.ParseBackupVaultID(cmk.DataProtectionBackupVaultID)
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, *id)
+			resp, err := client.BackupVaultsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", *id)
@@ -214,7 +214,7 @@ func (r DataProtectionBackupVaultCustomerManagedKeyResource) Delete() sdk.Resour
 
 			if securitySettings := resp.Model.Properties.SecuritySettings; securitySettings != nil {
 				if encryptionSettings := securitySettings.EncryptionSettings; encryptionSettings != nil {
-					if kekIdentity := encryptionSettings.KekIdentity; kekIdentity != nil && *kekIdentity.IdentityType == backupvaults.IdentityTypeSystemAssigned {
+					if kekIdentity := encryptionSettings.KekIdentity; kekIdentity != nil && *kekIdentity.IdentityType == backupvaultresources.IdentityTypeSystemAssigned {
 						log.Printf(`[INFO] Customer Managed Keys cannot be removed from Data Protection Backup Vaults once added. To remove the Customer Managed Key, delete and recreate the parent Data Protection Backup Vault`)
 					}
 				}
