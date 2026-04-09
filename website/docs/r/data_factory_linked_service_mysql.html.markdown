@@ -55,7 +55,7 @@ The following arguments are supported:
 
 * `driver_version` - (Optional) The version of the MySQL driver. Possible values are `V1` and `V2`.
 
-~> **Note:** New linked services cannot set `driver_version` to `V1`. Remove `driver_version` or set it to `V2`.
+~> **Note:** New linked services must set `driver_version` to `V2`.
 
 ## Attributes Reference
 
@@ -78,4 +78,6 @@ Data Factory MySQL Linked Service's can be imported using the `resource id`, e.g
 
 ```shell
 terraform import azurerm_data_factory_linked_service_mysql.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/linkedservices/example
+```
+e/providers/Microsoft.DataFactory/factories/example/linkedservices/example
 ```

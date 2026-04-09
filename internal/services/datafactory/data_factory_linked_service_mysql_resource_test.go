@@ -72,7 +72,7 @@ func TestAccDataFactoryLinkedServiceMySQL_driverVersionV1NotSupportedForNewResou
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.withDriverVersionV1(data),
-			ExpectError: regexp.MustCompile("`driver_version` cannot be `V1` for new resources"),
+			ExpectError: regexp.MustCompile("`driver_version` must be set to `V2` for new resources"),
 		},
 	})
 }
@@ -111,6 +111,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_mysql" "test" {
   name              = "acctestlssql%d"
   data_factory_id   = azurerm_data_factory.test.id
+  driver_version    = "V2"
   connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -177,7 +178,6 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
   annotations       = ["test1", "test2"]
   description       = "test description 2"
-  driver_version    = "V1"
 
   parameters = {
     foo  = "test1"

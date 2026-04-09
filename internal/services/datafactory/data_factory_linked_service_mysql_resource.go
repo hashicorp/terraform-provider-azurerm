@@ -99,7 +99,7 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 			"driver_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      "V1",
 				ValidateFunc: validation.StringInSlice([]string{"V1", "V2"}, false),
 			},
 		},
@@ -142,13 +142,10 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 		ConnectionString: &secureString,
 	}
 
-	if d.IsNewResource() {
-		if v, ok := d.GetOk("driver_version"); ok && v.(string) == "V1" {
-			return fmt.Errorf("creating Data Factory MySQL linked service `%s`: `driver_version` cannot be `V1` for new resources, remove `driver_version` or set it to `V2` and try again", d.Get("name").(string))
-		}
-		mysqlProperties.DriverVersion = "V2"
-	} else if v, ok := d.GetOk("driver_version"); ok {
-		mysqlProperties.DriverVersion = v.(string)
+	if driverVersion := d.Get("driver_version").(string); d.IsNewResource() && driverVersion == "V1" {
+		return fmt.Errorf("creating Data Factory MySQL linked service `%s`: `driver_version` must be set to `V2` for new resources", d.Get("name").(string))
+	} else {
+		mysqlProperties.DriverVersion = driverVersion
 	}
 
 	description := d.Get("description").(string)
