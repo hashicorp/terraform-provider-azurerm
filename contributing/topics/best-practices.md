@@ -250,7 +250,7 @@ Example:
 
 ## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
 
-Known-after-apply values are not available inside CustomizeDiff for new resource creation.
+Known-after-apply values can cause false-positives when using `(*schema.ResourceDiff).Get()` or the `(sdk.ResourceMetaData).DecodeDiff()` functions. For example, when checking that two properties are both set by comparing the returned values against an empty string, a `d.Get()` on an unknown value will return an empty string which then triggers the error, regardless of whether the value was set in config.
 
 Given the following configuration:
 
