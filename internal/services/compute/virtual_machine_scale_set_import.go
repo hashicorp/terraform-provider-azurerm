@@ -22,8 +22,7 @@ func importOrchestratedVirtualMachineScaleSet(ctx context.Context, d *pluginsdk.
 	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	options := virtualmachinescalesets.DefaultGetOperationOptions()
 	options.Expand = pointer.To(virtualmachinescalesets.ExpandTypesForGetVMScaleSetsUserData)
-	_, err = client.Get(ctx, *id, options)
-	if err != nil {
+	if _, err = client.Get(ctx, *id, options); err != nil {
 		return []*pluginsdk.ResourceData{}, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 

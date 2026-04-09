@@ -93,6 +93,7 @@ import (
 	machinelearning "github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/client"
 	maintenance "github.com/hashicorp/terraform-provider-azurerm/internal/services/maintenance/client"
 	managedapplication "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedapplications/client"
+	manageddevopspools "github.com/hashicorp/terraform-provider-azurerm/internal/services/manageddevopspools/client"
 	managedhsm "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/client"
 	managedidentity "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/client"
 	managedredis "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/client"
@@ -230,6 +231,7 @@ type Client struct {
 	MachineLearning                   *machinelearning.Client
 	Maintenance                       *maintenance.Client
 	ManagedApplication                *managedapplication.Client
+	ManagedDevOpsPools                *manageddevopspools.Client
 	ManagementGroups                  *managementgroup.Client
 	ManagedHSMs                       *managedhsm.Client
 	ManagedIdentity                   *managedidentity.Client
@@ -511,6 +513,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.ManagedApplication, err = managedapplication.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Managed Applications: %+v", err)
+	}
+	if client.ManagedDevOpsPools, err = manageddevopspools.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for Managed DevOps Pools: %+v", err)
 	}
 	if client.ManagementGroups, err = managementgroup.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Management Groups: %+v", err)

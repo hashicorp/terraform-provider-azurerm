@@ -16,9 +16,9 @@ type StoreReadSettings interface {
 var _ StoreReadSettings = BaseStoreReadSettingsImpl{}
 
 type BaseStoreReadSettingsImpl struct {
-	DisableMetricsCollection *bool  `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64 `json:"maxConcurrentConnections,omitempty"`
-	Type                     string `json:"type"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s BaseStoreReadSettingsImpl) StoreReadSettings() BaseStoreReadSettingsImpl {

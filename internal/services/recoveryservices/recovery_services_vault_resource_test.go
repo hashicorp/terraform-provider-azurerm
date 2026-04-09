@@ -625,8 +625,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -648,8 +646,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name           = azurerm_resource_group.test.name
   sku                           = "Standard"
   public_network_access_enabled = %t
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enabled)
 }
@@ -672,8 +668,6 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   cross_region_restore_enabled = %t
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, enable)
 }
@@ -698,8 +692,6 @@ resource "azurerm_recovery_services_vault" "test" {
   storage_mode_type = "ZoneRedundant"
 
   cross_region_restore_enabled = true
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -724,8 +716,6 @@ resource "azurerm_recovery_services_vault" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  soft_delete_enabled = false
 
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -760,8 +750,6 @@ resource "azurerm_recovery_services_vault" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -795,8 +783,6 @@ resource "azurerm_recovery_services_vault" "test" {
       azurerm_user_assigned_identity.test.id,
     ]
   }
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -818,8 +804,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
   immutability        = "%s"
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, immutability)
 }
@@ -845,8 +829,6 @@ resource "azurerm_recovery_services_vault" "test" {
     alerts_for_all_job_failures_enabled            = false
     alerts_for_critical_operation_failures_enabled = false
   }
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -867,8 +849,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
   storage_mode_type   = "LocallyRedundant"
   tags = {
     ENV = "test"
@@ -1008,8 +988,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = true
-
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
@@ -1107,8 +1085,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
   storage_mode_type   = "ZoneRedundant"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -1208,8 +1184,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-
   encryption {
     key_id                            = azurerm_key_vault_key.test.id
     infrastructure_encryption_enabled = false
@@ -1238,8 +1212,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1559,7 +1531,6 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name                = azurerm_resource_group.test.name
   sku                                = "Standard"
   classic_vmware_replication_enabled = true
-  soft_delete_enabled                = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

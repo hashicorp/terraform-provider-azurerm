@@ -64,7 +64,7 @@ func dataSourceExtendedLocationsRead(d *pluginsdk.ResourceData, meta interface{}
 	normalizedLocation := location.Normalize(d.Get("location").(string))
 	d.SetId(fmt.Sprintf("%s/locations/%s", id.ID(), normalizedLocation))
 
-	extendedLocations := getExtendedLocations(resp.Model.Value, normalizedLocation)
+	extendedLocations := getExtendedLocations(resp.Model, normalizedLocation)
 	if len(extendedLocations) == 0 {
 		return fmt.Errorf("no extended locations were found for the location %q", normalizedLocation)
 	}
