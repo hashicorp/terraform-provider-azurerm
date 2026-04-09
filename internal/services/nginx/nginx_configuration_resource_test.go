@@ -289,8 +289,6 @@ resource "azurerm_nginx_deployment" "test" {
   capacity            = 10
   location            = azurerm_resource_group.test.location
 
-  diagnose_support_enabled = false
-
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
   }
