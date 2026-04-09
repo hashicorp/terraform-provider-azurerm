@@ -19,8 +19,10 @@ var enableTestTriggersGlobally = DslContext.getParameter("enableTestTriggersGlob
 var emailAddressAccTests = DslContext.getParameter("emailAddressAccTests", "")
 var gitHubRepo = DslContext.getParameter("gitHubRepo", "hashicorp/terraform-provider-azurerm")
 var gitPat = DslContext.getParameter("gitPat", "")
+var testViaVcr = DslContext.getParameter("TC_TEST_VIA_VCR", "")
+var blockbusterVideo = DslContext.getParameter("blockbusterVideo", "")
 
 
-var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, enableTestTriggersGlobally, emailAddressAccTests, gitHubRepo, gitPat)
+var clientConfig = ClientConfiguration(clientId, clientSecret, subscriptionId, tenantId, clientIdAlt, clientSecretAlt, subscriptionIdAlt, subscriptionIdDevTest, tenantIdAlt, subscriptionIdAltTenant, principalIdAltTenant, vcsRootId, enableTestTriggersGlobally, emailAddressAccTests, gitHubRepo, gitPat, testViaVcr, blockbusterVideo)
 
-project(AzureRM(environment, clientConfig))
+project(azureRM(environment, clientConfig))

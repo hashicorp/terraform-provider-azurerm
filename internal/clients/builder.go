@@ -156,12 +156,12 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	}
 
 	// go-vcr integration
-	// TC_TEST_VIA_VCR can be set to `true` or `record` see the testing guides for more information
+	// TC_TEST_VIA_VCR can be set to `record` or `replay` see the testing guides for more information
 	if os.Getenv("TC_TEST_VIA_VCR") != "" && builder.TestName != "" {
 		builder.Features.EnhancedValidation.ResourceProviders = false
 		builder.Features.EnhancedValidation.Locations = false
 		if r, err := vcr.GetRecorder(builder.TestName, account.SubscriptionId); err == nil {
-			o.Transport = r
+			o.Transport = vcr.WrapTransport(r, builder.TestName)
 		} else {
 			return nil, fmt.Errorf("getting vcr recorder: %w", err)
 		}

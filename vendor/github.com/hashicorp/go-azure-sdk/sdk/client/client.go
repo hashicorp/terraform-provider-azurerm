@@ -17,7 +17,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"reflect"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -28,6 +27,12 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/internal/accept"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 	"github.com/hashicorp/go-retryablehttp"
+)
+
+const (
+	// SkipPollingDelayHeader is the HTTP header used to instruct the poller to skip its standard delay wait time.
+	// This is typically injected via a ResponseMiddleware when running tests in a VCR replay mode.
+	SkipPollingDelayHeader = "X-Go-Azure-Sdk-Skip-Polling-Delay"
 )
 
 // RetryOn404ConsistencyFailureFunc can be used to retry a request when a 404 response is received
@@ -349,70 +354,6 @@ func (c *Client) SetAuthorizer(authorizer auth.Authorizer) {
 	c.Authorizer = authorizer
 }
 
-// IsVcrReplaying returns true if the provided transport appears to be a VCR recorder in replay mode.
-func IsVcrReplaying(transport http.RoundTripper) bool {
-	if transport == nil {
-		return false
-	}
-
-	// We use reflection to avoid a hard dependency on the go-vcr package in the SDK.
-	// We check for "recorder" in the type name and then attempt to call the Mode() method.
-	t := reflect.TypeOf(transport)
-	if !strings.Contains(strings.ToLower(t.String()), "recorder") {
-		return false
-	}
-
-	v := reflect.ValueOf(transport)
-	// If it's a pointer, get the underlying value (MethodByName works on both)
-	modeMethod := v.MethodByName("Mode")
-	if !modeMethod.IsValid() {
-		return false
-	}
-
-	results := modeMethod.Call(nil)
-	if len(results) != 1 {
-		return false
-	}
-
-	// Mode is normally an int (or an alias of int).
-	// In go-vcr v1/v2, ModeReplay is 1.
-	// In go-vcr v3/v4, ModeReplayOnly is 1 and ModeReplayWithNewEpisodes is 2.
-	// Support for RecordOnce (3) mode: skip only if cassette is NOT new.
-	if results[0].Kind() == reflect.Int {
-		mode := results[0].Int()
-		if mode == 1 || mode == 2 {
-			return true
-		}
-
-		if mode == 3 {
-			// use reflection to get the unexported cassette field
-			v := reflect.ValueOf(transport)
-			if v.Kind() == reflect.Ptr {
-				v = v.Elem()
-			}
-			if v.Kind() == reflect.Struct {
-				cassetteField := v.FieldByName("cassette")
-				if cassetteField.IsValid() {
-					cassette := cassetteField
-					if cassette.Kind() == reflect.Ptr && !cassette.IsNil() {
-						cassette = cassette.Elem()
-					}
-
-					if cassette.Kind() == reflect.Struct {
-						isNewField := cassette.FieldByName("IsNew")
-						if isNewField.IsValid() && isNewField.Kind() == reflect.Bool {
-							// If the cassette is NOT new, we are replaying
-							return !isNewField.Bool()
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return false
-}
-
 // SetUserAgent configures the user agent to be included in requests
 func (c *Client) SetUserAgent(userAgent string) {
 	c.UserAgent = userAgent
@@ -594,11 +535,6 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 			}
 			resp.Response = r
 		}
-	}
-
-	// If we're running with a VCR transport in REPLAY mode, we mark the response so that the poller knows to skip the delay
-	if IsVcrReplaying(c.Transport) {
-		resp.Header.Add("X-Go-Azure-SDK-Skip-Polling-Delay", "true")
 	}
 
 	// Extract OData from response, intentionally ignoring any errors as it's not crucial to extract

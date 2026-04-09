@@ -38,6 +38,7 @@ site/
 # Test exclusions
 !command/test-fixtures/**/*.tfstate
 !command/test-fixtures/**/.terraform/
+vcrtestdata/
 
 .env.sh
 

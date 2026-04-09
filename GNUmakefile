@@ -168,4 +168,13 @@ static-analysis:
 
 pr-check: generate build test lint tflint website-lint
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis
+vcr-pull:
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "ERROR: Set SERVICE to a specific service. For example,"; \
+		echo "  make vcr-pull SERVICE=compute [BRANCH=main]"; \
+		exit 1; \
+	fi
+	./scripts/vcr-pull.sh $(SERVICE) $(BRANCH)
+
+
+.PHONY: build test testacc vet fmt fmtcheck errcheck pr-check scaffold-website test-compile website website-test validate-examples resource-counts static-analysis vcr-pull

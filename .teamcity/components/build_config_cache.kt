@@ -3,9 +3,7 @@ import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.buildFeatures.BuildCacheFeature
 import jetbrains.buildServer.configs.kotlin.buildSteps.ScriptBuildStep
 
-class buildCacheConfiguration(environment: String, vcsRootId: String) {
-    val environment = environment
-    val vcsRootId = vcsRootId
+class BuildCacheConfiguration(val environment: String, val vcsRootId: String) {
 
     fun buildConfiguration(providerName: String): BuildType {
         return BuildType {
@@ -19,7 +17,7 @@ class buildCacheConfiguration(environment: String, vcsRootId: String) {
             }
 
             steps {
-                ConfigureGoEnv()
+                configureGoEnv()
                 step(ScriptBuildStep {
                     name = "Compile Test Binary"
                     scriptContent = """
@@ -31,7 +29,7 @@ class buildCacheConfiguration(environment: String, vcsRootId: String) {
             }
 
             triggers {
-                RunNightly(
+                runNightly(
                     nightlyTestsEnabled = true,
                     startHour = 23,
                     daysOfWeek = "*",
@@ -63,8 +61,8 @@ class buildCacheConfiguration(environment: String, vcsRootId: String) {
             }
 
             params {
-                GoCache()
-                ReadOnlySettings()
+                goCache()
+                readOnlySettings()
             }
         }
     }

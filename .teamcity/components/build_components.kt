@@ -14,7 +14,7 @@ import jetbrains.buildServer.configs.kotlin.triggers.schedule
 // each test individually
 const val useTeamCityGoTest = false
 
-fun BuildFeatures.Golang() {
+fun BuildFeatures.golang() {
     if (useTeamCityGoTest) {
         feature(GolangFeature {
             testFormat = "json"
@@ -23,23 +23,23 @@ fun BuildFeatures.Golang() {
 }
 
 // Requires the creation of build_config_cache for the project:
-fun BuildFeatures.BuildCacheFeature() {
+fun BuildFeatures.buildCacheFeature() {
         feature(BuildCacheFeature {
             name = "terraform-provider-azurerm-build-cache"
             publish = false
         })
 }
 
-fun BuildSteps.ConfigureGoEnv() {
+fun BuildSteps.configureGoEnv() {
     step(ScriptBuildStep {
         name = "Configure Go Version"
         scriptContent = "goenv install -s \$(goenv local) && goenv rehash"
     })
 }
 
-fun BuildSteps.DownloadTerraformBinary() {
+fun BuildSteps.downloadTerraformBinary() {
     // https://releases.hashicorp.com/terraform/0.12.28/terraform_0.12.28_linux_amd64.zip
-    var terraformUrl = "https://releases.hashicorp.com/terraform/%env.TERRAFORM_CORE_VERSION%/terraform_%env.TERRAFORM_CORE_VERSION%_linux_amd64.zip"
+    val terraformUrl = "https://releases.hashicorp.com/terraform/%env.TERRAFORM_CORE_VERSION%/terraform_%env.TERRAFORM_CORE_VERSION%_linux_amd64.zip"
     step(ScriptBuildStep {
         name = "Download Terraform Core v%env.TERRAFORM_CORE_VERSION%.."
         scriptContent = "mkdir -p tools && wget -O tf.zip %s && unzip tf.zip && mv terraform tools/".format(terraformUrl)
@@ -50,9 +50,33 @@ fun servicePath(packageName: String) : String {
     return "./internal/services/%s".format(packageName)
 }
 
-fun BuildSteps.RunAcceptanceTests(packageName: String) {
-    var packagePath = servicePath(packageName)
-    var withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(packagePath)
+fun BuildSteps.downloadVCRCassettes(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Download VCR Cassettes"
+        scriptContent = """
+            if [ "%env.TC_TEST_VIA_VCR%" = "replay" ]; then
+                azcopy copy "%env.BLOCKBUSTER_VIDEO%/%teamcity.build.branch%/$packageName/*" "./internal/services/$packageName/vcrtestdata" --recursive
+            fi
+        """.trimIndent()
+    })
+}
+
+// Note: Sync causes the target folder to mirror the local one, meaning that locally absent files will be deleted on the target.
+// failed tests in record mode will delete the recording.
+fun BuildSteps.uploadVCRCassettes(packageName: String) {
+    step(ScriptBuildStep {
+        name = "Upload VCR Cassettes"
+        scriptContent = """
+            if [ "%env.TC_TEST_VIA_VCR%" = "record" ]; then
+                azcopy sync "./internal/services/$packageName/vcrtestdata/*.yaml" "%env.BLOCKBUSTER_VIDEO%/%teamcity.build.branch%/$packageName/" --recursive
+            fi
+        """.trimIndent()
+    })
+}
+
+fun BuildSteps.runAcceptanceTests(packageName: String) {
+    val packagePath = servicePath(packageName)
+    val withTestsDirectoryPath = "##teamcity[setParameter name='SERVICE_PATH' value='%s/tests']".format(packagePath)
 
     // some packages use a ./tests folder, others don't - conditionally append that if needed
     step(ScriptBuildStep {
@@ -85,8 +109,8 @@ fun BuildSteps.RunAcceptanceTests(packageName: String) {
     }
 }
 
-fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
-    var servicePath = "./internal/services/%s/...".format(packageName)
+fun BuildSteps.runAcceptanceTestsForPullRequest(packageName: String) {
+    val servicePath = "./internal/services/%s/...".format(packageName)
     if (useTeamCityGoTest) {
         step(ScriptBuildStep {
             name = "Run Tests"
@@ -106,7 +130,7 @@ fun BuildSteps.RunAcceptanceTestsForPullRequest(packageName: String) {
     }
 }
 
-fun BuildSteps.PostTestResultsToGitHubPullRequest() {
+fun BuildSteps.postTestResultsToGitHubPullRequest() {
     step(ScriptBuildStep {
         name = "Post Test Results to GitHub Pull Request"
         scriptContent = File("scripts/post_github_comment.sh").readText()
@@ -114,7 +138,7 @@ fun BuildSteps.PostTestResultsToGitHubPullRequest() {
     })
 }
 
-fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, prefix : String, timeout: Int) {
+fun ParametrizedWithType.terraformAcceptanceTestParameters(parallelism : Int, prefix : String, timeout: Int) {
     text("PARALLELISM", "%d".format(parallelism))
     text("TEST_PREFIX", prefix)
     text("TIMEOUT", "%d".format(timeout))
@@ -122,28 +146,28 @@ fun ParametrizedWithType.TerraformAcceptanceTestParameters(parallelism : Int, pr
     text("POST_GITHUB_COMMENT_DETAILED", "false")
 }
 
-fun ParametrizedWithType.ReadOnlySettings() {
+fun ParametrizedWithType.readOnlySettings() {
     hiddenVariable("teamcity.ui.settings.readOnly", "true", "Requires build configurations be edited via Kotlin")
 }
 
-fun ParametrizedWithType.TerraformAcceptanceTestsFlag() {
+fun ParametrizedWithType.terraformAcceptanceTestsFlag() {
     hiddenVariable("env.TF_ACC", "1", "Set to a value to run the Acceptance Tests")
 }
 
-fun ParametrizedWithType.TerraformCoreBinaryTesting() {
+fun ParametrizedWithType.terraformCoreBinaryTesting() {
     text("env.TERRAFORM_CORE_VERSION", defaultTerraformCoreVersion, "The version of Terraform Core which should be used for testing")
     hiddenVariable("env.TF_ACC_TERRAFORM_PATH", "%system.teamcity.build.checkoutDir%/tools/terraform", "The path where the Terraform Binary is located")
 }
 
-fun ParametrizedWithType.TerraformShouldPanicForSchemaErrors() {
+fun ParametrizedWithType.terraformShouldPanicForSchemaErrors() {
     hiddenVariable("env.TF_SCHEMA_PANIC_ON_ERROR", "1", "Panic if unknown/unmatched fields are set into the state")
 }
 
-fun ParametrizedWithType.WorkingDirectory(packageName: String) {
+fun ParametrizedWithType.workingDirectory(packageName: String) {
     text("SERVICE_PATH", servicePath(packageName), "", "The path at which to run - automatically updated", ParameterDisplay.HIDDEN)
 }
 
-fun ParametrizedWithType.GoCache() {
+fun ParametrizedWithType.goCache() {
     text("env.GOMODCACHE", "%teamcity.agent.work.dir%/go-cache/mod", "The location of the Go Module Cache")
     text("env.GOCACHE", "%teamcity.agent.work.dir%/go-cache/build", "The location of the Go Cache")
 }
@@ -156,7 +180,7 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
     password(name, value, "", description, ParameterDisplay.HIDDEN)
 }
 
-fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String, disableTriggers: Boolean = false) {
+fun Triggers.runNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String, disableTriggers: Boolean = false) {
     // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
     if (!enableTestTriggersGlobally) {
         return
@@ -166,16 +190,40 @@ fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek
         return
     }
 
-    schedule{
-        enabled = nightlyTestsEnabled
-        branchFilter = "+:refs/heads/main"
+    val days = daysOfWeek.split(",").toMutableList()
+    val hasWednesday = days.remove("4")
 
-        schedulingPolicy = cron {
-            hours = startHour.toString()
-            timezone = "SERVER"
+    if (days.isNotEmpty()) {
+        schedule {
+            enabled = nightlyTestsEnabled
+            branchFilter = "+:refs/heads/main"
 
-            dayOfWeek = daysOfWeek
-            dayOfMonth = daysOfMonth
+            schedulingPolicy = cron {
+                hours = startHour.toString()
+                timezone = "SERVER"
+
+                dayOfWeek = days.joinToString(",")
+                dayOfMonth = daysOfMonth
+            }
+
+            param("env.TC_TEST_VIA_VCR", "replay")
+        }
+    }
+
+    if (hasWednesday) {
+        schedule {
+            enabled = nightlyTestsEnabled
+            branchFilter = "+:refs/heads/main"
+
+            schedulingPolicy = cron {
+                hours = startHour.toString()
+                timezone = "SERVER"
+
+                dayOfWeek = "4"
+                dayOfMonth = daysOfMonth
+            }
+
+            param("env.TC_TEST_VIA_VCR", "")
         }
     }
 }
