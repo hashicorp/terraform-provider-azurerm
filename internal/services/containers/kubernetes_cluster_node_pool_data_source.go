@@ -265,11 +265,7 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
-		nodeImageVersion := ""
-		if props.NodeImageVersion != nil {
-			nodeImageVersion = *props.NodeImageVersion
-		}
-		d.Set("node_image_version", nodeImageVersion)
+		d.Set("node_image_version", *props.NodeImageVersion)
 
 		d.Set("orchestrator_version", props.OrchestratorVersion)
 		osDiskSizeGB := 0
