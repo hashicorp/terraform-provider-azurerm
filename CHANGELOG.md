@@ -1,6 +1,8 @@
 ## 4.68.0 (Unreleased)
 
 ENHANCEMENTS:
+* Data Source: `azurerm_mssql_managed_instance` - add support for the `general_purpose_v2_enabled` property [GH-29303]
+* `azurerm_mssql_managed_instance` - export the `general_purpose_v2_enabled` property [GH-29303]
 * `azurerm_kubernetes_cluster_node_pool` - lock on subnet ID instead of subnet name to prevent unnecessary serialization [GH-32001]
 * `azurerm_private_endpoint` - the `request_message` and `is_manual_connection` properties are now validated at plan time [GH-31705]
 * `azurerm_app_configuration_feature` - Add support for `custom_filter` [GH-30160]
