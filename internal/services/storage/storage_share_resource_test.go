@@ -35,6 +35,7 @@ func TestAccStorageShare_basicDeprecated(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("enabled_protocol").HasValue("SMB"),
+				check.That(data.ResourceName).Key("rbac_scope_id").MatchesRegex(regexp.MustCompile(`/fileshares/`)),
 			),
 		},
 		data.ImportStep(),
@@ -50,6 +51,7 @@ func TestAccStorageShare_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("rbac_scope_id").MatchesRegex(regexp.MustCompile(`/fileshares/`)),
 			),
 		},
 		data.ImportStep(),
