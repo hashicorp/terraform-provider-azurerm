@@ -383,8 +383,8 @@ func TestAccVirtualNetworkGateway_autoScaleConfiguration(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("type").HasValue("ExpressRoute"),
 				check.That(data.ResourceName).Key("sku").HasValue("ErGwScale"),
-				check.That(data.ResourceName).Key("min_scale_unit").HasValue("2"),
-				check.That(data.ResourceName).Key("max_scale_unit").HasValue("10"),
+				check.That(data.ResourceName).Key("minimum_scale_unit").HasValue("2"),
+				check.That(data.ResourceName).Key("maximum_scale_unit").HasValue("10"),
 			),
 		},
 		data.ImportStep(),
@@ -392,8 +392,8 @@ func TestAccVirtualNetworkGateway_autoScaleConfiguration(t *testing.T) {
 			Config: r.autoScaleConfigurationUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("min_scale_unit").HasValue("3"),
-				check.That(data.ResourceName).Key("max_scale_unit").HasValue("15"),
+				check.That(data.ResourceName).Key("minimum_scale_unit").HasValue("3"),
+				check.That(data.ResourceName).Key("maximum_scale_unit").HasValue("15"),
 			),
 		},
 		data.ImportStep(),
@@ -407,15 +407,15 @@ func TestAccVirtualNetworkGateway_validation(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.validationScaleUnitWrongSku(data),
-			ExpectError: regexp.MustCompile("`min_scale_unit` and `max_scale_unit` are only supported when `sku` is set to `ErGwScale`"),
+			ExpectError: regexp.MustCompile("`minimum_scale_unit` and `maximum_scale_unit` are only supported when `sku` is set to `ErGwScale`"),
 		},
 		{
 			Config:      r.validationMinGreaterThanMax(data),
-			ExpectError: regexp.MustCompile("`min_scale_unit` \\(10\\) cannot be greater than `max_scale_unit` \\(5\\)"),
+			ExpectError: regexp.MustCompile("`minimum_scale_unit` \\(10\\) cannot be greater than `maximum_scale_unit` \\(5\\)"),
 		},
 		{
 			Config:      r.validationErGwScaleWithoutScaleUnit(data),
-			ExpectError: regexp.MustCompile("`min_scale_unit` and `max_scale_unit` must be set when `sku` is `ErGwScale`"),
+			ExpectError: regexp.MustCompile("`minimum_scale_unit` and `maximum_scale_unit` must be set when `sku` is `ErGwScale`"),
 		},
 	})
 }
@@ -1544,8 +1544,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   vpn_type = "PolicyBased"
   sku      = "ErGwScale"
 
-  min_scale_unit = 2
-  max_scale_unit = 10
+  minimum_scale_unit = 2
+  maximum_scale_unit = 10
 
   ip_configuration {
     private_ip_address_allocation = "Dynamic"
@@ -1589,8 +1589,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   vpn_type = "PolicyBased"
   sku      = "ErGwScale"
 
-  min_scale_unit = 3
-  max_scale_unit = 15
+  minimum_scale_unit = 3
+  maximum_scale_unit = 15
 
   ip_configuration {
     private_ip_address_allocation = "Dynamic"
@@ -1642,8 +1642,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   vpn_type = "RouteBased"
   sku      = "VpnGw1"
 
-  min_scale_unit = 2
-  max_scale_unit = 10
+  minimum_scale_unit = 2
+  maximum_scale_unit = 10
 
   ip_configuration {
     private_ip_address_allocation = "Dynamic"
@@ -1688,8 +1688,8 @@ resource "azurerm_virtual_network_gateway" "test" {
   vpn_type = "PolicyBased"
   sku      = "ErGwScale"
 
-  min_scale_unit = 10
-  max_scale_unit = 5
+  minimum_scale_unit = 10
+  maximum_scale_unit = 5
 
   ip_configuration {
     private_ip_address_allocation = "Dynamic"
