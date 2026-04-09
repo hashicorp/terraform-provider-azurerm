@@ -1256,7 +1256,7 @@ resource "azurerm_batch_pool" "test" {
       }
       working_directory = "ContainerImageDefault"
       bind_mount {
-        source            = "Startup"
+        source = "Startup"
       }
       bind_mount {
         source            = "Applications"
