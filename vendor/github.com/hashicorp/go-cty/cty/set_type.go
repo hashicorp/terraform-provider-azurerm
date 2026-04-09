@@ -61,9 +61,9 @@ func (t Type) IsSetType() bool {
 // otherwise. This is intended to allow convenient conditional branches,
 // like so:
 //
-//     if et := t.SetElementType(); et != nil {
-//         // Do something with *et
-//     }
+//	if et := t.SetElementType(); et != nil {
+//	    // Do something with *et
+//	}
 func (t Type) SetElementType() *Type {
 	if lt, ok := t.typeImpl.(typeSet); ok {
 		return &lt.ElementTypeT

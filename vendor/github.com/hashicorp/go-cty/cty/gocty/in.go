@@ -528,10 +528,10 @@ func toCtyPassthrough(wrappedVal reflect.Value, wantTy cty.Type, path cty.Path) 
 // toCtyUnwrapPointer is a helper for dealing with Go pointers. It has three
 // possible outcomes:
 //
-// - Given value isn't a pointer, so it's just returned as-is.
-// - Given value is a non-nil pointer, in which case it is dereferenced
-//   and the result returned.
-// - Given value is a nil pointer, in which case an invalid value is returned.
+//   - Given value isn't a pointer, so it's just returned as-is.
+//   - Given value is a non-nil pointer, in which case it is dereferenced
+//     and the result returned.
+//   - Given value is a nil pointer, in which case an invalid value is returned.
 //
 // For nested pointer types, like **int, they are all dereferenced in turn
 // until a non-pointer value is found, or until a nil pointer is encountered.

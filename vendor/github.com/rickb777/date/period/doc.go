@@ -40,5 +40,4 @@
 // * "P2.5Y" is 2.5 years.
 //
 // * "PT12M7.5S" is 12 minutes and 7.5 seconds.
-//
 package period

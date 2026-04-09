@@ -84,11 +84,11 @@ func (s Set[T]) Copy() Set[T] {
 //
 // The pattern for using the returned iterator is:
 //
-//     it := set.Iterator()
-//     for it.Next() {
-//         val := it.Value()
-//         // ...
-//     }
+//	it := set.Iterator()
+//	for it.Next() {
+//	    val := it.Value()
+//	    // ...
+//	}
 //
 // Once an iterator has been created for a set, the set *must not* be mutated
 // until the iterator is no longer in use.

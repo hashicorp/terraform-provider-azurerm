@@ -115,7 +115,7 @@ func ParseModuleSource(raw string) (Module, error) {
 
 // MustParseModuleSource is a wrapper around ParseModuleSource that panics if
 // it returns an error.
-func MustParseModuleSource(raw string) (Module) {
+func MustParseModuleSource(raw string) Module {
 	mod, err := ParseModuleSource(raw)
 	if err != nil {
 		panic(err)
@@ -215,9 +215,10 @@ func splitPackageSubdir(given string) (packageAddr, subDir string) {
 // the subdir and the subdir.
 //
 // ex:
-//   dom.com/path/?q=p               => dom.com/path/?q=p, ""
-//   proto://dom.com/path//*?q=p     => proto://dom.com/path?q=p, "*"
-//   proto://dom.com/path//path2?q=p => proto://dom.com/path?q=p, "path2"
+//
+//	dom.com/path/?q=p               => dom.com/path/?q=p, ""
+//	proto://dom.com/path//*?q=p     => proto://dom.com/path?q=p, "*"
+//	proto://dom.com/path//path2?q=p => proto://dom.com/path?q=p, "path2"
 func sourceDirSubdir(src string) (string, string) {
 	// URL might contains another url in query parameters
 	stop := len(src)

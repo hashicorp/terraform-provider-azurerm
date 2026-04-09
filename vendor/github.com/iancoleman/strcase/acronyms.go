@@ -5,7 +5,8 @@ import (
 )
 
 var uppercaseAcronym = sync.Map{}
-	//"ID": "id",
+
+//"ID": "id",
 
 // ConfigureAcronym allows you to add additional words which will be considered acronyms
 func ConfigureAcronym(key, val string) {

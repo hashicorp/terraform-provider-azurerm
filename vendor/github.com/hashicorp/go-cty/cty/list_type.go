@@ -63,9 +63,9 @@ func (t Type) IsListType() bool {
 // otherwise. This is intended to allow convenient conditional branches,
 // like so:
 //
-//     if et := t.ListElementType(); et != nil {
-//         // Do something with *et
-//     }
+//	if et := t.ListElementType(); et != nil {
+//	    // Do something with *et
+//	}
 func (t Type) ListElementType() *Type {
 	if lt, ok := t.typeImpl.(typeList); ok {
 		return &lt.ElementTypeT

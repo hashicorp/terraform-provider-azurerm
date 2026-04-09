@@ -26,26 +26,25 @@ import (
 // If you use a CLI with nested subcommands, some semantics change due to
 // ambiguities:
 //
-//   * We use longest prefix matching to find a matching subcommand. This
+//   - We use longest prefix matching to find a matching subcommand. This
 //     means if you register "foo bar" and the user executes "cli foo qux",
 //     the "foo" command will be executed with the arg "qux". It is up to
 //     you to handle these args. One option is to just return the special
 //     help return code `RunResultHelp` to display help and exit.
 //
-//   * The help flag "-h" or "-help" will look at all args to determine
+//   - The help flag "-h" or "-help" will look at all args to determine
 //     the help function. For example: "otto apps list -h" will show the
 //     help for "apps list" but "otto apps -h" will show it for "apps".
 //     In the normal CLI, only the first subcommand is used.
 //
-//   * The help flag will list any subcommands that a command takes
+//   - The help flag will list any subcommands that a command takes
 //     as well as the command's help itself. If there are no subcommands,
 //     it will note this. If the CLI itself has no subcommands, this entire
 //     section is omitted.
 //
-//   * Any parent commands that don't exist are automatically created as
+//   - Any parent commands that don't exist are automatically created as
 //     no-op commands that just show help for other subcommands. For example,
 //     if you only register "foo bar", then "foo" is automatically created.
-//
 type CLI struct {
 	// Args is the list of command-line arguments received excluding
 	// the name of the app. For example, if the command "./cli foo bar"

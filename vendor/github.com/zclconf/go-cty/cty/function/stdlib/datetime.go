@@ -243,30 +243,30 @@ var TimeAddFunc = function.New(&function.Spec{
 //
 // The full set of supported mnemonic sequences is listed below:
 //
-//     YY       Year modulo 100 zero-padded to two digits, like "06".
-//     YYYY     Four (or more) digit year, like "2006".
-//     M        Month number, like "1" for January.
-//     MM       Month number zero-padded to two digits, like "01".
-//     MMM      English month name abbreviated to three letters, like "Jan".
-//     MMMM     English month name unabbreviated, like "January".
-//     D        Day of month number, like "2".
-//     DD       Day of month number zero-padded to two digits, like "02".
-//     EEE      English day of week name abbreviated to three letters, like "Mon".
-//     EEEE     English day of week name unabbreviated, like "Monday".
-//     h        24-hour number, like "2".
-//     hh       24-hour number zero-padded to two digits, like "02".
-//     H        12-hour number, like "2".
-//     HH       12-hour number zero-padded to two digits, like "02".
-//     AA       Hour AM/PM marker in uppercase, like "AM".
-//     aa       Hour AM/PM marker in lowercase, like "am".
-//     m        Minute within hour, like "5".
-//     mm       Minute within hour zero-padded to two digits, like "05".
-//     s        Second within minute, like "9".
-//     ss       Second within minute zero-padded to two digits, like "09".
-//     ZZZZ     Timezone offset with just sign and digit, like "-0800".
-//     ZZZZZ    Timezone offset with colon separating hours and minutes, like "-08:00".
-//     Z        Like ZZZZZ but with a special case "Z" for UTC.
-//     ZZZ      Like ZZZZ but with a special case "UTC" for UTC.
+//	YY       Year modulo 100 zero-padded to two digits, like "06".
+//	YYYY     Four (or more) digit year, like "2006".
+//	M        Month number, like "1" for January.
+//	MM       Month number zero-padded to two digits, like "01".
+//	MMM      English month name abbreviated to three letters, like "Jan".
+//	MMMM     English month name unabbreviated, like "January".
+//	D        Day of month number, like "2".
+//	DD       Day of month number zero-padded to two digits, like "02".
+//	EEE      English day of week name abbreviated to three letters, like "Mon".
+//	EEEE     English day of week name unabbreviated, like "Monday".
+//	h        24-hour number, like "2".
+//	hh       24-hour number zero-padded to two digits, like "02".
+//	H        12-hour number, like "2".
+//	HH       12-hour number zero-padded to two digits, like "02".
+//	AA       Hour AM/PM marker in uppercase, like "AM".
+//	aa       Hour AM/PM marker in lowercase, like "am".
+//	m        Minute within hour, like "5".
+//	mm       Minute within hour zero-padded to two digits, like "05".
+//	s        Second within minute, like "9".
+//	ss       Second within minute zero-padded to two digits, like "09".
+//	ZZZZ     Timezone offset with just sign and digit, like "-0800".
+//	ZZZZZ    Timezone offset with colon separating hours and minutes, like "-08:00".
+//	Z        Like ZZZZZ but with a special case "Z" for UTC.
+//	ZZZ      Like ZZZZ but with a special case "UTC" for UTC.
 //
 // The format syntax is optimized mainly for generating machine-oriented
 // timestamps rather than human-oriented timestamps; the English language

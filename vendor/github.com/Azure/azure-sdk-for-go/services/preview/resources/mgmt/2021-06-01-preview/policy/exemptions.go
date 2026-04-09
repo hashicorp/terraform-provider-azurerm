@@ -288,12 +288,12 @@ func (client ExemptionsClient) GetResponder(resp *http.Response) (result Exempti
 
 // List this operation retrieves the list of all policy exemptions associated with the given subscription that match
 // the optional given $filter. Valid values for $filter are: 'atScope()', 'atExactScope()', 'excludeExpired()' or
-// 'policyAssignmentId eq '{value}''. If $filter is not provided, the unfiltered list includes all policy exemptions
+// 'policyAssignmentId eq '{value}”. If $filter is not provided, the unfiltered list includes all policy exemptions
 // associated with the subscription, including those that apply directly or from management groups that contain the
 // given subscription, as well as any applied to objects contained within the subscription.
 // Parameters:
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()',
-// 'excludeExpired()' or 'policyAssignmentId eq '{value}''. If $filter is not provided, no filtering is
+// 'excludeExpired()' or 'policyAssignmentId eq '{value}”. If $filter is not provided, no filtering is
 // performed. If $filter is not provided, the unfiltered list includes all policy exemptions associated with
 // the scope, including those that apply directly or apply from containing scopes. If $filter=atScope() is
 // provided, the returned list only includes all policy exemptions that apply to the scope, which is everything
@@ -420,12 +420,12 @@ func (client ExemptionsClient) ListComplete(ctx context.Context, filter string) 
 
 // ListForManagementGroup this operation retrieves the list of all policy exemptions applicable to the management group
 // that match the given $filter. Valid values for $filter are: 'atScope()', 'atExactScope()', 'excludeExpired()' or
-// 'policyAssignmentId eq '{value}''. If $filter=atScope() is provided, the returned list includes all policy
+// 'policyAssignmentId eq '{value}”. If $filter=atScope() is provided, the returned list includes all policy
 // exemptions that are assigned to the management group or the management group's ancestors.
 // Parameters:
 // managementGroupID - the ID of the management group.
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()',
-// 'excludeExpired()' or 'policyAssignmentId eq '{value}''. If $filter is not provided, no filtering is
+// 'excludeExpired()' or 'policyAssignmentId eq '{value}”. If $filter is not provided, no filtering is
 // performed. If $filter is not provided, the unfiltered list includes all policy exemptions associated with
 // the scope, including those that apply directly or apply from containing scopes. If $filter=atScope() is
 // provided, the returned list only includes all policy exemptions that apply to the scope, which is everything
@@ -552,18 +552,18 @@ func (client ExemptionsClient) ListForManagementGroupComplete(ctx context.Contex
 
 // ListForResource this operation retrieves the list of all policy exemptions associated with the specified resource in
 // the given resource group and subscription that match the optional given $filter. Valid values for $filter are:
-// 'atScope()', 'atExactScope()', 'excludeExpired()' or 'policyAssignmentId eq '{value}''. If $filter is not provided,
+// 'atScope()', 'atExactScope()', 'excludeExpired()' or 'policyAssignmentId eq '{value}”. If $filter is not provided,
 // the unfiltered list includes all policy exemptions associated with the resource, including those that apply directly
 // or from all containing scopes, as well as any applied to resources contained within the resource. Three parameters
 // plus the resource name are used to identify a specific resource. If the resource is not part of a parent resource
-// (the more common case), the parent resource path should not be provided (or provided as ''). For example a web app
-// could be specified as ({resourceProviderNamespace} == 'Microsoft.Web', {parentResourcePath} == '', {resourceType} ==
+// (the more common case), the parent resource path should not be provided (or provided as ”). For example a web app
+// could be specified as ({resourceProviderNamespace} == 'Microsoft.Web', {parentResourcePath} == ”, {resourceType} ==
 // 'sites', {resourceName} == 'MyWebApp'). If the resource is part of a parent resource, then all parameters should be
 // provided. For example a virtual machine DNS name could be specified as ({resourceProviderNamespace} ==
 // 'Microsoft.Compute', {parentResourcePath} == 'virtualMachines/MyVirtualMachine', {resourceType} == 'domainNames',
 // {resourceName} == 'MyComputerName'). A convenient alternative to providing the namespace and type name separately is
-// to provide both in the {resourceType} parameter, format: ({resourceProviderNamespace} == '', {parentResourcePath} ==
-// '', {resourceType} == 'Microsoft.Web/sites', {resourceName} == 'MyWebApp').
+// to provide both in the {resourceType} parameter, format: ({resourceProviderNamespace} == ”, {parentResourcePath} ==
+// ”, {resourceType} == 'Microsoft.Web/sites', {resourceName} == 'MyWebApp').
 // Parameters:
 // resourceGroupName - the name of the resource group containing the resource.
 // resourceProviderNamespace - the namespace of the resource provider. For example, the namespace of a virtual
@@ -573,7 +573,7 @@ func (client ExemptionsClient) ListForManagementGroupComplete(ctx context.Contex
 // Microsoft.Web/sites).
 // resourceName - the name of the resource.
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()',
-// 'excludeExpired()' or 'policyAssignmentId eq '{value}''. If $filter is not provided, no filtering is
+// 'excludeExpired()' or 'policyAssignmentId eq '{value}”. If $filter is not provided, no filtering is
 // performed. If $filter is not provided, the unfiltered list includes all policy exemptions associated with
 // the scope, including those that apply directly or apply from containing scopes. If $filter=atScope() is
 // provided, the returned list only includes all policy exemptions that apply to the scope, which is everything
@@ -713,13 +713,13 @@ func (client ExemptionsClient) ListForResourceComplete(ctx context.Context, reso
 
 // ListForResourceGroup this operation retrieves the list of all policy exemptions associated with the given resource
 // group in the given subscription that match the optional given $filter. Valid values for $filter are: 'atScope()',
-// 'atExactScope()', 'excludeExpired()' or 'policyAssignmentId eq '{value}''. If $filter is not provided, the
+// 'atExactScope()', 'excludeExpired()' or 'policyAssignmentId eq '{value}”. If $filter is not provided, the
 // unfiltered list includes all policy exemptions associated with the resource group, including those that apply
 // directly or apply from containing scopes, as well as any applied to resources contained within the resource group.
 // Parameters:
 // resourceGroupName - the name of the resource group containing the resource.
 // filter - the filter to apply on the operation. Valid values for $filter are: 'atScope()', 'atExactScope()',
-// 'excludeExpired()' or 'policyAssignmentId eq '{value}''. If $filter is not provided, no filtering is
+// 'excludeExpired()' or 'policyAssignmentId eq '{value}”. If $filter is not provided, no filtering is
 // performed. If $filter is not provided, the unfiltered list includes all policy exemptions associated with
 // the scope, including those that apply directly or apply from containing scopes. If $filter=atScope() is
 // provided, the returned list only includes all policy exemptions that apply to the scope, which is everything

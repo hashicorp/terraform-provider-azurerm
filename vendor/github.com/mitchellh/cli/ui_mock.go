@@ -23,7 +23,7 @@ func NewMockUi() *MockUi {
 // there is no write then you will get a nil panic. Please use the
 // NewMockUi() constructor function instead. You can fix your code with
 //
-//  sed -i -e 's/new(cli.MockUi)/cli.NewMockUi()/g' *_test.go
+//	sed -i -e 's/new(cli.MockUi)/cli.NewMockUi()/g' *_test.go
 type MockUi struct {
 	InputReader  io.Reader
 	ErrorWriter  *syncBuffer

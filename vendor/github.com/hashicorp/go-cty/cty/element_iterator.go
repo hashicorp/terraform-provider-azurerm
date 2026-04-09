@@ -11,11 +11,11 @@ import (
 //
 // Its usage pattern is as follows:
 //
-//     it := val.ElementIterator()
-//     for it.Next() {
-//         key, val := it.Element()
-//         // ...
-//     }
+//	it := val.ElementIterator()
+//	for it.Next() {
+//	    key, val := it.Element()
+//	    // ...
+//	}
 type ElementIterator interface {
 	Next() bool
 	Element() (key Value, value Value)

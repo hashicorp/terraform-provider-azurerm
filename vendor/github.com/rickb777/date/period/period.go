@@ -42,7 +42,6 @@ const hundredMs = 100 * time.Millisecond
 //
 // Note that although fractional weeks can be parsed, they will never be returned via String().
 // This is because the number of weeks is always inferred from the number of days.
-//
 type Period struct {
 	years, months, days, hours, minutes, seconds int16
 }

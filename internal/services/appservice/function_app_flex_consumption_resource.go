@@ -670,7 +670,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 
 			backendStorage := functionAppFlexConsumption.BackendStorage
 			var backendStorageConnectionString string
-			backendStorageUseMsi := false
+			var backendStorageUseMsi bool
 
 			backendStorageConnectionString, backendStorageUseMsi = ExpandBackendStorage(backendStorage, storageDomainSuffix)
 
