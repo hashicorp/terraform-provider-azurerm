@@ -2063,7 +2063,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageString string, storageConnStringForFCApp, storageConnStringForFCAppValue string) (*webapps.SiteConfig, error) {
+func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, backendStorageString string, deploymentStorageStringName, deploymentStorageStringValue string) (*webapps.SiteConfig, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -2080,15 +2080,15 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFle
 	}
 
 	if storageUsesMSI {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageString, false)
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", backendStorageString, false)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageString, false)
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", backendStorageString, false)
 	}
 
-	if storageConnStringForFCApp != "" {
-		appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageConnStringForFCAppValue, false)
+	if deploymentStorageStringValue != "" {
+		appSettings = updateOrAppendAppSettings(appSettings, deploymentStorageStringName, deploymentStorageStringValue, false)
 	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageConnStringForFCAppValue, true)
+		appSettings = updateOrAppendAppSettings(appSettings, deploymentStorageStringName, deploymentStorageStringValue, true)
 	}
 
 	FlexConsumptionSiteConfig := input[0]

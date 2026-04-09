@@ -1398,9 +1398,9 @@ resource "azurerm_function_app_flex_consumption" "test" {
   service_plan_id     = azurerm_service_plan.test.id
 
   storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.test1.primary_blob_endpoint}${azurerm_storage_container.test1-1.name}"
+  storage_container_endpoint  = "${azurerm_storage_account.backend.primary_blob_endpoint}${azurerm_storage_container.test1-1.name}"
   storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.test1.primary_access_key
+  storage_access_key          = azurerm_storage_account.backend.primary_access_key
   runtime_name                = "node"
   runtime_version             = "20"
   maximum_instance_count      = 50
@@ -1425,14 +1425,16 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -1555,8 +1557,10 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1640,8 +1644,10 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1671,9 +1677,10 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test1.name
-  storage_account_access_key = azurerm_storage_account.test1.primary_access_key
-
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
   storage_authentication_type = "StorageAccountConnectionString"
@@ -1702,8 +1709,10 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name                  = azurerm_storage_account.test.name
-  storage_account_uses_managed_identity = true
+  backend_storage {
+    name                            = azurerm_storage_account.test.name
+    managed_identity_access_enabled = true
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1817,8 +1826,11 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  key_vault_reference_identity_id     = azurerm_user_assigned_identity.test.id
-  storage_account_key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+  backend_storage {
+    key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+  }
+
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1853,8 +1865,10 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1885,12 +1899,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1944,12 +1961,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -1986,12 +2006,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2101,12 +2124,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2135,12 +2161,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2171,12 +2200,15 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2204,12 +2236,15 @@ provider "azurerm" {
 }
 %s
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2274,12 +2309,15 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -2317,12 +2355,14 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -2360,12 +2400,14 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -2404,12 +2446,14 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -2474,13 +2518,15 @@ resource "azurerm_subnet" "test1" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  virtual_network_subnet_id  = azurerm_subnet.test1.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                      = "acctest-LFA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.test1.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -2514,17 +2560,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -2549,13 +2599,17 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
 
   runtime_name           = "node"
   runtime_version        = "20"
@@ -2581,17 +2635,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test1.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test1.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -2612,17 +2670,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test1.primary_blob_endpoint}${azurerm_storage_container.test1-1.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test1.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.backend.primary_blob_endpoint}${azurerm_storage_container.test1-1.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.backend.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -2643,17 +2705,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test1.name
-  storage_account_access_key = azurerm_storage_account.test1.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.backend.name
+    access_key = azurerm_storage_account.backend.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -2674,13 +2740,17 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name                  = azurerm_storage_account.test.name
-  storage_account_uses_managed_identity = true
+  backend_storage {
+    name                            = azurerm_storage_account.test.name
+    managed_identity_access_enabled = true
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
 
   runtime_name           = "node"
   runtime_version        = "20"
@@ -2706,13 +2776,17 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
 
   runtime_name           = "node"
   runtime_version        = "20"
@@ -2793,13 +2867,17 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  key_vault_reference_identity_id     = azurerm_user_assigned_identity.test.id
-  storage_account_key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+  backend_storage {
+    key_vault_secret_id = azurerm_key_vault_secret.test.versionless_id
+  }
+  key_vault_reference_identity_id = azurerm_user_assigned_identity.test.id
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
 
   runtime_name           = "node"
   runtime_version        = "20"
@@ -2829,17 +2907,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -2861,21 +2943,25 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -2920,21 +3006,25 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -2962,22 +3052,27 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 100
-  instance_memory_in_mb                  = 2048
-  https_only                             = true
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
+  https_only             = true
 
   app_settings = {
     foo    = "bar"
@@ -3077,21 +3172,25 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -3111,21 +3210,26 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -3147,21 +3251,26 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -3180,21 +3289,25 @@ provider "azurerm" {
 }
 %s
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "python"
-  runtime_version                        = "%s"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "python"
+  runtime_version        = "%s"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3211,12 +3324,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -3239,21 +3354,25 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "java"
-  runtime_version                        = "%s"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "java"
+  runtime_version        = "%s"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3270,12 +3389,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -3298,21 +3419,25 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "dotnet-isolated"
-  runtime_version                        = "%s"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "dotnet-isolated"
+  runtime_version        = "%s"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3329,12 +3454,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -3357,21 +3484,25 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "powershell"
-  runtime_version                        = "%s"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "powershell"
+  runtime_version        = "%s"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3394,12 +3525,15 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
@@ -3428,21 +3562,25 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                                 = "node"
-  runtime_version                              = "%s"
-  maximum_instance_count                       = 50
-  instance_memory_in_mb                        = 2048
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "%s"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3458,20 +3596,24 @@ provider "azurerm" {
 %s
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "SystemAssignedIdentity"
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 50
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "SystemAssignedIdentity"
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3492,21 +3634,25 @@ resource "azurerm_user_assigned_identity" "test1" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test1.id
-  runtime_name                                 = "node"
-  runtime_version                              = "20"
-  maximum_instance_count                       = 50
-  instance_memory_in_mb                        = 2048
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test1.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3528,21 +3674,26 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                                 = "node"
-  runtime_version                              = "20"
-  maximum_instance_count                       = 50
-  instance_memory_in_mb                        = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -3569,17 +3720,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                                 = "node"
-  runtime_version                              = "%s"
-  maximum_instance_count                       = 50
-  instance_memory_in_mb                        = 4096
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "%s"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 4096
 
   site_config {}
 }
@@ -3601,21 +3756,25 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = azurerm_storage_container.test.id
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                                 = "node"
-  runtime_version                              = "20"
-  maximum_instance_count                       = 100
-  instance_memory_in_mb                        = 2048
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = azurerm_storage_container.test.id
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
   always_ready {
     name           = "function:myHelloWorldFunction"
     instance_count = 20
@@ -3644,21 +3803,26 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = azurerm_storage_container.test.id
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                                 = "node"
-  runtime_version                              = "20"
-  maximum_instance_count                       = 100
-  instance_memory_in_mb                        = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = azurerm_storage_container.test.id
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
   always_ready {
     name           = "blob"
     instance_count = 20
@@ -3687,21 +3851,25 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = azurerm_storage_container.test.id
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                                 = "node"
-  runtime_version                              = "20"
-  maximum_instance_count                       = 50
-  instance_memory_in_mb                        = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = azurerm_storage_container.test.id
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
   always_ready {
     name           = "blob"
     instance_count = 20
@@ -3731,21 +3899,26 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%[2]d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
 
-  deployment_storage_container_type            = "blobContainer"
-  deployment_storage_container_endpoint        = azurerm_storage_container.test.id
-  deployment_storage_authentication_type       = "UserAssignedIdentity"
-  deployment_storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                                 = "node"
-  runtime_version                              = "20"
-  maximum_instance_count                       = 100
-  instance_memory_in_mb                        = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = azurerm_storage_container.test.id
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
   always_ready {
     name           = "function:myHelloWorldFunction"
     instance_count = 20
@@ -3801,22 +3974,26 @@ resource "azurerm_subnet" "test1" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                       = "acctest-LFA-%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  service_plan_id            = azurerm_service_plan.test.id
-  virtual_network_subnet_id  = azurerm_subnet.test1.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  name                      = "acctest-LFA-%d"
+  location                  = azurerm_resource_group.test.location
+  resource_group_name       = azurerm_resource_group.test.name
+  service_plan_id           = azurerm_service_plan.test.id
+  virtual_network_subnet_id = azurerm_subnet.test1.id
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 100
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
 
   site_config {
     vnet_route_all_enabled = true
@@ -3839,17 +4016,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 100
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -3890,17 +4071,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 100
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -3978,17 +4163,21 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
 
-  deployment_storage_container_type      = "blobContainer"
-  deployment_storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  deployment_storage_authentication_type = "StorageAccountConnectionString"
-  deployment_storage_access_key          = azurerm_storage_account.test.primary_access_key
-  runtime_name                           = "node"
-  runtime_version                        = "20"
-  maximum_instance_count                 = 100
-  instance_memory_in_mb                  = 2048
+  deployment_storage {
+    container_type      = "blobContainer"
+    container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type = "StorageAccountConnectionString"
+    access_key          = azurerm_storage_account.test.primary_access_key
+  }
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 100
+  instance_memory_in_mb  = 2048
 
   site_config {}
 
@@ -4016,7 +4205,7 @@ func (FunctionAppFlexConsumptionResource) template(data acceptance.TestData) str
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-LFA-%d"
-  location = "%s"
+  location = "eastus2"
 }
 
 resource "azurerm_application_insights" "test" {
@@ -4044,6 +4233,14 @@ resource "azurerm_monitor_smart_detector_alert_rule" "test" {
   action_group {
     ids = [azurerm_monitor_action_group.test.id]
   }
+}
+
+resource "azurerm_storage_account" "backend" {
+  name                     = "acctestsa%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_account" "test" {
@@ -4101,7 +4298,7 @@ resource "azurerm_service_plan" "test" {
   os_type             = "Linux"
   sku_name            = "FC1"
 }
-`, data.RandomInteger, "eastus2", data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
+`, data.RandomInteger, data.RandomStringOfLength(8), data.RandomString, data.RandomInteger) // location needs to be hardcoded for the moment because flex isn't available in all regions yet and appservice already has location overrides in TC
 }
 
 func (FunctionAppFlexConsumptionResource) templateEnabledAiDetector(data acceptance.TestData) string {
