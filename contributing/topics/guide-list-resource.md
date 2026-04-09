@@ -361,7 +361,7 @@ Before adding a List Resource, the resource must have Resource Identity implemen
                 },
                 {
                     Query:  true,
-                    Config: r.basicQueryByResourceGroupName(data),
+                    Config: r.basicQueryByResourceGroupName(),
                     QueryResultChecks: []querycheck.QueryResultCheck{
                         querycheck.ExpectLength(listResourceAddress, 3), // expect exactly the 3 we created in that resource group
                     },
@@ -410,15 +410,15 @@ Before adding a List Resource, the resource must have Resource Identity implemen
     }
     
     // define the list query for testing by resource group name
-    func (r NetworkProfileResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
-        return fmt.Sprintf(`
+    func (r NetworkProfileResource) basicQueryByResourceGroupName() string {
+        return `
     list "azurerm_network_profile" "list" {
       provider = azurerm
       config {
-        resource_group_name = "acctestRG-%[1]d"
+        resource_group_name = azurerm_resource_group.test.name
       }
     }
-    `, data.RandomInteger)
+    `
     }
     
     ```

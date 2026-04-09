@@ -250,7 +250,7 @@ build_guidance() {
     return
   fi
 
-  local guidance="\\n\\n**Failing checks and how to fix them:**\\n"
+  local guidance=$'\n\n**Failing checks and how to fix them:**\n'
   local seen=""
 
   IFS=',' read -ra checks <<< "$failed_checks"
@@ -263,7 +263,8 @@ build_guidance() {
 
     local fix
     fix=$(get_check_guidance "$check")
-    guidance="${guidance}\\n- **${check}**: ${fix}"
+    guidance="${guidance}
+- **${check}**: ${fix}"
   done
 
   echo "$guidance"
@@ -348,7 +349,12 @@ for pr in "${all_prs[@]}"; do
     echo "  ↳ CI failing for ${days_since} days -> CLOSING"
 
     if [[ "$DRY_RUN" == "false" ]]; then
-      comment_body="${WARNING_MARKER}\nThank you for your contribution @${pr_author}. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than 14 days.\n\nPlease feel free to reopen this PR once the CI issues have been resolved.${guidance}\n\nThank you for your understanding!"
+      comment_body="${WARNING_MARKER}
+Thank you for your contribution @${pr_author}. Unfortunately, we are unable to review or merge this pull request as the CI checks have been failing for more than 14 days.
+
+Please feel free to reopen this PR once the CI issues have been resolved.${guidance}
+
+Thank you for your understanding!"
 
       # Use jq to safely build JSON
       json_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
@@ -384,7 +390,12 @@ for pr in "${all_prs[@]}"; do
     echo "  ↳ CI failing for ${days_since} days -> WARNING"
 
     if [[ "$DRY_RUN" == "false" ]]; then
-      comment_body="${WARNING_MARKER}\nHi @${pr_author}, we have noticed that the CI on this pull request has been failing for 7 days.\n\nIf the CI failures are not resolved within the next 7 days, we will close this pull request.${guidance}\n\nIf you need help, please leave a comment and we will do our best to assist. Thank you!"
+      comment_body="${WARNING_MARKER}
+Hi @${pr_author}, we have noticed that the CI on this pull request has been failing for 7 days.
+
+If the CI failures are not resolved within the next 7 days, we will close this pull request.${guidance}
+
+If you need help, please leave a comment and we will do our best to assist. Thank you!"
 
       json_payload=$(jq -n --arg body "$comment_body" '{"body": $body}')
 

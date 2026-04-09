@@ -594,6 +594,7 @@ func resourceIotHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+				Default:  "1.2",
 				ValidateFunc: validation.StringInSlice([]string{
 					"1.2",
 				}, false),
