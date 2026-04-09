@@ -98,7 +98,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Attributes() map[stri
 
 func (r ContainerAppEnvironmentManagedCertificateResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.ContainerApps.ManagedEnvironmentClient
 
