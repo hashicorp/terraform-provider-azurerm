@@ -256,18 +256,18 @@ Given the following configuration:
 
 ```hcl
 resource "azurerm_user_assigned_identity" "example" {
-  name                = "example-uai"
-  resource_group_name = "example-rg"
-  location            = "West Europe"
+	name                = "example-uai"
+	resource_group_name = "example-rg"
+	location            = "West Europe"
 }
 
 resource "azurerm_foo" "example" {
-  name                = "example-foo"
-  location            = "West Europe"
-  resource_group_name = "example-rg"
+	name                = "example-foo"
+	location            = "West Europe"
+	resource_group_name = "example-rg"
 
-  customer_managed_key_id          = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
-  customer_managed_key_identity_id = azurerm_user_assigned_identity.example.id
+	customer_managed_key_id          = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+	customer_managed_key_identity_id = azurerm_user_assigned_identity.example.id
 }
 ```
 
@@ -275,28 +275,28 @@ The following CustomizeDiff validation that asserts `customize_managed_key_ident
 
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
- return sdk.ResourceFunc{
-  Timeout: 5,
-  Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-    if metadata.ResourceDiff == nil {
-      return nil
-    }
- 
-    var model FooModel
-    if err := metadata.DecodeDiff(&model); err != nil {
-      return fmt.Errorf("decoding: %+v", err)
-    }
- 
-    if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
-     if model.CustomerManagedKeyID != "" && model.CustomerManagedKeyIdentityID == "" {
-       // This error will be returned since model.CustomerManagedKeyIdentityID is not known until apply time
-       return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
-     }
-    }
- 
-    return nil
-  },
- }
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			var model FooModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				if model.CustomerManagedKeyID != "" && model.CustomerManagedKeyIdentityID == "" {
+					// This error will be returned since model.CustomerManagedKeyIdentityID is not known until apply time
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
+
+			return nil
+		},
+	}
 }
 ```
 
@@ -304,27 +304,27 @@ Instead, the CustomizeDiff function can use `metadata.ResourceDiff.GetRawConfig(
 
 ```go
 func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
- return sdk.ResourceFunc{
-  Timeout: 5,
-  Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-    if metadata.ResourceDiff == nil {
-      return nil
-    }
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
 
-    if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
-      rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
 
-      rawCMK := rawConfig["customer_managed_key_id"]
-      rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
+				rawCMK := rawConfig["customer_managed_key_id"]
+				rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
 
-     if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
-       return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
-     }
-    }
+				if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
 
-    return nil
-  },
- }
+			return nil
+		},
+	}
 }
 ```
 
@@ -368,4 +368,3 @@ return &managedclusters.ManagedClusterBootstrapProfile{
     ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
 }
 ```
-
