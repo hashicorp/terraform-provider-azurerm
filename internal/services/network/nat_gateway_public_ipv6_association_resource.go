@@ -5,6 +5,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -22,10 +23,7 @@ import (
 
 type NatGatewayPublicIPv6AssociationResource struct{}
 
-var (
-	_ sdk.Resource                  = NatGatewayPublicIPv6AssociationResource{}
-	_ sdk.ResourceWithCustomizeDiff = NatGatewayPublicIPv6AssociationResource{}
-)
+var _ sdk.ResourceWithCustomizeDiff = NatGatewayPublicIPv6AssociationResource{}
 
 type NatGatewayPublicIPv6AssociationModel struct {
 	NatGatewayId      string `tfschema:"nat_gateway_id"`
@@ -78,6 +76,9 @@ func (r NatGatewayPublicIPv6AssociationResource) CustomizeDiff() sdk.ResourceFun
 
 			natGatewayResp, err := metadata.Client.Network.NatGateways.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
 			if err != nil {
+				if response.WasNotFound(natGatewayResp.HttpResponse) {
+					return nil
+				}
 				return fmt.Errorf("retrieving %s: %+v", *natGatewayId, err)
 			}
 
@@ -87,7 +88,7 @@ func (r NatGatewayPublicIPv6AssociationResource) CustomizeDiff() sdk.ResourceFun
 
 			natGatewaySku := pointer.From(pointer.From(natGatewayResp.Model.Sku).Name)
 			if natGatewaySku == natgateways.NatGatewaySkuNameStandard {
-				return fmt.Errorf("`nat_gateway_id` with SKU `Standard` does not support IPv6")
+				return errors.New("`nat_gateway_id` must reference a NAT Gateway with SKU `StandardV2`")
 			}
 
 			publicIPAddressId, err := commonids.ParsePublicIPAddressID(model.PublicIpAddressId)
@@ -97,6 +98,9 @@ func (r NatGatewayPublicIPv6AssociationResource) CustomizeDiff() sdk.ResourceFun
 
 			resp, err := metadata.Client.Network.PublicIPAddresses.Get(ctx, *publicIPAddressId, publicipaddresses.DefaultGetOperationOptions())
 			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return nil
+				}
 				return fmt.Errorf("retrieving %s: %+v", *publicIPAddressId, err)
 			}
 
@@ -105,12 +109,9 @@ func (r NatGatewayPublicIPv6AssociationResource) CustomizeDiff() sdk.ResourceFun
 			}
 
 			publicIPAddressSku := pointer.From(pointer.From(resp.Model.Sku).Name)
-			if natGatewaySku == natgateways.NatGatewaySkuNameStandardVTwo && publicIPAddressSku != publicipaddresses.PublicIPAddressSkuNameStandardVTwo {
-				return fmt.Errorf("`public_ip_address_id` must use SKU `StandardV2` when `nat_gateway_id` uses SKU `StandardV2`, got `%s`", publicIPAddressSku)
-			}
-
-			if version := pointer.From(resp.Model.Properties.PublicIPAddressVersion); version != publicipaddresses.IPVersionIPvSix {
-				return fmt.Errorf("`public_ip_address_id` must use `IPv6`, got `%s`", version)
+			version := pointer.From(resp.Model.Properties.PublicIPAddressVersion)
+			if natGatewaySku == natgateways.NatGatewaySkuNameStandardVTwo && (publicIPAddressSku != publicipaddresses.PublicIPAddressSkuNameStandardVTwo || version != publicipaddresses.IPVersionIPvSix) {
+				return errors.New("`public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2`")
 			}
 
 			return nil

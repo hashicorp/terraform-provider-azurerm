@@ -46,11 +46,11 @@ The following arguments are supported:
 
 * `nat_gateway_id` - (Required) The ID of the NAT Gateway. Changing this forces a new resource to be created.
 
-~> **Note:** `nat_gateway_id` must not reference a NAT Gateway with SKU `Standard`, because `Standard` NAT Gateways do not support IPv6.
+~> **Note:** `nat_gateway_id` must reference a NAT Gateway with SKU `StandardV2`.
 
 * `public_ip_address_id` - (Required) The ID of the IPv6 Public IP Address which this NAT Gateway should be connected to. Changing this forces a new resource to be created.
 
-~> **Note:** `public_ip_address_id` must reference a Public IP Address with `ip_version` `IPv6`. When `nat_gateway_id` references a NAT Gateway with SKU `StandardV2`, `public_ip_address_id` must reference a Public IP Address with SKU `StandardV2`.
+~> **Note:** `public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2`.
 
 ## Attributes Reference
 

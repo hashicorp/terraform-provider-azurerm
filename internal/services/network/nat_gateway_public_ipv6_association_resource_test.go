@@ -66,13 +66,13 @@ func TestAccNatGatewayPublicIPv6Association_multipleAssociations(t *testing.T) {
 func TestAccNatGatewayPublicIPv6Association_publicIPMustBeIPv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ipv6_association", "test")
 	r := NatGatewayPublicIPv6AssociationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.prerequisites(data, "StandardV2", "StandardV2", "IPv4"),
 		},
 		{
 			Config:      r.publicIPMustBeIPv6(data),
-			ExpectError: regexp.MustCompile("`public_ip_address_id` must use `IPv6`, got `IPv4`"),
+			ExpectError: regexp.MustCompile("`public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2`"),
 		},
 	})
 }
@@ -80,13 +80,13 @@ func TestAccNatGatewayPublicIPv6Association_publicIPMustBeIPv6(t *testing.T) {
 func TestAccNatGatewayPublicIPv6Association_standardSkuNatGatewayCannotUseIPv6PublicIPAddressesOrPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ipv6_association", "test")
 	r := NatGatewayPublicIPv6AssociationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.prerequisites(data, "Standard", "StandardV2", "IPv6"),
 		},
 		{
 			Config:      r.standardSkuNatGatewayCannotUseIPv6PublicIPAddressesOrPrefixes(data),
-			ExpectError: regexp.MustCompile("`nat_gateway_id` with SKU `Standard` does not support IPv6"),
+			ExpectError: regexp.MustCompile("`nat_gateway_id` must reference a NAT Gateway with SKU `StandardV2`"),
 		},
 	})
 }
@@ -94,13 +94,13 @@ func TestAccNatGatewayPublicIPv6Association_standardSkuNatGatewayCannotUseIPv6Pu
 func TestAccNatGatewayPublicIPv6Association_standardV2SkuNatGatewayRequiresPublicIPAddressWithStandardV2Sku(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ipv6_association", "test")
 	r := NatGatewayPublicIPv6AssociationResource{}
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.prerequisites(data, "StandardV2", "Standard", "IPv6"),
 		},
 		{
 			Config:      r.standardV2SkuNatGatewayRequiresPublicIPAddressWithStandardV2Sku(data),
-			ExpectError: regexp.MustCompile("`public_ip_address_id` must use SKU `StandardV2` when `nat_gateway_id` uses SKU `StandardV2`, got `Standard`"),
+			ExpectError: regexp.MustCompile("`public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2`"),
 		},
 	})
 }
