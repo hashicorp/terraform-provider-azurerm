@@ -22,8 +22,10 @@ import (
 
 type NatGatewayPublicIPv6AssociationResource struct{}
 
-var _ sdk.Resource = NatGatewayPublicIPv6AssociationResource{}
-var _ sdk.ResourceWithCustomizeDiff = NatGatewayPublicIPv6AssociationResource{}
+var (
+	_ sdk.Resource                  = NatGatewayPublicIPv6AssociationResource{}
+	_ sdk.ResourceWithCustomizeDiff = NatGatewayPublicIPv6AssociationResource{}
+)
 
 type NatGatewayPublicIPv6AssociationModel struct {
 	NatGatewayId      string `tfschema:"nat_gateway_id"`
@@ -164,10 +166,10 @@ func (r NatGatewayPublicIPv6AssociationResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			publicIPAddressesV6 := append(existingIPs, natgateways.SubResource{
+			existingIPs = append(existingIPs, natgateways.SubResource{
 				Id: pointer.To(state.PublicIpAddressId),
 			})
-			natGateway.Model.Properties.PublicIPAddressesV6 = pointer.To(publicIPAddressesV6)
+			natGateway.Model.Properties.PublicIPAddressesV6 = pointer.To(existingIPs)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)

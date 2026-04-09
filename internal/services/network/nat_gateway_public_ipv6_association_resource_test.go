@@ -164,8 +164,8 @@ func (r NatGatewayPublicIPv6AssociationResource) requiresImport(data acceptance.
 %s
 
 resource "azurerm_nat_gateway_public_ipv6_association" "import" {
-	nat_gateway_id       = azurerm_nat_gateway_public_ipv6_association.test.nat_gateway_id
-	public_ip_address_id = azurerm_nat_gateway_public_ipv6_association.test.public_ip_address_id
+  nat_gateway_id       = azurerm_nat_gateway_public_ipv6_association.test.nat_gateway_id
+  public_ip_address_id = azurerm_nat_gateway_public_ipv6_association.test.public_ip_address_id
 }
 `, r.basic(data))
 }
@@ -211,8 +211,8 @@ func (r NatGatewayPublicIPv6AssociationResource) publicIPMustBeIPv6(data accepta
 %s
 
 resource "azurerm_nat_gateway_public_ipv6_association" "test" {
-	nat_gateway_id       = azurerm_nat_gateway.test.id
-	public_ip_address_id = azurerm_public_ip.test.id
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
 }
 `, r.prerequisites(data, "StandardV2", "StandardV2", "IPv4"))
 }
@@ -222,8 +222,8 @@ func (r NatGatewayPublicIPv6AssociationResource) standardSkuNatGatewayCannotUseI
 %s
 
 resource "azurerm_nat_gateway_public_ipv6_association" "test" {
-	nat_gateway_id       = azurerm_nat_gateway.test.id
-	public_ip_address_id = azurerm_public_ip.test.id
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
 }
 `, r.prerequisites(data, "Standard", "StandardV2", "IPv6"))
 }
@@ -233,8 +233,8 @@ func (r NatGatewayPublicIPv6AssociationResource) standardV2SkuNatGatewayRequires
 %s
 
 resource "azurerm_nat_gateway_public_ipv6_association" "test" {
-	nat_gateway_id       = azurerm_nat_gateway.test.id
-	public_ip_address_id = azurerm_public_ip.test.id
+  nat_gateway_id       = azurerm_nat_gateway.test.id
+  public_ip_address_id = azurerm_public_ip.test.id
 }
 `, r.prerequisites(data, "StandardV2", "Standard", "IPv6"))
 }
@@ -242,28 +242,28 @@ resource "azurerm_nat_gateway_public_ipv6_association" "test" {
 func (NatGatewayPublicIPv6AssociationResource) prerequisites(data acceptance.TestData, natGatewaySkuName, publicIPAddressSku, publicIPAddressVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-ngpi-v6-%d"
-	location = "%s"
+  name     = "acctestRG-ngpi-v6-%d"
+  location = "%s"
 }
 
 resource "azurerm_public_ip" "test" {
-	name                = "acctest-PIP-%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	allocation_method   = "Static"
-	sku                 = "%s"
-	ip_version          = "%s"
+  name                = "acctest-PIP-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "%s"
+  ip_version          = "%s"
 }
 
 resource "azurerm_nat_gateway" "test" {
-	name                = "acctest-NatGateway-%d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	sku_name            = "%s"
+  name                = "acctest-NatGateway-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, publicIPAddressSku, publicIPAddressVersion, data.RandomInteger, natGatewaySkuName)
 }
