@@ -891,7 +891,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "17"
   sku_name               = "GP_Standard_D2s_v3"
-  storage_type			 = "PremiumV2_LRS"
+  storage_type           = "PremiumV2_LRS"
   storage_iops           = 8000
   storage_throughput     = 300
   zone                   = "2"

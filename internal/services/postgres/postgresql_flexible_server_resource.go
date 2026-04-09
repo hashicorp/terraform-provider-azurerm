@@ -172,10 +172,10 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"storage_type": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Default:      string(servers.StorageTypePremiumLRS),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Default:  string(servers.StorageTypePremiumLRS),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.StorageTypePremiumLRS),
 					string(servers.StorageTypePremiumVTwoLRS),
