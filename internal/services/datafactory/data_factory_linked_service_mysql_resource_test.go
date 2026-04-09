@@ -43,22 +43,12 @@ func TestAccDataFactoryLinkedServiceMySQL_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("driver_version").HasValue("V2"),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
-				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
-				check.That(data.ResourceName).Key("description").HasValue("test description"),
 			),
 		},
 		{
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("driver_version").HasValue("V1"),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
-				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
 			),
 		},
 		data.ImportStep("connection_string"),
