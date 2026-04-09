@@ -39,7 +39,7 @@ func TestAccTrafficManagerProfile_list_basic(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicQueryByResourceGroupName(data),
+				Config: r.basicQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength(listResourceAddress, 3),
 				},
@@ -89,13 +89,13 @@ list "azurerm_traffic_manager_profile" "list" {
 `
 }
 
-func (r TrafficManagerProfileResource) basicQueryByResourceGroupName(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+func (r TrafficManagerProfileResource) basicQueryByResourceGroupName() string {
+	return `
 list "azurerm_traffic_manager_profile" "list" {
   provider = azurerm
   config {
     resource_group_name = azurerm_resource_group.test.name
   }
 }
-`)
+`
 }
