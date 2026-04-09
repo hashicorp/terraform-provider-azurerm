@@ -636,11 +636,11 @@ func resourceCognitiveAccountFlatten(ctx context.Context, client *cognitiveservi
 			d.Set("sku_name", sku.Name)
 		}
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(account.Identity)
+		resourceIdentity, err := identity.FlattenSystemAndUserAssignedMap(account.Identity)
 		if err != nil {
 			return err
 		}
-		d.Set("identity", identity)
+		d.Set("identity", resourceIdentity)
 
 		if props := account.Properties; props != nil {
 			if apiProps := props.ApiProperties; apiProps != nil {

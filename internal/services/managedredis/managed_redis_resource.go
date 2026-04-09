@@ -662,7 +662,7 @@ func (r ManagedRedisResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceDiff.Id() == "" && len(model.DefaultDatabase) == 0 {
-				return fmt.Errorf("`default_database` must be provided when creating a new resource")
+				return errors.New("`default_database` must be provided when creating a new resource")
 			}
 
 			if len(model.DefaultDatabase) > 0 {
