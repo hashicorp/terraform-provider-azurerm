@@ -744,7 +744,7 @@ func resourceContainerGroupCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	if priority := d.Get("priority").(string); priority != "" {
-		containerGroup.Properties.Priority = pointer.To(containerinstance.Priority(priority))
+		containerGroup.Properties.Priority = pointer.ToEnum[containerinstance.ContainerGroupPriority](priority)
 	}
 
 	// Avoid parallel provisioning if "subnet_ids" are given.

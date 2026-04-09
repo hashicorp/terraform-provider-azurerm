@@ -329,6 +329,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_cosmosdb_account`
 
+* The deprecated `managed_hsm_key_id` property has been removed in favour of the `key_vault_key_id` property.
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.
 
 ### `azurerm_container_app_environment`
@@ -379,15 +380,24 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 * The deprecated `enable_internet_security` property has been removed in favour of the `internet_security_enabled` property.
 
+### `azurerm_federated_identity_credential`
+
+* The deprecated `parent_id` property has been removed in favour of the `user_assigned_identity_id` property.
+
 ### `azurerm_key_vault`
 
 * The deprecated `contact` property has been removed as it is no longer supported by the resource.
 * The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
 
+### `azurerm_key_vault_certificate_contacts`
+
+* The `contact` property is now Required.
+
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
 * The `node_provisioning_profile` block is now required.
+* The `oidc_issuer_enabled` property now defaults to `true`.
 
 ### `azurerm_kubernetes_cluster_node_pool`
 
@@ -507,6 +517,7 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `logging_storage_account` block has been removed in favour of the `azurerm_monitor_diagnostic_setting` resource.
 * The deprecated `managed_resource_group` property has been removed.
+* The deprecated `diagnose_support_enabled` property has been removed.
 
 ### `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack`
 
@@ -687,6 +698,7 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `logging_storage_account` block has been removed.
 * The deprecated `managed_resource_group` property has been removed.
+* The deprecated `diagnose_support_enabled` property has been removed.
 
 ### `azurerm_servicebus_namespace_disaster_recovery_config`
 

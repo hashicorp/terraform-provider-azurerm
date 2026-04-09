@@ -12,7 +12,7 @@ var _ CopySource = SapHanaSource{}
 
 type SapHanaSource struct {
 	AdditionalColumns *interface{}              `json:"additionalColumns,omitempty"`
-	PacketSize        *int64                    `json:"packetSize,omitempty"`
+	PacketSize        *interface{}              `json:"packetSize,omitempty"`
 	PartitionOption   *interface{}              `json:"partitionOption,omitempty"`
 	PartitionSettings *SapHanaPartitionSettings `json:"partitionSettings,omitempty"`
 	Query             *interface{}              `json:"query,omitempty"`
@@ -20,9 +20,9 @@ type SapHanaSource struct {
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
 	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 	Type                     string       `json:"type"`
 }

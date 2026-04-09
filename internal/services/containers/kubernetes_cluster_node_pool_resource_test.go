@@ -3979,3 +3979,129 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
+
+func TestAccKubernetesClusterNodePool_parallelCrossVNetSameSubnetName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.parallelCrossVNetSameSubnetNameConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_kubernetes_cluster_node_pool.pool1").ExistsInAzure(r),
+				check.That("azurerm_kubernetes_cluster_node_pool.pool2").ExistsInAzure(r),
+			),
+		},
+		data.ImportStepFor("azurerm_kubernetes_cluster_node_pool.pool1"),
+		data.ImportStepFor("azurerm_kubernetes_cluster_node_pool.pool2"),
+	})
+}
+
+func (KubernetesClusterNodePoolResource) parallelCrossVNetSameSubnetNameConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test1" {
+  name                = "acctestnw1-%[1]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "nodesubnet1" {
+  name                 = "nodesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefixes     = ["10.240.0.0/16"]
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestnw2-%[1]d"
+  address_space       = ["172.16.0.0/12"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "nodesubnet2" {
+  name                 = "nodesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["172.16.0.0/16"]
+}
+
+resource "azurerm_kubernetes_cluster" "test1" {
+  name                = "acctestaks1%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks1%[1]d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.nodesubnet1.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  network_profile {
+    network_plugin = "azure"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test2" {
+  name                = "acctestaks2%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks2%[1]d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.nodesubnet2.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  network_profile {
+    network_plugin = "azure"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "pool1" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test1.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.nodesubnet1.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
+  name                  = "pool2"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test2.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.nodesubnet2.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
