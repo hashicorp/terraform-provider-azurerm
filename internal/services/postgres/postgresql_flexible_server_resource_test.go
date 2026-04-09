@@ -709,6 +709,21 @@ func TestAccPostgresqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_withPremiumV2Storage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPremiumVTWO(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_cluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -864,6 +879,26 @@ resource "azurerm_postgresql_flexible_server" "test" {
 `, r.templateWithLocationOverride(data, "northcentralus"), data.RandomInteger, versionNum, createModeProp)
 }
 
+func (r PostgresqlFlexibleServerResource) withPremiumVTWO(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "17"
+  sku_name               = "GP_Standard_D2s_v3"
+  storage_type			 = "PremiumV2_LRS"
+  storage_iops           = 8000
+  storage_throughput     = 300
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r PostgresqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -974,7 +1009,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
   version                       = "13"
   backup_retention_days         = 7
   storage_mb                    = 32768
-  storage_type                  = "PremiumV2_LRS"
   delegated_subnet_id           = azurerm_subnet.test.id
   private_dns_zone_id           = azurerm_private_dns_zone.test.id
   public_network_access_enabled = false
