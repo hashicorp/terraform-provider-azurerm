@@ -169,7 +169,7 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 
 	if os.Getenv("TC_TEST_VIA_VCR") != "" {
 		defer func(testName string) {
-			_ = vcr.StopRecorder(testName)
+			_ = vcr.StopRecorder(testName, t.Failed())
 		}(t.Name())
 	}
 
@@ -182,7 +182,7 @@ func (td TestData) runAcceptanceTest(t *testing.T, testCase resource.TestCase) {
 func (td TestData) runAcceptanceSequentialTest(t *testing.T, testCase resource.TestCase) {
 	if os.Getenv("TC_TEST_VIA_VCR") != "" {
 		defer func(testName string) {
-			_ = vcr.StopRecorder(testName)
+			_ = vcr.StopRecorder(testName, t.Failed())
 		}(t.Name())
 	}
 

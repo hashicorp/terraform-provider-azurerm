@@ -32,6 +32,8 @@ fun TestConfiguration() : ClientConfiguration {
         "teamcity-failed",
         "teamcity-outdated",
         "teamcity-new-failure",
-        false
+        false,
+        "",
+        ""
     )
 }

@@ -24,6 +24,8 @@ class ClientConfiguration(var clientId: String,
                           val labelOutdated : String,
                           val labelNewFailure : String,
                           val applyTestingLabelsEnabled : Boolean,
+                          val testViaVcr : String,
+                          val blockbusterVideo : String,
                           )
 
 class LocationConfiguration(var primary : String, var secondary : String, var tertiary : String, var rotate : Boolean)
@@ -65,4 +67,7 @@ fun ParametrizedWithType.ConfigureAzureSpecificTestParameters(environment: Strin
     hiddenVariable("env.LABEL_OUTDATED",  config.labelOutdated, "Label applied when teamcity build is outdated")
     hiddenVariable("env.LABEL_NEW_FAILURE",  config.labelNewFailure, "Label applied when teamcity build has new failures")
     hiddenVariable("env.APPLY_TESTING_LABELS_ENABLED",  config.applyTestingLabelsEnabled.toString(), "Whether to apply testing labels to PRs")
+    hiddenVariable("env.POST_GITHUB_COMMENT_DETAILED",  "false", "Whether to post a detailed comment on the PR with the results of the tests")
+    hiddenVariable("env.TC_TEST_VIA_VCR", config.testViaVcr, "Whether to run the tests via VCR (record/replay)")
+    hiddenVariable("env.BLOCKBUSTER_VIDEO", config.blockbusterVideo, "The Azure Blob Storage location for VCR cassettes")
 }

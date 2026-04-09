@@ -1,10 +1,7 @@
 import jetbrains.buildServer.configs.kotlin.*
 
-class serviceDetails(name: String, displayName: String, environment: String, vcsRootId : String) {
+class ServiceDetails(name: String, val displayName: String, val environment: String, val vcsRootId: String) {
     val packageName = name
-    val displayName = displayName
-    val environment = environment
-    val vcsRootId = vcsRootId
 
     fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean, runWithBetaVersion: Boolean) : BuildType {
         return BuildType {
@@ -21,9 +18,11 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             steps {
                 SetBuildStartTime()
                 ConfigureGoEnv()
-                DownloadTerraformBinary()
-                RunAcceptanceTests(packageName)
-                PostTestResultsToGitHubPullRequest()
+                downloadTerraformBinary()
+                downloadVCRCassettes(packageName)
+                runAcceptanceTests(packageName)
+                uploadVCRCassettes(packageName)
+                postTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -32,23 +31,23 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             features {
-                Golang()
-                BuildCacheFeature()
+                golang()
+                buildCacheFeature()
             }
 
             params {
-                TerraformAcceptanceTestParameters(parallelism, "TestAcc", timeout)
-                TerraformAcceptanceTestsFlag()
-                TerraformCoreBinaryTesting()
-                TerraformShouldPanicForSchemaErrors()
-                ReadOnlySettings()
-                WorkingDirectory(packageName)
+                terraformAcceptanceTestParameters(parallelism, "TestAcc", timeout)
+                terraformAcceptanceTestsFlag()
+                terraformCoreBinaryTesting()
+                terraformShouldPanicForSchemaErrors()
+                readOnlySettings()
+                workingDirectory(packageName)
                 GoCache()
                 BuildStartTime()
             }
 
             triggers {
-                RunNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth, disableTriggers)
+                runNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth, disableTriggers)
             }
         }
     }

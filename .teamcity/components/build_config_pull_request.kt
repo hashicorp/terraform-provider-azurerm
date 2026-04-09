@@ -1,10 +1,7 @@
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
 
-class pullRequest(displayName: String, environment: String, vcsRootId : String) {
-    val displayName = displayName
-    val environment = environment
-    val vcsRootId = vcsRootId
+class PullRequest(val displayName: String, val environment: String, val vcsRootId: String) {
 
     fun buildConfiguration(providerName : String) : BuildType {
         return BuildType {
@@ -19,13 +16,15 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             }
 
             steps {
-                var packageName = "\"%SERVICES%\""
+                val packageName = "\"%SERVICES%\""
 
                 SetBuildStartTime()
                 ConfigureGoEnv()
-                DownloadTerraformBinary()
-                RunAcceptanceTestsForPullRequest(packageName)
-                PostTestResultsToGitHubPullRequest()
+                downloadTerraformBinary()
+                downloadVCRCassettes(packageName)
+                runAcceptanceTestsForPullRequest(packageName)
+                uploadVCRCassettes(packageName)
+                postTestResultsToGitHubPullRequest()
             }
 
             failureConditions {
@@ -33,16 +32,16 @@ class pullRequest(displayName: String, environment: String, vcsRootId : String) 
             }
 
             features {
-                Golang()
-                BuildCacheFeature()
+                golang()
+                buildCacheFeature()
             }
 
             params {
-                TerraformAcceptanceTestParameters(defaultParallelism, "TestAcc", defaultTimeout)
-                TerraformAcceptanceTestsFlag()
-                TerraformShouldPanicForSchemaErrors()
-                TerraformCoreBinaryTesting()
-                ReadOnlySettings()
+                terraformAcceptanceTestParameters(defaultParallelism, "TestAcc", defaultTimeout)
+                terraformAcceptanceTestsFlag()
+                terraformShouldPanicForSchemaErrors()
+                terraformCoreBinaryTesting()
+                readOnlySettings()
                 GoCache()
                 BuildStartTime()
 

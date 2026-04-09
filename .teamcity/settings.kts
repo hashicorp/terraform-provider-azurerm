@@ -27,7 +27,8 @@ var labelFailure = DslContext.getParameter("labelFailure", "teamcity-failed")
 var labelOutdated = DslContext.getParameter("labelOutdated", "teamcity-outdated")
 var labelNewFailure = DslContext.getParameter("labelNewFailure", "teamcity-new-failure")
 var applyTestingLabelsEnabled = DslContext.getParameter("applyTestingLabelsEnabled", "true").equals("true", ignoreCase = true)
-
+var testViaVcr = DslContext.getParameter("TC_TEST_VIA_VCR", "")
+var blockbusterVideo = DslContext.getParameter("blockbusterVideo", "")
 
 var clientConfig = ClientConfiguration(
     clientId,
@@ -53,7 +54,9 @@ var clientConfig = ClientConfiguration(
     labelFailure,
     labelOutdated,
     labelNewFailure,
-    applyTestingLabelsEnabled
+    applyTestingLabelsEnabled,
+    testViaVcr,
+    blockbusterVideo
 )
 
-project(AzureRM(environment, clientConfig))
+project(azureRM(environment, clientConfig))

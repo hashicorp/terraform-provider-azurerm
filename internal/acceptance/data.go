@@ -65,6 +65,9 @@ type TestData struct {
 
 	// resourceLabel is the local used for the resource - generally "test""
 	resourceLabel string
+
+	// rng holds a "deterministic" random number generator for VCR tests
+	rng *rand.Rand
 }
 
 // vcrRandTimeInt produces a stable 18-digit integer from a hash of the test name.
@@ -95,13 +98,14 @@ func vcrRandString(rng *rand.Rand, strlen int) string {
 func BuildTestData(t *testing.T, resourceType string, resourceLabel string) TestData {
 	var randomInt int
 	var randomString string
+	var rng *rand.Rand
 	if os.Getenv("TC_TEST_VIA_VCR") != "" {
 		// In VCR mode, seed from the test name so all random values are
 		// stable across runs. Both values share the same rng so they are
 		// deterministic relative to each other as well.
 		h := fnv.New64a()
 		h.Write([]byte(t.Name()))
-		rng := rand.New(rand.NewSource(int64(h.Sum64())))
+		rng = rand.New(rand.NewSource(int64(h.Sum64())))
 		randomInt = vcrRandTimeInt(t.Name())
 		randomString = vcrRandString(rng, 5)
 	} else {
@@ -118,6 +122,8 @@ func BuildTestData(t *testing.T, resourceType string, resourceLabel string) Test
 
 		ResourceType:  resourceType,
 		resourceLabel: resourceLabel,
+
+		rng: rng,
 	}
 
 	if features.UseDynamicTestLocations() {
@@ -171,6 +177,10 @@ func (td *TestData) RandomStringOfLength(length int) string {
 	// len should not be less then 1 or greater than 1024
 	if 1 > length || length > 1024 {
 		panic("Invalid Test: RandomStringOfLength: length argument must be between 1 and 1024 characters")
+	}
+
+	if td.rng != nil {
+		return vcrRandString(td.rng, length)
 	}
 
 	return randString(length)
