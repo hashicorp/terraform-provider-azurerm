@@ -23,10 +23,7 @@ import (
 
 type NatGatewayPublicIpPrefixIPv6AssociationResource struct{}
 
-var (
-	_ sdk.Resource                  = NatGatewayPublicIpPrefixIPv6AssociationResource{}
-	_ sdk.ResourceWithCustomizeDiff = NatGatewayPublicIpPrefixIPv6AssociationResource{}
-)
+var _ sdk.ResourceWithCustomizeDiff = NatGatewayPublicIpPrefixIPv6AssociationResource{}
 
 type NatGatewayPublicIpPrefixIPv6AssociationModel struct {
 	NATGatewayId     string `tfschema:"nat_gateway_id"`
