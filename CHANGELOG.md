@@ -1,35 +1,38 @@
-## 4.68.0 (Unreleased)
-
-ENHANCEMENTS:
-* Data Source: `azurerm_mssql_managed_instance` - add support for the `general_purpose_v2_enabled` property [GH-29303]
-* `azurerm_mssql_managed_instance` - export the `general_purpose_v2_enabled` property [GH-29303]
-* `azurerm_kubernetes_cluster_node_pool` - lock on subnet ID instead of subnet name to prevent unnecessary serialization [GH-32001]
-* `azurerm_private_endpoint` - the `request_message` and `is_manual_connection` properties are now validated at plan time [GH-31705]
-* `azurerm_app_configuration_feature` - Add support for `custom_filter` [GH-30160]
-* `azurerm_kubernetes_cluster` - changing `oidc_issuer_enabled` from `true` to `false` now forces resource recreation as the API does not support this [GH-32117]
-* `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors [GH-30453]
-* Data Source: `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors [GH-30453]
-* Data Source: `azurerm_bastion_host` - export `private_only_enabled` [GH-32042]
-* `azurerm_bastion_host` - add support for a "Private-only" deployment and export `private_only_enabled` [GH-32042]
-* `azurerm_storage_account` - the `is_hns_enabled` property is now validated at plan time [GH-30536]
-* dependencies: `go-azure-sdk` - upgrade to `v0.20260407.1111603` [GH-32112]
-* `azurerm_netapp_volume` - add support for `data_protection_advanced_ransomware` [GH-32099]
-* `azurerm_cosmosdb_account` - add support for the `EnableFabricNetworkAclBypass` capability [GH-31836]
+## 4.68.0 (April 09, 2026)
 
 FEATURES:
-* **New Resource**: `azurerm_managed_devops_pool` [GH-28325]
-* **New Data Source**: `azurerm_managed_devops_pool` [GH-28325]
-* **New Resource**: `azurerm_data_protection_backup_instance_data_lake_storage` [GH-32044]
-* **New List Resource**: `azurerm_private_dns_cname_record` [GH-31833]
+
+* **New Data Source**: `azurerm_managed_devops_pool` ([#28325](https://github.com/hashicorp/terraform-provider-azurerm/issues/28325))
+* **New List Resource**: `azurerm_private_dns_cname_record` ([#31833](https://github.com/hashicorp/terraform-provider-azurerm/issues/31833))
+* **New Resource**: `azurerm_data_protection_backup_instance_data_lake_storage` ([#32044](https://github.com/hashicorp/terraform-provider-azurerm/issues/32044))
+* **New Resource**: `azurerm_managed_devops_pool` ([#28325](https://github.com/hashicorp/terraform-provider-azurerm/issues/28325))
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - upgrade to `v0.20260407.1111603` ([#32112](https://github.com/hashicorp/terraform-provider-azurerm/issues/32112))
+* Data Source: `azurerm_bastion_host` - export `private_only_enabled` ([#32042](https://github.com/hashicorp/terraform-provider-azurerm/issues/32042))
+* Data Source: `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors ([#30453](https://github.com/hashicorp/terraform-provider-azurerm/issues/30453))
+* Data Source: `azurerm_mssql_managed_instance` - add support for the `general_purpose_v2_enabled` property ([#29303](https://github.com/hashicorp/terraform-provider-azurerm/issues/29303))
+* `azurerm_app_configuration_feature` - Add support for `custom_filter` ([#30160](https://github.com/hashicorp/terraform-provider-azurerm/issues/30160))
+* `azurerm_bastion_host` - add support for a "Private-only" deployment and export `private_only_enabled` ([#32042](https://github.com/hashicorp/terraform-provider-azurerm/issues/32042))
+* `azurerm_cosmosdb_account` - add support for the `EnableFabricNetworkAclBypass` capability ([#31836](https://github.com/hashicorp/terraform-provider-azurerm/issues/31836))
+* `azurerm_key_vault` - improve validation for the `name` field to prevent apply time errors ([#30453](https://github.com/hashicorp/terraform-provider-azurerm/issues/30453))
+* `azurerm_kubernetes_cluster` - changing `oidc_issuer_enabled` from `true` to `false` now forces resource recreation as the API does not support this ([#32117](https://github.com/hashicorp/terraform-provider-azurerm/issues/32117))
+* `azurerm_kubernetes_cluster_node_pool` - lock on subnet ID instead of subnet name to prevent unnecessary serialization ([#32001](https://github.com/hashicorp/terraform-provider-azurerm/issues/32001))
+* `azurerm_mssql_managed_instance` - export the `general_purpose_v2_enabled` property ([#29303](https://github.com/hashicorp/terraform-provider-azurerm/issues/29303))
+* `azurerm_netapp_volume` - add support for `data_protection_advanced_ransomware` ([#32099](https://github.com/hashicorp/terraform-provider-azurerm/issues/32099))
+* `azurerm_private_endpoint` - the `request_message` and `is_manual_connection` properties are now validated at plan time ([#31705](https://github.com/hashicorp/terraform-provider-azurerm/issues/31705))
+* `azurerm_storage_account` - the `is_hns_enabled` property is now validated at plan time ([#30536](https://github.com/hashicorp/terraform-provider-azurerm/issues/30536))
 
 BUG FIXES:
-* `azurerm_kubernetes_cluster` - fix an issue that prevented `oidc_issuer_enabled = false` from being set on create [GH-32117]
-* `azurerm_kubernetes_cluster` - fix a diff caused by Azure's default value for `oidc_issuer_enabled` changing in AKS 1.34+ [GH-32117]
-* `azurerm_resource_group` - fix parallelism issue in create_poller [GH-32123]
-* `azurerm_databricks_workspace` - fix the update behaviour for the `access_connector_id` property [GH-32025]
-* `azurerm_public_ip` - `domain_name_label`, `reverse_fqdn`, `domain_name_label_scope` can now be set to empty [GH-31699]
-* `azurerm_function_app_flex_consumption` - add locking on `virtual_network_subnet_id` to prevent conflicts if the same subnet is used for multiple deployments [GH-32091]
-* `azurerm_storage_account` - Remove `TLS1_3` as a valid value for `min_tls_version` [GH-32072]
+
+* `azurerm_databricks_workspace` - fix the update behaviour for the `access_connector_id` property ([#32025](https://github.com/hashicorp/terraform-provider-azurerm/issues/32025))
+* `azurerm_function_app_flex_consumption` - add locking on `virtual_network_subnet_id` to prevent conflicts if the same subnet is used for multiple deployments ([#32091](https://github.com/hashicorp/terraform-provider-azurerm/issues/32091))
+* `azurerm_kubernetes_cluster` - fix an issue that prevented `oidc_issuer_enabled = false` from being set on create ([#32117](https://github.com/hashicorp/terraform-provider-azurerm/issues/32117))
+* `azurerm_kubernetes_cluster` - fix a diff caused by Azure's default value for `oidc_issuer_enabled` changing in AKS 1.34+ ([#32117](https://github.com/hashicorp/terraform-provider-azurerm/issues/32117))
+* `azurerm_public_ip` - `domain_name_label`, `reverse_fqdn`, `domain_name_label_scope` can now be set to empty ([#31699](https://github.com/hashicorp/terraform-provider-azurerm/issues/31699))
+* `azurerm_resource_group` - fix parallelism issue in create_poller ([#32123](https://github.com/hashicorp/terraform-provider-azurerm/issues/32123))
+* `azurerm_storage_account` - Remove `TLS1_3` as a valid value for `min_tls_version` ([#32072](https://github.com/hashicorp/terraform-provider-azurerm/issues/32072))
 
 ## 4.67.0 (April 02, 2026)
 
