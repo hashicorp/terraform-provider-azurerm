@@ -108,9 +108,7 @@ func (r NatGatewayPublicIPv6AssociationResource) CustomizeDiff() sdk.ResourceFun
 				return fmt.Errorf("retrieving %s: `model` or `properties` was nil", *publicIPAddressId)
 			}
 
-			publicIPAddressSku := pointer.From(pointer.From(resp.Model.Sku).Name)
-			version := pointer.From(resp.Model.Properties.PublicIPAddressVersion)
-			if natGatewaySku == natgateways.NatGatewaySkuNameStandardVTwo && (publicIPAddressSku != publicipaddresses.PublicIPAddressSkuNameStandardVTwo || version != publicipaddresses.IPVersionIPvSix) {
+			if natGatewaySku == natgateways.NatGatewaySkuNameStandardVTwo && (pointer.From(pointer.From(resp.Model.Sku).Name) != publicipaddresses.PublicIPAddressSkuNameStandardVTwo || pointer.From(resp.Model.Properties.PublicIPAddressVersion) != publicipaddresses.IPVersionIPvSix) {
 				return errors.New("`public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2`")
 			}
 
@@ -201,11 +199,6 @@ func (r NatGatewayPublicIPv6AssociationResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id.First, err)
 			}
 
-			state := NatGatewayPublicIPv6AssociationModel{
-				NatGatewayId:      id.First.ID(),
-				PublicIpAddressId: id.Second.ID(),
-			}
-
 			publicIPAddressFound := false
 			if natGateway.Model == nil || natGateway.Model.Properties == nil {
 				return fmt.Errorf("retrieving %s: `model` or `properties` was nil", id.First)
@@ -222,7 +215,10 @@ func (r NatGatewayPublicIPv6AssociationResource) Read() sdk.ResourceFunc {
 				return metadata.MarkAsGone(id)
 			}
 
-			return metadata.Encode(&state)
+			return metadata.Encode(&NatGatewayPublicIPv6AssociationModel{
+				NatGatewayId:      id.First.ID(),
+				PublicIpAddressId: id.Second.ID(),
+			})
 		},
 	}
 }
