@@ -2063,8 +2063,8 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, backendStorageString string, deploymentStorageStringName, deploymentStorageStringValue string) (*webapps.SiteConfig, error) {
-	if len(input) == 0 {
+func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageStringFlex string, storageConnStringForFCApp string) (*webapps.SiteConfig, error) {
+	if len(siteConfigFlexConsumption) == 0 {
 		return nil, nil
 	}
 
@@ -2079,19 +2079,14 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(input []SiteConfigFunctionAppFle
 		appSettings = *existing.AppSettings
 	}
 
-	if storageUsesMSI {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", backendStorageString, false)
-	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", backendStorageString, false)
+	if storageStringFlex != "" {
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageStringFlex, false)
+		if storageConnStringForFCApp != "" {
+			appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageStringFlex, false)
+		}
 	}
 
-	if deploymentStorageStringValue != "" {
-		appSettings = updateOrAppendAppSettings(appSettings, deploymentStorageStringName, deploymentStorageStringValue, false)
-	} else {
-		appSettings = updateOrAppendAppSettings(appSettings, deploymentStorageStringName, deploymentStorageStringValue, true)
-	}
-
-	FlexConsumptionSiteConfig := input[0]
+	FlexConsumptionSiteConfig := siteConfigFlexConsumption[0]
 
 	v := strconv.FormatInt(FlexConsumptionSiteConfig.HealthCheckEvictionTime, 10)
 	if v == "0" || FlexConsumptionSiteConfig.HealthCheckPath == "" {

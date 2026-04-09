@@ -1,0 +1,9 @@
+package resourceproviders
+
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+type SkuInfos struct {
+	ResourceType *string                    `json:"resourceType,omitempty"`
+	Skus         *[]GlobalCsmSkuDescription `json:"skus,omitempty"`
+}
