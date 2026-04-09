@@ -69,7 +69,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerSubscriptionConnectionResource{},
 		ManagerVerifierWorkspaceResource{},
 		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
-		NatGatewayPublicIpV6AssociationResource{},
+		NatGatewayPublicIPv6AssociationResource{},
 		NetworkSecurityPerimeterAccessRuleResource{},
 		NetworkSecurityPerimeterAssociationResource{},
 		NetworkSecurityPerimeterResource{},

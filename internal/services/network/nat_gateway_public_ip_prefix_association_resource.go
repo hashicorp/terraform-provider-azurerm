@@ -71,8 +71,8 @@ func resourceNATGatewayPublicIpPrefixAssociationCreate(d *pluginsdk.ResourceData
 		return err
 	}
 
-	locks.ByName(natGatewayId.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(natGatewayId.NatGatewayName, natGatewayResourceName)
+	locks.ByID(natGatewayId.ID())
+	defer locks.UnlockByID(natGatewayId.ID())
 
 	natGateway, err := client.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
 	if err != nil {
@@ -184,8 +184,8 @@ func resourceNATGatewayPublicIpPrefixAssociationDelete(d *pluginsdk.ResourceData
 		return err
 	}
 
-	locks.ByName(id.First.NatGatewayName, natGatewayResourceName)
-	defer locks.UnlockByName(id.First.NatGatewayName, natGatewayResourceName)
+	locks.ByID(id.First.ID())
+	defer locks.UnlockByID(id.First.ID())
 
 	natGateway, err := client.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {

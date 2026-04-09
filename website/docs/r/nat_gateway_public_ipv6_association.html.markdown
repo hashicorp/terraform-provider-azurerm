@@ -1,12 +1,12 @@
 ---
 subcategory: "Network"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_nat_gateway_public_ip_v6_association"
+page_title: "Azure Resource Manager: azurerm_nat_gateway_public_ipv6_association"
 description: |-
   Manages the association between a NAT Gateway and an IPv6 Public IP Address.
 ---
 
-# azurerm_nat_gateway_public_ip_v6_association
+# azurerm_nat_gateway_public_ipv6_association
 
 Manages the association between a NAT Gateway and an IPv6 Public IP Address.
 
@@ -34,7 +34,7 @@ resource "azurerm_nat_gateway" "example" {
   sku_name            = "StandardV2"
 }
 
-resource "azurerm_nat_gateway_public_ip_v6_association" "example" {
+resource "azurerm_nat_gateway_public_ipv6_association" "example" {
   nat_gateway_id       = azurerm_nat_gateway.example.id
   public_ip_address_id = azurerm_public_ip.example.id
 }
@@ -46,33 +46,35 @@ The following arguments are supported:
 
 * `nat_gateway_id` - (Required) The ID of the NAT Gateway. Changing this forces a new resource to be created.
 
-* `public_ip_address_id` - (Required) The ID of the IPv6 Public IP which this NAT Gateway should be connected to. Changing this forces a new resource to be created.
+~> **Note:** `nat_gateway_id` must not reference a NAT Gateway with SKU `Standard`, because `Standard` NAT Gateways do not support IPv6.
 
-~> **Note:** When `nat_gateway_id` references a `StandardV2` NAT Gateway, `public_ip_address_id` must reference a `StandardV2` IPv6 Public IP. Azure rejects `Standard` Public IPs with `StandardV2` NAT Gateways, and this incompatibility is not validated during terraform plan phase.
+* `public_ip_address_id` - (Required) The ID of the IPv6 Public IP Address which this NAT Gateway should be connected to. Changing this forces a new resource to be created.
+
+~> **Note:** `public_ip_address_id` must reference a Public IP Address with `ip_version` `IPv6`. When `nat_gateway_id` references a NAT Gateway with SKU `StandardV2`, `public_ip_address_id` must reference a Public IP Address with SKU `StandardV2`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Association between the NAT Gateway and the IPv6 Public IP.
+* `id` - The ID of the NAT Gateway and IPv6 Public IP Address association.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the association between the NAT Gateway and the IPv6 Public IP.
-* `read` - (Defaults to 5 minutes) Used when retrieving the association between the NAT Gateway and the IPv6 Public IP.
-* `delete` - (Defaults to 30 minutes) Used when deleting the association between the NAT Gateway and the IPv6 Public IP.
+* `create` - (Defaults to 30 minutes) Used when creating the NAT Gateway and IPv6 Public IP Address association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NAT Gateway and IPv6 Public IP Address association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the NAT Gateway and IPv6 Public IP Address association.
 
 ## Import
 
 A NAT Gateway and IPv6 Public IP Address association can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_nat_gateway_public_ip_v6_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/natGateways/gateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/publicIPAddresses/address1"
+terraform import azurerm_nat_gateway_public_ipv6_association.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/natGateways/natGateway1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/publicIPAddresses/publicIPAddress1"
 ```
 
--> **Note:** This is a Terraform Specific ID in the format `{natGatewayID}|{publicIPAddressID}`
+-> **Note:** This is a Terraform-specific ID in the format `{natGatewayID}|{publicIPAddressID}`.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
