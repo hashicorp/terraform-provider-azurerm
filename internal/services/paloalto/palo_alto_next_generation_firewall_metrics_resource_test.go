@@ -220,7 +220,7 @@ resource "azurerm_subnet_network_security_group_association" "test2" {
 }
 
 resource "azurerm_palo_alto_local_rulestack" "test" {
-  name                = "testAcc-palrs-%[1]d"
+  name                = "acctest-palrs-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[2]s"
 
@@ -228,7 +228,7 @@ resource "azurerm_palo_alto_local_rulestack" "test" {
 }
 
 resource "azurerm_palo_alto_local_rulestack_rule" "test" {
-  name         = "testacc-palr-%[1]d"
+  name         = "acctest-palr-%[1]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 1001
   action       = "Allow"
