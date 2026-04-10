@@ -10,6 +10,7 @@ FEATURES:
 * **New Resource**: `azurerm_automation_runtime_environment_package` [GH-32022]
 
 BUG FIXES:
+* `azurerm_private_dns_resolver_inbound_endpoint` - the `ip_configurations.private_ip_address`, `ip_configurations.private_ip_allocation_method`, and `ip_configurations.subnet_id` properties are now ForceNew as the API does not allow updating these values [GH-31088]
 * `azurerm_linux_virtual_machine` - parse `os_managed_disk_id` insensitively as Azure returns static segments cased inconsistently [GH-32145]
 
 ## 4.68.0 (April 09, 2026)
