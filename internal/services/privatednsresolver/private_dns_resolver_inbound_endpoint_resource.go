@@ -76,12 +76,14 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: commonids.ValidateSubnetID,
 					},
 
 					"private_ip_address": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
+						ForceNew: true,
 						Computed: true,
 					},
 
