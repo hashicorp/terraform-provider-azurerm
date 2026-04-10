@@ -26,7 +26,7 @@ func (r WebPubSubListResource) ResourceFunc() *pluginsdk.Resource {
 }
 
 func (r WebPubSubListResource) Metadata(_ context.Context, _ resource.MetadataRequest, response *resource.MetadataResponse) {
-	response.TypeName = "azurerm_web_pubsub"
+	response.TypeName = webPubSubResourceType
 }
 
 func (r WebPubSubListResource) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata sdk.ResourceMetadata) {
@@ -49,14 +49,14 @@ func (r WebPubSubListResource) List(ctx context.Context, request list.ListReques
 	case !data.ResourceGroupName.IsNull():
 		resp, err := client.ListByResourceGroupComplete(ctx, commonids.NewResourceGroupID(subscriptionID, data.ResourceGroupName.ValueString()))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_web_pubsub"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", webPubSubResourceType), err)
 			return
 		}
 		results = resp.Items
 	default:
 		resp, err := client.ListBySubscriptionComplete(ctx, commonids.NewSubscriptionID(subscriptionID))
 		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", "azurerm_web_pubsub"), err)
+			sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing `%s`", webPubSubResourceType), err)
 			return
 		}
 		results = resp.Items

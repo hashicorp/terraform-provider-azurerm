@@ -2,7 +2,6 @@ package signalr_test
 
 import (
 	"context"
-	"fmt"
 	"regexp"
 	"strconv"
 	"testing"
@@ -72,12 +71,12 @@ list "azurerm_web_pubsub" "list" {
 }
 
 func (WebPubsubResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	return `
 list "azurerm_web_pubsub" "list" {
   provider = azurerm
   config {
-    resource_group_name = "acctestRG-wps-%d"
+    resource_group_name = azurerm_resource_group.test.name
   }
 }
-`, data.RandomInteger)
+`
 }

@@ -30,6 +30,8 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub -service-package-name signalr -properties "name,resource_group_name"
 
+const webPubSubResourceType = "azurerm_web_pubsub"
+
 func resourceWebPubSub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceWebPubSubCreateUpdate,
@@ -222,7 +224,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub", id.ID())
+			return tf.ImportAsExistsError(webPubSubResourceType, id.ID())
 		}
 	}
 
