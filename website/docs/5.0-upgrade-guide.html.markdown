@@ -289,6 +289,8 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_application_gateway`
 
+* The `backend_http_settings.authentication_certificate` property has been removed.
+* The `authentication_certificate` property has been removed.
 * The deprecated `ssl_profile.verify_client_cert_issuer_dn` property has been removed in favour of the `ssl_profile.verify_client_certificate_issuer_dn` property.
 * The deprecated `enable_http2` property has been removed in favour of the `http2_enabled` property.
 
@@ -658,6 +660,11 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `hostname_configuration.portal.key_vault_id` property has been removed in favour of the `hostname_configuration.portal.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.proxy.key_vault_id` property has been removed in favour of the `hostname_configuration.proxy.key_vault_certificate_id` property.
 * The deprecated `hostname_configuration.scm.key_vault_id` property has been removed in favour of the `hostname_configuration.scm.key_vault_certificate_id` property.
+
+### `azurerm_application_gateway`
+
+* The `backend_http_settings.authentication_certificate` property has been removed.
+* The `authentication_certificate` property has been removed.
 
 ### `azurerm_batch_pool`
 
