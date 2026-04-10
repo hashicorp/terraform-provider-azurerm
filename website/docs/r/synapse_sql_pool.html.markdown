@@ -72,6 +72,8 @@ The following arguments are supported:
 
 * `data_encrypted` - (Optional) Is transparent data encryption enabled? 
 
+* `maintenance_schedule` - (Optional) A `maintenance_schedule` block as defined below.
+
 * `recovery_database_id` - (Optional) The ID of the Synapse SQL Pool or SQL Database which is to back up, only applicable when `create_mode` is set to `Recovery`. Changing this forces a new Synapse SQL Pool to be created.
 
 * `restore` - (Optional) A `restore` block as defined below. Only applicable when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new Synapse SQL Pool to be created.
@@ -87,6 +89,38 @@ An `restore` block supports the following:
 * `point_in_time` - (Required) Specifies the Snapshot time to restore formatted as an RFC3339 date string. Changing this forces a new Synapse SQL Pool to be created.
 
 * `source_database_id` - (Required) The ID of the Synapse SQL Pool or SQL Database which is to restore. Changing this forces a new Synapse SQL Pool to be created.
+
+---
+
+A `maintenance_schedule` block supports the following:
+
+* `primary_maintenance_window` - (Required) A `primary_maintenance_window` block as defined below.
+
+* `secondary_maintenance_window` - (Required) A `secondary_maintenance_window` block as defined below.
+
+~> **Note:** The `primary_maintenance_window` and `secondary_maintenance_window` must be in different day ranges (Saturday-Sunday vs Tuesday-Thursday).
+
+!> **Note:** Once set, the `maintenance_schedule` cannot be removed from the configuration. Removing this field forces a new resource to be created.
+
+---
+
+A `primary_maintenance_window` block supports the following:
+
+* `day_of_week` - (Required) The day of the week for the maintenance window. Possible values are `Sunday`, `Tuesday`, `Wednesday`, `Thursday`, and `Saturday`.
+
+* `start_time_utc` - (Required) The UTC start time for the maintenance window in HH:MM:SS format.
+
+* `duration_in_hours` - (Required) The duration of the maintenance window in hours. Must be between 3 and 8 hours.
+
+---
+
+A `secondary_maintenance_window` block supports the following:
+
+* `day_of_week` - (Required) The day of the week for the maintenance window. Possible values are `Sunday`, `Tuesday`, `Wednesday`, `Thursday`, and `Saturday`.
+
+* `start_time_utc` - (Required) The UTC start time for the maintenance window in HH:MM:SS format.
+
+* `duration_in_hours` - (Required) The duration of the maintenance window in hours. Must be between 3 and 8 hours.
 
 ## Attributes Reference
 
