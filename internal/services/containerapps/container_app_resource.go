@@ -202,6 +202,11 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("invalid secrets config for %s: %+v", id, err)
 			}
 
+			template, err := helpers.ExpandContainerAppTemplate(app.Template, metadata)
+			if err != nil {
+				return fmt.Errorf("expanding template for %s: %+v", id, err)
+			}
+
 			containerApp := containerapps.ContainerApp{
 				Location: location.Normalize(env.Model.Location),
 				Properties: &containerapps.ContainerAppProperties{
@@ -213,7 +218,7 @@ func (r ContainerAppResource) Create() sdk.ResourceFunc {
 						MaxInactiveRevisions: pointer.To(app.MaxInactiveRevisions),
 					},
 					ManagedEnvironmentId: pointer.To(app.ManagedEnvironmentId),
-					Template:             helpers.ExpandContainerAppTemplate(app.Template, metadata),
+					Template:             template,
 					WorkloadProfileName:  pointer.To(app.WorkloadProfileName),
 				},
 				Tags: tags.Expand(app.Tags),
@@ -427,7 +432,11 @@ func (r ContainerAppResource) Update() sdk.ResourceFunc {
 				model.Tags = tags.Expand(state.Tags)
 			}
 
-			model.Properties.Template = helpers.ExpandContainerAppTemplate(state.Template, metadata)
+			template, err := helpers.ExpandContainerAppTemplate(state.Template, metadata)
+			if err != nil {
+				return fmt.Errorf("expanding template for %s: %+v", *id, err)
+			}
+			model.Properties.Template = template
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
