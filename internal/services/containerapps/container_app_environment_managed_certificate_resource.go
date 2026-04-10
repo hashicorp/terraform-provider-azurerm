@@ -79,7 +79,7 @@ func (r ContainerAppEnvironmentManagedCertificateResource) Arguments() map[strin
 				managedenvironments.PossibleValuesForManagedCertificateDomainControlValidation(),
 				false,
 			),
-			Description: "The domain control validation type for the managed certificate. Possible values are `CNAME`, `HTTP` and `TXT`. Defaults to `HTTP`.",
+			Description: "The domain control validation type for the managed certificate. Possible values are `CNAME` and `HTTP`. Defaults to `HTTP`.",
 		},
 
 		"tags": commonschema.Tags(),

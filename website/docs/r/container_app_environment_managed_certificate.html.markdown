@@ -91,9 +91,9 @@ The following arguments are supported:
 
 ---
 
-* `domain_control_validation` - (Optional) The domain control validation type for the managed certificate. Possible values are `CNAME`, `HTTP` and `TXT`. Defaults to `HTTP`. Changing this forces a new resource to be created.
+* `domain_control_validation` - (Optional) The domain control validation type for the managed certificate. Possible values are `CNAME` and `HTTP`. Defaults to `HTTP`. Changing this forces a new resource to be created.
 
-~> **Note:** The supported validation methods depend on the domain. Azure will validate domain ownership based on the specified method. `HTTP` validation requires an HTTP endpoint at the domain, `CNAME` validation requires DNS CNAME record configuration, and `TXT` validation requires DNS TXT record configuration.
+~> **Note:** The supported validation methods depend on the domain. Azure will validate domain ownership based on the specified method. `HTTP` validation requires an HTTP endpoint at the domain, `CNAME` validation requires DNS CNAME record configuration.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
