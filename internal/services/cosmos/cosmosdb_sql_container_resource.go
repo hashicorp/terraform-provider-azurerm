@@ -84,6 +84,26 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 				},
 			},
 
+			"computed_property": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+
+						"query": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+					},
+				},
+			},
+
 			"partition_key_kind": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -190,6 +210,7 @@ func resourceCosmosDbSQLContainerCreate(d *pluginsdk.ResourceData, meta interfac
 			Resource: cosmosdb.SqlContainerResource{
 				Id:                       id.ContainerName,
 				IndexingPolicy:           indexingPolicy,
+				ComputedProperties:       expandCosmosSQLContainerComputedProperties(d.Get("computed_property").([]interface{})),
 				ConflictResolutionPolicy: common.ExpandCosmosDbConflicResolutionPolicy(d.Get("conflict_resolution_policy").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
@@ -266,8 +287,9 @@ func resourceCosmosDbSQLContainerUpdate(d *pluginsdk.ResourceData, meta interfac
 	db := cosmosdb.SqlContainerCreateUpdateParameters{
 		Properties: cosmosdb.SqlContainerCreateUpdateProperties{
 			Resource: cosmosdb.SqlContainerResource{
-				Id:             id.ContainerName,
-				IndexingPolicy: indexingPolicy,
+				Id:                 id.ContainerName,
+				IndexingPolicy:     indexingPolicy,
+				ComputedProperties: expandCosmosSQLContainerComputedProperties(d.Get("computed_property").([]interface{})),
 			},
 			Options: &cosmosdb.CreateUpdateOptions{},
 		},
@@ -379,6 +401,10 @@ func resourceCosmosDbSQLContainerRead(d *pluginsdk.ResourceData, meta interface{
 				if err := d.Set("conflict_resolution_policy", common.FlattenCosmosDbConflictResolutionPolicy(res.ConflictResolutionPolicy)); err != nil {
 					return fmt.Errorf("setting `conflict_resolution_policy`: %+v", err)
 				}
+
+				if err := d.Set("computed_property", flattenCosmosSQLContainerComputedProperties(res.ComputedProperties)); err != nil {
+					return fmt.Errorf("setting `computed_property`: %+v", err)
+				}
 			}
 		}
 	}
@@ -468,4 +494,39 @@ func flattenCosmosSQLContainerUniqueKeys(keys *[]cosmosdb.UniqueKey) *[]map[stri
 	}
 
 	return &slice
+}
+
+func expandCosmosSQLContainerComputedProperties(input []interface{}) *[]cosmosdb.ComputedProperty {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]cosmosdb.ComputedProperty, 0)
+
+	for _, item := range input {
+		v := item.(map[string]interface{})
+
+		results = append(results, cosmosdb.ComputedProperty{
+			Name:  pointer.To(v["name"].(string)),
+			Query: pointer.To(v["query"].(string)),
+		})
+	}
+
+	return &results
+}
+
+func flattenCosmosSQLContainerComputedProperties(input *[]cosmosdb.ComputedProperty) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		results = append(results, map[string]interface{}{
+			"name":  pointer.From(item.Name),
+			"query": pointer.From(item.Query),
+		})
+	}
+
+	return results
 }
