@@ -3,6 +3,8 @@
 ENHANCEMENTS:
 * dependencies: `Go` - update to `1.25.9` [GH-32148]
 * dependencies: `kubernetesconfiguration/fluxconfiguration` - update to API version `2025-04-01` [GH-32080]
+* `data.azurerm_storage_account_blob_container_sas` - expand `permissions` block to include new fields [GH-32149]
+* `data.azurerm_storage_account_sas` - expand `permissions` block to include new fields [GH-32149]
 * `azurerm_kubernetes_flux_configuration` - the `git_repository.provider` property now supports `GitHub` [GH-32080] 
 * `azurerm_cdn_frontdoor_route` - the `cdn_frontdoor_origin_ids` property is now optional, allowing users to use the `depends_on` meta-argument instead [GH-29350]
 
