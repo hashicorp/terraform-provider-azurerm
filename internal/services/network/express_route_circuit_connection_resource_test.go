@@ -67,7 +67,7 @@ func testAccExpressRouteCircuitConnection_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authorization_key"),
 	})
 }
 
@@ -88,14 +88,14 @@ func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authorization_key"),
 		{
 			Config: r.complete(data, "946a1918-b7a2-4917-b43c-8c4cdaee006a"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authorization_key"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -175,7 +175,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Equinix-Osaka-OS1"
+  peering_location    = "Airtel-Chennai2-CLS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }

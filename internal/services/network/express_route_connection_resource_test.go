@@ -97,7 +97,7 @@ func testAccExpressRouteConnection_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authorization_key"),
 	})
 }
 
@@ -121,7 +121,7 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 				check.That("azurerm_express_route_connection.test").Key("internet_security_enabled").HasValue("true"),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authorization_key"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -798,7 +798,7 @@ func resourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 			return fmt.Errorf("setting `policy_group`: %+v", err)
 		}
 
-		vpnClientConfig, err := flattenVirtualNetworkGatewayVpnClientConfig(props.VpnClientConfiguration)
+		vpnClientConfig, err := flattenVirtualNetworkGatewayVpnClientConfig(props.VpnClientConfiguration, d)
 		if err != nil {
 			return err
 		}
@@ -1462,13 +1462,13 @@ func flattenVirtualNetworkGatewayIPConfigurations(ipConfigs *[]virtualnetworkgat
 	return flat
 }
 
-func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration) ([]interface{}, error) {
+func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration, d *pluginsdk.ResourceData) ([]interface{}, error) {
 	if cfg == nil {
 		return []interface{}{}, nil
 	}
 	flat := map[string]interface{}{
 		"ipsec_policy":  flattenVirtualNetworkGatewayIPSecPolicies(cfg.VpnClientIPsecPolicies),
-		"radius_server": flattenVirtualNetworkGatewayRadiusServers(cfg.RadiusServers),
+		"radius_server": flattenVirtualNetworkGatewayRadiusServers(cfg.RadiusServers, d),
 	}
 
 	connection, err := flattenVirtualNetworkGatewayClientConnections(cfg.VngClientConnectionConfigurations)
@@ -1539,9 +1539,8 @@ func flattenVirtualNetworkGatewayVpnClientConfig(cfg *virtualnetworkgateways.Vpn
 		flat["radius_server_address"] = *v
 	}
 
-	if v := cfg.RadiusServerSecret; v != nil {
-		flat["radius_server_secret"] = *v
-	}
+	// Set `radius_server_secret` to the value in configuration to avoid perpetual difference as value is not returned by GET request
+	flat["radius_server_secret"] = d.Get("vpn_client_configuration.0.radius_server_secret").(string)
 
 	return []interface{}{flat}, nil
 }
@@ -1623,17 +1622,18 @@ func flattenVirtualNetworkGatewayAddressSpace(input *virtualnetworkgateways.Addr
 	}
 }
 
-func flattenVirtualNetworkGatewayRadiusServers(input *[]virtualnetworkgateways.RadiusServer) []interface{} {
+func flattenVirtualNetworkGatewayRadiusServers(input *[]virtualnetworkgateways.RadiusServer, d *pluginsdk.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil || len(*input) == 0 {
 		return results
 	}
 
-	for _, item := range *input {
+	for i, item := range *input {
 		results = append(results, map[string]interface{}{
 			"address": item.RadiusServerAddress,
-			"secret":  pointer.From(item.RadiusServerSecret),
-			"score":   pointer.From(item.RadiusServerScore),
+			// Set `secret` to the value in configuration to avoid perpetual difference as value is not returned by GET request
+			"secret": d.Get(fmt.Sprintf("vpn_client_configuration.0.radius_server.%d.secret", i)),
+			"score":  pointer.From(item.RadiusServerScore),
 		})
 	}
 
