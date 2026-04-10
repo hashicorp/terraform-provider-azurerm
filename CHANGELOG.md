@@ -1,3 +1,20 @@
+## 4.69.0 (Unreleased)
+
+ENHANCEMENTS:
+* dependencies: `Go` - update to `1.25.9` [GH-32148]
+* dependencies: `kubernetesconfiguration/fluxconfiguration` - update to API version `2025-04-01` [GH-32080]
+* `data.azurerm_storage_account_blob_container_sas` - expand `permissions` block to include new fields [GH-32149]
+* `data.azurerm_storage_account_sas` - expand `permissions` block to include new fields [GH-32149]
+* `azurerm_kubernetes_flux_configuration` - the `git_repository.provider` property now supports `GitHub` [GH-32080] 
+* `azurerm_cdn_frontdoor_route` - the `cdn_frontdoor_origin_ids` property is now optional, allowing users to use the `depends_on` meta-argument instead [GH-29350]
+
+FEATURES:
+* **New Resource**: `azurerm_automation_runtime_environment_package` [GH-32022]
+
+BUG FIXES:
+* `azurerm_private_dns_resolver_inbound_endpoint` - the `ip_configurations.private_ip_address`, `ip_configurations.private_ip_allocation_method`, and `ip_configurations.subnet_id` properties are now ForceNew as the API does not allow updating these values [GH-31088]
+* `azurerm_linux_virtual_machine` - parse `os_managed_disk_id` insensitively as Azure returns static segments cased inconsistently [GH-32145]
+
 ## 4.68.0 (April 09, 2026)
 
 FEATURES:
