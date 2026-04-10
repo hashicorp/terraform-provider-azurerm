@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `dynamic_throttling_enabled` - (Optional) Whether dynamic throttling is enabled.
 
-* `rai_policy_name` - (Optional) The name of RAI policy.
+* `rai_policy_name` - (Optional) The name of RAI policy. Default value will be set if this property is not present.
 
 * `version_upgrade_option` - (Optional) Deployment model version upgrade option. Possible values are `OnceNewDefaultVersionAvailable`, `OnceCurrentVersionExpired`, and `NoAutoUpgrade`. Defaults to `OnceNewDefaultVersionAvailable`.
 
