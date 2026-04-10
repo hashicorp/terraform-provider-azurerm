@@ -200,6 +200,7 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 						"signature_template_names": {
 							Type:     pluginsdk.TypeSet,
 							Required: true,
+							ForceNew: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
 								ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForUefiSignatureTemplateName(), false),
@@ -208,30 +209,35 @@ func resourceSharedImageVersion() *pluginsdk.Resource {
 						"additional_signatures": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
+							ForceNew: true,
 							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
 									"db": {
 										Type:         pluginsdk.TypeList,
 										Optional:     true,
+										ForceNew:     true,
 										Elem:         uefiKeySchema(),
 										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},
 									},
 									"dbx": {
 										Type:         pluginsdk.TypeList,
 										Optional:     true,
+										ForceNew:     true,
 										Elem:         uefiKeySchema(),
 										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},
 									},
 									"kek": {
 										Type:         pluginsdk.TypeList,
 										Optional:     true,
+										ForceNew:     true,
 										Elem:         uefiKeySchema(),
 										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},
 									},
 									"pk": {
 										Type:         pluginsdk.TypeList,
 										Optional:     true,
+										ForceNew:     true,
 										MaxItems:     1,
 										Elem:         uefiKeySchema(),
 										AtLeastOneOf: []string{"uefi_settings.0.additional_signatures.0.db", "uefi_settings.0.additional_signatures.0.dbx", "uefi_settings.0.additional_signatures.0.kek", "uefi_settings.0.additional_signatures.0.pk"},

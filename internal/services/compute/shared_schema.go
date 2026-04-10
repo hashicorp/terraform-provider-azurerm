@@ -1273,6 +1273,7 @@ func uefiKeySchema() *pluginsdk.Resource {
 			"certificate_base64": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
+				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsBase64,
@@ -1281,6 +1282,7 @@ func uefiKeySchema() *pluginsdk.Resource {
 			"type": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(galleryimageversions.PossibleValuesForUefiKeyType(), false),
 			},
 		},
