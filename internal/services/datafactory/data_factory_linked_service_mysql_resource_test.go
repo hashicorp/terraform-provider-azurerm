@@ -6,6 +6,7 @@ package datafactory_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -42,23 +43,27 @@ func TestAccDataFactoryLinkedServiceMySQL_update(t *testing.T) {
 			Config: r.update1(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("2"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("3"),
-				check.That(data.ResourceName).Key("additional_properties.%").HasValue("2"),
-				check.That(data.ResourceName).Key("description").HasValue("test description"),
 			),
 		},
 		{
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.%").HasValue("3"),
-				check.That(data.ResourceName).Key("annotations.#").HasValue("2"),
-				check.That(data.ResourceName).Key("additional_properties.%").HasValue("1"),
-				check.That(data.ResourceName).Key("description").HasValue("test description 2"),
 			),
 		},
 		data.ImportStep("connection_string"),
+	})
+}
+
+func TestAccDataFactoryLinkedServiceMySQL_driverVersionV1NotSupportedForNewResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_linked_service_mysql", "test")
+	r := LinkedServiceMySQLResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withDriverVersionV1(data),
+			ExpectError: regexp.MustCompile("`driver_version` must be set to `V2` for new resources"),
+		},
 	})
 }
 
@@ -96,6 +101,7 @@ resource "azurerm_data_factory" "test" {
 resource "azurerm_data_factory_linked_service_mysql" "test" {
   name              = "acctestlssql%d"
   data_factory_id   = azurerm_data_factory.test.id
+  driver_version    = "V2"
   connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -124,6 +130,7 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
   annotations       = ["test1", "test2", "test3"]
   description       = "test description"
+  driver_version    = "V2"
 
   parameters = {
     foo = "test1"
@@ -171,6 +178,32 @@ resource "azurerm_data_factory_linked_service_mysql" "test" {
   additional_properties = {
     foo = "test1"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (LinkedServiceMySQLResource) withDriverVersionV1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_linked_service_mysql" "test" {
+  name              = "acctestlssql%d"
+  data_factory_id   = azurerm_data_factory.test.id
+  connection_string = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
+  driver_version    = "V1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

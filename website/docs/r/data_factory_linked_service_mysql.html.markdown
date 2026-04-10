@@ -53,6 +53,10 @@ The following arguments are supported:
 
 * `additional_properties` - (Optional) A map of additional properties to associate with the Data Factory Linked Service MySQL.
 
+* `driver_version` - (Optional) The version of the MySQL driver. Possible values are `V1` and `V2`.
+
+~> **Note:** New linked services must set `driver_version` to `V2`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
