@@ -2965,7 +2965,7 @@ type CustomScaleRule struct {
 	Metadata        map[string]string         `tfschema:"metadata"`
 	CustomRuleType  string                    `tfschema:"custom_rule_type"`
 	Authentications []ScaleRuleAuthentication `tfschema:"authentication"`
-	Identity        string                    `tfschema:"identity"`
+	IdentityID      string                    `tfschema:"identity_id"`
 }
 
 func CustomScaleRuleSchema() *pluginsdk.Schema {
