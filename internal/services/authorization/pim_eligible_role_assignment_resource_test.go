@@ -135,6 +135,38 @@ func TestAccPimEligibleRoleAssignment_condition(t *testing.T) {
 	})
 }
 
+func TestAccPimEligibleRoleAssignment_unscopedRoleDefinitionId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.unscopedRoleDefinitionId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").Exists(),
+			),
+		},
+		data.ImportStep("schedule.0.start_date_time", "role_definition_id"),
+	})
+}
+
+func TestAccPimEligibleRoleAssignment_subscriptionScopedRoleDefinitionId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_pim_eligible_role_assignment", "test")
+	r := PimEligibleRoleAssignmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subscriptionScopedRoleDefinitionId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("scope").Exists(),
+			),
+		},
+		data.ImportStep("schedule.0.start_date_time"),
+	})
+}
+
 func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.PimRoleAssignmentID(state.ID)
 	if err != nil {
@@ -155,7 +187,7 @@ func (r PimEligibleRoleAssignmentResource) Exists(ctx context.Context, client *c
 
 	for _, schedule := range schedulesResult.Items {
 		if props := schedule.Properties; props != nil {
-			if props.RoleDefinitionId != nil && strings.EqualFold(*props.RoleDefinitionId, id.RoleDefinitionId) &&
+			if props.RoleDefinitionId != nil && parse.PimRoleDefinitionIdsMatch(*props.RoleDefinitionId, id.RoleDefinitionId) &&
 				props.Scope != nil && strings.EqualFold(*props.Scope, scopeId.ID()) &&
 				props.PrincipalId != nil && strings.EqualFold(*props.PrincipalId, id.PrincipalId) &&
 				props.MemberType != nil && *props.MemberType == roleeligibilityschedules.MemberTypeDirect {
@@ -473,4 +505,77 @@ resource "azurerm_pim_eligible_role_assignment" "test" {
   }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (r PimEligibleRoleAssignmentResource) unscopedRoleDefinitionId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name = "Monitoring Data Reader"
+}
+
+%[1]s
+
+resource "time_static" "test" {}
+
+resource "azurerm_pim_eligible_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = data.azurerm_role_definition.test.id
+  principal_id       = azuread_user.test.object_id
+
+  schedule {
+    start_date_time = time_static.test.rfc3339
+    expiration {
+      duration_hours = 8
+    }
+  }
+
+  justification = "Expiration Duration Set"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`, r.template(data))
+}
+
+func (r PimEligibleRoleAssignmentResource) subscriptionScopedRoleDefinitionId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_client_config" "test" {}
+
+data "azurerm_role_definition" "test" {
+  name  = "Monitoring Data Reader"
+  scope = data.azurerm_subscription.primary.id
+}
+
+%[1]s
+
+resource "time_static" "test" {}
+
+resource "azurerm_pim_eligible_role_assignment" "test" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = data.azurerm_role_definition.test.id
+  principal_id       = azuread_user.test.object_id
+
+  schedule {
+    start_date_time = time_static.test.rfc3339
+    expiration {
+      duration_hours = 8
+    }
+  }
+
+  justification = "Expiration Duration Set"
+
+  ticket {
+    number = "1"
+    system = "example ticket system"
+  }
+}
+`, r.template(data))
 }
