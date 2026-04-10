@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* **New Resource**: `azurerm_automation_runtime_environment_package` [GH-32022]
 
 BUG FIXES:
 
