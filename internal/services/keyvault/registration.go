@@ -70,6 +70,7 @@ func (r Registration) Actions() []func() action.Action {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		EncryptedValueDataSource{},
+		KeyVaultSecretVersionsDataSource{},
 	}
 }
 
