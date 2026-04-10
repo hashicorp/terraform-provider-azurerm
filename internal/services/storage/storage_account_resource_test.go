@@ -5653,3 +5653,85 @@ resource "azurerm_storage_account" "test" {
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
+
+func TestAccStorageAccount_geoPriorityReplication(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoPriorityReplication(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_priority_replication_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.geoPriorityReplication(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("geo_priority_replication_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccStorageAccount_geoPriorityReplicationInvalidReplicationType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.geoPriorityReplicationInvalidReplicationType(data),
+			ExpectError: regexp.MustCompile("`geo_priority_replication_enabled` can only be used when `account_replication_type` is `GRS` or `GZRS`"),
+		},
+	})
+}
+
+func (r StorageAccountResource) geoPriorityReplication(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                         = azurerm_resource_group.test.location
+  account_tier                     = "Standard"
+  account_replication_type         = "GRS"
+  geo_priority_replication_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, enabled)
+}
+
+func (r StorageAccountResource) geoPriorityReplicationInvalidReplicationType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                         = azurerm_resource_group.test.location
+  account_tier                     = "Standard"
+  account_replication_type         = "LRS"
+  geo_priority_replication_enabled = true
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
