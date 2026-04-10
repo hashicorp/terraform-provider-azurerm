@@ -2551,7 +2551,7 @@ resource "azurerm_container_app" "test" {
       metadata = {
         foo = "bar"
       }
-      identity = azurerm_user_assigned_identity.test.id
+      identity_id = azurerm_user_assigned_identity.test.id
     }
   }
 }
