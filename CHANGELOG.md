@@ -1,6 +1,7 @@
 ## 4.69.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_cdn_frontdoor_route` - the `cdn_frontdoor_origin_ids` field is now optional, allowing users to use the `depends_on` meta-argument instead [GH-29350]
 
 FEATURES:
 * **New Resource**: `azurerm_automation_runtime_environment_package` [GH-32022]
