@@ -6,6 +6,7 @@ package automation
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,16 +19,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+var _ sdk.Resource = AutomationRuntimeEnvironmentPackageResource{}
+
 type AutomationRuntimeEnvironmentPackageModel struct {
-	Name                 string `tfschema:"name"`
-	RuntimeEnvironmentId string `tfschema:"runtime_environment_id"`
-	ContentUri           string `tfschema:"content_uri"`
-	ContentVersion       string `tfschema:"content_version"`
-	HashAlgorithm        string `tfschema:"hash_algorithm"`
-	HashValue            string `tfschema:"hash_value"`
-	SizeInBytes          int64  `tfschema:"size_in_bytes"`
-	Version              string `tfschema:"version"`
-	IsDefault            bool   `tfschema:"is_default"`
+	Name                           string `tfschema:"name"`
+	AutomationRuntimeEnvironmentId string `tfschema:"automation_runtime_environment_id"`
+	ContentUri                     string `tfschema:"content_uri"`
+	ContentVersion                 string `tfschema:"content_version"`
+	HashAlgorithm                  string `tfschema:"hash_algorithm"`
+	HashValue                      string `tfschema:"hash_value"`
+	SizeInBytes                    int64  `tfschema:"size_in_bytes"`
+	Version                        string `tfschema:"version"`
+	Default                        bool   `tfschema:"default"`
 }
 
 type AutomationRuntimeEnvironmentPackageResource struct{}
@@ -41,7 +44,7 @@ func (r AutomationRuntimeEnvironmentPackageResource) Arguments() map[string]*plu
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"runtime_environment_id": {
+		"automation_runtime_environment_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -52,14 +55,17 @@ func (r AutomationRuntimeEnvironmentPackageResource) Arguments() map[string]*plu
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"content_version": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[0-9]+\.[0-9]+(\.[0-9]+){0,2}$`),
+				"The `content_version` must be with 2 to 4 segments (e.g. `1.0`, `1.0.0`, or `1.0.0.0`).",
+			),
 		},
 
 		"hash_algorithm": {
@@ -82,7 +88,7 @@ func (r AutomationRuntimeEnvironmentPackageResource) Arguments() map[string]*plu
 
 func (r AutomationRuntimeEnvironmentPackageResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"is_default": {
+		"default": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -122,7 +128,7 @@ func (r AutomationRuntimeEnvironmentPackageResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			envId, err := packageresource.ParseRuntimeEnvironmentID(model.RuntimeEnvironmentId)
+			envId, err := packageresource.ParseRuntimeEnvironmentID(model.AutomationRuntimeEnvironmentId)
 			if err != nil {
 				return err
 			}
@@ -140,13 +146,13 @@ func (r AutomationRuntimeEnvironmentPackageResource) Create() sdk.ResourceFunc {
 			parameters := packageresource.PackageCreateOrUpdateParameters{
 				Properties: packageresource.PackageCreateOrUpdateProperties{
 					ContentLink: packageresource.ContentLink{
-						Uri: &model.ContentUri,
+						Uri: pointer.To(model.ContentUri),
 					},
 				},
 			}
 
 			if model.ContentVersion != "" {
-				parameters.Properties.ContentLink.Version = &model.ContentVersion
+				parameters.Properties.ContentLink.Version = pointer.To(model.ContentVersion)
 			}
 
 			if model.HashAlgorithm != "" {
@@ -189,6 +195,7 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
+
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
@@ -204,8 +211,8 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 			runtimeEnvId := packageresource.NewRuntimeEnvironmentID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RuntimeEnvironmentName)
 
 			output := AutomationRuntimeEnvironmentPackageModel{
-				Name:                 id.PackageName,
-				RuntimeEnvironmentId: runtimeEnvId.ID(),
+				Name:                           id.PackageName,
+				AutomationRuntimeEnvironmentId: runtimeEnvId.ID(),
 
 				// the fields below don't return by the API, remove it when issue fixed
 				// https://github.com/Azure/azure-rest-api-specs/issues/41604
@@ -215,21 +222,20 @@ func (r AutomationRuntimeEnvironmentPackageResource) Read() sdk.ResourceFunc {
 				HashAlgorithm:  stateModel.HashAlgorithm,
 			}
 
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					if content := props.ContentLink; content != nil {
-						output.ContentUri = pointer.From(content.Uri)
-						output.ContentVersion = pointer.From(content.Version)
-						if hash := content.ContentHash; hash != nil {
-							output.HashAlgorithm = hash.Algorithm
-							output.HashValue = hash.Value
-						}
-					}
+			if props := resp.Model.Properties; props != nil {
+				if content := props.ContentLink; content != nil {
+					output.ContentUri = pointer.From(content.Uri)
+					output.ContentVersion = pointer.From(content.Version)
 
-					output.SizeInBytes = pointer.From(props.SizeInBytes)
-					output.Version = pointer.From(props.Version)
-					output.IsDefault = pointer.From(props.Default)
+					if hash := content.ContentHash; hash != nil {
+						output.HashAlgorithm = hash.Algorithm
+						output.HashValue = hash.Value
+					}
 				}
+
+				output.SizeInBytes = pointer.From(props.SizeInBytes)
+				output.Version = pointer.From(props.Version)
+				output.Default = pointer.From(props.Default)
 			}
 
 			return metadata.Encode(&output)

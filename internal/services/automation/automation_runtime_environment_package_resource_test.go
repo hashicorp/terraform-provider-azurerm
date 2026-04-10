@@ -80,11 +80,11 @@ func (r AutomationRuntimeEnvironmentPackageResource) basic(data acceptance.TestD
 %s
 
 resource "azurerm_automation_runtime_environment_package" "test" {
-  name                   = "acctest-authentication"
-  runtime_environment_id = azurerm_automation_runtime_environment.test.id
-  content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
+  name                              = "acctest-package-%[2]d"
+  automation_runtime_environment_id = azurerm_automation_runtime_environment.test.id
+  content_uri                       = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r AutomationRuntimeEnvironmentPackageResource) requiresImport(data acceptance.TestData) string {
@@ -92,9 +92,9 @@ func (r AutomationRuntimeEnvironmentPackageResource) requiresImport(data accepta
 %s
 
 resource "azurerm_automation_runtime_environment_package" "import" {
-  name                   = azurerm_automation_runtime_environment_package.test.name
-  runtime_environment_id = azurerm_automation_runtime_environment_package.test.runtime_environment_id
-  content_uri            = azurerm_automation_runtime_environment_package.test.content_uri
+  name                              = azurerm_automation_runtime_environment_package.test.name
+  automation_runtime_environment_id = azurerm_automation_runtime_environment_package.test.automation_runtime_environment_id
+  content_uri                       = azurerm_automation_runtime_environment_package.test.content_uri
 }
 `, r.basic(data))
 }
@@ -104,14 +104,14 @@ func (r AutomationRuntimeEnvironmentPackageResource) complete(data acceptance.Te
 %s
 
 resource "azurerm_automation_runtime_environment_package" "test" {
-  name                   = "acctest-authentication"
-  runtime_environment_id = azurerm_automation_runtime_environment.test.id
-  content_uri            = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
-  content_version        = "2.25.0"
-  hash_algorithm         = "SHA256"
-  hash_value             = "examplehashvalue"
+  name                              = "acctest-package-%[2]d"
+  automation_runtime_environment_id = azurerm_automation_runtime_environment.test.id
+  content_uri                       = "https://www.powershellgallery.com/api/v2/package/Microsoft.Graph.Authentication/2.25.0"
+  content_version                   = "2.25.0"
+  hash_algorithm                    = "SHA256"
+  hash_value                        = "examplehashvalue"
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r AutomationRuntimeEnvironmentPackageResource) template(data acceptance.TestData) string {

@@ -34,9 +34,9 @@ resource "azurerm_automation_runtime_environment" "example" {
 }
 
 resource "azurerm_automation_runtime_environment_package" "example" {
-  name                   = "example-package"
-  runtime_environment_id = azurerm_automation_runtime_environment.example.id
-  content_uri            = "https://www.powershellgallery.com/api/v2/package/example-package/1.0.0"
+  name                              = "example-package"
+  automation_runtime_environment_id = azurerm_automation_runtime_environment.example.id
+  content_uri                       = "https://www.powershellgallery.com/api/v2/package/example-package/1.0.0"
 }
 ```
 
@@ -44,21 +44,27 @@ resource "azurerm_automation_runtime_environment_package" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the package. Changing this forces a new Automation Runtime Environment Package to be created.
+* `name` - (Required) The name of the package. Changing this forces a new resource to be created.
 
-* `runtime_environment_id` - (Required) The ID of the Automation Runtime Environment in which to create this package. Changing this forces a new Automation Runtime Environment Package to be created.
+* `automation_runtime_environment_id` - (Required) The ID of the Automation Runtime Environment in which to create this package. Changing this forces a new resource to be created.
 
-* `content_uri` - (Required) The URI of the package content. Changing this forces a new Automation Runtime Environment Package to be created.
+* `content_uri` - (Required) The URI of the package content. Changing this forces a new resource to be created.
 
 -> **Note:** The `content_uri` should be a publicly accessible URL, for example from the PowerShell Gallery.
 
 ---
 
-* `content_version` - (Optional) The version of the package content. Changing this forces a new Automation Runtime Environment Package to be created.
+* `content_version` - (Optional) The version of the package content. Changing this forces a new resource to be created.
 
-* `hash_algorithm` - (Optional) The hash algorithm used to hash the content. Required when `hash_value` is specified. Changing this forces a new Automation Runtime Environment Package to be created.
+~> **Note:** The `content_version` must be a version string with 2 to 4 segments (e.g. `1.0`, `1.0.0`, or `1.0.0.0`).
 
-* `hash_value` - (Optional) The hash value of the content. Required when `hash_algorithm` is specified. Changing this forces a new Automation Runtime Environment Package to be created.
+* `hash_algorithm` - (Optional) The hash algorithm used to hash the content. Changing this forces a new resource to be created.
+
+~> **Note:** The argument `hash_algorithm` is required when `hash_value` is specified.
+
+* `hash_value` - (Optional) The hash value of the content. Changing this forces a new resource to be created.
+
+~> **Note:** The argument `hash_value` is required when `hash_algorithm` is specified.
 
 ## Attributes Reference
 
@@ -66,7 +72,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Automation Runtime Environment Package.
 
-* `is_default` - Whether this is a default package.
+* `default` - Whether this is a default package.
 
 * `size_in_bytes` - The size of the package in bytes.
 
@@ -82,10 +88,10 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 ## Import
 
-Automation Runtime Environment Packages can be imported using the `resource id`, e.g.
+An Automation Runtime Environment Package can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_automation_runtime_environment_package.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/runtimeEnvironments/env1/packages/package1
+terraform import azurerm_automation_runtime_environment_package.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Automation/automationAccounts/automationAccount1/runtimeEnvironments/runtimeEnvironment1/packages/package1
 ```
 
 ## API Providers
