@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -372,6 +373,138 @@ func (r KubernetesAutomaticClusterResource) ResourceType() string {
 
 func (r KubernetesAutomaticClusterResource) ModelObject() interface{} {
 	return &KubernetesAutomaticClusterModel{}
+}
+
+func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			// Check if this is a new resource (no old state)
+			isNewResource := rd.Id() == ""
+
+			if !isNewResource {
+				// The behaviour of the API requires this, but this could be removed when https://github.com/Azure/azure-rest-api-specs/issues/27373 has been addressed
+				// Check default_node_pool upgrade_settings drain_timeout_in_minutes
+				if rd.HasChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes") {
+					old, new := rd.GetChange("default_node_pool.0.upgrade_settings.0.drain_timeout_in_minutes")
+					if old.(int) != 0 && new.(int) == 0 {
+						return fmt.Errorf("changing `default_node_pool.upgrade_settings.drain_timeout_in_minutes` from a non-zero value to zero requires recreation")
+					}
+				}
+
+				// Check default_node_pool name changes with temporary_name_for_rotation
+				if rd.HasChange("default_node_pool.0.name") {
+					oldName, newName := rd.GetChange("default_node_pool.0.name")
+					defaultName := rd.Get("default_node_pool.0.name")
+					tempName := rd.Get("default_node_pool.0.temporary_name_for_rotation")
+
+					// if the default node pool name has been set to temporary_name_for_rotation it means resizing failed
+					// we should not try to recreate the cluster, another apply will attempt the resize again
+					if oldName != "" && oldName == tempName {
+						if newName != defaultName {
+							return fmt.Errorf("changing `default_node_pool.name` requires recreation")
+						}
+					} else {
+						return fmt.Errorf("changing `default_node_pool.name` requires recreation")
+					}
+				}
+
+				// Migration of `identity` to `service_principal` is not allowed
+				if rd.HasChange("service_principal.0.client_id") {
+					old, _ := rd.GetChange("service_principal.0.client_id")
+					oldStr := old.(string)
+					if oldStr == "msi" || oldStr == "" {
+						return fmt.Errorf("changing `service_principal.client_id` from MSI requires recreation")
+					}
+				}
+
+				// Check windows_profile gmsa changes
+				if rd.HasChange("windows_profile.0.gmsa") {
+					old, new := rd.GetChange("windows_profile.0.gmsa")
+					oldList := old.([]interface{})
+					newList := new.([]interface{})
+					if len(oldList) > 0 && len(newList) == 0 {
+						return fmt.Errorf("removing `windows_profile.gmsa` requires recreation")
+					}
+				}
+
+				if rd.HasChange("windows_profile.0.gmsa.0.dns_server") {
+					old, new := rd.GetChange("windows_profile.0.gmsa.0.dns_server")
+					if old.(string) != "" && new.(string) == "" {
+						return fmt.Errorf("changing `windows_profile.gmsa.dns_server` from a non-empty value to empty requires recreation")
+					}
+				}
+
+				if rd.HasChange("windows_profile.0.gmsa.0.root_domain") {
+					old, new := rd.GetChange("windows_profile.0.gmsa.0.root_domain")
+					if old.(string) != "" && new.(string) == "" {
+						return fmt.Errorf("changing `windows_profile.gmsa.root_domain` from a non-empty value to empty requires recreation")
+					}
+				}
+
+				// Check api_server_access_profile subnet_id changes
+				if rd.HasChange("api_server_access_profile.0.subnet_id") {
+					old, new := rd.GetChange("api_server_access_profile.0.subnet_id")
+					if old.(string) != "" && new.(string) == "" {
+						return fmt.Errorf("changing `api_server_access_profile.subnet_id` from a non-empty value to empty requires recreation")
+					}
+				}
+
+				// Check network_plugin_mode changes
+				if rd.HasChange("network_profile.0.network_plugin_mode") {
+					_, new := rd.GetChange("network_profile.0.network_plugin_mode")
+					if !strings.EqualFold(new.(string), string(managedclusters.NetworkPluginModeOverlay)) {
+						return fmt.Errorf("changing `network_profile.network_plugin_mode` to a value other than overlay requires recreation")
+					}
+				}
+
+				// Check network_policy changes
+				if rd.HasChange("network_profile.0.network_policy") {
+					old, new := rd.GetChange("network_profile.0.network_policy")
+					oldStr := old.(string)
+					newStr := new.(string)
+
+					if oldStr != "" {
+						// Azure supports in-place upgrade from Azure Network Policy Manager to Cilium and Calico to Cilium
+						allowed := (oldStr == "azure" && newStr == "cilium") ||
+							(oldStr == "calico" && newStr == "cilium")
+						if !allowed {
+							return fmt.Errorf("changing `network_profile.network_policy` requires recreation")
+						}
+					}
+				}
+
+				// Check pod_cidr changes
+				if rd.HasChange("network_profile.0.pod_cidr") {
+					old, _ := rd.GetChange("network_profile.0.pod_cidr")
+					if old.(string) != "" {
+						return fmt.Errorf("changing `network_profile.pod_cidr` requires recreation")
+					}
+				}
+
+				// Check pod_cidrs changes
+				if rd.HasChange("network_profile.0.pod_cidrs") {
+					old, _ := rd.GetChange("network_profile.0.pod_cidrs")
+					oldList := old.([]interface{})
+					if len(oldList) > 0 {
+						return fmt.Errorf("changing `network_profile.pod_cidrs` requires recreation")
+					}
+				}
+			}
+
+			// Validate outbound_type and bootstrap_profile artifact_source
+			outboundType := rd.Get("network_profile.0.outbound_type").(string)
+			artifactSource := rd.Get("bootstrap_profile.0.artifact_source").(string)
+
+			if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
+				return fmt.Errorf("when `network_profile.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r KubernetesAutomaticClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -2296,7 +2429,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					state.ServiceMeshProfile = flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
 
 					if props.AgentPoolProfiles != nil {
-						defaultNodePool, err := FlattenDefaultNodePoolTyped(props.AgentPoolProfiles)
+						defaultNodePool, err := FlattenDefaultNodePoolTyped(props.AgentPoolProfiles, &metadata)
 						if err != nil {
 							return fmt.Errorf("flattening `default_node_pool`: %+v", err)
 						}
@@ -2458,7 +2591,9 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Containers.KubernetesClustersClient
+			client := metadata.Client.Containers
+			clusterClient := client.KubernetesClustersClient
+			nodePoolsClient := client.AgentPoolsClient
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -2470,7 +2605,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := clusterClient.Get(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving existing %s: %+v", *id, err)
 			}
@@ -2496,11 +2631,11 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 						ClientId: sp.ClientID,
 						Secret:   pointer.To(sp.ClientSecret),
 					}
-					if err := client.ResetServicePrincipalProfileThenPoll(ctx, *id, params); err != nil {
+					if err := clusterClient.ResetServicePrincipalProfileThenPoll(ctx, *id, params); err != nil {
 						return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
 					}
 
-					existing, err = client.Get(ctx, *id)
+					existing, err = clusterClient.Get(ctx, *id)
 					if err != nil {
 						return fmt.Errorf("retrieving updated %s: %+v", *id, err)
 					}
@@ -2557,6 +2692,131 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
+			if metadata.ResourceData.HasChange("default_node_pool") {
+				props.AgentPoolProfiles, err = ExpandDefaultNodePoolTyped(model.DefaultNodePool)
+				if err != nil {
+					return err
+				}
+				agentProfile := ConvertDefaultNodePoolToAgentPool(props.AgentPoolProfiles)
+				defaultNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, *agentProfile.Name)
+
+				// if a users specified a version - confirm that version is supported on the cluster
+				if nodePoolVersion := agentProfile.Properties.CurrentOrchestratorVersion; nodePoolVersion != nil {
+					existingNodePool, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
+					if err != nil {
+						return fmt.Errorf("retrieving Default Node Pool %s: %+v", defaultNodePoolId, err)
+					}
+					currentNodePoolVersion := ""
+					if v := existingNodePool.Model.Properties.OrchestratorVersion; v != nil {
+						currentNodePoolVersion = *v
+					}
+
+					if err := validateNodePoolAutomaticSupportsVersion(ctx, client, currentNodePoolVersion, defaultNodePoolId, *nodePoolVersion); err != nil {
+						return err
+					}
+				}
+
+				hostEncryptionEnabled := "default_node_pool.0.host_encryption_enabled"
+				nodePublicIpEnabled := "default_node_pool.0.node_public_ip_enabled"
+
+				cycleNodePoolProperties := []string{
+					"default_node_pool.0.name",
+					hostEncryptionEnabled,
+					nodePublicIpEnabled,
+					"default_node_pool.0.fips_enabled",
+					"default_node_pool.0.kubelet_config",
+					"default_node_pool.0.kubelet_disk_type",
+					"default_node_pool.0.linux_os_config",
+					"default_node_pool.0.max_pods",
+					"default_node_pool.0.only_critical_addons_enabled",
+					"default_node_pool.0.os_disk_size_gb",
+					"default_node_pool.0.os_disk_type",
+					"default_node_pool.0.pod_subnet_id",
+					"default_node_pool.0.snapshot_id",
+					"default_node_pool.0.ultra_ssd_enabled",
+					"default_node_pool.0.vnet_subnet_id",
+					"default_node_pool.0.vm_size",
+					"default_node_pool.0.zones",
+				}
+
+				// if the default node pool name has changed, it means the initial attempt at resizing failed
+				cycleNodePool := metadata.ResourceData.HasChanges(cycleNodePoolProperties...)
+				// os_sku could only be updated if the current and new os_sku are either Ubuntu or AzureLinux
+				if metadata.ResourceData.HasChange("default_node_pool.0.os_sku") {
+					oldOsSkuRaw, newOsSkuRaw := metadata.ResourceData.GetChange("default_node_pool.0.os_sku")
+					oldOsSku := oldOsSkuRaw.(string)
+					newOsSku := newOsSkuRaw.(string)
+					if !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(oldOsSku, string(managedclusters.OSSKUAzureLinux)) {
+						cycleNodePool = true
+					}
+					if !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUUbuntu)) && !strings.HasPrefix(newOsSku, string(managedclusters.OSSKUAzureLinux)) {
+						cycleNodePool = true
+					}
+				}
+				if cycleNodePool {
+					// to provide a seamless updating experience for the vm size of the default node pool we need to cycle the default
+					// node pool by provisioning a temporary system node pool, tearing down the former default node pool and then
+					// bringing up the new one.
+
+					if v := model.DefaultNodePool[0].TemporaryNameForRotation; v == "" {
+						return fmt.Errorf("`temporary_name_for_rotation` must be specified when updating any of the following properties %q", cycleNodePoolProperties)
+					}
+
+					temporaryNodePoolName := model.DefaultNodePool[0].TemporaryNameForRotation
+					tempNodePoolId := agentpools.NewAgentPoolID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, temporaryNodePoolName)
+
+					tempExisting, err := nodePoolsClient.Get(ctx, tempNodePoolId)
+					if !response.WasNotFound(tempExisting.HttpResponse) && err != nil {
+						return fmt.Errorf("checking for existing temporary %s: %+v", tempNodePoolId, err)
+					}
+
+					defaultExisting, err := nodePoolsClient.Get(ctx, defaultNodePoolId)
+					if !response.WasNotFound(defaultExisting.HttpResponse) && err != nil {
+						return fmt.Errorf("checking for existing default %s: %+v", defaultNodePoolId, err)
+					}
+
+					tempAgentProfile := agentProfile
+					tempAgentProfile.Name = &temporaryNodePoolName
+
+					if tempAgentProfile.Properties != nil {
+						tempAgentProfile.Properties.NodeImageVersion = nil
+					}
+					if agentProfile.Properties != nil {
+						agentProfile.Properties.NodeImageVersion = nil
+					}
+
+					// if the temp node pool already exists due to a previous failure, don't bother spinning it up
+					if tempExisting.Model == nil {
+						if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+							return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
+						}
+					}
+
+					// delete the old default node pool if it exists
+					if defaultExisting.Model != nil {
+						if err := nodePoolsClient.DeleteThenPoll(ctx, defaultNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
+							return fmt.Errorf("deleting default %s: %+v", defaultNodePoolId, err)
+						}
+					}
+
+					// create the default node pool with the new vm size
+					if err := retryNodePoolCreation(ctx, nodePoolsClient, defaultNodePoolId, agentProfile); err != nil {
+						// if creation of the default node pool fails we automatically fall back to the temporary node pool
+						// in func findDefaultNodePool
+						return fmt.Errorf("creating default %s: %+v", defaultNodePoolId, err)
+					}
+
+					if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
+						return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
+					}
+				} else {
+					if err := nodePoolsClient.CreateOrUpdateThenPoll(ctx, defaultNodePoolId, agentProfile, agentpools.DefaultCreateOrUpdateOperationOptions()); err != nil {
+						return fmt.Errorf("updating Default Node Pool %s %+v", defaultNodePoolId, err)
+					}
+				}
+				updateCluster = true
+			}
+
 			if metadata.ResourceData.HasChange("automatic_upgrade_channel") || metadata.ResourceData.HasChange("node_os_upgrade_channel") {
 				if props.AutoUpgradeProfile == nil {
 					props.AutoUpgradeProfile = &managedclusters.ManagedClusterAutoUpgradeProfile{}
@@ -2610,7 +2870,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 
 				if props.AadProfile == nil || (props.AadProfile.Managed == nil || !*props.AadProfile.Managed) {
 					props.AadProfile = &managedclusters.ManagedClusterAADProfile{}
-					if err := client.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile); err != nil {
+					if err := clusterClient.ResetAADProfileThenPoll(ctx, *id, *props.AadProfile); err != nil {
 						return fmt.Errorf("updating AAD Profile for %s: %+v", *id, err)
 					}
 				}
@@ -2731,7 +2991,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if updateCluster {
-				if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
+				if err := clusterClient.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, managedclusters.DefaultCreateOrUpdateOperationOptions()); err != nil {
 					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}
@@ -2837,96 +3097,6 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func validateKubernetesAutomaticClusterTyped(model *KubernetesAutomaticClusterModel, cluster *managedclusters.ManagedCluster) error {
-	if len(model.NetworkProfile) > 0 {
-		profile := model.NetworkProfile[0]
-		if profile.NetworkPlugin != "" {
-			networkPlugin := profile.NetworkPlugin
-			dnsServiceIP := profile.DNSServiceIP
-			serviceCidr := profile.ServiceCIDR
-			podCidr := profile.PodCIDR
-			serviceCidrs := profile.ServiceCIDRs
-			podCidrs := profile.PodCIDRs
-			networkPluginMode := profile.NetworkPluginMode
-
-			isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
-
-			if podCidr != "" && strings.EqualFold(networkPlugin, "azure") && !strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
-				return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
-			}
-
-			if (dnsServiceIP != "" || isServiceCidrSet) && (dnsServiceIP == "" || !isServiceCidrSet) {
-				return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
-			}
-
-			ipVersions := profile.IPVersions
-			if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
-				return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
-			}
-			if len(podCidrs) == 2 && len(ipVersions) != 2 {
-				return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
-			}
-		}
-	}
-
-	servicePrincipalExists := len(model.ServicePrincipal) > 0
-	identityExists := len(model.Identity) > 0
-
-	if cluster == nil {
-		if servicePrincipalExists && identityExists {
-			return fmt.Errorf("either an `identity` or `service_principal` block must be specified, but not both")
-		}
-		if !servicePrincipalExists && !identityExists {
-			return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
-		}
-	} else {
-		// For an existing cluster - check if there's currently a SP used on this cluster that isn't defined locally
-		if !servicePrincipalExists {
-			servicePrincipalExistsOnCluster := false
-			if props := cluster.Properties; props != nil {
-				if sp := props.ServicePrincipalProfile; sp != nil {
-					if cid := sp.ClientId; cid != "" {
-						// if it's MSI we ignore the block
-						servicePrincipalExistsOnCluster = !strings.EqualFold(cid, "msi")
-					}
-				}
-			}
-
-			// a non-MI Service Principal exists on the cluster, but not locally
-			if servicePrincipalExistsOnCluster {
-				return fmt.Errorf("the Service Principal block cannot be removed once it has been set")
-			}
-		}
-
-		// Check if the user has a Service Principal block defined, but the Cluster's been upgraded to use MSI
-		if servicePrincipalExists {
-			servicePrincipalIsMsi := false
-			if props := cluster.Properties; props != nil {
-				if sp := props.ServicePrincipalProfile; sp != nil {
-					if cid := sp.ClientId; cid != "" {
-						servicePrincipalIsMsi = strings.EqualFold(cid, "msi")
-					}
-				}
-			}
-
-			if servicePrincipalIsMsi {
-				return fmt.Errorf("the cluster has been upgraded to use Managed Identity - please remove the `service_principal` block")
-			}
-
-			hasIdentity := false
-			if clusterIdentity := cluster.Identity; clusterIdentity != nil {
-				hasIdentity = clusterIdentity.Type != identity.TypeNone
-			}
-
-			if hasIdentity {
-				return fmt.Errorf("the cluster has both a Service Principal and Managed Identity configured - please migrate to using Managed Identity by removing the `service_principal` block")
-			}
-		}
-	}
-
-	return nil
 }
 
 func expandKubernetesAutomaticClusterAPIAccessProfile(model *KubernetesAutomaticClusterModel) *managedclusters.ManagedClusterAPIServerAccessProfile {
@@ -3161,13 +3331,13 @@ func expandAutomaticGMSAProfile(input []GMSAModel) *managedclusters.WindowsGmsaP
 	config := input[0]
 
 	// If the model has empty values, return enabled profile with empty strings
-	if config.DNSServer == "vnet" && config.RootDomain == "vnet" {
-		return &managedclusters.WindowsGmsaProfile{
-			Enabled:        pointer.To(true),
-			DnsServer:      pointer.To(""),
-			RootDomainName: pointer.To(""),
-		}
-	}
+	// if config.DNSServer == "vnet" && config.RootDomain == "vnet" {
+	//	return &managedclusters.WindowsGmsaProfile{
+	//		Enabled:        pointer.To(true),
+	//		DnsServer:      pointer.To(""),
+	//		RootDomainName: pointer.To(""),
+	//	}
+	// }
 
 	return &managedclusters.WindowsGmsaProfile{
 		Enabled:        pointer.To(true),

@@ -67,3 +67,6 @@ tf.zip
 # do not upload .bob instructions
 .bob
 AGENTS.md
+
+## GOVCR cassetes
+internal/services/**/vcrtestdata/
