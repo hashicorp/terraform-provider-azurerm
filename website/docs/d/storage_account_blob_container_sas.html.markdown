@@ -72,17 +72,11 @@ output "sas_url_query_string" {
 
 * `container_name` - (Required) Name of the container.
 
-* `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
-
-* `ip_address` - (Optional) Single IPv4 address or range (connected with a dash) of IPv4 addresses.
-
 * `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 
 * `expiry` - (Required) The expiration time and date of this SAS. Must be a valid ISO-8601 format time/date string.
 
--> **Note:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
-
-* `permissions` - (Required) A `permissions` block as defined below.
+~> **Note:** The [ISO-8601 Time offset from UTC](https://en.wikipedia.org/wiki/ISO_8601#Time_offsets_from_UTC) is currently not supported by the service, which will result into 409 error.
 
 * `cache_control` - (Optional) The `Cache-Control` response header that is sent when this SAS token is used.
 
@@ -94,41 +88,45 @@ output "sas_url_query_string" {
 
 * `content_type` - (Optional) The `Content-Type` response header that is sent when this SAS token is used.
 
+* `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
+
+* `ip_address` - (Optional) Single IPv4 address or range (connected with a dash) of IPv4 addresses.
+
+* `permissions` - (Optional) A `permissions` block as defined below.
+
 ---
 
 A `permissions` block contains:
-
-* `read` - (Optional) Should Read permissions be enabled for this SAS?
 
 * `add` - (Optional) Should Add permissions be enabled for this SAS?
 
 * `create` - (Optional) Should Create permissions be enabled for this SAS?
 
-* `write` - (Optional) Should Write permissions be enabled for this SAS?
-
 * `delete` - (Optional) Should Delete permissions be enabled for this SAS?
 
 * `delete_version` - (Optional) Should Delete version permissions be enabled for this SAS?
 
-* `list` - (Optional) Should List permissions be enabled for this SAS?
-
-* `tags` - (Optional) Should Tags permissions be enabled for this SAS?
+* `execute` - (Optional) Should Execute permissions be enabled for this SAS?
 
 * `find` - (Optional) Should Find permissions be enabled for this SAS?
 
-* `move` - (Optional) Should Move permissions be enabled for this SAS?
+* `list` - (Optional) Should List permissions be enabled for this SAS?
 
-* `execute` - (Optional) Should Execute permissions be enabled for this SAS?
+* `move` - (Optional) Should Move permissions be enabled for this SAS?
 
 * `ownership` - (Optional) Should Ownership permissions be enabled for this SAS?
 
 * `permissions` - (Optional) Should Permissions permissions be enabled for this SAS?
 
+* `read` - (Optional) Should Read permissions be enabled for this SAS?
+
 * `set_immutability_policy` - (Optional) Should Set Immutability Policy permissions be enabled for this SAS?
 
+* `tags` - (Optional) Should Tags permissions be enabled for this SAS?
 
-Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/create-service-sas)
-for additional details on the fields above.
+* `write` - (Optional) Should Write permissions be enabled for this SAS?
+
+~> **Note:** Refer to the [SAS creation reference from Azure](https://docs.microsoft.com/rest/api/storageservices/create-service-sas) for additional details on the fields above.
 
 ## Attributes Reference
 

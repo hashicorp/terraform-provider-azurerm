@@ -95,6 +95,21 @@ func TestAccDataSourceStorageAccountBlobContainerSas_partial(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceStorageAccountBlobContainerSas_noPermissions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_blob_container_sas", "test")
+	utcNow := time.Now().UTC()
+	startDate := utcNow.Format(time.RFC3339)
+	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageAccountBlobContainerSASDataSource{}.noPermissions(data, startDate, endDate),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("sas").Exists()),
+		},
+	})
+}
+
 func (d StorageAccountBlobContainerSASDataSource) basic(data acceptance.TestData, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -201,6 +216,51 @@ data "azurerm_storage_account_blob_container_sas" "test" {
     delete = true
     list   = true
   }
+
+  cache_control       = "max-age=5"
+  content_disposition = "inline"
+  content_encoding    = "deflate"
+  content_language    = "en-US"
+  content_type        = "application/json"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, startDate, endDate)
+}
+
+func (d StorageAccountBlobContainerSASDataSource) noPermissions(data acceptance.TestData, startDate string, endDate string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = "acctestRG-storage-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "storage" {
+  name                = "acctestsads%s"
+  resource_group_name = azurerm_resource_group.rg.name
+
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "container" {
+  name                  = "sas-test"
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_blob_container_sas" "test" {
+  connection_string = azurerm_storage_account.storage.primary_connection_string
+  container_name    = azurerm_storage_container.container.name
+  https_only        = true
+
+  ip_address = "168.1.5.65"
+
+  start  = "%s"
+  expiry = "%s"
 
   cache_control       = "max-age=5"
   content_disposition = "inline"

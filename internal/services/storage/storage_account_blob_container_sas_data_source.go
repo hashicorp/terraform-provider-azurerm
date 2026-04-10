@@ -63,7 +63,7 @@ func dataSourceStorageAccountBlobContainerSharedAccessSignature() *pluginsdk.Res
 
 			"permissions": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -190,7 +190,10 @@ func dataSourceStorageContainerSasRead(d *pluginsdk.ResourceData, _ interface{})
 	contentLanguage := d.Get("content_language").(string)
 	contentType := d.Get("content_type").(string)
 
-	permissions := BuildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
+	permissions := ""
+	if len(permissionsIface) > 0 && permissionsIface[0] != nil {
+		permissions = BuildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
+	}
 
 	// Parse the connection string
 	kvp, err := storage.ParseAccountSASConnectionString(connString)
