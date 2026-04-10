@@ -30,10 +30,10 @@ func resourceCdnFrontDoorRule() *pluginsdk.Resource {
 		Delete: resourceCdnFrontDoorRuleDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
-			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Create: pluginsdk.DefaultTimeout(4 * time.Hour),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(4 * time.Hour),
+			Delete: pluginsdk.DefaultTimeout(6 * time.Hour),
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -763,6 +763,22 @@ func resourceCdnFrontDoorRuleDelete(d *pluginsdk.ResourceData, meta interface{})
 	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
+	}
+
+	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutDelete), func() *pluginsdk.RetryError {
+		result, err := client.Get(ctx, *id)
+		if err != nil {
+			if response.WasNotFound(result.HttpResponse) {
+				return nil
+			}
+
+			return pluginsdk.NonRetryableError(fmt.Errorf("checking deletion of %s: %+v", *id, err))
+		}
+
+		return pluginsdk.RetryableError(fmt.Errorf("waiting for deletion of %s", *id))
+	})
+	if err != nil {
+		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil
