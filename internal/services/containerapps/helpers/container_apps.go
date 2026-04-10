@@ -3027,7 +3027,7 @@ func CustomScaleRuleSchema() *pluginsdk.Schema {
 						},
 					},
 				},
-				"identity": {
+				"identity_id": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
 					ValidateFunc: validation.Any(
