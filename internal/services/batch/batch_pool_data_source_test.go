@@ -40,6 +40,13 @@ func TestAccBatchPoolDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.#").HasValue("1"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.0.scope").HasValue("Task"),
 				check.That(data.ResourceName).Key("start_task.0.user_identity.0.auto_user.0.elevation_level").HasValue("NonAdmin"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.image_name").HasValue("centos7"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.working_directory").HasValue("ContainerImageDefault"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.bind_mount.#").HasValue("2"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.bind_mount.0.source").HasValue("VfsMounts"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.bind_mount.0.read_only_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.bind_mount.1.source").HasValue("Shared"),
+				check.That(data.ResourceName).Key("start_task.0.container.0.bind_mount.1.read_only_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("container_configuration.0.type").HasValue("DockerCompatible"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.#").HasValue("1"),
 				check.That(data.ResourceName).Key("container_configuration.0.container_registries.0.registry_server").HasValue("myContainerRegistry.azurecr.io"),
@@ -147,6 +154,18 @@ resource "azurerm_batch_pool" "test" {
       auto_user {
         elevation_level = "NonAdmin"
         scope           = "Task"
+      }
+    }
+
+    container {
+      image_name  = "centos7"
+      working_directory = "ContainerImageDefault"
+      bind_mount {
+        source = "VfsMounts"
+        read_only_enabled = true
+      }
+      bind_mount {
+        source = "Shared"
       }
     }
   }

@@ -592,21 +592,15 @@ func expandBatchPoolContainerBindMounts(list []interface{}) *[]pool.ContainerHos
 
 	for _, temp := range list {
 		if item, ok := temp.(map[string]interface{}); ok {
-			containerHostBatchBindMountEntry := expandBatchPoolContainerBindMount(item)
-			result = append(result, *containerHostBatchBindMountEntry)
+			entry := pool.ContainerHostBatchBindMountEntry{
+				Source:     pointer.ToEnum[pool.ContainerHostDataPath](item["source"].(string)),
+				IsReadOnly: pointer.To(item["read_only_enabled"].(bool)),
+			}
+			result = append(result, entry)
 		}
 	}
 
 	return &result
-}
-
-func expandBatchPoolContainerBindMount(ref map[string]interface{}) *pool.ContainerHostBatchBindMountEntry {
-	entry := pool.ContainerHostBatchBindMountEntry{}
-	entry.Source = pointer.ToEnum[pool.ContainerHostDataPath](ref["source"].(string))
-	if v, ok := ref["read_only_enabled"]; ok {
-		entry.IsReadOnly = pointer.To(v.(bool))
-	}
-	return &entry
 }
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
