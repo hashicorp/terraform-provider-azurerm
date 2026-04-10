@@ -21,13 +21,20 @@ import (
 
 type KubernetesAutomaticClusterResource struct{}
 
+var (
+	olderKubernetesAutomaticVersion        = "1.35.0"
+	currentKubernetesAutomaticVersion      = "1.34.1"
+	olderKubernetesAutomaticVersionAlias   = "1.35"
+	currentKubernetesAutomaticVersionAlias = "1.34"
+)
+
 func TestAccKubernetesAutomaticCluster_automaticSKU(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.automaticSKU(data, currentKubernetesVersion),
+			Config: r.automaticSKU(data, currentKubernetesAutomaticVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -41,7 +48,7 @@ func TestAccKubernetesAutomaticCluster_hostEncryption(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.hostEncryption(data, currentKubernetesVersion),
+			Config: r.hostEncryption(data, currentKubernetesAutomaticVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -69,14 +76,14 @@ func TestAccKubernetesAutomaticCluster_runCommand(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.runCommand(data, currentKubernetesVersion, true),
+			Config: r.runCommand(data, currentKubernetesAutomaticVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("run_command_enabled").HasValue("true"),
 			),
 		},
 		{
-			Config: r.runCommand(data, currentKubernetesVersion, false),
+			Config: r.runCommand(data, currentKubernetesAutomaticVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("run_command_enabled").HasValue("false"),
@@ -91,13 +98,13 @@ func TestAccKubernetesAutomaticCluster_keyVaultKms(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, true),
+			Config: r.azureKeyVaultKms(data, currentKubernetesAutomaticVersion, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.azureKeyVaultKms(data, currentKubernetesVersion, false),
+			Config: r.azureKeyVaultKms(data, currentKubernetesAutomaticVersion, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -111,7 +118,7 @@ func TestAccKubernetesAutomaticCluster_storageProfile(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.storageProfile(data, currentKubernetesVersion),
+			Config: r.storageProfile(data, currentKubernetesAutomaticVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -161,13 +168,13 @@ func TestAccKubernetesAutomaticCluster_edgeZone(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.edgeZone(data, currentKubernetesVersion, "Test1"),
+			Config: r.edgeZone(data, currentKubernetesAutomaticVersion, "Test1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		{
-			Config: r.edgeZone(data, currentKubernetesVersion, "Test2"),
+			Config: r.edgeZone(data, currentKubernetesAutomaticVersion, "Test2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -293,7 +300,7 @@ func TestAccKubernetesAutomaticCluster_dnsPrefix(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.dnsPrefix(data, currentKubernetesVersion),
+			Config: r.dnsPrefix(data, currentKubernetesAutomaticVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("dns_prefix").HasValue(dnsPrefix),

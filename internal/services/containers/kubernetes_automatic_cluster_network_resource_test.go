@@ -3046,7 +3046,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) standardLoadBalancerCompleteConfig(data acceptance.TestData) string {
@@ -3259,7 +3259,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) standardLoadBalancerProfileCompleteConfig(data acceptance.TestData) string {
@@ -3368,7 +3368,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) standardLoadBalancerProfileWithPortAndTimeoutConfig(data acceptance.TestData) string {
@@ -3475,7 +3475,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, currentKubernetesVersion)
+`, data.RandomInteger, data.Locations.Primary, currentKubernetesAutomaticVersion)
 }
 
 func (KubernetesAutomaticClusterResource) basicLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -3574,7 +3574,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) unsetPrefixedLoadBalancerProfileConfig(data acceptance.TestData) string {
@@ -3680,7 +3680,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) changingLoadBalancerProfileConfigIPPrefix(data acceptance.TestData) string {
@@ -3794,7 +3794,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) changingLoadBalancerProfileConfigManagedIPs(data acceptance.TestData) string {
@@ -3906,7 +3906,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) changingLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
@@ -4021,7 +4021,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) unsetLoadBalancerProfileConfigIPIds(data acceptance.TestData) string {
@@ -4134,7 +4134,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) httpProxyConfigUpdate(data acceptance.TestData, noProxy string) string {
@@ -4339,7 +4339,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     no_proxy    = [%s]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, noProxy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger, noProxy)
 }
 
 func (KubernetesAutomaticClusterResource) httpProxyConfig(data acceptance.TestData, noProxy string) string {
@@ -4547,7 +4547,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger, noProxy)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger, noProxy)
 }
 
 func (KubernetesAutomaticClusterResource) httpProxyConfigWithTrustedCa(data acceptance.TestData) string {
@@ -4720,7 +4720,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) httpProxyConfigWithSubnet(data acceptance.TestData) string {
@@ -4832,7 +4832,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 }
 
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesVersion, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, currentKubernetesAutomaticVersion, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) networkDataPlane(data acceptance.TestData, networkDataPlane string) string {

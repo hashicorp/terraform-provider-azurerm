@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -132,6 +133,7 @@ type UpgradeSettingsModel struct {
 	MaxSurge                  string `tfschema:"max_surge"`
 	DrainTimeoutInMinutes     int64  `tfschema:"drain_timeout_in_minutes"`
 	NodeSoakDurationInMinutes int64  `tfschema:"node_soak_duration_in_minutes"`
+	UndrainableNodeBehavior   string `tfschema:"undrainable_node_behavior"`
 }
 
 func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
@@ -843,7 +845,9 @@ func expandAutomaticClusterNodePoolLinuxOSConfig(input []LinuxOSConfigModel) (*m
 	}
 
 	result := &managedclusters.LinuxOSConfig{
-		Sysctls: sysctlConfig,
+		Sysctls:                    sysctlConfig,
+		TransparentHugePageDefrag:  pointer.To(""),
+		TransparentHugePageEnabled: pointer.To(""),
 	}
 
 	if config.TransparentHugePage != "" {
@@ -979,6 +983,10 @@ func expandClusterNodePoolUpgradeSettingsTyped(input []UpgradeSettingsModel) *ma
 	}
 	if config.NodeSoakDurationInMinutes != 0 {
 		result.NodeSoakDurationInMinutes = pointer.To(config.NodeSoakDurationInMinutes)
+	}
+
+	if config.UndrainableNodeBehavior != "" {
+		result.UndrainableNodeBehavior = pointer.To(managedclusters.UndrainableNodeBehavior(config.UndrainableNodeBehavior))
 	}
 
 	return result
@@ -1179,6 +1187,10 @@ func flattenClusterNodePoolUpgradeSettingsTyped(input *managedclusters.AgentPool
 		result.NodeSoakDurationInMinutes = pointer.From(input.NodeSoakDurationInMinutes)
 	}
 
+	if input.UndrainableNodeBehavior != nil {
+		result.UndrainableNodeBehavior = string(pointer.From(input.UndrainableNodeBehavior))
+	}
+
 	return []UpgradeSettingsModel{result}
 }
 
@@ -1318,11 +1330,7 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 	raw := input[0]
 	enableAutoScaling := raw.AutoScalingEnabled
 
-	// Convert map[string]string to *map[string]string for node labels
-	var nodeLabels *map[string]string
-	if len(raw.NodeLabels) > 0 {
-		nodeLabels = &raw.NodeLabels
-	}
+	nodeLabels := pointer.To(raw.NodeLabels)
 	var nodeTaints *[]string
 
 	if raw.OnlyCriticalAddonsEnabled {
@@ -1503,7 +1511,7 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 	}, nil
 }
 
-func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoolProfile) ([]DefaultNodePoolModel, error) {
+func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoolProfile, metadata *sdk.ResourceMetaData) ([]DefaultNodePoolModel, error) {
 	if input == nil {
 		return []DefaultNodePoolModel{}, nil
 	}
@@ -1515,6 +1523,16 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 
 	result := DefaultNodePoolModel{
 		Name: agentPool.Name,
+	}
+
+	// Preserve temporary_name_for_rotation from existing state since it's not returned by the API
+	if metadata != nil {
+		var existingModel KubernetesAutomaticClusterModel
+		if err := metadata.Decode(&existingModel); err == nil {
+			if len(existingModel.DefaultNodePool) > 0 {
+				result.TemporaryNameForRotation = existingModel.DefaultNodePool[0].TemporaryNameForRotation
+			}
+		}
 	}
 
 	if agentPool.Count != nil {

@@ -1054,7 +1054,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     azure_rbac_enabled = true
   }
 }
-`, tenantId, data.Locations.Primary, data.RandomInteger, olderKubernetesVersion)
+`, tenantId, data.Locations.Primary, data.RandomInteger, olderKubernetesAutomaticVersion)
 }
 
 func (KubernetesAutomaticClusterResource) roleBasedAccessControlAADUpdateConfig(data acceptance.TestData, altClientId, altClientSecret, tenantId string) string {
