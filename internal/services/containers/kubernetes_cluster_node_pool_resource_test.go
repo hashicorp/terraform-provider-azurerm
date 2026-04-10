@@ -1632,7 +1632,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 
   linux_os_config {
-    transparent_huge_page_enabled = "always"
 
     sysctl_config {
       fs_aio_max_nr               = 65536
