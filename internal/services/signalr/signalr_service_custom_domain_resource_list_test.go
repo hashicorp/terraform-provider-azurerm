@@ -65,8 +65,8 @@ func TestAccSignalrServiceCustomDomainResource_listBySignalRServiceID(t *testing
 func (r SignalrServiceCustomDomainResource) basicListQuery() string {
 	return `
 list "azurerm_signalr_service_custom_domain" "list" {
-  provider = azurerm
-	include_resource = true
+  provider         = azurerm
+  include_resource = true
   config {
     signalr_service_id = azurerm_signalr_service.test.id
   }
