@@ -33,8 +33,8 @@ func (r Registration) WebsiteCategories() []string {
 }
 
 // SupportedDataSources returns the supported Data Sources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
-	// lintignore:AZNR005
 	return map[string]*pluginsdk.Resource{
 		// CDN
 		"azurerm_cdn_profile": dataSourceCdnProfile(),
@@ -52,8 +52,8 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 }
 
 // SupportedResources returns the supported Resources supported by this Service
+// lintignore:AZNR005
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	// lintignore:AZNR005
 	resources := map[string]*pluginsdk.Resource{
 		// CDN
 		"azurerm_cdn_endpoint":               resourceCdnEndpoint(),
