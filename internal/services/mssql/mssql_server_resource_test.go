@@ -728,7 +728,7 @@ func (r MssqlServerResource) userAssignedIdentity(data acceptance.TestData) stri
 resource "azurerm_user_assigned_identity" "test1" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "test_identity_1"
+  name                = "acctest_identity_1"
 }
 
 resource "azurerm_user_assigned_identity" "test2" {
@@ -840,7 +840,7 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "test_identity_1"
+  name                = "acctest_identity_1"
 }
 
 resource "azurerm_mssql_server" "test" {
@@ -894,7 +894,7 @@ data "azurerm_client_config" "test" {}
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "test_identity_1"
+  name                = "acctest_identity_1"
 }
 
 resource "azurerm_mssql_server" "test" {
