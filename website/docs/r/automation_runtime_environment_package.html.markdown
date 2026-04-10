@@ -48,9 +48,7 @@ The following arguments are supported:
 
 * `automation_runtime_environment_id` - (Required) The ID of the Automation Runtime Environment in which to create this package. Changing this forces a new resource to be created.
 
-* `content_uri` - (Required) The URI of the package content. Changing this forces a new resource to be created.
-
--> **Note:** The `content_uri` should be a publicly accessible URL, for example from the PowerShell Gallery.
+* `content_uri` - (Required) The HTTPS URI of the package content. Changing this forces a new resource to be created.
 
 ---
 
