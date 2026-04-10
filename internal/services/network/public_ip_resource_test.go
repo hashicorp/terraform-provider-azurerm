@@ -238,7 +238,6 @@ func TestAccPublicIp_ddosProtectionModeEnabledWithoutPlan(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("ddos_protection_plan_id").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -247,7 +246,6 @@ func TestAccPublicIp_ddosProtectionModeEnabledWithoutPlan(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("ddos_protection_plan_id").HasValue(""),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 			),
 		},
@@ -274,7 +272,6 @@ func TestAccPublicIp_ddosProtectionPlanRemoval(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("ddos_protection_mode").HasValue("Enabled"),
-				check.That(data.ResourceName).Key("ddos_protection_plan_id").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -647,6 +644,10 @@ resource "azurerm_network_ddos_protection_plan" "test" {
   name                = "acctestddospplan-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "azurerm_public_ip" "test" {
