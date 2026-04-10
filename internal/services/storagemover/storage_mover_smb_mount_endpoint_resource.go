@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -25,9 +26,9 @@ type StorageMoverSmbMountEndpointModel struct {
 	StorageMoverId           string `tfschema:"storage_mover_id"`
 	Host                     string `tfschema:"host"`
 	ShareName                string `tfschema:"share_name"`
-	UsernameKeyVaultSecretId string `tfschema:"username_key_vault_secret_id"`
-	PasswordKeyVaultSecretId string `tfschema:"password_key_vault_secret_id"`
 	Description              string `tfschema:"description"`
+	PasswordKeyVaultSecretId string `tfschema:"password_key_vault_secret_id"`
+	UsernameKeyVaultSecretId string `tfschema:"username_key_vault_secret_id"`
 }
 
 type StorageMoverSmbMountEndpointResource struct{}
@@ -98,11 +99,10 @@ func (r StorageMoverSmbMountEndpointResource) Arguments() map[string]*pluginsdk.
 			),
 		},
 
-		"username_key_vault_secret_id": {
+		"description": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			RequiredWith: []string{"password_key_vault_secret_id"},
-			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
+			ValidateFunc: validation.StringLenBetween(0, 1024),
 		},
 
 		"password_key_vault_secret_id": {
@@ -113,10 +113,11 @@ func (r StorageMoverSmbMountEndpointResource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 
-		"description": {
+		"username_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringLenBetween(0, 1024),
+			RequiredWith: []string{"password_key_vault_secret_id"},
+			ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeSecret),
 		},
 	}
 }
@@ -157,7 +158,7 @@ func (r StorageMoverSmbMountEndpointResource) Create() sdk.ResourceFunc {
 
 			if model.UsernameKeyVaultSecretId != "" || model.PasswordKeyVaultSecretId != "" {
 				if model.UsernameKeyVaultSecretId == "" || model.PasswordKeyVaultSecretId == "" {
-					return fmt.Errorf("both `username_key_vault_secret_id` and `password_key_vault_secret_id` must be specified together when configuring SMB mount endpoint credentials")
+					return errors.New("both `username_key_vault_secret_id` and `password_key_vault_secret_id` must be specified together when configuring SMB mount endpoint credentials")
 				}
 				endpointProperties.Credentials = &endpoints.AzureKeyVaultSmbCredentials{
 					Type:        endpoints.CredentialTypeAzureKeyVaultSmb,
@@ -231,7 +232,7 @@ func (r StorageMoverSmbMountEndpointResource) Update() sdk.ResourceFunc {
 					case bothEmpty:
 						v.Credentials = nil
 					default:
-						return fmt.Errorf("both `username_key_vault_secret_id` and `password_key_vault_secret_id` must be specified together")
+						return errors.New("both `username_key_vault_secret_id` and `password_key_vault_secret_id` must be specified together")
 					}
 				}
 

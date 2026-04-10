@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storagemover_test
@@ -179,13 +179,13 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "username" {
-  name         = "smb-username"
+  name         = "acctest-smb-username"
   value        = "testuser"
   key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_key_vault_secret" "password" {
-  name         = "smb-password"
+  name         = "acctest-smb-password"
   value        = "testpassword123!"
   key_vault_id = azurerm_key_vault.test.id
 }
@@ -235,13 +235,13 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_secret" "username" {
-  name         = "smb-username"
+  name         = "acctest-smb-username"
   value        = "testuser"
   key_vault_id = azurerm_key_vault.test.id
 }
 
 resource "azurerm_key_vault_secret" "password" {
-  name         = "smb-password"
+  name         = "acctest-smb-password"
   value        = "testpassword123!"
   key_vault_id = azurerm_key_vault.test.id
 }
