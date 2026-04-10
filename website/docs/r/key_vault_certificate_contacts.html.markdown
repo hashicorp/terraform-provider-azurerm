@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `key_vault_id` - (Required) The ID of the Key Vault. Changing this forces a new resource to be created.
 
-* `contact` - (Optional) One or more `contact` blocks as defined below.
+* `contact` - (Required) One or more `contact` blocks as defined below.
 
 ---
 

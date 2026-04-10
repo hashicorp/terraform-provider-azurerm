@@ -69,6 +69,8 @@ The following arguments are supported:
 * `targeting_filter` - (Optional) A `targeting_filter` block as defined below.
 
 * `timewindow_filter` - (Optional) A `timewindow_filter` block as defined below.
+  
+* `custom_filter` - (Optional) A `custom_filter` block as defined below.
 
 ---
 
@@ -95,6 +97,22 @@ A `timewindow_filter` block represents a feature filter of type `Microsoft.TimeW
 * `start` - (Optional) The earliest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
 
 * `end` - (Optional) The latest timestamp the feature is enabled. The timestamp must be in RFC3339 format.
+
+---
+
+A `custom_filter` block represents a feature filter of custom type and takes the following attributes:
+
+* `name` - (Required) The name of the custom filter.
+
+* `parameters` - (Optional) One or more `parameters` blocks as defined below.
+
+---
+
+A `parameters` block represents a custom parameter that can be used in a `custom_filter` and takes the following attributes:
+
+* `name` - (Required) The name of the parameter, this could be any string.
+
+* `value` - (Required) The value of the parameter.
 
 ---
 
