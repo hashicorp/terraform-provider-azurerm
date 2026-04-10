@@ -60,6 +60,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		AIServices{},
+		CognitiveAccountProjectConnectionAADResource{},
+		CognitiveAccountProjectConnectionApiKeyResource{},
+		CognitiveAccountProjectConnectionCustomKeysResource{},
+		CognitiveAccountProjectConnectionOAuth2Resource{},
 		CognitiveAccountProjectResource{},
 		CognitiveAccountRaiPolicyResource{},
 		CognitiveDeploymentResource{},
