@@ -1274,7 +1274,8 @@ func uefiKeySchema() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Required: true,
 				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
+					Type:         pluginsdk.TypeString,
+					ValidateFunc: validation.StringIsBase64,
 				},
 			},
 			"type": {
