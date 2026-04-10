@@ -79,6 +79,8 @@ The following supported arguments are specific to Delimited Text Dataset:
 
 * `encoding` - (Optional) The encoding format for the file.
 
+* `compression` - (Optional) A `compression` block as defined below.
+
 ---
 
 A `schema_column` block supports the following:
@@ -118,6 +120,20 @@ A `azure_blob_storage_location` block supports the following:
 * `dynamic_path_enabled` - (Optional) Is the `path` using dynamic expression, function or system variables? Defaults to `false`.
 
 * `dynamic_filename_enabled` - (Optional) Is the `filename` using dynamic expression, function or system variables? Defaults to `false`.
+
+---
+
+A `compression` block supports the following:
+
+* `type` - (Required) The type of compression used during transport. Possible values are `BZip2`, `Deflate`, `GZip`, `Tar`, `TarGZip`, `ZipDeflate`, `snappy` and `lz4`.
+
+* `dynamic_type_enabled` - (Optional) Is the `type` using dynamic expression, function or system variables? Defaults to `false`.
+
+* `level` - (Optional) The level of compression. Possible values are `Fastest` and `Optimal`.
+
+* `dynamic_level_enabled` - (Optional) Is the `level` using dynamic expression, function or system variables? Defaults to `false`.
+
+---
 
 ## Attributes Reference
 
