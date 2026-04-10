@@ -300,6 +300,16 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  true,
 					},
+					"stop_vm_before_detaching": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+					"skip_attachment_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
 				},
 			},
 		},
@@ -640,6 +650,12 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			managedDiskRaw := items[0].(map[string]interface{})
 			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
 				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
+			}
+			if v, ok := managedDiskRaw["stop_vm_before_detaching"]; ok {
+				featuresMap.ManagedDisk.StopVMBeforeDetaching = v.(bool)
+			}
+			if v, ok := managedDiskRaw["skip_attachment_destroy"]; ok {
+				featuresMap.ManagedDisk.SkipAttachmentDestroy = v.(bool)
 			}
 		}
 	}
