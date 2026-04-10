@@ -245,6 +245,10 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
+	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
+		virtualMachineProfile.StorageProfile.DiskControllerType = pointer.To(virtualmachinescalesets.DiskControllerTypes(diskControllerType.(string)))
+	}
+
 	if galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{})); galleryApplications != nil {
 		virtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{
 			GalleryApplications: galleryApplications,
@@ -641,11 +645,15 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		updateProps.VirtualMachineProfile.OsProfile = &osProfile
 	}
 
-	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") {
+	if d.HasChange("data_disk") || d.HasChange("os_disk") || d.HasChange("source_image_id") || d.HasChange("source_image_reference") || d.HasChange("disk_controller_type") {
 		updateInstances = true
 
 		if updateProps.VirtualMachineProfile.StorageProfile == nil {
 			updateProps.VirtualMachineProfile.StorageProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateStorageProfile{}
+		}
+
+		if d.HasChange("disk_controller_type") {
+			updateProps.VirtualMachineProfile.StorageProfile.DiskControllerType = pointer.To(virtualmachinescalesets.DiskControllerTypes(d.Get("disk_controller_type").(string)))
 		}
 
 		if d.HasChange("data_disk") {
@@ -1003,6 +1011,8 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 						return fmt.Errorf("setting `data_disk`: %+v", err)
 					}
 
+					d.Set("disk_controller_type", string(pointer.From(storageProfile.DiskControllerType)))
+
 					var storageImageId string
 					if storageProfile.ImageReference != nil && storageProfile.ImageReference.Id != nil {
 						storageImageId = *storageProfile.ImageReference.Id
@@ -1260,6 +1270,16 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"custom_data": base64.OptionalSchema(false),
 
 		"data_disk": VirtualMachineScaleSetDataDiskSchema(),
+
+		"disk_controller_type": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(virtualmachinescalesets.DiskControllerTypesNVMe),
+				string(virtualmachinescalesets.DiskControllerTypesSCSI),
+			}, false),
+		},
 
 		"do_not_run_extensions_on_overprovisioned_machines": {
 			Type:     pluginsdk.TypeBool,
