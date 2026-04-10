@@ -10,6 +10,7 @@ FEATURES:
 * **New Resource**: `azurerm_automation_runtime_environment_package` [GH-32022]
 
 BUG FIXES:
+* `azurerm_linux_virtual_machine` - parse `os_managed_disk_id` insensitively as Azure returns static segments cased inconsistently [GH-32145]
 
 ## 4.68.0 (April 09, 2026)
 
