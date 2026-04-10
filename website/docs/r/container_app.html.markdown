@@ -152,7 +152,7 @@ A `custom_scale_rule` block supports the following:
 
 * `authentication` - (Optional) Zero or more `authentication` blocks as defined below.
 
-* `ìdentity`- (Optional) Resource ID for the System or User Assigned Managed identity to use when executing the scale rule.
+* `ìdentity_id`- (Optional) Resource ID for the System or User Assigned Managed identity to use when executing the scale rule.
 
 ---
 
