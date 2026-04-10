@@ -3082,7 +3082,7 @@ func CustomScaleRuleSchemaComputed() *pluginsdk.Schema {
 						},
 					},
 				},
-				"identity": {
+				"identity_id": {
 					Type:        pluginsdk.TypeString,
 					Computed:    true,
 					Description: "ID of the System or User Managed Identity used to execute scale rule.",
