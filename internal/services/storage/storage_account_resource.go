@@ -2107,14 +2107,29 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	if err := resourceStorageAccountFlatten(ctx, d, *id, resp.Model, meta); err != nil {
+	if err := resourceStorageAccountFlatten(ctx, d, *id, resp.Model, meta, true); err != nil {
 		return fmt.Errorf("encoding %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceData, id commonids.StorageAccountId, account *storageaccounts.StorageAccount, meta interface{}) error {
+func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceData, id commonids.StorageAccountId, account *storageaccounts.StorageAccount, meta interface{}, includeResource bool) error {
+	if account == nil {
+		return fmt.Errorf("unable to locate %q", id)
+	}
+
+	d.Set("name", id.StorageAccountName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if err := pluginsdk.SetResourceIdentityData(d, pointer.To(id)); err != nil {
+		return fmt.Errorf("setting resource identity data: %+v", err)
+	}
+
+	if !includeResource {
+		return nil
+	}
+
 	storageClient := meta.(*clients.Client).Storage.ResourceManager
 	storageUtils := meta.(*clients.Client).Storage
 	client := storageClient.StorageAccounts
@@ -2129,13 +2144,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-
-	if account == nil {
-		return fmt.Errorf("unable to locate %q", id)
-	}
-
-	d.Set("name", id.StorageAccountName)
-	d.Set("resource_group_name", id.ResourceGroupName)
 
 	listKeysOpts := storageaccounts.DefaultListKeysOperationOptions()
 	listKeysOpts.Expand = pointer.To(storageaccounts.ExpandKerb)
@@ -2309,10 +2317,6 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 
 	endpoints := flattenAccountEndpoints(primaryEndpoints, secondaryEndpoints, routingPreference)
 	endpoints.set(d)
-
-	if err = pluginsdk.SetResourceIdentityData(d, pointer.To(id)); err != nil {
-		return fmt.Errorf("setting resource identity data: %+v", err)
-	}
 
 	keys, err := client.ListKeys(ctx, id, listKeysOpts)
 	if err != nil {

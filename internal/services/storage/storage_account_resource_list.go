@@ -88,30 +88,14 @@ func (r StorageAccountListResource) List(ctx context.Context, request list.ListR
 
 			rd.SetId(id.ID())
 
-			if err := resourceStorageAccountFlatten(ctx, rd, *id, pointer.To(account), metadata.Client); err != nil {
+			if err := resourceStorageAccountFlatten(ctx, rd, *id, pointer.To(account), metadata.Client, request.IncludeResource); err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "encoding Resource data", err)
 				return
 			}
 
-			tfTypeIdentity, err := rd.TfTypeIdentityState()
-			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Identity State", err)
-				return
-			}
-
-			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Identity data", err)
-				return
-			}
-
-			tfTypeResource, err := rd.TfTypeResourceState()
-			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "converting Resource State data", err)
-				return
-			}
-
-			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "setting Resource data", err)
+			sdk.EncodeListResult(ctx, rd, &result)
+			if result.Diagnostics.HasError() {
+				push(result)
 				return
 			}
 
