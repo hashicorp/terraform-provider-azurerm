@@ -1502,6 +1502,9 @@ resource "azurerm_virtual_network_gateway" "test" {
   vpn_type = "PolicyBased"
   sku      = "ErGwScale"
 
+  minimum_scale_unit = 1
+  maximum_scale_unit = 1
+
   ip_configuration {
     private_ip_address_allocation = "Dynamic"
     subnet_id                     = azurerm_subnet.test.id
