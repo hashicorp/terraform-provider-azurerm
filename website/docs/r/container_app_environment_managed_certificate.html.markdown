@@ -109,7 +109,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 1 hour) Used when creating the Container App Environment Managed Certificate.
+* `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Managed Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Managed Certificate.
 * `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Managed Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Managed Certificate.

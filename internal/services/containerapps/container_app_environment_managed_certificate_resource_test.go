@@ -379,7 +379,7 @@ resource "azurerm_dns_cname_record" "test" {
   resource_group_name = data.azurerm_dns_zone.test.resource_group_name
   zone_name           = data.azurerm_dns_zone.test.name
   ttl                 = 300
-  record              = azurerm_container_app.test.latest_revision_fqdn
+  record              = azurerm_container_app.test.ingress[0].fqdn
 }
 
 resource "azurerm_dns_txt_record" "test" {
