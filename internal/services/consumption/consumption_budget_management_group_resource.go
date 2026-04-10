@@ -4,7 +4,14 @@
 package consumption
 
 import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/consumption/2019-10-01/budgets"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	validateManagementGroup "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -13,6 +20,26 @@ import (
 
 type ManagementGroupConsumptionBudget struct {
 	base consumptionBudgetBaseResource
+}
+
+type ManagementGroupConsumptionBudgetModel struct {
+	Name              string                                   `tfschema:"name"`
+	ManagementGroupId string                                   `tfschema:"management_group_id"`
+	Etag              string                                   `tfschema:"etag"`
+	Amount            float64                                  `tfschema:"amount"`
+	TimeGrain         string                                   `tfschema:"time_grain"`
+	TimePeriod        []ConsumptionBudgetTimePeriodModel       `tfschema:"time_period"`
+	Notification      []ConsumptionBudgetMgmtNotificationModel `tfschema:"notification"`
+	Filter            []ConsumptionBudgetFilterModel           `tfschema:"filter"`
+}
+
+// Management group notification model (no contact_groups/contact_roles)
+type ConsumptionBudgetMgmtNotificationModel struct {
+	Enabled       bool     `tfschema:"enabled"`
+	Threshold     int64    `tfschema:"threshold"`
+	ThresholdType string   `tfschema:"threshold_type"`
+	Operator      string   `tfschema:"operator"`
+	ContactEmails []string `tfschema:"contact_emails"`
 }
 
 var (
@@ -93,7 +120,7 @@ func (r ManagementGroupConsumptionBudget) Attributes() map[string]*pluginsdk.Sch
 }
 
 func (r ManagementGroupConsumptionBudget) ModelObject() interface{} {
-	return nil
+	return &ManagementGroupConsumptionBudgetModel{}
 }
 
 func (r ManagementGroupConsumptionBudget) ResourceType() string {
@@ -105,11 +132,98 @@ func (r ManagementGroupConsumptionBudget) IDValidationFunc() pluginsdk.SchemaVal
 }
 
 func (r ManagementGroupConsumptionBudget) Create() sdk.ResourceFunc {
-	return r.base.createFunc(r.ResourceType(), "management_group_id")
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Consumption.BudgetsClient
+
+			var config ManagementGroupConsumptionBudgetModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			id := budgets.NewScopedBudgetID(config.ManagementGroupId, config.Name)
+
+			existing, err := client.Get(ctx, id)
+			if err != nil {
+				if !response.WasNotFound(existing.HttpResponse) {
+					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				}
+			}
+
+			if !response.WasNotFound(existing.HttpResponse) {
+				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
+			}
+
+			timePeriod, err := expandConsumptionBudgetTimePeriodFromModel(config.TimePeriod)
+			if err != nil {
+				return fmt.Errorf("expanding `time_period`: %+v", err)
+			}
+
+			parameters := budgets.Budget{
+				Name: pointer.To(id.BudgetName),
+				Properties: &budgets.BudgetProperties{
+					Amount:        config.Amount,
+					Category:      budgets.CategoryTypeCost,
+					Filter:        expandConsumptionBudgetFilterFromModel(config.Filter),
+					Notifications: expandConsumptionBudgetMgmtNotificationsFromModel(config.Notification),
+					TimeGrain:     budgets.TimeGrainType(config.TimeGrain),
+					TimePeriod:    *timePeriod,
+				},
+			}
+
+			if config.Etag != "" {
+				parameters.ETag = pointer.To(config.Etag)
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, id, parameters); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
 }
 
 func (r ManagementGroupConsumptionBudget) Read() sdk.ResourceFunc {
-	return r.base.readFunc("management_group_id")
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Consumption.BudgetsClient
+			id, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			resp, err := client.Get(ctx, *id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return metadata.MarkAsGone(id)
+				}
+				return fmt.Errorf("reading %s, %+v", *id, err)
+			}
+
+			state := ManagementGroupConsumptionBudgetModel{
+				Name:              id.BudgetName,
+				ManagementGroupId: id.Scope,
+			}
+
+			if model := resp.Model; model != nil {
+				state.Etag = pointer.From(model.ETag)
+
+				if props := model.Properties; props != nil {
+					state.Amount = props.Amount
+					state.TimeGrain = string(props.TimeGrain)
+					state.TimePeriod = flattenConsumptionBudgetTimePeriodToModel(&props.TimePeriod)
+					state.Notification = flattenConsumptionBudgetMgmtNotificationsToModel(props.Notifications)
+					state.Filter = flattenConsumptionBudgetFilterToModel(props.Filter)
+				}
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
 }
 
 func (r ManagementGroupConsumptionBudget) Delete() sdk.ResourceFunc {
@@ -117,9 +231,101 @@ func (r ManagementGroupConsumptionBudget) Delete() sdk.ResourceFunc {
 }
 
 func (r ManagementGroupConsumptionBudget) Update() sdk.ResourceFunc {
-	return r.base.updateFunc()
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Consumption.BudgetsClient
+
+			id, err := budgets.ParseScopedBudgetID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			var config ManagementGroupConsumptionBudgetModel
+			if err := metadata.Decode(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			timePeriod, err := expandConsumptionBudgetTimePeriodFromModel(config.TimePeriod)
+			if err != nil {
+				return fmt.Errorf("expanding `time_period`: %+v", err)
+			}
+
+			parameters := budgets.Budget{
+				Name: pointer.To(id.BudgetName),
+				Properties: &budgets.BudgetProperties{
+					Amount:        config.Amount,
+					Category:      budgets.CategoryTypeCost,
+					Filter:        expandConsumptionBudgetFilterFromModel(config.Filter),
+					Notifications: expandConsumptionBudgetMgmtNotificationsFromModel(config.Notification),
+					TimeGrain:     budgets.TimeGrainType(config.TimeGrain),
+					TimePeriod:    *timePeriod,
+				},
+			}
+
+			if config.Etag != "" {
+				parameters.ETag = pointer.To(config.Etag)
+			}
+
+			if _, err = client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
+			return nil
+		},
+	}
 }
 
 func (r ManagementGroupConsumptionBudget) CustomImporter() sdk.ResourceRunFunc {
 	return r.base.importerFunc()
+}
+
+func expandConsumptionBudgetMgmtNotificationsFromModel(input []ConsumptionBudgetMgmtNotificationModel) *map[string]budgets.Notification {
+	if len(input) == 0 {
+		return nil
+	}
+
+	notifications := make(map[string]budgets.Notification)
+	for _, n := range input {
+		notification := budgets.Notification{
+			Enabled:  n.Enabled,
+			Operator: budgets.OperatorType(n.Operator),
+			// nolint: gosec
+			Threshold: float64(n.Threshold),
+		}
+
+		thresholdType := budgets.ThresholdType(n.ThresholdType)
+		notification.ThresholdType = &thresholdType
+
+		notification.ContactEmails = n.ContactEmails
+
+		notificationKey := fmt.Sprintf("%s_%s_%f_Percent", string(thresholdType), string(notification.Operator), notification.Threshold)
+		notifications[notificationKey] = notification
+	}
+
+	return &notifications
+}
+
+func flattenConsumptionBudgetMgmtNotificationsToModel(input *map[string]budgets.Notification) []ConsumptionBudgetMgmtNotificationModel {
+	if input == nil {
+		return []ConsumptionBudgetMgmtNotificationModel{}
+	}
+
+	result := make([]ConsumptionBudgetMgmtNotificationModel, 0)
+	for _, n := range *input {
+		thresholdType := string(budgets.ThresholdTypeActual)
+		if v := n.ThresholdType; v != nil {
+			thresholdType = string(*v)
+		}
+
+		result = append(result, ConsumptionBudgetMgmtNotificationModel{
+			Enabled:       n.Enabled,
+			Operator:      string(n.Operator),
+			Threshold:     int64(n.Threshold),
+			ThresholdType: thresholdType,
+			ContactEmails: n.ContactEmails,
+		})
+	}
+
+	return result
 }
