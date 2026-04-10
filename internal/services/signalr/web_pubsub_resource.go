@@ -28,6 +28,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name web_pubsub -service-package-name signalr -properties "name,resource_group_name"
+
+const webPubSubResourceType = "azurerm_web_pubsub"
+
 func resourceWebPubSub() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceWebPubSubCreateUpdate,
@@ -47,10 +51,11 @@ func resourceWebPubSub() *pluginsdk.Resource {
 		}),
 		SchemaVersion: 1,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := webpubsub.ParseWebPubSubID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&webpubsub.WebPubSubId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&webpubsub.WebPubSubId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -219,7 +224,7 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 		}
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_web_pubsub", id.ID())
+			return tf.ImportAsExistsError(webPubSubResourceType, id.ID())
 		}
 	}
 
@@ -279,6 +284,10 @@ func resourceWebPubSubCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceWebPubSubRead(d, meta)
 }
 
@@ -307,78 +316,7 @@ func resourceWebPubSubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("listing keys for %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.WebPubSubName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if model := resp.Model; model != nil {
-		d.Set("location", location.Normalize(model.Location))
-
-		skuName := ""
-		skuCapacity := int64(0)
-		if model.Sku != nil {
-			skuName = model.Sku.Name
-			skuCapacity = *model.Sku.Capacity
-		}
-		d.Set("sku", skuName)
-		d.Set("capacity", skuCapacity)
-
-		if props := model.Properties; props != nil {
-			d.Set("external_ip", props.ExternalIP)
-			d.Set("hostname", props.HostName)
-			d.Set("public_port", props.PublicPort)
-			d.Set("server_port", props.ServerPort)
-			d.Set("version", props.Version)
-
-			aadAuthEnabled := true
-			if props.DisableAadAuth != nil {
-				aadAuthEnabled = !(*props.DisableAadAuth)
-			}
-			d.Set("aad_auth_enabled", aadAuthEnabled)
-
-			disableLocalAuth := false
-			if props.DisableLocalAuth != nil {
-				disableLocalAuth = !(*props.DisableLocalAuth)
-			}
-			d.Set("local_auth_enabled", disableLocalAuth)
-
-			publicNetworkAccessEnabled := true
-			if props.PublicNetworkAccess != nil {
-				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
-			}
-			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
-
-			tlsClientCertEnabled := false
-			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
-				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
-			}
-			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
-
-			if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
-				return fmt.Errorf("setting `live_trace`:%+v", err)
-			}
-
-			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
-			if err != nil {
-				return fmt.Errorf("flattening `identity`: %+v", err)
-			}
-			if err := d.Set("identity", identity); err != nil {
-				return fmt.Errorf("setting `identity`: %+v", err)
-			}
-
-			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-				return fmt.Errorf("setting `tags`: %+v", err)
-			}
-		}
-	}
-
-	if model := keys.Model; model != nil {
-		d.Set("primary_access_key", model.PrimaryKey)
-		d.Set("primary_connection_string", model.PrimaryConnectionString)
-		d.Set("secondary_access_key", model.SecondaryKey)
-		d.Set("secondary_connection_string", model.SecondaryConnectionString)
-	}
-
-	return nil
+	return resourceWebPubSubFlatten(d, id, resp.Model, keys.Model)
 }
 
 func resourceWebPubSubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -514,4 +452,79 @@ func webPubsubProvisioningStateRefreshFunc(ctx context.Context, client *webpubsu
 
 		return res, provisioningState, nil
 	}
+}
+
+func resourceWebPubSubFlatten(d *pluginsdk.ResourceData, id *webpubsub.WebPubSubId, model *webpubsub.WebPubSubResource, keyModel *webpubsub.WebPubSubKeys) error {
+	d.Set("name", id.WebPubSubName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		skuName := ""
+		skuCapacity := int64(0)
+		if model.Sku != nil {
+			skuName = model.Sku.Name
+			skuCapacity = *model.Sku.Capacity
+		}
+		d.Set("sku", skuName)
+		d.Set("capacity", skuCapacity)
+
+		if props := model.Properties; props != nil {
+			d.Set("external_ip", props.ExternalIP)
+			d.Set("hostname", props.HostName)
+			d.Set("public_port", props.PublicPort)
+			d.Set("server_port", props.ServerPort)
+			d.Set("version", props.Version)
+
+			aadAuthEnabled := true
+			if props.DisableAadAuth != nil {
+				aadAuthEnabled = !(*props.DisableAadAuth)
+			}
+			d.Set("aad_auth_enabled", aadAuthEnabled)
+
+			disableLocalAuth := false
+			if props.DisableLocalAuth != nil {
+				disableLocalAuth = !(*props.DisableLocalAuth)
+			}
+			d.Set("local_auth_enabled", disableLocalAuth)
+
+			publicNetworkAccessEnabled := true
+			if props.PublicNetworkAccess != nil {
+				publicNetworkAccessEnabled = strings.EqualFold(*props.PublicNetworkAccess, "Enabled")
+			}
+			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			tlsClientCertEnabled := false
+			if props.Tls != nil && props.Tls.ClientCertEnabled != nil {
+				tlsClientCertEnabled = *props.Tls.ClientCertEnabled
+			}
+			d.Set("tls_client_cert_enabled", tlsClientCertEnabled)
+
+			if err := d.Set("live_trace", flattenLiveTraceConfig(props.LiveTraceConfiguration)); err != nil {
+				return fmt.Errorf("setting `live_trace`:%+v", err)
+			}
+
+			identityValue, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
+			if err != nil {
+				return fmt.Errorf("flattening `identity`: %+v", err)
+			}
+			if err := d.Set("identity", identityValue); err != nil {
+				return fmt.Errorf("setting `identity`: %+v", err)
+			}
+
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return fmt.Errorf("setting `tags`: %+v", err)
+			}
+		}
+	}
+
+	if keyModel != nil {
+		d.Set("primary_access_key", keyModel.PrimaryKey)
+		d.Set("primary_connection_string", keyModel.PrimaryConnectionString)
+		d.Set("secondary_access_key", keyModel.SecondaryKey)
+		d.Set("secondary_connection_string", keyModel.SecondaryConnectionString)
+	}
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
