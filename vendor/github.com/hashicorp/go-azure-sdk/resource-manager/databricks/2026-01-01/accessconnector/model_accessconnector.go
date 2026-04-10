@@ -2,7 +2,6 @@ package accessconnector
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -14,7 +13,6 @@ type AccessConnector struct {
 	Location   string                                   `json:"location"`
 	Name       *string                                  `json:"name,omitempty"`
 	Properties *AccessConnectorProperties               `json:"properties,omitempty"`
-	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
 	Tags       *map[string]string                       `json:"tags,omitempty"`
 	Type       *string                                  `json:"type,omitempty"`
 }

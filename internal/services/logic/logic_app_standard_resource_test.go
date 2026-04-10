@@ -1323,6 +1323,7 @@ resource "azurerm_logic_app_standard" "test" {
         x_forwarded_host  = ["example.com"]
       }
     }
+    scm_ip_restriction_default_action = "Deny"
   }
 
   connection_string {
@@ -1457,6 +1458,7 @@ resource "azurerm_logic_app_standard" "test" {
         x_forwarded_host  = ["example.com"]
       }
     }
+    scm_ip_restriction_default_action = "Allow"
   }
 
   connection_string {
@@ -1721,7 +1723,8 @@ resource "azurerm_logic_app_standard" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    min_tls_version = 1.2
+    min_tls_version               = 1.2
+    ip_restriction_default_action = "Allow"
     ip_restriction {
       ip_address = "10.10.10.10/32"
       name       = "test-restriction"
