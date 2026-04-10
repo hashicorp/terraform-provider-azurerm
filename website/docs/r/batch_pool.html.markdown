@@ -292,7 +292,7 @@ A `container` block supports the following:
 * `registry` - (Optional) The `container_registries` block defined as below.
 
 * `working_directory` - (Optional) A flag to indicate where the container task working directory is. Possible values are `TaskWorkingDirectory` and `ContainerImageDefault`.
-  
+
 * `bind_mount` - (Optional) One or more `bind_mount` blocks that describe the entry of path and mount mode you want to mount into task container.
 
 ---

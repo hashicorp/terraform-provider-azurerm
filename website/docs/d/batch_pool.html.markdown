@@ -166,6 +166,7 @@ A `container` block exports the following:
 * `working_directory` - A flag to indicate where the container task working directory is.
 
 * `bind_mount` - One or more `bind_mount` blocks that describe the entry of path and mount mode you want to mount into task container.
+
 ---
 
 A `user_identity` block exports the following:
