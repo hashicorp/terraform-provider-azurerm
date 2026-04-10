@@ -3410,7 +3410,7 @@ func (c *ContainerTemplate) flattenContainerAppScaleRules(input *[]containerapps
 					Name:           pointer.From(v.Name),
 					Metadata:       pointer.From(r.Metadata),
 					CustomRuleType: pointer.From(r.Type),
-					Identity:       pointer.From(r.IdentityID),
+					IdentityID:       pointer.From(r.Identity),
 				}
 
 				authentications := make([]ScaleRuleAuthentication, 0)
