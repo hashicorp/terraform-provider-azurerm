@@ -30,6 +30,14 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_account" "example-deployment" {
+  name                     = "exampleappdeploysa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_storage_container" "example" {
   name                  = "example-flexcontainer"
   storage_account_id    = azurerm_storage_account.example.id
@@ -50,14 +58,22 @@ resource "azurerm_function_app_flex_consumption" "example" {
   location            = azurerm_resource_group.example.location
   service_plan_id     = azurerm_service_plan.example.id
 
-  storage_container_type      = "blobContainer"
-  storage_container_endpoint  = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"
-  storage_authentication_type = "StorageAccountConnectionString"
-  storage_access_key          = azurerm_storage_account.example.primary_access_key
-  runtime_name                = "node"
-  runtime_version             = "20"
-  maximum_instance_count      = 50
-  instance_memory_in_mb       = 2048
+  backend_storage {
+    name       = azurerm_storage_account.test.name
+    access_key = azurerm_storage_account.test.primary_access_key
+  }
+
+  deployment_storage {
+    container_type            = "blobContainer"
+    container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+    authentication_type       = "UserAssignedIdentity"
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
+  runtime_name           = "node"
+  runtime_version        = "20"
+  maximum_instance_count = 50
+  instance_memory_in_mb  = 2048
 
   site_config {}
 }
@@ -75,13 +91,29 @@ The following arguments are supported:
 
 * `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App. Changing this forces a new Linux Function App to be created.
 
+* `backend_storage` - (Required) A `backend_storage` block as defined below.
+
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity). Defaults to `SystemAssigned`.
+
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
+* `storage_container_type` - (Required) The type of storage container used to host the application deployment package. The only supported value is `blobContainer`. This property is deprecated in favour of the `deployment_storage.storage_container_type` block and will be removed in v5.0 of the AzureRM Provider.
 
-* `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
+* `storage_container_endpoint` - (Required) The endpoint of the storage container that hosts the application deployment package. This property is deprecated in favour of the `deployment_storage.storage_container_endpoint` block and will be removed in v5.0 of the AzureRM Provider.
 
-* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
+* `storage_authentication_type` - (Required) The authentication method used by the Function App runtime to access the deployment storage. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`. This property is deprecated in favour of `deployment_storage.authentication_type` and will be removed in v5.0 of the AzureRM Provider.
+
+* `storage_access_key` - (Optional) The storage account connection string used to access the deployment storage. This property is deprecated in favour of `deployment_storage.access_key` and will be removed in v5.0 of the AzureRM Provider.
+
+~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
+
+~> **Note:** When specified, the value of `storage_access_key` is exposed to the app as the environment variable `DEPLOYMENT_STORAGE_CONNECTION_STRING`.
+
+* `storage_user_assigned_identity_id` - (Optional) The resource ID of the user-assigned managed identity used to access the deployment storage. Conflicts with `storage_access_key`. This property is deprecated in favour of `deployment_storage.user_assigned_identity_id` and will be removed in v5.0 of the AzureRM Provider.
+
+~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
+
+* `deployment_storage` - - (Required) A `deployment_storage` block as defined below.
 
 * `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
 
@@ -99,13 +131,13 @@ The following arguments are supported:
 
 ~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
-~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
+~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption Function App, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `auth_settings_v2` - (Optional) An `auth_settings_v2` block as defined below.
 
-* `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
+* `client_certificate_enabled` - (Optional) Should the Function App use Client Certificates.
 
 * `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Optional`.
 
@@ -117,19 +149,11 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
-* `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
+* `https_only` - (Optional) Is Https Connection enforced to the Function App. Defaults to `false`
 
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
-
-* `storage_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App.
-
-~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
-
-* `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_access_key`.
-
-~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
 * `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
 
@@ -156,6 +180,40 @@ The following arguments are supported:
 * `zip_deploy_file` - (Optional) The local path and filename of the Zip packaged application to deploy to this Linux Function App.
 
 ~> **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`. Refer to the [Azure docs](https://learn.microsoft.com/en-us/azure/azure-functions/functions-deployment-technologies) for further details.
+
+---
+
+A `backend_storage` block supports the following:
+
+* `name` - (Required) The name of the Function App backend runtime to access the deployment backend storage.
+
+* `access_key` - (Optional) The access key used by the Function App backend runtime to access the deployment backend storage. Conflicts with `managed_identity_access_enabled`.
+
+* `managed_identity_access_enabled` - (Optional) Indicates whether a managed identity is used by the Function App backend runtime to access the deployment backend storage. Conflicts with `access_key`.
+
+~> **Note:** One of `access_key` or `managed_identity_access_enabled` must be specified when using `name`.
+
+* `key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account, which used by Function App backend runtime.
+
+~> **Note:** `key_vault_secret_id` cannot be used with `storage_account_name`.
+
+~> **Note:** `key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
+
+---
+
+A `deployment_storage` block supports the following:
+
+* `container_type` - (Required) The type of storage container used to host the application deployment package. The current supported value is `blobContainer`.
+
+* `container_endpoint` - (Required) The endpoint of the storage container that hosts the application deployment package.
+
+* `authentication_type` - (Required) The authentication method used by the Function App runtime to access the deployment storage. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
+
+* `access_key` - (Optional) The storage account connection string used to access the deployment storage. This must be specified when `authentication_type` is set to `StorageAccountConnectionString`. Conflicts with `user_assigned_identity_id`.
+
+~> **Note:** When specified, the value of `access_key` is exposed to the app as the environment variable `DEPLOYMENT_STORAGE_CONNECTION_STRING`.
+
+* `user_assigned_identity_id` - (Optional) The resource ID of the user-assigned managed identity used to access the deployment storage. This can only be specified when `authentication_type` is set to `UserAssignedIdentity`. Conflicts with `access_key`.
 
 ---
 
