@@ -81,7 +81,7 @@ service/consumption:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_consumption_budget_((.|\n)*)###'
 
 service/container-apps:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_container_app((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(container_app\W+|container_app_custom_domain\W+|container_app_environment\W+|container_app_environment_certificate\W+|container_app_environment_custom_domain\W+|container_app_environment_dapr_component\W+|container_app_environment_storage\W+|container_app_job\W+)((.|\n)*)###'
 
 service/cosmosdb:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cosmosdb_((.|\n)*)###'
@@ -309,7 +309,7 @@ service/service-bus:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_servicebus_((.|\n)*)###'
 
 service/service-connector:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_connection|function_app_connection|spring_cloud_connection)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_connection|container_app_connection|function_app_connection|spring_cloud_connection)((.|\n)*)###'
 
 service/service-fabric:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_service_fabric_cluster((.|\n)*)###'
