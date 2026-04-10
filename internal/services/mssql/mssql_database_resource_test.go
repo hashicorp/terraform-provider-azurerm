@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
 	"github.com/hashicorp/go-uuid"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -75,7 +76,7 @@ func TestAccMsSqlDatabase_free(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.freeTier(data),
+			Config: r.freeTierBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1375,7 +1376,7 @@ resource "azurerm_mssql_database" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MssqlDatabaseResource) freeTier(data acceptance.TestData) string {
+func (r MssqlDatabaseResource) freeTierBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -2769,4 +2770,110 @@ resource "azurerm_mssql_database" "test" {
   max_size_gb = %[3]f
 }
 `, r.template(data), data.RandomInteger, maxSizeGb)
+}
+
+func TestAccMsSqlDatabase_freeTierBillOverUsageToAutoPauseError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.freeTier(data, "BillOverUsage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.freeTier(data, "AutoPause"),
+			ExpectError: regexp.MustCompile("`free_limit_exhaustion_behavior` cannot be changed from `BillOverUsage` to `AutoPause`"),
+		},
+	})
+}
+
+func TestAccMsSqlDatabase_freeTierExhaustionBehaviorRequiresFreeLimitError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.freeTierExhaustionBehaviorWithoutFreeLimit(data),
+			ExpectError: regexp.MustCompile(`"free_limit_exhaustion_behavior": all of .* must be specified`),
+		},
+	})
+}
+
+func TestAccMsSqlDatabase_freeTier(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.freeTier(data, "AutoPause"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Free"),
+				check.That(data.ResourceName).Key("use_free_limit").HasValue("true"),
+				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("AutoPause"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.freeTier(data, "BillOverUsage"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("free_limit_exhaustion_behavior").HasValue("BillOverUsage"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMsSqlDatabase_freeTierWithoutExhaustionBehavior(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "test")
+	r := MssqlDatabaseResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.freeTierBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Free"),
+				check.That(data.ResourceName).Key("use_free_limit").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r MssqlDatabaseResource) freeTierExhaustionBehaviorWithoutFreeLimit(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  sku_name                       = "Free"
+  free_limit_exhaustion_behavior = "AutoPause"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlDatabaseResource) freeTier(data acceptance.TestData, exhaustionBehavior string) string {
+	storageAccountType := "Geo"
+	if exhaustionBehavior == "AutoPause" {
+		storageAccountType = "Local"
+	}
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_mssql_database" "test" {
+  name                           = "acctest-db-%[2]d"
+  server_id                      = azurerm_mssql_server.test.id
+  sku_name                       = "Free"
+  use_free_limit                 = true
+  free_limit_exhaustion_behavior = "%[3]s"
+  storage_account_type           = "%[4]s"
+}
+`, r.template(data), data.RandomInteger, exhaustionBehavior, storageAccountType)
 }
