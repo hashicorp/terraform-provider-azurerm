@@ -213,16 +213,12 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.NoZeroValues,
 		},
 
-		// Once this property is set, it can not be removed.
+		// Once this property is set, it can not be removed while identity is UserAssigned.
 		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/37553
 		"key_vault_reference_identity_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true, // When the `identity` is specified as `SystemAssigned`, the service will add `SystemAssigned` to this `key_vault_reference_identity_id` property.
-			ValidateFunc: validation.Any(
-				commonids.ValidateUserAssignedIdentityID,
-				validation.StringInSlice([]string{"SystemAssigned"}, false),
-			),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 		},
 
 		"public_network_access": {
@@ -335,13 +331,24 @@ func (r LogicAppResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// Since `key_vault_reference_identity_id` is O+C, if it's removed from the config, the value get below is still the old value.
+			// If `key_vault_reference_identity_id` is not set in config, check if ForceNew is needed
 			if metadata.ResourceDiff.GetRawConfig().GetAttr("key_vault_reference_identity_id").IsNull() {
+				// If it was previously set and identity is purely UserAssigned, ForceNew is required
+				// because the API does not support unsetting this property
+				old, _ := metadata.ResourceDiff.GetChange("key_vault_reference_identity_id")
+				if old.(string) != "" {
+					identityType := metadata.ResourceDiff.Get("identity.0.type").(string)
+					if strings.EqualFold(identityType, "UserAssigned") {
+						if err := metadata.ResourceDiff.ForceNew("key_vault_reference_identity_id"); err != nil {
+							return err
+						}
+					}
+				}
 				return nil
 			}
 
 			keyVaultReferenceIdentityId := metadata.ResourceDiff.Get("key_vault_reference_identity_id").(string)
-			if keyVaultReferenceIdentityId == "" || strings.EqualFold(keyVaultReferenceIdentityId, "SystemAssigned") {
+			if keyVaultReferenceIdentityId == "" {
 				return nil
 			}
 
@@ -616,7 +623,9 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
-					state.KeyvaultReferenceIdentityId = pointer.From(props.KeyVaultReferenceIdentity)
+					if kvRefId := pointer.From(props.KeyVaultReferenceIdentity); !strings.EqualFold(*kvRefId, "SystemAssigned") {
+						state.KeyvaultReferenceIdentityId = kvRefId
+					}
 					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
 					if !features.FivePointOh() {
 						if pointer.From(props.ClientCertEnabled) {
@@ -887,7 +896,7 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 				existing.Model.Identity = expandedIdentity
 			}
 
-			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") {
+			if metadata.ResourceData.HasChange("key_vault_reference_identity_id") && data.KeyvaultReferenceIdentityId != "" {
 				siteEnvelope.KeyVaultReferenceIdentity = pointer.To(data.KeyvaultReferenceIdentityId)
 			}
 
