@@ -374,6 +374,7 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
 
 func (r CdnFrontDoorSecurityPolicyResource) invalidName(data acceptance.TestData) string {
 	template := r.template(data)
+	// lintignore:AZNR007
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

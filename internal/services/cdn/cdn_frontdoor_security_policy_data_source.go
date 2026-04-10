@@ -143,8 +143,9 @@ func dataSourceCdnFrontDoorSecurityPolicyRead(d *pluginsdk.ResourceData, meta in
 }
 
 func flattenCdnFrontDoorSecurityPolicyDataSource(input securitypolicies.SecurityPolicyPropertiesParameters) ([]interface{}, error) {
+	results := make([]interface{}, 0)
 	if input.SecurityPolicyPropertiesParameters().Type != securitypolicies.SecurityPolicyTypeWebApplicationFirewall {
-		return nil, fmt.Errorf("unexpected security policy `Type` %q, expected `WebApplicationFirewall`", input.SecurityPolicyPropertiesParameters().Type)
+		return results, fmt.Errorf("unexpected security policy `Type` %q, expected `WebApplicationFirewall`", input.SecurityPolicyPropertiesParameters().Type)
 	}
 
 	wafParams := input.(securitypolicies.SecurityPolicyWebApplicationFirewallParameters)
@@ -154,7 +155,7 @@ func flattenCdnFrontDoorSecurityPolicyDataSource(input securitypolicies.Security
 	if wafParams.WafPolicy != nil {
 		parsedId, err := waf.ParseFrontDoorWebApplicationFirewallPolicyIDInsensitively(pointer.From(wafParams.WafPolicy.Id))
 		if err != nil {
-			return nil, fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
+			return results, fmt.Errorf("flattening `cdn_frontdoor_firewall_policy_id`: %+v", err)
 		}
 
 		wafPolicyId = parsedId.ID()
@@ -164,7 +165,7 @@ func flattenCdnFrontDoorSecurityPolicyDataSource(input securitypolicies.Security
 		for _, item := range *wafParams.Associations {
 			domain, err := flattenSecurityPoliciesActivatedResourceReference(item.Domains)
 			if err != nil {
-				return nil, fmt.Errorf("flattening `domain`: %+v", err)
+				return results, fmt.Errorf("flattening `domain`: %+v", err)
 			}
 
 			associations = append(associations, map[string]interface{}{
@@ -174,7 +175,7 @@ func flattenCdnFrontDoorSecurityPolicyDataSource(input securitypolicies.Security
 		}
 	}
 
-	return []interface{}{
+	results = []interface{}{
 		map[string]interface{}{
 			"firewall": []interface{}{
 				map[string]interface{}{
@@ -183,5 +184,7 @@ func flattenCdnFrontDoorSecurityPolicyDataSource(input securitypolicies.Security
 				},
 			},
 		},
-	}, nil
+	}
+
+	return results, nil
 }
