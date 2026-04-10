@@ -965,31 +965,8 @@ func resourceVirtualNetworkGatewayUpdate(d *pluginsdk.ResourceData, meta interfa
 		payload.Properties.AllowVirtualWanTraffic = pointer.To(d.Get("virtual_wan_traffic_enabled").(bool))
 	}
 
-	if payload.Properties.AutoScaleConfiguration == nil {
-		payload.Properties.AutoScaleConfiguration = &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleConfiguration{}
-	}
-	if payload.Properties.AutoScaleConfiguration.Bounds == nil {
-		payload.Properties.AutoScaleConfiguration.Bounds = &virtualnetworkgateways.VirtualNetworkGatewayAutoScaleBounds{}
-	}
-
-	if d.HasChange("minimum_scale_unit") {
-		if v, ok := d.GetOk("minimum_scale_unit"); ok {
-			payload.Properties.AutoScaleConfiguration.Bounds.Min = pointer.To(int64(v.(int)))
-		} else {
-			payload.Properties.AutoScaleConfiguration.Bounds.Min = nil
-		}
-	}
-
-	if d.HasChange("maximum_scale_unit") {
-		if v, ok := d.GetOk("maximum_scale_unit"); ok {
-			payload.Properties.AutoScaleConfiguration.Bounds.Max = pointer.To(int64(v.(int)))
-		} else {
-			payload.Properties.AutoScaleConfiguration.Bounds.Max = nil
-		}
-	}
-
-	if payload.Properties.AutoScaleConfiguration.Bounds.Min == nil && payload.Properties.AutoScaleConfiguration.Bounds.Max == nil {
-		payload.Properties.AutoScaleConfiguration = nil
+	if d.HasChanges("minimum_scale_unit", "maximum_scale_unit") {
+		payload.Properties.AutoScaleConfiguration = expandVirtualNetworkGatewayAutoScaleConfiguration(d)
 	}
 
 	if d.HasChange("tags") {
