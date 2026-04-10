@@ -35,9 +35,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = AIServices{}
+func (r AIServices) DeprecatedInFavourOfResource() string {
+	return "azurerm_cognitive_account"
+}
 
-var _ sdk.ResourceWithCustomImporter = AIServices{}
+var (
+	_ sdk.ResourceWithUpdate                = AIServices{}
+	_ sdk.ResourceWithCustomImporter        = AIServices{}
+	_ sdk.ResourceWithDeprecationReplacedBy = AIServices{}
+)
 
 type AIServices struct{}
 
