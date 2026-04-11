@@ -303,7 +303,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
+			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App.",
 		},
 
 		"tags": commonschema.Tags(),
@@ -592,7 +592,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 			}
 
 			if functionAppFlexConsumption.ZipDeployFile != "" {
-				if err = helpers.GetCredentialsAndPublish(ctx, client, id, functionAppFlexConsumption.ZipDeployFile); err != nil {
+				if err = helpers.GetCredentialsAndPublishFlexConsumption(ctx, client, id, functionAppFlexConsumption.ZipDeployFile); err != nil {
 					return err
 				}
 			}
@@ -1063,7 +1063,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("zip_deploy_file") {
-				if err = helpers.GetCredentialsAndPublish(ctx, client, *id, state.ZipDeployFile); err != nil {
+				if err = helpers.GetCredentialsAndPublishFlexConsumption(ctx, client, *id, state.ZipDeployFile); err != nil {
 					return err
 				}
 			}
