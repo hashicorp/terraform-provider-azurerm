@@ -33,12 +33,14 @@ func (r Registration) Name() string {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		LoadTestDataSource{},
+		PlaywrightWorkspaceDataSource{},
 	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		LoadTestResource{},
+		PlaywrightWorkspaceResource{},
 	}
 }
 
