@@ -209,6 +209,6 @@ terraform import azurerm_cognitive_account.account1 /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CognitiveServices` - 2025-06-01
+* `Microsoft.CognitiveServices` - 2025-12-01
 
 * `Microsoft.Network` - 2025-01-01
