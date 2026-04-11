@@ -127,6 +127,17 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 				tmpReg,
 			}
 		}
+		if startTask.ContainerSettings.ContainerHostBatchBindMounts != nil {
+			tempDirectoryMounts := make([]interface{}, 0, len(*startTask.ContainerSettings.ContainerHostBatchBindMounts))
+			for _, directoryMount := range *startTask.ContainerSettings.ContainerHostBatchBindMounts {
+				m := map[string]interface{}{
+					"source":            pointer.FromEnum(directoryMount.Source),
+					"read_only_enabled": pointer.From(directoryMount.IsReadOnly),
+				}
+				tempDirectoryMounts = append(tempDirectoryMounts, m)
+			}
+			containerSettings["bind_mount"] = tempDirectoryMounts
+		}
 
 		result["container"] = []interface{}{
 			containerSettings,
@@ -576,6 +587,22 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 	return &containerRegistry, nil
 }
 
+func expandBatchPoolContainerBindMounts(list []interface{}) *[]pool.ContainerHostBatchBindMountEntry {
+	result := make([]pool.ContainerHostBatchBindMountEntry, 0, len(list))
+
+	for _, temp := range list {
+		if item, ok := temp.(map[string]interface{}); ok {
+			entry := pool.ContainerHostBatchBindMountEntry{
+				Source:     pointer.ToEnum[pool.ContainerHostDataPath](item["source"].(string)),
+				IsReadOnly: pointer.To(item["read_only_enabled"].(bool)),
+			}
+			result = append(result, entry)
+		}
+	}
+
+	return &result
+}
+
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
 func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.CertificateReference, error) {
 	result := make([]pool.CertificateReference, 0, len(list))
@@ -744,6 +771,9 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 			}
 			if workingDir, ok := settingMap["working_directory"]; ok {
 				containerSettings.WorkingDirectory = pointer.To(pool.ContainerWorkingDirectory(workingDir.(string)))
+			}
+			if bindMounts, ok := settingMap["bind_mount"].([]interface{}); ok && len(bindMounts) > 0 {
+				containerSettings.ContainerHostBatchBindMounts = expandBatchPoolContainerBindMounts(bindMounts)
 			}
 		}
 		startTask.ContainerSettings = &containerSettings

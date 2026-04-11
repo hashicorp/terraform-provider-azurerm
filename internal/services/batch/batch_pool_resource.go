@@ -1097,6 +1097,15 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			if d.HasChange("data_disks") {
 				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
 			}
+			// ContainerRegistries from the GET response omits sensitive fields (e.g. passwords), so always
+			// repopulate from config to avoid a MissingRequiredProperty error from the API.
+			if v, ok := d.GetOk("container_configuration"); ok {
+				if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{})); err == nil {
+					parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration = containerConfiguration
+				} else {
+					return fmt.Errorf("expanding `container_configuration` for %s: %+v", *id, err)
+				}
+			}
 		}
 	}
 
@@ -1543,6 +1552,24 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 							string(pool.ContainerWorkingDirectoryTaskWorkingDirectory),
 							string(pool.ContainerWorkingDirectoryContainerImageDefault),
 						}, false),
+					},
+					"bind_mount": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"source": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(pool.PossibleValuesForContainerHostDataPath(), false),
+								},
+								"read_only_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  false,
+								},
+							},
+						},
 					},
 				},
 			},
