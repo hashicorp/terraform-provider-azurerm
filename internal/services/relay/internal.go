@@ -10,60 +10,93 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-func authorizationRuleSchemaFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+// Provides listen, send, manage input Arguments for resource schema
+func authorizationRuleArgumentsFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	s["listen"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
 		Default:  false,
 	}
+
 	s["send"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
 		Default:  false,
 	}
+
 	s["manage"] = &pluginsdk.Schema{
 		Type:     pluginsdk.TypeBool,
 		Optional: true,
 		Default:  false,
 	}
+
+	return s
+}
+
+// Provides listen, send, manage output Attributes for resource schema
+func authorizationRuleArgumentsComputedFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
+	s["listen"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Computed: true,
+	}
+
+	s["send"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Computed: true,
+	}
+
+	s["manage"] = &pluginsdk.Schema{
+		Type:     pluginsdk.TypeBool,
+		Computed: true,
+	}
+
+	return s
+}
+
+func authorizationRuleAttributesFrom(s map[string]*pluginsdk.Schema) map[string]*pluginsdk.Schema {
 	s["primary_key"] = &pluginsdk.Schema{
 		Type:      pluginsdk.TypeString,
 		Computed:  true,
 		Sensitive: true,
 	}
+
 	s["primary_connection_string"] = &pluginsdk.Schema{
 		Type:      pluginsdk.TypeString,
 		Computed:  true,
 		Sensitive: true,
 	}
+
 	s["secondary_key"] = &pluginsdk.Schema{
 		Type:      pluginsdk.TypeString,
 		Computed:  true,
 		Sensitive: true,
 	}
+
 	s["secondary_connection_string"] = &pluginsdk.Schema{
 		Type:      pluginsdk.TypeString,
 		Computed:  true,
 		Sensitive: true,
 	}
+
 	return s
 }
 
-func expandAuthorizationRuleRights(d *pluginsdk.ResourceData) []namespaces.AccessRights {
+func expandAuthorizationRuleRights(config RelayNamespaceAuthorizationRuleResourceModel) []namespaces.AccessRights {
 	rights := make([]namespaces.AccessRights, 0)
 
-	if d.Get("listen").(bool) {
+	if config.Listen {
 		rights = append(rights, namespaces.AccessRightsListen)
 	}
 
-	if d.Get("send").(bool) {
+	if config.Send {
 		rights = append(rights, namespaces.AccessRightsSend)
 	}
 
-	if d.Get("manage").(bool) {
+	if config.Manage {
 		rights = append(rights, namespaces.AccessRightsManage)
 	}
 
@@ -89,18 +122,18 @@ func flattenAuthorizationRuleRights(rights []namespaces.AccessRights) (listen, s
 	return listen, send, manage
 }
 
-func expandHybridConnectionAuthorizationRuleRights(d *pluginsdk.ResourceData) []hybridconnections.AccessRights {
+func expandHybridConnectionAuthorizationRuleRights(config RelayHybridConnectionAuthorizationRuleResourceModel) []hybridconnections.AccessRights {
 	rights := make([]hybridconnections.AccessRights, 0)
 
-	if d.Get("listen").(bool) {
+	if config.Listen {
 		rights = append(rights, hybridconnections.AccessRightsListen)
 	}
 
-	if d.Get("send").(bool) {
+	if config.Send {
 		rights = append(rights, hybridconnections.AccessRightsSend)
 	}
 
-	if d.Get("manage").(bool) {
+	if config.Manage {
 		rights = append(rights, hybridconnections.AccessRightsManage)
 	}
 
@@ -126,10 +159,10 @@ func flattenHybridConnectionAuthorizationRuleRights(rights []hybridconnections.A
 	return listen, send, manage
 }
 
-func authorizationRuleCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-	listen, hasListen := d.GetOk("listen")
-	send, hasSend := d.GetOk("send")
-	manage, hasManage := d.GetOk("manage")
+func authorizationRuleCustomizeDiff(ctx context.Context, metadata sdk.ResourceMetaData) error {
+	listen, hasListen := metadata.ResourceDiff.GetOk("listen")
+	send, hasSend := metadata.ResourceDiff.GetOk("send")
+	manage, hasManage := metadata.ResourceDiff.GetOk("manage")
 
 	if !hasListen && !hasSend && !hasManage {
 		return errors.New("one of the `listen`, `send` or `manage` properties needs to be set")
