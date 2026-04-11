@@ -214,6 +214,12 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `hostname` - DNS name of the cluster endpoint.
 
+* `primary_access_key` - The Primary Access Key for the Managed Redis Database Instance. Only exported if `access_keys_authentication_enabled` is set to `true`.
+
+~> **Note:** When `clustering_policy`, `geo_replication_group_name`, or `module` changes within `default_database`, the database is recreated and access keys are rotated. Use these top-level attributes instead of the nested `default_database` attributes to ensure dependent resources detect the key change in the same plan/apply cycle.
+
+* `secondary_access_key` - The Secondary Access Key for the Managed Redis Database Instance. Only exported if `access_keys_authentication_enabled` is set to `true`.
+
 ---
 
 A `default_database` block exports the following:
