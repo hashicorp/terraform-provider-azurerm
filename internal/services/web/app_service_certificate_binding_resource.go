@@ -83,8 +83,8 @@ func resourceAppServiceCertificateBinding() *pluginsdk.Resource {
 }
 
 func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
-	certClient := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
+	certClient := meta.(*clients.Client).Web.CertificatesClientV1
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -146,7 +146,7 @@ func resourceAppServiceCertificateBindingCreate(d *pluginsdk.ResourceData, meta 
 }
 
 func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -183,7 +183,7 @@ func resourceAppServiceCertificateBindingRead(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceAppServiceCertificateBindingDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).Web.AppServicesClientV1
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -81,7 +81,7 @@ func dataSourceAppServiceCertificate() *pluginsdk.Resource {
 }
 
 func dataSourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesClient
+	client := meta.(*clients.Client).Web.CertificatesClientV1
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -9,11 +9,15 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type AppServiceDataSource struct{}
 
 func TestAccDataSourceAppService_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -33,6 +37,9 @@ func TestAccDataSourceAppService_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_tags(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -47,6 +54,9 @@ func TestAccDataSourceAppService_tags(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_clientAppAffinityDisabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -60,6 +70,9 @@ func TestAccDataSourceAppService_clientAppAffinityDisabled(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_32Bit(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -73,6 +86,9 @@ func TestAccDataSourceAppService_32Bit(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_appSettings(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -86,6 +102,9 @@ func TestAccDataSourceAppService_appSettings(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_connectionString(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -99,6 +118,9 @@ func TestAccDataSourceAppService_connectionString(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_ipRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -115,6 +137,9 @@ func TestAccDataSourceAppService_ipRestriction(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_oneVNetSubnetIpRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -128,6 +153,9 @@ func TestAccDataSourceAppService_oneVNetSubnetIpRestriction(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_scmUseMainIPRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -141,6 +169,9 @@ func TestAccDataSourceAppService_scmUseMainIPRestriction(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_scmIPRestriction(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -157,6 +188,9 @@ func TestAccDataSourceAppService_scmIPRestriction(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_withSourceControl(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -170,6 +204,9 @@ func TestAccDataSourceAppService_withSourceControl(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_http2Enabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -183,6 +220,9 @@ func TestAccDataSourceAppService_http2Enabled(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_minTls(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -196,6 +236,9 @@ func TestAccDataSourceAppService_minTls(t *testing.T) {
 }
 
 func TestAccDataSourceAppService_basicWindowsContainer(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping as this data source was removed in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_app_service", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{

@@ -84,7 +84,7 @@ func (t AppServiceManagedCertificateResource) Exists(ctx context.Context, client
 		return nil, err
 	}
 
-	resp, err := clients.Web.CertificatesClient.Get(ctx, id.ResourceGroup, id.CertificateName)
+	resp, err := clients.Web.CertificatesClientV1.Get(ctx, id.ResourceGroup, id.CertificateName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return pointer.To(false), nil
