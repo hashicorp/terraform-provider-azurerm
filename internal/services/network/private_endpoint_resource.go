@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatednszonegroups"
@@ -33,7 +34,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	cosmosParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -460,7 +460,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)
@@ -473,7 +473,7 @@ func getCosmosDbResIdInPrivateServiceConnections(p *privateendpoints.PrivateEndp
 			continue
 		}
 		id := *l.Properties.PrivateLinkServiceId
-		if _, err := cosmosParse.DatabaseAccountID(id); err == nil {
+		if _, err := cosmosdb.ParseDatabaseAccountID(id); err == nil {
 			_, ok := exists[id]
 			if !ok {
 				ids = append(ids, id)

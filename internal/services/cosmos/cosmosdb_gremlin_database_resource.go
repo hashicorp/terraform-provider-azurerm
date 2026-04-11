@@ -5,7 +5,6 @@ package cosmos
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -15,7 +14,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -29,7 +27,7 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 		Delete: resourceCosmosGremlinDatabaseDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.GremlinDatabaseID(id)
+			_, err := cosmosdb.ParseGremlinDatabaseID(id)
 			return err
 		}),
 
@@ -76,11 +74,11 @@ func resourceCosmosGremlinDatabase() *pluginsdk.Resource {
 
 func resourceCosmosGremlinDatabaseCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := cosmosdb.NewGremlinDatabaseID(subscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
+	id := cosmosdb.NewGremlinDatabaseID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("account_name").(string), d.Get("name").(string))
 
 	existing, err := client.GremlinResourcesGetGremlinDatabase(ctx, id)
 	if err != nil {
@@ -133,7 +131,7 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 
 	err = common.CheckForChangeFromAutoscaleAndManualThroughput(d)
 	if err != nil {
-		return fmt.Errorf("updating Cosmos Gremlin Database %q (Account: %q) - %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+		return fmt.Errorf("checking `autoscale_settings` and `throughput` for %s: %w", id, err)
 	}
 
 	db := cosmosdb.GremlinDatabaseCreateUpdateParameters{
@@ -151,22 +149,9 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	if common.HasThroughputChange(d) {
-		throughputParameters := common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)
-		throughputFuture, err := client.GremlinResourcesUpdateGremlinDatabaseThroughput(ctx, *id, *throughputParameters)
-		if err != nil {
-			if response.WasNotFound(throughputFuture.HttpResponse) {
-				return fmt.Errorf("setting Throughput for Cosmos Gremlin Database %q (Account: %q): %+v - "+
-					"If the collection has not been created with and initial throughput, you cannot configure it later", id.GremlinDatabaseName, id.DatabaseAccountName, err)
-			}
+		if err := client.GremlinResourcesUpdateGremlinDatabaseThroughputThenPoll(ctx, *id, common.ExpandCosmosDBThroughputSettingsUpdateParameters(d)); err != nil {
+			return fmt.Errorf("setting Throughput for %s: %+v - If the collection has not been created with and initial throughput, you cannot configure it later", id, err)
 		}
-
-		if err := throughputFuture.Poller.PollUntilDone(ctx); err != nil {
-			return fmt.Errorf("waiting on ThroughputUpdate future for Cosmos Gremlin Database %q (Account: %q, Database %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
-		}
-	}
-
-	if _, err = client.GremlinResourcesGetGremlinDatabase(ctx, *id); err != nil {
-		return fmt.Errorf("making get request for Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
 	}
 
 	return resourceCosmosGremlinDatabaseRead(d, meta)
@@ -174,7 +159,6 @@ func resourceCosmosGremlinDatabaseUpdate(d *pluginsdk.ResourceData, meta interfa
 
 func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cosmos.CosmosDBClient
-	accClient := meta.(*clients.Client).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,34 +170,28 @@ func resourceCosmosGremlinDatabaseRead(d *pluginsdk.ResourceData, meta interface
 	resp, err := client.GremlinResourcesGetGremlinDatabase(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[INFO] Error reading %q - removing from state", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("reading %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("account_name", id.DatabaseAccountName)
-	if model := resp.Model; model != nil {
-		if props := model.Properties; props != nil {
-			if res := props.Resource; res != nil {
-				d.Set("name", res.Id)
-			}
-		}
-	}
+	d.Set("name", id.GremlinDatabaseName)
 
-	accResp, err := accClient.Get(ctx, id.ResourceGroupName, id.DatabaseAccountName)
+	databaseAccountID := cosmosdb.NewDatabaseAccountID(id.SubscriptionId, id.ResourceGroupName, id.DatabaseAccountName)
+	accResp, err := client.DatabaseAccountsGet(ctx, databaseAccountID)
 	if err != nil {
-		return fmt.Errorf("reading Cosmos Account %q : %+v", id.DatabaseAccountName, err)
+		return fmt.Errorf("retrieving %s: %+v", databaseAccountID, err)
 	}
 
-	if !isServerlessCapacityMode(accResp) {
+	if !isServerlessCapacityMode(accResp.Model) {
 		throughputResp, err := client.GremlinResourcesGetGremlinDatabaseThroughput(ctx, *id)
 		if err != nil {
 			if !response.WasNotFound(throughputResp.HttpResponse) {
-				return fmt.Errorf("reading Throughput on Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+				return fmt.Errorf("retrieving Throughput for %s: %+v", id, err)
 			} else {
 				d.Set("throughput", nil)
 				d.Set("autoscale_settings", nil)
@@ -238,7 +216,7 @@ func resourceCosmosGremlinDatabaseDelete(d *pluginsdk.ResourceData, meta interfa
 
 	err = client.GremlinResourcesDeleteGremlinDatabaseThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting Cosmos Gremlin Database %q (Account: %q): %+v", id.GremlinDatabaseName, id.DatabaseAccountName, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
