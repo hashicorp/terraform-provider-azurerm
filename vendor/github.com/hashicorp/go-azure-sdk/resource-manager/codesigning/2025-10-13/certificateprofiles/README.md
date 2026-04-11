@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/certificateprofiles` Documentation
 
-The `certificateprofiles` SDK allows for interaction with Azure Resource Manager `codesigning` (API Version `2024-09-30-preview`).
+The `certificateprofiles` SDK allows for interaction with Azure Resource Manager `codesigning` (API Version `2025-10-13`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2025-10-13/certificateprofiles"
 ```
 
 
