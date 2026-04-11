@@ -19,6 +19,9 @@ import (
 
 type CustomCertSignalrServiceResource struct{}
 
+// Alias retained for generated identity test naming.
+type SignalrServiceCustomCertificateResource = CustomCertSignalrServiceResource
+
 func TestAccCustomCertSignalrService_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_signalr_service_custom_certificate", "test")
 	r := CustomCertSignalrServiceResource{}
