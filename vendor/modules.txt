@@ -166,6 +166,16 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
+# github.com/hashicorp/go-azure-sdk/data-plane v0.20260407.1111603
+## explicit; go 1.25.5
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/documents
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/indexers
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/indexes
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/service
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/skillsets
+github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/synonymmaps
 # github.com/hashicorp/go-azure-sdk/resource-manager v0.20260407.1111603
 ## explicit; go 1.25.5
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices

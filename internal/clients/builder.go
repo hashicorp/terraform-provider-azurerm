@@ -51,7 +51,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 		return nil, errors.New(azureStackEnvironmentError)
 	}
 
-	var resourceManagerAuth, storageAuth, synapseAuth, batchManagementAuth, keyVaultAuth auth.Authorizer
+	var resourceManagerAuth, storageAuth, synapseAuth, batchManagementAuth, keyVaultAuth, searchAuth auth.Authorizer
 
 	resourceManagerAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.ResourceManager)
 	if err != nil {
@@ -66,6 +66,15 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	keyVaultAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.KeyVault)
 	if err != nil {
 		return nil, fmt.Errorf("unable to build authorizer for Key Vault API: %+v", err)
+	}
+
+	if builder.AuthConfig.Environment.Search.Available() {
+		searchAuth, err = auth.NewAuthorizerFromCredentials(ctx, *builder.AuthConfig, builder.AuthConfig.Environment.Search)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build authorizer for Search API: %+v", err)
+		}
+	} else {
+		log.Printf("[DEBUG] Skipping building the Search Authorizer since this is not supported in the current Azure Environment")
 	}
 
 	if builder.AuthConfig.Environment.Synapse.Available() {
@@ -126,6 +135,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 			KeyVault:        keyVaultAuth,
 			ManagedHSM:      managedHSMAuth,
 			ResourceManager: resourceManagerAuth,
+			Search:          searchAuth,
 			Storage:         storageAuth,
 			Synapse:         synapseAuth,
 			AuthorizerFunc:  authorizerFunc,
