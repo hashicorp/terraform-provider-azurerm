@@ -70,7 +70,7 @@ A `content_filter` block supports the following:
 
 * `block_enabled` - (Required) Whether the filter should block content. Possible values are `true` or `false`.
 
-* `severity_threshold` - (Required) The severity threshold for the filter. Possible values are `Low`, `Medium` or `High`.
+* `severity_threshold` - (Optional) The severity threshold for the filter. Possible values are `Low`, `Medium` or `High`. This is not applicable for filter types such as `Jailbreak`, `Indirect Attack`, `Protected Material Text`, and `Protected Material Code`.
 
 * `source` - (Required) Content source to apply the content filter. Possible values are `Prompt` or `Completion`.
 
