@@ -4,7 +4,9 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -206,6 +208,13 @@ func resourceDataFactoryTriggerCustomEventCreateUpdate(d *pluginsdk.ResourceData
 	}
 
 	if d.Get("activated").(bool) {
+		// After creation, the EventGrid subscription may still be provisioning.
+		// We need to wait for it to become "Enabled" before starting the trigger,
+		// otherwise Azure returns "Resource cannot be updated during provisioning".
+		if err := waitForEventSubscriptionEnabled(ctx, client, id); err != nil {
+			return err
+		}
+
 		future, err := client.Start(ctx, id.ResourceGroup, id.FactoryName, id.Name)
 		if err != nil {
 			return fmt.Errorf("starting %s: %+v", id, err)
@@ -293,4 +302,31 @@ func resourceDataFactoryTriggerCustomEventDelete(d *pluginsdk.ResourceData, meta
 	}
 
 	return nil
+}
+
+func waitForEventSubscriptionEnabled(ctx context.Context, client *datafactory.TriggersClient, id parse.TriggerId) error {
+	pollInterval := 10 * time.Second
+	timeout := time.After(5 * time.Minute)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("waiting for event subscription of %s to become enabled: %+v", id, ctx.Err())
+		case <-timeout:
+			return fmt.Errorf("timed out waiting for event subscription of %s to become enabled", id)
+		default:
+		}
+
+		resp, err := client.GetEventSubscriptionStatus(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+		if err != nil {
+			return fmt.Errorf("polling event subscription status for %s: %+v", id, err)
+		}
+
+		if resp.Status == datafactory.EventSubscriptionStatusEnabled {
+			return nil
+		}
+
+		log.Printf("[DEBUG] Event subscription for %s is %q, waiting for 'Enabled'...", id, resp.Status)
+		time.Sleep(pollInterval)
+	}
 }
