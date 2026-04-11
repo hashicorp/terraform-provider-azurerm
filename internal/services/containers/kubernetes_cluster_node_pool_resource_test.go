@@ -1050,7 +1050,14 @@ func TestAccKubernetesClusterNodePool_workloadRuntime(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("temporary_name_for_rotation"),
+		{
+			Config: r.workloadRuntime(data, "KataVmIsolation"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("temporary_name_for_rotation"),
 	})
 }
 
@@ -3266,10 +3273,12 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
-  name                  = "internal"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  vm_size               = "Standard_D2s_v3"
-  workload_runtime      = "%s"
+  name                        = "internal"
+  kubernetes_cluster_id       = azurerm_kubernetes_cluster.test.id
+  vm_size                     = "Standard_D4s_v3"
+  temporary_name_for_rotation = "temporalname"
+  os_sku                      = "AzureLinux"
+  workload_runtime            = "%s"
   upgrade_settings {
     max_surge = "10%%"
   }
