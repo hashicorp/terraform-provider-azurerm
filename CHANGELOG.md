@@ -62,6 +62,8 @@ ENHANCEMENTS:
 * `azurerm_nat_gateway` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
 * `azurerm_public_ip` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
 * `azurerm_public_ip_prefix` - add support for the `StandardV2` SKU ([#31197](https://github.com/hashicorp/terraform-provider-azurerm/issues/31197))
+* `azurerm_linux_virtual_machine` - add support for the `os_disk.0.tier` property ([#20723](https://github.com/hashicorp/terraform-provider-azurerm/issues/20723))
+* `azurerm_windows_virtual_machine` - add support for the `os_disk.0.tier` property ([#20723](https://github.com/hashicorp/terraform-provider-azurerm/issues/20723))
 
 BUG FIXES:
 

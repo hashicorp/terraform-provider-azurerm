@@ -250,6 +250,12 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
+				"tier": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
 				"id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -320,6 +326,10 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 		disk.Name = pointer.To(name)
 	}
 
+	if tier := raw["tier"].(string); tier != "" {
+		disk.Tier = pointer.To(tier)
+	}
+
 	return &disk, nil
 }
 
@@ -356,6 +366,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	secureVMDiskEncryptionSetId := ""
 	securityEncryptionType := ""
 	osDiskId := ""
+	tier := ""
 
 	if input.ManagedDisk != nil {
 		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
@@ -393,6 +404,11 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 				if disk.Model.Properties.Encryption != nil && disk.Model.Properties.Encryption.DiskEncryptionSetId != nil {
 					diskEncryptionSetId = *disk.Model.Properties.Encryption.DiskEncryptionSetId
 				}
+
+				// same goes for tier
+				if disk.Model.Properties.Tier != nil {
+					tier = *disk.Model.Properties.Tier
+				}
 			}
 
 			osDiskId = id.ID()
@@ -421,6 +437,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
 			"security_encryption_type":         securityEncryptionType,
+			"tier":                             tier,
 			"write_accelerator_enabled":        writeAcceleratorEnabled,
 		},
 	}, nil
