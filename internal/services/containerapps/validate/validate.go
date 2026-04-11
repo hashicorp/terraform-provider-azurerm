@@ -173,6 +173,20 @@ func LowerCaseAlphaNumericWithHyphensAndPeriods(i interface{}, k string) (warnin
 	return
 }
 
+func HttpRouteConfigName(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if matched := regexp.MustCompile(`^[a-z][a-z0-9]{2,62}$`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q must be between 3 and 63 characters, consist of lower case letters and digits, and start with a letter, got %q", k, v))
+	}
+
+	return
+}
+
 func ContainerAppScaleRuleConcurrentRequests(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {

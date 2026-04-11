@@ -325,6 +325,57 @@ func TestContainerAppScaleRuleConcurrentRequests(t *testing.T) {
 	}
 }
 
+func TestValidateHttpRouteConfigName(t *testing.T) {
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{
+			Input: "",
+		},
+		{
+			Input: "ab",
+		},
+		{
+			Input: "9abc",
+		},
+		{
+			Input: "a-b",
+		},
+		{
+			Input: "Abc",
+		},
+		{
+			Input: "a_b",
+		},
+		{
+			Input: "abc",
+			Valid: true,
+		},
+		{
+			Input: "route1",
+			Valid: true,
+		},
+		{
+			Input: "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabc",
+			Valid: true,
+		},
+		{
+			Input: "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcd",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Logf("[DEBUG] Testing Value %s", tc.Input)
+		_, errors := HttpRouteConfigName(tc.Input, "test")
+		valid := len(errors) == 0
+
+		if tc.Valid != valid {
+			t.Fatalf("Expected %t but got %t for %s: %+v", tc.Valid, valid, tc.Input, errors)
+		}
+	}
+}
+
 func TestValidateContainerAppName(t *testing.T) {
 	// From Portal: Value must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters.
 	cases := []struct {
