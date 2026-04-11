@@ -6,6 +6,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -44,6 +45,17 @@ func TestAccCdnFrontDoorSecurityPolicy_basicEndpoint(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorSecurityPolicy_validate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_security_policy", "test")
+	r := CdnFrontDoorSecurityPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.invalidName(data),
+			ExpectError: regexp.MustCompile(`must begin and end with an alphanumeric character, and may contain only alphanumeric characters and hyphens`),
+		},
 	})
 }
 
@@ -350,6 +362,37 @@ resource "azurerm_cdn_frontdoor_security_policy" "test" {
       association {
         domain {
           cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_endpoint.test.id
+        }
+
+        patterns_to_match = ["/*"]
+      }
+    }
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (r CdnFrontDoorSecurityPolicyResource) invalidName(data acceptance.TestData) string {
+	template := r.template(data)
+	// lintignore:AZNR007
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_cdn_frontdoor_security_policy" "test" {
+  name                     = "-acctestsecpol%d"
+  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
+
+  security_policies {
+    firewall {
+      cdn_frontdoor_firewall_policy_id = azurerm_cdn_frontdoor_firewall_policy.test.id
+
+      association {
+        domain {
+          cdn_frontdoor_domain_id = azurerm_cdn_frontdoor_custom_domain.test.id
         }
 
         patterns_to_match = ["/*"]
