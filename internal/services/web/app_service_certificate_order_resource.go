@@ -5,18 +5,16 @@ package web
 
 import (
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/certificateregistration/2023-12-01/appservicecertificateorders"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/migration"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -25,12 +23,12 @@ import (
 
 func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAppServiceCertificateOrderCreateUpdate,
+		Create: resourceAppServiceCertificateOrderCreate,
 		Read:   resourceAppServiceCertificateOrderRead,
-		Update: resourceAppServiceCertificateOrderCreateUpdate,
+		Update: resourceAppServiceCertificateOrderUpdate,
 		Delete: resourceAppServiceCertificateOrderDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CertificateOrderID(id)
+			_, err := appservicecertificateorders.ParseCertificateOrderID(id)
 			return err
 		}),
 
@@ -178,67 +176,37 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesOrderClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+func resourceAppServiceCertificateOrderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
+
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
+	id := appservicecertificateorders.NewCertificateOrderID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	id := parse.NewCertificateOrderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id)
+	if !response.WasNotFound(existing.HttpResponse) {
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_app_service_certificate_order", id.ID())
-		}
+		return tf.ImportAsExistsError("azurerm_app_service_certificate_order", id.ID())
 	}
 
-	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
-	distinguishedName := d.Get("distinguished_name").(string)
-	csr := d.Get("csr").(string)
-	keySize := d.Get("key_size").(int)
-	autoRenew := d.Get("auto_renew").(bool)
-	validityInYears := d.Get("validity_in_years").(int)
-
-	properties := web.AppServiceCertificateOrderProperties{
-		DistinguishedName: pointer.To(distinguishedName),
-		Csr:               pointer.To(csr),
-		KeySize:           pointer.To(int32(keySize)),
-		AutoRenew:         pointer.To(autoRenew),
-		ValidityInYears:   pointer.To(int32(validityInYears)),
+	certificateOrder := appservicecertificateorders.AppServiceCertificateOrder{
+		Properties: &appservicecertificateorders.AppServiceCertificateOrderProperties{
+			AutoRenew:         pointer.To(d.Get("auto_renew").(bool)),
+			Csr:               pointer.To(d.Get("csr").(string)),
+			DistinguishedName: pointer.To(d.Get("distinguished_name").(string)),
+			KeySize:           pointer.To(int64(d.Get("key_size").(int))),
+			ProductType:       expandProductType(d.Get("product_type").(string)),
+			ValidityInYears:   pointer.To(int64(d.Get("validity_in_years").(int))),
+		},
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
 	}
 
-	switch d.Get("product_type").(string) {
-	case "Standard":
-		properties.ProductType = web.CertificateProductTypeStandardDomainValidatedSsl
-	case "WildCard":
-		properties.ProductType = web.CertificateProductTypeStandardDomainValidatedWildCardSsl
-	default:
-		return fmt.Errorf("`product_type` must be `Standard` or `WildCard`")
-	}
-
-	certificateOrder := web.AppServiceCertificateOrder{
-		AppServiceCertificateOrderProperties: &properties,
-		Location:                             pointer.To(location),
-		Tags:                                 tags.Expand(t),
-	}
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificateOrder)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creating/updating %s: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, certificateOrder); err != nil {
+		return fmt.Errorf("creating %s: %w", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -247,111 +215,191 @@ func resourceAppServiceCertificateOrderCreateUpdate(d *pluginsdk.ResourceData, m
 }
 
 func resourceAppServiceCertificateOrderRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesOrderClient
+	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
+
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateOrderID(d.Id())
+	id, err := appservicecertificateorders.ParseCertificateOrderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Certificate Order %q (resource group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on AzureRM App Service Certificate Order %q: %+v", id.Name, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.CertificateOrderName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if loc := resp.Location; loc != nil {
-		d.Set("location", location.Normalize(*loc))
-	}
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("tags", model.Tags)
 
-	if props := resp.AppServiceCertificateOrderProperties; props != nil {
-		d.Set("auto_renew", props.AutoRenew)
-		d.Set("csr", props.Csr)
-		d.Set("distinguished_name", props.DistinguishedName)
-		d.Set("key_size", props.KeySize)
-		d.Set("validity_in_years", props.ValidityInYears)
-		d.Set("domain_verification_token", props.DomainVerificationToken)
-		d.Set("status", string(props.Status))
-		d.Set("is_private_key_external", props.IsPrivateKeyExternal)
-		d.Set("certificates", flattenArmCertificateOrderCertificate(props.Certificates))
-		d.Set("app_service_certificate_not_renewable_reasons", utils.FlattenStringSlice(props.AppServiceCertificateNotRenewableReasons))
+		if props := model.Properties; props != nil {
+			d.Set("auto_renew", props.AutoRenew)
+			d.Set("csr", props.Csr)
+			d.Set("distinguished_name", props.DistinguishedName)
+			d.Set("key_size", props.KeySize)
+			d.Set("validity_in_years", props.ValidityInYears)
+			d.Set("domain_verification_token", props.DomainVerificationToken)
+			d.Set("status", pointer.FromEnum(props.Status))
+			d.Set("is_private_key_external", props.IsPrivateKeyExternal)
+			d.Set("certificates", flattenArmCertificateOrderCertificate(props.Certificates))
+			d.Set("app_service_certificate_not_renewable_reasons", flattenAppServiceCertificateNotRenewableReasons(props.AppServiceCertificateNotRenewableReasons))
+			d.Set("expiration_time", props.ExpirationTime)
+			d.Set("product_type", flattenProductType(props.ProductType))
 
-		if productType := props.ProductType; productType == web.CertificateProductTypeStandardDomainValidatedSsl {
-			d.Set("product_type", "Standard")
-		} else if productType == web.CertificateProductTypeStandardDomainValidatedWildCardSsl {
-			d.Set("product_type", "WildCard")
-		}
+			if signedCertificate := props.SignedCertificate; signedCertificate != nil {
+				d.Set("signed_certificate_thumbprint", signedCertificate.Thumbprint)
+			}
 
-		if expirationTime := props.ExpirationTime; expirationTime != nil {
-			d.Set("expiration_time", expirationTime.Format(time.RFC3339))
-		}
+			if root := props.Root; root != nil {
+				d.Set("root_thumbprint", root.Thumbprint)
+			}
 
-		if signedCertificate := props.SignedCertificate; signedCertificate != nil {
-			d.Set("signed_certificate_thumbprint", signedCertificate.Thumbprint)
-		}
-
-		if root := props.Root; root != nil {
-			d.Set("root_thumbprint", root.Thumbprint)
-		}
-
-		if intermediate := props.Intermediate; intermediate != nil {
-			d.Set("intermediate_thumbprint", intermediate.Thumbprint)
-		}
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.CertificatesOrderClient
-	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
-	defer cancel()
-
-	id, err := parse.CertificateOrderID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	log.Printf("[DEBUG] Deleting App Service Certificate Order %q (Resource Group %q)", id.Name, id.ResourceGroup)
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting App Service Certificate Order %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
+			if intermediate := props.Intermediate; intermediate != nil {
+				d.Set("intermediate_thumbprint", intermediate.Thumbprint)
+			}
 		}
 	}
 
 	return nil
 }
 
-func flattenArmCertificateOrderCertificate(input map[string]*web.AppServiceCertificate) []interface{} {
-	results := make([]interface{}, 0)
+func resourceAppServiceCertificateOrderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
 
-	for k, v := range input {
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := appservicecertificateorders.ParseCertificateOrderID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %s", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+	props := existing.Model.Properties
+
+	if d.HasChange("auto_renew") {
+		props.AutoRenew = pointer.To(d.Get("auto_renew").(bool))
+	}
+
+	if d.HasChange("csr") {
+		props.Csr = pointer.To(d.Get("csr").(string))
+	}
+
+	if d.HasChange("distinguished_name") {
+		props.DistinguishedName = pointer.To(d.Get("distinguished_name").(string))
+	}
+
+	if d.HasChange("key_size") {
+		props.KeySize = pointer.To(int64(d.Get("key_size").(int)))
+	}
+
+	if d.HasChange("product_type") {
+		props.ProductType = expandProductType(d.Get("product_type").(string))
+	}
+
+	if d.HasChange("validity_in_years") {
+		props.ValidityInYears = pointer.To(int64(d.Get("validity_in_years").(int)))
+	}
+
+	if d.HasChange("tags") {
+		existing.Model.Tags = utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
+		return fmt.Errorf("updating %s: %w", id, err)
+	}
+
+	return resourceAppServiceCertificateOrderRead(d, meta)
+}
+
+func resourceAppServiceCertificateOrderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.AppServiceCertificateOrdersClient
+
+	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := appservicecertificateorders.ParseCertificateOrderID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
+	}
+
+	return nil
+}
+
+func flattenArmCertificateOrderCertificate(input *map[string]appservicecertificateorders.AppServiceCertificate) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for k, v := range *input {
 		result := make(map[string]interface{})
 
 		result["certificate_name"] = k
 
-		if keyVaultID := v.KeyVaultID; keyVaultID != nil {
+		if keyVaultID := v.KeyVaultId; keyVaultID != nil {
 			result["key_vault_id"] = *keyVaultID
 		}
 		if keyVaultSecretName := v.KeyVaultSecretName; keyVaultSecretName != nil {
 			result["key_vault_secret_name"] = *keyVaultSecretName
 		}
-		result["provisioning_state"] = string(v.ProvisioningState)
+		result["provisioning_state"] = pointer.FromEnum(v.ProvisioningState)
 
 		results = append(results, result)
 	}
 
 	return results
+}
+
+func flattenAppServiceCertificateNotRenewableReasons(input *[]appservicecertificateorders.ResourceNotRenewableReason) []string {
+	results := make([]string, 0)
+
+	if input == nil {
+		return results
+	}
+
+	for _, v := range *input {
+		results = append(results, string(v))
+	}
+
+	return results
+}
+
+func expandProductType(input string) appservicecertificateorders.CertificateProductType {
+	if input == "WildCard" {
+		return appservicecertificateorders.CertificateProductTypeStandardDomainValidatedWildCardSsl
+	}
+	return appservicecertificateorders.CertificateProductTypeStandardDomainValidatedSsl
+}
+
+func flattenProductType(input appservicecertificateorders.CertificateProductType) string {
+	if input == appservicecertificateorders.CertificateProductTypeStandardDomainValidatedWildCardSsl {
+		return "WildCard"
+	}
+	return "Standard"
 }

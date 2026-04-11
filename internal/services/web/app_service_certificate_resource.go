@@ -4,22 +4,19 @@
 package web
 
 import (
-	"encoding/base64"
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	keyVaultSuppress "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/suppress"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -28,12 +25,12 @@ import (
 
 func resourceAppServiceCertificate() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceAppServiceCertificateCreateUpdate,
+		Create: resourceAppServiceCertificateCreate,
 		Read:   resourceAppServiceCertificateRead,
-		Update: resourceAppServiceCertificateCreateUpdate,
+		Update: resourceAppServiceCertificateUpdate,
 		Delete: resourceAppServiceCertificateDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.CertificateID(id)
+			_, err := certificates.ParseCertificateID(id)
 			return err
 		}),
 
@@ -144,63 +141,52 @@ func resourceAppServiceCertificate() *pluginsdk.Resource {
 	}
 }
 
-func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceAppServiceCertificateCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	client := meta.(*clients.Client).Web.CertificatesClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
+	id := certificates.NewCertificateID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	id := parse.NewCertificateID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id)
+	if !response.WasNotFound(existing.HttpResponse) {
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
+			return fmt.Errorf("checking for presence of existing %s: %w", id, err)
 		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_app_service_certificate", id.ID())
-		}
+		return tf.ImportAsExistsError("azurerm_app_service_certificate", id.ID())
 	}
 
-	certificate := web.Certificate{
-		CertificateProperties: &web.CertificateProperties{
+	certificate := certificates.Certificate{
+		Properties: &certificates.CertificateProperties{
 			Password: pointer.To(d.Get("password").(string)),
 		},
-		Location: pointer.To(location.Normalize(d.Get("location").(string))),
-		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
 	}
 
-	if appServicePlanId := d.Get("app_service_plan_id").(string); appServicePlanId != "" {
-		certificate.ServerFarmID = &appServicePlanId
+	if v := d.Get("app_service_plan_id").(string); v != "" {
+		certificate.Properties.ServerFarmId = &v
 	}
 
-	if pfxBlob := d.Get("pfx_blob").(string); pfxBlob != "" {
-		decodedPfxBlob, err := base64.StdEncoding.DecodeString(pfxBlob)
-		if err != nil {
-			return fmt.Errorf("could not decode PFX blob: %+v", err)
-		}
-		certificate.PfxBlob = &decodedPfxBlob
+	if v := d.Get("pfx_blob").(string); v != "" {
+		certificate.Properties.PfxBlob = pointer.To(v)
 	}
 
-	if keyVaultSecretId := d.Get("key_vault_secret_id").(string); keyVaultSecretId != "" {
-		parsedSecretId, err := keyvault.ParseNestedItemID(keyVaultSecretId, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	if v := d.Get("key_vault_secret_id").(string); v != "" {
+		parsedSecretId, err := keyvault.ParseNestedItemID(v, keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
 		if err != nil {
 			return err
 		}
 
 		var keyVaultId *string
-		if customizedKeyVaultId := d.Get("key_vault_id").(string); customizedKeyVaultId != "" {
-			keyVaultId = pointer.To(customizedKeyVaultId)
+		if v := d.Get("key_vault_id").(string); v != "" {
+			keyVaultId = pointer.To(v)
 		} else {
 			keyVaultBaseUrl := parsedSecretId.KeyVaultBaseURL
 
-			subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
 			keyVaultId, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultBaseUrl)
 			if err != nil {
 				return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
@@ -210,15 +196,41 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 			}
 		}
 
-		certificate.KeyVaultID = keyVaultId
-		certificate.KeyVaultSecretName = pointer.To(parsedSecretId.Name)
+		certificate.Properties.KeyVaultId = keyVaultId
+		certificate.Properties.KeyVaultSecretName = pointer.To(parsedSecretId.Name)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificate); err != nil {
-		return fmt.Errorf("creating/updating %s: %s", id, err)
+	if _, err := client.CreateOrUpdate(ctx, id, certificate); err != nil {
+		return fmt.Errorf("creating %s: %s", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAppServiceCertificateRead(d, meta)
+}
+
+func resourceAppServiceCertificateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Web.CertificatesClient
+
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id := certificates.NewCertificateID(meta.(*clients.Client).Account.SubscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %w", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	existing.Model.Tags = utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{}))
+
+	if _, err := client.CreateOrUpdate(ctx, id, *existing.Model); err != nil {
+		return fmt.Errorf("updating %s: %s", id, err)
+	}
 
 	return resourceAppServiceCertificateRead(d, meta)
 }
@@ -228,55 +240,52 @@ func resourceAppServiceCertificateRead(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateID(d.Id())
+	id, err := certificates.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] App Service Certificate %q (Resource Group %q) was not found - removing from state", id.Name, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.CertificateName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.CertificateProperties; props != nil {
-		d.Set("friendly_name", props.FriendlyName)
-		d.Set("subject_name", props.SubjectName)
-		d.Set("host_names", props.HostNames)
-		d.Set("issuer", props.Issuer)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(resp.Model.Location))
 
-		if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.ID != nil {
-			envId, err := parse.AppServiceEnvironmentID(*props.HostingEnvironmentProfile.ID)
-			if err != nil {
-				return fmt.Errorf("parsing hosting environment error: %+v", err)
+		if props := model.Properties; props != nil {
+			d.Set("friendly_name", props.FriendlyName)
+			d.Set("subject_name", props.SubjectName)
+			d.Set("host_names", props.HostNames)
+			d.Set("issuer", props.Issuer)
+			d.Set("tags", model.Tags)
+			d.Set("issue_date", props.IssueDate)
+			d.Set("expiration_date", props.ExpirationDate)
+			d.Set("thumbprint", props.Thumbprint)
+
+			if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.Id != nil {
+				envId, err := commonids.ParseAppServiceEnvironmentID(*props.HostingEnvironmentProfile.Id)
+				if err != nil {
+					return err
+				}
+				d.Set("hosting_environment_profile_id", envId.ID())
 			}
-			d.Set("hosting_environment_profile_id", envId.ID())
-		}
 
-		issueDate := ""
-		if props.IssueDate != nil {
-			issueDate = props.IssueDate.Format(time.RFC3339)
+			if props.ServerFarmId != nil {
+				sfID, err := commonids.ParseAppServicePlanID(*props.ServerFarmId)
+				if err != nil {
+					return err
+				}
+				d.Set("app_service_plan_id", sfID.ID())
+			}
 		}
-		d.Set("issue_date", issueDate)
-
-		expirationDate := ""
-		if props.ExpirationDate != nil {
-			expirationDate = props.ExpirationDate.Format(time.RFC3339)
-		}
-		d.Set("expiration_date", expirationDate)
-		d.Set("thumbprint", props.Thumbprint)
-	}
-
-	if err := tags.FlattenAndSet(d, resp.Tags); err != nil {
-		return err
 	}
 
 	return nil
@@ -287,18 +296,13 @@ func resourceAppServiceCertificateDelete(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.CertificateID(d.Id())
+	id, err := certificates.ParseCertificateID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", id.Name, id.ResourceGroup)
-
-	resp, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
-			return fmt.Errorf("deleting App Service Certificate %q (Resource Group %q): %s)", id.Name, id.ResourceGroup, err)
-		}
+	if _, err := client.Delete(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %w", id, err)
 	}
 
 	return nil

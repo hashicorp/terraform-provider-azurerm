@@ -81,7 +81,6 @@ func TestAccDataSourceAppServiceCertificateOrder_complete(t *testing.T) {
 }
 
 func (d AppServiceCertificateOrderDataSource) basic(data acceptance.TestData) string {
-	config := AppServiceCertificateOrderResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -89,11 +88,10 @@ data "azurerm_app_service_certificate_order" "test" {
   name                = azurerm_app_service_certificate_order.test.name
   resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
 }
-`, config)
+`, AppServiceCertificateOrderResource{}.basic(data))
 }
 
 func (d AppServiceCertificateOrderDataSource) wildcard(data acceptance.TestData) string {
-	config := AppServiceCertificateOrderResource{}.wildcard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -101,11 +99,10 @@ data "azurerm_app_service_certificate_order" "test" {
   name                = azurerm_app_service_certificate_order.test.name
   resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
 }
-`, config)
+`, AppServiceCertificateOrderResource{}.wildcard(data))
 }
 
 func (d AppServiceCertificateOrderDataSource) complete(data acceptance.TestData) string {
-	config := AppServiceCertificateOrderResource{}.complete(data, 4096)
 	return fmt.Sprintf(`
 %s
 
@@ -113,5 +110,5 @@ data "azurerm_app_service_certificate_order" "test" {
   name                = azurerm_app_service_certificate_order.test.name
   resource_group_name = azurerm_app_service_certificate_order.test.resource_group_name
 }
-`, config)
+`, AppServiceCertificateOrderResource{}.complete(data, 4096))
 }
