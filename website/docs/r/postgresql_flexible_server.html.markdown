@@ -155,6 +155,16 @@ The following arguments are supported:
 
 ~> **Note:** The `storage_tier` can be scaled once every 12 hours, this restriction is in place to ensure stability and performance after any changes to your PostgreSQL Flexible Server's configuration.
 
+* `storage_type` - (Optional) The type of storage used for the PostgreSQL Flexible Server. Possible values are `Premium_LRS` and `PremiumV2_LRS`. Defaults to `Premium_LRS`.
+
+* `storage_iops` - (Optional) The maximum IOPS supported for storage. Possible values range between `3000` and `80000`.
+
+~> **Note:** The `storage_iops` is required when type of storage is `PremiumV2_LRS`.
+
+* `storage_throughput` - (Optional) The maximum throughput supported for storage in MB/s. Possible values range between `125` and `1200`.
+
+~> **Note:** The `storage_throughput` is required when type of storage is `PremiumV2_LRS`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
 * `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15`, `16`, `17`, and `18`. Required when `create_mode` is `Default`.
