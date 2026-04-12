@@ -27,6 +27,14 @@ jobs:
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make validate-examples
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Example Validation failed."
+          echo ""
+          echo "Run 'make validate-examples' locally to check that your example"
+          echo "Terraform configurations under examples/ are valid."
+          echo "Ensure all examples use valid HCL syntax and reference existing resources."
   save-artifacts-on-fail:
     needs: website-lint
     if: ${{ failure() }}

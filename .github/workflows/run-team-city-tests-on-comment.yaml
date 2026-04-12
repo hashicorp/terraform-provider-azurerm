@@ -69,7 +69,7 @@ jobs:
       TCTEST_REPO: terraform-providers/terraform-provider-azurerm
     steps:
       - name: Setup Go
-        uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.2.0
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.2.0
         with:
           go-version: '1.25'
 

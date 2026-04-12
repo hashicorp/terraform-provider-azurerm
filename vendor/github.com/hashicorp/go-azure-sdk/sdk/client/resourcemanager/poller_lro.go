@@ -214,6 +214,13 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 	return result, nil
 }
 
+func (p *longRunningOperationPoller) SkipDelay() bool {
+	if p.client != nil {
+		return client.IsVcrReplaying(p.client.Transport)
+	}
+	return false
+}
+
 type operationResult struct {
 	Name *string `json:"name"`
 	// Some APIs (such as CosmosDbPostgreSQLCluster) return a DateTime value that doesn't match RFC3339

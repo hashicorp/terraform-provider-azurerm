@@ -422,6 +422,42 @@ func TestAccMsSqlElasticPool_dcFamilyVCoreEnclaveTypeError(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlElasticPool_replicaCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MssqlElasticpoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.highAvailabilityReplicaCount(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("high_availability_replica_count").HasValue("1"),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+		{
+			Config: r.highAvailabilityReplicaCount(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("high_availability_replica_count").HasValue("0"),
+			),
+		},
+		data.ImportStep("max_size_gb"),
+	})
+}
+
+func TestAccMsSqlElasticPool_highAvailabilityReplicaCountNonHyperscaleError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_elasticpool", "test")
+	r := MssqlElasticpoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.highAvailabilityReplicaCountNonHyperscale(data),
+			ExpectError: regexp.MustCompile("`high_availability_replica_count` can only be set when `sku.tier` is `Hyperscale`"),
+		},
+	})
+}
+
 func (MssqlElasticpoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSqlElasticPoolID(state.ID)
 	if err != nil {
@@ -846,4 +882,89 @@ func (r MssqlElasticpoolResource) hyperScale(data acceptance.TestData, enclaveTy
 
 func (r MssqlElasticpoolResource) hyperScaleUpdate(data acceptance.TestData, enclaveType string) string {
 	return r.templateHyperScale(data, "HS_Gen5", "Hyperscale", 4, "Gen5", 0, 4, enclaveType)
+}
+
+func (MssqlElasticpoolResource) highAvailabilityReplicaCount(data acceptance.TestData, replicaCount int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                            = "acctest-pool-vcore-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  server_name                     = azurerm_mssql_server.test.name
+  high_availability_replica_count = %[3]d
+
+  sku {
+    name     = "HS_Gen5"
+    tier     = "Hyperscale"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, replicaCount)
+}
+
+func (r MssqlElasticpoolResource) highAvailabilityReplicaCountNonHyperscale(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctest%[1]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "4dm1n157r470r"
+  administrator_login_password = "4-v3ry-53cr37-p455w0rd"
+}
+
+resource "azurerm_mssql_elasticpool" "test" {
+  name                            = "acctest-pool-gp-%[1]d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  server_name                     = azurerm_mssql_server.test.name
+  max_size_gb                     = 5
+  high_availability_replica_count = 2
+
+  sku {
+    name     = "GP_Gen5"
+    tier     = "GeneralPurpose"
+    capacity = 4
+    family   = "Gen5"
+  }
+
+  per_database_settings {
+    min_capacity = 0.25
+    max_capacity = 4
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
