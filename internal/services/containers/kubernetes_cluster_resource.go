@@ -1437,10 +1437,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			},
 
 			"private_dns_zone_id": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true, // a Private Cluster is `System` by default even if unspecified
-				ForceNew: true,
+				Type:             pluginsdk.TypeString,
+				Optional:         true,
+				Computed:         true, // a Private Cluster is `System` by default even if unspecified
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.Any(
 					privatezones.ValidatePrivateDnsZoneID,
 					validation.StringInSlice([]string{
@@ -2996,6 +2997,9 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 					privateDnsZoneId = "None"
 				default:
 					privateDnsZoneId = pointer.From(accessProfile.PrivateDNSZone)
+					if parsed, err := privatezones.ParsePrivateDnsZoneIDInsensitively(privateDnsZoneId); err == nil {
+						privateDnsZoneId = parsed.ID()
+					}
 				}
 			}
 			d.Set("private_dns_zone_id", privateDnsZoneId)
