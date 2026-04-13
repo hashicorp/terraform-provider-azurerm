@@ -1,6 +1,7 @@
 ## 4.69.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - add support for email_subject within action block [GH-32132]
 * `azurerm_cognitive_deployment` - the `rai_policy_name` property is now Optional + Computed as Azure returns a value when not set in the creation request [GH-32131]
 * `azurerm_container_app` - add support for `identity_id` property in  `custom_scale_rule` block [GH-29777]
 * dependencies: `Go` - update to `1.25.9` [GH-32148]
