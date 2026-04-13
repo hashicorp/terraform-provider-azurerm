@@ -21,8 +21,10 @@ import (
 
 type CostManagementScheduledActionResource struct{}
 
-var _ sdk.Resource = CostManagementScheduledActionResource{}
-var _ sdk.ResourceWithCustomizeDiff = CostManagementScheduledActionResource{}
+var (
+	_ sdk.Resource                  = CostManagementScheduledActionResource{}
+	_ sdk.ResourceWithCustomizeDiff = CostManagementScheduledActionResource{}
+)
 
 func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

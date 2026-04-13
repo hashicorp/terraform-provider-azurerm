@@ -123,6 +123,7 @@ func TestAccCostManagementScheduledAction_noEmailAddressSenderServicePrincipal(t
 		},
 	})
 }
+
 func TestAccCostManagementScheduledAction_noEmailAddressSenderUserPrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
 	r := CostManagementScheduledAction{}
