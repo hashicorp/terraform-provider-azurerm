@@ -6,6 +6,7 @@ package costmanagement_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -102,6 +103,25 @@ func TestAccCostManagementScheduledAction_emailAddressSender(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.emailAddressSender(data, "test2@test2.com"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCostManagementScheduledAction_noEmailAddressSender(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
+
+	if _, ok := os.LookupEnv("ARM_TEST_AS_USER"); !ok {
+		t.Skip("`ARM_TEST_AS_USER` is not specified")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noEmailAddressSender(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -293,4 +313,34 @@ resource "azurerm_cost_management_scheduled_action" "test" {
   end_date   = "%s"
 }
 `, data.RandomString, data.RandomString, emailAddressSender, start, end)
+}
+
+func (CostManagementScheduledAction) noEmailAddressSender(data acceptance.TestData) string {
+	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
+	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  client_id               = ""
+  client_certificate_path = ""
+  client_secret           = ""
+  features {}
+}
+
+data "azurerm_subscription" "test" {}
+
+resource "azurerm_cost_management_scheduled_action" "test" {
+  name = "testcostview%s"
+
+  view_id = "${data.azurerm_subscription.test.id}/providers/Microsoft.CostManagement/views/ms:CostByService"
+
+  display_name         = "CostByServiceView%s"
+  email_subject        = substr("Cost Management Report for ${data.azurerm_subscription.test.display_name} Subscription", 0, 70)
+  email_addresses      = ["test@test.com", "hashicorp@test.com"]
+
+  frequency  = "Daily"
+  start_date = "%s"
+  end_date   = "%s"
+}
+`, data.RandomString, data.RandomString, start, end)
 }

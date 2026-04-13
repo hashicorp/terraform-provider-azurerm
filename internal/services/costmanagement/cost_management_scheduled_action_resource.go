@@ -68,9 +68,11 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.StringLenBetween(1, 250),
 		},
 
+		// O+C: When using User principal to run Terraform (e.g. `az login`), this attribute is optional in the request and will be set as the user's email address in return if omitted.
 		"email_address_sender": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 

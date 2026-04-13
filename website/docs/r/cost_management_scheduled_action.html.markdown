@@ -36,8 +36,6 @@ The following arguments are supported:
 
 * `display_name` - (Required) User visible input name of the Cost Management Scheduled Action.
 
-* `email_address_sender` - (Required) Email address of the point of contact that should get the unsubscribe requests of Scheduled Action notification emails.
-
 * `email_addresses` - (Required) Specifies a list of email addresses that will receive the Scheduled Action.
 
 * `email_subject` - (Required) Subject of the email. Length is limited to 70 characters.
@@ -53,6 +51,10 @@ The following arguments are supported:
 * `view_id` - (Required) The ID of the Cost Management View that is used by the Scheduled Action. Changing this forces a new resource to be created.
 
 ---
+
+* `email_address_sender` - (Optional) Email address of the point of contact that should get the unsubscribe requests of Scheduled Action notification emails.
+
+~> **NOTE:** This attribute is only optional when you use a user principal to run `terraform`, which the API will fallback to using your user's email address (from your profile). If you use a service principal, this attribute is mandatory to specify.
 
 * `day_of_month` - (Optional) UTC day on which cost analysis data will be emailed. Must be between `1` and `31`. This property is applicable when `frequency` is `Monthly`.
 
