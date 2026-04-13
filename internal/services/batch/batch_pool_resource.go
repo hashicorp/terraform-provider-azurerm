@@ -1104,7 +1104,7 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 				if err != nil {
 					return fmt.Errorf("expanding `container_configuration` for %s: %+v", *id, err)
 				}
-			    parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration = containerConfiguration
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration = containerConfiguration
 			}
 		}
 	}
