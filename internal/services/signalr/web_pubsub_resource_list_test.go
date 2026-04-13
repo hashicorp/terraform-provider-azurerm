@@ -70,7 +70,7 @@ list "azurerm_web_pubsub" "list" {
 `
 }
 
-func (WebPubsubResource) basicListQueryByResourceGroupName(data acceptance.TestData) string {
+func (WebPubsubResource) basicListQueryByResourceGroupName() string {
 	return `
 list "azurerm_web_pubsub" "list" {
   provider = azurerm
