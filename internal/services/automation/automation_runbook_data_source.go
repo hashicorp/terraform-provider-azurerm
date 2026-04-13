@@ -157,7 +157,7 @@ func (d AutomationRunbookDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if contentResp.Model != nil {
-				state.Content = string(pointer.From(contentResp.Model))
+				state.Content = pointer.From(contentResp.Model)
 			}
 
 			state.Tags = pointer.From(model.Tags)
