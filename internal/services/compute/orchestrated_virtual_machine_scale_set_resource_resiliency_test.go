@@ -66,7 +66,7 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  zones = [1,2]
+  zones                              = [1, 2]
   automatic_zone_rebalancing_enabled = %[5]t
 
   sku_name = "Standard_F2ads_v7"
