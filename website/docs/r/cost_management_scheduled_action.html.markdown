@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `email_address_sender` - (Optional) Email address of the point of contact that should get the unsubscribe requests of Scheduled Action notification emails.
 
-~> **NOTE:** This attribute is only optional when you use a user principal to run `terraform`, which the API will fallback to using your user's email address (from your profile). If you use a service principal, this attribute is mandatory to specify.
+~> **Note:** This attribute is only optional when you use a user principal to run `terraform`, which the API will fallback to using your user's email address (from your profile). If you use a service principal, this attribute is mandatory to specify.
 
 * `day_of_month` - (Optional) UTC day on which cost analysis data will be emailed. Must be between `1` and `31`. This property is applicable when `frequency` is `Monthly`.
 
