@@ -919,8 +919,9 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
+				// Azure API returns empty `storage_type` for some modes, e.g. Replica/GeoRestore, when using Premium_LRS
 				storageType := string(servers.StorageTypePremiumLRS)
-				if storage.Type != nil {
+				if storage.Type != nil && pointer.FromEnum(storage.Type) != "" {
 					storageType = pointer.FromEnum(storage.Type)
 				}
 				d.Set("storage_type", storageType)
