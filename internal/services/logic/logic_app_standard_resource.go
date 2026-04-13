@@ -623,7 +623,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
-					if kvRefId := pointer.From(props.KeyVaultReferenceIdentity); !strings.EqualFold(*kvRefId, "SystemAssigned") {
+					if kvRefId := pointer.From(props.KeyVaultReferenceIdentity); !strings.EqualFold(kvRefId, "SystemAssigned") {
 						state.KeyvaultReferenceIdentityId = kvRefId
 					}
 					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
