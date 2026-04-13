@@ -44,7 +44,7 @@ func TestAccWebPubsub_list(t *testing.T) {
 			},
 			{
 				Query:  true,
-				Config: r.basicListQueryByResourceGroupName(data),
+				Config: r.basicListQueryByResourceGroupName(),
 				QueryResultChecks: []querycheck.QueryResultCheck{
 					querycheck.ExpectLength("azurerm_web_pubsub.list", 1),
 					querycheck.ExpectIdentity(
