@@ -85,7 +85,7 @@ The following arguments are supported:
 
 -> **Note:** `blob_uri` and `storage_account_id` must be specified together
 
-* `uefi_settings` - (Optional) A `uefi_settings` block as defined below. Changing this forces a new Shared Image Version to be created.
+* `uefi_settings` - (Optional) A `uefi_settings` block as defined below. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
 
@@ -107,48 +107,48 @@ The `target_region` block supports the following:
 
 The `uefi_settings` block supports the following:
 
-* `signature_template_names` - (Required) A list of UEFI signature template names to include in the UEFI settings. Possible values are `MicrosoftUefiCertificateAuthorityTemplate`, `MicrosoftWindowsTemplate` and `NoSignatureTemplate`
+* `signature_template_names` - (Required) A list of UEFI signature template names to include in the UEFI settings. Possible values are `MicrosoftUefiCertificateAuthorityTemplate`, `MicrosoftWindowsTemplate` and `NoSignatureTemplate`. Changing this forces a new resource to be created.
 
-* `additional_signatures` - (Optional) An `additional_signatures` block as defined below.
+* `additional_signatures` - (Optional) An `additional_signatures` block as defined below. Changing this forces a new resource to be created.
 
 
 The `additional_signatures` block supports the following:
 
-* `db` - (Optional) One or more `db` blocks as defined below.
+* `db` - (Optional) One or more `db` blocks as defined below. Changing this forces a new resource to be created.
 
-* `dbx` - (Optional) One or more `dbx` blocks as defined below.
+* `dbx` - (Optional) One or more `dbx` blocks as defined below. Changing this forces a new resource to be created.
 
-* `kek` - (Optional) One or more `kek` blocks as defined below.
+* `kek` - (Optional) One or more `kek` blocks as defined below. Changing this forces a new resource to be created.
 
-* `pk` - (Optional) A `pk` block as defined below.
+* `pk` - (Optional) A `pk` block as defined below. Changing this forces a new resource to be created.
 
 
 A `db` block supports the following:
 
-* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
 
 
 A `dbx` block supports the following:
 
-* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
 
 
 A `kek` block supports the following:
 
-* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
 
 
 The `pk` block supports the following:
 
-* `certificate_base64` - (Required) A list of Base64-encoded certificates.
+* `certificate_base64` - (Required) A list of Base64-encoded certificates. Changing this forces a new resource to be created.
 
-* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`.
+* `type` - (Required) The type of key signature. Possible values are `sha256` and `x509`. Changing this forces a new resource to be created.
 
 
 
