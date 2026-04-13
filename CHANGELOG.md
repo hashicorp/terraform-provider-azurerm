@@ -1,6 +1,7 @@
 ## 4.69.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_container_app` - add support for `identity_id` property in  `custom_scale_rule` block [GH-29777]
 * dependencies: `Go` - update to `1.25.9` [GH-32148]
 * dependencies: `kubernetesconfiguration/fluxconfiguration` - update to API version `2025-04-01` [GH-32080]
 * `data.azurerm_storage_account_blob_container_sas` - expand `permissions` block to include new fields [GH-32149]
