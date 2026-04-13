@@ -2444,7 +2444,9 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 
 					state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
 					state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
+
 					state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, metadata)
+
 					state.WorkloadAutoscalerProfile = flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
 					state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
 					state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
@@ -3304,7 +3306,10 @@ func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.Ma
 
 	adminPassword := ""
 	if !rawConfig.IsNull() {
-		adminPassword = rawConfig.AsValueMap()["windows_profile"].AsValueSlice()[0].AsValueMap()["admin_password"].AsString()
+		windowsProfileSlice := rawConfig.AsValueMap()["windows_profile"].AsValueSlice()
+		if len(windowsProfileSlice) > 0 {
+			adminPassword = windowsProfileSlice[0].AsValueMap()["admin_password"].AsString()
+		}
 	}
 	license := ""
 	if profile.LicenseType != nil && pointer.From(profile.LicenseType) != managedclusters.LicenseTypeNone {
