@@ -15,13 +15,13 @@ import (
 type GetContentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]byte
+	Model        *string
 }
 
 // GetContent ...
 func (c RunbookDraftClient) GetContent(ctx context.Context, id RunbookId) (result GetContentOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "text/powershell",
+		ContentType: "text/plain",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
@@ -44,7 +44,7 @@ func (c RunbookDraftClient) GetContent(ctx context.Context, id RunbookId) (resul
 		return
 	}
 
-	var model []byte
+	var model string
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

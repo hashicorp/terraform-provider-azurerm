@@ -18,16 +18,14 @@ type ReplaceContentOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]byte
 }
 
 // ReplaceContent ...
-func (c RunbookDraftClient) ReplaceContent(ctx context.Context, id RunbookId, input []byte) (result ReplaceContentOperationResponse, err error) {
+func (c RunbookDraftClient) ReplaceContent(ctx context.Context, id RunbookId, input string) (result ReplaceContentOperationResponse, err error) {
 	opts := client.RequestOptions{
-		ContentType: "text/powershell",
+		ContentType: "text/plain",
 		ExpectedStatusCodes: []int{
 			http.StatusAccepted,
-			http.StatusOK,
 		},
 		HttpMethod: http.MethodPut,
 		Path:       fmt.Sprintf("%s/draft/content", id.ID()),
@@ -61,7 +59,7 @@ func (c RunbookDraftClient) ReplaceContent(ctx context.Context, id RunbookId, in
 }
 
 // ReplaceContentThenPoll performs ReplaceContent then polls until it's completed
-func (c RunbookDraftClient) ReplaceContentThenPoll(ctx context.Context, id RunbookId, input []byte) error {
+func (c RunbookDraftClient) ReplaceContentThenPoll(ctx context.Context, id RunbookId, input string) error {
 	result, err := c.ReplaceContent(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing ReplaceContent: %+v", err)
