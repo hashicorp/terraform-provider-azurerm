@@ -1100,11 +1100,11 @@ func resourceBatchUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// ContainerRegistries from the GET response omits sensitive fields (e.g. passwords), so always
 			// repopulate from config to avoid a MissingRequiredProperty error from the API.
 			if v, ok := d.GetOk("container_configuration"); ok {
-				if containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{})); err == nil {
-					parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration = containerConfiguration
-				} else {
+				containerConfiguration, err := ExpandBatchPoolContainerConfiguration(v.([]interface{}))
+				if err != nil {
 					return fmt.Errorf("expanding `container_configuration` for %s: %+v", *id, err)
 				}
+			    parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.ContainerConfiguration = containerConfiguration
 			}
 		}
 	}
