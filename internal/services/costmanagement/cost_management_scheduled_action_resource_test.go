@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 	"time"
 
@@ -111,7 +112,18 @@ func TestAccCostManagementScheduledAction_emailAddressSender(t *testing.T) {
 	})
 }
 
-func TestAccCostManagementScheduledAction_noEmailAddressSender(t *testing.T) {
+func TestAccCostManagementScheduledAction_noEmailAddressSenderServicePrincipal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
+	r := CostManagementScheduledAction{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.noEmailAddressSender(data, false),
+			ExpectError: regexp.MustCompile("`email_address_sender` is required when authenticated as a service principal"),
+		},
+	})
+}
+func TestAccCostManagementScheduledAction_noEmailAddressSenderUserPrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cost_management_scheduled_action", "test")
 	r := CostManagementScheduledAction{}
 
@@ -121,7 +133,7 @@ func TestAccCostManagementScheduledAction_noEmailAddressSender(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.noEmailAddressSender(data),
+			Config: r.noEmailAddressSender(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -315,17 +327,28 @@ resource "azurerm_cost_management_scheduled_action" "test" {
 `, data.RandomString, data.RandomString, emailAddressSender, start, end)
 }
 
-func (CostManagementScheduledAction) noEmailAddressSender(data acceptance.TestData) string {
+func (CostManagementScheduledAction) noEmailAddressSender(data acceptance.TestData, userPrincipal bool) string {
 	start := time.Now().AddDate(0, 0, 1).UTC().Format("2006-01-02T00:00:00Z")
 	end := time.Now().AddDate(0, 0, 2).UTC().Format("2006-01-02T00:00:00Z")
 
-	return fmt.Sprintf(`
+	providerConfig := `
+provider "azurerm" {
+  features {}
+}
+`
+	if userPrincipal {
+		providerConfig = `
 provider "azurerm" {
   client_id               = ""
   client_certificate_path = ""
   client_secret           = ""
   features {}
 }
+`
+	}
+
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_subscription" "test" {}
 
@@ -342,5 +365,5 @@ resource "azurerm_cost_management_scheduled_action" "test" {
   start_date = "%s"
   end_date   = "%s"
 }
-`, data.RandomString, data.RandomString, start, end)
+`, providerConfig, data.RandomString, data.RandomString, start, end)
 }

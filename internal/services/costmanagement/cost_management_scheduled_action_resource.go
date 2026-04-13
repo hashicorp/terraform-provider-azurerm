@@ -22,6 +22,7 @@ import (
 type CostManagementScheduledActionResource struct{}
 
 var _ sdk.Resource = CostManagementScheduledActionResource{}
+var _ sdk.ResourceWithCustomizeDiff = CostManagementScheduledActionResource{}
 
 func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -124,6 +125,18 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsRFC3339Time,
+		},
+	}
+}
+
+func (r CostManagementScheduledActionResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.Client.Account.AuthenticatedAsAServicePrincipal && metadata.ResourceDiff.Get("email_address_sender") == "" {
+				return fmt.Errorf("`email_address_sender` is required when authenticated as a service principal")
+			}
+			return nil
 		},
 	}
 }
