@@ -1454,7 +1454,7 @@ resource "azurerm_batch_pool" "test" {
         source = "Applications"
       }
       bind_mount {
-        source = "Task"
+        source            = "Task"
         read_only_enabled = true
       }
     }

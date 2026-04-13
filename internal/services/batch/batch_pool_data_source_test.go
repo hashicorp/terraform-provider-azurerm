@@ -158,10 +158,10 @@ resource "azurerm_batch_pool" "test" {
     }
 
     container {
-      image_name  = "centos7"
+      image_name        = "centos7"
       working_directory = "ContainerImageDefault"
       bind_mount {
-        source = "VfsMounts"
+        source            = "VfsMounts"
         read_only_enabled = true
       }
       bind_mount {
