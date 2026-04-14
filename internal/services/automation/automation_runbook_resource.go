@@ -429,10 +429,7 @@ func resourceAutomationRunbookRead(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("retrieving content for Automation Runbook %s: %+v", id, err)
 		}
 	}
-
-	if v := contentResp.Model; v != nil {
-		d.Set("content", *v)
-	}
+	d.Set("content", contentResp.Model)
 
 	jsMap := make(map[uuid.UUID]jobschedule.JobScheduleProperties)
 	automationAccountId := jobschedule.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName)
