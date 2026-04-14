@@ -528,43 +528,43 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			if storageType == string(servers.StorageTypePremiumVTwoLRS) {
 				if version := diff.Get("version").(string); version == string(servers.PostgresMajorVersionOneThree) {
-					return fmt.Errorf("`storage_type` `PremiumV2_LRS` does not support PostgreSQL version `13`")
+					return errors.New("`storage_type` `PremiumV2_LRS` does not support PostgreSQL version `13`")
 				}
 
 				if skuName, ok := diff.GetOk("sku_name"); ok {
 					if strings.HasPrefix(skuName.(string), "B_") {
-						return fmt.Errorf("`storage_type` `PremiumV2_LRS` does not support Burstable compute tier")
+						return errors.New("`storage_type` `PremiumV2_LRS` does not support Burstable compute tier")
 					}
 				}
 
 				if v := configMap["storage_tier"]; !v.IsNull() {
-					return fmt.Errorf("`storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`")
+					return errors.New("`storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`")
 				}
 
 				if diff.Get("auto_grow_enabled").(bool) {
-					return fmt.Errorf("`auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`")
+					return errors.New("`auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`")
 				}
 
 				if diff.Get("geo_redundant_backup_enabled").(bool) {
 					if _, ok := diff.GetOk("customer_managed_key"); ok {
-						return fmt.Errorf("`geo_redundant_backup_enabled` with `customer_managed_key` is not supported when `storage_type` is `PremiumV2_LRS`")
+						return errors.New("`geo_redundant_backup_enabled` with `customer_managed_key` is not supported when `storage_type` is `PremiumV2_LRS`")
 					}
 				}
 
 				if configMap["storage_iops"].IsNull() {
-					return fmt.Errorf("`storage_iops` is required when `storage_type` is `PremiumV2_LRS`")
+					return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS`")
 				}
 
 				if configMap["storage_throughput"].IsNull() {
-					return fmt.Errorf("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS`")
+					return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS`")
 				}
 			} else {
 				if v := configMap["storage_iops"]; !v.IsNull() {
-					return fmt.Errorf("`storage_iops` is only supported when `storage_type` is `PremiumV2_LRS`")
+					return errors.New("`storage_iops` is only supported when `storage_type` is `PremiumV2_LRS`")
 				}
 
 				if v := configMap["storage_throughput"]; !v.IsNull() {
-					return fmt.Errorf("`storage_throughput` is only supported when `storage_type` is `PremiumV2_LRS`")
+					return errors.New("`storage_throughput` is only supported when `storage_type` is `PremiumV2_LRS`")
 				}
 			}
 
@@ -919,7 +919,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
-				// Azure API returns empty `storage_type` for some modes, e.g. Replica/GeoRestore, when using Premium_LRS
 				storageType := string(servers.StorageTypePremiumLRS)
 				if storage.Type != nil && pointer.FromEnum(storage.Type) != "" {
 					storageType = pointer.FromEnum(storage.Type)
@@ -1293,11 +1292,17 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 
 	if v, ok := d.GetOk("storage_type"); ok {
 		storageType := servers.StorageType(v.(string))
-		storage.Type = pointer.To(storageType)
+
+		// Only include storage.Type in the payload if it's not Premium_LRS
+		// Premium_LRS is the default value for storage type
+		// For certain create modes, include type will cause issues
+		if storageType != servers.StorageTypePremiumLRS {
+			storage.Type = pointer.To(storageType)
+		}
 
 		if storageType != servers.StorageTypePremiumVTwoLRS {
 			if tier, tierOk := d.GetOk("storage_tier"); tierOk {
-				storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTier(tier.(string)))
+				storage.Tier = pointer.ToEnum[servers.AzureManagedDiskPerformanceTier](tier.(string))
 			}
 		} else {
 			if iops, iopsOk := d.GetOk("storage_iops"); iopsOk {
