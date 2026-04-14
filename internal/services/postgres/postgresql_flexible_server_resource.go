@@ -533,7 +533,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if skuName, ok := diff.GetOk("sku_name"); ok {
 					if strings.HasPrefix(skuName.(string), "B_") {
-						return errors.New("Burstable compute tier is not supported when `storage_type` is `PremiumV2_LRS`")
+						return errors.New("burstable compute tier is not supported when `storage_type` is `PremiumV2_LRS`")
 					}
 				}
 
@@ -919,6 +919,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
+				// TODO: Check what happens if storage type is not specified for replica, but primary is PremiumV2_LRS
 				storageType := string(servers.StorageTypePremiumLRS)
 				if storage.Type != nil && pointer.FromEnum(storage.Type) != "" {
 					storageType = pointer.FromEnum(storage.Type)
