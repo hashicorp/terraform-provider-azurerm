@@ -55,7 +55,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(240 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(80 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(80 * time.Minute),
 		},
 
