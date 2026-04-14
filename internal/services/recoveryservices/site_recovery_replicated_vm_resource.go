@@ -55,7 +55,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(180 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-			Update: pluginsdk.DefaultTimeout(80 * time.Minute),
+			Update: pluginsdk.DefaultTimeout(240 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(80 * time.Minute),
 		},
 
@@ -160,7 +160,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				ForceNew:   true,
+				Set:        resourceSiteRecoveryReplicatedVMUnmanagedDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_uri": {
@@ -198,14 +198,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				ForceNew:   true,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"disk_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -226,14 +224,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						"target_disk_type": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
 						"target_replica_disk_type": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
@@ -547,6 +543,116 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 
 	id := replicationprotecteditems.NewReplicationProtectedItemID(subscriptionId, resGroup, vaultName, fabricName, sourceProtectionContainerName, name)
 
+	if !d.IsNewResource() && d.HasChange("managed_disk") {
+		oldRaw, newRaw := d.GetChange("managed_disk")
+		oldDisks := oldRaw.(*pluginsdk.Set).List()
+		newDisks := newRaw.(*pluginsdk.Set).List()
+
+		added, removed := computeDiskChanges(oldDisks, newDisks, "disk_id")
+
+		if len(removed) > 0 {
+			removedIds := make([]string, 0, len(removed))
+			for _, disk := range removed {
+				removedIds = append(removedIds, disk["disk_id"].(string))
+			}
+			removeInput := replicationprotecteditems.RemoveDisksInput{
+				Properties: &replicationprotecteditems.RemoveDisksInputProperties{
+					ProviderSpecificDetails: replicationprotecteditems.A2ARemoveDisksInput{
+						VMManagedDisksIds: &removedIds,
+					},
+				},
+			}
+			if err := client.RemoveDisksThenPoll(ctx, id, removeInput); err != nil {
+				return fmt.Errorf("removing managed disks from replicated vm %s (vault %s): %+v", name, vaultName, err)
+			}
+			state, err = waitForReplicationToBeHealthy(ctx, d, meta)
+			if err != nil {
+				return err
+			}
+		}
+
+		for _, disk := range added {
+			singleDisk := []replicationprotecteditems.A2AVMManagedDiskInputDetails{
+				{
+					DiskId:                              disk["disk_id"].(string),
+					PrimaryStagingAzureStorageAccountId: disk["staging_storage_account_id"].(string),
+					RecoveryResourceGroupId:             disk["target_resource_group_id"].(string),
+					RecoveryReplicaDiskAccountType:      pointer.To(disk["target_replica_disk_type"].(string)),
+					RecoveryTargetDiskAccountType:       pointer.To(disk["target_disk_type"].(string)),
+					RecoveryDiskEncryptionSetId:         pointer.To(disk["target_disk_encryption_set_id"].(string)),
+					DiskEncryptionInfo:                  expandDiskEncryption(disk["target_disk_encryption"].([]interface{})),
+				},
+			}
+			addInput := replicationprotecteditems.AddDisksInput{
+				Properties: &replicationprotecteditems.AddDisksInputProperties{
+					ProviderSpecificDetails: replicationprotecteditems.A2AAddDisksInput{
+						VMManagedDisks: &singleDisk,
+					},
+				},
+			}
+			if err := client.AddDisksThenPoll(ctx, id, addInput); err != nil {
+				return fmt.Errorf("adding managed disk %q to replicated vm %s (vault %s): %+v", disk["disk_id"].(string), name, vaultName, err)
+			}
+			state, err = waitForReplicationToBeHealthy(ctx, d, meta)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if !d.IsNewResource() && d.HasChange("unmanaged_disk") {
+		oldRaw, newRaw := d.GetChange("unmanaged_disk")
+		oldDisks := oldRaw.(*pluginsdk.Set).List()
+		newDisks := newRaw.(*pluginsdk.Set).List()
+
+		added, removed := computeDiskChanges(oldDisks, newDisks, "disk_uri")
+
+		if len(removed) > 0 {
+			removedUris := make([]string, 0, len(removed))
+			for _, disk := range removed {
+				removedUris = append(removedUris, disk["disk_uri"].(string))
+			}
+			removeInput := replicationprotecteditems.RemoveDisksInput{
+				Properties: &replicationprotecteditems.RemoveDisksInputProperties{
+					ProviderSpecificDetails: replicationprotecteditems.A2ARemoveDisksInput{
+						VMDisksUris: &removedUris,
+					},
+				},
+			}
+			if err := client.RemoveDisksThenPoll(ctx, id, removeInput); err != nil {
+				return fmt.Errorf("removing unmanaged disks from replicated vm %s (vault %s): %+v", name, vaultName, err)
+			}
+			state, err = waitForReplicationToBeHealthy(ctx, d, meta)
+			if err != nil {
+				return err
+			}
+		}
+
+		for _, disk := range added {
+			singleDisk := []replicationprotecteditems.A2AVMDiskInputDetails{
+				{
+					DiskUri:                             disk["disk_uri"].(string),
+					PrimaryStagingAzureStorageAccountId: disk["staging_storage_account_id"].(string),
+					RecoveryAzureStorageAccountId:       disk["target_storage_account_id"].(string),
+				},
+			}
+			addInput := replicationprotecteditems.AddDisksInput{
+				Properties: &replicationprotecteditems.AddDisksInputProperties{
+					ProviderSpecificDetails: replicationprotecteditems.A2AAddDisksInput{
+						VMDisks: &singleDisk,
+					},
+				},
+			}
+			if err := client.AddDisksThenPoll(ctx, id, addInput); err != nil {
+				return fmt.Errorf("adding unmanaged disk %q to replicated vm %s (vault %s): %+v", disk["disk_uri"].(string), name, vaultName, err)
+			}
+			state, err = waitForReplicationToBeHealthy(ctx, d, meta)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	var targetAvailabilitySetID *string
 	if id, isSet := d.GetOk("target_availability_set_id"); isSet {
 		tmp := id.(string)
@@ -833,12 +939,12 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 				disksOutput := make([]interface{}, 0)
 				for _, disk := range *a2aDetails.ProtectedDisks {
 					disksOutput = append(disksOutput, map[string]interface{}{
-						"disk_uri":                   disk.DiskUri,
-						"staging_storage_account_id": disk.PrimaryStagingAzureStorageAccountId,
-						"target_storage_account_id":  disk.RecoveryAzureStorageAccountId,
+						"disk_uri":                   pointer.From(disk.DiskUri),
+						"staging_storage_account_id": pointer.From(disk.PrimaryStagingAzureStorageAccountId),
+						"target_storage_account_id":  pointer.From(disk.RecoveryAzureStorageAccountId),
 					})
 				}
-				d.Set("unmanaged_disk", disksOutput)
+				d.Set("unmanaged_disk", pluginsdk.NewSet(resourceSiteRecoveryReplicatedVMUnmanagedDiskHash, disksOutput))
 			}
 
 			if a2aDetails.ProtectedManagedDisks != nil {
@@ -985,6 +1091,46 @@ func resourceSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	}
 
 	return pluginsdk.HashString(buf.String())
+}
+
+func resourceSiteRecoveryReplicatedVMUnmanagedDiskHash(v interface{}) int {
+	var buf bytes.Buffer
+
+	if m, ok := v.(map[string]interface{}); ok {
+		if v, ok := m["disk_uri"]; ok {
+			buf.WriteString(strings.ToLower(v.(string)))
+		}
+	}
+
+	return pluginsdk.HashString(buf.String())
+}
+
+func computeDiskChanges(oldDisks, newDisks []interface{}, keyField string) (added, removed []map[string]interface{}) {
+	oldMap := make(map[string]map[string]interface{})
+	for _, raw := range oldDisks {
+		disk := raw.(map[string]interface{})
+		oldMap[strings.ToLower(disk[keyField].(string))] = disk
+	}
+
+	newMap := make(map[string]map[string]interface{})
+	for _, raw := range newDisks {
+		disk := raw.(map[string]interface{})
+		newMap[strings.ToLower(disk[keyField].(string))] = disk
+	}
+
+	for key, disk := range newMap {
+		if _, exists := oldMap[key]; !exists {
+			added = append(added, disk)
+		}
+	}
+
+	for key, disk := range oldMap {
+		if _, exists := newMap[key]; !exists {
+			removed = append(removed, disk)
+		}
+	}
+
+	return
 }
 
 func waitForReplicationToBeHealthy(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) (*replicationprotecteditems.ReplicationProtectedItem, error) {

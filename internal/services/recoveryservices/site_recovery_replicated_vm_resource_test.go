@@ -2515,6 +2515,721 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, r.vmSizeTemplate(data, "Standard_B2s"), data.RandomInteger)
 }
 
+func TestAccSiteRecoveryReplicatedVm_addDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Step 1: Create replication with OS disk only
+			Config: r.addDiskStep1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_disk.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Step 2: Add a data disk to the VM and include it in replication (in-place update)
+			Config: r.addDiskStep2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_disk.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicatedVm_removeDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Step 1: Create replication with OS disk + data disk
+			Config: r.removeDiskStep1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_disk.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Step 2: Remove data disk from replication (in-place update)
+			Config: r.removeDiskStep2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_disk.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicatedVm_addAndRemoveDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Step 1: Create replication with OS disk + data disk A
+			Config: r.addAndRemoveDiskStep1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_disk.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Step 2: Remove disk A, add disk B (swap) — in-place update
+			Config: r.addAndRemoveDiskStep2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("managed_disk.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSiteRecoveryReplicatedVm_updateDiskType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
+	r := SiteRecoveryReplicatedVmResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Step 1: Create replication with Premium_LRS disk type
+			Config: r.updateDiskTypeStep1(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Step 2: Change target_disk_type to StandardSSD_LRS (in-place update)
+			Config: r.updateDiskTypeStep2(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+// diskOperationTemplate creates the base infrastructure for disk add/remove tests.
+// It's similar to the standard template but uses a VM size that supports data disks
+// and includes delete_data_disks_on_termination.
+func (SiteRecoveryReplicatedVmResource) diskOperationTemplate(data acceptance.TestData) string {
+	tags := ""
+	if strings.HasPrefix(strings.ToLower(data.Client().SubscriptionID), "85b3dbca") {
+		tags = `
+  tags = {
+    "azsecpack"                                                                = "nonprod"
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true"
+  }
+`
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-recovery-%[1]d-1"
+  location = "%[2]s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-recovery-%[1]d-2"
+  location = "%[3]s"
+}
+
+resource "azurerm_recovery_services_vault" "test" {
+  name                = "acctest-vault-%[1]d"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+  sku                 = "Standard"
+}
+
+resource "azurerm_site_recovery_fabric" "test1" {
+  resource_group_name = azurerm_resource_group.test2.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  name                = "acctest-fabric1-%[1]d"
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_site_recovery_fabric" "test2" {
+  resource_group_name = azurerm_resource_group.test2.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+  name                = "acctest-fabric2-%[1]d"
+  location            = azurerm_resource_group.test2.location
+  depends_on          = [azurerm_site_recovery_fabric.test1]
+}
+
+resource "azurerm_site_recovery_protection_container" "test1" {
+  resource_group_name  = azurerm_resource_group.test2.name
+  recovery_vault_name  = azurerm_recovery_services_vault.test.name
+  recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
+  name                 = "acctest-protection-cont1-%[1]d"
+}
+
+resource "azurerm_site_recovery_protection_container" "test2" {
+  resource_group_name  = azurerm_resource_group.test2.name
+  recovery_vault_name  = azurerm_recovery_services_vault.test.name
+  recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
+  name                 = "acctest-protection-cont2-%[1]d"
+}
+
+resource "azurerm_site_recovery_replication_policy" "test" {
+  resource_group_name                                  = azurerm_resource_group.test2.name
+  recovery_vault_name                                  = azurerm_recovery_services_vault.test.name
+  name                                                 = "acctest-policy-%[1]d"
+  recovery_point_retention_in_minutes                  = 24 * 60
+  application_consistent_snapshot_frequency_in_minutes = 4 * 60
+}
+
+resource "azurerm_site_recovery_protection_container_mapping" "test" {
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  recovery_fabric_name                      = azurerm_site_recovery_fabric.test1.name
+  recovery_source_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+  recovery_target_protection_container_id   = azurerm_site_recovery_protection_container.test2.id
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  name                                      = "mapping-%[1]d"
+}
+
+resource "azurerm_virtual_network" "test1" {
+  name                = "net-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  address_space       = ["192.168.1.0/24"]
+  location            = azurerm_site_recovery_fabric.test1.location
+}
+
+resource "azurerm_subnet" "test1" {
+  name                 = "snet-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefixes     = ["192.168.1.0/24"]
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "net2-%[1]d"
+  resource_group_name = azurerm_resource_group.test2.name
+  address_space       = ["192.168.2.0/24"]
+  location            = azurerm_site_recovery_fabric.test2.location
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "snet-%[1]d_2"
+  resource_group_name  = azurerm_resource_group.test2.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["192.168.2.0/24"]
+}
+
+resource "azurerm_site_recovery_network_mapping" "test" {
+  resource_group_name         = azurerm_resource_group.test2.name
+  recovery_vault_name         = azurerm_recovery_services_vault.test.name
+  name                        = "mapping-%[1]d"
+  source_recovery_fabric_name = azurerm_site_recovery_fabric.test1.name
+  target_recovery_fabric_name = azurerm_site_recovery_fabric.test2.name
+  source_network_id           = azurerm_virtual_network.test1.id
+  target_network_id           = azurerm_virtual_network.test2.id
+}
+
+resource "azurerm_network_interface" "test" {
+  name                = "vm-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "vm-%[1]d"
+    subnet_id                     = azurerm_subnet.test1.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+
+resource "azurerm_virtual_machine" "test" {
+  name                = "vm-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  vm_size = "Standard_B1s"
+
+  delete_os_disk_on_termination    = true
+  delete_data_disks_on_termination = true
+
+  storage_image_reference {
+    publisher = "OpenLogic"
+    offer     = "CentOS"
+    sku       = "7.5"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name              = "disk-%[1]d"
+    os_type           = "Linux"
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Premium_LRS"
+  }
+
+  os_profile {
+    admin_username = "testadmin"
+    admin_password = "Password1234!"
+    computer_name  = "vm-%[1]d"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+  network_interface_ids = [azurerm_network_interface.test.id]
+
+ %[4]s
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "accsa%[1]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, tags)
+}
+
+// addDiskStep1 — replication with OS disk only
+func (r SiteRecoveryReplicatedVmResource) addDiskStep1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "data1" {
+  name                 = "disk-data1-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
+// addDiskStep2 — attach data disk to VM, add it to replication (in-place update)
+func (r SiteRecoveryReplicatedVmResource) addDiskStep2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "data1" {
+  name                 = "disk-data1-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "data1" {
+  managed_disk_id    = azurerm_managed_disk.data1.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = 0
+  caching            = "None"
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  managed_disk {
+    disk_id                    = azurerm_managed_disk.data1.id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+    azurerm_virtual_machine_data_disk_attachment.data1,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
+// removeDiskStep1 — replication with OS disk + data disk
+func (r SiteRecoveryReplicatedVmResource) removeDiskStep1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "data1" {
+  name                 = "disk-data1-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "data1" {
+  managed_disk_id    = azurerm_managed_disk.data1.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = 0
+  caching            = "None"
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  managed_disk {
+    disk_id                    = azurerm_managed_disk.data1.id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+    azurerm_virtual_machine_data_disk_attachment.data1,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
+// removeDiskStep2 — remove data disk from replication (keep only OS disk)
+func (r SiteRecoveryReplicatedVmResource) removeDiskStep2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "data1" {
+  name                 = "disk-data1-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "data1" {
+  managed_disk_id    = azurerm_managed_disk.data1.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = 0
+  caching            = "None"
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+    azurerm_virtual_machine_data_disk_attachment.data1,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
+// addAndRemoveDiskStep1 — replication with OS disk + data disk A
+func (r SiteRecoveryReplicatedVmResource) addAndRemoveDiskStep1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "dataA" {
+  name                 = "disk-dataA-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "dataA" {
+  managed_disk_id    = azurerm_managed_disk.dataA.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = 0
+  caching            = "None"
+}
+
+resource "azurerm_managed_disk" "dataB" {
+  name                 = "disk-dataB-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  managed_disk {
+    disk_id                    = azurerm_managed_disk.dataA.id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+    azurerm_virtual_machine_data_disk_attachment.dataA,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
+// addAndRemoveDiskStep2 — remove disk A from replication, add disk B (swap)
+func (r SiteRecoveryReplicatedVmResource) addAndRemoveDiskStep2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_managed_disk" "dataA" {
+  name                 = "disk-dataA-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "dataA" {
+  managed_disk_id    = azurerm_managed_disk.dataA.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = 0
+  caching            = "None"
+}
+
+resource "azurerm_managed_disk" "dataB" {
+  name                 = "disk-dataB-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  storage_account_type = "Premium_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 1
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "dataB" {
+  managed_disk_id    = azurerm_managed_disk.dataB.id
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  lun                = 1
+  caching            = "None"
+}
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  managed_disk {
+    disk_id                    = azurerm_managed_disk.dataB.id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+    azurerm_virtual_machine_data_disk_attachment.dataA,
+    azurerm_virtual_machine_data_disk_attachment.dataB,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
+// updateDiskTypeStep1 — replication with Premium_LRS disk type
+func (r SiteRecoveryReplicatedVmResource) updateDiskTypeStep1(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "Premium_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
+// updateDiskTypeStep2 — change target_disk_type to StandardSSD_LRS (in-place update)
+func (r SiteRecoveryReplicatedVmResource) updateDiskTypeStep2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_site_recovery_replicated_vm" "test" {
+  name                                      = "repl-%[2]d"
+  resource_group_name                       = azurerm_resource_group.test2.name
+  recovery_vault_name                       = azurerm_recovery_services_vault.test.name
+  source_vm_id                              = azurerm_virtual_machine.test.id
+  source_recovery_fabric_name               = azurerm_site_recovery_fabric.test1.name
+  recovery_replication_policy_id            = azurerm_site_recovery_replication_policy.test.id
+  source_recovery_protection_container_name = azurerm_site_recovery_protection_container.test1.name
+
+  target_resource_group_id                = azurerm_resource_group.test2.id
+  target_recovery_fabric_id               = azurerm_site_recovery_fabric.test2.id
+  target_recovery_protection_container_id = azurerm_site_recovery_protection_container.test2.id
+
+  managed_disk {
+    disk_id                    = azurerm_virtual_machine.test.storage_os_disk[0].managed_disk_id
+    staging_storage_account_id = azurerm_storage_account.test.id
+    target_resource_group_id   = azurerm_resource_group.test2.id
+    target_disk_type           = "StandardSSD_LRS"
+    target_replica_disk_type   = "Premium_LRS"
+  }
+
+  depends_on = [
+    azurerm_site_recovery_protection_container_mapping.test,
+    azurerm_site_recovery_network_mapping.test,
+  ]
+}
+`, r.diskOperationTemplate(data), data.RandomInteger)
+}
+
 func (r SiteRecoveryReplicatedVmResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := replicationprotecteditems.ParseReplicationProtectedItemID(state.ID)
 	if err != nil {

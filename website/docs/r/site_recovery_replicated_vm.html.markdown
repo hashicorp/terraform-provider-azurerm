@@ -246,9 +246,9 @@ The following arguments are supported:
 
 * `target_zone` - (Optional) Specifies the Availability Zone where the Failover VM should exist. Changing this forces a new resource to be created.
 
-* `managed_disk` - (Optional) One or more `managed_disk` block as defined below. Changing this forces a new resource to be created.
+* `managed_disk` - (Optional) One or more `managed_disk` block as defined below.
 
-* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block as defined below. Changing this forces a new resource to be created.
+* `unmanaged_disk` - (Optional) One or more `unmanaged_disk` block as defined below.
  
 * `target_edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
@@ -274,15 +274,15 @@ The following arguments are supported:
 
 A `managed_disk` block supports the following:
 
-* `disk_id` - (Required) Id of disk that should be replicated. Changing this forces a new resource to be created.
+* `disk_id` - (Required) Id of disk that should be replicated.
 
 * `staging_storage_account_id` - (Required) Storage account that should be used for caching. Changing this forces a new resource to be created.
 
 * `target_resource_group_id` - (Required) Resource group disk should belong to when a failover is done. Changing this forces a new resource to be created.
 
-* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+* `target_disk_type` - (Required) What type should the disk be when a failover is done. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`.
 
-* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+* `target_replica_disk_type` - (Required) What type should the disk be that holds the replication data. Possible values are `Standard_LRS`, `Premium_LRS`, `PremiumV2_LRS`, `StandardSSD_LRS`, `UltraSSD_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`.
 
 * `target_disk_encryption_set_id` - (Optional) The Disk Encryption Set that the Managed Disk will be associated with. Changing this forces a new resource to be created.
 
@@ -356,7 +356,7 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `create` - (Defaults to 3 hours) Used when creating the Site Recovery Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replicated VM.
-* `update` - (Defaults to 80 minutes) Used when updating the Site Recovery Replicated VM.
+* `update` - (Defaults to 240 minutes) Used when updating the Site Recovery Replicated VM.
 * `delete` - (Defaults to 80 minutes) Used when deleting the Site Recovery Replicated VM.
 
 ## Import
