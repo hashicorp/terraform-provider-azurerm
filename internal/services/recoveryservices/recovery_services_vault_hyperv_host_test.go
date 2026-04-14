@@ -352,6 +352,7 @@ resource "azurerm_public_ip" "host" {
   resource_group_name = azurerm_resource_group.hybrid.name
   location            = azurerm_resource_group.hybrid.location
   allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_network_interface" "host" {
