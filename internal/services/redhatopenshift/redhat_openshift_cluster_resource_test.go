@@ -331,7 +331,8 @@ resource "time_sleep" "wait_for_updated_role_assignments" {
   create_duration = "2m"
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
     "azurerm_role_assignment.role_network3",
   ]
 }
@@ -660,7 +661,8 @@ resource "time_sleep" "wait_for_network_security_group_role_assignments" {
   create_duration = "2m"
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
     "azurerm_role_assignment.role_network3",
     "azurerm_role_assignment.role_network4",
   ]
@@ -803,7 +805,8 @@ resource "time_sleep" "wait_for_disk_encryption_role_assignments" {
   create_duration = "2m"
 
   depends_on = [
-    "time_sleep.wait_for_base_role_assignments",
+    "azurerm_role_assignment.role_network1",
+    "azurerm_role_assignment.role_network2",
     "azurerm_role_assignment.disk_encryption_reader1",
     "azurerm_role_assignment.disk_encryption_reader2",
   ]
