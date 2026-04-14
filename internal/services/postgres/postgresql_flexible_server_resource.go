@@ -174,8 +174,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"storage_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C For non-default server, the storage type is derived from the source if omitted;
+				Computed: true,
 				ForceNew: true,
-				Default:  string(servers.StorageTypePremiumLRS),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.StorageTypePremiumLRS),
 					string(servers.StorageTypePremiumVTwoLRS),
@@ -185,7 +186,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"storage_iops": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				// NOTE: O+C Azure computes IOPs for Premium_LRS
+				// NOTE: O+C Azure computes IOPs for Premium_LRS or from source server
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(3000, 80000),
 			},
@@ -193,7 +194,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			"storage_throughput": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				// NOTE: O+C Azure computes throughput for Premium_LRS
+				// NOTE: O+C Azure computes throughput for Premium_LRS or from source server
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(125, 1200),
 			},
@@ -523,8 +524,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			return nil
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			storageType := diff.Get("storage_type").(string)
 			configMap := diff.GetRawConfig().AsValueMap()
+			storageTypeConfig := configMap["storage_type"]
+
+			if storageTypeConfig.IsNull() || storageTypeConfig.AsString() == "" {
+				if v := configMap["create_mode"]; v.IsNull() || v.AsString() == string(servers.CreateModeDefault) {
+					return errors.New("`storage_type` is required when `create_mode` is Default")
+				}
+				return nil
+			}
+
+			storageType := storageTypeConfig.AsString()
 
 			if storageType == string(servers.StorageTypePremiumVTwoLRS) {
 				if version := diff.Get("version").(string); version == string(servers.PostgresMajorVersionOneThree) {
@@ -919,7 +929,6 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
-				// TODO: Check what happens if storage type is not specified for replica, but primary is PremiumV2_LRS
 				storageType := string(servers.StorageTypePremiumLRS)
 				if storage.Type != nil && pointer.FromEnum(storage.Type) != "" {
 					storageType = pointer.FromEnum(storage.Type)
@@ -1117,7 +1126,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = expandFlexibleServerAuthConfigForPatch(d.Get("authentication").([]interface{}))
 	}
 
-	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier", "storage_type", "storage_iops", "storage_throughput") {
+	if d.HasChanges("auto_grow_enabled", "storage_mb", "storage_tier", "storage_iops", "storage_throughput") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
 		storage := expandArmServerStorage(d)
 
@@ -1293,7 +1302,7 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 
 	if v, ok := d.GetOk("storage_type"); ok {
 		// Only set storage type when it's not the default value of PremiumLRS, as the service will default to PremiumLRS when storage type is not provided.
-		// There are issues when creating a server with storage type PremiumLRS in the payload
+		// There are issues when creating a server with storage type PremiumLRS present in the payload
 		// GH issue: TODO
 		storageType := servers.StorageType(v.(string))
 		if storageType != servers.StorageTypePremiumLRS {

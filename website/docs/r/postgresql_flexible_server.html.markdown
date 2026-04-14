@@ -159,7 +159,9 @@ The following arguments are supported:
 
 ~> **Note:** `storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`.
 
-* `storage_type` - (Optional) The type of storage used for the PostgreSQL Flexible Server. Possible values are `Premium_LRS` and `PremiumV2_LRS`. Defaults to `Premium_LRS`. Changing this forces a new resource to be created.
+* `storage_type` - (Optional) The type of storage used for the PostgreSQL Flexible Server. Possible values are `Premium_LRS` and `PremiumV2_LRS`. Changing this forces a new resource to be created.
+
+~> **Note:** `storage_type` is required when `create_mode` is `Default`.
 
 ~> **Note:** When `storage_type` is set to `PremiumV2_LRS`, the following constraints apply: PostgreSQL version `13` is not supported; `geo_redundant_backup_enabled` with `customer_managed_key` is not supported. Please refer to [Azure Documentation](https://learn.microsoft.com/en-us/azure/postgresql/compute-storage/concepts-storage-premium-ssd-v2#limitations-and-considerations) for more details.
 
