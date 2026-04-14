@@ -4,12 +4,14 @@
 package datafactory
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -20,7 +22,7 @@ import (
 )
 
 func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
 		Read:   resourceDataFactoryLinkedServiceMySQLRead,
 		Update: resourceDataFactoryLinkedServiceMySQLCreateUpdate,
@@ -103,7 +105,20 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"V1", "V2"}, false),
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if driverVersion := d.Get("driver_version"); driverVersion == "V1" && d.GetRawState().IsNull() {
+				return fmt.Errorf("creating Data Factory MySQL linked service `%s`: `driver_version` must be set to `V2` for new resources", d.Get("name").(string))
+			}
+			return nil
+		}),
 	}
+
+	if features.FivePointOh() {
+		resource.Schema["driver_version"].Default = "V2"
+	}
+
+	return resource
 }
 
 func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -140,12 +155,7 @@ func resourceDataFactoryLinkedServiceMySQLCreateUpdate(d *pluginsdk.ResourceData
 
 	mysqlProperties := &datafactory.MySQLLinkedServiceTypeProperties{
 		ConnectionString: &secureString,
-	}
-
-	if driverVersion := d.Get("driver_version").(string); d.IsNewResource() && driverVersion == "V1" {
-		return fmt.Errorf("creating Data Factory MySQL linked service `%s`: `driver_version` must be set to `V2` for new resources", d.Get("name").(string))
-	} else {
-		mysqlProperties.DriverVersion = driverVersion
+		DriverVersion:    d.Get("driver_version").(string),
 	}
 
 	description := d.Get("description").(string)

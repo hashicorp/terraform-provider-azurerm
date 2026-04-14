@@ -45,6 +45,7 @@ func TestAccDataFactoryLinkedServiceMySQL_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep("connection_string"),
 		{
 			Config: r.update2(data),
 			Check: acceptance.ComposeTestCheckFunc(
