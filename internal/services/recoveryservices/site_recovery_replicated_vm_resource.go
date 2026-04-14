@@ -198,7 +198,6 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
-				ForceNew:   true,
 				Set:        resourceSiteRecoveryReplicatedVMDiskHash,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -226,14 +225,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 						"target_disk_type": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
 						"target_replica_disk_type": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validation.StringInSlice(replicationprotecteditems.PossibleValuesForDiskAccountType(), false),
 						},
 
