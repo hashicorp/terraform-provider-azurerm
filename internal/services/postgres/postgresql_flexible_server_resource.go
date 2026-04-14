@@ -1291,12 +1291,11 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	}
 
 	if v, ok := d.GetOk("storage_type"); ok {
+		// Only set storage type when it's not the default value of PremiumLRS, as the service will default to PremiumLRS when storage type is not provided.
+		// There are issues when creating a server with storage type PremiumLRS in the payload
+		// GH issue: TODO
 		storageType := servers.StorageType(v.(string))
-
-		// Skip storage.Type for non-default mode if it's `Premium_LRS`
-		createMode := servers.CreateMode(d.Get("create_mode").(string))
-		isDerivedFromPrimary := d.Id() == "" && createMode != servers.CreateModeDefault
-		if !isDerivedFromPrimary && storageType != servers.StorageTypePremiumLRS {
+		if storageType != servers.StorageTypePremiumLRS {
 			storage.Type = pointer.To(storageType)
 		}
 
