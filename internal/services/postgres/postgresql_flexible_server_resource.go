@@ -528,12 +528,12 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			if storageType == string(servers.StorageTypePremiumVTwoLRS) {
 				if version := diff.Get("version").(string); version == string(servers.PostgresMajorVersionOneThree) {
-					return errors.New("`storage_type` `PremiumV2_LRS` does not support PostgreSQL version `13`")
+					return errors.New("PostgreSQL version `13` is not supported when `storage_type` is `PremiumV2_LRS`")
 				}
 
 				if skuName, ok := diff.GetOk("sku_name"); ok {
 					if strings.HasPrefix(skuName.(string), "B_") {
-						return errors.New("`storage_type` `PremiumV2_LRS` does not support Burstable compute tier")
+						return errors.New("Burstable compute tier is not supported when `storage_type` is `PremiumV2_LRS`")
 					}
 				}
 
@@ -1293,10 +1293,10 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	if v, ok := d.GetOk("storage_type"); ok {
 		storageType := servers.StorageType(v.(string))
 
-		// Only include storage.Type in the payload if it's not Premium_LRS
-		// Premium_LRS is the default value for storage type
-		// For certain create modes, include type will cause issues
-		if storageType != servers.StorageTypePremiumLRS {
+		// Skip storage.Type for non-default mode if it's `Premium_LRS`
+		createMode := servers.CreateMode(d.Get("create_mode").(string))
+		isDerivedFromPrimary := d.Id() == "" && createMode != servers.CreateModeDefault
+		if !isDerivedFromPrimary && storageType != servers.StorageTypePremiumLRS {
 			storage.Type = pointer.To(storageType)
 		}
 

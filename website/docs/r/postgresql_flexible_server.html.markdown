@@ -145,6 +145,8 @@ The following arguments are supported:
 
 * `auto_grow_enabled` - (Optional) Is the storage auto grow for PostgreSQL Flexible Server enabled? Defaults to `false`.
 
+~> **Note:** `auto_grow_enabled` is not supported when `storage_type` is `PremiumV2_LRS`.
+
 * `storage_mb` - (Optional) The max storage allowed for the PostgreSQL Flexible Server. Possible values are `32768`, `65536`, `131072`, `262144`, `524288`, `1048576`, `2097152`, `4193280`, `4194304`, `8388608`, `16777216` and `33553408`.
 
 ~> **Note:** If the `storage_mb` field is undefined on the initial deployment of the PostgreSQL Flexible Server resource it will default to `32768`. If the `storage_mb` field has been defined and then removed, the `storage_mb` field will retain the previously defined value.
@@ -155,15 +157,19 @@ The following arguments are supported:
 
 ~> **Note:** The `storage_tier` can be scaled once every 12 hours, this restriction is in place to ensure stability and performance after any changes to your PostgreSQL Flexible Server's configuration.
 
-* `storage_type` - (Optional) The type of storage used for the PostgreSQL Flexible Server. Possible values are `Premium_LRS` and `PremiumV2_LRS`. Defaults to `Premium_LRS`.
+~> **Note:** `storage_tier` is not supported when `storage_type` is `PremiumV2_LRS`.
+
+* `storage_type` - (Optional) The type of storage used for the PostgreSQL Flexible Server. Possible values are `Premium_LRS` and `PremiumV2_LRS`. Defaults to `Premium_LRS`. Changing this forces a new resource to be created.
+
+~> **Note:** When `storage_type` is set to `PremiumV2_LRS`, the following constraints apply: PostgreSQL version `13` is not supported; `geo_redundant_backup_enabled` with `customer_managed_key` is not supported. Please refer to [Azure Documentation](https://learn.microsoft.com/en-us/azure/postgresql/compute-storage/concepts-storage-premium-ssd-v2#limitations-and-considerations) for more details.
 
 * `storage_iops` - (Optional) The maximum IOPS supported for storage. Possible values range between `3000` and `80000`.
 
-~> **Note:** The `storage_iops` is required when type of storage is `PremiumV2_LRS`.
+~> **Note:** `storage_iops` is required when `storage_type` is `PremiumV2_LRS` and is not supported when `storage_type` is `Premium_LRS`.
 
 * `storage_throughput` - (Optional) The maximum throughput supported for storage in MB/s. Possible values range between `125` and `1200`.
 
-~> **Note:** The `storage_throughput` is required when type of storage is `PremiumV2_LRS`.
+~> **Note:** `storage_throughput` is required when `storage_type` is `PremiumV2_LRS` and is not supported when `storage_type` is `Premium_LRS`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
