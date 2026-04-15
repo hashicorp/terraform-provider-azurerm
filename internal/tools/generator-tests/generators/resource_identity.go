@@ -210,7 +210,7 @@ func (d *resourceIdentityData) exec() error {
 	tpl := template.Must(template.New("identity_test.gotpl").Funcs(templatehelpers.TplFuncMap).ParseFS(Templatedir, "templates/identity_test.gotpl"))
 
 	outputPath := cwd + fmt.Sprintf(riOutputFileFmt, d.ResourceName)
-	cwdParts := strings.Split(cwd, "internal/services/")
+	cwdParts := strings.Split(cwd, "internal"+string(os.PathSeparator)+"services"+string(os.PathSeparator))
 
 	// Allow service package name override if needed (unlikely)
 	if d.ServicePackageName == "" {

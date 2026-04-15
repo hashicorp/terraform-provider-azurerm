@@ -261,8 +261,7 @@ func (r BatchJobResource) addJob(ctx context.Context, client *batchDataplane.Job
 	deadline, _ := ctx.Deadline()
 	now := time.Now()
 	timeout := deadline.Sub(now)
-	_, err := client.Add(ctx, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now})
-	if err != nil {
+	if _, err := client.Add(ctx, job, pointer.To(int32(timeout.Seconds())), nil, nil, &date.TimeRFC1123{Time: now}); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
 	return nil

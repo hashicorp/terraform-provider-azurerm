@@ -292,10 +292,10 @@ func resourceArmSignalRServiceRead(d *pluginsdk.ResourceData, meta interface{}) 
 						continue
 					}
 				}
-				d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
-				d.Set("messaging_logs_enabled", messagingLogsEnabled)
-				d.Set("http_request_logs_enabled", httpLogsEnabled)
 			}
+			d.Set("connectivity_logs_enabled", connectivityLogsEnabled)
+			d.Set("messaging_logs_enabled", messagingLogsEnabled)
+			d.Set("http_request_logs_enabled", httpLogsEnabled)
 			identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)

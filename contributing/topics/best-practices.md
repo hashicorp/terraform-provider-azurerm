@@ -248,6 +248,88 @@ Example:
 	},
 ```
 
+## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
+
+Known-after-apply values can cause false-positives when using `(*schema.ResourceDiff).Get()` or the `(sdk.ResourceMetaData).DecodeDiff()` functions. For example, when checking that two properties are both set by comparing the returned values against an empty string, a `d.Get()` on an unknown value will return an empty string which then triggers the error, regardless of whether the value was set in config.
+
+Given the following configuration:
+
+```hcl
+resource "azurerm_user_assigned_identity" "example" {
+	name                = "example-uai"
+	resource_group_name = "example-rg"
+	location            = "West Europe"
+}
+
+resource "azurerm_foo" "example" {
+	name                = "example-foo"
+	location            = "West Europe"
+	resource_group_name = "example-rg"
+
+	customer_managed_key_id          = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+	customer_managed_key_identity_id = azurerm_user_assigned_identity.example.id
+}
+```
+
+The following CustomizeDiff validation that asserts `customize_managed_key_identity_id` has to be provided when `customer_managed_key_id` is provided will fail during creation, because `azurerm_user_assigned_identity.example.id` is not known until apply time:
+
+```go
+func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			var model FooModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				if model.CustomerManagedKeyID != "" && model.CustomerManagedKeyIdentityID == "" {
+					// This error will be returned since model.CustomerManagedKeyIdentityID is not known until apply time
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+```
+
+Instead, the CustomizeDiff function can use `metadata.ResourceDiff.GetRawConfig()`:
+
+```go
+func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+
+				rawCMK := rawConfig["customer_managed_key_id"]
+				rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
+
+				if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+```
+
+However if the logic depends on the known-after-apply value itself, then CustomizeDiff has to abstain.
+
 ## Go File Header Comments
 
 When adding or updating the licensing header at the top of a Go source file, always use the exact format below and place it at the very beginning of the file with no preceding blank lines:
@@ -296,35 +378,7 @@ Do not create a variable if it is used only once. For example, do not create a v
 :white_check_mark: **DO**
 
 ```go
-param.Content = expandModelContent(model.Content)
-```
-
-## Do Not Initialize Variables with Their Zero Value
-
-When initializing a variable or struct field, avoid explicitly setting it to its zero value. In Go, variables are automatically initialized to their zero value, so setting them explicitly is redundant.
-
-:x: **DON'T**
-
-```go
-model.Profile = &profiles.Profile{
-	storage_enabled: false, // redundant: `false` is the default value
-	rules:           nil,   // redundant: `nil` is the default value
-	description:     "",    // redundant: `""` is the default value
-	count:           0,     // redundant: `0` is the default value
+return &managedclusters.ManagedClusterBootstrapProfile{
+    ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
 }
 ```
-
-## Slice and Map Initialization
-
-Use `make` to initialize a slice or a map.
-
-:white_check_mark: **DO**
-
-```go
-stringSlice := make([]string, 0)
-props := make(map[string]string)
-```
-
-
-
-

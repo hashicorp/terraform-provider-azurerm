@@ -206,8 +206,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Create() sdk.ResourceFunc {
 			props.Credentials = creds
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -272,8 +271,7 @@ func (r MachineLearningDataStoreDataLakeGen2) Update() sdk.ResourceFunc {
 			props.Credentials = creds
 			datastoreRaw.Properties = props
 
-			_, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
-			if err != nil {
+			if _, err = client.CreateOrUpdate(ctx, *id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)}); err != nil {
 				return fmt.Errorf("creating/updating %s: %+v", id, err)
 			}
 
