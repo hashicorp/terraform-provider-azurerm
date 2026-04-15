@@ -90,9 +90,7 @@ The following arguments are supported:
 
 * `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Defaults to `MultiTenant`. Changing this forces a new resource to be created.
 
-~> **Note:** The `MultiTenant` bot creation is deprecated by service API. Please use `SingleTenant` or `UserAssignedMSI`.
-
-~> **Note:** The `MultiTenant` bot which is already created will continue to function as normal.
+~> **Note:** Creation of `azurerm_bot_service_azure_bot` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
 

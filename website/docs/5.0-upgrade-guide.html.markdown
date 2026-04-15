@@ -300,6 +300,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `certificate` property has been removed.
 
+### `azurem_bot_service_azure_bot`
+
+* The `microsoft_app_type` property is now required.
+
 ### `azurerm_bot_channel_ms_teams`
 
 * The deprecated `enable_calling` property has been removed in favour of the `calling_enabled` property.
