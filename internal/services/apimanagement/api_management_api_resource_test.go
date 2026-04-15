@@ -359,6 +359,38 @@ func TestAccApiManagementApi_importUpdate(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementApi_translateRequiredQueryParametersDefault(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.translateRequiredQueryParameters(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("import.0.translate_required_query_parameters").HasValue("template"),
+			),
+		},
+		data.ImportStep("import"),
+	})
+}
+
+func TestAccApiManagementApi_translateRequiredQueryParametersQuery(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
+	r := ApiManagementApiResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.translateRequiredQueryParameters(data, "query"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("import.0.translate_required_query_parameters").HasValue("query"),
+			),
+		},
+		data.ImportStep("import"),
+	})
+}
+
 func TestAccApiManagementApi_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_api", "test")
 	r := ApiManagementApiResource{}
@@ -1139,6 +1171,32 @@ resource "azurerm_api_management_api" "test" {
   terms_of_service_url = "https://example:8080/service"
 }
 `, r.template(data, SkuNameConsumption), data.RandomInteger)
+}
+
+func (r ApiManagementApiResource) translateRequiredQueryParameters(data acceptance.TestData, strategy string) string {
+	translateLine := ""
+	if strategy != "" {
+		translateLine = fmt.Sprintf(`translate_required_query_parameters = "%s"`, strategy)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+
+  import {
+    content_value  = file("testdata/api_management_api_swagger.json")
+    content_format = "swagger-json"
+    %s
+  }
+}
+`, r.template(data, SkuNameConsumption), data.RandomInteger, translateLine)
 }
 
 func (ApiManagementApiResource) template(data acceptance.TestData, skuName string) string {

@@ -123,6 +123,8 @@ A `import` block supports the following:
 
 * `wsdl_selector` - (Optional) A `wsdl_selector` block as defined below, which allows you to limit the import of a WSDL to only a subset of the document. This can only be specified when `content_format` is `wsdl` or `wsdl-link`.
 
+* `translate_required_query_parameters` - (Optional) Strategy of translating required query parameters to template ones during import. Possible values are `query` and `template`. Defaults to `template`.
+
 ---
 
 A `license` block supports the following:

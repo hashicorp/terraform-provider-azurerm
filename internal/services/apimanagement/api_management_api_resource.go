@@ -192,6 +192,13 @@ func resourceApiManagementApi() *pluginsdk.Resource {
 								},
 							},
 						},
+
+						"translate_required_query_parameters": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(api.TranslateRequiredQueryParametersConductTemplate),
+							ValidateFunc: validation.StringInSlice(api.PossibleValuesForTranslateRequiredQueryParametersConduct(), false),
+						},
 					},
 				},
 			},
@@ -845,6 +852,9 @@ func expandApiManagementApiImport(importVs []interface{}, apiType api.ApiType, s
 	if versionSetId != "" {
 		apiParams.Properties.ApiVersionSetId = pointer.To(versionSetId)
 	}
+
+	translateRequiredQueryParameters := importV["translate_required_query_parameters"].(string)
+	apiParams.Properties.TranslateRequiredQueryParameters = pointer.To(api.TranslateRequiredQueryParametersConduct(translateRequiredQueryParameters))
 
 	return &apiParams
 }
