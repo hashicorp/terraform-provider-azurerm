@@ -49,9 +49,7 @@ The following arguments are supported:
 
 * `microsoft_app_type` - (Optional) The Microsoft Application Type for the Bot Channels Registration. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Defaults to `MultiTenant`. Changing this forces a new resource to be created.
 
-~> **Note:** The `MultiTenant` bot creation is deprecated by service API. Please use `SingleTenant` or `UserAssignedMSI`.
-
-~> **Note:** The `MultiTenant` bot which is already created will continue to function as normal.
+~> **Note:** Creation of `azurerm_bot_channels_registration` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
 
 * `microsoft_app_tenant_id` - (Optional) The Microsoft Application Tenant ID for the Bot Channels Registration. Changing this forces a new resource to be created.
 

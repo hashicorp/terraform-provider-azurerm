@@ -304,6 +304,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `enable_calling` property has been removed in favour of the `calling_enabled` property.
 
+### `azurerm_bot_channels_registration`
+
+* The `microsoft_app_type` property is now required.
+
 ### `azurerm_cdn_endpoint_custom_domain`
 
 * The `cdn_managed_https.tls_version` property no longer accepts `None` or `TLS10` as a value.

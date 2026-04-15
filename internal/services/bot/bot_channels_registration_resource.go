@@ -97,23 +97,22 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"microsoft_app_tenant_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.IsUUID,
-			},
-
 			"microsoft_app_type": {
 				Type:     pluginsdk.TypeString,
-				Optional: true,
+				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(botservice.MsaAppTypeMultiTenant),
 					string(botservice.MsaAppTypeSingleTenant),
 					string(botservice.MsaAppTypeUserAssignedMSI),
 				}, false),
-				Default: string(botservice.MsaAppTypeMultiTenant),
+			},
+
+			"microsoft_app_tenant_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
 			},
 
 			"microsoft_app_user_assigned_identity_id": {
@@ -191,6 +190,19 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["cmk_key_vault_url"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+
+		resource.Schema["microsoft_app_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// O+C because Azure sets a value for this if omitted
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(botservice.MsaAppTypeMultiTenant),
+				string(botservice.MsaAppTypeSingleTenant),
+				string(botservice.MsaAppTypeUserAssignedMSI),
+			}, false),
+		}
 	}
 
 	return resource
