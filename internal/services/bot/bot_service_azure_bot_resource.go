@@ -220,7 +220,6 @@ func (r AzureBotServiceResource) Arguments() map[string]*pluginsdk.Schema {
 				string(botservice.MsaAppTypeUserAssignedMSI),
 			}, false),
 		}
-
 	}
 
 	return output
