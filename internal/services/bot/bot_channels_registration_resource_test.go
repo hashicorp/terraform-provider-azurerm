@@ -183,7 +183,7 @@ resource "azurerm_bot_channels_registration" "test" {
     environment = "Test2"
   }
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+`, r.keyVaultTemplate(data), data.RandomInteger, data.RandomString)
 }
 
 func (r BotChannelsRegistrationResource) completeConfig(data acceptance.TestData) string {
@@ -275,6 +275,12 @@ provider "azurerm" {
 }
 
 %[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
 
 resource "azurerm_bot_channels_registration" "test" {
   name                                    = "acctestdf%[2]d"
