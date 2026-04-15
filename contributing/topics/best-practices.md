@@ -382,3 +382,33 @@ return &managedclusters.ManagedClusterBootstrapProfile{
     ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
 }
 ```
+
+## Do Not Initialize Variables with Their Zero Value
+
+When initializing a variable or struct field, avoid explicitly setting it to its zero value. In Go, variables are automatically initialized to their zero value, so setting them explicitly is redundant.
+
+:x: **DON'T**
+
+```go
+model.Profile = &profiles.Profile{
+	storage_enabled: false, // redundant: `false` is the default value
+	rules:           nil,   // redundant: `nil` is the default value
+	description:     "",    // redundant: `""` is the default value
+	count:           0,     // redundant: `0` is the default value
+}
+```
+
+## Slice and Map Initialization
+
+Use `make` to initialize a slice or a map.
+
+:white_check_mark: **DO**
+
+```go
+stringSlice := make([]string, 0)
+props := make(map[string]string)
+```
+
+
+
+
