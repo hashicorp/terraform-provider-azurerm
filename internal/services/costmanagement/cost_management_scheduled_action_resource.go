@@ -21,10 +21,7 @@ import (
 
 type CostManagementScheduledActionResource struct{}
 
-var (
-	_ sdk.Resource                  = CostManagementScheduledActionResource{}
-	_ sdk.ResourceWithCustomizeDiff = CostManagementScheduledActionResource{}
-)
+var _ sdk.ResourceWithCustomizeDiff = CostManagementScheduledActionResource{}
 
 func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -71,10 +68,10 @@ func (r CostManagementScheduledActionResource) Arguments() map[string]*pluginsdk
 			ValidateFunc: validation.StringLenBetween(1, 250),
 		},
 
-		// O+C: When using User principal to run Terraform (e.g. `az login`), this attribute is optional in the request and will be set as the user's email address in return if omitted.
 		"email_address_sender": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// O+C: When using User principal to run Terraform (e.g. `az login`), this attribute is optional in the request and will be set as the user's email address in return if omitted.
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
