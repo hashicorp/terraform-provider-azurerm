@@ -25,6 +25,189 @@ resource "azurerm_firewall_policy" "example" {
 }
 ```
 
+### Complete Example (Premium SKU with all optional blocks)
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_user_assigned_identity" "example" {
+  name                = "example-identity"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_key_vault" "example" {
+  name                            = "examplekv"
+  location                        = azurerm_resource_group.example.location
+  resource_group_name             = azurerm_resource_group.example.name
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  tenant_id                       = data.azurerm_client_config.current.tenant_id
+  sku_name                        = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.example.principal_id
+
+    certificate_permissions = [
+      "Get",
+      "List",
+    ]
+
+    secret_permissions = [
+      "Get",
+      "List",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "example-cert"
+  key_vault_id = azurerm_key_vault.example.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=example"
+      validity_in_months = 12
+    }
+  }
+}
+
+resource "azurerm_ip_group" "example_source" {
+  name                = "example-source-ipgroup"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  cidrs               = ["10.0.0.0/24", "10.0.1.0/24"]
+}
+
+resource "azurerm_ip_group" "example_destination" {
+  name                = "example-destination-ipgroup"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  cidrs               = ["192.168.0.0/25", "192.168.1.0/25"]
+}
+
+resource "azurerm_log_analytics_workspace" "example" {
+  name                = "example-law"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_firewall_policy" "example" {
+  name                = "example-policy"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Premium"
+
+  threat_intelligence_mode = "Alert"
+
+  threat_intelligence_allowlist {
+    ip_addresses = ["1.1.1.1", "2.2.2.2"]
+    fqdns        = ["*.example.com"]
+  }
+
+  dns {
+    servers       = ["10.0.0.5", "10.0.0.6"]
+    proxy_enabled = true
+  }
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.example.id,
+    ]
+  }
+
+  tls_certificate {
+    key_vault_secret_id = azurerm_key_vault_certificate.example.secret_id
+    name                = azurerm_key_vault_certificate.example.name
+  }
+
+  intrusion_detection {
+    mode = "Alert"
+
+    signature_overrides {
+      id    = "1"
+      state = "Alert"
+    }
+
+    traffic_bypass {
+      name                  = "example-bypass"
+      protocol              = "TCP"
+      description           = "Example bypass rule"
+      destination_addresses = ["192.168.1.0/24"]
+      source_addresses      = ["10.0.0.0/24"]
+      destination_ports     = ["443"]
+      source_ip_groups = [
+        azurerm_ip_group.example_source.id,
+      ]
+      destination_ip_groups = [
+        azurerm_ip_group.example_destination.id,
+      ]
+    }
+
+    private_ranges = ["172.16.0.0/12"]
+  }
+
+  insights {
+    enabled                            = true
+    default_log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
+    retention_in_days                  = 30
+
+    log_analytics_workspace {
+      id                = azurerm_log_analytics_workspace.example.id
+      firewall_location = azurerm_resource_group.example.location
+    }
+  }
+
+  explicit_proxy {
+    enabled    = true
+    http_port  = 8080
+    https_port = 8443
+  }
+
+  private_ip_ranges                = ["172.16.0.0/12", "192.168.0.0/16"]
+  auto_learn_private_ranges_enabled = true
+  sql_redirect_allowed             = true
+
+  tags = {
+    Environment = "Production"
+  }
+}
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
