@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
@@ -527,4 +528,14 @@ func expandCompressionType(inputType string) string {
 	}
 
 	return inputType
+}
+
+func expandDataFactoryEncryptionIdentity(input string) *factories.CMKIdentityDefinition {
+	if input == "" {
+		return nil
+	}
+
+	return &factories.CMKIdentityDefinition{
+		UserAssignedIdentity: &input,
+	}
 }

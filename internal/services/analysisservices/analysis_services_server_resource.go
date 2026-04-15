@@ -92,8 +92,9 @@ func resourceAnalysisServicesServer() *pluginsdk.Resource {
 			},
 
 			"ipv4_firewall_rule": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
+				Type:         pluginsdk.TypeSet,
+				Optional:     true,
+				RequiredWith: []string{"power_bi_service_enabled"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
@@ -175,15 +176,6 @@ func resourceAnalysisServicesServerCreate(d *pluginsdk.ResourceData, meta interf
 			IPV4FirewallSettings: expandAnalysisServicesServerFirewallSettings(d),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	if v, ok := d.GetOk("power_bi_service_enabled"); ok {
-		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-			}
-		}
-		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(v.(bool))
 	}
 
 	if querypoolConnectionMode, ok := d.GetOk("querypool_connection_mode"); ok {
@@ -315,15 +307,6 @@ func resourceAnalysisServicesServerUpdate(d *pluginsdk.ResourceData, meta interf
 		},
 	}
 
-	if d.HasChange("power_bi_service_enabled") {
-		if analysisServicesServer.Properties.IPV4FirewallSettings == nil {
-			analysisServicesServer.Properties.IPV4FirewallSettings = &servers.IPv4FirewallSettings{
-				FirewallRules: pointer.To(make([]servers.IPv4FirewallRule, 0)),
-			}
-		}
-		analysisServicesServer.Properties.IPV4FirewallSettings.EnablePowerBIService = pointer.To(d.Get("power_bi_service_enabled").(bool))
-	}
-
 	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
 		analysisServicesServer.Properties.BackupBlobContainerUri = pointer.To(containerUri.(string))
 	}
@@ -374,25 +357,32 @@ func expandAnalysisServicesServerAdminUsers(d *pluginsdk.ResourceData) *servers.
 }
 
 func expandAnalysisServicesServerFirewallSettings(d *pluginsdk.ResourceData) *servers.IPv4FirewallSettings {
-	firewallRules := d.Get("ipv4_firewall_rule").(*pluginsdk.Set).List()
+	fwRules := make([]servers.IPv4FirewallRule, 0)
+	result := servers.IPv4FirewallSettings{}
 
-	if len(firewallRules) == 0 {
-		return nil
+	if !pluginsdk.IsExplicitlyNullInConfig(d, "power_bi_service_enabled") {
+		result.EnablePowerBIService = pointer.To(d.Get("power_bi_service_enabled").(bool))
+		// when `power_bi_service_enabled` is specified, we must send at least an empty array for `FirewallRules`
+		// otherwise the API errors out with a 400.
+		result.FirewallRules = &fwRules
 	}
 
-	firewallSettings := servers.IPv4FirewallSettings{}
-	fwRules := make([]servers.IPv4FirewallRule, len(firewallRules))
-	for i, v := range firewallRules {
+	firewallRules := d.Get("ipv4_firewall_rule").(*pluginsdk.Set).List()
+	if len(firewallRules) == 0 {
+		return &result
+	}
+
+	for _, v := range firewallRules {
 		fwRule := v.(map[string]interface{})
-		fwRules[i] = servers.IPv4FirewallRule{
+		fwRules = append(fwRules, servers.IPv4FirewallRule{
 			FirewallRuleName: pointer.To(fwRule["name"].(string)),
 			RangeStart:       pointer.To(fwRule["range_start"].(string)),
 			RangeEnd:         pointer.To(fwRule["range_end"].(string)),
-		}
+		})
 	}
-	firewallSettings.FirewallRules = &fwRules
+	result.FirewallRules = &fwRules
 
-	return &firewallSettings
+	return &result
 }
 
 func flattenAnalysisServicesServerFirewallSettings(serverProperties *servers.AnalysisServicesServerProperties) (*bool, *pluginsdk.Set) {

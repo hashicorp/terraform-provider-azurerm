@@ -209,6 +209,12 @@ For some advanced scenarios, such as where more granular permissions are necessa
 
 ~> **Note:** The Files Storage API does not support authenticating via AzureAD and will continue to use a SharedKey when AAD authentication is enabled.
 
+The `enhanced_validation` block supports the following:
+
+* `locations` - (Optional) Should the AzureRM Provider validate location arguments against the list of supported Azure Locations? This calls out to the Azure MetaData Service to cache the list of supported Azure Locations for the specified Environment. When enabled, invalid locations are caught at `terraform plan` time; when disabled, these errors are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` Environment Variable, or from the legacy `ARM_PROVIDER_ENHANCED_VALIDATION`. Defaults to `true` in version 4.x and `false` in version 5.0.
+
+* `resource_providers` - (Optional) Should the AzureRM Provider validate Resource Provider arguments against the list of supported Resource Providers? This caches the list of registered Resource Providers for the subscription. When enabled, invalid resource providers are caught at `terraform plan` time; when disabled, these errors are caught at `terraform apply` time when Azure rejects the request. This can also be sourced from the `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` Environment Variable, or from the legacy `ARM_PROVIDER_ENHANCED_VALIDATION`. Defaults to `true` in version 4.x and `false` in version 5.0.
+
 It's also possible to use multiple Provider blocks within a single Terraform configuration, for example, to work with resources across multiple Subscriptions - more information can be found [in the documentation for Providers](https://www.terraform.io/docs/configuration/providers.html#multiple-provider-instances).
 
 ## Features

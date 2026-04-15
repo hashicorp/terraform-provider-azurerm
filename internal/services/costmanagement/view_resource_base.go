@@ -204,8 +204,7 @@ func (br costManagementViewBaseResource) createFunc(resourceName, scopeFieldName
 				},
 			}
 
-			_, err = client.CreateOrUpdateByScope(ctx, id, props)
-			if err != nil {
+			if _, err = client.CreateOrUpdateByScope(ctx, id, props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -338,8 +337,7 @@ func (br costManagementViewBaseResource) updateFunc() sdk.ResourceFunc {
 				model.Properties.Pivots = expandPivots(metadata.ResourceData.Get("pivot").([]interface{}))
 			}
 
-			_, err = client.CreateOrUpdateByScope(ctx, *id, *model)
-			if err != nil {
+			if _, err = client.CreateOrUpdateByScope(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

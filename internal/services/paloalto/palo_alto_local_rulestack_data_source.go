@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
+	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -113,7 +113,7 @@ func (l LocalRulestackDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestackResources
 
 			var state LocalRulestackDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -122,7 +122,7 @@ func (l LocalRulestackDataSource) Read() sdk.ResourceFunc {
 
 			id := localrulestacks.NewLocalRulestackID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, state.Name)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.LocalRulestacksGet(ctx, id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
