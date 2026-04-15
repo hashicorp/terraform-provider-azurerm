@@ -123,6 +123,11 @@ service/communication:
   - any-glob-to-any-file:
     - internal/services/communication/**/*
 
+service/compute-fleet:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/computefleet/**/*
+
 service/connections:
 - changed-files:
   - any-glob-to-any-file:
