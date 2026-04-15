@@ -5,6 +5,7 @@ package datafactory
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -107,8 +108,11 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
-			if driverVersion := d.Get("driver_version"); driverVersion == "V1" && d.GetRawState().IsNull() {
-				return fmt.Errorf("creating Data Factory MySQL linked service `%s`: `driver_version` must be set to `V2` for new resources", d.Get("name").(string))
+			// No state yet, a new resource being created.
+			if d.GetRawState().IsNull() {
+				if d.Get("driver_version") == "V1" {
+					return errors.New("`driver_version` must be set to `V2` for new resources")
+				}
 			}
 			return nil
 		}),
@@ -245,9 +249,8 @@ func resourceDataFactoryLinkedServiceMySQLRead(d *pluginsdk.ResourceData, meta i
 		}
 	}
 
-	if driverVersion := mysql.DriverVersion; driverVersion != nil {
-		d.Set("driver_version", driverVersion)
-	}
+	driverVersion, _ := (mysql.DriverVersion).(string)
+	d.Set("driver_version", driverVersion)
 
 	return nil
 }
