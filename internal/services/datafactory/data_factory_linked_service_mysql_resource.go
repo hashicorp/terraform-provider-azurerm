@@ -102,7 +102,7 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 			"driver_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Default:      "V1",
+				Default:      "V2",
 				ValidateFunc: validation.StringInSlice([]string{"V1", "V2"}, false),
 			},
 		},
@@ -118,8 +118,8 @@ func resourceDataFactoryLinkedServiceMySQL() *pluginsdk.Resource {
 		}),
 	}
 
-	if features.FivePointOh() {
-		resource.Schema["driver_version"].Default = "V2"
+	if !features.FivePointOh() {
+		resource.Schema["driver_version"].Default = "V1"
 	}
 
 	return resource
