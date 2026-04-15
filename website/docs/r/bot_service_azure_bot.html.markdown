@@ -88,7 +88,7 @@ The following arguments are supported:
 
 * `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
 
-* `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Defaults to `MultiTenant`. Changing this forces a new resource to be created.
+* `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
 
 ~> **Note:** Creation of `azurerm_bot_service_azure_bot` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
 
