@@ -15,7 +15,7 @@ import (
 type GetContentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *string
+	Model        *[]byte
 }
 
 // GetContent ...
@@ -44,7 +44,7 @@ func (c RunbookDraftClient) GetContent(ctx context.Context, id RunbookId) (resul
 		return
 	}
 
-	var model string
+	var model []byte
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 ```go
 ctx := context.TODO()
 id := runbookdraft.NewRunbookID("12345678-1234-9876-4563-123456789012", "example-resource-group", "automationAccountName", "runbookName")
-var payload string
+var payload []byte
 
 if err := client.ReplaceContentThenPoll(ctx, id, payload); err != nil {
 	// handle the error

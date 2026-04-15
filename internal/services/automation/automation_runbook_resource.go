@@ -351,7 +351,7 @@ func resourceAutomationRunbookCreateUpdate(d *pluginsdk.ResourceData, meta inter
 		if v, ok := d.GetOk("content"); ok {
 			content := v.(string)
 			draftRunbookID := runbookdraft.NewRunbookID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName, id.RunbookName)
-			if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, content); err != nil {
+			if err := autoCli.RunbookDraft.ReplaceContentThenPoll(ctx, draftRunbookID, []byte(content)); err != nil {
 				return fmt.Errorf("setting the draft for %s: %+v", id, err)
 			}
 
