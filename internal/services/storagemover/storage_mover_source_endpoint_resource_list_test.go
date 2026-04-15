@@ -48,7 +48,7 @@ func TestAccStorageMoverSourceEndpoint_list(t *testing.T) {
 }
 
 func (r StorageMoverSourceEndpointResource) listConfig(data acceptance.TestData) string {
-	template := StorageMoverTargetEndpointResource{}.template(data)
+	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
