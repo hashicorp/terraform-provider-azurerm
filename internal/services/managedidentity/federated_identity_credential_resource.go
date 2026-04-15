@@ -15,15 +15,28 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedidentity/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.Resource = FederatedIdentityCredentialResource{}
+var (
+	_ sdk.Resource                   = FederatedIdentityCredentialResource{}
+	_ sdk.ResourceWithStateMigration = FederatedIdentityCredentialResource{}
+)
 
 type FederatedIdentityCredentialResource struct{}
 
 func (r FederatedIdentityCredentialResource) ModelObject() interface{} {
 	return &FederatedIdentityCredentialResourceSchema{}
+}
+
+func (r FederatedIdentityCredentialResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.FederatedIdentityCredentialV0ToV1{},
+		},
+	}
 }
 
 type FederatedIdentityCredentialResourceSchema struct {

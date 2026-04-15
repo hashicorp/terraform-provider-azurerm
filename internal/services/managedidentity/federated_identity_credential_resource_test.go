@@ -70,6 +70,33 @@ func TestAccFederatedIdentityCredential_deprecated(t *testing.T) {
 	})
 }
 
+func TestAccFederatedIdentityCredential_parentIdToUserAssignedIdentityId(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("this test is only valid in versions prior to 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
+	r := FederatedIdentityCredentialTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parent_id").Exists(),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("user_assigned_identity_id").Exists(),
+			),
+			PlanOnly: false,
+		},
+	})
+}
+
 func TestAccFederatedIdentityCredential_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
 	r := FederatedIdentityCredentialTestResource{}
