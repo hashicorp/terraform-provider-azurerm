@@ -77,7 +77,7 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 			Required: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.Any(validation.IsIPAddress, validation.IsCIDR),
 			},
 		},
 
@@ -234,7 +234,7 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 				Tags: &model.Tags,
 			}
 
-			if model.Capacity != 0 {
+			if metadata.ResourceData.HasChange("capacity") {
 				properties.Properties.Sku.Capacity = pointer.To(model.Capacity)
 			}
 

@@ -8,105 +8,83 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/durabletask"
-	"github.com/stretchr/testify/require"
 )
 
 func TestValidateSchedulerName(t *testing.T) {
-	validNames := []string{
-		"validname",
-		"valid-name",
-		"valid123",
-		"name-with-numbers-123",
-		"abc",                   // minimum length
-		strings.Repeat("a", 63), // maximum length
-		"scheduler-1",
-		"my-scheduler",
-		"test123scheduler",
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{Input: "validname", Valid: true},
+		{Input: "valid-name", Valid: true},
+		{Input: "valid123", Valid: true},
+		{Input: "name-with-numbers-123", Valid: true},
+		{Input: "abc", Valid: true},
+		{Input: strings.Repeat("a", 63), Valid: true},
+		{Input: "scheduler-1", Valid: true},
+		{Input: "my-scheduler", Valid: true},
+		{Input: "test123scheduler", Valid: true},
+		{Input: "", Valid: false},
+		{Input: "ab", Valid: false},
+		{Input: "-invalid", Valid: false},
+		{Input: "invalid-", Valid: false},
+		{Input: strings.Repeat("a", 64), Valid: false},
 	}
 
-	invalidNames := []string{
-		"",                      // empty
-		"ab",                    // too short
-		"-invalid",              // starts with hyphen
-		"invalid-",              // ends with hyphen
-		strings.Repeat("a", 64), // too long
-	}
-
-	for _, name := range validNames {
-		t.Run("valid_"+name, func(t *testing.T) {
-			warnings, errors := durabletask.ValidateSchedulerName(name, "scheduler_name")
-			require.Empty(t, warnings, "expected no warnings for valid name: %s", name)
-			require.Empty(t, errors, "expected no errors for valid name: %s", name)
-		})
-	}
-
-	for _, name := range invalidNames {
-		t.Run("invalid_"+name, func(t *testing.T) {
-			_, errors := durabletask.ValidateSchedulerName(name, "scheduler_name")
-			require.NotEmpty(t, errors, "expected errors for invalid name: %s", name)
-		})
+	for _, tc := range cases {
+		_, errors := durabletask.ValidateSchedulerName(tc.Input, "scheduler_name")
+		valid := len(errors) == 0
+		if tc.Valid != valid {
+			t.Fatalf("expected valid=%t for %q, got valid=%t", tc.Valid, tc.Input, valid)
+		}
 	}
 }
 
 func TestValidateTaskHubName(t *testing.T) {
-	validNames := []string{
-		"validhub",
-		"valid-hub",
-		"hub123",
-		"my-task-hub",
-		"abc",                   // minimum length
-		strings.Repeat("a", 63), // maximum length
-		"taskhub-1",
-		"test123hub",
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{Input: "validhub", Valid: true},
+		{Input: "valid-hub", Valid: true},
+		{Input: "hub123", Valid: true},
+		{Input: "my-task-hub", Valid: true},
+		{Input: "abc", Valid: true},
+		{Input: strings.Repeat("a", 63), Valid: true},
+		{Input: "taskhub-1", Valid: true},
+		{Input: "test123hub", Valid: true},
+		{Input: "", Valid: false},
+		{Input: "ab", Valid: false},
+		{Input: "-invalid", Valid: false},
+		{Input: "invalid-", Valid: false},
+		{Input: strings.Repeat("a", 64), Valid: false},
 	}
 
-	invalidNames := []string{
-		"",                      // empty
-		"ab",                    // too short
-		"-invalid",              // starts with hyphen
-		"invalid-",              // ends with hyphen
-		strings.Repeat("a", 64), // too long
-	}
-
-	for _, name := range validNames {
-		t.Run("valid_"+name, func(t *testing.T) {
-			warnings, errors := durabletask.ValidateTaskHubName(name, "task_hub_name")
-			require.Empty(t, warnings, "expected no warnings for valid name: %s", name)
-			require.Empty(t, errors, "expected no errors for valid name: %s", name)
-		})
-	}
-
-	for _, name := range invalidNames {
-		t.Run("invalid_"+name, func(t *testing.T) {
-			_, errors := durabletask.ValidateTaskHubName(name, "task_hub_name")
-			require.NotEmpty(t, errors, "expected errors for invalid name: %s", name)
-		})
+	for _, tc := range cases {
+		_, errors := durabletask.ValidateTaskHubName(tc.Input, "task_hub_name")
+		valid := len(errors) == 0
+		if tc.Valid != valid {
+			t.Fatalf("expected valid=%t for %q, got valid=%t", tc.Valid, tc.Input, valid)
+		}
 	}
 }
 
 func TestValidateRetentionPolicyID(t *testing.T) {
-	validIDs := []string{
-		"/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/rg1/providers/Microsoft.DurableTask/schedulers/scheduler1/retentionPolicies/default",
-		"/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DurableTask/schedulers/test-scheduler/retentionPolicies/default",
+	cases := []struct {
+		Input string
+		Valid bool
+	}{
+		{Input: "/subscriptions/12345678-1234-1234-1234-123456789012/resourceGroups/rg1/providers/Microsoft.DurableTask/schedulers/scheduler1/retentionPolicies/default", Valid: true},
+		{Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/test-rg/providers/Microsoft.DurableTask/schedulers/test-scheduler/retentionPolicies/default", Valid: true},
+		{Input: "", Valid: false},
+		{Input: "not-a-valid-id", Valid: false},
 	}
 
-	invalidIDs := []string{
-		"",               // empty
-		"not-a-valid-id", // malformed
-	}
-
-	for _, id := range validIDs {
-		t.Run("valid", func(t *testing.T) {
-			warnings, errors := durabletask.ValidateRetentionPolicyID(id, "id")
-			require.Empty(t, warnings)
-			require.Empty(t, errors)
-		})
-	}
-
-	for _, id := range invalidIDs {
-		t.Run("invalid", func(t *testing.T) {
-			_, errors := durabletask.ValidateRetentionPolicyID(id, "id")
-			require.NotEmpty(t, errors)
-		})
+	for _, tc := range cases {
+		_, errors := durabletask.ValidateRetentionPolicyID(tc.Input, "id")
+		valid := len(errors) == 0
+		if tc.Valid != valid {
+			t.Fatalf("expected valid=%t for %q, got valid=%t", tc.Valid, tc.Input, valid)
+		}
 	}
 }
