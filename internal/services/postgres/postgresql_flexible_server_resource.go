@@ -526,6 +526,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			configMap := diff.GetRawConfig().AsValueMap()
 			storageTypeConfig := configMap["storage_type"]
+			if storageTypeConfig.IsNull() {
+				return nil
+			}
 
 			isCreateModeDefault := false
 			if createModeVal, ok := configMap["create_mode"]; ok {
@@ -561,14 +564,14 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 				if isCreateModeDefault {
 					if configMap["storage_iops"].IsNull() {
-						return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS`")
+						return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
 					}
 
 					if configMap["storage_throughput"].IsNull() {
-						return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS`")
+						return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS` and `create_mode` is `Default`")
 					}
 				}
-			} else if storageType != "" {
+			} else {
 				if v := configMap["storage_iops"]; !v.IsNull() {
 					return errors.New("`storage_iops` is only supported when `storage_type` is `PremiumV2_LRS`")
 				}
