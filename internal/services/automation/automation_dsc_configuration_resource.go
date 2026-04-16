@@ -160,14 +160,17 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 		return fmt.Errorf("retrieving existing %s: properties was nil", *id)
 	}
 
-	parameters := dscconfiguration.DscConfigurationUpdateParameters{
-		Name: pointer.To(id.ConfigurationName),
-		Tags: existing.Model.Tags,
-		Properties: &dscconfiguration.DscConfigurationCreateOrUpdateProperties{
+	// NOTE: We use CreateOrUpdate (PUT) rather than Update (PATCH) here because the
+	// PATCH API re-parses the DSC configuration source content and resets the description
+	// field, causing updates to description to be silently lost.
+	parameters := dscconfiguration.DscConfigurationCreateOrUpdateParameters{
+		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
 			LogVerbose:  existing.Model.Properties.LogVerbose,
 			Description: existing.Model.Properties.Description,
 			Source:      pointer.From(existing.Model.Properties.Source),
 		},
+		Location: pointer.To(existing.Model.Location),
+		Tags:     existing.Model.Tags,
 	}
 
 	if d.HasChange("content_embedded") {
@@ -189,7 +192,7 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 		parameters.Tags = pointer.To(expandStringInterfaceMap(d.Get("tags").(map[string]interface{})))
 	}
 
-	if _, err := client.Update(ctx, *id, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
