@@ -216,11 +216,6 @@ func resourceAutomationWebhookUpdate(d *pluginsdk.ResourceData, meta interface{}
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	// URI is not present in the response from Azure, preserve from state
-	if v := d.Get("uri"); v != nil && v.(string) != "" {
-		d.Set("uri", v.(string))
-	}
-
 	return resourceAutomationWebhookRead(d, meta)
 }
 
