@@ -21,8 +21,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	mariadbServers "github.com/hashicorp/go-azure-sdk/resource-manager/mariadb/2018-06-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2017-12-01/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privatednszonegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-05-01/privatednszonegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-05-01/privateendpoints"
 	postgresqlServers "github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
@@ -103,6 +103,14 @@ func resourcePrivateEndpoint() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
+			},
+
+			"ip_version_type": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour),
+				ValidateFunc: validation.StringInSlice(privateendpoints.PossibleValuesForPrivateEndpointIPVersionType(), false),
 			},
 
 			"private_dns_zone_group": {
@@ -347,6 +355,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				Id: pointer.To(d.Get("subnet_id").(string)),
 			},
 			IPConfigurations:           expandPrivateEndpointIPConfigurations(d.Get("ip_configuration").([]interface{})),
+			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](d.Get("ip_version_type").(string)),
 			CustomNetworkInterfaceName: pointer.To(d.Get("custom_network_interface_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -516,6 +525,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	ipConfigurations := d.Get("ip_configuration").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
 	customNicName := d.Get("custom_network_interface_name").(string)
+	ipVersionType := d.Get("ip_version_type").(string)
 
 	// TODO: in future it'd be nice to support conditional updates here, but one problem at a time
 	parameters := privateendpoints.PrivateEndpoint{
@@ -528,6 +538,7 @@ func resourcePrivateEndpointUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				Id: pointer.To(subnetId),
 			},
 			IPConfigurations:           expandPrivateEndpointIPConfigurations(ipConfigurations),
+			IPVersionType:              pointer.ToEnum[privateendpoints.PrivateEndpointIPVersionType](ipVersionType),
 			CustomNetworkInterfaceName: pointer.To(customNicName),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -703,6 +714,11 @@ func resourcePrivateEndpointFlatten(ctx context.Context, metaClient *clients.Cli
 				customNicName = *props.CustomNetworkInterfaceName
 			}
 			d.Set("custom_network_interface_name", customNicName)
+			ipVersionType := string(privateendpoints.PrivateEndpointIPVersionTypeIPvFour)
+			if props.IPVersionType != nil {
+				ipVersionType = string(*props.IPVersionType)
+			}
+			d.Set("ip_version_type", ipVersionType)
 
 			if fetchCompleteData {
 				privateDnsZoneIds, err := retrievePrivateDnsZoneGroupsForPrivateEndpoint(ctx, dnsClient, *id)

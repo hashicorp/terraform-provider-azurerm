@@ -204,11 +204,13 @@ The following arguments are supported:
 
 * `custom_network_interface_name` - (Optional) The custom name of the network interface attached to the private endpoint. Changing this forces a new resource to be created.
 
+* `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
+
+* `ip_version_type` - (Optional) The IP version type for the Private Endpoint. Possible values include `IPv4`, `IPv6`, and `DualStack`. Defaults to `IPv4`. Changing this forces a new Private Endpoint to be created.
+
 * `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below.
-
-* `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -374,4 +376,4 @@ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-05-01
