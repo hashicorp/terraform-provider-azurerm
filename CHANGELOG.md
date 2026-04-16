@@ -1,14 +1,18 @@
 ## 4.69.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_kubernetes_cluster_node_pool` - export the `node_image_version` property [GH-32108]
+* `azurerm_storage_share` - export the `rbac_scope_id` property [GH-31194]
+* Data Source: `azurerm_storage_share` - export the `rbac_scope_id` property [GH-31194]
+* Data Source: `azurerm_kubernetes_cluster_node_pool` - export the `node_image_version` property [GH-32108]
 * `azurerm_key_vault`  - added object-name max length validation for all key vault entries (keys, secrets, certs, etc) [GH-30665]
 * `azurerm_monitor_scheduled_query_rules_alert_v2` - add support for email_subject within action block [GH-32132]
 * `azurerm_cognitive_deployment` - the `rai_policy_name` property is now Optional + Computed as Azure returns a value when not set in the creation request [GH-32131]
 * `azurerm_container_app` - add support for `identity_id` property in  `custom_scale_rule` block [GH-29777]
 * dependencies: `Go` - update to `1.25.9` [GH-32148]
 * dependencies: `kubernetesconfiguration/fluxconfiguration` - update to API version `2025-04-01` [GH-32080]
-* `data.azurerm_storage_account_blob_container_sas` - expand `permissions` block to include new fields [GH-32149]
-* `data.azurerm_storage_account_sas` - expand `permissions` block to include new fields [GH-32149]
+* Data Source: `azurerm_storage_account_blob_container_sas` - expand `permissions` block to include new fields [GH-32149]
+* Data Source: `azurerm_storage_account_sas` - expand `permissions` block to include new fields [GH-32149]
 * `azurerm_kubernetes_flux_configuration` - the `git_repository.provider` property now supports `GitHub` [GH-32080] 
 * `azurerm_cdn_frontdoor_route` - the `cdn_frontdoor_origin_ids` property is now optional, allowing users to use the `depends_on` meta-argument instead [GH-29350]
 * `azurerm_bot_channels_registration` - add support for the `microsoft_app_type`, `microsoft_app_tenant_id`, and `microsoft_app_user_assigned_identity_id` properties [GH-30457]
@@ -16,6 +20,8 @@ ENHANCEMENTS:
 FEATURES:
 * **New Resource**: `azurerm_container_app_environment_managed_certificate` [GH-31137]
 * **New Resource**: `azurerm_automation_runtime_environment_package` [GH-32022]
+* **New List Resource**: `azurerm_web_pubsub` [GH-32126]
+* **New List Resource**: `azurerm_traffic_manager_profile` [GH-31977]
 
 BUG FIXES:
 * `azurerm_private_dns_resolver_inbound_endpoint` - the `ip_configurations.private_ip_address`, `ip_configurations.private_ip_allocation_method`, and `ip_configurations.subnet_id` properties are now ForceNew as the API does not allow updating these values [GH-31088]
