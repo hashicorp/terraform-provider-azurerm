@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `data.azurerm_storage_account_sas` - expand `permissions` block to include new fields [GH-32149]
 * `azurerm_kubernetes_flux_configuration` - the `git_repository.provider` property now supports `GitHub` [GH-32080] 
 * `azurerm_cdn_frontdoor_route` - the `cdn_frontdoor_origin_ids` property is now optional, allowing users to use the `depends_on` meta-argument instead [GH-29350]
+* `azurerm_bot_channels_registration` - add support for the `microsoft_app_type`, `microsoft_app_tenant_id`, and `microsoft_app_user_assigned_identity_id` properties [GH-30457]
 
 FEATURES:
 * **New Resource**: `azurerm_container_app_environment_managed_certificate` [GH-31137]
