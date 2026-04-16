@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `folder` - (Optional) The folder that this Pipeline is in. If not specified, the Pipeline will appear at the root level.
 
-* `moniter_metrics_after_duration` - (Optional) The TimeSpan value after which an Azure Monitoring Metric is fired.
+* `monitor_metrics_after_duration` - (Optional) The TimeSpan value after which an Azure Monitoring Metric is fired.
 
 * `parameters` - (Optional) A map of parameters to associate with the Data Factory Pipeline.
 

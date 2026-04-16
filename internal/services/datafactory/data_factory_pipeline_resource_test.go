@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -184,6 +185,94 @@ resource "azurerm_data_factory_pipeline" "test" {
 }
 
 func (PipelineResource) complete(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-df-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfv2%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name                           = "acctest%d"
+  data_factory_id                = azurerm_data_factory.test.id
+  annotations                    = ["test1", "test2", "test3"]
+  description                    = "test description"
+  moniter_metrics_after_duration = "00:01:00"
+
+  parameters = {
+    test = "testparameter"
+  }
+
+  variables = {
+    foo = "test1"
+    bar = "test2"
+  }
+
+  activities_json = <<JSON
+[
+  {
+    "name": "test append variable",
+    "type": "AppendVariable",
+    "dependsOn": [],
+    "userProperties": [],
+    "typeProperties": {
+      "variableName": "bob",
+      "value": "something"
+    }
+  },
+  {
+    "name": "test web activity",
+    "type": "WebActivity",
+    "dependsOn": [],
+    "userProperties": [],
+    "typeProperties": {
+	  "url": "https://test.com",
+	  "method": "POST",
+      "headers": {
+        "authorization": {
+          "value": "foo",
+          "type": "Expression"
+        },
+        "content_type": "application/x-www-form-urlencoded"
+      }
+    }
+  },
+  {
+    "name": "test filter",
+    "type": "Filter",
+    "dependsOn": [
+      {
+        "activity": "Filter something",
+        "dependencyConditions": ["Succeeded"]
+      }
+    ],
+    "userProperties": [],
+    "typeProperties": {
+      "items": {
+        "value": "@json(activity('Filter Something').output.response)",
+        "type": "Expression"
+      },
+      "condition": {
+        "value": "@equals(coalesce(item().Authorised, 0), 1)",
+        "type": "Expression"
+      }
+    }
+  }
+]
+JSON
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -201,10 +290,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
-  data_factory_id = azurerm_data_factory.test.id
-  annotations     = ["test1", "test2", "test3"]
-  description     = "test description"
+  name                           = "acctest%d"
+  data_factory_id                = azurerm_data_factory.test.id
+  annotations                    = ["test1", "test2", "test3"]
+  description                    = "test description"
+  monitor_metrics_after_duration = "00:01:00"
 
   parameters = {
     test = "testparameter"
@@ -289,10 +379,11 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
-  data_factory_id = azurerm_data_factory.test.id
-  annotations     = ["test1", "test2"]
-  description     = "updated description"
+  name                           = "acctest%d"
+  data_factory_id                = azurerm_data_factory.test.id
+  annotations                    = ["test1", "test2"]
+  description                    = "updated description"
+  monitor_metrics_after_duration = "00:02:00"
 
   parameters = {
     test  = "testparameter"
