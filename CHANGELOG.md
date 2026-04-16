@@ -1,6 +1,7 @@
 ## 4.70.0 (Unreleased)
 
 ENHANCEMENTS:
+* `dependencies` - `giovanni` update to `v0.29.0` [GH-32188]
 
 FEATURES:
 
