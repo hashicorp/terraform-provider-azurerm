@@ -532,13 +532,6 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				isCreateModeDefault = createModeVal.IsNull() || createModeVal.AsString() == string(servers.CreateModeDefault)
 			}
 
-			if storageTypeConfig.IsNull() || storageTypeConfig.AsString() == "" {
-				if isCreateModeDefault {
-					return errors.New("`storage_type` is required when `create_mode` is Default")
-				}
-				return nil
-			}
-
 			storageType := storageTypeConfig.AsString()
 			if storageType == string(servers.StorageTypePremiumVTwoLRS) {
 				version := diff.Get("version").(string)
