@@ -19,22 +19,26 @@ import (
 )
 
 type SchedulerResourceModel struct {
+	// Arguments
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
-	SkuName           string            `tfschema:"sku_name"`
 	IpAllowList       []string          `tfschema:"ip_allow_list"`
+	SkuName           string            `tfschema:"sku_name"`
 	Capacity          int64             `tfschema:"capacity"`
 	Tags              map[string]string `tfschema:"tags"`
-	Endpoint          string            `tfschema:"endpoint"`
-	RedundancyState   string            `tfschema:"redundancy_state"`
+
+	// Attributes (computed)
+	Endpoint        string `tfschema:"endpoint"`
+	RedundancyState string `tfschema:"redundancy_state"`
 }
 
 type SchedulerResource struct{}
 
 var (
-	_ sdk.Resource           = SchedulerResource{}
-	_ sdk.ResourceWithUpdate = SchedulerResource{}
+	_ sdk.Resource                = SchedulerResource{}
+	_ sdk.ResourceWithUpdate      = SchedulerResource{}
+	_ sdk.ResourceWithCustomizeDiff = SchedulerResource{}
 )
 
 func (r SchedulerResource) ResourceType() string {
@@ -62,6 +66,15 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
+		"ip_allow_list": {
+			Type:     pluginsdk.TypeList,
+			Required: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.Any(validation.IsIPAddress, validation.IsCIDR),
+			},
+		},
+
 		"sku_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -70,15 +83,6 @@ func (r SchedulerResource) Arguments() map[string]*pluginsdk.Schema {
 				string(schedulers.SchedulerSkuNameConsumption),
 				string(schedulers.SchedulerSkuNameDedicated),
 			}, false),
-		},
-
-		"ip_allow_list": {
-			Type:     pluginsdk.TypeList,
-			Required: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.Any(validation.IsIPAddress, validation.IsCIDR),
-			},
 		},
 
 		"capacity": {
@@ -101,6 +105,29 @@ func (r SchedulerResource) Attributes() map[string]*pluginsdk.Schema {
 		"redundancy_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+	}
+}
+
+func (r SchedulerResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+			rawCapacity := rawConfig["capacity"]
+
+			if !rawCapacity.IsNull() {
+				skuName := metadata.ResourceDiff.Get("sku_name").(string)
+				if skuName != string(schedulers.SchedulerSkuNameDedicated) {
+					return fmt.Errorf("`capacity` can only be configured when `sku_name` is set to `Dedicated`")
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -223,19 +250,23 @@ func (r SchedulerResource) Update() sdk.ResourceFunc {
 
 			metadata.Logger.Infof("Updating %s", id)
 
-			skuName := schedulers.SchedulerSkuName(model.SkuName)
 			properties := schedulers.SchedulerUpdate{
-				Properties: &schedulers.SchedulerPropertiesUpdate{
-					Sku: &schedulers.SchedulerSkuUpdate{
-						Name: &skuName,
-					},
-					IPAllowlist: &model.IpAllowList,
-				},
-				Tags: &model.Tags,
+				Properties: &schedulers.SchedulerPropertiesUpdate{},
+			}
+
+			if metadata.ResourceData.HasChange("ip_allow_list") {
+				properties.Properties.IPAllowlist = &model.IpAllowList
 			}
 
 			if metadata.ResourceData.HasChange("capacity") {
+				if properties.Properties.Sku == nil {
+					properties.Properties.Sku = &schedulers.SchedulerSkuUpdate{}
+				}
 				properties.Properties.Sku.Capacity = pointer.To(model.Capacity)
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				properties.Tags = &model.Tags
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, properties); err != nil {

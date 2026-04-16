@@ -92,6 +92,23 @@ func TestAccDurableTaskScheduler_update(t *testing.T) {
 	})
 }
 
+func TestAccDurableTaskScheduler_dedicatedWithCapacity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_durable_task_scheduler", "test")
+	r := SchedulerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.dedicatedWithCapacity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_name").HasValue("Dedicated"),
+				check.That(data.ResourceName).Key("capacity").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r SchedulerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := schedulers.ParseSchedulerID(state.ID)
 	if err != nil {
@@ -162,6 +179,28 @@ resource "azurerm_durable_task_scheduler" "test" {
     environment = "test"
     purpose     = "acceptance-testing"
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r SchedulerResource) dedicatedWithCapacity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-durabletask-%d"
+  location = "%s"
+}
+
+resource "azurerm_durable_task_scheduler" "test" {
+  name                = "acctestdts%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated"
+  ip_allow_list       = ["0.0.0.0/0"]
+  capacity            = 2
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
