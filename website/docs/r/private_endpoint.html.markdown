@@ -199,17 +199,21 @@ The following arguments are supported:
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Private Endpoint should exist. Changing this forces a new resource to be created.
+* `private_service_connection` - (Required) A `private_service_connection` block as defined below.
 
 * `subnet_id` - (Required) The ID of the Subnet from which Private IP Addresses will be allocated for this Private Endpoint. Changing this forces a new resource to be created.
 
 * `custom_network_interface_name` - (Optional) The custom name of the network interface attached to the private endpoint. Changing this forces a new resource to be created.
 
-* `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
-
-* `private_service_connection` - (Required) A `private_service_connection` block as defined below.
+* `edge_zone` - (Optional) Specifies the Edge Zone within the Azure Region where this Private Endpoint should exist. Changing this forces a new resource to be created.
 
 * `ip_configuration` - (Optional) One or more `ip_configuration` blocks as defined below. This allows a static IP address to be set for this Private Endpoint, otherwise an address is dynamically allocated from the Subnet.
+
+* `ip_version_type` - (Optional) The IP version type for the Private Endpoint with possible values: `IPv4`, `IPv6`, and `DualStack`, defaults to `IPv4`. Changing this forces a new resource to be created.
+
+~> **Note:** When `ip_version_type` is set to `IPv6` or `DualStack`, `private_endpoint_vnet_policies` must be set to `Basic` on the Virtual Network and all peered Virtual Networks. In addition, `private_endpoint_network_policies` must be set to `RouteTableEnabled` on the Subnet.
+
+* `private_dns_zone_group` - (Optional) A `private_dns_zone_group` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -366,4 +370,4 @@ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network` - 2025-01-01
+* `Microsoft.Network` - 2025-05-01
