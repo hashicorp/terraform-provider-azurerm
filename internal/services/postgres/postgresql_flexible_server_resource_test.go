@@ -1813,7 +1813,6 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   name                = "acctest-fs-replica-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  zone                = "2"
   create_mode         = "Replica"
   source_server_id    = azurerm_postgresql_flexible_server.test.id
   storage_type        = "PremiumV2_LRS"
