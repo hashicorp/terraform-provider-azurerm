@@ -36,7 +36,8 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
 		// CDN
-		"azurerm_cdn_profile": dataSourceCdnProfile(),
+		"azurerm_cdn_endpoint": dataSourceCdnEndpoint(),
+		"azurerm_cdn_profile":  dataSourceCdnProfile(),
 
 		// FrontDoor
 		"azurerm_cdn_frontdoor_custom_domain":   dataSourceCdnFrontDoorCustomDomain(),
