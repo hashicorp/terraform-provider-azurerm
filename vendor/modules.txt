@@ -1485,7 +1485,7 @@ github.com/iancoleman/strcase
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap
-# github.com/jackofallops/giovanni v0.28.0
+# github.com/jackofallops/giovanni v0.29.0
 ## explicit; go 1.21
 github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts
 github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs

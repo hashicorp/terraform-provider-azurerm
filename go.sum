@@ -182,8 +182,8 @@ github.com/iancoleman/strcase v0.3.0/go.mod h1:iwCmte+B7n89clKwxIoIXy/HfoL7AsD47
 github.com/imdario/mergo v0.3.11/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
-github.com/jackofallops/giovanni v0.28.0 h1:fxn55SnxL2Rj3hgkkgQS9UKlIRXkkTZ5WcnE04JCBRE=
-github.com/jackofallops/giovanni v0.28.0/go.mod h1:CyzRgZyts4YSI/1iZF8poqdn9I6J8xpmg1iMpvhthTs=
+github.com/jackofallops/giovanni v0.29.0 h1:GJXx5sA6+j2pJ0sm+gfrWs5r35n/p5ReTRymKqgJjTY=
+github.com/jackofallops/giovanni v0.29.0/go.mod h1:CyzRgZyts4YSI/1iZF8poqdn9I6J8xpmg1iMpvhthTs=
 github.com/jackofallops/kermit v0.20241010.1180132 h1:3EwOQarDKNhtJ1zmtQAwtozYEayxN1AHT3/AMTDZNmw=
 github.com/jackofallops/kermit v0.20241010.1180132/go.mod h1:3Qf3rz0MOUsmzd3mxRb5ehTZ0+zhf7fOraV6jJxntLU=
 github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 h1:BQSFePA1RWJOlocH6Fxy8MmwDt+yVQYULKfN0RoTN8A=

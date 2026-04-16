@@ -34,7 +34,7 @@ require (
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
 	github.com/hashicorp/terraform-plugin-testing v1.14.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/jackofallops/giovanni v0.28.0
+	github.com/jackofallops/giovanni v0.29.0
 	github.com/jackofallops/kermit v0.20241010.1180132
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20250424222324-b015d063c1fc
 	github.com/mitchellh/cli v1.1.5
