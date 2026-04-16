@@ -527,18 +527,23 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			configMap := diff.GetRawConfig().AsValueMap()
 			storageTypeConfig := configMap["storage_type"]
 
+			isCreateModeDefault := false
+			if createModeVal, ok := configMap["create_mode"]; ok {
+				isCreateModeDefault = createModeVal.IsNull() || createModeVal.AsString() == string(servers.CreateModeDefault)
+			}
+
 			if storageTypeConfig.IsNull() || storageTypeConfig.AsString() == "" {
-				if v := configMap["create_mode"]; v.IsNull() || v.AsString() == string(servers.CreateModeDefault) {
+				if isCreateModeDefault {
 					return errors.New("`storage_type` is required when `create_mode` is Default")
 				}
 				return nil
 			}
 
 			storageType := storageTypeConfig.AsString()
-
 			if storageType == string(servers.StorageTypePremiumVTwoLRS) {
-				if version := diff.Get("version").(string); version == string(servers.PostgresMajorVersionOneThree) {
-					return errors.New("PostgreSQL version `13` is not supported when `storage_type` is `PremiumV2_LRS`")
+				version := diff.Get("version").(string)
+				if version == string(servers.PostgresMajorVersionOneOne) || version == string(servers.PostgresMajorVersionOneTwo) || version == string(servers.PostgresMajorVersionOneThree) {
+					return fmt.Errorf("PostgreSQL version `%s` is not supported when `storage_type` is `PremiumV2_LRS`", version)
 				}
 
 				if skuName, ok := diff.GetOk("sku_name"); ok {
@@ -561,14 +566,16 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					}
 				}
 
-				if configMap["storage_iops"].IsNull() {
-					return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS`")
-				}
+				if isCreateModeDefault {
+					if configMap["storage_iops"].IsNull() {
+						return errors.New("`storage_iops` is required when `storage_type` is `PremiumV2_LRS`")
+					}
 
-				if configMap["storage_throughput"].IsNull() {
-					return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS`")
+					if configMap["storage_throughput"].IsNull() {
+						return errors.New("`storage_throughput` is required when `storage_type` is `PremiumV2_LRS`")
+					}
 				}
-			} else {
+			} else if storageType != "" {
 				if v := configMap["storage_iops"]; !v.IsNull() {
 					return errors.New("`storage_iops` is only supported when `storage_type` is `PremiumV2_LRS`")
 				}
@@ -929,6 +936,8 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 					d.Set("storage_tier", string(*storage.Tier))
 				}
 
+				// API sometimes returns empty string for `storage.type` on Premium_LRS servers, default to Premium_LRS
+				// TODO GH issue
 				storageType := string(servers.StorageTypePremiumLRS)
 				if storage.Type != nil && pointer.FromEnum(storage.Type) != "" {
 					storageType = pointer.FromEnum(storage.Type)
@@ -1301,9 +1310,8 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	}
 
 	if v, ok := d.GetOk("storage_type"); ok {
-		// Only set storage type when it's not the default value of PremiumLRS, as the service will default to PremiumLRS when storage type is not provided.
-		// There are issues when creating a server with storage type PremiumLRS present in the payload
-		// GH issue: TODO
+		// API rejects Premium_LRS when explicitly included in the payload for non-default mode; omitting it lets the service apply its default
+		// TODO GH issue
 		storageType := servers.StorageType(v.(string))
 		if storageType != servers.StorageTypePremiumLRS {
 			storage.Type = pointer.To(storageType)

@@ -730,7 +730,7 @@ func TestAccPostgresqlFlexibleServer_replicaWithPremiumV2Storage(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withVersion(data, 18, "Default"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -753,7 +753,7 @@ func TestAccPostgresqlFlexibleServer_pointInTimeRestoreWithPremiumV2Storage(t *t
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.withVersion(data, 18, "Default"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
