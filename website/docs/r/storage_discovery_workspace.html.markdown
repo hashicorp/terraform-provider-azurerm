@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Discovery resource is created. Changing this forces a new resource to be created.
 
-* `scope` - (Required) One or more `scope` blocks as defined below. Maximum of 10 scopes.
+* `scope` - (Required) One or more `scope` blocks as defined below. Maximum of 10 scopes. Changing this forces a new resource to be created (the Azure API does not allow editing scopes after the workspace exists).
 
 * `workspace_root` - (Required) A set of top-level Azure resource identifiers (Subscription IDs or Resource Group IDs) where Storage Discovery initiates its scan for storage accounts. You cannot specify both a subscription and its child resource group. Maximum of 100 items.
 
@@ -72,7 +72,7 @@ A `scope` block supports the following:
 
 * `display_name` - (Required) The display name for this scope. Must be 4-64 characters long and can only contain letters, numbers, spaces, and hyphens. Cannot start or end with a number, space, or hyphen, and cannot contain consecutive hyphens or spaces.
 
-* `resource_types` - (Required) A set of Azure resource type strings to include in this scope. Possible values are `Microsoft.Storage/storageAccounts`. Duplicate values are not allowed; order is not significant.
+* `resource_types` - (Required) A set of Azure resource type strings to include in this scope. Possible values are `Microsoft.Storage/storageAccounts`.
 
 * `tag_keys_only` - (Optional) A set of distinct tag keys used to filter resources. Resources with any of these tag keys will be included. Order is not significant and duplicate keys cannot be specified.
 
