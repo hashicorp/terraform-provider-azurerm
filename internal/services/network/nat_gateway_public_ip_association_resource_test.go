@@ -6,7 +6,6 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -100,50 +99,6 @@ func TestAccNatGatewayPublicIpAssociation_requiresImport(t *testing.T) {
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
-	})
-}
-
-func TestAccNatGatewayPublicIpAssociation_standardSkuNatGatewayCannotUseIPv6PublicIPAddresses(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.standardSkuNatGatewayCannotUseIPv6PublicIPAddresses(data),
-			ExpectError: regexp.MustCompile("`nat_gateway_id` must reference a NAT Gateway with SKU `StandardV2` and `public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2` when `public_ip_address_id` references an `IPv6` Public IP Address"),
-		},
-	})
-}
-
-func TestAccNatGatewayPublicIpAssociation_standardSkuNatGatewayCannotUseStandardV2PublicIPAddress(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.standardSkuNatGatewayCannotUseStandardV2PublicIPAddress(data),
-			ExpectError: regexp.MustCompile("`public_ip_address_id` must reference a Public IP Address with SKU `Standard` when `nat_gateway_id` references a NAT Gateway with SKU `Standard`"),
-		},
-	})
-}
-
-func TestAccNatGatewayPublicIpAssociation_standardV2SkuNatGatewayRequiresStandardV2PublicIPAddress(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.standardV2SkuNatGatewayRequiresStandardV2PublicIPAddress(data),
-			ExpectError: regexp.MustCompile("`public_ip_address_id` must reference a Public IP Address with SKU `StandardV2` when `nat_gateway_id` references a NAT Gateway with SKU `StandardV2`"),
-		},
-	})
-}
-
-func TestAccNatGatewayPublicIpAssociation_standardV2SkuNatGatewayRequiresStandardV2IPv6PublicIPAddress(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_nat_gateway_public_ip_association", "test")
-	r := NatGatewayPublicAssociationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.standardV2SkuNatGatewayRequiresStandardV2IPv6PublicIPAddress(data),
-			ExpectError: regexp.MustCompile("`nat_gateway_id` must reference a NAT Gateway with SKU `StandardV2` and `public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2` when `public_ip_address_id` references an `IPv6` Public IP Address"),
-		},
 	})
 }
 
@@ -338,50 +293,6 @@ resource "azurerm_nat_gateway_public_ip_association" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r NatGatewayPublicAssociationResource) standardSkuNatGatewayCannotUseIPv6PublicIPAddresses(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_nat_gateway_public_ip_association" "test" {
-  nat_gateway_id       = azurerm_nat_gateway.test.id
-  public_ip_address_id = azurerm_public_ip.test.id
-}
-`, r.prerequisites(data, string(natgateways.NatGatewaySkuNameStandard), string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo), string(publicipaddresses.IPVersionIPvSix)))
-}
-
-func (r NatGatewayPublicAssociationResource) standardSkuNatGatewayCannotUseStandardV2PublicIPAddress(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_nat_gateway_public_ip_association" "test" {
-  nat_gateway_id       = azurerm_nat_gateway.test.id
-  public_ip_address_id = azurerm_public_ip.test.id
-}
-`, r.prerequisites(data, string(natgateways.NatGatewaySkuNameStandard), string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo), string(publicipaddresses.IPVersionIPvFour)))
-}
-
-func (r NatGatewayPublicAssociationResource) standardV2SkuNatGatewayRequiresStandardV2PublicIPAddress(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_nat_gateway_public_ip_association" "test" {
-  nat_gateway_id       = azurerm_nat_gateway.test.id
-  public_ip_address_id = azurerm_public_ip.test.id
-}
-`, r.prerequisites(data, string(natgateways.NatGatewaySkuNameStandardVTwo), string(publicipaddresses.PublicIPAddressSkuNameStandard), string(publicipaddresses.IPVersionIPvFour)))
-}
-
-func (r NatGatewayPublicAssociationResource) standardV2SkuNatGatewayRequiresStandardV2IPv6PublicIPAddress(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_nat_gateway_public_ip_association" "test" {
-  nat_gateway_id       = azurerm_nat_gateway.test.id
-  public_ip_address_id = azurerm_public_ip.test.id
-}
-`, r.prerequisites(data, string(natgateways.NatGatewaySkuNameStandardVTwo), string(publicipaddresses.PublicIPAddressSkuNameStandard), string(publicipaddresses.IPVersionIPvSix)))
-}
-
 func (NatGatewayPublicAssociationResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -462,33 +373,4 @@ resource "azurerm_public_ip" "test3" {
   ip_version          = "IPv6"
 }
 `, data.RandomInteger, data.Locations.Primary)
-}
-
-func (NatGatewayPublicAssociationResource) prerequisites(data acceptance.TestData, natGatewaySkuName, publicIPAddressSku, publicIPAddressVersion string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ngpi-prereq-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_public_ip" "test" {
-  name                = "acctest-PIP-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  sku                 = "%[3]s"
-  ip_version          = "%[4]s"
-}
-
-resource "azurerm_nat_gateway" "test" {
-  name                = "acctest-NatGateway-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "%[5]s"
-}
-`, data.RandomInteger, data.Locations.Primary, publicIPAddressSku, publicIPAddressVersion, natGatewaySkuName)
 }

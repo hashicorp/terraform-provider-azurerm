@@ -4,8 +4,6 @@
 package network
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -28,8 +26,6 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 		Create: resourceNATGatewayPublicIpAssociationCreate,
 		Read:   resourceNATGatewayPublicIpAssociationRead,
 		Delete: resourceNATGatewayPublicIpAssociationDelete,
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(resourceNATGatewayPublicIpAssociationCustomizeDiff),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := commonids.ParseCompositeResourceID(id, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
@@ -58,56 +54,6 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 			},
 		},
 	}
-}
-
-func resourceNATGatewayPublicIpAssociationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, meta any) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
-	defer cancel()
-
-	rawNatGatewayId := d.GetRawConfig().AsValueMap()["nat_gateway_id"]
-	if rawNatGatewayId.IsNull() || !rawNatGatewayId.IsKnown() {
-		return nil
-	}
-
-	rawPublicIPAddressId := d.GetRawConfig().AsValueMap()["public_ip_address_id"]
-	if rawPublicIPAddressId.IsNull() || !rawPublicIPAddressId.IsKnown() {
-		return nil
-	}
-
-	natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
-	if err != nil {
-		return err
-	}
-
-	publicIpAddressId, err := commonids.ParsePublicIPAddressID(d.Get("public_ip_address_id").(string))
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*clients.Client)
-	natGateway, err := client.Network.NatGateways.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
-	if err != nil {
-		if response.WasNotFound(natGateway.HttpResponse) {
-			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", natGatewayId, err)
-	}
-	if natGateway.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", natGatewayId)
-	}
-
-	publicIPAddress, err := client.Network.PublicIPAddresses.Get(ctx, *publicIpAddressId, publicipaddresses.DefaultGetOperationOptions())
-	if err != nil {
-		if response.WasNotFound(publicIPAddress.HttpResponse) {
-			return nil
-		}
-		return fmt.Errorf("retrieving %s: %+v", publicIpAddressId, err)
-	}
-	if publicIPAddress.Model == nil || publicIPAddress.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", publicIpAddressId)
-	}
-
-	return validateNATGatewayPublicIpAssociation(natGateway.Model, publicIPAddress.Model)
 }
 
 func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -155,9 +101,6 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 	}
 
 	isIPv6 := natGatewayPublicIpAssociationIsIPv6(publicIPAddress.Model)
-	if err := validateNATGatewayPublicIpAssociation(natGateway.Model, publicIPAddress.Model); err != nil {
-		return err
-	}
 
 	id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
 
@@ -263,34 +206,19 @@ func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta
 
 	return nil
 }
-
-func validateNATGatewayPublicIpAssociation(natGateway *natgateways.NatGateway, publicIPAddress *publicipaddresses.PublicIPAddress) error {
-	isIPv6 := natGatewayPublicIpAssociationIsIPv6(publicIPAddress)
-	natGatewaySku := pointer.From(pointer.From(natGateway.Sku).Name)
-	publicIPAddressSku := pointer.From(pointer.From(publicIPAddress.Sku).Name)
-
-	if isIPv6 {
-		if natGatewaySku != natgateways.NatGatewaySkuNameStandardVTwo || publicIPAddressSku != publicipaddresses.PublicIPAddressSkuNameStandardVTwo {
-			return errors.New("`nat_gateway_id` must reference a NAT Gateway with SKU `StandardV2` and `public_ip_address_id` must reference an `IPv6` Public IP Address with SKU `StandardV2` when `public_ip_address_id` references an `IPv6` Public IP Address")
-		}
-	}
-
-	if natGatewaySku == natgateways.NatGatewaySkuNameStandard && publicIPAddressSku == publicipaddresses.PublicIPAddressSkuNameStandardVTwo {
-		return errors.New("`public_ip_address_id` must reference a Public IP Address with SKU `Standard` when `nat_gateway_id` references a NAT Gateway with SKU `Standard`")
-	}
-
-	if natGatewaySku == natgateways.NatGatewaySkuNameStandardVTwo && publicIPAddressSku != publicipaddresses.PublicIPAddressSkuNameStandardVTwo {
-		return errors.New("`public_ip_address_id` must reference a Public IP Address with SKU `StandardV2` when `nat_gateway_id` references a NAT Gateway with SKU `StandardV2`")
-	}
-
-	return nil
-}
-
 func natGatewayPublicIpAssociationIsIPv6(publicIPAddress *publicipaddresses.PublicIPAddress) bool {
+	if publicIPAddress == nil || publicIPAddress.Properties == nil {
+		return false
+	}
+
 	return pointer.From(publicIPAddress.Properties.PublicIPAddressVersion) == publicipaddresses.IPVersionIPvSix
 }
 
 func natGatewayPublicIpAssociationExists(properties *natgateways.NatGatewayPropertiesFormat, publicIPAddressId string) bool {
+	if properties == nil {
+		return false
+	}
+
 	for _, publicIPAddress := range pointer.From(properties.PublicIPAddresses) {
 		if strings.EqualFold(pointer.From(publicIPAddress.Id), publicIPAddressId) {
 			return true
@@ -307,6 +235,10 @@ func natGatewayPublicIpAssociationExists(properties *natgateways.NatGatewayPrope
 }
 
 func removeNATGatewayPublicIpAssociation(properties *natgateways.NatGatewayPropertiesFormat, publicIPAddressId string) bool {
+	if properties == nil {
+		return false
+	}
+
 	removed := false
 
 	updatedIPv4Addresses := make([]natgateways.SubResource, 0)
