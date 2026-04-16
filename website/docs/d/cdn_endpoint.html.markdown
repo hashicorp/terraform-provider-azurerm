@@ -24,6 +24,24 @@ output "cdn_endpoint_fqdn" {
 }
 ```
 
+### Using with a DNS Record
+
+```hcl
+data "azurerm_cdn_endpoint" "app" {
+  name                = "app-cdn-endpoint"
+  profile_name        = "app-cdn-profile"
+  resource_group_name = "cdn-resources"
+}
+
+resource "azurerm_dns_cname_record" "cdn" {
+  name                = "cdn"
+  zone_name           = azurerm_dns_zone.example.name
+  resource_group_name = azurerm_dns_zone.example.resource_group_name
+  ttl                 = 300
+  record              = data.azurerm_cdn_endpoint.app.fqdn
+}
+```
+
 ## Arguments Reference
 
 * `name` - The name of the CDN Endpoint.
