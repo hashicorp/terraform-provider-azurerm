@@ -206,6 +206,7 @@ func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta
 
 	return nil
 }
+
 func natGatewayPublicIpAssociationIsIPv6(publicIPAddress *publicipaddresses.PublicIPAddress) bool {
 	if publicIPAddress == nil || publicIPAddress.Properties == nil {
 		return false
