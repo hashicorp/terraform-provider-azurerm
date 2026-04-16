@@ -1820,7 +1820,7 @@ resource "azurerm_postgresql_flexible_server" "replica" {
   storage_iops        = 3000
   storage_throughput  = 125
 }
-`, r.basic(data), data.RandomInteger)
+`, r.withVersion(data, 18, "Default"), data.RandomInteger)
 }
 
 func (r PostgresqlFlexibleServerResource) pointInTimeRestoreWithPremiumV2(data acceptance.TestData) string {
@@ -1838,7 +1838,7 @@ resource "azurerm_postgresql_flexible_server" "pitr" {
   storage_iops                      = 3000
   storage_throughput                = 125
 }
-`, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
+`, r.withVersion(data, 18, "Default"), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
 
 func (r PostgresqlFlexibleServerResource) cluster(data acceptance.TestData, clusterSize int) string {
