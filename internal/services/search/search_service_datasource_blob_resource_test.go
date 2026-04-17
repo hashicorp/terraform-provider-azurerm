@@ -200,10 +200,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name              = "acctestds%d"
-  search_service_id = azurerm_search_service.test.id
-  container_name    = azurerm_storage_container.test.name
-  connection_string = azurerm_storage_account.test.primary_connection_string
+  name                    = "-acctestds%d"
+  search_service_endpoint = azurerm_search_service.test.endpoint
+  container_name          = azurerm_storage_container.test.name
+  connection_string       = azurerm_storage_account.test.primary_connection_string
 
   depends_on = [azurerm_role_assignment.current_user_search]
 }
@@ -215,10 +215,10 @@ func (r SearchServiceDatasourceBlobResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_search_service_datasource_blob" "import" {
-  name              = "acctestds%d"
-  search_service_id = azurerm_search_service.test.id
-  container_name    = azurerm_storage_container.test.name
-  connection_string = azurerm_storage_account.test.primary_connection_string
+  name                    = "acctestds%d"
+  search_service_endpoint = azurerm_search_service.test.endpoint
+  container_name          = azurerm_storage_container.test.name
+  connection_string       = azurerm_storage_account.test.primary_connection_string
 }
 `, r.basic(data), data.RandomInteger)
 }
@@ -233,7 +233,7 @@ provider "azurerm" {
 
 resource "azurerm_search_service_datasource_blob" "test" {
   name                     = "acctestds%d"
-  search_service_id        = azurerm_search_service.test.id
+  search_service_endpoint  = azurerm_search_service.test.endpoint
   container_name           = azurerm_storage_container.test.name
   container_query          = "/folder"
   connection_string        = azurerm_storage_account.test.primary_connection_string
@@ -305,7 +305,7 @@ provider "azurerm" {
 
 resource "azurerm_search_service_datasource_blob" "test" {
   name              = "acctestds%d"
-  search_service_id = azurerm_search_service.test.id
+  search_service_endpoint = azurerm_search_service.test.endpoint
   container_name    = azurerm_storage_container.test.name
   connection_string = azurerm_storage_account.test.primary_connection_string
 
@@ -336,7 +336,7 @@ resource "azurerm_role_assignment" "app_keyvault" {
 
 resource "azurerm_search_service_datasource_blob" "test" {
   name              = "acctestds%d"
-  search_service_id = azurerm_search_service.test.id
+  search_service_endpoint = azurerm_search_service.test.endpoint
   container_name    = azurerm_storage_container.test.name
   connection_string = azurerm_storage_account.test.primary_connection_string
 

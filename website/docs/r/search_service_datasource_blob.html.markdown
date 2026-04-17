@@ -40,10 +40,10 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_search_service_datasource_blob" "example" {
-  name              = "example-search-service-datasource-blob"
-  search_service_id = azurerm_search_service.example.id
-  container_name    = azurerm_storage_container.example.name
-  connection_string = azurerm_storage_account.example.primary_connection_string
+  name                    = "example-search-service-datasource-blob"
+  search_service_endpoint = azurerm_search_service.example.endpoint
+  container_name          = azurerm_storage_container.example.name
+  connection_string       = azurerm_storage_account.example.primary_connection_string
 }
 ```
 
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 ~> **Note:** The `name` must be 2-128 characters long, start and end with a lowercase letter or digit, and contain only lowercase letters, digits, or dashes.
 
-* `search_service_id` - (Required) The ID of the Search Service in which this Blob Data Source should be created. Changing this forces a new resource to be created.
+* `search_service_endpoint` - (Required) The endpoint of the Search Service in which this Blob Data Source should be created. Changing this forces a new resource to be created.
 
 * `connection_string` - (Required) The connection string to the Azure Blob Storage account.
 

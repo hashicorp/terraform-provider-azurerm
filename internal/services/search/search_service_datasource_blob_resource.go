@@ -5,7 +5,6 @@ package search
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"regexp"
 	"time"
@@ -13,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/search/2025-05-01/services"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	searchSchema "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -27,7 +25,7 @@ var _ sdk.ResourceWithUpdate = SearchServiceDatasourceBlobResource{}
 
 type SearchServiceDatasourceBlobModel struct {
 	Name                  string                                            `tfschema:"name"`
-	SearchServiceId       string                                            `tfschema:"search_service_id"`
+	SearchServiceEndpoint string                                            `tfschema:"search_service_endpoint"`
 	ContainerName         string                                            `tfschema:"container_name"`
 	ConnectionString      string                                            `tfschema:"connection_string"`
 	Description           string                                            `tfschema:"description"`
@@ -50,11 +48,11 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			),
 		},
 
-		"search_service_id": {
+		"search_service_endpoint": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: services.ValidateSearchServiceID,
+			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
 		"connection_string": {
@@ -128,15 +126,7 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			searchServiceId, err := services.ParseSearchServiceID(model.SearchServiceId)
-			if err != nil {
-				return fmt.Errorf("parsing `search_service_id` %q: %+v", model.SearchServiceId, err)
-			}
-			domainSuffix, ok := metadata.Client.Account.Environment.Search.DomainSuffix()
-			if !ok {
-				return errors.New("could not determine Search domain suffix for the current environment")
-			}
-			endpoint := fmt.Sprintf("https://%s.%s", searchServiceId.SearchServiceName, *domainSuffix)
+			endpoint := model.SearchServiceEndpoint
 
 			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
 
@@ -201,23 +191,6 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 
 			endpoint := resourceId.BaseURI
 
-			// Check whether the parent Search Service still exists via ARM before making the
-			// data-plane call. If the service has been deleted outside of Terraform the DNS
-			// entry is gone and the data-plane call would fail with "no such host" instead of
-			// a 404, which would not be caught by the WasNotFound check below.
-			searchServiceId, err := services.ParseSearchServiceID(metadata.ResourceData.Get("search_service_id").(string))
-			if err != nil {
-				return fmt.Errorf("parsing `search_service_id`: %+v", err)
-			}
-			servicesClient := metadata.Client.Search.ServicesClient
-			serviceResp, err := servicesClient.Get(ctx, *searchServiceId, services.DefaultGetOperationOptions())
-			if err != nil {
-				if response.WasNotFound(serviceResp.HttpResponse) {
-					return metadata.MarkAsGone(resourceId)
-				}
-				return fmt.Errorf("checking for existence of Search Service %s: %+v", *searchServiceId, err)
-			}
-
 			client := metadata.Client.Search.SearchDataPlaneClient.DataSources.Clone(endpoint)
 
 			resp, err := client.Get(ctx, *resourceId, datasources.DefaultGetOperationOptions())
@@ -229,8 +202,8 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 			}
 
 			state := SearchServiceDatasourceBlobModel{
-				Name:            resourceId.DatasourceName,
-				SearchServiceId: searchServiceId.ID(),
+				Name:                  resourceId.DatasourceName,
+				SearchServiceEndpoint: endpoint,
 			}
 
 			if respModel := resp.Model; respModel != nil {
