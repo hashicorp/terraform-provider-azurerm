@@ -114,6 +114,8 @@ github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-azure-helpers v0.76.2 h1:59isOIbH9GQky32/yReufDWEyb+k8y4wL33FKlMj6zA=
 github.com/hashicorp/go-azure-helpers v0.76.2/go.mod h1:K+woaDnRuEg2qyg8pWMLeYhIcH7QAcUGLFlBHoF/WhA=
+github.com/hashicorp/go-azure-sdk/data-plane v0.20260415.1165701 h1:rTRiqryZ+hOA4wVxGuldSzKqmFcKttDLg/K6NiI0AY0=
+github.com/hashicorp/go-azure-sdk/data-plane v0.20260415.1165701/go.mod h1:iW/u55RVSNz0OOVETh3aPEP9ru1IBUYRkeARdF1StJY=
 github.com/hashicorp/go-azure-sdk/resource-manager v0.20260415.1165701 h1:rjU5cMppeXZWPJW5OGudJTbz9P8YOcZnAv7XMjF2WrQ=
 github.com/hashicorp/go-azure-sdk/resource-manager v0.20260415.1165701/go.mod h1:vi9fQaFaRMIhoSw/7JHIaDbVACtDLlHwdkSbD3WOtgk=
 github.com/hashicorp/go-azure-sdk/sdk v0.20260415.1165701 h1:Oz0jgA1bHr371fwv/LfnFWSc1zsUrh9IWIKJuUhzcss=
