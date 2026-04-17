@@ -304,10 +304,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name              = "acctestds%d"
+  name                    = "acctestds%d"
   search_service_endpoint = azurerm_search_service.test.endpoint
-  container_name    = azurerm_storage_container.test.name
-  connection_string = azurerm_storage_account.test.primary_connection_string
+  container_name          = azurerm_storage_container.test.name
+  connection_string       = azurerm_storage_account.test.primary_connection_string
 
   encryption_key {
     key_name      = azurerm_key_vault_key.test.name
@@ -335,10 +335,10 @@ resource "azurerm_role_assignment" "app_keyvault" {
 }
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name              = "acctestds%d"
+  name                    = "acctestds%d"
   search_service_endpoint = azurerm_search_service.test.endpoint
-  container_name    = azurerm_storage_container.test.name
-  connection_string = azurerm_storage_account.test.primary_connection_string
+  container_name          = azurerm_storage_container.test.name
+  connection_string       = azurerm_storage_account.test.primary_connection_string
 
   encryption_key {
     key_name           = azurerm_key_vault_key.test.name
