@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -176,9 +177,9 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 				},
 
-				"kubelet_config": schemaNodePoolKubeletConfig(),
+				"kubelet_config": schemaNodePoolAutomaticClusterKubeletConfig(),
 
-				"linux_os_config": schemaNodePoolLinuxOSConfig(),
+				"linux_os_config": schemaNodePoolAutomaticClusterLinuxOSConfig(),
 
 				"fips_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -236,7 +237,7 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(1, 1000),
 				},
 
-				"node_network_profile": schemaNodePoolNetworkProfile(),
+				"node_network_profile": schemaNodePoolAutomaticClusterNetworkProfile(),
 
 				"node_count": {
 					Type:         pluginsdk.TypeInt,
@@ -423,6 +424,367 @@ func upgradeSettingsSchemaAutomaticClusterDefaultNodePool() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
+				},
+			},
+		},
+	}
+}
+
+func schemaNodePoolAutomaticClusterKubeletConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"cpu_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"static",
+					}, false),
+				},
+
+				"cpu_cfs_quota_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Default:  true,
+					Optional: true,
+				},
+
+				"cpu_cfs_quota_period": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"image_gc_high_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"image_gc_low_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"topology_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"best-effort",
+						"restricted",
+						"single-numa-node",
+					}, false),
+				},
+
+				"allowed_unsafe_sysctls": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"container_log_max_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+
+				"container_log_max_files": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(2),
+				},
+
+				"pod_max_pid": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaNodePoolAutomaticClusterLinuxOSConfig() *pluginsdk.Schema {
+	s := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"sysctl_config": schemaNodePoolAutomaticClusterSysctlConfig(),
+
+				"transparent_huge_page": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"transparent_huge_page_defrag": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"defer",
+						"defer+madvise",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"swap_file_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+	return s
+}
+
+func schemaNodePoolAutomaticClusterSysctlConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"fs_aio_max_nr": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(65536, 6553500),
+				},
+
+				"fs_file_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(8192, 12000500),
+				},
+
+				"fs_inotify_max_user_watches": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(781250, 2097152),
+				},
+
+				"fs_nr_open": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(8192, 20000500),
+				},
+
+				"kernel_threads_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(20, 513785),
+				},
+
+				"net_core_netdev_max_backlog": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1000, 3240000),
+				},
+
+				"net_core_optmem_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(20480, 4194304),
+				},
+
+				"net_core_rmem_default": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_core_rmem_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_core_somaxconn": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(4096, 3240000),
+				},
+
+				"net_core_wmem_default": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_core_wmem_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(212992, 134217728),
+				},
+
+				"net_ipv4_ip_local_port_range_min": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1024, 60999),
+				},
+
+				"net_ipv4_ip_local_port_range_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(32768, 65535),
+				},
+
+				"net_ipv4_neigh_default_gc_thresh1": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(128, 80000),
+				},
+
+				"net_ipv4_neigh_default_gc_thresh2": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(512, 90000),
+				},
+
+				"net_ipv4_neigh_default_gc_thresh3": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1024, 100000),
+				},
+
+				"net_ipv4_tcp_fin_timeout": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(5, 120),
+				},
+
+				"net_ipv4_tcp_keepalive_intvl": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(10, 90),
+				},
+
+				"net_ipv4_tcp_keepalive_probes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 15),
+				},
+
+				"net_ipv4_tcp_keepalive_time": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(30, 432000),
+				},
+
+				"net_ipv4_tcp_max_syn_backlog": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(128, 3240000),
+				},
+
+				"net_ipv4_tcp_max_tw_buckets": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(8000, 1440000),
+				},
+
+				"net_ipv4_tcp_tw_reuse": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
+
+				"net_netfilter_nf_conntrack_buckets": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(65536, 524288),
+				},
+
+				"net_netfilter_nf_conntrack_max": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(131072, 2097152),
+				},
+
+				"vm_max_map_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(65530, 262144),
+				},
+
+				"vm_swappiness": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"vm_vfs_cache_pressure": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+			},
+		},
+	}
+}
+
+func schemaNodePoolAutomaticClusterNetworkProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"allowed_host_ports": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"port_start": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"port_end": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"protocol": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(agentpools.ProtocolTCP),
+									string(agentpools.ProtocolUDP),
+								}, false),
+							},
+						},
+					},
+				},
+
+				"application_security_group_ids": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
+					},
+				},
+
+				"node_public_ip_tags": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
 				},
 			},
 		},
