@@ -108,7 +108,7 @@ func (r RetentionPolicyResource) Exists(ctx context.Context, client *clients.Cli
 	return pointer.To(true), nil
 }
 
-func (r RetentionPolicyResource) basic(data acceptance.TestData) string {
+func (r RetentionPolicyResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -126,6 +126,13 @@ resource "azurerm_durable_task_scheduler" "test" {
   sku_name            = "Consumption"
   ip_allow_list       = ["0.0.0.0/0"]
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r RetentionPolicyResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_durable_task_retention_policy" "test" {
   scheduler_id = azurerm_durable_task_scheduler.test.id
@@ -134,10 +141,11 @@ resource "azurerm_durable_task_retention_policy" "test" {
     retention_period_in_days = 30
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, template)
 }
 
 func (r RetentionPolicyResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -148,27 +156,13 @@ resource "azurerm_durable_task_retention_policy" "import" {
     retention_period_in_days = 30
   }
 }
-`, r.basic(data))
+`, template)
 }
 
 func (r RetentionPolicyResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-durabletask-%d"
-  location = "%s"
-}
-
-resource "azurerm_durable_task_scheduler" "test" {
-  name                = "acctestdts%s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name            = "Consumption"
-  ip_allow_list       = ["0.0.0.0/0"]
-}
+%s
 
 resource "azurerm_durable_task_retention_policy" "test" {
   scheduler_id = azurerm_durable_task_scheduler.test.id
@@ -188,5 +182,5 @@ resource "azurerm_durable_task_retention_policy" "test" {
     orchestration_state      = "Terminated"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, template)
 }

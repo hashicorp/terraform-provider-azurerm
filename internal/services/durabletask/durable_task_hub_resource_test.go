@@ -61,7 +61,7 @@ func (r TaskHubResource) Exists(ctx context.Context, client *clients.Client, sta
 	return pointer.To(true), nil
 }
 
-func (r TaskHubResource) basic(data acceptance.TestData) string {
+func (r TaskHubResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -79,15 +79,23 @@ resource "azurerm_durable_task_scheduler" "test" {
   sku_name            = "Consumption"
   ip_allow_list       = ["0.0.0.0/0"]
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r TaskHubResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_durable_task_hub" "test" {
   name         = "acctestdth%s"
   scheduler_id = azurerm_durable_task_scheduler.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString)
+`, template, data.RandomString)
 }
 
 func (r TaskHubResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -95,5 +103,5 @@ resource "azurerm_durable_task_hub" "import" {
   name         = azurerm_durable_task_hub.test.name
   scheduler_id = azurerm_durable_task_hub.test.scheduler_id
 }
-`, r.basic(data))
+`, template)
 }

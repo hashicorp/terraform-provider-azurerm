@@ -76,7 +76,7 @@ func TestAccDurableTaskScheduler_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -120,7 +120,7 @@ func (r SchedulerResource) Exists(ctx context.Context, client *clients.Client, s
 	return pointer.To(true), nil
 }
 
-func (r SchedulerResource) basic(data acceptance.TestData) string {
+func (r SchedulerResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -130,6 +130,13 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-durabletask-%d"
   location = "%s"
 }
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r SchedulerResource) basic(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
 
 resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
@@ -138,10 +145,11 @@ resource "azurerm_durable_task_scheduler" "test" {
   sku_name            = "Consumption"
   ip_allow_list       = ["0.0.0.0/0"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, template, data.RandomString)
 }
 
 func (r SchedulerResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -152,19 +160,13 @@ resource "azurerm_durable_task_scheduler" "import" {
   sku_name            = azurerm_durable_task_scheduler.test.sku_name
   ip_allow_list       = azurerm_durable_task_scheduler.test.ip_allow_list
 }
-`, r.basic(data))
+`, template)
 }
 
-func (r SchedulerResource) complete(data acceptance.TestData) string {
+func (r SchedulerResource) update(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-durabletask-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
@@ -174,23 +176,37 @@ resource "azurerm_durable_task_scheduler" "test" {
   ip_allow_list       = ["10.0.0.0/8", "192.168.0.0/16"]
 
   tags = {
+    environment = "staging"
+  }
+}
+`, template, data.RandomString)
+}
+
+func (r SchedulerResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_durable_task_scheduler" "test" {
+  name                = "acctestdts%s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Dedicated"
+  ip_allow_list       = ["10.0.0.0/8", "192.168.0.0/16"]
+  capacity            = 2
+
+  tags = {
     environment = "test"
     purpose     = "acceptance-testing"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, template, data.RandomString)
 }
 
 func (r SchedulerResource) dedicatedWithCapacity(data acceptance.TestData) string {
+	template := r.template(data)
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-durabletask-%d"
-  location = "%s"
-}
+%s
 
 resource "azurerm_durable_task_scheduler" "test" {
   name                = "acctestdts%s"
@@ -200,5 +216,5 @@ resource "azurerm_durable_task_scheduler" "test" {
   ip_allow_list       = ["0.0.0.0/0"]
   capacity            = 2
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, template, data.RandomString)
 }
