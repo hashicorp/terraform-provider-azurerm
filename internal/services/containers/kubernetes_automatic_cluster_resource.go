@@ -31,6 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
+	keyVaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -1996,6 +1997,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 		Timeout: 90 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Containers.KubernetesClustersClient
+			keyVaultsClient := metadata.Client.KeyVault
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var model KubernetesAutomaticClusterModel
@@ -2079,7 +2081,10 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			securityProfile.AzureKeyVaultKms = expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService)
+			securityProfile.AzureKeyVaultKms, err = expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService, ctx, keyVaultsClient, subscriptionId)
+			if err != nil {
+				return err
+			}
 
 			if len(model.CustomCATrustCertificatesBase64) > 0 {
 				securityProfile.CustomCATrustCertificates = &model.CustomCATrustCertificatesBase64
@@ -2461,9 +2466,9 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					state.WebAppRouting = flattenKubernetesAutomaticClusterWebAppRouting(props.IngressProfile)
 					state.MicrosoftDefender = flattenKubernetesAutomaticClusterMicrosoftDefender(props.SecurityProfile)
 
-					if props.SecurityProfile != nil && props.SecurityProfile.AzureKeyVaultKms != nil {
-						state.KeyManagementService = flattenKubernetesAutomaticClusterKeyManagementService(props.SecurityProfile.AzureKeyVaultKms)
-					}
+					// if props.SecurityProfile != nil && props.SecurityProfile.AzureKeyVaultKms != nil {
+					state.KeyManagementService = flattenKubernetesAutomaticClusterKeyManagementService(props.SecurityProfile.AzureKeyVaultKms)
+					//}
 
 					state.CostAnalysisEnabled = flattenKubernetesAutomaticClusterMetricsProfile(props.MetricsProfile)
 
@@ -2596,6 +2601,8 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			client := metadata.Client.Containers
 			clusterClient := client.KubernetesClustersClient
 			nodePoolsClient := client.AgentPoolsClient
+			keyVaultsClient := metadata.Client.KeyVault
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			id, err := commonids.ParseKubernetesClusterID(metadata.ResourceData.Id())
 			if err != nil {
@@ -2948,7 +2955,10 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 
 				if metadata.ResourceData.HasChange("key_management_service") {
-					props.SecurityProfile.AzureKeyVaultKms = expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService)
+					props.SecurityProfile.AzureKeyVaultKms, err = expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService, ctx, keyVaultsClient, subscriptionId)
+					if err != nil {
+						return err
+					}
 				}
 
 				if metadata.ResourceData.HasChange("custom_ca_trust_certificates_base64") {
@@ -3113,9 +3123,7 @@ func expandKubernetesAutomaticClusterAPIAccessProfile(model *KubernetesAutomatic
 	}
 
 	config := model.APIServerAccessProfile[0]
-	if len(config.AuthorizedIPRanges) > 0 {
-		apiAccessProfile.AuthorizedIPRanges = &config.AuthorizedIPRanges
-	}
+	apiAccessProfile.AuthorizedIPRanges = pointer.To(config.AuthorizedIPRanges)
 
 	apiAccessProfile.EnableVnetIntegration = pointer.To(config.VirtualNetworkIntegrationEnabled)
 
@@ -4109,10 +4117,22 @@ func flattenKubernetesAutomaticClusterNodeProvisioningProfile(profile *managedcl
 }
 
 func expandKubernetesAutomaticClusterAzureMonitorProfile(input []MonitorMetricsModel) *managedclusters.ManagedClusterAzureMonitorProfile {
-	if len(input) == 0 {
+	if input == nil {
 		return &managedclusters.ManagedClusterAzureMonitorProfile{
 			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
 				Enabled: false,
+			},
+		}
+	}
+
+	if len(input) == 0 {
+		return &managedclusters.ManagedClusterAzureMonitorProfile{
+			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
+				Enabled: true,
+				KubeStateMetrics: &managedclusters.ManagedClusterAzureMonitorProfileKubeStateMetrics{
+					MetricAnnotationsAllowList: pointer.To(""),
+					MetricLabelsAllowlist:      pointer.To(""),
+				},
 			},
 		}
 	}
@@ -4582,19 +4602,41 @@ func flattenKubernetesAutomaticClusterHttpProxyConfig(httpProxyConfig *managedcl
 	}}
 }
 
-func expandKubernetesAutomaticClusterKeyManagementService(input []KeyManagementServiceModel) *managedclusters.AzureKeyVaultKms {
+func expandKubernetesAutomaticClusterKeyManagementService(input []KeyManagementServiceModel, ctx context.Context, keyVaultsClient *keyVaultClient.Client, subscriptionId string) (*managedclusters.AzureKeyVaultKms, error) {
 	if len(input) == 0 {
-		return nil
+		return &managedclusters.AzureKeyVaultKms{
+			Enabled: pointer.To(false),
+		}, nil
 	}
 
 	config := input[0]
+	kvAccess := managedclusters.KeyVaultNetworkAccessTypes(config.KeyVaultNetworkAccess)
+
 	kms := &managedclusters.AzureKeyVaultKms{
 		Enabled:               pointer.To(true),
 		KeyId:                 pointer.To(config.KeyVaultKeyID),
-		KeyVaultNetworkAccess: pointer.To(managedclusters.KeyVaultNetworkAccessTypes(config.KeyVaultNetworkAccess)),
+		KeyVaultNetworkAccess: pointer.To(kvAccess),
 	}
 
-	return kms
+	// Set Key vault Resource ID in case public access is disabled
+	if kvAccess == managedclusters.KeyVaultNetworkAccessTypesPrivate {
+		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
+
+		nestedItemType := keyvault.NestedItemTypeKey
+
+		keyVaultKeyId, err := keyvault.ParseNestedItemID(*kms.KeyId, keyvault.VersionTypeVersioned, nestedItemType)
+		if err != nil {
+			return nil, err
+		}
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, keyVaultKeyId.KeyVaultBaseURL)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", keyVaultKeyId.KeyVaultBaseURL, err)
+		}
+
+		kms.KeyVaultResourceId = keyVaultID
+	}
+
+	return kms, nil
 }
 
 func flattenKubernetesAutomaticClusterKeyManagementService(kms *managedclusters.AzureKeyVaultKms) []KeyManagementServiceModel {
