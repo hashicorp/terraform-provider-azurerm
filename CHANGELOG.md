@@ -1,3 +1,35 @@
+## 4.69.0 (April 16, 2026)
+
+FEATURES:
+
+* **New List Resource**: `azurerm_traffic_manager_profile` ([#31977](https://github.com/hashicorp/terraform-provider-azurerm/issues/31977))
+* **New List Resource**: `azurerm_web_pubsub` ([#32126](https://github.com/hashicorp/terraform-provider-azurerm/issues/32126))
+* **New Resource**: `azurerm_automation_runtime_environment_package` ([#32022](https://github.com/hashicorp/terraform-provider-azurerm/issues/32022))
+* **New Resource**: `azurerm_container_app_environment_managed_certificate` ([#31137](https://github.com/hashicorp/terraform-provider-azurerm/issues/31137))
+
+ENHANCEMENTS:
+
+* dependencies: `Go` - update to `1.25.9` ([#32148](https://github.com/hashicorp/terraform-provider-azurerm/issues/32148))
+* dependencies: `kubernetesconfiguration/fluxconfiguration` - update to API version `2025-04-01` ([#32080](https://github.com/hashicorp/terraform-provider-azurerm/issues/32080))
+* Data Source: `azurerm_kubernetes_cluster_node_pool` - export the `node_image_version` property ([#32108](https://github.com/hashicorp/terraform-provider-azurerm/issues/32108))
+* Data Source: `azurerm_storage_account_blob_container_sas` - expand `permissions` block to include new fields ([#32149](https://github.com/hashicorp/terraform-provider-azurerm/issues/32149))
+* Data Source: `azurerm_storage_account_sas` - expand `permissions` block to include new fields ([#32149](https://github.com/hashicorp/terraform-provider-azurerm/issues/32149))
+* Data Source: `azurerm_storage_share` - export the `rbac_scope_id` property ([#31194](https://github.com/hashicorp/terraform-provider-azurerm/issues/31194))
+* `azurerm_bot_channels_registration` - add support for the `microsoft_app_type`, `microsoft_app_tenant_id`, and `microsoft_app_user_assigned_identity_id` properties ([#30457](https://github.com/hashicorp/terraform-provider-azurerm/issues/30457))
+* `azurerm_cdn_frontdoor_route` - the `cdn_frontdoor_origin_ids` property is now optional, allowing users to use the `depends_on` meta-argument instead ([#29350](https://github.com/hashicorp/terraform-provider-azurerm/issues/29350))
+* `azurerm_cognitive_deployment` - the `rai_policy_name` property is now Optional + Computed as Azure returns a value when not set in the creation request ([#32131](https://github.com/hashicorp/terraform-provider-azurerm/issues/32131))
+* `azurerm_container_app` - add support for `identity_id` property in  `custom_scale_rule` block ([#29777](https://github.com/hashicorp/terraform-provider-azurerm/issues/29777))
+* `azurerm_key_vault`  - added object-name max length validation for all key vault entries (keys, secrets, certs, etc) ([#30665](https://github.com/hashicorp/terraform-provider-azurerm/issues/30665))
+* `azurerm_kubernetes_cluster_node_pool` - export the `node_image_version` property ([#32108](https://github.com/hashicorp/terraform-provider-azurerm/issues/32108))
+* `azurerm_kubernetes_flux_configuration` - the `git_repository.provider` property now supports `GitHub` ([#32080](https://github.com/hashicorp/terraform-provider-azurerm/issues/32080)) 
+* `azurerm_monitor_scheduled_query_rules_alert_v2` - add support for email_subject within action block ([#32132](https://github.com/hashicorp/terraform-provider-azurerm/issues/32132))
+* `azurerm_storage_share` - export the `rbac_scope_id` property ([#31194](https://github.com/hashicorp/terraform-provider-azurerm/issues/31194))
+
+BUG FIXES:
+
+* `azurerm_linux_virtual_machine` - parse `os_managed_disk_id` insensitively as Azure returns static segments cased inconsistently ([#32145](https://github.com/hashicorp/terraform-provider-azurerm/issues/32145))
+* `azurerm_private_dns_resolver_inbound_endpoint` - the `ip_configurations.private_ip_address`, `ip_configurations.private_ip_allocation_method`, and `ip_configurations.subnet_id` properties are now ForceNew as the API does not allow updating these values ([#31088](https://github.com/hashicorp/terraform-provider-azurerm/issues/31088))
+
 ## 4.68.0 (April 09, 2026)
 
 FEATURES:
