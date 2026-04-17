@@ -19,7 +19,6 @@ import (
 )
 
 type SchedulerResourceModel struct {
-	// Arguments
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
@@ -28,7 +27,6 @@ type SchedulerResourceModel struct {
 	Capacity          int64             `tfschema:"capacity"`
 	Tags              map[string]string `tfschema:"tags"`
 
-	// Attributes (computed)
 	Endpoint        string `tfschema:"endpoint"`
 	RedundancyState string `tfschema:"redundancy_state"`
 }

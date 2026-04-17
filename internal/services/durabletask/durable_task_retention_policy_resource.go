@@ -91,13 +91,11 @@ func (r RetentionPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			// Parse using schedulers package for validation, then create retentionpolicies.SchedulerId
 			parsedId, err := schedulers.ParseSchedulerID(model.SchedulerId)
 			if err != nil {
 				return fmt.Errorf("parsing scheduler ID: %+v", err)
 			}
 
-			// Create the retentionpolicies-specific SchedulerId
 			schedulerId := retentionpolicies.NewSchedulerID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
 			id := NewRetentionPolicyID(parsedId.SubscriptionId, parsedId.ResourceGroupName, parsedId.SchedulerName)
 
