@@ -200,7 +200,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_search_service_datasource_blob" "test" {
-  name                    = "-acctestds%d"
+  name                    = "acctestds%d"
   search_service_endpoint = azurerm_search_service.test.endpoint
   container_name          = azurerm_storage_container.test.name
   connection_string       = azurerm_storage_account.test.primary_connection_string
@@ -249,8 +249,6 @@ resource "azurerm_search_service_datasource_blob" "test" {
 func (r SearchServiceDatasourceBlobResource) encryptionKeyTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
   name                       = "acctestkv%s"
