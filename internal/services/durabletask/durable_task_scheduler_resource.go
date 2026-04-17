@@ -34,8 +34,8 @@ type SchedulerResourceModel struct {
 type SchedulerResource struct{}
 
 var (
-	_ sdk.Resource                = SchedulerResource{}
-	_ sdk.ResourceWithUpdate      = SchedulerResource{}
+	_ sdk.Resource                  = SchedulerResource{}
+	_ sdk.ResourceWithUpdate        = SchedulerResource{}
 	_ sdk.ResourceWithCustomizeDiff = SchedulerResource{}
 )
 
