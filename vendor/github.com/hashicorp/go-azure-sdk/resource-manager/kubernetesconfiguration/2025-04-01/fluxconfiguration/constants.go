@@ -105,12 +105,14 @@ type ProviderType string
 const (
 	ProviderTypeAzure   ProviderType = "Azure"
 	ProviderTypeGeneric ProviderType = "Generic"
+	ProviderTypeGitHub  ProviderType = "GitHub"
 )
 
 func PossibleValuesForProviderType() []string {
 	return []string{
 		string(ProviderTypeAzure),
 		string(ProviderTypeGeneric),
+		string(ProviderTypeGitHub),
 	}
 }
 
@@ -131,6 +133,7 @@ func parseProviderType(input string) (*ProviderType, error) {
 	vals := map[string]ProviderType{
 		"azure":   ProviderTypeAzure,
 		"generic": ProviderTypeGeneric,
+		"github":  ProviderTypeGitHub,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
