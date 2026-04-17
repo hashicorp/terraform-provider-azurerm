@@ -670,9 +670,9 @@ func flattenClusterNodePoolKubeletConfigTyped(input *managedclusters.KubeletConf
 	return []KubeletConfigModel{result}
 }
 
-func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) ([]LinuxOSConfigModel, error) {
+func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOSConfig) []LinuxOSConfigModel {
 	if input == nil {
-		return []LinuxOSConfigModel{}, nil
+		return []LinuxOSConfigModel{}
 	}
 
 	sysctlConfig := flattenClusterNodePoolSysctlConfigTyped(input.Sysctls)
@@ -691,7 +691,7 @@ func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOS
 		result.SwapFileSizeMB = *input.SwapFileSizeMB
 	}
 
-	return []LinuxOSConfigModel{result}, nil
+	return []LinuxOSConfigModel{result}
 }
 
 func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig) []SysctlConfigModel {
@@ -1294,11 +1294,7 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 
 	result.UpgradeSettings = flattenClusterNodePoolUpgradeSettingsTyped(agentPool.UpgradeSettings)
 
-	linuxOSConfig, err := flattenAutomaticClusterNodePoolLinuxOSConfig(agentPool.LinuxOSConfig)
-	if err != nil {
-		return nil, err
-	}
-	result.LinuxOSConfig = linuxOSConfig
+	result.LinuxOSConfig = flattenAutomaticClusterNodePoolLinuxOSConfig(agentPool.LinuxOSConfig)
 
 	result.KubeletConfig = flattenClusterNodePoolKubeletConfigTyped(agentPool.KubeletConfig)
 	result.NodeNetworkProfile = flattenClusterPoolNetworkProfileTyped(agentPool.NetworkProfile)

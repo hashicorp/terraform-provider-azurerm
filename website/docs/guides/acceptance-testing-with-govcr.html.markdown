@@ -1,3 +1,11 @@
+---
+layout: "azurerm"
+page_title: "Acceptance Testing with go-vcr"
+description: |-
+Azure Resource Manager: Acceptance Testing with go-vcr
+---
+
+
 # Acceptance Testing with go-vcr
 
 ## Summary
