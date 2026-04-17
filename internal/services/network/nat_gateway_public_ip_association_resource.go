@@ -100,13 +100,13 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", publicIpAddressId)
 	}
 
-	isIPv6 := natGatewayPublicIpAssociationIsIPv6(publicIPAddress.Model)
-
+	isIPv6 := pointer.From(publicIPAddress.Model.Properties.PublicIPAddressVersion) == publicipaddresses.IPVersionIPvSix
 	id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
 
-	publicIpAddresses := pointer.From(natGateway.Model.Properties.PublicIPAddresses)
+	gatewayProps := natGateway.Model.Properties
+	publicIpAddresses := pointer.From(gatewayProps.PublicIPAddresses)
 	if isIPv6 {
-		publicIpAddresses = pointer.From(natGateway.Model.Properties.PublicIPAddressesV6)
+		publicIpAddresses = pointer.From(gatewayProps.PublicIPAddressesV6)
 	}
 	for _, existingPublicIPAddress := range publicIpAddresses {
 		if strings.EqualFold(pointer.From(existingPublicIPAddress.Id), publicIpAddressId.ID()) {
@@ -118,9 +118,9 @@ func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta
 		Id: pointer.To(publicIpAddressId.ID()),
 	})
 	if isIPv6 {
-		natGateway.Model.Properties.PublicIPAddressesV6 = pointer.To(publicIpAddresses)
+		gatewayProps.PublicIPAddressesV6 = pointer.To(publicIpAddresses)
 	} else {
-		natGateway.Model.Properties.PublicIPAddresses = pointer.To(publicIpAddresses)
+		gatewayProps.PublicIPAddresses = pointer.To(publicIpAddresses)
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
@@ -152,14 +152,13 @@ func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta i
 		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	if model := natGateway.Model; model != nil && model.Properties != nil {
-		if !natGatewayPublicIpAssociationExists(model.Properties, id.Second.ID()) {
-			log.Printf("[DEBUG] Association between %s and %s was not found - removing from state", id.First, id.Second)
-			d.SetId("")
-			return nil
-		}
-	} else {
+	if natGateway.Model == nil || natGateway.Model.Properties == nil {
 		return fmt.Errorf("retrieving %s: `model` or `properties` was nil", id.First)
+	}
+	if !natGatewayPublicIpAssociationExists(natGateway.Model.Properties, id.Second.ID()) {
+		log.Printf("[DEBUG] Association between %s and %s was not found - removing from state", id.First, id.Second)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("nat_gateway_id", id.First.ID())
@@ -207,14 +206,6 @@ func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta
 	return nil
 }
 
-func natGatewayPublicIpAssociationIsIPv6(publicIPAddress *publicipaddresses.PublicIPAddress) bool {
-	if publicIPAddress == nil || publicIPAddress.Properties == nil {
-		return false
-	}
-
-	return pointer.From(publicIPAddress.Properties.PublicIPAddressVersion) == publicipaddresses.IPVersionIPvSix
-}
-
 func natGatewayPublicIpAssociationExists(properties *natgateways.NatGatewayPropertiesFormat, publicIPAddressId string) bool {
 	if properties == nil {
 		return false
@@ -241,7 +232,6 @@ func removeNATGatewayPublicIpAssociation(properties *natgateways.NatGatewayPrope
 	}
 
 	removed := false
-
 	updatedIPv4Addresses := make([]natgateways.SubResource, 0)
 	for _, publicIPAddress := range pointer.From(properties.PublicIPAddresses) {
 		if strings.EqualFold(pointer.From(publicIPAddress.Id), publicIPAddressId) {
