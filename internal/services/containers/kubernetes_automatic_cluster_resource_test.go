@@ -22,9 +22,9 @@ import (
 type KubernetesAutomaticClusterResource struct{}
 
 var (
-	olderKubernetesAutomaticVersion        = "1.35.0"
-	currentKubernetesAutomaticVersion      = "1.34.1"
-	olderKubernetesAutomaticVersionAlias   = "1.35"
+	olderKubernetesAutomaticVersion        = "1.33.3"
+	currentKubernetesAutomaticVersion      = "1.34.2"
+	olderKubernetesAutomaticVersionAlias   = "1.33"
 	currentKubernetesAutomaticVersionAlias = "1.34"
 )
 

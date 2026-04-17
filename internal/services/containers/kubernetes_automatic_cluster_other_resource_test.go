@@ -3238,7 +3238,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
-  kubernetes_version  = "1.32.4"
+  kubernetes_version  = "1.35.0"
 
   ai_toolchain_operator_enabled = %[3]t
 

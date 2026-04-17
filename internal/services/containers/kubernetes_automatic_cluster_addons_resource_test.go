@@ -100,28 +100,6 @@ func TestAccKubernetesAutomaticCluster_addonProfileOMSToggle(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesAutomaticCluster_addonProfileRoutingToggle(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.addonProfileRoutingConfig(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.addonProfileRoutingConfig(data, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccKubernetesAutomaticCluster_addonProfileIngressApplicationGateway_appGatewayId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -257,21 +235,21 @@ func TestAccKubernetesAutomaticCluster_addonProfileServiceMeshProfile_revisions(
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25", "asm-1-26"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27", "asm-1-28"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-27"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -638,6 +616,26 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_log_analytics_solution" "test" {
+  solution_name         = "ContainerInsights"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
+
+  plan {
+    publisher = "Microsoft"
+    product   = "OMSGallery/ContainerInsights"
+  }
+}
+
 resource "azurerm_kubernetes_automatic_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
@@ -665,50 +663,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
-}
-
-func (KubernetesAutomaticClusterResource) addonProfileRoutingConfig(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-
-  linux_profile {
-    admin_username = "acctestuser%d"
-
-    ssh_key {
-      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
-    }
-  }
-
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS3_v2"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-
-  http_application_routing_enabled = %t
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) addonProfileIngressApplicationGatewayAppGatewayConfig(data acceptance.TestData) string {
@@ -1556,7 +1511,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-26"]
+    revisions                        = ["asm-1-27"]
     certificate_authority {
       key_vault_id           = azurerm_key_vault.test.id
       root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name
