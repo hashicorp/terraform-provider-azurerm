@@ -2,12 +2,11 @@
 
 ENHANCEMENTS:
 * `dependencies` - `giovanni` update to `v0.29.0` [GH-32188]
-* `dependencies` - `giovanni` update to `v0.29.0` [GH-32188]
 
 FEATURES:
 
 BUG FIXES:
-`azurerm_container_app_environment` - fix potential nil pointer dereferences to prevent panics" [GH-32198]
+* `azurerm_container_app_environment` - fix potential nil pointer dereferences to prevent panics" [GH-32198]
 
 ## 4.69.0 (April 16, 2026)
 
