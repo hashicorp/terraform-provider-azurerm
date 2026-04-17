@@ -244,8 +244,9 @@ type MicrosoftDefenderModel struct {
 }
 
 type MonitorMetricsModel struct {
-	AnnotationsAllowed string `tfschema:"annotations_allowed"`
-	LabelsAllowed      string `tfschema:"labels_allowed"`
+	MonitorMetricsEnabled bool   `tfschema:"monitor_metrics_enabled"`
+	AnnotationsAllowed    string `tfschema:"annotations_allowed"`
+	LabelsAllowed         string `tfschema:"labels_allowed"`
 }
 
 type NetworkProfileModel struct {
@@ -1395,6 +1396,11 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"monitor_metrics_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
 					"annotations_allowed": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -2450,7 +2456,7 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 					state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
 					state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
 
-					state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, metadata)
+					state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile)
 
 					state.WorkloadAutoscalerProfile = flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
 					state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
@@ -3303,22 +3309,13 @@ func expandKubernetesAutomaticClusterWindowsProfile(input []WindowsProfileModel)
 	}
 }
 
-func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, metadata sdk.ResourceMetaData) []WindowsProfileModel {
+func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile) []WindowsProfileModel {
 	if profile == nil {
 		return []WindowsProfileModel{}
 	}
 
 	adminUsername := profile.AdminUsername
 
-	rawConfig := metadata.ResourceData.GetRawConfig()
-
-	adminPassword := ""
-	if !rawConfig.IsNull() {
-		windowsProfileSlice := rawConfig.AsValueMap()["windows_profile"].AsValueSlice()
-		if len(windowsProfileSlice) > 0 {
-			adminPassword = windowsProfileSlice[0].AsValueMap()["admin_password"].AsString()
-		}
-	}
 	license := ""
 	if profile.LicenseType != nil && pointer.From(profile.LicenseType) != managedclusters.LicenseTypeNone {
 		license = string(pointer.From(profile.LicenseType))
@@ -3328,7 +3325,6 @@ func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.Ma
 
 	return []WindowsProfileModel{
 		{
-			AdminPassword: adminPassword,
 			AdminUsername: adminUsername,
 			License:       license,
 			GMSA:          gmsaProfile,
@@ -4117,7 +4113,7 @@ func flattenKubernetesAutomaticClusterNodeProvisioningProfile(profile *managedcl
 }
 
 func expandKubernetesAutomaticClusterAzureMonitorProfile(input []MonitorMetricsModel) *managedclusters.ManagedClusterAzureMonitorProfile {
-	if input == nil {
+	if input == nil || len(input) == 0 {
 		return &managedclusters.ManagedClusterAzureMonitorProfile{
 			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
 				Enabled: false,
@@ -4125,22 +4121,11 @@ func expandKubernetesAutomaticClusterAzureMonitorProfile(input []MonitorMetricsM
 		}
 	}
 
-	if len(input) == 0 {
-		return &managedclusters.ManagedClusterAzureMonitorProfile{
-			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
-				Enabled: true,
-				KubeStateMetrics: &managedclusters.ManagedClusterAzureMonitorProfileKubeStateMetrics{
-					MetricAnnotationsAllowList: pointer.To(""),
-					MetricLabelsAllowlist:      pointer.To(""),
-				},
-			},
-		}
-	}
-
 	config := input[0]
+
 	profile := &managedclusters.ManagedClusterAzureMonitorProfile{
 		Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
-			Enabled: true,
+			Enabled: config.MonitorMetricsEnabled,
 			KubeStateMetrics: &managedclusters.ManagedClusterAzureMonitorProfileKubeStateMetrics{
 				MetricAnnotationsAllowList: pointer.To(config.AnnotationsAllowed),
 				MetricLabelsAllowlist:      pointer.To(config.LabelsAllowed),
@@ -4158,8 +4143,9 @@ func flattenKubernetesAutomaticClusterAzureMonitorProfile(input *managedclusters
 
 	if input.Metrics.KubeStateMetrics == nil {
 		return []MonitorMetricsModel{{
-			AnnotationsAllowed: "",
-			LabelsAllowed:      "",
+			MonitorMetricsEnabled: true,
+			AnnotationsAllowed:    "",
+			LabelsAllowed:         "",
 		}}
 	}
 
@@ -4174,8 +4160,9 @@ func flattenKubernetesAutomaticClusterAzureMonitorProfile(input *managedclusters
 	}
 
 	return []MonitorMetricsModel{{
-		AnnotationsAllowed: annotationsAllowed,
-		LabelsAllowed:      labelsAllowed,
+		MonitorMetricsEnabled: true,
+		AnnotationsAllowed:    annotationsAllowed,
+		LabelsAllowed:         labelsAllowed,
 	}}
 }
 

@@ -1258,12 +1258,6 @@ resource "azurerm_user_assigned_identity" "test" {
   name                = "test_identity"
 }
 
-resource "azurerm_role_assignment" "test1" {
-  scope                = azurerm_subnet.test1.id
-  role_definition_name = "Network Contributor"
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-}
-
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%[1]d"
   address_space       = ["10.1.0.0/16", "fd00:db8:deca::/48"]
@@ -1292,6 +1286,18 @@ resource "azurerm_subnet" "test1" {
       name    = "Microsoft.ContainerService/managedClusters"
     }
   }
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_subnet.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+}
+
+resource "azurerm_role_assignment" "test1" {
+  scope                = azurerm_subnet.test1.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
