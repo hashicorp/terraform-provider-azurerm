@@ -1421,10 +1421,6 @@ func flattenKubernetesAutomaticClusterDataSourceKubeConfigAAD(config kubernetes.
 	return []interface{}{values}
 }
 
-//func flattenClusterDataSourceIdentity(input *identity.SystemOrUserAssignedMap) (*[]interface{}, error) {
-//	return identity.FlattenSystemOrUserAssignedMap(input)
-//}
-
 func flattenKubernetesAutomaticClusterDataSourceMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
 	if input == nil || input.Defender == nil || input.Defender.SecurityMonitoring == nil || (input.Defender.SecurityMonitoring.Enabled != nil && !*input.Defender.SecurityMonitoring.Enabled) {
 		return []interface{}{}
