@@ -202,7 +202,7 @@ func (r NatGatewayPublicIpPrefixAssociationResource) basic(data acceptance.TestD
 %[1]s
 
 resource "azurerm_nat_gateway" "test" {
-	name                = "acctest-NatGateway-%[2]d"
+  name                = "acctest-NatGateway-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard"
@@ -231,7 +231,7 @@ func (r NatGatewayPublicIpPrefixAssociationResource) updateNatGateway(data accep
 %[1]s
 
 resource "azurerm_nat_gateway" "test" {
-	name                = "acctest-NatGateway-%[2]d"
+  name                = "acctest-NatGateway-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard"
@@ -252,15 +252,15 @@ func (r NatGatewayPublicIpPrefixAssociationResource) ipv6(data acceptance.TestDa
 %[1]s
 
 resource "azurerm_nat_gateway" "test" {
-	name                = "acctest-NatGateway-%[2]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	sku_name            = "StandardV2"
+  name                = "acctest-NatGateway-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
 }
 
 resource "azurerm_nat_gateway_public_ip_prefix_association" "test" {
-	nat_gateway_id      = azurerm_nat_gateway.test.id
-	public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+  nat_gateway_id      = azurerm_nat_gateway.test.id
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 `, r.templateIPv6(data, string(publicipprefixes.PublicIPPrefixSkuNameStandardVTwo)), data.RandomInteger)
 }
@@ -270,20 +270,20 @@ func (r NatGatewayPublicIpPrefixAssociationResource) multipleAssociations(data a
 %[1]s
 
 resource "azurerm_nat_gateway" "test" {
-	name                = "acctest-NatGateway-%[2]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	sku_name            = "StandardV2"
+  name                = "acctest-NatGateway-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "StandardV2"
 }
 
 resource "azurerm_nat_gateway_public_ip_prefix_association" "test" {
-	nat_gateway_id      = azurerm_nat_gateway.test.id
-	public_ip_prefix_id = azurerm_public_ip_prefix.test.id
+  nat_gateway_id      = azurerm_nat_gateway.test.id
+  public_ip_prefix_id = azurerm_public_ip_prefix.test.id
 }
 
 resource "azurerm_nat_gateway_public_ip_prefix_association" "test2" {
-	nat_gateway_id      = azurerm_nat_gateway.test.id
-	public_ip_prefix_id = azurerm_public_ip_prefix.test2.id
+  nat_gateway_id      = azurerm_nat_gateway.test.id
+  public_ip_prefix_id = azurerm_public_ip_prefix.test2.id
 }
 `, r.templateDualStack(data), data.RandomInteger)
 }
@@ -312,21 +312,21 @@ resource "azurerm_public_ip_prefix" "test" {
 func (NatGatewayPublicIpPrefixAssociationResource) templateIPv6(data acceptance.TestData, sku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-ngpi-v6-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-ngpi-v6-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_public_ip_prefix" "test" {
-	name                = "acctestpublicIPPrefixV6-%[1]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	ip_version          = "IPv6"
-	prefix_length       = 127
-	sku                 = "%[3]s"
+  name                = "acctestpublicIPPrefixV6-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_version          = "IPv6"
+  prefix_length       = 127
+  sku                 = "%[3]s"
 }
 `, data.RandomInteger, data.Locations.Primary, sku)
 }
@@ -334,29 +334,29 @@ resource "azurerm_public_ip_prefix" "test" {
 func (NatGatewayPublicIpPrefixAssociationResource) templateDualStack(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-	features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-ngpi-dual-%[1]d"
-	location = "%[2]s"
+  name     = "acctestRG-ngpi-dual-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_public_ip_prefix" "test" {
-	name                = "acctestpublicIPPrefix-%[1]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	prefix_length       = 30
-	sku                 = "StandardV2"
+  name                = "acctestpublicIPPrefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  prefix_length       = 30
+  sku                 = "StandardV2"
 }
 
 resource "azurerm_public_ip_prefix" "test2" {
-	name                = "acctestpublicIPPrefixV6-%[1]d"
-	location            = azurerm_resource_group.test.location
-	resource_group_name = azurerm_resource_group.test.name
-	ip_version          = "IPv6"
-	prefix_length       = 127
-	sku                 = "StandardV2"
+  name                = "acctestpublicIPPrefixV6-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_version          = "IPv6"
+  prefix_length       = 127
+  sku                 = "StandardV2"
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
