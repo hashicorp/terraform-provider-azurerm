@@ -302,6 +302,7 @@ resource "azurerm_app_service_environment_v3" "test" {
   resource_group_name          = azurerm_resource_group.test2.name
   subnet_id                    = azurerm_subnet.test.id
   internal_load_balancing_mode = "Web, Publishing"
+
   allow_new_private_endpoint_connections = false
 
   cluster_setting {
