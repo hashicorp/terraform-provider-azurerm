@@ -325,7 +325,7 @@ resource "azurerm_site_recovery_services_vault_hyperv_site" "test" {
 `, r.base(data))
 }
 
-func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData, adminPwd string) string {
+func (r HyperVHostTestResource) hyperVTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -376,8 +376,9 @@ resource "azurerm_windows_virtual_machine" "host" {
   location            = azurerm_resource_group.hybrid.location
   size                = "Standard_D8as_v5"
   admin_username      = local.admin_name
-  admin_password      = "%[2]s"
-  computer_name       = "nested-Host"
+  admin_password      = "#D33p-7h0uGH7~42!"
+
+  computer_name = "nested-Host"
 
   network_interface_ids = [
     azurerm_network_interface.host.id,
@@ -454,13 +455,13 @@ resource "azurerm_windows_virtual_machine" "host" {
 }
 
 
-%[3]s
+%[2]s
 
-%[4]s
-`, r.recovery(data), adminPwd, r.keyVault(), r.securityGroup())
+%[3]s
+`, r.recovery(data), r.keyVault(), r.securityGroup())
 }
 
-func (r HyperVHostTestResource) template(data acceptance.TestData, adminPwd string) string {
+func (r HyperVHostTestResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 # register the server could only be done by CustomScriptExtension because it requires local admin to run.
@@ -532,5 +533,5 @@ resource "azurerm_virtual_machine_extension" "script" {
   ]
 }
 
-`, r.hyperVTemplate(data, adminPwd), HostName)
+`, r.hyperVTemplate(data), HostName)
 }
