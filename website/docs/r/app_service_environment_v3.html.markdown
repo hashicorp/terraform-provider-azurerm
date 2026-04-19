@@ -107,6 +107,8 @@ resource "azurerm_service_plan" "example" {
 
 * `internal_load_balancing_mode` - (Optional) Specifies which endpoints to serve internally in the Virtual Network for the App Service Environment. Possible values are `None` (for an External VIP Type), and `"Web, Publishing"` (for an Internal VIP Type). Defaults to `None`. Changing this forces a new resource to be created.
 
+* `upgrade_preference` - (Optional) Configure the upgrade preference for an App Service Environment. Defaults to `None`. Valid values are `None`, `Early`, `Late`, and `Manual`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ~> **Note:** The underlying API does not currently support changing Tags on this resource. Making changes in the portal for tags will cause Terraform to detect a change that will force a recreation of the ASEV3 unless `ignore_changes` lifecycle meta-argument is used.
