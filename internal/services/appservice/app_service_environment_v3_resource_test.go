@@ -408,12 +408,12 @@ func (r AppServiceEnvironmentV3Resource) upgradePreference(data acceptance.TestD
 	return fmt.Sprintf(`
 %s
 resource "azurerm_app_service_environment_v3" "test" {
-  name                		   = "acctest-ase-%d"
-  resource_group_name 		   = azurerm_resource_group.test.name
-  subnet_id           		   = azurerm_subnet.test.id
+  name                         = "acctest-ase-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  subnet_id                    = azurerm_subnet.test.id
   internal_load_balancing_mode = "Web, Publishing"
-  upgrade_preference		   = "%s"
-  zone_redundant               = false	
+  upgrade_preference           = "%s"
+  zone_redundant               = false
 
   tags = {
     "tag1" = "test2",
