@@ -1,6 +1,7 @@
 ## 4.70.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_backup_policy_vm` - add support for the `consistency_type` property [GH-32203]
 * `dependencies` - `giovanni` update to `v0.29.0` [GH-32188]
 
 FEATURES:
