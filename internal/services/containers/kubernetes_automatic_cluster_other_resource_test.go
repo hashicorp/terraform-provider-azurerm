@@ -248,10 +248,10 @@ func TestAccKubernetesAutomaticCluster_upgrade(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeConfig(data, olderKubernetesVersion),
+			Config: r.upgradeConfig(data, olderKubernetesAutomaticVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesAutomaticVersion),
 				check.That(data.ResourceName).Key("current_kubernetes_version").Exists(),
 			),
 		},
@@ -384,10 +384,10 @@ func TestAccKubernetesAutomaticCluster_upgradeChannel(t *testing.T) {
 	// Other values like "rapid", "patch", "node-image", and "" (none) are not allowed
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeChannelConfig(data, olderKubernetesVersion, "stable"),
+			Config: r.upgradeChannelConfig(data, olderKubernetesAutomaticVersion, "stable"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesVersion),
+				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesAutomaticVersion),
 				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("stable"),
 			),
 		},
