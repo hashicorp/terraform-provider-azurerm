@@ -80,7 +80,7 @@ func (KubernetesAutomaticClusterListResource) List(ctx context.Context, request 
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(item.Name)
 
-			id, err := commonids.ParseKubernetesClusterID(pointer.From(item.Id))
+			id, err := commonids.ParseKubernetesClusterIDInsensitively(pointer.From(item.Id))
 			if err != nil {
 				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Example ID", err)
 				return

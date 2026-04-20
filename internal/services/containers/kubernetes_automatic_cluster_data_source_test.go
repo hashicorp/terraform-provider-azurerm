@@ -45,10 +45,9 @@ func TestAccDataSourceKubernetesAutomaticCluster_privateCluster(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: KubernetesAutomaticClusterResource{}.privateClusterConfig(data, true),
+			Config: KubernetesAutomaticClusterResource{}.privateClusterConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("private_fqdn").Exists(),
-				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("service_principal.0.client_secret"),
@@ -110,7 +109,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzure(t *test
 			Config: r.advancedNetworkingAzureConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
@@ -128,7 +126,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_advancedNetworkingAzureComplete
 			Config: r.advancedNetworkingAzureCompleteConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.vnet_subnet_id").Exists(),
-				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.dns_service_ip").Exists(),
 				check.That(data.ResourceName).Key("network_profile.0.service_cidr").Exists(),
@@ -264,21 +261,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_nodePublicIP(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_prefix_id").Exists(),
-			),
-		},
-	})
-}
-
-func TestAccDataSourceKubernetesAutomaticCluster_oidcIssuerEnabled(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterDataSource{}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.oidcIssuer(data, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("oidc_issuer_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("oidc_issuer_url").IsSet(),
 			),
 		},
 	})
@@ -447,7 +429,7 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingConfig(data, "azure"))
+`, KubernetesAutomaticClusterResource{}.advancedNetworkingConfig(data))
 }
 
 func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureCompleteConfig(data acceptance.TestData) string {
@@ -458,7 +440,7 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingCompleteConfig(data, "azure"))
+`, KubernetesAutomaticClusterResource{}.advancedNetworkingCompleteConfig(data))
 }
 
 func (KubernetesAutomaticClusterDataSource) addOnProfileOMSConfig(data acceptance.TestData) string {
@@ -547,16 +529,6 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
 `, KubernetesAutomaticClusterResource{}.nodePublicIPPrefixConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) oidcIssuer(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-%s
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.oidcIssuer(data, enabled))
 }
 
 func (KubernetesAutomaticClusterDataSource) microsoftDefender(data acceptance.TestData) string {

@@ -241,7 +241,7 @@ func TestAccKubernetesAutomaticCluster_upgradeOverrideSetting(t *testing.T) {
 }
 
 func (t KubernetesAutomaticClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := commonids.ParseKubernetesClusterID(state.ID)
+	id, err := commonids.ParseKubernetesClusterIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +472,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -750,7 +749,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -1016,8 +1014,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  private_cluster_enabled = true
-
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -1029,7 +1025,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin_mode = "overlay"
-    network_plugin      = "azure"
     load_balancer_sku   = "standard"
     outbound_type       = "loadBalancer"
   }
@@ -1046,7 +1041,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -1068,8 +1062,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  private_cluster_enabled = true
-
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -1081,7 +1073,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin_mode = "overlay"
-    network_plugin      = "azure"
     load_balancer_sku   = "standard"
     outbound_type       = "loadBalancer"
   }
@@ -1098,7 +1089,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -1118,8 +1108,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[2]d"
 
-  private_cluster_enabled = true
-
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -1131,7 +1119,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
     network_plugin_mode = "overlay"
-    network_plugin      = "azure"
     load_balancer_sku   = "standard"
     outbound_type       = "loadBalancer"
   }
@@ -1143,7 +1130,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 

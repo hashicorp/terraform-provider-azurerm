@@ -175,14 +175,14 @@ func TestAccKubernetesAutomaticCluster_cycleSystemNodePool(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.updateOsDisk(data, "Ephemeral", 75),
+			Config: r.updateOsDisk(data, 75),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
 		{
-			Config: r.updateZones(data, "Standard_D4ads_v5", "[1,2,3]"),
+			Config: r.updateZones(data, "Standard_D4ads_v5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -316,7 +316,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -355,7 +354,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -393,7 +391,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -432,7 +429,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -472,14 +468,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize)
 }
 
-func (KubernetesAutomaticClusterResource) updateZones(data acceptance.TestData, vmSize, zones string) string {
+func (KubernetesAutomaticClusterResource) updateZones(data acceptance.TestData, vmSize string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -501,7 +496,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     temporary_name_for_rotation  = "temp"
     node_count                   = 1
     vm_size                      = "%s"
-    zones                        = %s
     node_public_ip_enabled       = true
     max_pods                     = 60
     only_critical_addons_enabled = true
@@ -525,11 +519,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize, zones)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, vmSize)
 }
 
 func (KubernetesAutomaticClusterResource) updateLinuxKernelSettings(data acceptance.TestData) string {
@@ -578,7 +571,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
@@ -618,14 +610,13 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (KubernetesAutomaticClusterResource) updateOsDisk(data acceptance.TestData, osDiskType string, osDiskSize int) string {
+func (KubernetesAutomaticClusterResource) updateOsDisk(data acceptance.TestData, osDiskSize int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -646,7 +637,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     name                        = "default"
     temporary_name_for_rotation = "temp"
     node_count                  = 1
-    os_disk_type                = "%s"
     os_disk_size_gb             = %d
     vm_size                     = "Standard_D4ads_v5"
     upgrade_settings {
@@ -659,11 +649,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osDiskType, osDiskSize)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osDiskSize)
 }
 
 func (KubernetesAutomaticClusterResource) addAgentConfig(data acceptance.TestData, numberOfAgents int) string {
@@ -697,7 +686,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 }
