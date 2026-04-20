@@ -67,7 +67,7 @@ func TestAccStorageDiscoveryWorkspace_scopeChangeRequiresReplacement(t *testing.
 	data := acceptance.BuildTestData(t, "azurerm_storage_discovery_workspace", "test")
 	r := StorageDiscoveryWorkspaceResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.scopeTagsV1(data),
 			Check: acceptance.ComposeTestCheckFunc(
