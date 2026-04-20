@@ -105,7 +105,7 @@ func (HyperVHostTestResource) rebootVirtualMachine(ctx context.Context, clients 
 	return nil
 }
 
-func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, adminPwd string) (steps []acceptance.TestStep) {
+func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData) (steps []acceptance.TestStep) {
 	return []acceptance.TestStep{
 		{
 			Config: r.recovery(data),
@@ -117,14 +117,14 @@ func (r HyperVHostTestResource) PrepareHostTestSteps(data acceptance.TestData, a
 			),
 		},
 		{
-			Config: r.hyperVTemplate(data, adminPwd), // split complete template into two parts to reboot the server.
+			Config: r.hyperVTemplate(data), // split complete template into two parts to reboot the server.
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(r.virtualMachineExists, "azurerm_windows_virtual_machine.host"),
 				data.CheckWithClientForResource(r.rebootVirtualMachine, "azurerm_windows_virtual_machine.host"),
 			),
 		},
 		{
-			Config: r.template(data, adminPwd),
+			Config: r.template(data),
 		},
 	}
 }
