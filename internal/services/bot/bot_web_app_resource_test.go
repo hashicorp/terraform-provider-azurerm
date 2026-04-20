@@ -53,7 +53,7 @@ func TestAccBotWebApp_update(t *testing.T) {
 		},
 		data.ImportStep("developer_app_insights_api_key"),
 		{
-			Config: r.updateConfig(data),
+			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -69,6 +69,21 @@ func TestAccBotWebApp_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.completeConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("developer_app_insights_api_key"),
+	})
+}
+
+func TestAccBotWebApp_msaAppType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
+	r := BotWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.msaAppType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -119,41 +134,7 @@ resource "azurerm_bot_web_app" "test" {
   microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 
   tags = {
-    environment = "production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (BotWebAppResource) updateConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
-}
-
-resource "azurerm_bot_web_app" "test" {
-  name                    = "acctestdf%d"
-  location                = "global"
-  resource_group_name     = azurerm_resource_group.test.name
-  sku                     = "F0"
-  microsoft_app_id        = azuread_application_registration.test.client_id
-  microsoft_app_type      = "SingleTenant"
-  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
-
-  tags = {
-    environment = "production"
+    environment = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -205,8 +186,49 @@ resource "azurerm_bot_web_app" "test" {
   developer_app_insights_key            = azurerm_application_insights.test.instrumentation_key
 
   tags = {
-    environment = "production"
+    environment = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (BotWebAppResource) msaAppType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azuread_application_registration" "test" {
+  display_name = "acctestReg-%d"
+}
+
+resource "azurerm_bot_web_app" "test" {
+  name                                    = "acctestdf%d"
+  location                                = "global"
+  resource_group_name                     = azurerm_resource_group.test.name
+  sku                                     = "F0"
+  microsoft_app_id                        = azuread_application_registration.test.client_id
+  microsoft_app_type                      = "UserAssignedMSI"
+  microsoft_app_tenant_id                 = data.azurerm_client_config.current.tenant_id
+  microsoft_app_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+
+  tags = {
+    environment = "Test"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
