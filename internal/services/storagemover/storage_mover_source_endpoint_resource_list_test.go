@@ -56,19 +56,12 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_storage_mover_target_endpoint" "other" {
-  name                   = "acctest-smte-%d"
-  storage_mover_id       = azurerm_storage_mover.test.id
-  storage_account_id     = azurerm_storage_account.test.id
-  storage_container_name = azurerm_storage_container.test.name
-}
-
 resource "azurerm_storage_mover_source_endpoint" "test" {
   name             = "acctest-smse-%d"
   storage_mover_id = azurerm_storage_mover.test.id
   host             = "192.168.0.1"
 }
-`, template, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger)
 }
 
 func (r StorageMoverSourceEndpointResource) listQuery() string {
