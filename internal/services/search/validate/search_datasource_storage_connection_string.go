@@ -10,7 +10,6 @@ import (
 
 func SearchDatasourceStorageConnectionString(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
-	// TODO: Does it work if it's unknown during plan??
 	if value == "" {
 		errors = append(errors, fmt.Errorf("property `%s` must not be empty", k))
 		return warnings, errors
