@@ -394,7 +394,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test1.id
     authorized_ip_ranges = [
       "8.8.8.8/32",
       "8.8.4.4/32",
@@ -484,7 +484,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test1.id
+    subnet_id = azurerm_subnet.test1.id
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -553,7 +553,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -642,7 +642,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -725,7 +725,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -832,7 +832,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -1223,7 +1223,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {

@@ -472,7 +472,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   depends_on = [
@@ -749,7 +749,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   identity {
@@ -1041,7 +1041,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
 
@@ -1089,7 +1089,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
   bootstrap_profile {
@@ -1130,7 +1130,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.test.id
+    subnet_id = azurerm_subnet.test.id
   }
 
 
