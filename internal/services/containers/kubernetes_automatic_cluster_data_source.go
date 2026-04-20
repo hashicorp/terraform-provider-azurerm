@@ -1026,7 +1026,6 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 					state.KubeConfigRaw = pointer.From(kubeConfigRaw)
 					state.KubeConfig = kubeConfig
 				}
-
 			}
 
 			return metadata.Encode(&state)
@@ -1286,7 +1285,7 @@ func flattenKubernetesAutomaticClusterDataSourceAgentPoolProfiles(input *[]manag
 	for _, profile := range *input {
 		count := int64(0)
 		if profile.Count != nil {
-			count = int64(*profile.Count)
+			count = pointer.From(profile.Count)
 		}
 
 		enableNodePublicIP := false
@@ -1296,12 +1295,12 @@ func flattenKubernetesAutomaticClusterDataSourceAgentPoolProfiles(input *[]manag
 
 		minCount := int64(0)
 		if profile.MinCount != nil {
-			minCount = int64(*profile.MinCount)
+			minCount = pointer.From(profile.MinCount)
 		}
 
 		maxCount := int64(0)
 		if profile.MaxCount != nil {
-			maxCount = int64(*profile.MaxCount)
+			maxCount = pointer.From(profile.MaxCount)
 		}
 
 		enableAutoScaling := false
@@ -1315,7 +1314,7 @@ func flattenKubernetesAutomaticClusterDataSourceAgentPoolProfiles(input *[]manag
 
 		osDiskSizeGb := int64(0)
 		if profile.OsDiskSizeGB != nil {
-			osDiskSizeGb = int64(*profile.OsDiskSizeGB)
+			osDiskSizeGb = pointer.From(profile.OsDiskSizeGB)
 		}
 
 		vnetSubnetId := pointer.From(profile.VnetSubnetID)
@@ -1323,7 +1322,7 @@ func flattenKubernetesAutomaticClusterDataSourceAgentPoolProfiles(input *[]manag
 
 		maxPods := int64(0)
 		if profile.MaxPods != nil {
-			maxPods = int64(*profile.MaxPods)
+			maxPods = pointer.From(profile.MaxPods)
 		}
 
 		nodeLabels := make(map[string]string)
@@ -1351,9 +1350,7 @@ func flattenKubernetesAutomaticClusterDataSourceAgentPoolProfiles(input *[]manag
 		// Convert zones from []interface{} to []string
 		zonesList := make([]string, 0)
 		if profile.AvailabilityZones != nil {
-			for _, z := range *profile.AvailabilityZones {
-				zonesList = append(zonesList, z)
-			}
+			zonesList = append(zonesList, *profile.AvailabilityZones...)
 		}
 
 		out := AgentPoolProfileDataSourceModel{

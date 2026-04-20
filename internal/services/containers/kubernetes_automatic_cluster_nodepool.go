@@ -217,12 +217,12 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					}, false),
 				},
 
-				//"max_count": {
-				//	Type:         pluginsdk.TypeInt,
-				//	Optional:     true,
-				//	Computed:     true,
-				//	ValidateFunc: validation.IntBetween(1, 1000),
-				//},
+				// "max_count": {
+				// 	Type:         pluginsdk.TypeInt,
+				// 	Optional:     true,
+				// 	Computed:     true,
+				// 	ValidateFunc: validation.IntBetween(1, 1000),
+				// },
 
 				"max_pods": {
 					Type:     pluginsdk.TypeInt,
@@ -230,11 +230,11 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				//"min_count": {
-				//	Type:         pluginsdk.TypeInt,
-				//	Optional:     true,
-				//	Computed:     true,
-				//	ValidateFunc: validation.IntBetween(1, 1000),
+				// "min_count": {
+				// 	Type:         pluginsdk.TypeInt,
+				// 	Optional:     true,
+				// 	Computed:     true,
+				// 	ValidateFunc: validation.IntBetween(1, 1000),
 				//},
 
 				"node_network_profile": schemaNodePoolNetworkProfile(),
@@ -272,10 +272,10 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
-				//"os_disk_type": {
-				//	Type:     pluginsdk.TypeString,
-				//	Optional: true,
-				//	Default:  agentpools.OSDiskTypeEphemeral,
+				// "os_disk_type": {
+				// 	Type:     pluginsdk.TypeString,
+				// 	Optional: true,
+				// 	Default:  agentpools.OSDiskTypeEphemeral,
 				//	ValidateFunc: validation.StringInSlice([]string{
 				//		string(managedclusters.OSDiskTypeEphemeral),
 				//	}, false),
@@ -333,11 +333,11 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					Default:  true,
 				},
 
-				//"scale_down_mode": {
-				//	Type:     pluginsdk.TypeString,
-				//	Optional: true,
-				//	Default:  string(managedclusters.ScaleDownModeDelete),
-				//	ValidateFunc: validation.StringInSlice([]string{
+				// "scale_down_mode": {
+				// 	Type:     pluginsdk.TypeString,
+				// 	Optional: true,
+				// 	Default:  string(managedclusters.ScaleDownModeDelete),
+				// 	ValidateFunc: validation.StringInSlice([]string{
 				//		string(managedclusters.ScaleDownModeDelete),
 				//	}, false),
 				//},
@@ -366,20 +366,20 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					}, false),
 				},
 
-				//"zones": {
-				//	Type:     schema.TypeSet,
-				//	Optional: true,
-				//	Computed: true,
-				//	Elem: &schema.Schema{
-				//		Type:         schema.TypeString,
-				//		ValidateFunc: validation.StringIsNotEmpty,
-				//	},
-				//},
+				// "zones": {
+				// 	Type:     schema.TypeSet,
+				// 	Optional: true,
+				// 	Computed: true,
+				// 	Elem: &schema.Schema{
+				// 		Type:         schema.TypeString,
+				// 		ValidateFunc: validation.StringIsNotEmpty,
+				// 	},
+				// },
 
-				//"auto_scaling_enabled": {
-				//	Type:     pluginsdk.TypeBool,
-				//	Optional: true,
-				//	Default:  false,
+				// "auto_scaling_enabled": {
+				// 	Type:     pluginsdk.TypeBool,
+				// 	Optional: true,
+				// 	Default:  false,
 				//},
 
 				"node_public_ip_enabled": {
@@ -999,9 +999,9 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 		UpgradeSettings: expandClusterNodePoolUpgradeSettingsTyped(raw.UpgradeSettings),
 	}
 	//
-	//if len(raw.Zones) > 0 {
-	//	profile.AvailabilityZones = &raw.Zones
-	//}
+	// if len(raw.Zones) > 0 {
+	// 	profile.AvailabilityZones = &raw.Zones
+	// }
 
 	if raw.MaxPods > 0 {
 		profile.MaxPods = pointer.To(raw.MaxPods)
@@ -1015,9 +1015,9 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 		profile.OsDiskSizeGB = pointer.To(raw.OSDiskSizeGB)
 	}
 
-	//profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeManaged)
-	//if raw.OSDiskType != "" {
-	//	profile.OsDiskType = pointer.To(managedclusters.OSDiskType(raw.OSDiskType))
+	// profile.OsDiskType = pointer.To(managedclusters.OSDiskTypeManaged)
+	// if raw.OSDiskType != "" {
+	// 	profile.OsDiskType = pointer.To(managedclusters.OSDiskType(raw.OSDiskType))
 	//}
 
 	if raw.OSSKU != "" {
@@ -1122,9 +1122,9 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 	//	if minCount > maxCount {
 	//		return nil, fmt.Errorf("`max_count` must be >= `min_count`")
 	//	}
-	//} else if minCount > 0 || maxCount > 0 {
-	//	return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
-	//}
+	// } else if minCount > 0 || maxCount > 0 {
+	// 	return nil, fmt.Errorf("`max_count`(%d) and `min_count`(%d) must be set to `null` when `auto_scaling_enabled` is set to `false`", maxCount, minCount)
+	// }
 
 	if len(raw.KubeletConfig) > 0 {
 		profile.KubeletConfig = expandClusterNodePoolKubeletConfigTyped(raw.KubeletConfig)
@@ -1179,9 +1179,9 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 		result.UltraSSDEnabled = pointer.From(agentPool.EnableUltraSSD)
 	}
 	//
-	//if agentPool.EnableAutoScaling != nil {
-	//	result.AutoScalingEnabled = pointer.From(agentPool.EnableAutoScaling)
-	//}
+	// if agentPool.EnableAutoScaling != nil {
+	// 	result.AutoScalingEnabled = pointer.From(agentPool.EnableAutoScaling)
+	// }
 
 	if agentPool.EnableFIPS != nil {
 		result.FipsEnabled = pointer.From(agentPool.EnableFIPS)
@@ -1203,17 +1203,17 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 		result.GPUDriver = string(pointer.From(agentPool.GpuProfile.Driver))
 	}
 
-	//if agentPool.MaxCount != nil {
-	//	result.MaxCount = pointer.From(agentPool.MaxCount)
-	//}
+	// if agentPool.MaxCount != nil {
+	// 	result.MaxCount = pointer.From(agentPool.MaxCount)
+	// }
 
 	if agentPool.MaxPods != nil {
 		result.MaxPods = pointer.From(agentPool.MaxPods)
 	}
 
-	//if agentPool.MinCount != nil {
-	//	result.MinCount = pointer.From(agentPool.MinCount)
-	//}
+	// if agentPool.MinCount != nil {
+	// 	result.MinCount = pointer.From(agentPool.MinCount)
+	// }
 
 	if agentPool.NodeLabels != nil {
 		result.NodeLabels = make(map[string]string)
@@ -1240,10 +1240,10 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 		result.OSDiskSizeGB = pointer.From(agentPool.OsDiskSizeGB)
 	}
 
-	//if agentPool.OsDiskType != nil {
-	//	result.OSDiskType = string(pointer.From(agentPool.OsDiskType))
-	//} else {
-	//	result.OSDiskType = string(managedclusters.OSDiskTypeManaged)
+	// if agentPool.OsDiskType != nil {
+	// 	result.OSDiskType = string(pointer.From(agentPool.OsDiskType))
+	// } else {
+	// 	result.OSDiskType = string(managedclusters.OSDiskTypeManaged)
 	//}
 
 	if agentPool.PodSubnetID != nil {
@@ -1270,10 +1270,10 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 		result.ProximityPlacementGroupID = pointer.From(agentPool.ProximityPlacementGroupID)
 	}
 
-	//if agentPool.ScaleDownMode != nil {
-	//	result.ScaleDownMode = string(pointer.From(agentPool.ScaleDownMode))
-	//} else {
-	//	result.ScaleDownMode = string(managedclusters.ScaleDownModeDelete)
+	// if agentPool.ScaleDownMode != nil {
+	// 	result.ScaleDownMode = string(pointer.From(agentPool.ScaleDownMode))
+	// } else {
+	// 	result.ScaleDownMode = string(managedclusters.ScaleDownModeDelete)
 	//}
 
 	if agentPool.CreationData != nil && agentPool.CreationData.SourceResourceId != nil {
@@ -1315,9 +1315,9 @@ func FlattenDefaultNodePoolTyped(input *[]managedclusters.ManagedClusterAgentPoo
 	result.KubeletConfig = flattenClusterNodePoolKubeletConfigTyped(agentPool.KubeletConfig)
 	result.NodeNetworkProfile = flattenClusterPoolNetworkProfileTyped(agentPool.NetworkProfile)
 
-	//if agentPool.AvailabilityZones != nil {
-	//	result.Zones = pointer.From(agentPool.AvailabilityZones)
-	//}
+	// if agentPool.AvailabilityZones != nil {
+	// 	result.Zones = pointer.From(agentPool.AvailabilityZones)
+	// }
 
 	if agentPool.Tags != nil {
 		result.Tags = tags.Flatten(agentPool.Tags)
