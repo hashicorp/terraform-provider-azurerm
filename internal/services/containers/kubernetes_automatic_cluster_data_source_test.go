@@ -443,28 +443,6 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
 `, KubernetesAutomaticClusterResource{}.roleBasedAccessControlAADManagedConfigOlderKubernetesVersion(data, ""))
 }
 
-func (KubernetesAutomaticClusterDataSource) localAccountDisabled(data acceptance.TestData, tenantId string) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.roleBasedAccessControlAADManagedConfigWithLocalAccountDisabled(data, tenantId))
-}
-
-func (KubernetesAutomaticClusterDataSource) roleBasedAccessControlAADConfig(data acceptance.TestData, clientId, clientSecret, tenantId string) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.roleBasedAccessControlAADConfig(data, clientId, clientSecret, tenantId))
-}
-
 func (KubernetesAutomaticClusterDataSource) internalNetworkConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -487,39 +465,6 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
 `, KubernetesAutomaticClusterResource{}.advancedNetworkingConfig(data, "azure"))
 }
 
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingNoneConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingConfig(data, "none"))
-}
-
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureCalicoPolicyConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingWithPolicyConfig(data, "azure", "calico"))
-}
-
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureNPMPolicyConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingWithPolicyConfig(data, "azure", "azure"))
-}
-
 func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureCompleteConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -531,50 +476,6 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
 `, KubernetesAutomaticClusterResource{}.advancedNetworkingCompleteConfig(data, "azure"))
 }
 
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureCalicoPolicyCompleteConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "calico"))
-}
-
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingAzureNPMPolicyCompleteConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingWithPolicyCompleteConfig(data, "azure", "azure"))
-}
-
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingKubenetConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingConfig(data, "kubenet"))
-}
-
-func (KubernetesAutomaticClusterDataSource) advancedNetworkingKubenetCompleteConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet"))
-}
-
 func (KubernetesAutomaticClusterDataSource) addOnProfileOMSConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -584,17 +485,6 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
 `, KubernetesAutomaticClusterResource{}.addonProfileOMSConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) addOnProfileAzurePolicyConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.addonProfileAzurePolicyConfig(data, true))
 }
 
 func (KubernetesAutomaticClusterDataSource) addOnProfileRoutingConfig(data acceptance.TestData) string {
@@ -661,28 +551,6 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
 `, KubernetesAutomaticClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, "2m"))
-}
-
-func (KubernetesAutomaticClusterDataSource) autoScalingNoAvailabilityZonesConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.autoscaleNoAvailabilityZonesConfig(data))
-}
-
-func (KubernetesAutomaticClusterDataSource) autoScalingWithAvailabilityZonesConfig(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = azurerm_kubernetes_automatic_cluster.test.name
-  resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
-}
-`, KubernetesAutomaticClusterResource{}.autoscaleWithAvailabilityZonesConfig(data))
 }
 
 func (KubernetesAutomaticClusterDataSource) nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {
