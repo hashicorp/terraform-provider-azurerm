@@ -8,7 +8,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
@@ -17,6 +17,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
+
+// Addon Model Structs
+// Note: Addon key constants are defined in kubernetes_addons.go
 
 type ACIConnectorLinuxModel struct {
 	SubnetName        string                   `tfschema:"subnet_name"`
@@ -49,7 +52,7 @@ type IngressApplicationGatewayIdentityModel struct {
 }
 
 type KeyVaultSecretsProviderModel struct {
-	// SecretRotationEnabled  bool                  `tfschema:"secret_rotation_enabled"`
+	SecretRotationEnabled  bool                  `tfschema:"secret_rotation_enabled"`
 	SecretRotationInterval string                `tfschema:"secret_rotation_interval"`
 	SecretIdentity         []SecretIdentityModel `tfschema:"secret_identity"`
 }
@@ -76,11 +79,6 @@ type OMSAgentIdentityModel struct {
 
 func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"open_service_mesh_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -115,11 +113,11 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 				},
 			},
 		},
-		// "azure_policy_enabled": {
-		// 	Type:     pluginsdk.TypeBool,
-		// 	Optional: true,
-		//	Default:  true,
-		//},
+		"azure_policy_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  true,
+		},
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -260,26 +258,25 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
 			Optional: true,
-			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// "secret_rotation_enabled": {
-					// 	Type:     pluginsdk.TypeBool,
-					// 	Default:  false,
-					// 	Optional: true,
-					// 	AtLeastOneOf: []string{
-					// 		"key_vault_secrets_provider.0.secret_rotation_enabled",
-					// 		"key_vault_secrets_provider.0.secret_rotation_interval",
-					// 	},
-					// },
+					"secret_rotation_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Default:  false,
+						Optional: true,
+						AtLeastOneOf: []string{
+							"key_vault_secrets_provider.0.secret_rotation_enabled",
+							"key_vault_secrets_provider.0.secret_rotation_interval",
+						},
+					},
 					"secret_rotation_interval": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Default:  "2m",
-						// AtLeastOneOf: []string{
-						// 	"key_vault_secrets_provider.0.secret_rotation_enabled",
-						// 	"key_vault_secrets_provider.0.secret_rotation_interval",
-						// },
+						AtLeastOneOf: []string{
+							"key_vault_secrets_provider.0.secret_rotation_enabled",
+							"key_vault_secrets_provider.0.secret_rotation_interval",
+						},
 						ValidateFunc: containerValidate.Duration,
 					},
 					"secret_identity": {
@@ -308,16 +305,11 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 	}
 }
 
+// expandKubernetesAddOnsTyped converts typed addon models to Azure SDK addon profiles
 func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
-	addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
-		Enabled: input.OpenServiceMeshEnabled,
-	}
-
-	addonProfiles[confidentialComputingKey] = managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
-	}
+	// Confidential Computing
 	if len(input.ConfidentialComputing) > 0 {
 		cc := input.ConfidentialComputing[0]
 		config := make(map[string]string)
@@ -332,15 +324,14 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
+	// HTTP Application Routing
 	if input.HTTPApplicationRoutingEnabled {
 		addonProfiles[httpApplicationRoutingKey] = managedclusters.ManagedClusterAddonProfile{
 			Enabled: input.HTTPApplicationRoutingEnabled,
 		}
 	}
 
-	addonProfiles[omsAgentKey] = managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
-	}
+	// OMS Agent
 	if len(input.OMSAgent) > 0 {
 		oms := input.OMSAgent[0]
 		config := make(map[string]string)
@@ -363,9 +354,7 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	addonProfiles[aciConnectorKey] = managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
-	}
+	// ACI Connector Linux
 	if len(input.ACIConnectorLinux) > 0 {
 		aci := input.ACIConnectorLinux[0]
 		config := make(map[string]string)
@@ -380,16 +369,15 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	// addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
-	// 	Enabled: input.AzurePolicyEnabled,
-	// 	Config: pointer.To(map[string]string{
-	//		"version": "v2",
-	//	}),
-	//}
-
-	addonProfiles[ingressApplicationGatewayKey] = managedclusters.ManagedClusterAddonProfile{
-		Enabled: false,
+	// Azure Policy - always set to ensure synchronization
+	addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
+		Enabled: input.AzurePolicyEnabled,
+		Config: pointer.To(map[string]string{
+			"version": "v2",
+		}),
 	}
+
+	// Ingress Application Gateway
 	if len(input.IngressApplicationGateway) > 0 {
 		iag := input.IngressApplicationGateway[0]
 		config := make(map[string]string)
@@ -416,12 +404,16 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
+	// Open Service Mesh - Note: This field doesn't exist in KubernetesAutomaticClusterModel
+	// It's only available in regular Kubernetes clusters, not automatic clusters
+
+	// Key Vault Secrets Provider
 	if len(input.KeyVaultSecretsProvider) > 0 {
 		kvsp := input.KeyVaultSecretsProvider[0]
 		config := make(map[string]string)
 
-		// enableSecretRotation := fmt.Sprintf("%t", kvsp.SecretRotationEnabled)
-		config["enableSecretRotation"] = fmt.Sprintf("%t", true)
+		enableSecretRotation := fmt.Sprintf("%t", kvsp.SecretRotationEnabled)
+		config["enableSecretRotation"] = enableSecretRotation
 		config["rotationPollInterval"] = kvsp.SecretRotationInterval
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = managedclusters.ManagedClusterAddonProfile{
@@ -433,9 +425,10 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 }
 
+// flattenKubernetesAddOnsTyped converts Azure SDK addon profiles to typed addon models
 func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClusterAddonProfile) (
 	aciConnectorLinux []ACIConnectorLinuxModel,
-	// azurePolicyEnabled bool,
+	azurePolicyEnabled bool,
 	confidentialComputing []ConfidentialComputingModel,
 	httpApplicationRoutingEnabled bool,
 	httpApplicationRoutingZoneName string,
@@ -444,6 +437,7 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 	omsAgent []OMSAgentModel,
 	openServiceMeshEnabled bool,
 ) {
+	// ACI Connector Linux
 	aciConnector := kubernetesAddonProfileLocate(profile, aciConnectorKey)
 	if aciConnector.Enabled {
 		subnetName := ""
@@ -459,9 +453,11 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
-	// azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
-	// azurePolicyEnabled = azurePolicy.Enabled
+	// Azure Policy
+	azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
+	azurePolicyEnabled = azurePolicy.Enabled
 
+	// Confidential Computing
 	confidentialComputingProfile := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
 	if confidentialComputingProfile.Enabled {
 		quoteHelperEnabled := false
@@ -473,6 +469,7 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
+	// HTTP Application Routing
 	httpApplicationRouting := kubernetesAddonProfileLocate(profile, httpApplicationRoutingKey)
 	httpApplicationRoutingEnabled = httpApplicationRouting.Enabled
 
@@ -480,6 +477,7 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		httpApplicationRoutingZoneName = v
 	}
 
+	// OMS Agent
 	omsAgentProfile := kubernetesAddonProfileLocate(profile, omsAgentKey)
 	if omsAgentProfile.Enabled {
 		workspaceID := ""
@@ -504,6 +502,7 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
+	// Ingress Application Gateway
 	ingressApplicationGatewayProfile := kubernetesAddonProfileLocate(profile, ingressApplicationGatewayKey)
 	if ingressApplicationGatewayProfile.Enabled {
 		gatewayId := ""
@@ -543,17 +542,19 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
+	// Open Service Mesh
 	openServiceMesh := kubernetesAddonProfileLocate(profile, openServiceMeshKey)
 	openServiceMeshEnabled = openServiceMesh.Enabled
 
+	// Key Vault Secrets Provider
 	azureKeyVaultSecretsProviderProfile := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
 	if azureKeyVaultSecretsProviderProfile.Enabled {
-		// enableSecretRotation := false
+		enableSecretRotation := false
 		rotationPollInterval := ""
 
-		// if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "enableSecretRotation"); v != "false" {
-		// 	enableSecretRotation = true
-		// }
+		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "enableSecretRotation"); v != "false" {
+			enableSecretRotation = true
+		}
 
 		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "rotationPollInterval"); v != "" {
 			rotationPollInterval = v
@@ -562,7 +563,7 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfileTyped(azureKeyVaultSecretsProviderProfile.Identity)
 
 		keyVaultSecretsProvider = []KeyVaultSecretsProviderModel{{
-			// SecretRotationEnabled:  enableSecretRotation,
+			SecretRotationEnabled:  enableSecretRotation,
 			SecretRotationInterval: rotationPollInterval,
 			SecretIdentity:         flattenSecretIdentityTyped(azureKeyvaultSecretsProviderIdentity),
 		}}
@@ -571,6 +572,7 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 	return
 }
 
+// flattenKubernetesClusterAddOnIdentityProfileTyped converts addon identity to typed model
 func flattenKubernetesClusterAddOnIdentityProfileTyped(profile *managedclusters.UserAssignedIdentity) []ConnectorIdentityModel {
 	if profile == nil {
 		return []ConnectorIdentityModel{}
@@ -597,6 +599,8 @@ func flattenKubernetesClusterAddOnIdentityProfileTyped(profile *managedclusters.
 		UserAssignedIdentityID: userAssignedIdentityID,
 	}}
 }
+
+// Helper functions to convert between identity model types
 
 func flattenOMSAgentIdentityTyped(input []ConnectorIdentityModel) []OMSAgentIdentityModel {
 	if len(input) == 0 {
@@ -630,3 +634,5 @@ func flattenSecretIdentityTyped(input []ConnectorIdentityModel) []SecretIdentity
 		UserAssignedIdentityID: input[0].UserAssignedIdentityID,
 	}}
 }
+
+// Made with Bob

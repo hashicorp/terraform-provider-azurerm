@@ -425,19 +425,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = %q
 
-  azure_policy_enabled = true
-  //local_account_disabled = true
-
-  automatic_upgrade_channel = "stable"
-
-  sku_tier = "Standard"
-  sku_name = "Automatic"
-
   default_node_pool {
     name       = "default"
     node_count = 1
     //os_disk_type = "Ephemeral"
-    //vm_size    = "standard_d4lds_v5" 
+    //vm_size    = "standard_d4lds_v5"
   }
 
   identity {

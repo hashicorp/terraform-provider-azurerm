@@ -57,7 +57,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_container_registry":            resourceContainerRegistry(),
 		"azurerm_container_registry_token":      resourceContainerRegistryToken(),
 		"azurerm_container_registry_scope_map":  resourceContainerRegistryScopeMap(),
-		"azurerm_kubernetes_automatic_cluster":  resourceKubernetesAutomaticCluster(),
 		"azurerm_kubernetes_cluster":            resourceKubernetesCluster(),
 		"azurerm_kubernetes_cluster_node_pool":  resourceKubernetesClusterNodePool(),
 	}
@@ -66,7 +65,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 func (r Registration) DataSources() []sdk.DataSource {
 	dataSources := []sdk.DataSource{
 		ContainerRegistryCacheRuleDataSource{},
-		KubernetesAutomaticClusterDataSource{},
 		KubernetesFleetManagerDataSource{},
 		KubernetesNodePoolSnapshotDataSource{},
 	}
@@ -83,7 +81,6 @@ func (r Registration) Resources() []sdk.Resource {
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
 		KubernetesAutomaticClusterResource{},
-		KubernetesClusterDeploymentSafeguardResource{},
 		KubernetesClusterExtensionResource{},
 		KubernetesFleetManagerResource{},
 		KubernetesFleetUpdateRunResource{},
@@ -111,7 +108,5 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 }
 
 func (r Registration) ListResources() []sdk.FrameworkListWrappedResource {
-	return []sdk.FrameworkListWrappedResource{
-		KubernetesAutomaticClusterListResource{},
-	}
+	return []sdk.FrameworkListWrappedResource{}
 }
