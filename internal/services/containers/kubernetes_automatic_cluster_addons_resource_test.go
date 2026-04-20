@@ -353,7 +353,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -363,7 +363,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
   network_profile {
 
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -452,7 +452,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -461,7 +461,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -821,7 +821,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -830,8 +830,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_mode   = "transparent"
-    outbound_type  = "loadBalancer"
+    network_mode  = "transparent"
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -1024,7 +1024,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -1033,8 +1033,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_mode   = "transparent"
-    outbound_type  = "loadBalancer"
+    network_mode  = "transparent"
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -1478,7 +1478,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -1599,7 +1599,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {

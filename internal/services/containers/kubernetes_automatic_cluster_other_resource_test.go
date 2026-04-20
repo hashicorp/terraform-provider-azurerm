@@ -2162,11 +2162,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
   identity {
@@ -2290,11 +2290,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   network_profile {
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
   identity {
@@ -3173,10 +3173,10 @@ resource "azurerm_resource_group" "test" {
   location = "%[1]s"
 }
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                              = "acctestaks%[2]d"
-  location                          = azurerm_resource_group.test.location
-  resource_group_name               = azurerm_resource_group.test.name
-  dns_prefix                        = "acctestaks%[2]d"
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
     node_count = 1
