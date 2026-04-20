@@ -87,12 +87,14 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"display_name": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
+						ForceNew:     true,
 						ValidateFunc: validate.StorageDiscoveryScopeDisplayName,
 					},
 
 					"resource_types": {
 						Type:     pluginsdk.TypeSet,
 						Required: true,
+						ForceNew: true,
 						MinItems: 1,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
@@ -106,6 +108,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"tag_keys_only": {
 						Type:     pluginsdk.TypeSet,
 						Optional: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -115,6 +118,7 @@ func (r StorageDiscoveryWorkspaceResource) Arguments() map[string]*pluginsdk.Sch
 					"tags": {
 						Type:     pluginsdk.TypeMap,
 						Optional: true,
+						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
