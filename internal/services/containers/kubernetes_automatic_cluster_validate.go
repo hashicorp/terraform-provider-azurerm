@@ -18,10 +18,10 @@ import (
 )
 
 func validateKubernetesAutomaticClusterTyped(model *KubernetesAutomaticClusterModel, cluster *managedclusters.ManagedCluster) error {
-	//if len(model.NetworkProfile) > 0 {
-	//	profile := model.NetworkProfile[0]
-	//if profile.NetworkPlugin != "" {
-	//	networkPlugin := profile.NetworkPlugin
+	// if len(model.NetworkProfile) > 0 {
+	// 	profile := model.NetworkProfile[0]
+	// if profile.NetworkPlugin != "" {
+	// 	networkPlugin := profile.NetworkPlugin
 	//	dnsServiceIP := profile.DNSServiceIP
 	//	serviceCidr := profile.ServiceCIDR
 	//	podCidr := profile.PodCIDR

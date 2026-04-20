@@ -115,9 +115,9 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 				},
 			},
 		},
-		//"azure_policy_enabled": {
-		//	Type:     pluginsdk.TypeBool,
-		//	Optional: true,
+		// "azure_policy_enabled": {
+		// 	Type:     pluginsdk.TypeBool,
+		// 	Optional: true,
 		//	Default:  true,
 		//},
 		"confidential_computing": {
@@ -263,23 +263,23 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					//"secret_rotation_enabled": {
-					//	Type:     pluginsdk.TypeBool,
-					//	Default:  false,
-					//	Optional: true,
-					//	AtLeastOneOf: []string{
-					//		"key_vault_secrets_provider.0.secret_rotation_enabled",
-					//		"key_vault_secrets_provider.0.secret_rotation_interval",
-					//	},
-					//},
+					// "secret_rotation_enabled": {
+					// 	Type:     pluginsdk.TypeBool,
+					// 	Default:  false,
+					// 	Optional: true,
+					// 	AtLeastOneOf: []string{
+					// 		"key_vault_secrets_provider.0.secret_rotation_enabled",
+					// 		"key_vault_secrets_provider.0.secret_rotation_interval",
+					// 	},
+					// },
 					"secret_rotation_interval": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Default:  "2m",
-						//AtLeastOneOf: []string{
-						//	"key_vault_secrets_provider.0.secret_rotation_enabled",
-						//	"key_vault_secrets_provider.0.secret_rotation_interval",
-						//},
+						// AtLeastOneOf: []string{
+						// 	"key_vault_secrets_provider.0.secret_rotation_enabled",
+						// 	"key_vault_secrets_provider.0.secret_rotation_interval",
+						// },
 						ValidateFunc: containerValidate.Duration,
 					},
 					"secret_identity": {
@@ -380,9 +380,9 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	//addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
-	//	Enabled: input.AzurePolicyEnabled,
-	//	Config: pointer.To(map[string]string{
+	// addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
+	// 	Enabled: input.AzurePolicyEnabled,
+	// 	Config: pointer.To(map[string]string{
 	//		"version": "v2",
 	//	}),
 	//}
@@ -551,9 +551,9 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		// enableSecretRotation := false
 		rotationPollInterval := ""
 
-		//if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "enableSecretRotation"); v != "false" {
-		//	enableSecretRotation = true
-		//}
+		// if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "enableSecretRotation"); v != "false" {
+		// 	enableSecretRotation = true
+		// }
 
 		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "rotationPollInterval"); v != "" {
 			rotationPollInterval = v

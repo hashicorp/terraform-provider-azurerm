@@ -342,10 +342,10 @@ type GMSAModel struct {
 	GMSAProfileEnabled bool   `tfschema:"gmsa_profile_enabled"`
 }
 
-//type WorkloadAutoscalerProfileModel struct {
-//	KEDAEnabled                  bool `tfschema:"keda_enabled"`
-//	VerticalPodAutoscalerEnabled bool `tfschema:"vertical_pod_autoscaler_enabled"`
-//}
+// type WorkloadAutoscalerProfileModel struct {
+// 	KEDAEnabled                  bool `tfschema:"keda_enabled"`
+// 	VerticalPodAutoscalerEnabled bool `tfschema:"vertical_pod_autoscaler_enabled"`
+// }
 
 type KubeConfigModel struct {
 	Host                 string `tfschema:"host"`
@@ -543,10 +543,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					//"mode": {
-					//	Type:         pluginsdk.TypeString,
-					//	Optional:     true,
-					//	Default:      managedclusters.NodeProvisioningModeAuto,
+					// "mode": {
+					// 	Type:         pluginsdk.TypeString,
+					// 	Optional:     true,
+					// 	Default:      managedclusters.NodeProvisioningModeAuto,
 					//	ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
 					//	AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
 					//},
@@ -591,20 +591,20 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 		},
 
-		//"sku_tier": {
-		//	Type:     pluginsdk.TypeString,
-		//	Optional: true,
-		//	Default:  string(managedclusters.ManagedClusterSKUTierStandard),
+		// "sku_tier": {
+		// 	Type:     pluginsdk.TypeString,
+		// 	Optional: true,
+		// 	Default:  string(managedclusters.ManagedClusterSKUTierStandard),
 		//	ValidateFunc: validation.StringInSlice([]string{
 		//		string(managedclusters.ManagedClusterSKUTierStandard),
 		//		string(managedclusters.ManagedClusterSKUTierPremium),
 		//	}, false),
 		//},
 
-		//"sku_name": {
-		//	Type:     pluginsdk.TypeString,
-		//	Optional: true,
-		//	Default:  string(managedclusters.ManagedClusterSKUNameAutomatic),
+		// "sku_name": {
+		// 	Type:     pluginsdk.TypeString,
+		// 	Optional: true,
+		// 	Default:  string(managedclusters.ManagedClusterSKUNameAutomatic),
 		//	ValidateFunc: validation.StringInSlice([]string{
 		//		string(managedclusters.ManagedClusterSKUNameAutomatic),
 		//	}, false),
@@ -621,10 +621,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 
 		"tags": commonschema.Tags(),
 
-		//"automatic_upgrade_channel": {
-		//	Type:     pluginsdk.TypeString,
-		//	Optional: true,
-		//	ValidateFunc: validation.StringInSlice([]string{
+		// "automatic_upgrade_channel": {
+		// 	Type:     pluginsdk.TypeString,
+		// 	Optional: true,
+		// 	ValidateFunc: validation.StringInSlice([]string{
 		//		string(managedclusters.UpgradeChannelStable),
 		//	}, false),
 		//	Default: string(managedclusters.UpgradeChannelStable),
@@ -658,10 +658,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		//"image_cleaner_enabled": {
-		//	Type:     pluginsdk.TypeBool,
-		//	Optional: true,
-		//	Default:  true,
+		// "image_cleaner_enabled": {
+		// 	Type:     pluginsdk.TypeBool,
+		// 	Optional: true,
+		// 	Default:  true,
 		//},
 
 		"image_cleaner_interval_hours": {
@@ -671,16 +671,16 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Default:      168,
 		},
 
-		//"oidc_issuer_enabled": {
-		//	Type:     pluginsdk.TypeBool,
-		//	Optional: true,
-		//	Default:  true,
-		//},
+		// "oidc_issuer_enabled": {
+		// 	Type:     pluginsdk.TypeBool,
+		// 	Optional: true,
+		// 	Default:  true,
+		// },
 
-		//"private_cluster_enabled": {
-		//	Type:     pluginsdk.TypeBool,
-		//	Optional: true,
-		//	ForceNew: true,
+		// "private_cluster_enabled": {
+		// 	Type:     pluginsdk.TypeBool,
+		// 	Optional: true,
+		// 	ForceNew: true,
 		//	Default:  true,
 		//},
 
@@ -704,10 +704,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			),
 		},
 
-		//"role_based_access_control_enabled": {
-		//	Type:     pluginsdk.TypeBool,
-		//	Optional: true,
-		//	Default:  true,
+		// "role_based_access_control_enabled": {
+		// 	Type:     pluginsdk.TypeBool,
+		// 	Optional: true,
+		// 	Default:  true,
 		//	ForceNew: true,
 		//},
 
@@ -733,10 +733,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Default:  false,
 		},
 
-		//"workload_identity_enabled": {
-		//	Type:     pluginsdk.TypeBool,
-		//	Optional: true,
-		//	Default:  true,
+		// "workload_identity_enabled": {
+		// 	Type:     pluginsdk.TypeBool,
+		// 	Optional: true,
+		// 	Default:  true,
 		//},
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
@@ -827,10 +827,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 						},
 					},
-					//"azure_rbac_enabled": {
-					//	Type:     pluginsdk.TypeBool,
-					//	Optional: true,
-					//	Default:  true,
+					// "azure_rbac_enabled": {
+					// 	Type:     pluginsdk.TypeBool,
+					// 	Optional: true,
+					// 	Default:  true,
 					//},
 					"admin_group_object_ids": {
 						Type:     pluginsdk.TypeList,
@@ -864,10 +864,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							ValidateFunc: validate.CIDR,
 						},
 					},
-					//"virtual_network_integration_enabled": {
-					//	Type:     pluginsdk.TypeBool,
-					//	Optional: true,
-					//},
+					// "virtual_network_integration_enabled": {
+					// 	Type:     pluginsdk.TypeBool,
+					// 	Optional: true,
+					// },
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -915,10 +915,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					//"network_plugin": {
-					//	Type:     pluginsdk.TypeString,
-					//	Optional: true,
-					//	ForceNew: true,
+					// "network_plugin": {
+					// 	Type:     pluginsdk.TypeString,
+					// 	Optional: true,
+					// 	ForceNew: true,
 					//	Default:  managedclusters.NetworkPluginAzure,
 					//	ValidateFunc: validation.StringInSlice([]string{
 					//		string(managedclusters.NetworkPluginAzure),
@@ -952,10 +952,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ForceNew:     true,
 						ValidateFunc: validate.IPv4Address,
 					},
-					//"network_data_plane": {
-					//	Type:     pluginsdk.TypeString,
-					//	Optional: true,
-					//	Default:  string(managedclusters.NetworkDataplaneCilium),
+					// "network_data_plane": {
+					// 	Type:     pluginsdk.TypeString,
+					// 	Optional: true,
+					// 	Default:  string(managedclusters.NetworkDataplaneCilium),
 					//	ValidateFunc: validation.StringInSlice(
 					//		managedclusters.PossibleValuesForNetworkDataplane(),
 					//		false),
@@ -1822,10 +1822,10 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		//"workload_autoscaler_profile": {
-		//	Type:     pluginsdk.TypeList,
-		//	Optional: true,
-		//	Computed: true,
+		// "workload_autoscaler_profile": {
+		// 	Type:     pluginsdk.TypeList,
+		// 	Optional: true,
+		// 	Computed: true,
 		//	MaxItems: 1,
 		//	Elem: &pluginsdk.Resource{
 		//		Schema: map[string]*pluginsdk.Schema{
@@ -2055,14 +2055,14 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			httpProxyConfig := expandKubernetesAutomaticClusterHttpProxyConfig(model.HTTPProxyConfig)
 
 			apiAccessProfile := expandKubernetesAutomaticClusterAPIAccessProfile(&model)
-			//if !(*apiAccessProfile.EnablePrivateCluster) && model.DNSPrefix == "" {
-			//	return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
-			//}
+			// if !(*apiAccessProfile.EnablePrivateCluster) && model.DNSPrefix == "" {
+			// 	return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
+			// }
 
-			//enableOidcIssuer := model.OIDCIssuerEnabled
-			//var oidcIssuerProfile *managedclusters.ManagedClusterOIDCIssuerProfile
-			//if enableOidcIssuer {
-			//	oidcIssuerProfile = expandKubernetesAutomaticClusterOidcIssuerProfile(enableOidcIssuer)
+			// enableOidcIssuer := model.OIDCIssuerEnabled
+			// var oidcIssuerProfile *managedclusters.ManagedClusterOIDCIssuerProfile
+			// if enableOidcIssuer {
+			// 	oidcIssuerProfile = expandKubernetesAutomaticClusterOidcIssuerProfile(enableOidcIssuer)
 			//}
 
 			storageProfile := expandKubernetesAutomaticClusterStorageProfile(model.StorageProfile)
@@ -2073,10 +2073,10 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			securityProfile.Defender = expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, false)
 
-			//workloadIdentity := model.WorkloadIdentityEnabled
-			//if workloadIdentity {
-			//	if !enableOidcIssuer {
-			//		return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
+			// workloadIdentity := model.WorkloadIdentityEnabled
+			// if workloadIdentity {
+			// 	if !enableOidcIssuer {
+			// 		return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
 			//	}
 			//	securityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{
 			//		Enabled: &workloadIdentity,
@@ -2103,26 +2103,23 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			// autoChannelUpgrade := model.AutomaticUpgradeChannel
 			nodeOsChannelUpgrade := model.NodeOSUpgradeChannel
 			//
-			//if nodeOsChannelUpgrade != "" && autoChannelUpgrade != "" {
-			//	if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			//		return fmt.Errorf("`node_os_upgrade_channel` cannot be set to a value other than `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
-			//	}
-			//}
+			// if nodeOsChannelUpgrade != "" && autoChannelUpgrade != "" {
+			// 	if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
+			// 		return fmt.Errorf("`node_os_upgrade_channel` cannot be set to a value other than `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
+			// 	}
+			// }
 
-			//if autoChannelUpgrade != "" {
-			//	autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(autoChannelUpgrade))
-			//} else {
-			//	autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannelNone)
+			// if autoChannelUpgrade != "" {
+			// 	autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(autoChannelUpgrade))
+			// } else {
+			// 	autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannelNone)
 			//}
 
 			if nodeOsChannelUpgrade != "" {
 				autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 			}
 
-			metricsProfile, err := expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled)
-			if err != nil {
-				return fmt.Errorf("expanding metrics profile: %+v", err)
-			}
+			metricsProfile := expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled)
 
 			var ingressProfile *managedclusters.ManagedClusterIngressProfile
 			if len(model.WebAppRouting) > 0 {
@@ -2369,8 +2366,8 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 		//		skuName = string(*model.Sku.Name)
 		//	}
 		// }
-		//state.SKUTier = string(*model.Sku.Tier)
-		//state.SKUName = string(*model.Sku.Name)
+		// state.SKUTier = string(*model.Sku.Tier)
+		// state.SKUName = string(*model.Sku.Name)
 
 		if props := model.Properties; props != nil {
 			state.DNSPrefix = pointer.From(props.DnsPrefix)
@@ -2396,7 +2393,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			//		nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
 			//	}
 			//}
-			//state.AutomaticUpgradeChannel = string(*props.AutoUpgradeProfile.UpgradeChannel)
+			// state.AutomaticUpgradeChannel = string(*props.AutoUpgradeProfile.UpgradeChannel)
 			state.NodeOSUpgradeChannel = string(*props.AutoUpgradeProfile.NodeOSUpgradeChannel)
 
 			if props.SecurityProfile != nil && props.SecurityProfile.CustomCATrustCertificates != nil {
@@ -2412,9 +2409,9 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			state.APIServerAccessProfile = apiServerAccessProfile
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				//if accessProfile.EnablePrivateCluster != nil {
-				//	enablePrivateCluster = *accessProfile.EnablePrivateCluster
-				//}
+				// if accessProfile.EnablePrivateCluster != nil {
+				// 	enablePrivateCluster = *accessProfile.EnablePrivateCluster
+				// }
 				if accessProfile.EnablePrivateClusterPublicFQDN != nil {
 					enablePrivateClusterPublicFQDN = *accessProfile.EnablePrivateClusterPublicFQDN
 				}
@@ -2493,11 +2490,11 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.CostAnalysisEnabled = flattenKubernetesAutomaticClusterMetricsProfile(props.MetricsProfile)
 
-			//rbacEnabled := true
-			//if props.EnableRBAC != nil {
-			//	rbacEnabled = *props.EnableRBAC
-			//}
-			//state.RoleBasedAccessControlEnabled = rbacEnabled
+			// rbacEnabled := true
+			// if props.EnableRBAC != nil {
+			// 	rbacEnabled = *props.EnableRBAC
+			// }
+			// state.RoleBasedAccessControlEnabled = rbacEnabled
 
 			state.AzureActiveDirectoryRBAC = flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(props.AadProfile)
 
@@ -2510,22 +2507,22 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 				}}
 			}
 
-			//if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
-			//if props.SecurityProfile.ImageCleaner.Enabled != nil {
-			//	state.ImageCleanerEnabled = *props.SecurityProfile.ImageCleaner.Enabled
-			//}
-			//if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
+			// if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+			// if props.SecurityProfile.ImageCleaner.Enabled != nil {
+			// 	state.ImageCleanerEnabled = *props.SecurityProfile.ImageCleaner.Enabled
+			// }
+			// if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
 			state.ImageCleanerIntervalHours = pointer.From(props.SecurityProfile.ImageCleaner.IntervalHours)
 			//}
 			//}
 
 			// state.OIDCIssuerEnabled, state.OIDCIssuerURL = flattenKubernetesAutomaticClusterOidcIssuerProfile(props.OidcIssuerProfile)
 
-			//workloadIdentity := false
-			//if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
-			//	workloadIdentity = pointer.From(props.SecurityProfile.WorkloadIdentity.Enabled)
-			//}
-			//state.WorkloadIdentityEnabled = workloadIdentity
+			// workloadIdentity := false
+			// if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
+			// 	workloadIdentity = pointer.From(props.SecurityProfile.WorkloadIdentity.Enabled)
+			// }
+			// state.WorkloadIdentityEnabled = workloadIdentity
 
 			aiToolchainOperatorEnabled := false
 			if props.AiToolchainOperatorProfile != nil {
@@ -2535,10 +2532,10 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.SupportPlan = string(pointer.From(props.SupportPlan))
 
-			//if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			//	adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
-			//	if err != nil {
-			//		return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
+			// if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
+			// 	adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
+			// 	if err != nil {
+			// 		return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
 			//	}
 			//	adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(adminCredentials.Model, "clusterAdmin")
 			//	state.KubeAdminConfigRaw = pointer.From(adminKubeConfigRaw)
@@ -2685,10 +2682,10 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			//if metadata.ResourceData.HasChange("sku_tier") {
-			//	if existing.Model.Sku == nil {
-			//		existing.Model.Sku = &managedclusters.ManagedClusterSKU{}
-			//	}
+			// if metadata.ResourceData.HasChange("sku_tier") {
+			// 	if existing.Model.Sku == nil {
+			// 		existing.Model.Sku = &managedclusters.ManagedClusterSKU{}
+			// 	}
 			//	tier := managedclusters.ManagedClusterSKUTier(model.SKUTier)
 			//	existing.Model.Sku.Tier = &tier
 			//	updateCluster = true
@@ -2714,10 +2711,10 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			//if metadata.ResourceData.HasChange("workload_autoscaler_profile") {
-			//	props.WorkloadAutoScalerProfile = expandKubernetesAutomaticClusterWorkloadAutoscalerProfile(model.WorkloadAutoscalerProfile)
-			//	updateCluster = true
-			//}
+			// if metadata.ResourceData.HasChange("workload_autoscaler_profile") {
+			// 	props.WorkloadAutoScalerProfile = expandKubernetesAutomaticClusterWorkloadAutoscalerProfile(model.WorkloadAutoscalerProfile)
+			// 	updateCluster = true
+			// }
 
 			if metadata.ResourceData.HasChange("node_provisioning_profile") {
 				props.NodeProvisioningProfile = expandKubernetesAutomaticClusterNodeProvisioningProfile(model.NodeProvisioningProfile)
@@ -2762,13 +2759,13 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					"default_node_pool.0.max_pods",
 					"default_node_pool.0.only_critical_addons_enabled",
 					"default_node_pool.0.os_disk_size_gb",
-					//"default_node_pool.0.os_disk_type",
+					// "default_node_pool.0.os_disk_type",
 					"default_node_pool.0.pod_subnet_id",
 					"default_node_pool.0.snapshot_id",
 					"default_node_pool.0.ultra_ssd_enabled",
 					"default_node_pool.0.vnet_subnet_id",
 					"default_node_pool.0.vm_size",
-					//"default_node_pool.0.zones",
+					// "default_node_pool.0.zones",
 				}
 
 				// if the default node pool name has changed, it means the initial attempt at resizing failed
@@ -2956,17 +2953,17 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					props.SecurityProfile.Defender = expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, metadata.ResourceData.HasChange("microsoft_defender"))
 				}
 
-				//if metadata.ResourceData.HasChange("workload_identity_enabled") {
-				//	if props.SecurityProfile.WorkloadIdentity == nil {
-				//		props.SecurityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{}
-				//	}
-				//	props.SecurityProfile.WorkloadIdentity.Enabled = pointer.To(model.WorkloadIdentityEnabled)
-				//}
+				// if metadata.ResourceData.HasChange("workload_identity_enabled") {
+				// 	if props.SecurityProfile.WorkloadIdentity == nil {
+				// 		props.SecurityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{}
+				// 	}
+				// 	props.SecurityProfile.WorkloadIdentity.Enabled = pointer.To(model.WorkloadIdentityEnabled)
+				// }
 
 				if metadata.ResourceData.HasChange("image_cleaner_interval_hours") {
-					//if props.SecurityProfile.ImageCleaner == nil {
-					//	props.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{}
-					//}
+					// if props.SecurityProfile.ImageCleaner == nil {
+					// 	props.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{}
+					// }
 					props.SecurityProfile.ImageCleaner.Enabled = pointer.To(true)
 					if model.ImageCleanerIntervalHours > 0 {
 						props.SecurityProfile.ImageCleaner.IntervalHours = pointer.To(model.ImageCleanerIntervalHours)
@@ -2991,10 +2988,10 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				updateCluster = true
 			}
 
-			//if metadata.ResourceData.HasChange("oidc_issuer_enabled") {
-			//	props.OidcIssuerProfile = expandKubernetesAutomaticClusterOidcIssuerProfile(model.OIDCIssuerEnabled)
-			//	updateCluster = true
-			//}
+			// if metadata.ResourceData.HasChange("oidc_issuer_enabled") {
+			// 	props.OidcIssuerProfile = expandKubernetesAutomaticClusterOidcIssuerProfile(model.OIDCIssuerEnabled)
+			// 	updateCluster = true
+			// }
 
 			if metadata.ResourceData.HasChange("ai_toolchain_operator_enabled") {
 				if props.AiToolchainOperatorProfile == nil {
@@ -3352,7 +3349,7 @@ func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.Ma
 }
 
 func expandAutomaticGMSAProfile(input []GMSAModel) *managedclusters.WindowsGmsaProfile {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return nil
 	}
 
@@ -3467,9 +3464,9 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 
 	// networkPlugin := config.NetworkPlugin
 	networkMode := config.NetworkMode
-	//if networkPlugin != "azure" && networkMode != "" {
-	//	return nil, fmt.Errorf("`network_mode` cannot be set if `network_plugin` is not `azure`")
-	//}
+	// if networkPlugin != "azure" && networkMode != "" {
+	// 	return nil, fmt.Errorf("`network_mode` cannot be set if `network_plugin` is not `azure`")
+	// }
 
 	networkPolicy := config.NetworkPolicy
 	loadBalancerSku := config.LoadBalancerSKU
@@ -3489,9 +3486,9 @@ func expandKubernetesAutomaticClusterNetworkProfile(input []NetworkProfileModel)
 		IPFamilies:      ipVersions,
 	}
 
-	//if config.NetworkDataPlane != "" {
-	//	networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(config.NetworkDataPlane))
-	//}
+	// if config.NetworkDataPlane != "" {
+	// 	networkProfile.NetworkDataplane = pointer.To(managedclusters.NetworkDataplane(config.NetworkDataPlane))
+	// }
 
 	if config.NetworkPluginMode != "" {
 		networkProfile.NetworkPluginMode = pointer.To(managedclusters.NetworkPluginMode(config.NetworkPluginMode))
@@ -3689,10 +3686,10 @@ func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.Co
 		podCidr = *profile.PodCidr
 	}
 
-	//networkPlugin := ""
-	//if profile.NetworkPlugin != nil {
-	//	networkPlugin = string(*profile.NetworkPlugin)
-	//}
+	// networkPlugin := ""
+	// if profile.NetworkPlugin != nil {
+	// 	networkPlugin = string(*profile.NetworkPlugin)
+	// }
 
 	networkMode := ""
 	if profile.NetworkMode != nil {
@@ -3795,10 +3792,10 @@ func flattenKubernetesAutomaticClusterNetworkProfile(profile *managedclusters.Co
 		}
 	}
 
-	//networkDataPlane := string(managedclusters.NetworkDataplaneAzure)
-	//if v := profile.NetworkDataplane; v != nil {
-	//	networkDataPlane = string(pointer.From(v))
-	//}
+	// networkDataPlane := string(managedclusters.NetworkDataplaneAzure)
+	// if v := profile.NetworkDataplane; v != nil {
+	// 	networkDataPlane = string(pointer.From(v))
+	// }
 
 	advancedNetworking := flattenKubernetesAutomaticClusterAdvancedNetworking(profile.AdvancedNetworking)
 
@@ -4032,10 +4029,10 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 	}}, nil
 }
 
-//func expandKubernetesAutomaticClusterWorkloadAutoscalerProfile(input []WorkloadAutoscalerProfileModel) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
-//	if len(input) == 0 {
-//		return nil
-//	}
+// func expandKubernetesAutomaticClusterWorkloadAutoscalerProfile(input []WorkloadAutoscalerProfileModel) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
+// 	if len(input) == 0 {
+// 		return nil
+// 	}
 //
 //	config := input[0]
 //	profile := &managedclusters.ManagedClusterWorkloadAutoScalerProfile{}
@@ -4055,10 +4052,10 @@ func flattenKubernetesAutomaticClusterAutoScalerProfile(profile *managedclusters
 //	return profile
 //}
 
-//func flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile) []WorkloadAutoscalerProfileModel {
-//	// The API always returns an empty WorkloadAutoScalerProfile object even if none of these values have ever been set
-//	if profile == nil || (profile.Keda == nil && profile.VerticalPodAutoscaler == nil) {
-//		return []WorkloadAutoscalerProfileModel{}
+// func flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(profile *managedclusters.ManagedClusterWorkloadAutoScalerProfile) []WorkloadAutoscalerProfileModel {
+// 	// The API always returns an empty WorkloadAutoScalerProfile object even if none of these values have ever been set
+// 	if profile == nil || (profile.Keda == nil && profile.VerticalPodAutoscaler == nil) {
+// 		return []WorkloadAutoscalerProfileModel{}
 //	}
 //
 //	kedaEnabled := false
@@ -4085,9 +4082,9 @@ func expandKubernetesAutomaticClusterNodeProvisioningProfile(input []NodeProvisi
 	config := input[0]
 	profile := &managedclusters.ManagedClusterNodeProvisioningProfile{}
 
-	//if config.Mode != "" {
-	//	profile.Mode = pointer.To(managedclusters.NodeProvisioningMode(config.Mode))
-	//}
+	// if config.Mode != "" {
+	// 	profile.Mode = pointer.To(managedclusters.NodeProvisioningMode(config.Mode))
+	// }
 
 	if config.DefaultNodePools != "" {
 		profile.DefaultNodePools = pointer.To(managedclusters.NodeProvisioningDefaultNodePools(config.DefaultNodePools))
@@ -4101,10 +4098,10 @@ func flattenKubernetesAutomaticClusterNodeProvisioningProfile(profile *managedcl
 		return []NodeProvisioningProfileModel{}
 	}
 
-	//mode := ""
-	//if profile.Mode != nil {
-	//	mode = string(*profile.Mode)
-	//}
+	// mode := ""
+	// if profile.Mode != nil {
+	// 	mode = string(*profile.Mode)
+	// }
 
 	defaultNodePools := ""
 	if profile.DefaultNodePools != nil {
@@ -4118,7 +4115,7 @@ func flattenKubernetesAutomaticClusterNodeProvisioningProfile(profile *managedcl
 }
 
 func expandKubernetesAutomaticClusterAzureMonitorProfile(input []MonitorMetricsModel) *managedclusters.ManagedClusterAzureMonitorProfile {
-	if input == nil || len(input) == 0 {
+	if len(input) == 0 {
 		return &managedclusters.ManagedClusterAzureMonitorProfile{
 			Metrics: &managedclusters.ManagedClusterAzureMonitorProfileMetrics{
 				Enabled: false,
@@ -4171,12 +4168,12 @@ func flattenKubernetesAutomaticClusterAzureMonitorProfile(input *managedclusters
 	}}
 }
 
-func expandKubernetesAutomaticClusterMetricsProfile(input bool) (*managedclusters.ManagedClusterMetricsProfile, error) {
+func expandKubernetesAutomaticClusterMetricsProfile(input bool) *managedclusters.ManagedClusterMetricsProfile {
 	return &managedclusters.ManagedClusterMetricsProfile{
 		CostAnalysis: &managedclusters.ManagedClusterCostAnalysis{
 			Enabled: pointer.To(input),
 		},
-	}, nil
+	}
 }
 
 func flattenKubernetesAutomaticClusterMetricsProfile(input *managedclusters.ManagedClusterMetricsProfile) bool {
@@ -5073,16 +5070,16 @@ func flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(profile *managedc
 // 	return results
 // }
 
-//func expandKubernetesAutomaticClusterOidcIssuerProfile(input bool) *managedclusters.ManagedClusterOIDCIssuerProfile {
-//	return &managedclusters.ManagedClusterOIDCIssuerProfile{
-//		Enabled: &input,
-//	}
-//}
+// func expandKubernetesAutomaticClusterOidcIssuerProfile(input bool) *managedclusters.ManagedClusterOIDCIssuerProfile {
+// 	return &managedclusters.ManagedClusterOIDCIssuerProfile{
+// 		Enabled: &input,
+// 	}
+// }
 
-//func flattenKubernetesAutomaticClusterOidcIssuerProfile(profile *managedclusters.ManagedClusterOIDCIssuerProfile) (bool, string) {
-//	if profile == nil {
-//		return false, ""
-//	}
+// func flattenKubernetesAutomaticClusterOidcIssuerProfile(profile *managedclusters.ManagedClusterOIDCIssuerProfile) (bool, string) {
+// 	if profile == nil {
+// 		return false, ""
+// 	}
 //
 //	enabled := false
 //	if profile.Enabled != nil {
