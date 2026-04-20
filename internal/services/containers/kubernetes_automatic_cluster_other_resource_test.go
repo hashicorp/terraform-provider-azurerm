@@ -272,14 +272,12 @@ func TestAccKubernetesAutomaticCluster_scaleDownMode(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scaleDownMode(data, "Delete"),
+			Config: r.scaleDownMode(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
-		// Note: "Deallocate" is not supported for Ephemeral OS disks (required for Automatic clusters)
-		// Only "Delete" is valid for scale_down_mode with os_disk_type = "Ephemeral"
 	})
 }
 
@@ -377,18 +375,16 @@ func TestAccKubernetesAutomaticCluster_upgradeChannel(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
 
-	autoUpgradeChannel := "automatic_upgrade_channel"
 	nodeOsUpgradeChannel := "node_os_upgrade_channel"
 
 	// Note: Automatic clusters only support "stable" for automatic_upgrade_channel
 	// Other values like "rapid", "patch", "node-image", and "" (none) are not allowed
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeChannelConfig(data, olderKubernetesAutomaticVersion, "stable"),
+			Config: r.upgradeChannelConfig(data, olderKubernetesAutomaticVersion),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kubernetes_version").HasValue(olderKubernetesAutomaticVersion),
-				check.That(data.ResourceName).Key(autoUpgradeChannel).HasValue("stable"),
 			),
 		},
 		data.ImportStep(nodeOsUpgradeChannel),
@@ -1441,7 +1437,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  sku_tier            = "Standard"
 
   default_node_pool {
     name       = "default"
@@ -1657,7 +1652,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin      = "azure"
     network_plugin_mode = "overlay"
     network_policy      = "cilium"
     dns_service_ip      = "10.10.0.10"
@@ -1716,7 +1710,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin      = "azure"
     network_plugin_mode = "overlay"
     network_policy      = "cilium"
     dns_service_ip      = "10.10.0.10"
@@ -1772,7 +1765,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin      = "azure"
     network_plugin_mode = "overlay"
     network_policy      = "cilium"
     dns_service_ip      = "10.10.0.10"
@@ -1902,7 +1894,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin      = "azure"
     network_plugin_mode = "overlay"
     network_policy      = "cilium"
     dns_service_ip      = "10.10.0.10"
@@ -1918,13 +1909,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (KubernetesAutomaticClusterResource) upgradeChannelConfig(data acceptance.TestData, controlPlaneVersion string, upgradeChannel string) string {
-	if upgradeChannel != "" {
-		upgradeChannel = fmt.Sprintf("%q", upgradeChannel)
-	} else {
-		upgradeChannel = "null"
-	}
-
+func (KubernetesAutomaticClusterResource) upgradeChannelConfig(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1936,13 +1921,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                      = "acctestaks%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  dns_prefix                = "acctestaks%d"
-  kubernetes_version        = %q
-  automatic_upgrade_channel = %s
-  node_os_upgrade_channel   = "NodeImage"
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  kubernetes_version      = %q
+  node_os_upgrade_channel = "NodeImage"
 
   default_node_pool {
     name       = "default"
@@ -1957,7 +1941,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, upgradeChannel)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
 }
 
 func (KubernetesAutomaticClusterResource) basicMaintenanceConfigAutoUpgrade(data acceptance.TestData) string {
@@ -2178,13 +2162,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   network_profile {
-    network_plugin = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
   identity {
@@ -2308,13 +2290,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   network_profile {
-    network_plugin = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
   identity {
@@ -2526,7 +2506,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, ultraSSDEnabled)
 }
 
-func (KubernetesAutomaticClusterResource) scaleDownMode(data acceptance.TestData, scaleDownMode string) string {
+func (KubernetesAutomaticClusterResource) scaleDownMode(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2544,10 +2524,9 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name            = "default"
-    node_count      = 1
-    vm_size         = "Standard_DS3_v2"
-    scale_down_mode = "%s"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS3_v2"
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -2557,7 +2536,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, scaleDownMode)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (KubernetesAutomaticClusterResource) privateClusterPublicFqdn(data acceptance.TestData, privateClusterPublicFqdnEnabled bool) string {
@@ -2586,10 +2565,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
-  private_cluster_enabled             = true
   private_cluster_public_fqdn_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterPublicFqdnEnabled)
@@ -2629,38 +2606,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSKu)
 }
 
-func (KubernetesAutomaticClusterResource) oidcIssuer(data acceptance.TestData, enabled bool) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aks-%d"
-  location = "%s"
-}
-resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
-  default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS3_v2"
-    os_sku     = "AzureLinux"
-    upgrade_settings {
-      max_surge = "10%%"
-    }
-  }
-  identity {
-    type = "SystemAssigned"
-  }
-  oidc_issuer_enabled       = %t
-  workload_identity_enabled = %t
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled, enabled)
-}
-
 func (KubernetesAutomaticClusterResource) microsoftDefender(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2677,11 +2622,10 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                              = "acctestaks%d"
-  location                          = azurerm_resource_group.test.location
-  resource_group_name               = azurerm_resource_group.test.name
-  dns_prefix                        = "acctestaks%d"
-  role_based_access_control_enabled = true
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -2716,11 +2660,10 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
 }
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                              = "acctestaks%d"
-  location                          = azurerm_resource_group.test.location
-  resource_group_name               = azurerm_resource_group.test.name
-  dns_prefix                        = "acctestaks%d"
-  role_based_access_control_enabled = true
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
   default_node_pool {
     name       = "default"
     node_count = 1
@@ -3078,7 +3021,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     vm_size      = "Standard_NC24ads_A100_v4"
     gpu_instance = "MIG1g"
     gpu_driver   = "Install"
-    zones        = ["1", "2"]
     upgrade_settings {
       max_surge = "10%%"
     }
@@ -3201,11 +3143,10 @@ resource "azurerm_resource_group" "test" {
   location = "%[1]s"
 }
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                              = "acctestaks%[2]d"
-  location                          = azurerm_resource_group.test.location
-  resource_group_name               = azurerm_resource_group.test.name
-  dns_prefix                        = "acctestaks%[2]d"
-  role_based_access_control_enabled = true
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
   default_node_pool {
     name       = "default"
     node_count = 1

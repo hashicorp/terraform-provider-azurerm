@@ -49,7 +49,7 @@ type IngressApplicationGatewayIdentityModel struct {
 }
 
 type KeyVaultSecretsProviderModel struct {
-	SecretRotationEnabled  bool                  `tfschema:"secret_rotation_enabled"`
+	// SecretRotationEnabled  bool                  `tfschema:"secret_rotation_enabled"`
 	SecretRotationInterval string                `tfschema:"secret_rotation_interval"`
 	SecretIdentity         []SecretIdentityModel `tfschema:"secret_identity"`
 }
@@ -76,6 +76,11 @@ type OMSAgentIdentityModel struct {
 
 func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"open_service_mesh_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -110,11 +115,11 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 				},
 			},
 		},
-		"azure_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
+		// "azure_policy_enabled": {
+		// 	Type:     pluginsdk.TypeBool,
+		// 	Optional: true,
+		//	Default:  true,
+		//},
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,
@@ -258,23 +263,23 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"secret_rotation_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Default:  false,
-						Optional: true,
-						AtLeastOneOf: []string{
-							"key_vault_secrets_provider.0.secret_rotation_enabled",
-							"key_vault_secrets_provider.0.secret_rotation_interval",
-						},
-					},
+					// "secret_rotation_enabled": {
+					// 	Type:     pluginsdk.TypeBool,
+					// 	Default:  false,
+					// 	Optional: true,
+					// 	AtLeastOneOf: []string{
+					// 		"key_vault_secrets_provider.0.secret_rotation_enabled",
+					// 		"key_vault_secrets_provider.0.secret_rotation_interval",
+					// 	},
+					// },
 					"secret_rotation_interval": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						Default:  "2m",
-						AtLeastOneOf: []string{
-							"key_vault_secrets_provider.0.secret_rotation_enabled",
-							"key_vault_secrets_provider.0.secret_rotation_interval",
-						},
+						// AtLeastOneOf: []string{
+						// 	"key_vault_secrets_provider.0.secret_rotation_enabled",
+						// 	"key_vault_secrets_provider.0.secret_rotation_interval",
+						// },
 						ValidateFunc: containerValidate.Duration,
 					},
 					"secret_identity": {
@@ -375,12 +380,12 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		}
 	}
 
-	addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
-		Enabled: input.AzurePolicyEnabled,
-		Config: pointer.To(map[string]string{
-			"version": "v2",
-		}),
-	}
+	// addonProfiles[azurePolicyKey] = managedclusters.ManagedClusterAddonProfile{
+	// 	Enabled: input.AzurePolicyEnabled,
+	// 	Config: pointer.To(map[string]string{
+	//		"version": "v2",
+	//	}),
+	//}
 
 	addonProfiles[ingressApplicationGatewayKey] = managedclusters.ManagedClusterAddonProfile{
 		Enabled: false,
@@ -415,8 +420,8 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		kvsp := input.KeyVaultSecretsProvider[0]
 		config := make(map[string]string)
 
-		enableSecretRotation := fmt.Sprintf("%t", kvsp.SecretRotationEnabled)
-		config["enableSecretRotation"] = enableSecretRotation
+		// enableSecretRotation := fmt.Sprintf("%t", kvsp.SecretRotationEnabled)
+		config["enableSecretRotation"] = fmt.Sprintf("%t", true)
 		config["rotationPollInterval"] = kvsp.SecretRotationInterval
 
 		addonProfiles[azureKeyvaultSecretsProviderKey] = managedclusters.ManagedClusterAddonProfile{
@@ -430,7 +435,7 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 
 func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClusterAddonProfile) (
 	aciConnectorLinux []ACIConnectorLinuxModel,
-	azurePolicyEnabled bool,
+	// azurePolicyEnabled bool,
 	confidentialComputing []ConfidentialComputingModel,
 	httpApplicationRoutingEnabled bool,
 	httpApplicationRoutingZoneName string,
@@ -454,8 +459,8 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		}}
 	}
 
-	azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
-	azurePolicyEnabled = azurePolicy.Enabled
+	// azurePolicy := kubernetesAddonProfileLocate(profile, azurePolicyKey)
+	// azurePolicyEnabled = azurePolicy.Enabled
 
 	confidentialComputingProfile := kubernetesAddonProfileLocate(profile, confidentialComputingKey)
 	if confidentialComputingProfile.Enabled {
@@ -543,12 +548,12 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 
 	azureKeyVaultSecretsProviderProfile := kubernetesAddonProfileLocate(profile, azureKeyvaultSecretsProviderKey)
 	if azureKeyVaultSecretsProviderProfile.Enabled {
-		enableSecretRotation := false
+		// enableSecretRotation := false
 		rotationPollInterval := ""
 
-		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "enableSecretRotation"); v != "false" {
-			enableSecretRotation = true
-		}
+		// if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "enableSecretRotation"); v != "false" {
+		// 	enableSecretRotation = true
+		// }
 
 		if v := kubernetesAddonProfilelocateInConfig(azureKeyVaultSecretsProviderProfile.Config, "rotationPollInterval"); v != "" {
 			rotationPollInterval = v
@@ -557,7 +562,7 @@ func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClus
 		azureKeyvaultSecretsProviderIdentity := flattenKubernetesClusterAddOnIdentityProfileTyped(azureKeyVaultSecretsProviderProfile.Identity)
 
 		keyVaultSecretsProvider = []KeyVaultSecretsProviderModel{{
-			SecretRotationEnabled:  enableSecretRotation,
+			// SecretRotationEnabled:  enableSecretRotation,
 			SecretRotationInterval: rotationPollInterval,
 			SecretIdentity:         flattenSecretIdentityTyped(azureKeyvaultSecretsProviderIdentity),
 		}}

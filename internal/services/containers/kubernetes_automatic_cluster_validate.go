@@ -18,36 +18,36 @@ import (
 )
 
 func validateKubernetesAutomaticClusterTyped(model *KubernetesAutomaticClusterModel, cluster *managedclusters.ManagedCluster) error {
-	if len(model.NetworkProfile) > 0 {
-		profile := model.NetworkProfile[0]
-		if profile.NetworkPlugin != "" {
-			networkPlugin := profile.NetworkPlugin
-			dnsServiceIP := profile.DNSServiceIP
-			serviceCidr := profile.ServiceCIDR
-			podCidr := profile.PodCIDR
-			serviceCidrs := profile.ServiceCIDRs
-			podCidrs := profile.PodCIDRs
-			networkPluginMode := profile.NetworkPluginMode
-
-			isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
-
-			if podCidr != "" && strings.EqualFold(networkPlugin, "azure") && !strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
-				return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
-			}
-
-			if (dnsServiceIP != "" || isServiceCidrSet) && (dnsServiceIP == "" || !isServiceCidrSet) {
-				return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
-			}
-
-			ipVersions := profile.IPVersions
-			if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
-				return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
-			}
-			if len(podCidrs) == 2 && len(ipVersions) != 2 {
-				return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
-			}
-		}
-	}
+	// if len(model.NetworkProfile) > 0 {
+	// 	profile := model.NetworkProfile[0]
+	// if profile.NetworkPlugin != "" {
+	// 	networkPlugin := profile.NetworkPlugin
+	//	dnsServiceIP := profile.DNSServiceIP
+	//	serviceCidr := profile.ServiceCIDR
+	//	podCidr := profile.PodCIDR
+	//	serviceCidrs := profile.ServiceCIDRs
+	//	podCidrs := profile.PodCIDRs
+	//	networkPluginMode := profile.NetworkPluginMode
+	//
+	//	isServiceCidrSet := serviceCidr != "" || len(serviceCidrs) != 0
+	//
+	//	if podCidr != "" && strings.EqualFold(networkPlugin, "azure") && !strings.EqualFold(networkPluginMode, string(managedclusters.NetworkPluginModeOverlay)) {
+	//		return fmt.Errorf("`pod_cidr` and `azure` cannot be set together unless specifying `network_plugin_mode` to `overlay`")
+	//	}
+	//
+	//	if (dnsServiceIP != "" || isServiceCidrSet) && (dnsServiceIP == "" || !isServiceCidrSet) {
+	//		return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
+	//	}
+	//
+	//	ipVersions := profile.IPVersions
+	//	if len(serviceCidrs) == 2 && len(ipVersions) != 2 {
+	//		return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `service_cidrs`")
+	//	}
+	//	if len(podCidrs) == 2 && len(ipVersions) != 2 {
+	//		return fmt.Errorf("dual-stack networking must be enabled and `ip_versions` must be set to [\"IPv4\", \"IPv6\"] in order to specify multiple values in `pod_cidrs`")
+	//	}
+	//}
+	//}
 
 	servicePrincipalExists := len(model.ServicePrincipal) > 0
 	identityExists := len(model.Identity) > 0

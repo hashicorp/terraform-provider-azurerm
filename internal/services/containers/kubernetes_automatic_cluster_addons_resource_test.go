@@ -353,8 +353,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -363,8 +362,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
-    outbound_type  = "loadBalancer"
+
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -453,8 +452,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -463,8 +461,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
-    outbound_type  = "loadBalancer"
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -824,8 +821,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -834,9 +830,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
-    network_mode   = "transparent"
-    outbound_type  = "loadBalancer"
+    network_mode  = "transparent"
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -1029,8 +1024,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -1039,9 +1033,8 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
-    network_mode   = "transparent"
-    outbound_type  = "loadBalancer"
+    network_mode  = "transparent"
+    outbound_type = "loadBalancer"
   }
 
   depends_on = [
@@ -1485,8 +1478,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -1497,7 +1489,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
     outbound_type  = "loadBalancer"
@@ -1608,8 +1599,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
-    subnet_id                           = azurerm_subnet.apiserver.id
+    subnet_id = azurerm_subnet.apiserver.id
   }
 
   identity {
@@ -1620,7 +1610,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "azure"
     outbound_type  = "loadBalancer"
     dns_service_ip = "10.10.0.10"
     service_cidr   = "10.10.0.0/16"
