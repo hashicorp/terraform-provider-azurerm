@@ -169,6 +169,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"capacity_reservation_group_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				Description: "The ID of the Capacity Reservation Group which this Virtual Machine should be allocated to. " +
+						"**Note:** Changing this field on an existing VM will cause the VM to be deallocated and restarted (rebooted). " +
+						"For **zonal** VMs this is possible without deallocation, but the feature is currently in **Preview** (see Azure documentation). " +
+						"The provider uses the stable path and therefore forces deallocation/reboot for now.",
 				// the Compute/VM API is broken and returns the Resource Group name in UPPERCASE
 				// tracked by https://github.com/Azure/azure-rest-api-specs/issues/19424
 				DiffSuppressFunc: suppress.CaseDifference,
