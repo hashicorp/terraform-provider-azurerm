@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/vcr"
 	"github.com/hashicorp/terraform-provider-azurerm/version"
 )
 
@@ -85,6 +86,13 @@ func (o ClientOptions) Configure(c client.BaseClient, authorizer auth.Authorizer
 
 	c.AppendRequestMiddleware(requestLoggerMiddleware("AzureRM"))
 	c.AppendResponseMiddleware(responseLoggerMiddleware("AzureRM"))
+
+	if mode, ok := vcr.GetVCRMode(o.Transport); ok && mode == vcr.ModeReplayOnly {
+		c.AppendResponseMiddleware(func(req *http.Request, resp *http.Response) (*http.Response, error) {
+			resp.Header.Add(client.SkipPollingDelayHeader, "true")
+			return resp, nil
+		})
+	}
 }
 
 // ConfigureClient sets up an autorest.Client using an autorest.Authorizer

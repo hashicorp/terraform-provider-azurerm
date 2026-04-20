@@ -4,18 +4,18 @@ import jetbrains.buildServer.configs.kotlin.Project
 const val providerName = "azurerm"
 var enableTestTriggersGlobally = false
 
-fun AzureRM(environment: String, configuration : ClientConfiguration) : Project {
+fun azureRM(environment: String, configuration : ClientConfiguration) : Project {
     return Project{
         // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
         enableTestTriggersGlobally = configuration.enableTestTriggersGlobally
 
-        var pullRequestBuildConfig = pullRequestBuildConfiguration(environment, configuration)
+        val pullRequestBuildConfig = pullRequestBuildConfiguration(environment, configuration)
         buildType(pullRequestBuildConfig)
 
-        var cacheBuildConfig = buildConfigurationForCache(environment, configuration)
+        val cacheBuildConfig = buildConfigurationForCache(environment, configuration)
         buildType(cacheBuildConfig)
 
-        var buildConfigs = buildConfigurationsForServices(services, providerName, environment, configuration)
+        val buildConfigs = buildConfigurationsForServices(services, providerName, environment, configuration)
         buildConfigs.forEach { buildConfiguration ->
             buildType(buildConfiguration)
         }
@@ -23,19 +23,19 @@ fun AzureRM(environment: String, configuration : ClientConfiguration) : Project 
 }
 
 fun buildConfigurationsForServices(services: Map<String, String>, providerName : String, environment: String, config : ClientConfiguration): List<BuildType> {
-    var list = ArrayList<BuildType>()
-    var locationsForEnv = locations[environment]!!
+    val list = ArrayList<BuildType>()
+    val locationsForEnv = locations[environment]!!
 
     services.forEach { (serviceName, displayName) ->
-        var defaultTestConfig = testConfiguration()
-        var testConfig = serviceTestConfigurationOverrides.getOrDefault(serviceName, defaultTestConfig)
-        var locationsToUse = if (testConfig.locationOverride.primary != "") testConfig.locationOverride else locationsForEnv
-        var runNightly = runNightly.getOrDefault(environment, false)
+        val defaultTestConfig = testConfiguration()
+        val testConfig = serviceTestConfigurationOverrides.getOrDefault(serviceName, defaultTestConfig)
+        val locationsToUse = if (testConfig.locationOverride.primary != "") testConfig.locationOverride else locationsForEnv
+        val runNightly = runNightly.getOrDefault(environment, false)
 
-        var service = serviceDetails(serviceName, displayName, environment, config.vcsRootId)
-        var buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
+        val service = ServiceDetails(serviceName, displayName, environment, config.vcsRootId)
+        val buildConfig = service.buildConfiguration(providerName, runNightly, testConfig.startHour, testConfig.parallelism, testConfig.daysOfWeek, testConfig.daysOfMonth, testConfig.timeout, testConfig.disableTriggers)
 
-        buildConfig.params.ConfigureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)
+        buildConfig.params.configureAzureSpecificTestParameters(environment, config, locationsToUse,  testConfig.useAltSubscription, testConfig.useDevTestSubscription)
 
         list.add(buildConfig)
     }
@@ -44,26 +44,25 @@ fun buildConfigurationsForServices(services: Map<String, String>, providerName :
 }
 
 fun pullRequestBuildConfiguration(environment: String, config: ClientConfiguration) : BuildType {
-    var locationsForEnv = locations.get(environment)!!
-    var pullRequest = pullRequest("! Run Pull Request", environment, config.vcsRootId)
-    var buildConfiguration = pullRequest.buildConfiguration(providerName)
-    buildConfiguration.params.ConfigureAzureSpecificTestParameters(environment, config, locationsForEnv)
+    val locationsForEnv = locations[environment]!!
+    val pullRequest = PullRequest("! Run Pull Request", environment, config.vcsRootId)
+    val buildConfiguration = pullRequest.buildConfiguration(providerName)
+    buildConfiguration.params.configureAzureSpecificTestParameters(environment, config, locationsForEnv)
     return buildConfiguration
 }
 
 fun buildConfigurationForCache(environment: String, config: ClientConfiguration) : BuildType {
-    return buildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
+    return BuildCacheConfiguration(environment, config.vcsRootId).buildConfiguration(providerName)
 }
 
-class testConfiguration(parallelism: Int = defaultParallelism, startHour: Int = defaultStartHour, daysOfWeek: String = defaultDaysOfWeek, daysOfMonth: String = defaultDaysOfMonth, timeout: Int = defaultTimeout, useAltSubscription: Boolean = false, useDevTestSubscription: Boolean = false, locationOverride: LocationConfiguration = LocationConfiguration("","","", false), terraformCoreOverride: String = defaultTerraformCoreVersion, disableTriggers: Boolean = false) {
-    var parallelism = parallelism
-    var startHour = startHour
-    var daysOfWeek = daysOfWeek
-    var daysOfMonth = daysOfMonth
-    var timeout = timeout
-    var useAltSubscription = useAltSubscription
-    var useDevTestSubscription = useDevTestSubscription
-    var locationOverride = locationOverride
-    var terraformCoreOverride = terraformCoreOverride
-    var disableTriggers = disableTriggers
-}
+class testConfiguration(var parallelism: Int = defaultParallelism,
+                        var startHour: Int = defaultStartHour,
+                        var daysOfWeek: String = defaultDaysOfWeek,
+                        var daysOfMonth: String = defaultDaysOfMonth,
+                        var timeout: Int = defaultTimeout,
+                        var useAltSubscription: Boolean = false,
+                        var useDevTestSubscription: Boolean = false,
+                        var locationOverride: LocationConfiguration = LocationConfiguration("", "", "", false),
+                        var terraformCoreOverride: String = defaultTerraformCoreVersion, // Note: never used/overridden, but we might want to for some reason?
+                        var disableTriggers: Boolean = false
+)
