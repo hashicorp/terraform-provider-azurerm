@@ -178,28 +178,27 @@ func TestAccAppServiceEnvironmentV3_upgradePreference(t *testing.T) {
 			Config: r.upgradePreference(data, "None"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_preference").HasValue("None"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.upgradePreference(data, "Early"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_preference").HasValue("Early"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.upgradePreference(data, "Late"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_preference").HasValue("Late"),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.upgradePreference(data, "Manual"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("upgrade_preference").HasValue("Manual"),
 			),
 		},
 		data.ImportStep(),
