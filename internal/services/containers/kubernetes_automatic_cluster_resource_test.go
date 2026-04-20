@@ -119,75 +119,6 @@ func TestAccKubernetesAutomaticCluster_storageProfile(t *testing.T) {
 	})
 }
 
-//func TestAccKubernetesAutomaticCluster_workloadAutoscalerProfileKedaToggle(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("true"),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.workloadAutoscalerProfileKeda(data, currentKubernetesVersion, false),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("workload_autoscaler_profile.0.keda_enabled").HasValue("false"),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
-//func TestAccKubernetesAutomaticCluster_imageCleanerSecurityProfileToggle(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("true"),
-//				check.That(data.ResourceName).Key("image_cleaner_interval_hours").HasValue("96"),
-//			),
-//		},
-//		{
-//			Config: r.imageCleanerSecurityProfile(data, currentKubernetesVersion, false),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//				check.That(data.ResourceName).Key("image_cleaner_enabled").HasValue("false"),
-//			),
-//		},
-//	})
-//}
-
-//func TestAccKubernetesAutomaticCluster_workloadAutoscalerProfileVerticalPodAutoscalerToggle(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, true),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.workloadAutoscalerProfileVerticalPodAutoscaler(data, currentKubernetesVersion, false),
-//			Check: acceptance.ComposeTestCheckFunc(
-//				check.That(data.ResourceName).ExistsInAzure(r),
-//			),
-//		},
-//		data.ImportStep(),
-//	})
-//}
-
 func TestAccKubernetesAutomaticCluster_nodeProvisioningProfileUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -250,35 +181,6 @@ func TestAccKubernetesAutomaticCluster_edgeZone(t *testing.T) {
 		},
 	})
 }
-
-//func TestAccKubernetesAutomaticCluster_updateNetworkProfileOutboundType(t *testing.T) {
-//	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-//	r := KubernetesAutomaticClusterResource{}
-//
-//	data.ResourceTest(t, r, []acceptance.TestStep{
-//		{
-//			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.networkProfileWithOutboundType(data, "userDefinedRouting"),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.networkProfileWithOutboundType(data, "userAssignedNATGateway"),
-//		},
-//		data.ImportStep(),
-//		{
-//			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
-//		},
-//		data.ImportStep(),
-//		// 'none' tested in network isolated setup with bootstrap profile
-//	})
-//}
 
 func TestAccKubernetesAutomaticCluster_bootstrapProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
