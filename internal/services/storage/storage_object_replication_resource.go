@@ -101,6 +101,12 @@ func resourceStorageObjectReplication() *pluginsdk.Resource {
 				},
 			},
 
+			"metrics_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"source_object_replication_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -158,6 +164,9 @@ func resourceStorageObjectReplicationCreate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -213,6 +222,9 @@ func resourceStorageObjectReplicationUpdate(d *pluginsdk.ResourceData, meta inte
 			SourceAccount:      srcAccount.ID(),
 			DestinationAccount: dstAccount.ID(),
 			Rules:              expandArmObjectReplicationRuleArray(d.Get("rules").(*pluginsdk.Set).List()),
+			Metrics: &objectreplicationpolicyoperationgroup.ObjectReplicationPolicyPropertiesMetrics{
+				Enabled: pointer.To(d.Get("metrics_enabled").(bool)),
+			},
 		},
 	}
 
@@ -278,6 +290,13 @@ func resourceStorageObjectReplicationRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("destination_object_replication_id", id.Dst.ID())
 		}
 	}
+
+	if model := srcResp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("metrics_enabled", props.Metrics != nil && pointer.From(props.Metrics.Enabled))
+		}
+	}
+
 	return nil
 }
 
