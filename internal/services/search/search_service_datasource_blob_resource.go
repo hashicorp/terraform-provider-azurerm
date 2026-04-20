@@ -14,7 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	searchSchema "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	searchValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -59,13 +60,13 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: searchValidate.SearchDatasourceStorageConnectionString,
 		},
 
 		"container_name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.StorageContainerName,
+			ValidateFunc: storageValidate.StorageContainerName,
 		},
 
 		"container_query": {
