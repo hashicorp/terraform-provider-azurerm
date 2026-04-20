@@ -2773,8 +2773,16 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 				agentProfile.Properties.NodeImageVersion = nil
 			}
 
-			// if the temp node pool already exists due to a previous failure, don't bother spinning it up
+			// if the temp node pool doesn't exist, create it. if it is in a failed state, then delete and recreate it.
 			if tempExisting.Model == nil {
+				if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
+					return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
+				}
+			} else if *tempExisting.Model.Properties.ProvisioningState != "Succeeded" {
+				if err := nodePoolsClient.DeleteThenPoll(ctx, tempNodePoolId, agentpools.DefaultDeleteOperationOptions()); err != nil {
+					return fmt.Errorf("deleting temporary %s: %+v", tempNodePoolId, err)
+				}
+
 				if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
 					return fmt.Errorf("creating temporary %s: %+v", tempNodePoolId, err)
 				}
