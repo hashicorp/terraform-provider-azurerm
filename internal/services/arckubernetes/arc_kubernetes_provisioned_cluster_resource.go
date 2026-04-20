@@ -1,3 +1,8 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name arc_kubernetes_provisioned_cluster -properties "name,resource_group_name" -service-package-name arckubernetes -known-values "subscription_id:data.Subscriptions.Primary"
+
 package arckubernetes
 
 import (
@@ -11,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -18,8 +24,9 @@ import (
 )
 
 var (
-	_ sdk.Resource           = ArcKubernetesProvisionedClusterResource{}
-	_ sdk.ResourceWithUpdate = ArcKubernetesProvisionedClusterResource{}
+	_ sdk.Resource             = ArcKubernetesProvisionedClusterResource{}
+	_ sdk.ResourceWithUpdate   = ArcKubernetesProvisionedClusterResource{}
+	_ sdk.ResourceWithIdentity = ArcKubernetesProvisionedClusterResource{}
 )
 
 // This resource is same type as the ArcKubernetesClusterResource but with kind="ProvisionedCluster".
@@ -59,6 +66,10 @@ func (r ArcKubernetesProvisionedClusterResource) ModelObject() interface{} {
 
 func (r ArcKubernetesProvisionedClusterResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return arckubernetes.ValidateConnectedClusterID
+}
+
+func (r ArcKubernetesProvisionedClusterResource) Identity() resourceids.ResourceId {
+	return &arckubernetes.ConnectedClusterId{}
 }
 
 func (r ArcKubernetesProvisionedClusterResource) Arguments() map[string]*pluginsdk.Schema {
@@ -222,6 +233,9 @@ func (r ArcKubernetesProvisionedClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
 			return nil
 		},
@@ -340,6 +354,9 @@ func (r ArcKubernetesProvisionedClusterResource) Read() sdk.ResourceFunc {
 				state.ArcAgentDesiredVersion = arcAgentdesiredVersion
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
 			return metadata.Encode(&state)
 		},
 	}

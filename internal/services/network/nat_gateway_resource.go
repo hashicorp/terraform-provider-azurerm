@@ -1,9 +1,10 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/natgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/natgateways"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,6 +25,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name nat_gateway -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var natGatewayResourceName = "azurerm_nat_gateway"
 
@@ -41,10 +44,21 @@ func resourceNatGateway() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := natgateways.ParseNatGatewayID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&natgateways.NatGatewayId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&natgateways.NatGatewayId{}),
+		},
+
+		CustomizeDiff: func(_ context.Context, diff *schema.ResourceDiff, _ interface{}) error {
+			if diff.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo) {
+				if !diff.GetRawConfig().AsValueMap()["zones"].IsNull() {
+					return fmt.Errorf("%s resources with `sku_name` set to `%s` are zone-redundant by default, Azure automatically deploys across all available zones. The `zones` argument must be omitted", natGatewayResourceName, natgateways.NatGatewaySkuNameStandardVTwo)
+				}
+			}
+
+			return nil
+		},
 
 		Schema: resourceNatGatewaySchema(),
 	}
@@ -71,15 +85,26 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 		},
 
 		"sku_name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(natgateways.NatGatewaySkuNameStandard),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(natgateways.NatGatewaySkuNameStandard),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(natgateways.NatGatewaySkuNameStandard),
+			ValidateFunc: validation.StringInSlice(natgateways.PossibleValuesForNatGatewaySkuName(), false),
 		},
 
-		"zones": commonschema.ZonesMultipleOptionalForceNew(),
+		"zones": {
+			Type:                  schema.TypeSet,
+			Optional:              true,
+			ForceNew:              true,
+			DiffSuppressOnRefresh: true,
+			DiffSuppressFunc: func(_, _, _ string, d *schema.ResourceData) bool {
+				return d.Get("sku_name").(string) == string(natgateways.NatGatewaySkuNameStandardVTwo)
+			},
+			Elem: &schema.Schema{
+				Type:         schema.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
 
 		"resource_guid": {
 			Type:     pluginsdk.TypeString,
@@ -91,7 +116,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 }
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -132,12 +157,15 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	return resourceNatGatewayRead(d, meta)
 }
 
 func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -201,7 +229,7 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -219,11 +247,14 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
+	return resourceNatGatewayFlatten(d, id, resp.Model)
+}
 
+func resourceNatGatewayFlatten(d *pluginsdk.ResourceData, id *natgateways.NatGatewayId, model *natgateways.NatGateway) error {
 	d.Set("name", id.NatGatewayName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		d.Set("location", location.NormalizeNilable(model.Location))
 		sku := ""
 		if model.Sku != nil {
@@ -235,13 +266,16 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 			d.Set("resource_guid", props.ResourceGuid)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNatGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

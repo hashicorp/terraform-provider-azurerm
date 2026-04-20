@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package compute
@@ -16,14 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name dedicated_host -service-package-name compute -properties "name" -compare-values "subscription_id:dedicated_host_group_id,resource_group_name:dedicated_host_group_id,host_group_name:dedicated_host_group_id"
 
 func resourceDedicatedHost() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,10 +34,11 @@ func resourceDedicatedHost() *pluginsdk.Resource {
 		Update: resourceDedicatedHostUpdate,
 		Delete: resourceDedicatedHostDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseDedicatedHostID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.DedicatedHostId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.DedicatedHostId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -170,12 +173,12 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	payload := dedicatedhosts.DedicatedHost{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &dedicatedhosts.DedicatedHostProperties{
-			AutoReplaceOnFailure: utils.Bool(d.Get("auto_replace_on_failure").(bool)),
+			AutoReplaceOnFailure: pointer.To(d.Get("auto_replace_on_failure").(bool)),
 			LicenseType:          &licenseType,
-			PlatformFaultDomain:  utils.Int64(int64(d.Get("platform_fault_domain").(int))),
+			PlatformFaultDomain:  pointer.To(int64(d.Get("platform_fault_domain").(int))),
 		},
 		Sku: dedicatedhosts.Sku{
-			Name: utils.String(d.Get("sku_name").(string)),
+			Name: pointer.To(d.Get("sku_name").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -185,6 +188,10 @@ func resourceDedicatedHostCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceDedicatedHostRead(d, meta)
 }
 
@@ -231,7 +238,7 @@ func resourceDedicatedHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -249,7 +256,7 @@ func resourceDedicatedHostUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChanges("auto_replace_on_failure", "license_type") {
 		payload.Properties = &dedicatedhosts.DedicatedHostProperties{}
 		if d.HasChange("auto_replace_on_failure") {
-			payload.Properties.AutoReplaceOnFailure = utils.Bool(d.Get("auto_replace_on_failure").(bool))
+			payload.Properties.AutoReplaceOnFailure = pointer.To(d.Get("auto_replace_on_failure").(bool))
 		}
 		if d.HasChange("license_type") {
 			licenseType := dedicatedhosts.DedicatedHostLicenseTypes(d.Get("license_type").(string))

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package monitor
@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var (
@@ -34,6 +34,7 @@ type DataCollectionEndpoint struct {
 	Name                        string                 `tfschema:"name"`
 	Location                    string                 `tfschema:"location"`
 	LogsIngestionEndpoint       string                 `tfschema:"logs_ingestion_endpoint"`
+	MetricsIngestionEndpoint    string                 `tfschema:"metrics_ingestion_endpoint"`
 	PublicNetworkAccessEnabled  bool                   `tfschema:"public_network_access_enabled"`
 	ResourceGroupName           string                 `tfschema:"resource_group_name"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
@@ -90,6 +91,11 @@ func (r DataCollectionEndpointResource) Attributes() map[string]*pluginsdk.Schem
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"metrics_ingestion_endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -130,10 +136,10 @@ func (r DataCollectionEndpointResource) Create() sdk.ResourceFunc {
 
 			input := datacollectionendpoints.DataCollectionEndpointResource{
 				Kind:     expandDataCollectionEndpointKind(state.Kind),
-				Location: azure.NormalizeLocation(state.Location),
-				Name:     utils.String(state.Name),
+				Location: location.Normalize(state.Location),
+				Name:     pointer.To(state.Name),
 				Properties: &datacollectionendpoints.DataCollectionEndpoint{
-					Description: utils.String(state.Description),
+					Description: pointer.To(state.Description),
 					NetworkAcls: &datacollectionendpoints.NetworkRuleSet{
 						PublicNetworkAccess: expandDataCollectionEndpointPublicNetworkAccess(state.PublicNetworkAccessEnabled),
 					},
@@ -171,11 +177,11 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 			var publicNetWorkAccessEnabled bool
-			var description, kind, location, configurationAccessEndpoint, logsIngestionEndpoint, immutableId string
+			var description, kind, loc, configurationAccessEndpoint, logsIngestionEndpoint, metricsIngestionEndpoint, immutableId string
 			var tag map[string]interface{}
 			if model := resp.Model; model != nil {
 				kind = flattenDataCollectionEndpointKind(model.Kind)
-				location = azure.NormalizeLocation(model.Location)
+				loc = location.Normalize(model.Location)
 				tag = tags.Flatten(model.Tags)
 				if prop := model.Properties; prop != nil {
 					description = flattenDataCollectionEndpointDescription(prop.Description)
@@ -191,6 +197,10 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 						logsIngestionEndpoint = *prop.LogsIngestion.Endpoint
 					}
 
+					if prop.MetricsIngestion != nil && prop.MetricsIngestion.Endpoint != nil {
+						metricsIngestionEndpoint = *prop.MetricsIngestion.Endpoint
+					}
+
 					if prop.ImmutableId != nil {
 						immutableId = *prop.ImmutableId
 					}
@@ -202,8 +212,9 @@ func (r DataCollectionEndpointResource) Read() sdk.ResourceFunc {
 				Description:                 description,
 				Kind:                        kind,
 				ImmutableId:                 immutableId,
-				Location:                    location,
+				Location:                    loc,
 				LogsIngestionEndpoint:       logsIngestionEndpoint,
+				MetricsIngestionEndpoint:    metricsIngestionEndpoint,
 				Name:                        id.DataCollectionEndpointName,
 				PublicNetworkAccessEnabled:  publicNetWorkAccessEnabled,
 				ResourceGroupName:           id.ResourceGroupName,
@@ -242,7 +253,7 @@ func (r DataCollectionEndpointResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("description") {
-				existing.Properties.Description = utils.String(state.Description)
+				existing.Properties.Description = pointer.To(state.Description)
 			}
 
 			if metadata.ResourceData.HasChange("kind") {
@@ -328,9 +339,10 @@ func flattenDataCollectionEndpointPublicNetworkAccess(input *datacollectionendpo
 		return false
 	}
 	var result bool
-	if *input == datacollectionendpoints.KnownPublicNetworkAccessOptionsEnabled {
+	switch *input {
+	case datacollectionendpoints.KnownPublicNetworkAccessOptionsEnabled:
 		result = true
-	} else if *input == datacollectionendpoints.KnownPublicNetworkAccessOptionsDisabled {
+	case datacollectionendpoints.KnownPublicNetworkAccessOptionsDisabled:
 		result = false
 	}
 	return result

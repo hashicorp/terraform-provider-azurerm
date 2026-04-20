@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loganalytics_test
@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/storageinsights"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsStorageInsightsResource struct{}
@@ -100,7 +100,7 @@ func TestAccLogAnalyticsStorageInsights_updateStorageAccount(t *testing.T) {
 		},
 		data.ImportStep("storage_account_key"),
 		{
-			Config: r.updateStorageAccount(data),
+			Config: r.updateStorageAccountKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -117,10 +117,10 @@ func (t LogAnalyticsStorageInsightsResource) Exists(ctx context.Context, clients
 
 	resp, err := clients.LogAnalytics.StorageInsightsClient.StorageInsightConfigsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("readingLog Analytics Storage Insights (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving Log Analytics Storage Insights (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (LogAnalyticsStorageInsightsResource) template(data acceptance.TestData) string {
@@ -188,7 +188,7 @@ func (r LogAnalyticsStorageInsightsResource) complete(data acceptance.TestData) 
 %s
 
 resource "azurerm_log_analytics_storage_insights" "test" {
-  name                = "acctest-LA-%d"
+  name                = "acctest-la-%d"
   resource_group_name = azurerm_resource_group.test.name
   workspace_id        = azurerm_log_analytics_workspace.test.id
 
@@ -201,18 +201,9 @@ resource "azurerm_log_analytics_storage_insights" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LogAnalyticsStorageInsightsResource) updateStorageAccount(data acceptance.TestData) string {
+func (r LogAnalyticsStorageInsightsResource) updateStorageAccountKey(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
-
-resource "azurerm_storage_account" "test2" {
-  name                = "acctestsads%s"
-  resource_group_name = azurerm_resource_group.test.name
-
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
 
 resource "azurerm_log_analytics_storage_insights" "test" {
   name                = "acctest-la-%d"
@@ -222,8 +213,8 @@ resource "azurerm_log_analytics_storage_insights" "test" {
   blob_container_names = ["wad-iis-logfiles"]
   table_names          = ["WADWindowsEventLogsTable", "LinuxSyslogVer2v0"]
 
-  storage_account_id  = azurerm_storage_account.test2.id
-  storage_account_key = azurerm_storage_account.test2.primary_access_key
+  storage_account_id  = azurerm_storage_account.test.id
+  storage_account_key = azurerm_storage_account.test.secondary_access_key
 }
-`, r.template(data), data.RandomStringOfLength(6), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }

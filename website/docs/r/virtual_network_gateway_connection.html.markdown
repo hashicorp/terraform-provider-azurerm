@@ -61,7 +61,7 @@ resource "azurerm_virtual_network_gateway" "example" {
   vpn_type = "RouteBased"
 
   active_active = false
-  enable_bgp    = false
+  bgp_enabled   = false
   sku           = "Basic"
 
   ip_configuration {
@@ -234,7 +234,7 @@ The following arguments are supported:
 * `connection_protocol` - (Optional) The IKE protocol version to use. Possible values are `IKEv1` and `IKEv2`, values are `IKEv1` and `IKEv2`. Defaults to `IKEv2`. Changing this forces a new resource to be created.
 -> **Note:** Only valid for `IPSec` connections on virtual network gateways with SKU `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ` or `VpnGw3AZ`.
 
-* `enable_bgp` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
+* `bgp_enabled` - (Optional) If `true`, BGP (Border Gateway Protocol) is enabled for this connection. Defaults to `false`.
 
 * `custom_bgp_addresses` - (Optional) A `custom_bgp_addresses` block which is documented below.
     The block can only be used on `IPSec` / `activeactive` connections,
@@ -305,11 +305,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Network Gateway Connection.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Gateway Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Gateway Connection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Network Gateway Connection.
 
 ## Import
@@ -319,3 +319,9 @@ Virtual Network Gateway Connections can be imported using their `resource id`, e
 ```shell
 terraform import azurerm_virtual_network_gateway_connection.exampleConnection /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/connections/myConnection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

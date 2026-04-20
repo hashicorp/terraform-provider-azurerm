@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package maps_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/maps/2023-06-01/creators"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -15,13 +16,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MapsCreatorResource struct{}
 
 func TestAccMapsCreator_basic(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
@@ -38,7 +38,7 @@ func TestAccMapsCreator_basic(t *testing.T) {
 }
 
 func TestAccMapsCreator_requiresImport(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
@@ -55,7 +55,7 @@ func TestAccMapsCreator_requiresImport(t *testing.T) {
 }
 
 func TestAccMapsCreator_complete(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
@@ -72,7 +72,7 @@ func TestAccMapsCreator_complete(t *testing.T) {
 }
 
 func TestAccMapsCreator_update(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("Skipping since `azurerm_maps_creator` is deprecated and will be removed in 5.0")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_maps_creator", "test")
@@ -105,11 +105,11 @@ func (r MapsCreatorResource) Exists(ctx context.Context, clients *clients.Client
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r MapsCreatorResource) template(data acceptance.TestData) string {

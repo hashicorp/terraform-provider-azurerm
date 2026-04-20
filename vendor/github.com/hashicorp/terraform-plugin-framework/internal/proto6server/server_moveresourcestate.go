@@ -5,7 +5,6 @@ package proto6server
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto6"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
@@ -36,11 +35,19 @@ func (s *Server) MoveResourceState(ctx context.Context, proto6Req *tfprotov6.Mov
 
 	fwResp.Diagnostics.Append(diags...)
 
+	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto6Req.TargetTypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
 	if fwResp.Diagnostics.HasError() {
 		return toproto6.MoveResourceStateResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.MoveResourceStateRequest(ctx, proto6Req, resource, resourceSchema)
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.MoveResourceStateResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto6.MoveResourceStateRequest(ctx, proto6Req, resource, resourceSchema, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

@@ -7,7 +7,7 @@ Common scenarios where a state migration would be required in Azure are:
 * Updating the default value of a property in the schema
 * Recasting property values in the schema, unlike the scenario's above this also requires changes to the user's config, thus should only be in a major version release
 
-**Note:** State migrations are one-way by design meaning they're not backward compatible. Once they've been run you can no longer downgrade to an older version of the provider. Care should be taken when adding state migrations and thorough manual testing should be done. See the section on Testing below.
+> **Note:** State migrations are one-way by design meaning they're not backward compatible. Once they've been run you can no longer downgrade to an older version of the provider. Care should be taken when adding state migrations and thorough manual testing should be done. See the section on Testing below.
 
 ## Conventions within the AzureRM Provider
 
@@ -127,7 +127,7 @@ func (s CapybaraV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 }
 ```
 
-5. Finally we hook the state migration up to the resource. For typed resources this looks like the following
+5. Finally, we hook the state migration up to the resource. For typed resources this looks like the following
 ```go
 package animal
 
@@ -170,7 +170,7 @@ func (r CapybaraResource) StateUpgraders() sdk.StateUpgradeData {
 
 ## Testing
 
-Currently no automated testing for state migrations exist since the testing framework is unable to run different versions of the provider simultaneously. As a result testing for state migrations must be done manually and usually involves the following high level steps:
+Currently, no automated testing for state migrations exist since the testing framework is unable to run different versions of the provider simultaneously. As a result testing for state migrations must be done manually and usually involves the following high level steps:
 
 1. Create the resource using an older version of the provider
 2. Locally build a version of the provider containing the state migration

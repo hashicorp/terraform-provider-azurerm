@@ -1,3 +1,6 @@
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+
 package arckubernetes_test
 
 import (
@@ -202,7 +205,7 @@ resource "azurerm_arc_kubernetes_provisioned_cluster" "test" {
 
   azure_active_directory {
     azure_rbac_enabled     = true
-    admin_group_object_ids = [azuread_group.test.id]
+    admin_group_object_ids = [azuread_group.test.object_id]
     tenant_id              = data.azurerm_client_config.current.tenant_id
   }
 

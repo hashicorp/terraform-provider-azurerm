@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package authorization_test
@@ -9,12 +9,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/authorization/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RoleAssignmentResource struct{}
@@ -280,20 +281,36 @@ func TestAccRoleAssignment_resourceGroupScoped(t *testing.T) {
 	})
 }
 
+func TestAccRoleAssignment_applicationGroupScoped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	r := RoleAssignmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.applicationGroupScoped(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("skip_service_principal_aad_check"),
+	})
+}
+
 func (r RoleAssignmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.RoleAssignmentID(state.ID)
+	id, err := parse.ScopedRoleAssignmentID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Authorization.RoleAssignmentsClient.GetByID(ctx, state.ID, "")
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-		return nil, fmt.Errorf("retrieving Role Assignment for role %q: %+v", id.Name, err)
+	options := roleassignments.DefaultGetOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = pointer.To(id.TenantId)
 	}
-	return utils.Bool(true), nil
+
+	resp, err := client.Authorization.ScopedRoleAssignmentsClient.Get(ctx, id.ScopedId, options)
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (RoleAssignmentResource) emptyNameConfig() string {
@@ -487,7 +504,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -515,7 +532,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -548,7 +565,7 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = data.azurerm_subscription.current.id
   role_definition_name = "Reader"
-  principal_id         = azuread_group.test.id
+  principal_id         = azuread_group.test.object_id
 }
 `, rInt, roleAssignmentID)
 }
@@ -641,7 +658,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_role_assignment" "test" {
@@ -669,6 +686,48 @@ resource "azurerm_role_assignment" "test" {
   scope                = azurerm_resource_group.test.id
   role_definition_name = "Reader"
   principal_id         = data.azurerm_client_config.test.object_id
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (RoleAssignmentResource) applicationGroupScoped(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-vdesktop-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_desktop_host_pool" "test" {
+  name                = "acctestHP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  type                = "Pooled"
+  load_balancer_type  = "BreadthFirst"
+}
+
+resource "azurerm_virtual_desktop_application_group" "test" {
+  name                         = "acctestAG-%[1]d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  type                         = "Desktop"
+  default_desktop_display_name = "Acceptance Test"
+  host_pool_id                 = azurerm_virtual_desktop_host_pool.test.id
+
+  depends_on = [azurerm_virtual_desktop_host_pool.test]
+}
+
+resource "azurerm_role_assignment" "test" {
+  scope                = azurerm_virtual_desktop_application_group.test.id
+  role_definition_name = "Desktop Virtualization User"
+  principal_id         = data.azurerm_client_config.test.object_id
+
+  depends_on = [azurerm_virtual_desktop_application_group.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

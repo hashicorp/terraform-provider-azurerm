@@ -78,7 +78,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Cosmos DB Mongo User Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cosmos DB Mongo User Definition.
@@ -92,3 +92,9 @@ Cosmos DB Mongo User Definitions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cosmosdb_mongo_user_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1/mongodbUserDefinitions/dbname1.username1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2022-11-15

@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package keyvault
@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -57,9 +58,25 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"value": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ExactlyOneOf: []string{"value", "value_wo"},
+			},
+
+			"value_wo": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				WriteOnly:    true,
+				RequiredWith: []string{"value_wo_version"},
+				ExactlyOneOf: []string{"value", "value_wo"},
+			},
+
+			"value_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"value_wo"},
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"content_type": {
@@ -99,7 +116,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaWithMax(15),
+			"tags": commonschema.TagsWithMaximumElements(15),
 		},
 	}
 }
@@ -135,12 +152,21 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	value := d.Get("value").(string)
+
+	valueWo, err := pluginsdk.GetWriteOnly(d, "value_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	if !valueWo.IsNull() {
+		value = valueWo.AsString()
+	}
+
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
-		Value:            utils.String(value),
-		ContentType:      utils.String(contentType),
+		Value:            pointer.To(value),
+		ContentType:      pointer.To(contentType),
 		Tags:             tags.Expand(t),
 		SecretAttributes: &keyvault.SecretAttributes{},
 	}
@@ -183,8 +209,7 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 				log.Printf("[DEBUG] Secret %q recovered with ID: %q", name, *recoveredSecret.ID)
 
-				_, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters)
-				if err != nil {
+				if _, err := client.SetSecret(ctx, *keyVaultBaseUrl, name, parameters); err != nil {
 					return err
 				}
 			}
@@ -261,11 +286,18 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		secretAttributes.Expires = &expirationUnixTime
 	}
 
-	if d.HasChange("value") {
+	if d.HasChanges("value", "value_wo_version") {
+		valueWo, err := pluginsdk.GetWriteOnly(d, "value_wo", cty.String)
+		if err != nil {
+			return err
+		}
+		if !valueWo.IsNull() {
+			value = valueWo.AsString()
+		}
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
-			Value:            utils.String(value),
-			ContentType:      utils.String(contentType),
+			Value:            pointer.To(value),
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
@@ -275,7 +307,7 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
-			ContentType:      utils.String(contentType),
+			ContentType:      pointer.To(contentType),
 			Tags:             tags.Expand(t),
 			SecretAttributes: secretAttributes,
 		}
@@ -358,18 +390,27 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", respID.Name)
 	d.Set("value", resp.Value)
+	// Unset value if is a write-only value
+	if _, ok := d.GetOk("value_wo_version"); ok {
+		d.Set("value", nil)
+	}
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 	d.Set("versionless_id", id.VersionlessID())
+	d.Set("value_wo_version", d.Get("value_wo_version").(int))
 
 	if attributes := resp.Attributes; attributes != nil {
+		notBeforeDate := ""
 		if v := attributes.NotBefore; v != nil {
-			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+			notBeforeDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("not_before_date", notBeforeDate)
 
+		expirationDate := ""
 		if v := attributes.Expires; v != nil {
-			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+			expirationDate = time.Time(*v).Format(time.RFC3339)
 		}
+		d.Set("expiration_date", expirationDate)
 	}
 
 	d.Set("resource_id", parse.NewSecretID(keyVaultId.SubscriptionId, keyVaultId.ResourceGroupName, keyVaultId.VaultName, id.Name, id.Version).ID())
@@ -396,7 +437,7 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving the Resource ID the Key Vault at URL %q: %s", id.KeyVaultBaseUrl, err)
 	}
 	if keyVaultIdRaw == nil {
-		return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
+		return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", id.KeyVaultBaseUrl)
 	}
 	keyVaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
 	if err != nil {

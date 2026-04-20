@@ -54,7 +54,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_rule {
     name                           = "Rule2"
     enabled                        = true
-    priority                       = 2
+    priority                       = 50
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
     type                           = "MatchRule"
@@ -80,6 +80,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   managed_rule {
     type    = "DefaultRuleSet"
     version = "1.0"
+    action  = "Log"
 
     exclusion {
       match_variable = "QueryStringArgNames"
@@ -121,13 +122,13 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 
   managed_rule {
     type    = "Microsoft_BotManagerRuleSet"
-    version = "1.0"
+    version = "1.1"
     action  = "Log"
   }
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -137,15 +138,27 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The sku's pricing tier for this Front Door Firewall Policy. Possible values include `Standard_AzureFrontDoor` or `Premium_AzureFrontDoor`. Changing this forces a new resource to be created.
 
--> **NOTE:** The `Standard_AzureFrontDoor` Front Door Firewall Policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Front Door Firewall Policy skus may contain both `custom` and `managed` rules.
+-> **Note:** The `Standard_AzureFrontDoor` Front Door Firewall Policy sku may contain `custom` rules only. The `Premium_AzureFrontDoor` Front Door Firewall Policy sku's may contain both `custom` and `managed` rules.
 
 * `enabled` - (Optional) Is the Front Door Firewall Policy enabled? Defaults to `true`.
+
+* `js_challenge_cookie_expiration_in_minutes` - (Optional) Specifies the JavaScript challenge cookie lifetime in minutes, after which the user will be revalidated. Possible values are between `5` to `1440` minutes. Defaults to `30` minutes.
+
+-> **Note:** The `js_challenge_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/waf-javascript-challenge) for more information.
+
+~> **Note:** When you remove the `js_challenge_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
+
+* `captcha_cookie_expiration_in_minutes` - (Optional) Specifies the Captcha cookie lifetime in minutes. Possible values are between `5` and `1440`. Defaults to`30` minutes.
+
+-> **Note:** The `captcha_cookie_expiration_in_minutes` field can only be set on `Premium_AzureFrontDoor` sku's. Please see the [Product Documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/captcha-challenge) for more information.
+
+~> **Note:** When you remove the `captcha_cookie_expiration_in_minutes` field from your configuration, the value will revert to the default of `30` minutes in the Terraform state. This is because Azure manages this setting and Terraform will reflect the actual Azure configuration, which defaults to `30` minutes when not explicitly specified.
 
 * `mode` - (Required) The Front Door Firewall Policy mode. Possible values are `Detection`, `Prevention`.
 
 * `request_body_check_enabled` - (Optional) Should policy managed rules inspect the request body content? Defaults to `true`.
 
--> **NOTE:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
+-> **Note:** When run in `Detection` mode, the Front Door Firewall Policy doesn't take any other actions other than monitoring and logging the request and its matched Front Door Rule to the Web Application Firewall logs.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 
@@ -154,6 +167,10 @@ The following arguments are supported:
 * `custom_block_response_status_code` - (Optional) If a `custom_rule` block's action type is `block`, this is the response status code. Possible values are `200`, `403`, `405`, `406`, or `429`.
 
 * `custom_block_response_body` - (Optional) If a `custom_rule` block's action type is `block`, this is the response body. The body must be specified in base64 encoding.
+
+* `log_scrubbing` - (Optional) A `log_scrubbing` block as defined below.
+
+!> **Note:** Setting the`log_scrubbing` block is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
@@ -165,7 +182,9 @@ A `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
-* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
+* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, `Redirect`, `JSChallenge`, or `CAPTCHA`.
+
+!> **Note:** Setting the `action` field to `JSChallenge` or `CAPTCHA` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
 
@@ -187,27 +206,37 @@ A `match_condition` block supports the following:
 
 * `match_values` - (Required) Up to `600` possible values to match. Limit is in total across all `match_condition` blocks and `match_values` arguments. String value itself can be up to `256` characters in length.
 
-* `operator` - (Required) Comparison type to use for matching with the variable value. Possible values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GeoMatch`, `GreaterThan`, `GreaterThanOrEqual`, `IPMatch`, `LessThan`, `LessThanOrEqual` or `RegEx`.
+* `operator` - (Required) Comparison type to use for matching with the variable value. Possible values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GeoMatch`, `GreaterThan`, `GreaterThanOrEqual`, `IPMatch`, `LessThan`, `LessThanOrEqual`, or `RegEx`.
 
-* `selector` - (Optional) Match against a specific key if the `match_variable` is `QueryString`, `PostArgs`, `RequestHeader` or `Cookies`.
+* `selector` - (Optional) Match against a specific key if the `match_variable` is `QueryString`, `PostArgs`, `RequestHeader`, or `Cookies`.
 
 * `negation_condition` - (Optional) Should the result of the condition be negated.
 
-* `transforms` - (Optional) Up to `5` transforms to apply. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `URLDecode` or `URLEncode`.
+* `transforms` - (Optional) Up to `5` transforms to apply. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `URLDecode`, or `URLEncode`.
 
 ---
 
 A `managed_rule` block supports the following:
 
-* `type` - (Required) The name of the managed rule to use with this resource. Possible values include `DefaultRuleSet`, `Microsoft_DefaultRuleSet`, `BotProtection` or `Microsoft_BotManagerRuleSet`.
+* `type` - (Required) The name of the managed rule to use with this resource. Possible values include `DefaultRuleSet`, `Microsoft_DefaultRuleSet`, `BotProtection`, or `Microsoft_BotManagerRuleSet`.
 
-* `version` - (Required) The version of the managed rule to use with this resource. Possible values depends on which DRS type you are using, for the `DefaultRuleSet` type the possible values include `1.0` or `preview-0.1`. For `Microsoft_DefaultRuleSet` the possible values include `1.1`, `2.0` or `2.1`. For `BotProtection` the value must be `preview-0.1` and for `Microsoft_BotManagerRuleSet` the possible values include `1.0` and `1.1`.
+* `version` - (Required) The version of the managed rule to use with this resource. Possible values depends on which default rule set type you are using, for the `DefaultRuleSet` type the possible values include `1.0` or `preview-0.1`. For `Microsoft_DefaultRuleSet` the possible values include `1.1`, `2.0`, or `2.1`. For `BotProtection` the value must be `preview-0.1` and for `Microsoft_BotManagerRuleSet` the possible values include `1.0` and `1.1`.
 
-* `action` - (Required) The action to perform for all DRS rules when the managed rule is matched or when the anomaly score is 5 or greater depending on which version of the DRS you are using. Possible values include `Allow`, `Log`, `Block`, and `Redirect`.
+* `action` - (Required) The action to perform for all default rule set rules when the managed rule is matched or when the anomaly score is 5 or greater depending on which version of the default rule set you are using. Possible values include `Allow`, `Log`, `Block`, or `Redirect`.
 
 * `exclusion` - (Optional) One or more `exclusion` blocks as defined below.
 
 * `override` - (Optional) One or more `override` blocks as defined below.
+
+---
+
+A `log_scrubbing` block supports the following:
+
+* `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
+
+* `scrubbing_rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
+
+-> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
 
 ---
 
@@ -225,9 +254,17 @@ A `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible values for DRS `1.1` and below are `Allow`, `Log`, `Block`, and `Redirect`. For DRS `2.0` and above the possible values are `Log` or `AnomalyScoring`.
+* `action` - (Required) The action to be applied when the managed rule matches or when the anomaly score is 5 or greater. Possible values are `Allow`, `CAPTCHA`, `Log`, `Block`, `Redirect`, `AnomalyScoring` and `JSChallenge`.
 
-->**NOTE:** Please see the DRS [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) for more information.
+~> **Note:** Possible values for `DefaultRuleSet 1.1` and below are `Allow`, `Log`, `Block`, or `Redirect`.
+
+~> **Note:** Possible values for `DefaultRuleSet 2.0` and above are `Log` or `AnomalyScoring`.
+
+~> **Note:** Possible values for `Microsoft_BotManagerRuleSet` are `Allow`, `Log`, `Block`, `Redirect`, or `JSChallenge`.
+
+-> **Note:** Please see the `DefaultRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-front-door-drs?tabs=drs20#anomaly-scoring-mode) or the `Microsoft_BotManagerRuleSet` [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/afds-overview) for more information.
+
+!> **Note:** Setting the `action` field to `JSChallenge` is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
 
@@ -239,13 +276,47 @@ An `exclusion` block supports the following:
 
 * `match_variable` - (Required) The variable type to be excluded. Possible values are `QueryStringArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestBodyJsonArgNames`
 
--> **NOTE:** `RequestBodyJsonArgNames` is only available on Default Rule Set (DRS) 2.0 or later
+-> **Note:** `RequestBodyJsonArgNames` is only available on Default Rule Set (DRS) 2.0 or later
 
-* `operator` - (Required) Comparison operator to apply to the selector when specifying which elements in the collection this exclusion applies to. Possible values are: `Equals`, `Contains`, `StartsWith`, `EndsWith`, `EqualsAny`.
+* `operator` - (Required) Comparison operator to apply to the selector when specifying which elements in the collection this exclusion applies to. Possible values are: `Equals`, `Contains`, `StartsWith`, `EndsWith`, or `EqualsAny`.
 
 * `selector` - (Required) Selector for the value in the `match_variable` attribute this exclusion applies to.
 
--> **NOTE:** `selector` must be set to `*` if `operator` is set to `EqualsAny`.
+-> **Note:** `selector` must be set to `*` if `operator` is set to `EqualsAny`.
+
+---
+
+A `scrubbing_rule` block supports the following:
+
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
+
+-> **Note:** `RequestIPAddress` and `RequestUri` must use the `EqualsAny` `operator`.
+
+* `selector` - (Optional) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
+
+-> **Note:** The `selector` field cannot be set if the `operator` is set to `EqualsAny`.
+
+* `operator` - (Optional) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`. Defaults to `Equals`.
+
+* `enabled` - (Optional) Is this `scrubbing_rule` enabled? Defaults to `true`.
+
+---
+
+## `scrubbing_rule` Examples:
+
+The following table shows examples of `scrubbing_rule`'s that can be used to protect sensitive data:
+
+| Match Variable               | Operator       | Selector      | What Gets Scrubbed                                                            |
+| :--------------------------- | :------------- | :------------ | :---------------------------------------------------------------------------- |
+| `RequestHeaderNames`         | Equals         | keyToBlock    | {"matchVariableName":"HeaderValue:keyToBlock","matchVariableValue":"****"}    |
+| `RequestCookieNames`         | Equals         | cookieToBlock | {"matchVariableName":"CookieValue:cookieToBlock","matchVariableValue":"****"} |
+| `RequestBodyPostArgNames`    | Equals         | var           | {"matchVariableName":"PostParamValue:var","matchVariableValue":"****"}        |
+| `RequestBodyJsonArgNames`    | Equals         | JsonValue     | {"matchVariableName":"JsonValue:key","matchVariableValue":"****"}             |
+| `QueryStringArgNames`        | Equals         | foo           | {"matchVariableName":"QueryParamValue:foo","matchVariableValue":"****"}       |
+| `RequestIPAddress`           | Equals Any     | Not Supported | {"matchVariableName":"ClientIP","matchVariableValue":"****"}                  |
+| `RequestUri`                 | Equals Any     | Not Supported | {"matchVariableName":"URI","matchVariableValue":"****"}                       |
+
+---
 
 ## Attributes Reference
 
@@ -257,11 +328,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Firewall Policy.
 
 ## Import

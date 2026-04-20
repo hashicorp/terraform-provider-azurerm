@@ -19,6 +19,9 @@ import (
 //   - Plan Modification: Schema-based or entire plan
 //     via ResourceWithModifyPlan.
 //   - State Upgrades: ResourceWithUpgradeState
+//   - Identity: Define an identity schema with ResourceWithIdentity to enable
+//     storing identity data in state during CRUD operations. Identity data is
+//     used by Terraform to uniquely identify a managed resource.
 //
 // Although not required, it is conventional for resources to implement the
 // ResourceWithImportState interface.
@@ -195,4 +198,43 @@ type ResourceWithValidateConfig interface {
 
 	// ValidateConfig performs the validation.
 	ValidateConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
+}
+
+// ResourceWithIdentity is an interface type that extends Resource to implement managed resource identity.
+//
+// Managed resources can optionally define an identity schema, which represents a separate object stored in state
+// alongside the resource instance data. This identity data is used by Terraform to uniquely identify
+// managed resources and has additional restrictions that allow external programs to determine equality
+// between two identities.
+//
+// Resource identity schemas can only contain primitive (bool, string, number) attributes and lists that
+// contain primitive elements. Additionally, a resource identity should have the following properties:
+//   - The resource identity should correspond to at most one remote object per provider, across all
+//     instances of that provider.
+//   - Given a resource identity, the provider should be able to determine whether the corresponding remote
+//     object exists, and if so, return the resource state. Resources that support identity can be imported
+//     by the identity object via the ResourceWithImportState interface.
+//   - The resource identity should not change during the lifecycle of the remote object. That is, from the
+//     creation of the remote object in the remote system until its destruction. An exception to this rule
+//     is an upgrade of the identity data after a schema change, via the ResourceWithUpgradeIdentity interface.
+type ResourceWithIdentity interface {
+	Resource
+
+	// IdentitySchema should return the identity schema for this resource.
+	IdentitySchema(context.Context, IdentitySchemaRequest, *IdentitySchemaResponse)
+}
+
+type ResourceWithUpgradeIdentity interface {
+	Resource
+
+	// A mapping of the prior identity version to current identity upgrade
+	// implementation. Only the specified identity upgrader for the prior identity
+	// version is called, rather than each version in between, so it must
+	// encapsulate all logic to convert the prior identity to the current identity schema
+	// version.
+	//
+	// Version keys begin at 0, which is the default schema version when
+	// undefined. The framework will return an error diagnostic should the
+	// requested identity version not be implemented.
+	UpgradeIdentity(context.Context) map[int64]IdentityUpgrader
 }

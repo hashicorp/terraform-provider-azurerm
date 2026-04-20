@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -19,29 +19,28 @@ import (
 )
 
 type Client struct {
+	ClustersClient            *clusters.ClustersClient
+	ConfigurationsClient      *configurations.ConfigurationsClient
+	CosmosDBClient            *cosmosdb.CosmosDBClient
+	FirewallRulesClient       *firewallrules.FirewallRulesClient
+	ManagedCassandraClient    *managedcassandras.ManagedCassandrasClient
+	MongoRBACClient           *mongorbacs.MongorbacsClient
+	RolesClient               *roles.RolesClient
+	SqlDedicatedGatewayClient *sqldedicatedgateway.SqlDedicatedGatewayClient
+
+	// Track 1
 	CassandraClient                  *documentdb.CassandraResourcesClient
-	ClustersClient                   *clusters.ClustersClient
-	ConfigurationsClient             *configurations.ConfigurationsClient
-	CosmosDBClient                   *cosmosdb.CosmosDBClient
 	DatabaseClient                   *documentdb.DatabaseAccountsClient
-	FirewallRulesClient              *firewallrules.FirewallRulesClient
 	GremlinClient                    *documentdb.GremlinResourcesClient
-	ManagedCassandraClient           *managedcassandras.ManagedCassandrasClient
 	MongoDbClient                    *documentdb.MongoDBResourcesClient
-	MongoRBACClient                  *mongorbacs.MongorbacsClient
 	NotebookWorkspaceClient          *documentdb.NotebookWorkspacesClient
 	RestorableDatabaseAccountsClient *documentdb.RestorableDatabaseAccountsClient
-	RolesClient                      *roles.RolesClient
-	SqlDedicatedGatewayClient        *sqldedicatedgateway.SqlDedicatedGatewayClient
 	SqlClient                        *documentdb.SQLResourcesClient
 	SqlResourceClient                *documentdb.SQLResourcesClient
 	TableClient                      *documentdb.TableResourcesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	cassandraClient := documentdb.NewCassandraResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&cassandraClient.Client, o.ResourceManagerAuthorizer)
-
 	managedCassandraClient, err := managedcassandras.NewManagedCassandrasClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Managed Cassandra client: %+v", err)
@@ -66,32 +65,17 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(cosmosdbClient.Client, o.Authorizers.ResourceManager)
 
-	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
-
 	firewallRulesClient, err := firewallrules.NewFirewallRulesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building FirewallRules client: %+v", err)
 	}
 	o.Configure(firewallRulesClient.Client, o.Authorizers.ResourceManager)
 
-	gremlinClient := documentdb.NewGremlinResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&gremlinClient.Client, o.ResourceManagerAuthorizer)
-
-	mongoDbClient := documentdb.NewMongoDBResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&mongoDbClient.Client, o.ResourceManagerAuthorizer)
-
 	mongorbacsClient, err := mongorbacs.NewMongorbacsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Mongorbacs client: %+v", err)
 	}
 	o.Configure(mongorbacsClient.Client, o.Authorizers.ResourceManager)
-
-	notebookWorkspaceClient := documentdb.NewNotebookWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&notebookWorkspaceClient.Client, o.ResourceManagerAuthorizer)
-
-	restorableDatabaseAccountsClient := documentdb.NewRestorableDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&restorableDatabaseAccountsClient.Client, o.ResourceManagerAuthorizer)
 
 	rolesClient, err := roles.NewRolesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -105,6 +89,25 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(sqlDedicatedGatewayClient.Client, o.Authorizers.ResourceManager)
 
+	// Track 1
+	cassandraClient := documentdb.NewCassandraResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&cassandraClient.Client, o.ResourceManagerAuthorizer)
+
+	databaseClient := documentdb.NewDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&databaseClient.Client, o.ResourceManagerAuthorizer)
+
+	gremlinClient := documentdb.NewGremlinResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&gremlinClient.Client, o.ResourceManagerAuthorizer)
+
+	mongoDbClient := documentdb.NewMongoDBResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&mongoDbClient.Client, o.ResourceManagerAuthorizer)
+
+	notebookWorkspaceClient := documentdb.NewNotebookWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&notebookWorkspaceClient.Client, o.ResourceManagerAuthorizer)
+
+	restorableDatabaseAccountsClient := documentdb.NewRestorableDatabaseAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&restorableDatabaseAccountsClient.Client, o.ResourceManagerAuthorizer)
+
 	sqlClient := documentdb.NewSQLResourcesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&sqlClient.Client, o.ResourceManagerAuthorizer)
 
@@ -115,20 +118,22 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	o.ConfigureClient(&tableClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
+		ManagedCassandraClient:    managedCassandraClient,
+		ClustersClient:            clustersClient,
+		ConfigurationsClient:      configurationsClient,
+		CosmosDBClient:            cosmosdbClient,
+		FirewallRulesClient:       firewallRulesClient,
+		MongoRBACClient:           mongorbacsClient,
+		RolesClient:               rolesClient,
+		SqlDedicatedGatewayClient: sqlDedicatedGatewayClient,
+
+		// Track 1
 		CassandraClient:                  &cassandraClient,
-		ManagedCassandraClient:           managedCassandraClient,
-		ClustersClient:                   clustersClient,
-		ConfigurationsClient:             configurationsClient,
-		CosmosDBClient:                   cosmosdbClient,
 		DatabaseClient:                   &databaseClient,
-		FirewallRulesClient:              firewallRulesClient,
 		GremlinClient:                    &gremlinClient,
 		MongoDbClient:                    &mongoDbClient,
-		MongoRBACClient:                  mongorbacsClient,
 		NotebookWorkspaceClient:          &notebookWorkspaceClient,
 		RestorableDatabaseAccountsClient: &restorableDatabaseAccountsClient,
-		RolesClient:                      rolesClient,
-		SqlDedicatedGatewayClient:        sqlDedicatedGatewayClient,
 		SqlClient:                        &sqlClient,
 		SqlResourceClient:                &sqlResourceClient,
 		TableClient:                      &tableClient,

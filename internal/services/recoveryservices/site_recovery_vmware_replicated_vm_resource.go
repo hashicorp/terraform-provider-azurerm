@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package recoveryservices
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -596,7 +597,7 @@ func (s VMWareReplicatedVmResource) Update() sdk.ResourceFunc {
 				vmNics = expandVMWareReplicatedVMNics(model.NetworkInterface)
 			} else {
 				if existingDetails.VMNics == nil {
-					return fmt.Errorf("retrieving `network_interface`: VMNics was nil.")
+					return errors.New("retrieving `network_interface`: VMNics was nil")
 				} else {
 					for _, respNic := range *existingDetails.VMNics {
 						vmNics = append(vmNics, replicationprotecteditems.InMageRcmNicInput{

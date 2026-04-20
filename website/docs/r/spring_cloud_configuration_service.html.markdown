@@ -10,7 +10,9 @@ description: |-
 
 Manages a Spring Cloud Configuration Service.
 
--> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+-> **Note:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_configuration_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 
 ## Example Usage
 
@@ -99,7 +101,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spring Cloud Configuration Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Configuration Service.
@@ -113,3 +115,9 @@ Spring Cloud Configuration Services can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_spring_cloud_configuration_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.AppPlatform/spring/service1/configurationServices/configurationService1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AppPlatform` - 2024-01-01-preview

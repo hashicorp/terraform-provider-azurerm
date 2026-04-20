@@ -1,10 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -16,25 +17,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/operation"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/replications"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/replications"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func resourceContainerRegistry() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceContainerRegistryCreate,
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
@@ -58,7 +58,210 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceContainerRegistrySchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: containerValidate.ContainerRegistryName,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
+
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(registries.SkuNameBasic),
+					string(registries.SkuNameStandard),
+					string(registries.SkuNamePremium),
+				}, false),
+			},
+
+			"admin_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"georeplications": {
+				// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
+				// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAuto,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"location": commonschema.LocationWithoutForceNew(),
+
+						"zone_redundancy_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"regional_endpoint_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"tags": commonschema.Tags(),
+					},
+				},
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"login_server": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"admin_username": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"admin_password": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
+						},
+					},
+				},
+			},
+
+			"network_rule_set": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  registries.DefaultActionAllow,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(registries.DefaultActionAllow),
+								string(registries.DefaultActionDeny),
+							}, false),
+						},
+
+						"ip_rule": {
+							Type:       pluginsdk.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"action": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(registries.ActionAllow),
+										}, false),
+									},
+									"ip_range": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.CIDR,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"quarantine_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"retention_policy_in_days": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 365),
+			},
+
+			"trust_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"export_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"zone_redundancy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
+
+			"anonymous_pull_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"data_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"data_endpoint_host_names": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
+			"network_rule_bypass_option": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(registries.NetworkRuleBypassOptionsAzureServices),
+					string(registries.NetworkRuleBypassOptionsNone),
+				}, false),
+				Default: string(registries.NetworkRuleBypassOptionsAzureServices),
+			},
+
+			"tags": commonschema.Tags(),
+		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
@@ -66,50 +269,50 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			geoReplications := d.Get("georeplications").([]interface{})
 			// if locations have been specified for geo-replication then, the SKU has to be Premium
 			if len(geoReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+				return errors.New("an ACR geo-replication can only be applied when using the Premium Sku")
 			}
 
 			// ensure location is different than any location of the geo-replication
 			var geoReplicationLocations []string
 			for _, v := range geoReplications {
 				v := v.(map[string]interface{})
-				geoReplicationLocations = append(geoReplicationLocations, azure.NormalizeLocation(v["location"]))
+				geoReplicationLocations = append(geoReplicationLocations, location.Normalize(v["location"].(string)))
 			}
 			location := location.Normalize(d.Get("location").(string))
 			for _, loc := range geoReplicationLocations {
 				if loc == location {
-					return fmt.Errorf("The `georeplications` list cannot contain the location where the Container Registry exists.")
+					return errors.New("the `georeplications` list cannot contain the location where the Container Registry exists")
 				}
 			}
 
 			quarantinePolicyEnabled := d.Get("quarantine_policy_enabled").(bool)
 			if quarantinePolicyEnabled && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
+				return errors.New("an ACR quarantine policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset quarantine_policy_enabled")
 			}
 
 			retentionPolicyEnabled, ok := d.GetOk("retention_policy_in_days")
 			if ok && retentionPolicyEnabled.(int) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
+				return errors.New("an ACR retention policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `retention_policy_in_days`")
 			}
 
 			trustPolicyEnabled, ok := d.GetOk("trust_policy_enabled")
 			if ok && trustPolicyEnabled.(bool) && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
+				return errors.New("an ACR trust policy can only be applied when using the Premium Sku. If you are downgrading from a Premium SKU please unset `trust_policy_enabled` or set `trust_policy_enabled = false`")
 			}
 
 			exportPolicyEnabled := d.Get("export_policy_enabled").(bool)
 			if !exportPolicyEnabled {
 				if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-					return fmt.Errorf("ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
+					return errors.New("an ACR export policy can only be disabled when using the Premium Sku. If you are downgrading from a Premium SKU please unset `export_policy_enabled` or set `export_policy_enabled = true`")
 				}
 				if d.Get("public_network_access_enabled").(bool) {
-					return fmt.Errorf("To disable export of artifacts, `public_network_access_enabled` must also be `false`")
+					return errors.New("to disable export of artifacts, `public_network_access_enabled` must also be `false`")
 				}
 			}
 
 			encryptionEnabled, ok := d.GetOk("encryption")
 			if ok && len(encryptionEnabled.([]interface{})) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-				return fmt.Errorf("ACR encryption can only be applied when using the Premium Sku.")
+				return errors.New("an ACR encryption can only be applied when using the Premium Sku")
 			}
 
 			// zone redundancy is only available for Premium Sku.
@@ -138,11 +341,18 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["encryption"].Computed = true
+		r.Schema["encryption"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeAny)
+	}
+
+	return r
 }
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
-	operationClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Operation
+	registriesClient := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -164,11 +374,11 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	sId := commonids.NewSubscriptionID(subscriptionId)
-	availabilityRequest := operation.RegistryNameCheckRequest{
+	availabilityRequest := registries.RegistryNameCheckRequest{
 		Name: id.RegistryName,
 		Type: "Microsoft.ContainerRegistry/registries",
 	}
-	resp, err := operationClient.RegistriesCheckNameAvailability(ctx, sId, availabilityRequest)
+	resp, err := registriesClient.CheckNameAvailability(ctx, sId, availabilityRequest)
 	if err != nil {
 		return fmt.Errorf("checking if the name %q was available: %+v", id.RegistryName, err)
 	}
@@ -185,7 +395,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
 	if networkRuleSet != nil && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU please set network_rule_set = []")
 	}
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -196,7 +406,7 @@ func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}
 	publicNetworkAccess := registries.PublicNetworkAccessEnabled
 	if !d.Get("public_network_access_enabled").(bool) {
 		if !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-			return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+			return errors.New("`public_network_access_enabled` can only be disabled for a Premium Sku")
 		}
 
 		publicNetworkAccess = registries.PublicNetworkAccessDisabled
@@ -310,7 +520,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkAccess := registries.PublicNetworkAccessEnabled
 		if !d.Get("public_network_access_enabled").(bool) {
 			if !isPremiumSku {
-				return fmt.Errorf("`public_network_access_enabled` can only be disabled for a Premium Sku.")
+				return errors.New("`public_network_access_enabled` can only be disabled for a Premium Sku")
 			}
 
 			publicNetworkAccess = registries.PublicNetworkAccessDisabled
@@ -414,7 +624,7 @@ func resourceContainerRegistryUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 	// geo replication is only supported by Premium Sku
 	if len(newReplications) > 0 && !strings.EqualFold(sku, string(registries.SkuNamePremium)) {
-		return fmt.Errorf("ACR geo-replication can only be applied when using the Premium Sku.")
+		return errors.New("an ACR geo-replication can only be applied when using the Premium Sku")
 	}
 
 	if hasGeoReplicationsChanges {
@@ -646,6 +856,7 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 			d.Set("zone_redundancy_enabled", *props.ZoneRedundancy == registries.ZoneRedundancyEnabled)
 			d.Set("anonymous_pull_enabled", props.AnonymousPullEnabled)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
+			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 			d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleBypassOptions)))
 
 			if policies := props.Policies; policies != nil {
@@ -793,7 +1004,7 @@ func expandReplications(p []interface{}) []replications.Replication {
 	}
 	for _, v := range p {
 		value := v.(map[string]interface{})
-		location := azure.NormalizeLocation(value["location"])
+		location := location.Normalize(value["location"].(string))
 		tags := tags.Expand(value["tags"].(map[string]interface{}))
 		zoneRedundancy := replications.ZoneRedundancyDisabled
 		if value["zone_redundancy_enabled"].(bool) {
@@ -881,204 +1092,4 @@ func flattenExportPolicy(p *registries.Policies) bool {
 	}
 
 	return *p.ExportPolicy.Status == registries.ExportPolicyStatusEnabled
-}
-
-func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: containerValidate.ContainerRegistryName,
-		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"location": commonschema.Location(),
-
-		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registries.SkuNameBasic),
-				string(registries.SkuNameStandard),
-				string(registries.SkuNamePremium),
-			}, false),
-		},
-
-		"admin_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"georeplications": {
-			// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
-			// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAuto,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"location": commonschema.LocationWithoutForceNew(),
-
-					"zone_redundancy_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"regional_endpoint_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
-					"tags": commonschema.Tags(),
-				},
-			},
-		},
-
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"login_server": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"admin_username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"admin_password": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-		"encryption": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity_client_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"key_vault_key_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-					},
-				},
-			},
-		},
-
-		"network_rule_set": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"default_action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  registries.DefaultActionAllow,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(registries.DefaultActionAllow),
-							string(registries.DefaultActionDeny),
-						}, false),
-					},
-
-					"ip_rule": {
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						Computed:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(registries.ActionAllow),
-									}, false),
-								},
-								"ip_range": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.CIDR,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"quarantine_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"retention_policy_in_days": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntBetween(0, 365),
-		},
-
-		"trust_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"export_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"zone_redundancy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
-			Default:  false,
-		},
-
-		"anonymous_pull_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"data_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"network_rule_bypass_option": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registries.NetworkRuleBypassOptionsAzureServices),
-				string(registries.NetworkRuleBypassOptionsNone),
-			}, false),
-			Default: string(registries.NetworkRuleBypassOptionsAzureServices),
-		},
-
-		"tags": commonschema.Tags(),
-	}
 }

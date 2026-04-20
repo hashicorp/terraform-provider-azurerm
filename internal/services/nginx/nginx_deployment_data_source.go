@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -29,7 +29,7 @@ type DeploymentDataSourceModel struct {
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
 	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
@@ -37,6 +37,7 @@ type DeploymentDataSourceModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	WebApplicationFirewall []WebApplicationFirewall                   `tfschema:"web_application_firewall"`
 	DataplaneAPIEndpoint   string                                     `tfschema:"dataplane_api_endpoint"`
 	Tags                   map[string]string                          `tfschema:"tags"`
 }
@@ -106,11 +107,6 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"diagnose_support_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
 		"email": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -178,10 +174,35 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"web_application_firewall": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"activation_state_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"status": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"attack_signatures_package": webApplicationFirewallPackageComputed(),
+								"bot_signatures_package":    webApplicationFirewallPackageComputed(),
+								"threat_campaigns_package":  webApplicationFirewallPackageComputed(),
+								"component_versions":        webApplicationFirewallComponentVersionsComputed(),
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"tags": commonschema.TagsDataSource(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		dataSource["managed_resource_group"] = &pluginsdk.Schema{
 			Deprecated: "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
 			Type:       pluginsdk.TypeString,
@@ -206,8 +227,52 @@ func (m DeploymentDataSource) Attributes() map[string]*pluginsdk.Schema {
 				},
 			},
 		}
+
+		dataSource["diagnose_support_enabled"] = &pluginsdk.Schema{
+			Deprecated: "this property is deprecated and will be removed in v5.0, metrics are enabled by default.",
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+		}
 	}
 	return dataSource
+}
+
+func webApplicationFirewallPackageComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"revision_datetime": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func webApplicationFirewallComponentVersionsComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"waf_engine_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+				"waf_nginx_version": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
 }
 
 func (m DeploymentDataSource) ModelObject() interface{} {
@@ -243,9 +308,9 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := result.Model; model != nil {
-				output.Location = pointer.ToString(model.Location)
+				output.Location = pointer.From(model.Location)
 				if tags := model.Tags; tags != nil {
-					output.Tags = pointer.ToMapOfStringStrings(model.Tags)
+					output.Tags = pointer.From(model.Tags)
 				}
 				if model.Sku != nil {
 					output.Sku = model.Sku.Name
@@ -256,20 +321,20 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 				}
 				output.Identity = *flattenedIdentity
 				if props := model.Properties; props != nil {
-					output.IpAddress = pointer.ToString(props.IPAddress)
-					output.NginxVersion = pointer.ToString(props.NginxVersion)
-					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
-					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
+					output.IpAddress = pointer.From(props.IPAddress)
+					output.NginxVersion = pointer.From(props.NginxVersion)
+					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
 
-					if !features.FivePointOhBeta() {
+					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
 							output.LoggingStorageAccount = []LoggingStorageAccount{
 								{
-									Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
-									ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
+									Name:          pointer.From(props.Logging.StorageAccount.AccountName),
+									ContainerName: pointer.From(props.Logging.StorageAccount.ContainerName),
 								},
 							}
 						}
+						output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 					}
 
 					if profile := props.NetworkProfile; profile != nil {
@@ -277,7 +342,7 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 							if publicIps := frontend.PublicIPAddresses; publicIps != nil && len(*publicIps) > 0 {
 								output.FrontendPublic = append(output.FrontendPublic, FrontendPublic{})
 								for _, ip := range *publicIps {
-									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.ToString(ip.Id))
+									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.From(ip.Id))
 								}
 							}
 
@@ -289,9 +354,9 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 									}
 
 									output.FrontendPrivate = append(output.FrontendPrivate, FrontendPrivate{
-										IpAddress:        pointer.ToString(ip.PrivateIPAddress),
+										IpAddress:        pointer.From(ip.PrivateIPAddress),
 										AllocationMethod: method,
-										SubnetId:         pointer.ToString(ip.SubnetId),
+										SubnetId:         pointer.From(ip.SubnetId),
 									})
 								}
 							}
@@ -299,14 +364,14 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 
 						if netIf := profile.NetworkInterfaceConfiguration; netIf != nil {
 							output.NetworkInterface = []NetworkInterface{
-								{SubnetId: pointer.ToString(netIf.SubnetId)},
+								{SubnetId: pointer.From(netIf.SubnetId)},
 							}
 						}
 					}
 
 					if scaling := props.ScalingProperties; scaling != nil {
 						if capacity := scaling.Capacity; capacity != nil {
-							output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+							output.Capacity = pointer.From(props.ScalingProperties.Capacity)
 						}
 						if autoScaleProfiles := scaling.AutoScaleSettings; autoScaleProfiles != nil {
 							profiles := autoScaleProfiles.Profiles
@@ -321,11 +386,60 @@ func (m DeploymentDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
-						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+						output.Email = pointer.From(props.UserProfile.PreferredEmail)
 					}
 
 					if props.AutoUpgradeProfile != nil {
 						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
+					}
+
+					if nap := props.NginxAppProtect; nap != nil {
+						waf := WebApplicationFirewall{}
+						if state := nap.WebApplicationFirewallSettings.ActivationState; state != nil {
+							switch *state {
+							case nginxdeployment.ActivationStateEnabled:
+								waf.ActivationStateEnabled = true
+							default:
+								waf.ActivationStateEnabled = false
+							}
+						}
+						if status := nap.WebApplicationFirewallStatus; status != nil {
+							wafStatus := WebApplicationFirewallStatus{}
+							if attackSignature := status.AttackSignaturesPackage; attackSignature != nil {
+								wafStatus.AttackSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: attackSignature.RevisionDatetime,
+										Version:          attackSignature.Version,
+									},
+								}
+							}
+							if botSignature := status.BotSignaturesPackage; botSignature != nil {
+								wafStatus.BotSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: botSignature.RevisionDatetime,
+										Version:          botSignature.Version,
+									},
+								}
+							}
+							if threatCampaign := status.ThreatCampaignsPackage; threatCampaign != nil {
+								wafStatus.ThreatCampaignsPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: threatCampaign.RevisionDatetime,
+										Version:          threatCampaign.Version,
+									},
+								}
+							}
+							if componentVersions := status.ComponentVersions; componentVersions != nil {
+								wafStatus.ComponentVersions = []WebApplicationFirewallComponentVersions{
+									{
+										WafEngineVersion: componentVersions.WafEngineVersion,
+										WafNginxVersion:  componentVersions.WafNginxVersion,
+									},
+								}
+							}
+							waf.Status = []WebApplicationFirewallStatus{wafStatus}
+							output.WebApplicationFirewall = []WebApplicationFirewall{waf}
+						}
 					}
 				}
 			}

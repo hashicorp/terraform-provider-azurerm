@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containerapps_test
@@ -10,12 +10,11 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-02-02-preview/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/jobs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerAppJobResource struct{}
@@ -33,7 +32,7 @@ func (r ContainerAppJobResource) Exists(ctx context.Context, client *clients.Cli
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func TestAccContainerAppJob_basic(t *testing.T) {
@@ -132,6 +131,21 @@ func TestAccContainerAppJob_withIdentityUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppJob_allProbes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_job", "test")
+	r := ContainerAppJobResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.allProbes(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -286,6 +300,85 @@ func TestAccContainerAppJob_withKeyVaultSecretIdentityUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 	})
+}
+
+func (r ContainerAppJobResource) allProbes(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_job" "test" {
+  name                         = "acctest-cajob%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  container_app_environment_id = azurerm_container_app_environment.test.id
+
+  replica_timeout_in_seconds = 10
+  replica_retry_limit        = 10
+  manual_trigger_config {
+    parallelism              = 4
+    replica_completion_count = 1
+  }
+
+  template {
+    container {
+      image = "jackofallops/azure-containerapps-python-acctest:v0.0.1"
+      name  = "testcontainerappsjob0"
+      liveness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+      startup_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+      readiness_probe {
+        transport = "HTTP"
+        port      = 5000
+        path      = "/health"
+
+        header {
+          name  = "Cache-Control"
+          value = "no-cache"
+        }
+
+        initial_delay           = 5
+        interval_seconds        = 20
+        timeout                 = 2
+        failure_count_threshold = 1
+      }
+      cpu    = 0.5
+      memory = "1Gi"
+    }
+  }
+}
+`, template, data.RandomInteger)
 }
 
 func (r ContainerAppJobResource) eventTrigger(data acceptance.TestData) string {
@@ -1217,6 +1310,7 @@ resource "azurerm_container_app_job" "test" {
 func (r ContainerAppJobResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_container_app_job" "test" {
@@ -1247,9 +1341,10 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
     container {
       args = [
@@ -1289,8 +1384,9 @@ resource "azurerm_container_app_job" "test" {
       cpu    = 0.5
       memory = "1Gi"
       volume_mounts {
-        path = "/appsettings"
-        name = azurerm_container_app_environment_storage.test.name
+        path     = "/appsettings"
+        name     = azurerm_container_app_environment_storage.test.name
+        sub_path = "subdirectory"
       }
     }
 
@@ -1300,8 +1396,9 @@ resource "azurerm_container_app_job" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
       volume_mounts {
-        name = azurerm_container_app_environment_storage.test.name
-        path = "/appsettings"
+        name     = azurerm_container_app_environment_storage.test.name
+        path     = "/appsettings"
+        sub_path = "subdirectory"
       }
     }
   }
@@ -1354,9 +1451,10 @@ resource "azurerm_container_app_job" "test" {
 
   template {
     volume {
-      name         = azurerm_container_app_environment_storage.test.name
-      storage_type = "AzureFile"
-      storage_name = azurerm_container_app_environment_storage.test.name
+      name          = azurerm_container_app_environment_storage.test.name
+      storage_type  = "AzureFile"
+      storage_name  = azurerm_container_app_environment_storage.test.name
+      mount_options = "dir_mode=0777,file_mode=0666"
     }
     container {
       args = [

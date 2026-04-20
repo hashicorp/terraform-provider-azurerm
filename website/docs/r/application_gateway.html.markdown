@@ -10,7 +10,7 @@ description: |-
 
 Manages an Application Gateway.
 
-~> **NOTE:** The `backend_address_pool`, `backend_http_settings`, `http_listener`, `private_link_configuration`, `request_routing_rule`, `redirect_configuration`, `probe`, `ssl_certificate`,
+~> **Note:** The `backend_address_pool`, `backend_http_settings`, `http_listener`, `private_link_configuration`, `request_routing_rule`, `redirect_configuration`, `probe`, `ssl_certificate`,
 and `frontend_port` properties are Sets as the service API returns these lists of objects in a different order from how the provider sends them. As Sets are stored using a hash, if one 
 value is added or removed from the Set, Terraform considers the entire list of objects changed and the plan shows that it is removing every value in the list and re-adding it with the 
 new information. Though Terraform is showing all the values being removed and re-added, we are not actually removing anything unless the user specifies a removal in the configfile.
@@ -112,7 +112,7 @@ resource "azurerm_application_gateway" "network" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -124,67 +124,85 @@ The following arguments are supported:
 
 * `backend_address_pool` - (Required) One or more `backend_address_pool` blocks as defined below.
 
-* `backend_http_settings` - (Required) One or more `backend_http_settings` blocks as defined below.
-
 * `frontend_ip_configuration` - (Required) One or more `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - (Required) One or more `frontend_port` blocks as defined below.
 
 * `gateway_ip_configuration` - (Required) One or more `gateway_ip_configuration` blocks as defined below.
 
-* `http_listener` - (Required) One or more `http_listener` blocks as defined below.
-
-* `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
-
 * `sku` - (Required) A `sku` block as defined below.
 
 ---
 
-* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
-
-* `global` - (Optional) A `global` block as defined below.
-
-* `identity` - (Optional) An `identity` block as defined below.
-
-* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
-
-* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
-
--> **Please Note**: Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
-
-* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
-
-* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
-
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
-* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
+* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
-* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+* `backend` - (Optional) One or more `backend` blocks as defined below.
 
-* `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+~> **Note:** At least one of `backend_http_settings` or `backend` must be specified.
+
+* `backend_http_settings` - (Optional) One or more `backend_http_settings` blocks as defined below.
+
+~> **Note:** At least one of `backend_http_settings` or `backend` must be specified.
+
+* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+
+* `http2_enabled` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
+
+* `fips_enabled` - (Optional) Is FIPS enabled on the Application Gateway?
+
+* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
 
 * `force_firewall_policy_association` - (Optional) Is the Firewall Policy associated with the Application Gateway?
 
+* `global` - (Optional) A `global` block as defined below.
+
+* `http_listener` - (Optional) One or more `http_listener` blocks as defined below.
+
+~> **Note:** At least one of `http_listener` or `listener` must be specified.
+
+* `identity` - (Optional) An `identity` block as defined below.
+
+* `listener` - (Optional) One or more `listener` blocks as defined below.
+
+~> **Note:** At least one of `http_listener` or `listener` must be specified.
+
+* `private_link_configuration` - (Optional) One or more `private_link_configuration` blocks as defined below.
+
 * `probe` - (Optional) One or more `probe` blocks as defined below.
+
+* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
+
+* `request_routing_rule` - (Optional) One or more `request_routing_rule` blocks as defined below.
+
+~> **Note:** At least one of `request_routing_rule` or `routing_rule` must be specified.
+
+* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
+
+* `routing_rule` - (Optional) One or more `routing_rule` blocks as defined below.
+
+~> **Note:** At least one of `request_routing_rule` or `routing_rule` must be specified.
 
 * `ssl_certificate` - (Optional) One or more `ssl_certificate` blocks as defined below.
 
+* `ssl_policy` - (Optional) a `ssl_policy` block as defined below.
+
+* `ssl_profile` - (Optional) One or more `ssl_profile` blocks as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
+
+* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
 
 * `url_path_map` - (Optional) One or more `url_path_map` blocks as defined below.
 
 * `waf_configuration` - (Optional) A `waf_configuration` block as defined below.
 
-* `custom_error_configuration` - (Optional) One or more `custom_error_configuration` blocks as defined below.
+* `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
 
-* `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy.
-
-* `redirect_configuration` - (Optional) One or more `redirect_configuration` blocks as defined below.
-
-* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
-
-* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
+-> **Note:** Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
 ---
 
@@ -204,11 +222,11 @@ A `trusted_root_certificate` block supports the following:
 
 * `key_vault_secret_id` - (Optional) The Secret ID of the (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
 
--> **NOTE:** To implement certificate rotation, `versionless_secret_id` should be used, although `secret_id` is also supported.
+-> **Note:** To implement certificate rotation, `versionless_secret_id` should be used, although `secret_id` is also supported.
 
--> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
+-> **Note:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
 
--> **NOTE:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
+-> **Note:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -222,33 +240,55 @@ A `backend_address_pool` block supports the following:
 
 ---
 
+A `backend` block supports the following:
+
+* `name` - (Required) The name of the Backend Settings Collection.
+
+* `port` - (Required) The port which should be used for this Backend Settings Collection.
+
+* `protocol` - (Required) The Protocol which should be used. Possible values are `Tcp` and `Tls`.
+
+* `client_ip_preservation_enabled` - (Optional) Whether client IP preservation is enabled for this Backend Settings Collection. Defaults to `false`.
+
+* `host_name` - (Optional) Host header to be sent to the backend servers. Can only be set when `protocol` is `Tls`.
+
+* `probe_name` - (Optional) The name of an associated Probe.
+
+* `timeout_in_seconds` - (Optional) The connection timeout in seconds. Possible values range between `1` and `86400`. Defaults to `30`.
+
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
+
+---
+
 A `backend_http_settings` block supports the following:
 
 * `cookie_based_affinity` - (Required) Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
 
-* `affinity_cookie_name` - (Optional) The name of the affinity cookie.
-
 * `name` - (Required) The name of the Backend HTTP Settings Collection.
-
-* `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
 
 * `port` - (Required) The port which should be used for this Backend HTTP Settings Collection.
 
-* `probe_name` - (Optional) The name of an associated HTTP Probe.
-
 * `protocol` - (Required) The Protocol which should be used. Possible values are `Http` and `Https`.
-
-* `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
-
-* `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
-
-* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
+ 
+* `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate_backend` blocks as defined below.
 
-* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
-
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
+
+* `dedicated_backend_connection_enabled` - (Optional) Whether to use a dedicated backend connection. Defaults to `false`.
+
+* `host_name` - (Optional) Host header to be sent to the backend servers. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
+
+* `path` - (Optional) The Path which should be used as a prefix for all HTTP requests.
+
+* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
+
+* `probe_name` - (Optional) The name of an associated HTTP Probe.
+
+* `request_timeout` - (Optional) The request timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
+
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
 ---
 
@@ -310,7 +350,7 @@ A `http_listener` block supports the following:
 
 * `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
 
--> **NOTE** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
+-> **Note:** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
@@ -323,6 +363,28 @@ A `http_listener` block supports the following:
 * `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used for this HTTP Listener.
 
 * `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this HTTP Listener.
+
+---
+
+A `listener` block supports the following:
+
+* `name` - (Required) The Name of the Listener.
+
+* `frontend_ip_configuration_name` - (Required) The Name of the Frontend IP Configuration used for this Listener.
+
+* `frontend_port_name` - (Required) The Name of the Frontend Port use for this Listener.
+
+* `protocol` - (Required) The Protocol to use for this Listener. Possible values are `Tcp`, and `Tls`.
+
+* `host_names` - (Optional) A list of Hostname(s) should be used for this Listener. It allows special wildcard characters.
+
+~> **Note:** `host_names` cannot be set when `protocol` is set to `Tcp`.
+
+* `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this Listener.
+
+~> **Note:** `ssl_certificate_name` must be set when `protocol` is set to `Tls`.
+
+* `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this Listener.
 
 ---
 
@@ -340,7 +402,7 @@ A `private_link_configuration` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
--> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
+-> **Note:** The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
 
 ```bash
 az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
@@ -390,27 +452,43 @@ A `path_rule` block supports the following:
 
 A `probe` block supports the following:
 
-* `host` - (Optional) The Hostname used for this Probe. If the Application Gateway is configured for a single site, by default the Host name should be specified as `127.0.0.1`, unless otherwise configured in custom probe. Cannot be set if `pick_host_name_from_backend_http_settings` is set to `true`.
+* `interval` - (Required) The interval between two consecutive probes in seconds. Possible values range from `1` to `86400`.
 
-* `interval` - (Required) The Interval between two consecutive probes in seconds. Possible values range from 1 second to a maximum of 86,400 seconds.
+* `name` - (Required) The name of the Probe.
 
-* `name` - (Required) The Name of the Probe.
+* `protocol` - (Required) The protocol used for this Probe. Possible values are `Http`, `Https`, `Tcp`, and `Tls`.
 
-* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
+* `timeout` - (Required) The timeout in seconds used for this Probe, which indicates when a Probe becomes unhealthy. Possible values range from `1` to `86400`.
 
-* `path` - (Required) The Path used for this Probe.
+~> **Note:** The `timeout` value should not be greater than the `interval` value.
 
-* `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
+* `unhealthy_threshold` - (Required) The unhealthy threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values range from `1` to `20`.
 
-* `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
+* `host` - (Optional) The hostname used for this Probe. If the Application Gateway is configured for a single site, by default the hostname should be specified as `127.0.0.1`, unless otherwise configured in custom Probe. 
 
-* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Basic, Standard_v2 and WAF_v2 only.
-
-* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
+~> **Note:** Exactly one of `host` or `pick_host_name_from_backend_http_settings` must be set when `protocol` is `Http` or `Https`. Neither can be set when `protocol` is `Tcp` or `Tls`.
 
 * `match` - (Optional) A `match` block as defined above.
 
+~> **Note:** `match` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+
 * `minimum_servers` - (Optional) The minimum number of servers that are always marked as healthy. Defaults to `0`.
+
+* `path` - (Optional) The relative URL path of the Probe. Valid value starts with `/`.
+
+~> **Note:** `path` cannot be set when `protocol` is set to `Tcp` or `Tls`. `path` must be specified when `protocol` is `Http` or `Https`.
+
+* `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
+
+~> **Note:** `pick_host_name_from_backend_http_settings` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+
+* `port` - (Optional) Custom port which will be used for probing the backend servers. Possible values range from `1` to `65535`.
+
+-> **Note:** In case `port` is not set, the port from the backend settings will be used. This property is valid for `Basic`, `Standard_v2`, and `WAF_v2` SKUs only.
+
+* `proxy_protocol_header_enabled` - (Optional) Whether the proxy protocol header is enabled for this Probe. Defaults to `false`.
+
+~> **Note:** `proxy_protocol_header_enabled` can only be set when `protocol` is `Tcp` or `Tls`.
 
 ---
 
@@ -430,13 +508,27 @@ A `request_routing_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
 
--> **NOTE:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
+-> **Note:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
 * `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
--> **NOTE:** `priority` is required when `sku[0].tier` is set to `*_v2`.
+-> **Note:** `priority` is required when `sku[0].tier` is set to `*_v2`.
+
+---
+
+A `routing_rule` block supports the following:
+
+* `name` - (Required) The Name of this Routing Rule.
+
+* `backend_address_pool_name` - (Required) The Name of the Backend Address Pool which should be used for this Routing Rule.
+
+* `backend_name` - (Required) The Name of the Backend Settings which should be used for this Routing Rule.
+
+* `listener_name` - (Required) The Name of the Listener which should be used for this Routing Rule.
+
+* `priority` - (Required) The routing rule priority, indicating the order in which rules are evaluated. Possible values range between `1` and `20000`, with `1` being the highest priority and `20000` being the lowest priority.
 
 ---
 
@@ -450,9 +542,13 @@ A `global` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
+* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_Small`, `Standard_Medium`, `Standard_Large`, `Standard_v2`, `WAF_Large`, `WAF_Medium` and `WAF_v2`.
 
-* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
+~> **Note:** `Standard_Small`, `Standard_Medium`, `Standard_Large`, `WAF_Medium`, and `WAF_Large` values are deprecated. `name` can no longer be created with or updated to these values. Refer to <https://aka.ms/V1retirement>.
+
+* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard`, `Standard_v2`, `WAF`, and `WAF_v2`.
+
+~> **Note:** `Standard` and `WAF` values are deprecated. `tier` can no longer be created with or updated to these values. Refer to <https://aka.ms/V1retirement>.
 
 * `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between `1` and `32`, and `1` to `125` for a V2 SKU. When using a `Basic` SKU this property must be between `1` and `2`. This property is optional if `autoscale_configuration` is set.
 
@@ -464,17 +560,17 @@ A `ssl_certificate` block supports the following:
 
 * `data` - (Optional) The base64-encoded PFX certificate data. Required if `key_vault_secret_id` is not set.
 
--> **NOTE:** When specifying a file, use `data = filebase64("path/to/file")` to encode the contents of that file.
+-> **Note:** When specifying a file, use `data = filebase64("path/to/file")` to encode the contents of that file.
 
 * `password` - (Optional) Password for the pfx file specified in data. Required if `data` is set.
 
 * `key_vault_secret_id` - (Optional) The Secret ID of the (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for Key Vault to use this feature. Required if `data` is not set.
 
--> **NOTE:** To implement certificate rotation, `versionless_secret_id` should be used, although `secret_id` is also supported.
+-> **Note:** To implement certificate rotation, the `azurerm_key_vault_secret` attribute `versionless_id` should be used, although `id` is also supported.
 
--> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
+-> **Note:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
 
--> **NOTE:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
+-> **Note:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -488,7 +584,7 @@ A `url_path_map` block supports the following:
 
 * `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
 
--> **NOTE:** Both `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` should be specified.
+-> **Note:** Both `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` should be specified.
 
 * `default_rewrite_rule_set_name` - (Optional) The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
@@ -509,7 +605,7 @@ A `ssl_profile` block supports the following:
 
 * `trusted_client_certificate_names` - (Optional) The name of the Trusted Client Certificate that will be used to authenticate requests from clients.
 
-* `verify_client_cert_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
+* `verify_client_certificate_issuer_dn` - (Optional) Should client certificate issuer DN be verified? Defaults to `false`.
  
 * `verify_client_certificate_revocation` - (Optional) Specify the method to check client certificate revocation status. Possible value is `OCSP`.
 
@@ -521,11 +617,11 @@ A `ssl_policy` block supports the following:
 
 * `disabled_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1`, `TLSv1_2` and `TLSv1_3`.
 
-~> **NOTE:** `disabled_protocols` cannot be set when `policy_name` or `policy_type` are set.
+~> **Note:** `disabled_protocols` cannot be set when `policy_name` or `policy_type` are set.
 
 * `policy_type` - (Optional) The Type of the Policy. Possible values are `Predefined`, `Custom` and `CustomV2`.
 
-~> **NOTE:** `policy_type` is Required when `policy_name` is set - cannot be set if `disabled_protocols` is set.
+~> **Note:** `policy_type` is Required when `policy_name` is set - cannot be set if `disabled_protocols` is set.
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
@@ -547,7 +643,7 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Possible values are `OWASP`, `Microsoft_BotManagerRuleSet` and `Microsoft_DefaultRuleSet`. Defaults to `OWASP`.
 
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `1.1`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
+* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `1.1`, `2.1`, `2.2`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `disabled_rule_group` - (Optional) One or more `disabled_rule_group` blocks as defined below.
 
@@ -563,7 +659,7 @@ A `waf_configuration` block supports the following:
 
 A `disabled_rule_group` block supports the following:
 
-* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `crs_49_inbound_blocking`, `General`, `GoodBots`, `KnownBadBots`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA`, `UnknownBots`, `METHOD-ENFORCEMENT`, `PROTOCOL-ENFORCEMENT`, `PROTOCOL-ATTACK`, `LFI`, `RFI`, `RCE`, `PHP`, `NODEJS`, `XSS`, `SQLI`, `FIX`, `JAVA`, `MS-ThreatIntel-WebShells`, `MS-ThreatIntel-AppSec`, `MS-ThreatIntel-SQLI` and `MS-ThreatIntel-CVEs`.
+* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Possible values are `BadBots`, `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `crs_49_inbound_blocking`, `General`, `GoodBots`, `KnownBadBots`, `Known-CVEs`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`, `REQUEST-944-APPLICATION-ATTACK-JAVA`, `UnknownBots`, `METHOD-ENFORCEMENT`, `PROTOCOL-ENFORCEMENT`, `PROTOCOL-ATTACK`, `LFI`, `RFI`, `RCE`, `PHP`, `NODEJS`, `XSS`, `SQLI`, `FIX`, `JAVA`, `MS-ThreatIntel-WebShells`, `MS-ThreatIntel-AppSec`, `MS-ThreatIntel-SQLI`, `MS-ThreatIntel-CVEs` and `MS-ThreatIntel-XSS`.
 
 * `rules` - (Optional) A list of rules which should be disabled in that group. Disables all rules in the specified group if `rules` is not specified.
 
@@ -687,6 +783,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
 
+* `backend` - A list of `backend` blocks as defined below.
+
 * `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - A list of `frontend_port` blocks as defined below.
@@ -695,6 +793,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
+* `listener` - A list of `listener` blocks as defined below.
+
 * `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
 
 * `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
@@ -702,6 +802,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `probe` - A `probe` block as defined below.
 
 * `request_routing_rule` - A list of `request_routing_rule` blocks as defined below.
+
+* `routing_rule` - A list of `routing_rule` blocks as defined below.
 
 * `ssl_certificate` - A list of `ssl_certificate` blocks as defined below.
 
@@ -728,6 +830,14 @@ A `authentication_certificate` block, within the `backend_http_settings` block e
 A `backend_address_pool` block exports the following:
 
 * `id` - The ID of the Backend Address Pool.
+
+---
+
+A `backend` block exports the following:
+
+* `id` - The ID of the Backend Settings Configuration.
+
+* `probe_id` - The ID of the associated Probe.
 
 ---
 
@@ -762,6 +872,20 @@ A `gateway_ip_configuration` block exports the following:
 A `http_listener` block exports the following:
 
 * `id` - The ID of the HTTP Listener.
+
+* `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
+
+* `frontend_port_id` - The ID of the associated Frontend Port.
+
+* `ssl_certificate_id` - The ID of the associated SSL Certificate.
+
+* `ssl_profile_id` - The ID of the associated SSL Profile.
+
+---
+
+A `listener` block exports the following:
+
+* `id` - The ID of the Listener.
 
 * `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
 
@@ -825,6 +949,18 @@ A `request_routing_rule` block exports the following:
 
 ---
 
+A `routing_rule` block exports the following:
+
+* `id` - The ID of the Routing Rule.
+
+* `backend_address_pool_id` - The ID of the associated Backend Address Pool.
+
+* `backend_id` - The ID of the associated Backend Settings.
+
+* `listener_id` - The ID of the associated Listener.
+
+---
+
 A `ssl_certificate` block exports the following:
 
 * `id` - The ID of the SSL Certificate.
@@ -865,17 +1001,23 @@ A `rewrite_rule_set` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
-* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Application Gateway.
 
 ## Import
 
-Application Gateway's can be imported using the `resource id`, e.g.
+An Application Gateway can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2025-01-01

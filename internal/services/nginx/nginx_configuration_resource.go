@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -34,6 +34,7 @@ func (c ConfigFile) toSDKModel() nginxconfiguration.NginxConfigurationFile {
 type ProtectedFile struct {
 	Content     string `tfschema:"content"`
 	VirtualPath string `tfschema:"virtual_path"`
+	ContentHash string `tfschema:"content_hash"`
 }
 
 func (c ProtectedFile) toSDKModel() nginxconfiguration.NginxConfigurationProtectedFileRequest {
@@ -143,6 +144,11 @@ func (m ConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
+
+					"content_hash": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
 				},
 			},
 		},
@@ -246,10 +252,10 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 			output.NginxDeploymentId = deployID.ID()
 
 			if prop := result.Model.Properties; prop != nil {
-				output.RootFile = pointer.ToString(prop.RootFile)
+				output.RootFile = pointer.From(prop.RootFile)
 
 				if prop.Package != nil && prop.Package.Data != nil {
-					output.PackageData = pointer.ToString(prop.Package.Data)
+					output.PackageData = pointer.From(prop.Package.Data)
 				}
 
 				if files := prop.Files; files != nil {
@@ -257,8 +263,8 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					for _, file := range *files {
 						if pointer.From(file.Content) != "" {
 							configs = append(configs, ConfigFile{
-								Content:     pointer.ToString(file.Content),
-								VirtualPath: pointer.ToString(file.VirtualPath),
+								Content:     pointer.From(file.Content),
+								VirtualPath: pointer.From(file.VirtualPath),
 							})
 						}
 					}
@@ -267,15 +273,16 @@ func (m ConfigurationResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				// GET returns protected files with virtual_path only without content
 				if files := prop.ProtectedFiles; files != nil {
 					configs := []ProtectedFile{}
 					for _, file := range *files {
 						config := ProtectedFile{
-							VirtualPath: pointer.ToString(file.VirtualPath),
+							VirtualPath: pointer.From(file.VirtualPath),
+							ContentHash: pointer.From(file.ContentHash),
 						}
+						// GET returns protected files without content, so fill in from state
 						for _, protectedFile := range output.ProtectedFile {
-							if protectedFile.VirtualPath == pointer.ToString(file.VirtualPath) {
+							if protectedFile.VirtualPath == pointer.From(file.VirtualPath) {
 								config.Content = protectedFile.Content
 								break
 							}
@@ -317,12 +324,24 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving as nil for %v", *id)
 			}
 
+			// full update - fill in the existing fields from the API and then patch it
 			upd := nginxconfiguration.NginxConfigurationRequest{
 				Name: pointer.To(defaultConfigurationName),
 				Properties: &nginxconfiguration.NginxConfigurationRequestProperties{
-					// root file is required in update
 					RootFile: existing.Model.Properties.RootFile,
+					Files:    existing.Model.Properties.Files,
+					Package:  existing.Model.Properties.Package,
 				},
+			}
+
+			if existing.Model.Properties.ProtectedFiles != nil {
+				var pfs []nginxconfiguration.NginxConfigurationProtectedFileRequest
+				for _, f := range *existing.Model.Properties.ProtectedFiles {
+					pfs = append(pfs, nginxconfiguration.NginxConfigurationProtectedFileRequest{
+						VirtualPath: f.VirtualPath,
+					})
+				}
+				upd.Properties.ProtectedFiles = pointer.To(pfs)
 			}
 
 			if meta.ResourceData.HasChange("root_file") {
@@ -333,8 +352,9 @@ func (m ConfigurationResource) Update() sdk.ResourceFunc {
 				upd.Properties.Files = model.toSDKFiles()
 			}
 
-			// API does not return protected file field, so always set this field
-			upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
+			if meta.ResourceData.HasChange("protected_file") {
+				upd.Properties.ProtectedFiles = model.toSDKProtectedFiles()
+			}
 
 			if meta.ResourceData.HasChange("package_data") {
 				upd.Properties.Package = &nginxconfiguration.NginxConfigurationPackage{

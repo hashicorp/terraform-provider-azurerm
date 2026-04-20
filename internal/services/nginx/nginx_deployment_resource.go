@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package nginx
@@ -39,24 +39,32 @@ type NetworkInterface struct {
 	SubnetId string `tfschema:"subnet_id"`
 }
 
-// Deprecated: remove in next major version
-type ConfigureFile struct {
-	Content     string `tfschema:"content"`
-	VirtualPath string `tfschema:"virtual_path"`
-}
-
-// Deprecated: remove in next major version
-type Configuration struct {
-	ConfigureFile []ConfigureFile `tfschema:"config_file"`
-	ProtectedFile []ConfigureFile `tfschema:"protected_file"`
-	PackageData   string          `tfschema:"package_data"`
-	RootFile      string          `tfschema:"root_file"`
-}
-
 type AutoScaleProfile struct {
 	Name string `tfschema:"name"`
 	Min  int64  `tfschema:"min_capacity"`
 	Max  int64  `tfschema:"max_capacity"`
+}
+
+type WebApplicationFirewall struct {
+	ActivationStateEnabled bool                           `tfschema:"activation_state_enabled"`
+	Status                 []WebApplicationFirewallStatus `tfschema:"status"`
+}
+
+type WebApplicationFirewallPackage struct {
+	RevisionDatetime string `tfschema:"revision_datetime"`
+	Version          string `tfschema:"version"`
+}
+
+type WebApplicationFirewallComponentVersions struct {
+	WafEngineVersion string `tfschema:"waf_engine_version"`
+	WafNginxVersion  string `tfschema:"waf_nginx_version"`
+}
+
+type WebApplicationFirewallStatus struct {
+	AttackSignaturesPackage []WebApplicationFirewallPackage           `tfschema:"attack_signatures_package"`
+	BotSignaturesPackage    []WebApplicationFirewallPackage           `tfschema:"bot_signatures_package"`
+	ComponentVersions       []WebApplicationFirewallComponentVersions `tfschema:"component_versions"`
+	ThreatCampaignsPackage  []WebApplicationFirewallPackage           `tfschema:"threat_campaigns_package"`
 }
 
 type DeploymentModel struct {
@@ -69,7 +77,7 @@ type DeploymentModel struct {
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
 	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
@@ -77,10 +85,45 @@ type DeploymentModel struct {
 	FrontendPrivate        []FrontendPrivate                          `tfschema:"frontend_private"`
 	NetworkInterface       []NetworkInterface                         `tfschema:"network_interface"`
 	UpgradeChannel         string                                     `tfschema:"automatic_upgrade_channel"`
+	WebApplicationFirewall []WebApplicationFirewall                   `tfschema:"web_application_firewall"`
 	DataplaneAPIEndpoint   string                                     `tfschema:"dataplane_api_endpoint"`
-	// Deprecated: remove in next major version
-	Configuration []Configuration   `tfschema:"configuration,removedInNextMajorVersion"`
-	Tags          map[string]string `tfschema:"tags"`
+	Tags                   map[string]string                          `tfschema:"tags"`
+}
+
+func expandNetworkProfile(public []FrontendPublic, private []FrontendPrivate, networkInterface []NetworkInterface) *nginxdeployment.NginxNetworkProfile {
+	out := nginxdeployment.NginxNetworkProfile{
+		FrontEndIPConfiguration:       &nginxdeployment.NginxFrontendIPConfiguration{},
+		NetworkInterfaceConfiguration: &nginxdeployment.NginxNetworkInterfaceConfiguration{},
+	}
+
+	if len(public) > 0 && len(public[0].IpAddress) > 0 {
+		var publicIPs []nginxdeployment.NginxPublicIPAddress
+		for _, ip := range public[0].IpAddress {
+			publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
+				Id: pointer.To(ip),
+			})
+		}
+		out.FrontEndIPConfiguration.PublicIPAddresses = &publicIPs
+	}
+
+	if len(private) > 0 {
+		var privateIPs []nginxdeployment.NginxPrivateIPAddress
+		for _, ip := range private {
+			alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
+			privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
+				PrivateIPAddress:          pointer.To(ip.IpAddress),
+				PrivateIPAllocationMethod: &alloc,
+				SubnetId:                  pointer.To(ip.SubnetId),
+			})
+		}
+		out.FrontEndIPConfiguration.PrivateIPAddresses = &privateIPs
+	}
+
+	if len(networkInterface) > 0 {
+		out.NetworkInterfaceConfiguration.SubnetId = pointer.To(networkInterface[0].SubnetId)
+	}
+
+	return &out
 }
 
 type DeploymentResource struct{}
@@ -145,12 +188,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		"diagnose_support_enabled": {
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			ValidateFunc: nil,
-		},
-
 		"email": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -160,7 +197,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"frontend_public": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
-			ForceNew:      true,
 			MaxItems:      1,
 			ConflictsWith: []string{"frontend_private"},
 			Elem: &pluginsdk.Resource{
@@ -168,7 +204,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					"ip_address": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
-						ForceNew: true,
 						Elem: &pluginsdk.Schema{
 							Type:         pluginsdk.TypeString,
 							ValidateFunc: validation.StringIsNotEmpty,
@@ -181,27 +216,23 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"frontend_private": {
 			Type:          pluginsdk.TypeList,
 			Optional:      true,
-			ForceNew:      true,
 			ConflictsWith: []string{"frontend_public"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_address": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 
 					"allocation_method": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(nginxdeployment.PossibleValuesForNginxPrivateIPAllocationMethod(), false),
 					},
 
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 				},
 			},
@@ -210,13 +241,11 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 		"network_interface": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
-						ForceNew: true,
 					},
 				},
 			},
@@ -233,10 +262,36 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				}, false),
 		},
 
+		"web_application_firewall": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"activation_state_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Required: true,
+					},
+					"status": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"attack_signatures_package": webApplicationFirewallPackageComputed(),
+								"bot_signatures_package":    webApplicationFirewallPackageComputed(),
+								"threat_campaigns_package":  webApplicationFirewallPackageComputed(),
+								"component_versions":        webApplicationFirewallComponentVersionsComputed(),
+							},
+						},
+					},
+				},
+			},
+		},
+
 		"tags": commonschema.Tags(),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		resource["managed_resource_group"] = &pluginsdk.Schema{
 			Deprecated:   "The `managed_resource_group` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
 			Type:         pluginsdk.TypeString,
@@ -262,6 +317,12 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		}
+
+		resource["diagnose_support_enabled"] = &pluginsdk.Schema{
+			Deprecated: "this property is deprecated and will be removed in v5.0, metrics are enabled by default.",
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
 		}
 	}
 	return resource
@@ -318,7 +379,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			req := nginxdeployment.NginxDeployment{}
 			req.Name = pointer.To(model.Name)
 			req.Location = pointer.To(model.Location)
-			req.Tags = pointer.FromMapOfStringStrings(model.Tags)
+			req.Tags = pointer.To(model.Tags)
 
 			if model.Sku != "" {
 				sku := nginxdeployment.ResourceSku{Name: model.Sku}
@@ -327,49 +388,19 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			prop := &nginxdeployment.NginxDeploymentProperties{}
 
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if len(model.LoggingStorageAccount) > 0 {
 					prop.Logging = &nginxdeployment.NginxLogging{
 						StorageAccount: &nginxdeployment.NginxStorageAccount{
-							AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-							ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+							AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+							ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 						},
 					}
 				}
+				prop.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
 			}
 
-			prop.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
-			prop.NetworkProfile = &nginxdeployment.NginxNetworkProfile{
-				FrontEndIPConfiguration:       &nginxdeployment.NginxFrontendIPConfiguration{},
-				NetworkInterfaceConfiguration: &nginxdeployment.NginxNetworkInterfaceConfiguration{},
-			}
-
-			if public := model.FrontendPublic; len(public) > 0 && len(public[0].IpAddress) > 0 {
-				var publicIPs []nginxdeployment.NginxPublicIPAddress
-				for _, ip := range public[0].IpAddress {
-					publicIPs = append(publicIPs, nginxdeployment.NginxPublicIPAddress{
-						Id: pointer.To(ip),
-					})
-				}
-				prop.NetworkProfile.FrontEndIPConfiguration.PublicIPAddresses = &publicIPs
-			}
-
-			if private := model.FrontendPrivate; len(private) > 0 {
-				var privateIPs []nginxdeployment.NginxPrivateIPAddress
-				for _, ip := range private {
-					alloc := nginxdeployment.NginxPrivateIPAllocationMethod(ip.AllocationMethod)
-					privateIPs = append(privateIPs, nginxdeployment.NginxPrivateIPAddress{
-						PrivateIPAddress:          pointer.To(ip.IpAddress),
-						PrivateIPAllocationMethod: &alloc,
-						SubnetId:                  pointer.To(ip.SubnetId),
-					})
-				}
-				prop.NetworkProfile.FrontEndIPConfiguration.PrivateIPAddresses = &privateIPs
-			}
-
-			if len(model.NetworkInterface) > 0 {
-				prop.NetworkProfile.NetworkInterfaceConfiguration.SubnetId = pointer.To(model.NetworkInterface[0].SubnetId)
-			}
+			prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
 			hasScaling := (model.Capacity > 0 || len(model.AutoScaleProfile) > 0)
@@ -382,7 +413,7 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 
 			if model.Capacity > 0 {
 				prop.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
+					Capacity: pointer.To(model.Capacity),
 				}
 			}
 
@@ -413,6 +444,19 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 			if model.UpgradeChannel != "" {
 				prop.AutoUpgradeProfile = &nginxdeployment.AutoUpgradeProfile{
 					UpgradeChannel: model.UpgradeChannel,
+				}
+			}
+
+			if len(model.WebApplicationFirewall) > 0 {
+				activationState := nginxdeployment.ActivationStateDisabled
+				if model.WebApplicationFirewall[0].ActivationStateEnabled {
+					activationState = nginxdeployment.ActivationStateEnabled
+				}
+
+				prop.NginxAppProtect = &nginxdeployment.NginxDeploymentPropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: nginxdeployment.WebApplicationFirewallSettings{
+						ActivationState: &activationState,
+					},
 				}
 			}
 
@@ -458,27 +502,27 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := result.Model; model != nil {
-				output.Location = pointer.ToString(model.Location)
-				output.Tags = pointer.ToMapOfStringStrings(model.Tags)
+				output.Location = pointer.From(model.Location)
+				output.Tags = pointer.From(model.Tags)
 				if model.Sku != nil {
 					output.Sku = model.Sku.Name
 				}
 
 				if props := model.Properties; props != nil {
-					output.IpAddress = pointer.ToString(props.IPAddress)
-					output.NginxVersion = pointer.ToString(props.NginxVersion)
-					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
-					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
+					output.IpAddress = pointer.From(props.IPAddress)
+					output.NginxVersion = pointer.From(props.NginxVersion)
+					output.DataplaneAPIEndpoint = pointer.From(props.DataplaneApiEndpoint)
 
-					if !features.FivePointOhBeta() {
+					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
 							output.LoggingStorageAccount = []LoggingStorageAccount{
 								{
-									Name:          pointer.ToString(props.Logging.StorageAccount.AccountName),
-									ContainerName: pointer.ToString(props.Logging.StorageAccount.ContainerName),
+									Name:          pointer.From(props.Logging.StorageAccount.AccountName),
+									ContainerName: pointer.From(props.Logging.StorageAccount.ContainerName),
 								},
 							}
 						}
+						output.DiagnoseSupportEnabled = pointer.From(props.EnableDiagnosticsSupport)
 					}
 
 					if profile := props.NetworkProfile; profile != nil {
@@ -486,7 +530,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 							if publicIps := frontend.PublicIPAddresses; publicIps != nil && len(*publicIps) > 0 {
 								output.FrontendPublic = append(output.FrontendPublic, FrontendPublic{})
 								for _, ip := range *publicIps {
-									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.ToString(ip.Id))
+									output.FrontendPublic[0].IpAddress = append(output.FrontendPublic[0].IpAddress, pointer.From(ip.Id))
 								}
 							}
 
@@ -498,9 +542,9 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 									}
 
 									output.FrontendPrivate = append(output.FrontendPrivate, FrontendPrivate{
-										IpAddress:        pointer.ToString(ip.PrivateIPAddress),
+										IpAddress:        pointer.From(ip.PrivateIPAddress),
 										AllocationMethod: method,
-										SubnetId:         pointer.ToString(ip.SubnetId),
+										SubnetId:         pointer.From(ip.SubnetId),
 									})
 								}
 							}
@@ -508,14 +552,14 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 
 						if netIf := profile.NetworkInterfaceConfiguration; netIf != nil {
 							output.NetworkInterface = []NetworkInterface{
-								{SubnetId: pointer.ToString(netIf.SubnetId)},
+								{SubnetId: pointer.From(netIf.SubnetId)},
 							}
 						}
 					}
 
 					if scaling := props.ScalingProperties; scaling != nil {
 						if capacity := scaling.Capacity; capacity != nil {
-							output.Capacity = pointer.ToInt64(props.ScalingProperties.Capacity)
+							output.Capacity = pointer.From(props.ScalingProperties.Capacity)
 						}
 						if autoScaleProfiles := scaling.AutoScaleSettings; autoScaleProfiles != nil {
 							profiles := autoScaleProfiles.Profiles
@@ -530,11 +574,60 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					}
 
 					if userProfile := props.UserProfile; userProfile != nil && userProfile.PreferredEmail != nil {
-						output.Email = pointer.ToString(props.UserProfile.PreferredEmail)
+						output.Email = pointer.From(props.UserProfile.PreferredEmail)
 					}
 
 					if props.AutoUpgradeProfile != nil {
 						output.UpgradeChannel = props.AutoUpgradeProfile.UpgradeChannel
+					}
+
+					if nap := props.NginxAppProtect; nap != nil {
+						waf := WebApplicationFirewall{}
+						if state := nap.WebApplicationFirewallSettings.ActivationState; state != nil {
+							switch *state {
+							case nginxdeployment.ActivationStateEnabled:
+								waf.ActivationStateEnabled = true
+							default:
+								waf.ActivationStateEnabled = false
+							}
+						}
+						if status := nap.WebApplicationFirewallStatus; status != nil {
+							wafStatus := WebApplicationFirewallStatus{}
+							if attackSignature := status.AttackSignaturesPackage; attackSignature != nil {
+								wafStatus.AttackSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: attackSignature.RevisionDatetime,
+										Version:          attackSignature.Version,
+									},
+								}
+							}
+							if botSignature := status.BotSignaturesPackage; botSignature != nil {
+								wafStatus.BotSignaturesPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: botSignature.RevisionDatetime,
+										Version:          botSignature.Version,
+									},
+								}
+							}
+							if threatCampaign := status.ThreatCampaignsPackage; threatCampaign != nil {
+								wafStatus.ThreatCampaignsPackage = []WebApplicationFirewallPackage{
+									{
+										RevisionDatetime: threatCampaign.RevisionDatetime,
+										Version:          threatCampaign.Version,
+									},
+								}
+							}
+							if componentVersions := status.ComponentVersions; componentVersions != nil {
+								wafStatus.ComponentVersions = []WebApplicationFirewallComponentVersions{
+									{
+										WafEngineVersion: componentVersions.WafEngineVersion,
+										WafNginxVersion:  componentVersions.WafNginxVersion,
+									},
+								}
+							}
+							waf.Status = []WebApplicationFirewallStatus{wafStatus}
+							output.WebApplicationFirewall = []WebApplicationFirewall{waf}
+						}
 					}
 
 					flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -571,7 +664,7 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			if meta.ResourceData.HasChange("tags") {
-				req.Tags = pointer.FromMapOfStringStrings(model.Tags)
+				req.Tags = pointer.To(model.Tags)
 			}
 
 			if meta.ResourceData.HasChange("identity") {
@@ -581,24 +674,24 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			req.Properties = &nginxdeployment.NginxDeploymentUpdateProperties{}
-			if !features.FivePointOhBeta() {
+			if !features.FivePointOh() {
 				if meta.ResourceData.HasChange("logging_storage_account") && len(model.LoggingStorageAccount) > 0 {
 					req.Properties.Logging = &nginxdeployment.NginxLogging{
 						StorageAccount: &nginxdeployment.NginxStorageAccount{
-							AccountName:   pointer.FromString(model.LoggingStorageAccount[0].Name),
-							ContainerName: pointer.FromString(model.LoggingStorageAccount[0].ContainerName),
+							AccountName:   pointer.To(model.LoggingStorageAccount[0].Name),
+							ContainerName: pointer.To(model.LoggingStorageAccount[0].ContainerName),
 						},
 					}
 				}
 			}
 
 			if meta.ResourceData.HasChange("diagnose_support_enabled") {
-				req.Properties.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
+				req.Properties.EnableDiagnosticsSupport = pointer.To(model.DiagnoseSupportEnabled)
 			}
 
 			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
 				req.Properties.ScalingProperties = &nginxdeployment.NginxDeploymentScalingProperties{
-					Capacity: pointer.FromInt64(model.Capacity),
+					Capacity: pointer.To(model.Capacity),
 				}
 			}
 
@@ -632,8 +725,24 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if meta.ResourceData.HasChanges("frontend_public", "frontend_private", "network_interface") {
+				req.Properties.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
+			}
+
 			if strings.HasPrefix(model.Sku, "basic") && req.Properties.ScalingProperties != nil {
 				return fmt.Errorf("basic SKUs are incompatible with `capacity` or `auto_scale_profiles`")
+			}
+
+			if meta.ResourceData.HasChange("web_application_firewall") {
+				activationState := nginxdeployment.ActivationStateDisabled
+				if model.WebApplicationFirewall[0].ActivationStateEnabled {
+					activationState = nginxdeployment.ActivationStateEnabled
+				}
+				req.Properties.NginxAppProtect = &nginxdeployment.NginxDeploymentUpdatePropertiesNginxAppProtect{
+					WebApplicationFirewallSettings: &nginxdeployment.WebApplicationFirewallSettings{
+						ActivationState: &activationState,
+					},
+				}
 			}
 
 			if err := client.DeploymentsUpdateThenPoll(ctx, *id, req); err != nil {

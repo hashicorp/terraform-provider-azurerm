@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mongocluster
@@ -6,15 +6,19 @@ package mongocluster
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2024-07-01/mongoclusters"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mongocluster/2025-09-01/mongoclusters"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,22 +31,45 @@ var _ sdk.ResourceWithUpdate = MongoClusterResource{}
 var _ sdk.ResourceWithCustomizeDiff = MongoClusterResource{}
 
 type MongoClusterResourceModel struct {
-	Name                  string            `tfschema:"name"`
-	ResourceGroupName     string            `tfschema:"resource_group_name"`
-	Location              string            `tfschema:"location"`
-	AdministratorUserName string            `tfschema:"administrator_username"`
-	AdministratorPassword string            `tfschema:"administrator_password"`
-	CreateMode            string            `tfschema:"create_mode"`
-	ShardCount            int64             `tfschema:"shard_count"`
-	SourceLocation        string            `tfschema:"source_location"`
-	SourceServerId        string            `tfschema:"source_server_id"`
-	ComputeTier           string            `tfschema:"compute_tier"`
-	HighAvailabilityMode  string            `tfschema:"high_availability_mode"`
-	PublicNetworkAccess   string            `tfschema:"public_network_access"`
-	PreviewFeatures       []string          `tfschema:"preview_features"`
-	StorageSizeInGb       int64             `tfschema:"storage_size_in_gb"`
-	Tags                  map[string]string `tfschema:"tags"`
-	Version               string            `tfschema:"version"`
+	Name                  string                         `tfschema:"name"`
+	ResourceGroupName     string                         `tfschema:"resource_group_name"`
+	Location              string                         `tfschema:"location"`
+	AdministratorUserName string                         `tfschema:"administrator_username"`
+	AdministratorPassword string                         `tfschema:"administrator_password"`
+	AuthenticationMethods []string                       `tfschema:"authentication_methods"`
+	CreateMode            string                         `tfschema:"create_mode"`
+	CustomerManagedKey    []CustomerManagedKey           `tfschema:"customer_managed_key"`
+	DataApiModeEnabled    bool                           `tfschema:"data_api_mode_enabled"`
+	Identity              []identity.ModelUserAssigned   `tfschema:"identity"`
+	Restore               []Restore                      `tfschema:"restore"`
+	ShardCount            int64                          `tfschema:"shard_count"`
+	SourceLocation        string                         `tfschema:"source_location"`
+	SourceServerId        string                         `tfschema:"source_server_id"`
+	ComputeTier           string                         `tfschema:"compute_tier"`
+	HighAvailabilityMode  string                         `tfschema:"high_availability_mode"`
+	PublicNetworkAccess   string                         `tfschema:"public_network_access"`
+	PreviewFeatures       []string                       `tfschema:"preview_features"`
+	StorageSizeInGb       int64                          `tfschema:"storage_size_in_gb"`
+	StorageType           string                         `tfschema:"storage_type"`
+	ConnectionStrings     []MongoClusterConnectionString `tfschema:"connection_strings"`
+	Tags                  map[string]string              `tfschema:"tags"`
+	Version               string                         `tfschema:"version"`
+}
+
+type MongoClusterConnectionString struct {
+	Value       string `tfschema:"value"`
+	Description string `tfschema:"description"`
+	Name        string `tfschema:"name"`
+}
+
+type CustomerManagedKey struct {
+	KeyVaultKeyId          string `tfschema:"key_vault_key_id"`
+	UserAssignedIdentityId string `tfschema:"user_assigned_identity_id"`
+}
+
+type Restore struct {
+	PointInTimeUtc string `tfschema:"point_in_time_utc"`
+	SourceId       string `tfschema:"source_id"`
 }
 
 func (r MongoClusterResource) ModelObject() interface{} {
@@ -57,12 +84,12 @@ func (r MongoClusterResource) ResourceType() string {
 	return "azurerm_mongo_cluster"
 }
 
-func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
+	args := map[string]*pluginsdk.Schema{
 		"name": {
 			ForceNew: true,
 			Required: true,
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile(`^[a-z\d]([-a-z\d]{1,38}[a-z\d])$`),
 				"`name` must be between 3 and 40 characters. It can contain only lowercase letters, numbers, and hyphens (-). It must start and end with a lowercase letter or number.",
@@ -74,7 +101,7 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		"location": commonschema.Location(),
 
 		"administrator_username": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
@@ -82,36 +109,91 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"create_mode": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  string(mongoclusters.CreateModeDefault),
-			// Confirmed with service team the 'Default' and `GeoReplica` are the only accepted value currently, other values will be supported later.
+			// Confirmed with service team the 'Default', `GeoReplica` and `PointInTimeRestore` are the only accepted value currently, other values will be supported later.
 			ValidateFunc: validation.StringInSlice([]string{
 				string(mongoclusters.CreateModeDefault),
 				string(mongoclusters.CreateModeGeoReplica),
+				string(mongoclusters.CreateModePointInTimeRestore),
 			}, false),
 		},
 
-		"preview_features": {
-			Type:     schema.TypeList,
+		"customer_managed_key": {
+			Type:     pluginsdk.TypeList,
 			Optional: true,
 			ForceNew: true,
-			Elem: &schema.Schema{
-				Type:         schema.TypeString,
-				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPreviewFeature(), false),
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"key_vault_key_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeKey),
+					},
+
+					"user_assigned_identity_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+					},
+				},
+			},
+		},
+
+		"data_api_mode_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		// Although Swagger defines four identity types, the service API currently only supports `None` and `UserAssigned`. Service team has confirmed that they will support the other types in the future.
+		"identity": commonschema.UserAssignedIdentityOptional(),
+
+		"preview_features": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		},
+
+		"restore": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"point_in_time_utc": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.IsRFC3339Time,
+					},
+
+					"source_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: mongoclusters.ValidateMongoClusterID,
+					},
+				},
 			},
 		},
 
 		"shard_count": {
-			Type:         schema.TypeInt,
+			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 			ForceNew:     true,
 		},
 
 		"source_location": {
-			Type:             schema.TypeString,
+			Type:             pluginsdk.TypeString,
 			Optional:         true,
 			ForceNew:         true,
 			StateFunc:        location.StateFunc,
@@ -121,36 +203,50 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"source_server_id": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: mongoclusters.ValidateMongoClusterID,
 		},
 
 		"administrator_password": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			RequiredWith: []string{"administrator_username"},
 		},
 
+		"authentication_methods": {
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			// NOTE: O+C `AuthConfig` is an object and its sub property `AllowedModes` has default value `NativeAuth` when `AuthConfig` isn't set in the tfconfig. So, `O+C` is required otherwise it will incur difference.
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForAuthenticationMode(), false),
+			},
+		},
+
 		"compute_tier": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"Free",
+				"M10",
+				"M20",
 				"M25",
 				"M30",
 				"M40",
 				"M50",
 				"M60",
 				"M80",
+				"M200",
 			}, false),
 		},
 
 		"high_availability_mode": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				// Confirmed with service team the `SameZone` is currently not supported.
@@ -160,39 +256,77 @@ func (r MongoClusterResource) Arguments() map[string]*schema.Schema {
 		},
 
 		"public_network_access": {
-			Type:         schema.TypeString,
+			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(mongoclusters.PublicNetworkAccessEnabled),
 			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForPublicNetworkAccess(), false),
 		},
 
 		"storage_size_in_gb": {
-			Type:         schema.TypeInt,
+			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(32, 16384),
+		},
+
+		"storage_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(mongoclusters.StorageTypePremiumSSD),
+			ValidateFunc: validation.StringInSlice(mongoclusters.PossibleValuesForStorageType(), false),
+			RequiredWith: []string{"storage_size_in_gb"},
 		},
 
 		"tags": commonschema.Tags(),
 
 		"version": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"5.0",
 				"6.0",
 				"7.0",
+				"8.0",
 			}, false),
+		},
+	}
+
+	if !features.FivePointOh() {
+		args["customer_managed_key"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersionless, keyvault.NestedItemTypeAny)
+	}
+
+	return args
+}
+
+func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"connection_strings": {
+			Type:      pluginsdk.TypeList,
+			Sensitive: true,
+			Computed:  true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"description": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"value": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
 		},
 	}
 }
 
-func (r MongoClusterResource) Attributes() map[string]*schema.Schema {
-	return map[string]*schema.Schema{}
-}
-
 func (r MongoClusterResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
@@ -214,9 +348,25 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			parameter := mongoclusters.MongoCluster{
-				Location:   location.Normalize(state.Location),
-				Properties: &mongoclusters.MongoClusterProperties{},
+				Location: location.Normalize(state.Location),
+				Properties: &mongoclusters.MongoClusterProperties{
+					AuthConfig:        expandMongoClusterAuthConfig(state.AuthenticationMethods),
+					Encryption:        expandMongoClusterCustomerManagedKey(state.CustomerManagedKey),
+					RestoreParameters: expandMongoClusterRestore(state.Restore),
+				},
 			}
+
+			identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+			if err != nil {
+				return fmt.Errorf(`expanding "identity": %v`, err)
+			}
+			// Per the current service API design, they don’t allow setting `userAssignedIdentities` to `nil` in the request payload when the `type` of `identity` is `nil`; otherwise, the API would return an error.
+			// Therefore, we have to use the customized function instead of the common one, since the common function always sets `userAssignedIdentities` to `nil` in the request payload.
+			// Service team confirmed that it will be more flexible, and we will allow `userAssignedIdentities = nil` in the future. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/38575
+			if identityVal != nil && identityVal.Type == identity.TypeNone {
+				identityVal = nil
+			}
+			parameter.Identity = identityVal
 
 			if state.AdministratorUserName != "" {
 				parameter.Properties.Administrator = &mongoclusters.AdministratorProperties{
@@ -265,6 +415,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 			if state.StorageSizeInGb != 0 {
 				parameter.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
+					Type:   pointer.ToEnum[mongoclusters.StorageType](state.StorageType),
 				}
 			}
 
@@ -276,8 +427,31 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 				parameter.Properties.ServerVersion = pointer.To(state.Version)
 			}
 
+			// Always set `data_api_mode_enabled` to `false` during creation for `Default` mode
+			// Update it separately if user wants it enabled
+			if state.CreateMode == string(mongoclusters.CreateModeDefault) {
+				parameter.Properties.DataApi = &mongoclusters.DataApiProperties{
+					Mode: pointer.To(mongoclusters.DataApiModeDisabled),
+				}
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameter); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// `data_api_mode_enabled` can only be enabled after the resource is created
+			if state.CreateMode == string(mongoclusters.CreateModeDefault) && state.DataApiModeEnabled {
+				updatePayload := mongoclusters.MongoClusterUpdate{
+					Properties: &mongoclusters.MongoClusterUpdateProperties{
+						DataApi: &mongoclusters.DataApiProperties{
+							Mode: pointer.To(mongoclusters.DataApiModeEnabled),
+						},
+					},
+				}
+
+				if err := client.UpdateThenPoll(ctx, id, updatePayload); err != nil {
+					return fmt.Errorf("updating `data_api_mode_enabled`: %+v", err)
+				}
 			}
 
 			metadata.SetID(id)
@@ -289,7 +463,7 @@ func (r MongoClusterResource) Create() sdk.ResourceFunc {
 
 func (r MongoClusterResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 
@@ -322,6 +496,18 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			// Set SystemData to nil as the API returns `The property '#/systemData' of type null did not match the following type: object in schema 25debcc2-6915-5536-9566-a2ecd765b755"}}` error.
 			// https://github.com/Azure/azure-rest-api-specs/issues/31377 has been filed to track it.
 			payload.SystemData = nil
+
+			// Set `identity` to `nil` to avoid schema validation errors returned by service API when `identity` type is `None`.
+			if payload.Identity != nil && payload.Identity.Type == identity.TypeNone {
+				// Setting the `identity` to nil is equivalent to setting the `identity` to `None`.
+				payload.Identity = nil
+			}
+
+			// Clear `data_api_mode_enabled` for clusters created with `PointInTimeRestore` or `GeoReplica` mode to avoid schema validation errors
+			// `data_api_mode_enabled` is only supported for `Default` create mode
+			if state.CreateMode != string(mongoclusters.CreateModeDefault) {
+				payload.Properties.DataApi = nil
+			}
 
 			// upgrades involving Free or M25(Burstable) compute tier require first upgrading the compute tier, after which other configurations can be updated.
 			if metadata.ResourceData.HasChange("compute_tier") {
@@ -358,6 +544,7 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("storage_size_in_gb") {
 				payload.Properties.Storage = &mongoclusters.StorageProperties{
 					SizeGb: pointer.To(state.StorageSizeInGb),
+					Type:   pointer.To(mongoclusters.StorageType(state.StorageType)),
 				}
 			}
 
@@ -367,6 +554,30 @@ func (r MongoClusterResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("version") {
 				payload.Properties.ServerVersion = pointer.To(state.Version)
+			}
+
+			if metadata.ResourceData.HasChange("customer_managed_key") {
+				payload.Properties.Encryption = expandMongoClusterCustomerManagedKey(state.CustomerManagedKey)
+			}
+
+			if metadata.ResourceData.HasChange("authentication_methods") {
+				payload.Properties.AuthConfig = expandMongoClusterAuthConfig(state.AuthenticationMethods)
+			}
+
+			// Only allow enabling `data_api_mode_enabled`, disabling should trigger ForceNew (handled in CustomizeDiff)
+			if metadata.ResourceData.HasChange("data_api_mode_enabled") {
+				// CustomizeDiff ensures this change is always false -> true
+				payload.Properties.DataApi = &mongoclusters.DataApiProperties{
+					Mode: pointer.To(mongoclusters.DataApiModeEnabled),
+				}
+			}
+
+			if metadata.ResourceData.HasChange("identity") {
+				identityVal, err := identity.ExpandUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf(`expanding "identity": %v`, err)
+				}
+				payload.Identity = identityVal
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
@@ -405,12 +616,20 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
+				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+				state.Identity = pointer.From(identity)
+
 				if props := model.Properties; props != nil {
 					// API doesn't return the value of administrator_password
 					state.AdministratorPassword = metadata.ResourceData.Get("administrator_password").(string)
 
 					// API doesn't return the value of create_mode, https://github.com/Azure/azure-rest-api-specs/issues/31266 has been filed to track it.
 					state.CreateMode = metadata.ResourceData.Get("create_mode").(string)
+
+					state.CustomerManagedKey = flattenMongoClusterCustomerManagedKey(props.Encryption)
 
 					if v := props.Administrator; v != nil {
 						state.AdministratorUserName = pointer.From(v.UserName)
@@ -428,6 +647,8 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 						}
 					}
 
+					state.Restore = flattenMongoClusterRestore(props.RestoreParameters)
+
 					if v := props.Sharding; v != nil {
 						state.ShardCount = pointer.From(v.ShardCount)
 					}
@@ -442,14 +663,29 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 					if v := props.Storage; v != nil {
 						state.StorageSizeInGb = pointer.From(v.SizeGb)
+						state.StorageType = pointer.FromEnum(v.Type)
 					}
 					if v := props.PreviewFeatures; v != nil {
 						state.PreviewFeatures = flattenMongoClusterPreviewFeatures(v)
 					}
 					state.Version = pointer.From(props.ServerVersion)
+
+					state.AuthenticationMethods = flattenMongoClusterAuthConfig(props.AuthConfig)
+
+					if v := props.DataApi; v != nil {
+						state.DataApiModeEnabled = pointer.From(v.Mode) == mongoclusters.DataApiModeEnabled
+					}
 				}
 
 				state.Tags = pointer.From(model.Tags)
+			}
+
+			csResp, err := client.ListConnectionStrings(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("listing connection strings for %s: %+v", *id, err)
+			}
+			if model := csResp.Model; model != nil {
+				state.ConnectionStrings = flattenMongoClusterConnectionStrings(model.ConnectionStrings, state.AdministratorUserName, state.AdministratorPassword)
 			}
 
 			return metadata.Encode(&state)
@@ -459,7 +695,7 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 
 func (r MongoClusterResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MongoCluster.MongoClustersClient
 
@@ -515,6 +751,10 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				if state.SourceLocation == "" {
 					return fmt.Errorf("`source_location` is required when `create_mode` is `GeoReplica`")
 				}
+			case string(mongoclusters.CreateModePointInTimeRestore):
+				if len(state.Restore) == 0 {
+					return fmt.Errorf("`restore` is required when `create_mode` is `PointInTimeRestore`")
+				}
 			}
 
 			if state.ComputeTier == "Free" || state.ComputeTier == "M25" {
@@ -534,6 +774,35 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("`preview_features` contains the duplicate value %q", str)
 					}
 					existing[str] = true
+				}
+			}
+
+			// Since the API doesn't return the value of create_mode, when importing `azurerm_mongo_cluster`, it will cause replacement.
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("create_mode"); oldVal.(string) != "" && oldVal.(string) != newVal.(string) {
+				if err := metadata.ResourceDiff.ForceNew("create_mode"); err != nil {
+					return err
+				}
+			}
+
+			if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["data_api_mode_enabled"].IsNull() && state.CreateMode != string(mongoclusters.CreateModeDefault) {
+				return fmt.Errorf("`data_api_mode_enabled` can only be set when `create_mode` is `Default`")
+			}
+
+			// Service team confirmed that `data_api_mode_enabled` can only be updated to `Enabled` after the cluster has been created
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("data_api_mode_enabled"); oldVal.(bool) && !newVal.(bool) && state.CreateMode == string(mongoclusters.CreateModeDefault) {
+				if err := metadata.ResourceDiff.ForceNew("data_api_mode_enabled"); err != nil {
+					return err
+				}
+			}
+
+			// When identity is added or removed from the configuration, it should trigger ForceNew.
+			// 1. When identity type is changed from `UserAssigned` to `None`, go-azure-sdk always sets `identity.userAssignedIdentities` to `nil` in the request payload.
+			// But since service API does not allow explicitly setting `identity.userAssignedIdentities` to `nil` when the identity type is `None`,
+			// otherwise it will throw a schema validation error, Terraform can only dynamically treat this change as forceNew.
+			// 2. Service API will fail when identity type is changed from `None` to `UserAssigned`.
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("identity"); (len(oldVal.([]interface{})) > 0 && len(newVal.([]interface{})) == 0) || (len(oldVal.([]interface{})) == 0 && len(newVal.([]interface{})) > 0) {
+				if err := metadata.ResourceDiff.ForceNew("identity"); err != nil {
+					return err
 				}
 			}
 
@@ -565,6 +834,121 @@ func flattenMongoClusterPreviewFeatures(input *[]mongoclusters.PreviewFeature) [
 	}
 
 	for _, v := range *input {
+		results = append(results, string(v))
+	}
+
+	return results
+}
+
+func flattenMongoClusterConnectionStrings(input *[]mongoclusters.ConnectionString, userName, userPassword string) []MongoClusterConnectionString {
+	results := make([]MongoClusterConnectionString, 0)
+	if input == nil {
+		return results
+	}
+	for _, cs := range *input {
+		value := pointer.From(cs.ConnectionString)
+		// Password can be empty if it isn't available in the state file (e.g. during import).
+		// In this case, we simply leave the placeholder unchanged.
+		if userPassword != "" {
+			value = regexp.MustCompile(`<user>:<password>`).ReplaceAllLiteralString(value, url.UserPassword(userName, userPassword).String())
+		}
+
+		results = append(results, MongoClusterConnectionString{
+			Name:        pointer.From(cs.Name),
+			Description: pointer.From(cs.Description),
+			Value:       value,
+		})
+	}
+
+	return results
+}
+
+func expandMongoClusterCustomerManagedKey(input []CustomerManagedKey) *mongoclusters.EncryptionProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	cmk := input[0]
+
+	return &mongoclusters.EncryptionProperties{
+		CustomerManagedKeyEncryption: &mongoclusters.CustomerManagedKeyEncryptionProperties{
+			KeyEncryptionKeyURL: pointer.To(cmk.KeyVaultKeyId),
+			KeyEncryptionKeyIdentity: &mongoclusters.KeyEncryptionKeyIdentity{
+				IdentityType:                   pointer.To(mongoclusters.KeyEncryptionKeyIdentityTypeUserAssignedIdentity),
+				UserAssignedIdentityResourceId: pointer.To(cmk.UserAssignedIdentityId),
+			},
+		},
+	}
+}
+
+func flattenMongoClusterCustomerManagedKey(input *mongoclusters.EncryptionProperties) []CustomerManagedKey {
+	if input == nil || input.CustomerManagedKeyEncryption == nil {
+		return []CustomerManagedKey{}
+	}
+
+	cmkEncryption := input.CustomerManagedKeyEncryption
+	uaiResourceId := ""
+	if cmkEncryption.KeyEncryptionKeyIdentity != nil {
+		uaiResourceId = pointer.From(cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId)
+	}
+
+	return []CustomerManagedKey{
+		{
+			KeyVaultKeyId:          pointer.From(cmkEncryption.KeyEncryptionKeyURL),
+			UserAssignedIdentityId: uaiResourceId,
+		},
+	}
+}
+
+func expandMongoClusterRestore(input []Restore) *mongoclusters.MongoClusterRestoreParameters {
+	if len(input) == 0 {
+		return nil
+	}
+
+	restoreParams := input[0]
+
+	return &mongoclusters.MongoClusterRestoreParameters{
+		PointInTimeUTC:   pointer.To(restoreParams.PointInTimeUtc),
+		SourceResourceId: pointer.To(restoreParams.SourceId),
+	}
+}
+
+func flattenMongoClusterRestore(input *mongoclusters.MongoClusterRestoreParameters) []Restore {
+	results := make([]Restore, 0)
+	if input == nil {
+		return results
+	}
+
+	results = append(results, Restore{
+		PointInTimeUtc: pointer.From(input.PointInTimeUTC),
+		SourceId:       pointer.From(input.SourceResourceId),
+	})
+
+	return results
+}
+
+func expandMongoClusterAuthConfig(input []string) *mongoclusters.AuthConfigProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	allowedModes := make([]mongoclusters.AuthenticationMode, 0)
+	for _, v := range input {
+		allowedModes = append(allowedModes, mongoclusters.AuthenticationMode(v))
+	}
+
+	return &mongoclusters.AuthConfigProperties{
+		AllowedModes: pointer.To(allowedModes),
+	}
+}
+
+func flattenMongoClusterAuthConfig(input *mongoclusters.AuthConfigProperties) []string {
+	results := make([]string, 0)
+	if input == nil || input.AllowedModes == nil {
+		return results
+	}
+
+	for _, v := range *input.AllowedModes {
 		results = append(results, string(v))
 	}
 

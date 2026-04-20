@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package framework
@@ -78,14 +78,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	enableOIDC := getEnvBoolIfValueAbsent(data.UseOIDC, "ARM_USE_OIDC") || getEnvBoolIfValueAbsent(data.UseAKSWorkloadIdentity, "ARM_USE_AKS_WORKLOAD_IDENTITY")
 	auxTenants := getEnvListOfStringsIfAbsent(data.AuxiliaryTenantIds, "ARM_AUXILIARY_TENANT_IDS", ";")
 
-	oidcReqURL := getEnvStringOrDefault(data.OIDCRequestURL, "ARM_OIDC_REQUEST_URL", "")
-	if oidcReqURL == "" {
-		oidcReqURL = getEnvStringOrDefault(data.OIDCRequestURL, "ACTIONS_ID_TOKEN_REQUEST_URL", "")
-	}
-	oidcReqToken := getEnvStringOrDefault(data.OIDCRequestToken, "ARM_OIDC_REQUEST_TOKEN", "")
-	if oidcReqToken == "" {
-		oidcReqToken = getEnvStringOrDefault(data.OIDCRequestToken, "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "")
-	}
+	oidcReqURL := getEnvStringsOrDefault(data.OIDCRequestURL, []string{"ARM_OIDC_REQUEST_URL", "ACTIONS_ID_TOKEN_REQUEST_URL", "SYSTEM_OIDCREQUESTURI"}, "")
+	oidcReqToken := getEnvStringsOrDefault(data.OIDCRequestToken, []string{"ARM_OIDC_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "SYSTEM_ACCESSTOKEN"}, "")
+
+	// ARM_OIDC_AZURE_SERVICE_CONNECTION_ID is to be compatible with `azapi` provider.
+	adoPipelineServiceConnectionID := getEnvStringsOrDefault(data.ADOPipelineServiceConnectionID, []string{"ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID", "ARM_OIDC_AZURE_SERVICE_CONNECTION_ID"}, "")
 
 	authConfig := &auth.Credentials{
 		Environment:        *env,
@@ -98,11 +95,14 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		ClientCertificatePassword: getEnvStringOrDefault(data.ClientCertificatePassword, "ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
 		ClientSecret:              *clientSecret,
 
-		OIDCAssertionToken:          *oidcToken,
-		GitHubOIDCTokenRequestURL:   oidcReqURL,
-		GitHubOIDCTokenRequestToken: oidcReqToken,
+		OIDCAssertionToken:    *oidcToken,
+		OIDCTokenRequestURL:   oidcReqURL,
+		OIDCTokenRequestToken: oidcReqToken,
 
-		CustomManagedIdentityEndpoint: getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
+		ADOPipelineServiceConnectionID: adoPipelineServiceConnectionID,
+
+		CustomManagedIdentityEndpoint:   getEnvStringOrDefault(data.MSIEndpoint, "ARM_MSI_ENDPOINT", ""),
+		CustomManagedIdentityAPIVersion: getEnvStringOrDefault(data.MSIAPIVersion, "ARM_MSI_API_VERSION", ""),
 
 		AzureCliSubscriptionIDHint: subscriptionId,
 
@@ -110,6 +110,7 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 		EnableAuthenticatingUsingClientSecret:      true,
 		EnableAuthenticationUsingOIDC:              enableOIDC,
 		EnableAuthenticationUsingGitHubOIDC:        enableOIDC,
+		EnableAuthenticationUsingADOPipelineOIDC:   enableOIDC,
 		EnableAuthenticatingUsingAzureCLI:          getEnvBoolOrDefault(data.UseCLI, "ARM_USE_CLI", true),
 		EnableAuthenticatingUsingManagedIdentity:   getEnvBoolOrDefault(data.UseMSI, "ARM_USE_MSI", false),
 	}
@@ -125,6 +126,36 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	p.clientBuilder.DisableCorrelationRequestID = getEnvBoolOrDefault(data.DisableCorrelationRequestId, "ARM_DISABLE_CORRELATION_REQUEST_ID", false)
 	p.clientBuilder.DisableTerraformPartnerID = getEnvBoolOrDefault(data.DisableTerraformPartnerId, "ARM_DISABLE_TERRAFORM_PARTNER_ID", false)
 	p.clientBuilder.StorageUseAzureAD = getEnvBoolOrDefault(data.StorageUseAzureAD, "ARM_STORAGE_USE_AZUREAD", false)
+	// In 4.x, validate that the legacy and specific enhanced validation env vars don't conflict
+	if !providerfeatures.FivePointOh() {
+		if err := providerfeatures.ValidateEnhancedValidationEnvVars(); err != nil {
+			diags.Append(diag.NewErrorDiagnostic("validating enhanced validation environment variables", err.Error()))
+			return
+		}
+	} else if os.Getenv("ARM_PROVIDER_ENHANCED_VALIDATION") != "" {
+		diags.Append(diag.NewErrorDiagnostic("unsupported environment variable", "the environment variable `ARM_PROVIDER_ENHANCED_VALIDATION` has been removed in v5.0 of the AzureRM Provider - please use the `enhanced_validation` provider block or the replacement environment variables `ARM_PROVIDER_ENHANCED_VALIDATION_LOCATIONS` and `ARM_PROVIDER_ENHANCED_VALIDATION_RESOURCE_PROVIDERS` instead"))
+		return
+	}
+
+	// Read enhanced_validation block
+	enhancedValidationLocations := providerfeatures.EnhancedValidationLocationsEnabled()
+	enhancedValidationResourceProviders := providerfeatures.EnhancedValidationResourceProvidersEnabled()
+	if !data.EnhancedValidation.IsNull() && !data.EnhancedValidation.IsUnknown() {
+		var evList []EnhancedValidationModel
+		d := data.EnhancedValidation.ElementsAs(ctx, &evList, true)
+		diags.Append(d...)
+		if diags.HasError() {
+			return
+		}
+		if len(evList) > 0 {
+			if !evList[0].Locations.IsNull() && !evList[0].Locations.IsUnknown() {
+				enhancedValidationLocations = evList[0].Locations.ValueBool()
+			}
+			if !evList[0].ResourceProviders.IsNull() && !evList[0].ResourceProviders.IsUnknown() {
+				enhancedValidationResourceProviders = evList[0].ResourceProviders.ValueBool()
+			}
+		}
+	}
 
 	f := providerfeatures.UserFeatures{}
 
@@ -297,12 +328,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				return
 			}
 
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 			if !feature[0].PermanentlyDeleteOnDestroy.IsNull() && !feature[0].PermanentlyDeleteOnDestroy.IsUnknown() {
 				f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = feature[0].PermanentlyDeleteOnDestroy.ValueBool()
 			}
 		} else {
-			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = !providerfeatures.FourPointOhBeta()
+			f.LogAnalyticsWorkspace.PermanentlyDeleteOnDestroy = false
 		}
 
 		if !features.TemplateDeployment.IsNull() && !features.TemplateDeployment.IsUnknown() {
@@ -334,18 +365,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.VirtualMachine.DeleteOSDiskOnDeletion = feature[0].DeleteOsDiskOnDeletion.ValueBool()
 			}
 
-			f.VirtualMachine.GracefulShutdown = false
-			if !feature[0].GracefulShutdown.IsNull() && !feature[0].GracefulShutdown.IsUnknown() {
-				f.VirtualMachine.GracefulShutdown = feature[0].GracefulShutdown.ValueBool()
-			}
-
 			f.VirtualMachine.SkipShutdownAndForceDelete = false
 			if !feature[0].SkipShutdownAndForceDelete.IsNull() && !feature[0].SkipShutdownAndForceDelete.IsUnknown() {
 				f.VirtualMachine.SkipShutdownAndForceDelete = feature[0].SkipShutdownAndForceDelete.ValueBool()
 			}
 		} else {
 			f.VirtualMachine.DeleteOSDiskOnDeletion = false
-			f.VirtualMachine.GracefulShutdown = false
 			f.VirtualMachine.SkipShutdownAndForceDelete = false
 		}
 
@@ -473,6 +498,11 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = feature[0].VMBackupStopProtectionAndRetainDataOnDestroy.ValueBool()
 			}
 
+			f.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = false
+			if !feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.IsNull() && !feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.IsUnknown() {
+				f.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.ValueBool()
+			}
+
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
 			if !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsNull() && !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsUnknown() {
 				f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = feature[0].PurgeProtectedItemsFromVaultOnDestroy.ValueBool()
@@ -503,7 +533,26 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 			f.NetApp.DeleteBackupsOnBackupVaultDestroy = false
 			f.NetApp.PreventVolumeDestruction = true
 		}
+
+		if !features.DatabricksWorkspace.IsNull() && !features.DatabricksWorkspace.IsUnknown() {
+			var feature []DatabricksWorkspace
+			d := features.DatabricksWorkspace.ElementsAs(ctx, &feature, true)
+			diags.Append(d...)
+			if diags.HasError() {
+				return
+			}
+
+			f.DatabricksWorkspace.ForceDelete = false
+			if !feature[0].ForceDelete.IsNull() && !feature[0].ForceDelete.IsUnknown() {
+				f.DatabricksWorkspace.ForceDelete = feature[0].ForceDelete.ValueBool()
+			}
+		} else {
+			f.DatabricksWorkspace.ForceDelete = false
+		}
 	}
+
+	f.EnhancedValidation.Locations = enhancedValidationLocations
+	f.EnhancedValidation.ResourceProviders = enhancedValidationResourceProviders
 
 	p.clientBuilder.Features = f
 	p.clientBuilder.AuthConfig = authConfig
@@ -522,8 +571,8 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 
 	client.StopContext = ctx
 
-	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsCore)
-	if !providerfeatures.FivePointOhBeta() {
+	resourceProviderRegistrationSet := getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsNone)
+	if !providerfeatures.FivePointOh() {
 		resourceProviderRegistrationSet = getEnvStringOrDefault(data.ResourceProviderRegistrations, "ARM_RESOURCE_PROVIDER_REGISTRATIONS", resourceproviders.ProviderRegistrationsLegacy)
 	}
 
@@ -556,9 +605,12 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
 
-	if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
-		diags.AddError("registering resource providers", err.Error())
-		return
+	// Ensure that we do not trigger the RP cache when running in VCR mode or the cassettes have a base size of 3.5MiB!
+	if os.Getenv("TC_TEST_VIA_VCR") == "" {
+		if err = resourceproviders.EnsureRegistered(ctx2, client.Resource.ResourceProvidersClient, subId, requiredResourceProviders); err != nil {
+			diags.AddError("registering resource providers", err.Error())
+			return
+		}
 	}
 
 	p.Client = client

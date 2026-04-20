@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse_test
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -66,12 +67,12 @@ func (r SynapseManagedPrivateEndpointResource) Exists(ctx context.Context, clien
 	resp, err := managedPrivateEndpointsClient.Get(ctx, id.ManagedVirtualNetworkName, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Synapse Managed Private Endpoints (Workspace %q / Resource Group %q): %+v", id.WorkspaceName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r SynapseManagedPrivateEndpointResource) basic(data acceptance.TestData) string {

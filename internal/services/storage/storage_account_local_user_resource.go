@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -13,19 +13,24 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/localusers"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/localuseroperationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_local_user -service-package-name storage -properties "name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "passwordOnly"
 
 type LocalUserResource struct{}
 
-var _ sdk.ResourceWithUpdate = LocalUserResource{}
+var (
+	_ sdk.ResourceWithUpdate   = LocalUserResource{}
+	_ sdk.ResourceWithIdentity = LocalUserResource{}
+)
 
 type PermissionsModel struct {
 	Create bool `tfschema:"create"`
@@ -191,7 +196,11 @@ func (r LocalUserResource) ModelObject() interface{} {
 }
 
 func (r LocalUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return localusers.ValidateLocalUserID
+	return localuseroperationgroup.ValidateLocalUserID
+}
+
+func (r LocalUserResource) Identity() resourceids.ResourceId {
+	return &localuseroperationgroup.LocalUserId{}
 }
 
 func (r LocalUserResource) CustomizeDiff() sdk.ResourceFunc {
@@ -213,7 +222,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.LocalUsers
+			client := metadata.Client.Storage.ResourceManager.LocalUserOperationGroup
 
 			var plan LocalUserModel
 			if err := metadata.Decode(&plan); err != nil {
@@ -234,8 +243,8 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			id := localusers.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, plan.Name)
-			existing, err := client.Get(ctx, id)
+			id := localuseroperationgroup.NewLocalUserID(accountId.SubscriptionId, accountId.ResourceGroupName, accountId.StorageAccountName, plan.Name)
+			existing, err := client.LocalUsersGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -245,8 +254,8 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			params := localusers.LocalUser{
-				Properties: &localusers.LocalUserProperties{
+			params := localuseroperationgroup.LocalUser{
+				Properties: &localuseroperationgroup.LocalUserProperties{
 					PermissionScopes:  r.expandPermissionScopes(plan.PermissionScope),
 					SshAuthorizedKeys: r.expandSSHAuthorizedKeys(plan.SshAuthorizedKey),
 					HasSshKey:         pointer.To(plan.SshKeyEnabled),
@@ -255,16 +264,16 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			}
 
 			if plan.HomeDirectory != "" {
-				params.Properties.HomeDirectory = utils.String(plan.HomeDirectory)
+				params.Properties.HomeDirectory = pointer.To(plan.HomeDirectory)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, id, params); err != nil {
+			if _, err = client.LocalUsersCreateOrUpdate(ctx, id, params); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			state := plan
 			if plan.SshPasswordEnabled {
-				resp, err := client.RegeneratePassword(ctx, id)
+				resp, err := client.LocalUsersRegeneratePassword(ctx, id)
 				if err != nil {
 					return fmt.Errorf("generating password for %s: %v", id.ID(), err)
 				}
@@ -280,7 +289,7 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id)
 		},
 	}
 }
@@ -290,8 +299,8 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.LocalUsers
-			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
+			client := metadata.Client.Storage.ResourceManager.LocalUserOperationGroup
+			id, err := localuseroperationgroup.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -301,7 +310,7 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.LocalUsersGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -336,6 +345,10 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 				}
 			}
 
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
+			}
+
 			return metadata.Encode(&model)
 		},
 	}
@@ -345,7 +358,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
+			id, err := localuseroperationgroup.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -355,9 +368,9 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			client := metadata.Client.Storage.ResourceManager.LocalUsers
+			client := metadata.Client.Storage.ResourceManager.LocalUserOperationGroup
 
-			params, err := client.Get(ctx, *id)
+			params, err := client.LocalUsersGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
@@ -401,7 +414,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 					// Also, after `ssh_key_enabled` being set to back true, but without calling the RegeneratePassword(), then if you
 					// call GET on the local user again, it returns the `ssh_key_enabled` as false, which indicates that we shall always
 					// generate a password when enable the `ssh_key_enabled`.
-					resp, err := client.RegeneratePassword(ctx, *id)
+					resp, err := client.LocalUsersRegeneratePassword(ctx, *id)
 					if err != nil {
 						return fmt.Errorf("generating password for %s: %v", id.ID(), err)
 					}
@@ -419,7 +432,7 @@ func (r LocalUserResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, localusers.LocalUser{Properties: props}); err != nil {
+			if _, err := client.LocalUsersCreateOrUpdate(ctx, *id, localuseroperationgroup.LocalUser{Properties: props}); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 			return nil
@@ -431,14 +444,14 @@ func (r LocalUserResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Storage.ResourceManager.LocalUsers
+			client := metadata.Client.Storage.ResourceManager.LocalUserOperationGroup
 
-			id, err := localusers.ParseLocalUserID(metadata.ResourceData.Id())
+			id, err := localuseroperationgroup.ParseLocalUserID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
+			if _, err := client.LocalUsersDelete(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
 			}
 
@@ -447,12 +460,12 @@ func (r LocalUserResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) *[]localusers.PermissionScope {
+func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) *[]localuseroperationgroup.PermissionScope {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]localusers.PermissionScope, 0, len(input))
+	output := make([]localuseroperationgroup.PermissionScope, 0, len(input))
 	for _, v := range input {
 		// The length constraint is guaranteed by schema
 		permissions := v.Permissions[0]
@@ -473,7 +486,7 @@ func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) 
 			permissionStr += "c"
 		}
 
-		output = append(output, localusers.PermissionScope{
+		output = append(output, localuseroperationgroup.PermissionScope{
 			Permissions:  permissionStr,
 			Service:      v.Service,
 			ResourceName: v.ResourceName,
@@ -483,7 +496,7 @@ func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) 
 	return &output
 }
 
-func (r LocalUserResource) flattenPermissionScopes(input *[]localusers.PermissionScope) []PermissionScopeModel {
+func (r LocalUserResource) flattenPermissionScopes(input *[]localuseroperationgroup.PermissionScope) []PermissionScopeModel {
 	if input == nil {
 		return nil
 	}
@@ -519,14 +532,14 @@ func (r LocalUserResource) flattenPermissionScopes(input *[]localusers.Permissio
 	return output
 }
 
-func (r LocalUserResource) expandSSHAuthorizedKeys(input []SshAuthorizedKeyModel) *[]localusers.SshPublicKey {
+func (r LocalUserResource) expandSSHAuthorizedKeys(input []SshAuthorizedKeyModel) *[]localuseroperationgroup.SshPublicKey {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]localusers.SshPublicKey, 0, len(input))
+	output := make([]localuseroperationgroup.SshPublicKey, 0, len(input))
 	for _, v := range input {
-		output = append(output, localusers.SshPublicKey{
+		output = append(output, localuseroperationgroup.SshPublicKey{
 			Description: pointer.To(v.Description),
 			Key:         pointer.To(v.Key),
 		})

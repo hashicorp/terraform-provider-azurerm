@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,10 +17,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/expressroutecircuits"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/localnetworkgateways"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworkgatewayconnections"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualnetworkgateways"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgatewayconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -27,7 +29,7 @@ import (
 )
 
 func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceVirtualNetworkGatewayConnectionCreate,
 		Read:   resourceVirtualNetworkGatewayConnectionRead,
 		Update: resourceVirtualNetworkGatewayConnectionUpdate,
@@ -140,11 +142,10 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 				ValidateFunc: localnetworkgateways.ValidateLocalNetworkGatewayID,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_bgp": {
+			"bgp_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true,
+				Default:  false,
 			},
 
 			"use_policy_based_traffic_selectors": {
@@ -335,7 +336,7 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 
 						"sa_lifetime": {
@@ -351,6 +352,24 @@ func resourceVirtualNetworkGatewayConnection() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["enable_bgp"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"bgp_enabled"},
+			Deprecated:    "the `enable_bgp` property has been deprecated in favour of the `bgp_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		resource.Schema["bgp_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_bgp"},
+		}
+	}
+
+	return resource
 }
 
 func resourceVirtualNetworkGatewayConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -505,8 +524,9 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 			d.Set("local_network_gateway_id", props.LocalNetworkGateway2.Id)
 		}
 
-		if props.EnableBgp != nil {
-			d.Set("enable_bgp", props.EnableBgp)
+		d.Set("bgp_enabled", pointer.From(props.EnableBgp))
+		if !features.FivePointOh() {
+			d.Set("enable_bgp", pointer.From(props.EnableBgp))
 		}
 
 		if props.UsePolicyBasedTrafficSelectors != nil {
@@ -554,7 +574,9 @@ func resourceVirtualNetworkGatewayConnectionRead(d *pluginsdk.ResourceData, meta
 			return fmt.Errorf("setting `ingress_nat_rule_ids`: %+v", err)
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -621,7 +643,7 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 		localNetworkGatewayId := d.Get("local_network_gateway_id").(string)
 		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
-			return fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
+			return fmt.Errorf("getting LocalNetworkGateway Name and Group: %+v", err)
 		}
 
 		payload.Properties.LocalNetworkGateway2 = &virtualnetworkgatewayconnections.LocalNetworkGateway{
@@ -633,8 +655,17 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 		}
 	}
 
-	if d.HasChange("enable_bgp") {
-		payload.Properties.EnableBgp = pointer.To(d.Get("enable_bgp").(bool))
+	if !features.FivePointOh() && d.HasChanges("enable_bgp", "bgp_enabled") {
+		enableBgp := false
+		if d.HasChange("enable_bgp") && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
+			enableBgp = d.Get("enable_bgp").(bool)
+		}
+		if d.HasChange("bgp_enabled") && !d.GetRawConfig().AsValueMap()["bgp_enabled"].IsNull() {
+			enableBgp = d.Get("bgp_enabled").(bool)
+		}
+		payload.Properties.EnableBgp = pointer.To(enableBgp)
+	} else if d.HasChange("bgp_enabled") {
+		payload.Properties.EnableBgp = pointer.To(d.Get("bgp_enabled").(bool))
 	}
 
 	if d.HasChange("use_policy_based_traffic_selectors") {
@@ -744,10 +775,15 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 	connectionType := virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionType(d.Get("type").(string))
 	connectionMode := virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionMode(d.Get("connection_mode").(string))
 
+	enableBgp := d.Get("bgp_enabled").(bool)
+	if !features.FivePointOh() && !d.GetRawConfig().AsValueMap()["enable_bgp"].IsNull() {
+		enableBgp = d.Get("enable_bgp").(bool)
+	}
+
 	props := &virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionPropertiesFormat{
 		ConnectionType:                 connectionType,
 		ConnectionMode:                 pointer.To(connectionMode),
-		EnableBgp:                      pointer.To(d.Get("enable_bgp").(bool)),
+		EnableBgp:                      pointer.To(enableBgp),
 		EnablePrivateLinkFastPath:      pointer.To(d.Get("private_link_fast_path_enabled").(bool)),
 		ExpressRouteGatewayBypass:      pointer.To(d.Get("express_route_gateway_bypass").(bool)),
 		UsePolicyBasedTrafficSelectors: pointer.To(d.Get("use_policy_based_traffic_selectors").(bool)),
@@ -809,7 +845,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		localNetworkGatewayId := v.(string)
 		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
-			return nil, fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
+			return nil, fmt.Errorf("getting LocalNetworkGateway Name and Group: %+v", err)
 		}
 
 		props.LocalNetworkGateway2 = &virtualnetworkgatewayconnections.LocalNetworkGateway{
@@ -982,9 +1018,10 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 				continue
 			}
 
-			if ip == primaryAddress {
+			switch ip {
+			case primaryAddress:
 				primaryIpConfiguration = *address.IPconfigurationId
-			} else if ip == secondaryAddress {
+			case secondaryAddress:
 				secondaryIpConfiguration = *address.IPconfigurationId
 			}
 		}

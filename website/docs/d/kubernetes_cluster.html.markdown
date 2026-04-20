@@ -22,7 +22,7 @@ data "azurerm_kubernetes_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -44,6 +44,8 @@ The following attributes are exported:
 
 * `azure_policy_enabled` - Is Azure Policy enabled on this managed Kubernetes Cluster?
 
+* `bootstrap_profile` - A `bootstrap_profile` block as documented below.
+
 * `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
 * `current_kubernetes_version` - Contains the current version of Kubernetes running on the Cluster.
@@ -64,7 +66,7 @@ The following attributes are exported:
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
--> **NOTE:**  At this time Private Link is in Public Preview.
+-> **Note:** At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are not disabled.
 
@@ -172,6 +174,14 @@ An `azure_active_directory_role_based_access_control` block exports the followin
 
 ---
 
+A `bootstrap_profile` block exports the following:
+
+* `artifact_source` - The source from which artifacts are pulled during bootstrap.
+
+* `container_registry_id` - The ID of the Azure Container Registry used for caching artifacts during bootstrap.
+
+---
+
 A `upgrade_settings` block exports the following:
 
 * `drain_timeout_in_minutes` - The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors waiting on pod disruption budgets. If this time is exceeded, the upgrade fails.
@@ -179,6 +189,8 @@ A `upgrade_settings` block exports the following:
 * `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
 
 * `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
+
+* `undrainable_node_behavior` - The action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
 
 ---
 
@@ -214,7 +226,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
--> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+-> **Note:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
 
 ```hcl
 provider "kubernetes" {
@@ -260,6 +272,8 @@ A `network_profile` block exports the following:
 * `network_policy` - Network policy to be used with Azure CNI. e.g. `calico` or `azure`
 
 * `network_mode` - Network mode to be used with Azure CNI. e.g. `bridge` or `transparent`
+
+* `outbound_type` - The outbound (egress) routing method which is used for cluster egress traffic.
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
@@ -398,6 +412,12 @@ A `certificate_authority` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Kubernetes Cluster (AKS).
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2025-10-01

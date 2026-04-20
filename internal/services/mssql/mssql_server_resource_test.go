@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package mssql_test
@@ -8,23 +8,27 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/servers"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MsSqlServerResource struct{}
+type MssqlServerResource struct{}
 
 func TestAccMsSqlServer_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -37,9 +41,24 @@ func TestAccMsSqlServer_basic(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlServer_basicWithUnknownValue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MssqlServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithUnknownValue(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_login_password"),
+	})
+}
+
 func TestAccMsSqlServer_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,11 +72,11 @@ func TestAccMsSqlServer_complete(t *testing.T) {
 }
 
 func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("The service require minimum TLS version to be 1.2+, skip the `disabled` testing.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -72,7 +91,7 @@ func TestAccMsSqlServer_minimumTLSVersionDisabled(t *testing.T) {
 
 func TestAccMsSqlServer_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -87,7 +106,7 @@ func TestAccMsSqlServer_requiresImport(t *testing.T) {
 
 func TestAccMsSqlServer_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -123,7 +142,7 @@ func TestAccMsSqlServer_update(t *testing.T) {
 
 func TestAccMsSqlServer_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -138,7 +157,7 @@ func TestAccMsSqlServer_systemAssignedIdentity(t *testing.T) {
 
 func TestAccMsSqlServer_userAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -153,7 +172,7 @@ func TestAccMsSqlServer_userAssignedIdentity(t *testing.T) {
 
 func TestAccMsSqlServer_systemAndUserAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -168,7 +187,7 @@ func TestAccMsSqlServer_systemAndUserAssignedIdentity(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -183,7 +202,7 @@ func TestAccMsSqlServer_azureadAdmin(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -219,7 +238,7 @@ func TestAccMsSqlServer_azureadAdminUpdate(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -234,7 +253,7 @@ func TestAccMsSqlServer_azureadAdminWithAADAuthOnly(t *testing.T) {
 
 func TestAccMsSqlServer_azureadAuthenticationOnlyWithIdentityUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -263,7 +282,7 @@ func TestAccMsSqlServer_azureadAuthenticationOnlyWithIdentityUpdate(t *testing.T
 
 func TestAccMsSqlServer_TDECMKServerDeployment(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -278,7 +297,7 @@ func TestAccMsSqlServer_TDECMKServerDeployment(t *testing.T) {
 
 func TestAccMsSqlServer_CMKServerTagsUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
-	r := MsSqlServerResource{}
+	r := MssqlServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -305,7 +324,72 @@ func TestAccMsSqlServer_CMKServerTagsUpdate(t *testing.T) {
 	})
 }
 
-func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccMsSqlServer_writeOnlyAdminLoginPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MssqlServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				VersionConstraint: "=3.6.3",
+				Source:            "registry.terraform.io/hashicorp/random",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password_wo_version"),
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-updated", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password_wo_version"),
+		},
+	})
+}
+
+func TestAccMsSqlServer_updateToWriteOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mssql_server", "test")
+	r := MssqlServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"random": {
+				VersionConstraint: "=3.6.3",
+				Source:            "registry.terraform.io/hashicorp/random",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password"),
+			{
+				Config: r.writeOnlyAdminLoginPassword(data, "7h1515K4711-secret", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password", "administrator_login_password_wo_version"),
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_login_password"),
+		},
+	})
+}
+
+func (MssqlServerResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.ServerID(state.ID)
 	if err != nil {
 		return nil, err
@@ -321,22 +405,15 @@ func (MsSqlServerResource) Exists(ctx context.Context, client *clients.Client, s
 		return nil, fmt.Errorf("reading SQL Server %q (Resource Group %q): %v", id.Name, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (MsSqlServerResource) basic(data acceptance.TestData) string {
+func (r MssqlServerResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -345,22 +422,32 @@ resource "azurerm_mssql_server" "test" {
 
   outbound_network_restriction_enabled = true
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) basicWithMinimumTLSVersionDisabled(data acceptance.TestData) string {
+func (r MssqlServerResource) basicWithUnknownValue(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  version                      = "12.0"
+  administrator_login          = "missadministrator-${random_string.test.result}"
+  administrator_login_password = "thisIsKat11"
+
+  outbound_network_restriction_enabled = true
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r MssqlServerResource) basicWithMinimumTLSVersionDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mssql_server" "test" {
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -372,22 +459,15 @@ resource "azurerm_mssql_server" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) basicWithMinimumTLSVersion(data acceptance.TestData) string {
+func (r MssqlServerResource) basicWithMinimumTLSVersion(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -399,10 +479,10 @@ resource "azurerm_mssql_server" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlServerResource) requiresImport(data acceptance.TestData) string {
+func (r MssqlServerResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -417,26 +497,19 @@ resource "azurerm_mssql_server" "import" {
 `, r.basic(data))
 }
 
-func (MsSqlServerResource) complete(data acceptance.TestData) string {
+func (r MssqlServerResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet-%[1]d"
+  name                = "acctestvnet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.5.0.0/16"]
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "acctestsnetservice-%[1]d"
+  name                 = "acctestsnetservice-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
@@ -445,7 +518,7 @@ resource "azurerm_subnet" "service" {
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%[1]d"
+  name                 = "acctestsnetendpoint-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
@@ -468,7 +541,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -484,6 +557,8 @@ resource "azurerm_mssql_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
+  express_vulnerability_assessment_enabled = true
+
   tags = {
     ENV      = "Staging"
     database = "NotProd"
@@ -496,41 +571,34 @@ resource "azurerm_private_dns_zone" "finance" {
 }
 
 resource "azurerm_private_endpoint" "test" {
-  name                = "acctest-privatelink-%[1]d"
+  name                = "acctest-privatelink-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                           = "acctest-privatelink-mssc-%[1]d"
+    name                           = "acctest-privatelink-mssc-%[2]d"
     private_connection_resource_id = azurerm_mssql_server.test.id
     subresource_names              = ["sqlServer"]
     is_manual_connection           = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
+`, r.template(data), data.RandomInteger, data.RandomIntOfLength(15))
 }
 
-func (MsSqlServerResource) completeUpdate(data acceptance.TestData) string {
+func (r MssqlServerResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvnet-%[1]d"
+  name                = "acctestvnet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.5.0.0/16"]
 }
 
 resource "azurerm_subnet" "service" {
-  name                 = "acctestsnetservice-%[1]d"
+  name                 = "acctestsnetservice-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.1.0/24"]
@@ -539,7 +607,7 @@ resource "azurerm_subnet" "service" {
 }
 
 resource "azurerm_subnet" "endpoint" {
-  name                 = "acctestsnetendpoint-%[1]d"
+  name                 = "acctestsnetendpoint-%[2]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
@@ -562,7 +630,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -590,34 +658,27 @@ resource "azurerm_private_dns_zone" "finance" {
 }
 
 resource "azurerm_private_endpoint" "test" {
-  name                = "acctest-privatelink-%[1]d"
+  name                = "acctest-privatelink-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                           = "acctest-privatelink-mssc-%[1]d"
+    name                           = "acctest-privatelink-mssc-%[2]d"
     private_connection_resource_id = azurerm_mssql_server.test.id
     subresource_names              = ["sqlServer"]
     is_manual_connection           = false
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(15))
+`, r.template(data), data.RandomInteger, data.RandomIntOfLength(15))
 }
 
-func (MsSqlServerResource) systemAssignedIdentity(data acceptance.TestData) string {
+func (r MssqlServerResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -628,19 +689,12 @@ resource "azurerm_mssql_server" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) userAssignedIdentity(data acceptance.TestData) string {
+func (r MssqlServerResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_user_assigned_identity" "test1" {
   resource_group_name = azurerm_resource_group.test.name
@@ -655,7 +709,7 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                              = "acctestsqlserver%[1]d"
+  name                              = "acctestsqlserver%[2]d"
   resource_group_name               = azurerm_resource_group.test.name
   location                          = azurerm_resource_group.test.location
   version                           = "12.0"
@@ -668,28 +722,21 @@ resource "azurerm_mssql_server" "test" {
     identity_ids = [azurerm_user_assigned_identity.test1.id, azurerm_user_assigned_identity.test2.id]
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) systemAndUserAssignedIdentity(data acceptance.TestData) string {
+func (r MssqlServerResource) systemAndUserAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
+%s
 
 resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctestUAI-%[1]d"
+  name                = "acctestUAI-%[2]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -703,26 +750,19 @@ resource "azurerm_mssql_server" "test" {
     ]
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) aadAdmin(data acceptance.TestData) string {
+func (r MssqlServerResource) aadAdmin(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 provider "azuread" {}
 
 data "azurerm_client_config" "test" {}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
-
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -734,26 +774,19 @@ resource "azurerm_mssql_server" "test" {
     object_id      = data.azurerm_client_config.test.object_id
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) aadAdminWithAADAuthOnly(data acceptance.TestData) string {
+func (r MssqlServerResource) aadAdminWithAADAuthOnly(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 provider "azuread" {}
 
 data "azurerm_client_config" "test" {}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
-
 resource "azurerm_mssql_server" "test" {
-  name                = "acctestsqlserver%[1]d"
+  name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   version             = "12.0"
@@ -764,23 +797,16 @@ resource "azurerm_mssql_server" "test" {
     azuread_authentication_only = true
   }
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MsSqlServerResource) updateAzureadAuthenticationOnlyWithIdentity(data acceptance.TestData, enableAzureadAuthenticationOnly bool) string {
+func (r MssqlServerResource) updateAzureadAuthenticationOnlyWithIdentity(data acceptance.TestData, enableAzureadAuthenticationOnly bool) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 provider "azuread" {}
 
 data "azurerm_client_config" "test" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -789,7 +815,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -810,21 +836,14 @@ resource "azurerm_mssql_server" "test" {
 
   primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, enableAzureadAuthenticationOnly)
+`, r.template(data), data.RandomInteger, enableAzureadAuthenticationOnly)
 }
 
-func (MsSqlServerResource) tdeCMKServerDeployment(data acceptance.TestData) string {
+func (r MssqlServerResource) tdeCMKServerDeployment(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 data "azurerm_client_config" "test" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -833,7 +852,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -856,7 +875,7 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "vault%[1]d"
+  name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   enabled_for_disk_encryption = true
@@ -891,21 +910,14 @@ resource "azurerm_key_vault_key" "test" {
 
   key_opts = ["unwrapKey", "wrapKey"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
 }
 
-func (MsSqlServerResource) CMKServerTags(data acceptance.TestData, tag string) string {
+func (r MssqlServerResource) CMKServerTags(data acceptance.TestData, tag string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 data "azurerm_client_config" "test" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -914,7 +926,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -941,7 +953,7 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "vault%[1]d"
+  name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   enabled_for_disk_encryption = true
@@ -976,21 +988,14 @@ resource "azurerm_key_vault_key" "test" {
 
   key_opts = ["unwrapKey", "wrapKey"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, tag)
+`, r.template(data), data.RandomInteger, data.RandomString, tag)
 }
 
-func (MsSqlServerResource) CMKServerNoTags(data acceptance.TestData) string {
+func (r MssqlServerResource) CMKServerNoTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
 data "azurerm_client_config" "test" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-mssql-%[1]d"
-  location = "%[2]s"
-}
 
 resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
@@ -999,7 +1004,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_mssql_server" "test" {
-  name                         = "acctestsqlserver%[1]d"
+  name                         = "acctestsqlserver%[2]d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
@@ -1022,7 +1027,7 @@ resource "azurerm_mssql_server" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                        = "vault%[1]d"
+  name                        = "acctest%[3]s"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
   enabled_for_disk_encryption = true
@@ -1057,5 +1062,44 @@ resource "azurerm_key_vault_key" "test" {
 
   key_opts = ["unwrapKey", "wrapKey"]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
+func (r MssqlServerResource) writeOnlyAdminLoginPassword(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+%[2]s
+
+resource "azurerm_mssql_server" "test" {
+  name                                    = "acctestsqlserver%[3]d"
+  resource_group_name                     = azurerm_resource_group.test.name
+  location                                = azurerm_resource_group.test.location
+  version                                 = "12.0"
+  administrator_login                     = "missadministrator-${random_string.test.result}"
+  administrator_login_password_wo_version = %[4]d
+  administrator_login_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
+
+  outbound_network_restriction_enabled = true
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
+}
+
+func (MssqlServerResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-mssql-%[1]d"
+  location = "%[2]s"
+}
+
+resource "random_string" "test" {
+  length  = 3
+  special = false
+  upper   = false
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
