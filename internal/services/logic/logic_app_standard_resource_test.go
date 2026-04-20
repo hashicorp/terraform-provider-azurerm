@@ -1111,6 +1111,32 @@ func TestAccLogicAppStandard_vnetContentShareEnabled(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_contentShareForceDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.contentShareForceDisabled(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_share_force_disabled").HasValue("true"),
+				data.CheckWithClient(r.hasContentShareAppSettings(false)),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.contentShareForceDisabled(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("content_share_force_disabled").HasValue("false"),
+				data.CheckWithClient(r.hasContentShareAppSettings(true)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LogicAppStandardResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseLogicAppId(state.ID)
 	if err != nil {
@@ -1146,6 +1172,39 @@ func (r LogicAppStandardResource) hasExtensionBundleAppSetting(shouldExist bool)
 		}
 		if exists != shouldExist {
 			return fmt.Errorf("expected %t but got %t", shouldExist, exists)
+		}
+
+		return nil
+	}
+}
+
+func (r LogicAppStandardResource) hasContentShareAppSettings(shouldExist bool) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
+		id, err := parse.LogicAppStandardID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		appSettingsResp, err := clients.Web.AppServicesClient.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+		if err != nil {
+			return fmt.Errorf("listing AppSettings: %+v", err)
+		}
+
+		connStringExists := false
+		contentShareExists := false
+		for k := range appSettingsResp.Properties {
+			if strings.EqualFold("WEBSITE_CONTENTAZUREFILECONNECTIONSTRING", k) {
+				connStringExists = true
+			}
+			if strings.EqualFold("WEBSITE_CONTENTSHARE", k) {
+				contentShareExists = true
+			}
+		}
+		if connStringExists != shouldExist {
+			return fmt.Errorf("expected WEBSITE_CONTENTAZUREFILECONNECTIONSTRING existence to be %t but got %t", shouldExist, connStringExists)
+		}
+		if contentShareExists != shouldExist {
+			return fmt.Errorf("expected WEBSITE_CONTENTSHARE existence to be %t but got %t", shouldExist, contentShareExists)
 		}
 
 		return nil
@@ -2655,4 +2714,20 @@ resource "azurerm_logic_app_standard" "test" {
   ftp_publish_basic_authentication_enabled = false
 }
 `, r.template(data), data.RandomInteger, enabled)
+}
+
+func (r LogicAppStandardResource) contentShareForceDisabled(data acceptance.TestData, disabled bool) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                         = "acctest-%d-func"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  app_service_plan_id          = azurerm_app_service_plan.test.id
+  storage_account_name         = azurerm_storage_account.test.name
+  storage_account_access_key   = azurerm_storage_account.test.primary_access_key
+  content_share_force_disabled = %t
+}
+`, r.template(data), data.RandomInteger, disabled)
 }

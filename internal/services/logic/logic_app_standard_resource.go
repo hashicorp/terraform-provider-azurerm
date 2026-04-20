@@ -55,6 +55,7 @@ type LogicAppResourceModel struct {
 	StorageAccountShareName    string                                     `tfschema:"storage_account_share_name"`
 	Version                    string                                     `tfschema:"version"`
 	VNETContentShareEnabled    bool                                       `tfschema:"vnet_content_share_enabled"`
+	ForceDisableContentShare   bool                                       `tfschema:"content_share_force_disabled"`
 	VirtualNetworkSubnetId     string                                     `tfschema:"virtual_network_subnet_id"`
 	Tags                       map[string]string                          `tfschema:"tags"`
 
@@ -237,6 +238,13 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"vnet_content_share_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+		},
+
+		"content_share_force_disabled": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Force disable the content share settings.",
 		},
 
 		"virtual_network_subnet_id": {
@@ -544,6 +552,7 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 
 			state.Name = id.SiteName
 			state.ResourceGroupName = id.ResourceGroupName
+			state.ForceDisableContentShare = metadata.ResourceData.Get("content_share_force_disabled").(bool)
 
 			if model := resp.Model; model != nil {
 				state.Kind = pointer.From(model.Kind)
@@ -914,8 +923,13 @@ func getBasicLogicAppSettings(d LogicAppResourceModel, endpointSuffix string) ([
 		{Name: &storageAppSettingName, Value: &storageConnection},
 		{Name: &functionVersionAppSettingName, Value: &functionVersion},
 		{Name: &appKindPropName, Value: &appKindPropValue},
-		{Name: &contentShareAppSettingName, Value: &contentShare},
-		{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+	}
+
+	if !d.ForceDisableContentShare {
+		basicSettings = append(basicSettings,
+			webapps.NameValuePair{Name: &contentShareAppSettingName, Value: &contentShare},
+			webapps.NameValuePair{Name: &contentFileConnStringAppSettingName, Value: &storageConnection},
+		)
 	}
 
 	if d.UseExtensionBundle {
@@ -1211,7 +1225,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(metadata))
 	}
 
-	if metadata.ResourceData.HasChanges("app_settings", "storage_account_name", "storage_account_share_name", "storage_account_access_key", "version") {
+	if metadata.ResourceData.HasChanges("app_settings", "storage_account_name", "storage_account_share_name", "storage_account_access_key", "version", "content_share_force_disabled") {
 		o, n := metadata.ResourceData.GetChange("app_settings")
 
 		appSettings := make([]webapps.NameValuePair, 0)
@@ -1262,16 +1276,20 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 	oMap := f(old)
 	cMap := f(new)
 
+	forceDisableContentShare := metadata.ResourceData.Get("content_share_force_disabled").(bool)
+
 	if metadata.ResourceData.HasChanges("storage_account_name", "storage_account_access_key") {
 		accountName := metadata.ResourceData.Get("storage_account_name").(string)
 		accountAccessKey := metadata.ResourceData.Get("storage_account_access_key").(string)
 		suffix, _ := metadata.Client.Account.Environment.Storage.DomainSuffix()
 
 		eMap[storageAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
-		eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
+		if !forceDisableContentShare {
+			eMap[contentFileConnStringAppSettingName] = fmt.Sprintf(storageConnectionStringFmt, accountName, accountAccessKey, *suffix)
+		}
 	}
 
-	if metadata.ResourceData.HasChange("storage_account_share_name") {
+	if metadata.ResourceData.HasChange("storage_account_share_name") && !forceDisableContentShare {
 		n := metadata.ResourceData.Get("storage_account_share_name").(string)
 
 		if n != "" {
@@ -1280,6 +1298,11 @@ func mergeAppSettings(existing []webapps.NameValuePair, old, new map[string]inte
 			name := metadata.ResourceData.Get("name").(string)
 			eMap[contentShareAppSettingName] = strings.ToLower(name) + "-content"
 		}
+	}
+
+	if forceDisableContentShare {
+		delete(eMap, contentShareAppSettingName)
+		delete(eMap, contentFileConnStringAppSettingName)
 	}
 
 	if metadata.ResourceData.HasChange("version") {
