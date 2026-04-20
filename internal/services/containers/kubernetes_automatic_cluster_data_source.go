@@ -13,10 +13,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -795,7 +796,7 @@ func dataSourceKubernetesAutomaticClusterRead(d *pluginsdk.ResourceData, meta in
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
 			}
 
-			serviceMeshProfile := flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
+			serviceMeshProfile := flattenKubernetesAutomaticClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
 			if err := d.Set("service_mesh_profile", serviceMeshProfile); err != nil {
 				return fmt.Errorf("setting `service_mesh_profile`: %+v", err)
 			}
@@ -1421,9 +1422,9 @@ func flattenKubernetesAutomaticClusterDataSourceKubeConfigAAD(config kubernetes.
 	return []interface{}{values}
 }
 
-//func flattenClusterDataSourceIdentity(input *identity.SystemOrUserAssignedMap) (*[]interface{}, error) {
-//	return identity.FlattenSystemOrUserAssignedMap(input)
-//}
+func flattenClusterDataSourceIdentity(input *identity.SystemOrUserAssignedMap) (*[]interface{}, error) {
+	return identity.FlattenSystemOrUserAssignedMap(input)
+}
 
 func flattenKubernetesAutomaticClusterDataSourceMicrosoftDefender(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
 	if input == nil || input.Defender == nil || input.Defender.SecurityMonitoring == nil || (input.Defender.SecurityMonitoring.Enabled != nil && !*input.Defender.SecurityMonitoring.Enabled) {
