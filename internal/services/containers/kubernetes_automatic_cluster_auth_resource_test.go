@@ -374,9 +374,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  private_cluster_enabled = false
-
-
   default_node_pool {
     name           = "default"
     node_count     = 1
@@ -392,13 +389,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
     outbound_type     = "loadBalancer"
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test1.id
     authorized_ip_ranges = [
       "8.8.8.8/32",
@@ -469,9 +464,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  private_cluster_enabled = false
-
-
   default_node_pool {
     name           = "default"
     node_count     = 1
@@ -487,13 +479,11 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   network_profile {
-    network_plugin    = "azure"
     load_balancer_sku = "standard"
     outbound_type     = "loadBalancer"
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test1.id
   }
 }
@@ -563,7 +553,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -653,7 +642,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -737,7 +725,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -845,7 +832,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
@@ -899,8 +885,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   identity {
     type = "SystemAssigned"
   }
-
-  role_based_access_control_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -994,8 +978,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   azure_active_directory_role_based_access_control {
-    tenant_id          = var.tenant_id
-    azure_rbac_enabled = false
+    tenant_id = var.tenant_id
   }
 }
 `, tenantId, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
@@ -1044,8 +1027,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   azure_active_directory_role_based_access_control {
-    tenant_id          = var.tenant_id
-    azure_rbac_enabled = true
+    tenant_id = var.tenant_id
   }
 }
 `, tenantId, data.Locations.Primary, data.RandomInteger, olderKubernetesAutomaticVersion)
@@ -1140,8 +1122,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   azure_active_directory_role_based_access_control {
-    tenant_id          = var.tenant_id
-    azure_rbac_enabled = true
+    tenant_id = var.tenant_id
   }
 }
 
@@ -1242,7 +1223,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   api_server_access_profile {
-    virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
   }
 
