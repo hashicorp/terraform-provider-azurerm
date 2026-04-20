@@ -76,6 +76,11 @@ type OMSAgentIdentityModel struct {
 
 func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"open_service_mesh_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 		"aci_connector_linux": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,

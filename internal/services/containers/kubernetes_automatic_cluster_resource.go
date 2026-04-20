@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-11-01/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
@@ -347,8 +348,9 @@ type WindowsProfileModel struct {
 }
 
 type GMSAModel struct {
-	DNSServer  string `tfschema:"dns_server"`
-	RootDomain string `tfschema:"root_domain"`
+	DNSServer          string `tfschema:"dns_server"`
+	RootDomain         string `tfschema:"root_domain"`
+	GMSAProfileEnabled bool   `tfschema:"gmsa_profile_enabled"`
 }
 
 type WorkloadAutoscalerProfileModel struct {
@@ -365,9 +367,13 @@ type KubeConfigModel struct {
 	ClusterCACertificate string `tfschema:"cluster_ca_certificate"`
 }
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name azurerm_kubernetes_automatic_cluster -properties "name,resource_group_name"
 type KubernetesAutomaticClusterResource struct{}
 
-var _ sdk.ResourceWithUpdate = KubernetesAutomaticClusterResource{}
+var (
+	_ sdk.ResourceWithUpdate   = KubernetesAutomaticClusterResource{}
+	_ sdk.ResourceWithIdentity = KubernetesAutomaticClusterResource{}
+)
 
 func (r KubernetesAutomaticClusterResource) ResourceType() string {
 	return "azurerm_kubernetes_automatic_cluster"
@@ -375,6 +381,10 @@ func (r KubernetesAutomaticClusterResource) ResourceType() string {
 
 func (r KubernetesAutomaticClusterResource) ModelObject() interface{} {
 	return &KubernetesAutomaticClusterModel{}
+}
+
+func (r KubernetesAutomaticClusterResource) Identity() resourceids.ResourceId {
+	return &commonids.KubernetesClusterId{}
 }
 
 func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
@@ -1227,6 +1237,11 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
+								"gmsa_profile_enabled": {
+									Type:     pluginsdk.TypeBool,
+									Optional: true,
+									Default:  true,
+								},
 								"dns_server": {
 									Type:     pluginsdk.TypeString,
 									Required: true,
@@ -2296,8 +2311,11 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			metadata.SetID(id)
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, &id); err != nil {
+				return err
+			}
 
-			return nil
+			return metadata.Encode(&model)
 		},
 	}
 }
@@ -2321,234 +2339,228 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			credentials, err := client.ListClusterUserCredentials(ctx, *id, managedclusters.ListClusterUserCredentialsOperationOptions{})
-			if err != nil {
-				return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
+			return r.flatten(ctx, metadata, id, resp.Model)
+		},
+	}
+}
+
+func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadata sdk.ResourceMetaData, id *commonids.KubernetesClusterId, model *managedclusters.ManagedCluster) error {
+	client := metadata.Client.Containers.KubernetesClustersClient
+
+	credentials, err := client.ListClusterUserCredentials(ctx, *id, managedclusters.ListClusterUserCredentialsOperationOptions{})
+	if err != nil {
+		return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
+	}
+	if credentials.Model == nil {
+		return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
+	}
+
+	var config KubernetesAutomaticClusterModel
+	if err := metadata.Decode(&config); err != nil {
+		return fmt.Errorf("decoding %+v", err)
+	}
+
+	state := KubernetesAutomaticClusterModel{
+		Name:              id.ManagedClusterName,
+		ResourceGroupName: id.ResourceGroupName,
+	}
+
+	if model != nil {
+		state.Location = location.Normalize(model.Location)
+		state.EdgeZone = flattenKubernetesAutomaticClusterEdgeZone(model.ExtendedLocation)
+		// Only set tags if non-empty to avoid empty map in state
+		// if model.Tags != nil {
+		state.Tags = tags.Flatten(model.Tags)
+		// }
+
+		// skuTier := string(managedclusters.ManagedClusterSKUTierStandard)
+		// skuName := string(managedclusters.ManagedClusterSKUNameAutomatic)
+		//// #TODO dont need this
+		// if model.Sku != nil {
+		//	if model.Sku.Tier != nil && *model.Sku.Tier != "" {
+		//		skuTier = string(*model.Sku.Tier)
+		//	}
+		//	if model.Sku.Name != nil && *model.Sku.Name != "" {
+		//		skuName = string(*model.Sku.Name)
+		//	}
+		// }
+		state.SKUTier = string(*model.Sku.Tier)
+		state.SKUName = string(*model.Sku.Name)
+
+		if props := model.Properties; props != nil {
+			state.DNSPrefix = pointer.From(props.DnsPrefix)
+			state.DNSPrefixPrivateCluster = pointer.From(props.FqdnSubdomain)
+			state.FQDN = pointer.From(props.Fqdn)
+			state.PrivateFQDN = pointer.From(props.PrivateFQDN)
+			state.DiskEncryptionSetID = pointer.From(props.DiskEncryptionSetID)
+			state.KubernetesVersion = pointer.From(props.KubernetesVersion)
+			state.CurrentKubernetesVersion = pointer.From(props.CurrentKubernetesVersion)
+
+			state.NodeResourceGroup = pointer.From(props.NodeResourceGroup)
+			if state.NodeResourceGroup != "" {
+				state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, state.NodeResourceGroup).ID()
 			}
-			if credentials.Model == nil {
-				return fmt.Errorf("retrieving User Credentials for %s: payload is empty", id)
+
+			// upgradeChannel := ""
+			// nodeOSUpgradeChannel := ""
+			// if profile := props.AutoUpgradeProfile; profile != nil {
+			//	if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
+			//		upgradeChannel = string(*profile.UpgradeChannel)
+			//	}
+			//	if profile.NodeOSUpgradeChannel != nil {
+			//		nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
+			//	}
+			//}
+			state.AutomaticUpgradeChannel = string(*props.AutoUpgradeProfile.UpgradeChannel)
+			state.NodeOSUpgradeChannel = string(*props.AutoUpgradeProfile.NodeOSUpgradeChannel)
+
+			if props.SecurityProfile != nil && props.SecurityProfile.CustomCATrustCertificates != nil {
+				state.CustomCATrustCertificatesBase64 = *props.SecurityProfile.CustomCATrustCertificates
 			}
 
-			state := KubernetesAutomaticClusterModel{
-				Name:              id.ManagedClusterName,
-				ResourceGroupName: id.ResourceGroupName,
-			}
+			enablePrivateCluster := false
+			enablePrivateClusterPublicFQDN := false
+			runCommandEnabled := true
+			privateDnsZoneId := ""
 
-			if model := resp.Model; model != nil {
-				state.Location = location.Normalize(model.Location)
-				state.EdgeZone = flattenKubernetesAutomaticClusterEdgeZone(model.ExtendedLocation)
-				// Only set tags if non-empty to avoid empty map in state
-				// if model.Tags != nil {
-				state.Tags = tags.Flatten(model.Tags)
-				// }
+			apiServerAccessProfile := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
+			state.APIServerAccessProfile = apiServerAccessProfile
 
-				// skuTier := string(managedclusters.ManagedClusterSKUTierStandard)
-				// skuName := string(managedclusters.ManagedClusterSKUNameAutomatic)
-				//// #TODO dont need this
-				// if model.Sku != nil {
-				//	if model.Sku.Tier != nil && *model.Sku.Tier != "" {
-				//		skuTier = string(*model.Sku.Tier)
-				//	}
-				//	if model.Sku.Name != nil && *model.Sku.Name != "" {
-				//		skuName = string(*model.Sku.Name)
-				//	}
-				// }
-				state.SKUTier = string(*model.Sku.Tier)
-				state.SKUName = string(*model.Sku.Name)
-
-				if props := model.Properties; props != nil {
-					state.DNSPrefix = pointer.From(props.DnsPrefix)
-					state.DNSPrefixPrivateCluster = pointer.From(props.FqdnSubdomain)
-					state.FQDN = pointer.From(props.Fqdn)
-					state.PrivateFQDN = pointer.From(props.PrivateFQDN)
-					state.DiskEncryptionSetID = pointer.From(props.DiskEncryptionSetID)
-					state.KubernetesVersion = pointer.From(props.KubernetesVersion)
-					state.CurrentKubernetesVersion = pointer.From(props.CurrentKubernetesVersion)
-
-					state.NodeResourceGroup = pointer.From(props.NodeResourceGroup)
-					if state.NodeResourceGroup != "" {
-						state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, state.NodeResourceGroup).ID()
-					}
-
-					// upgradeChannel := ""
-					// nodeOSUpgradeChannel := ""
-					// if profile := props.AutoUpgradeProfile; profile != nil {
-					//	if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
-					//		upgradeChannel = string(*profile.UpgradeChannel)
-					//	}
-					//	if profile.NodeOSUpgradeChannel != nil {
-					//		nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
-					//	}
-					//}
-					state.AutomaticUpgradeChannel = string(*props.AutoUpgradeProfile.UpgradeChannel)
-					state.NodeOSUpgradeChannel = string(*props.AutoUpgradeProfile.NodeOSUpgradeChannel)
-
-					if props.SecurityProfile != nil && props.SecurityProfile.CustomCATrustCertificates != nil {
-						state.CustomCATrustCertificatesBase64 = *props.SecurityProfile.CustomCATrustCertificates
-					}
-
-					enablePrivateCluster := false
-					enablePrivateClusterPublicFQDN := false
-					runCommandEnabled := true
-					privateDnsZoneId := ""
-
-					apiServerAccessProfile := flattenKubernetesAutomaticClusterAPIAccessProfile(props.ApiServerAccessProfile)
-					state.APIServerAccessProfile = apiServerAccessProfile
-
-					if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-						if accessProfile.EnablePrivateCluster != nil {
-							enablePrivateCluster = *accessProfile.EnablePrivateCluster
-						}
-						if accessProfile.EnablePrivateClusterPublicFQDN != nil {
-							enablePrivateClusterPublicFQDN = *accessProfile.EnablePrivateClusterPublicFQDN
-						}
-						if accessProfile.DisableRunCommand != nil {
-							runCommandEnabled = !*accessProfile.DisableRunCommand
-						}
-						switch {
-						case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
-							privateDnsZoneId = "System"
-						case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
-							privateDnsZoneId = "None"
-						default:
-							privateDnsZoneId = pointer.From(accessProfile.PrivateDNSZone)
-						}
-					}
-					state.PrivateDNSZoneID = privateDnsZoneId
-					state.PrivateClusterEnabled = enablePrivateCluster
-					state.PrivateClusterPublicFQDNEnabled = enablePrivateClusterPublicFQDN
-					state.RunCommandEnabled = runCommandEnabled
-
-					if props.AddonProfiles != nil {
-						state.ACIConnectorLinux,
-							state.AzurePolicyEnabled,
-							state.ConfidentialComputing,
-							state.HTTPApplicationRoutingEnabled,
-							state.HTTPApplicationRoutingZoneName,
-							state.IngressApplicationGateway,
-							state.KeyVaultSecretsProvider,
-							state.OMSAgent,
-							state.OpenServiceMeshEnabled = flattenKubernetesAddOnsTyped(*props.AddonProfiles)
-					}
-
-					autoScalerProfile, err := flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
-					if err != nil {
-						return fmt.Errorf("flattening `auto_scaler_profile`: %+v", err)
-					}
-					state.AutoScalerProfile = autoScalerProfile
-					state.MonitorMetrics = flattenKubernetesAutomaticClusterAzureMonitorProfile(props.AzureMonitorProfile)
-					state.ServiceMeshProfile = flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
-
-					if props.AgentPoolProfiles != nil {
-						defaultNodePool, err := FlattenDefaultNodePoolTyped(props.AgentPoolProfiles, &metadata)
-						if err != nil {
-							return fmt.Errorf("flattening `default_node_pool`: %+v", err)
-						}
-						state.DefaultNodePool = defaultNodePool
-					}
-
-					kubeletIdentity, err := flattenKubernetesAutomaticClusterIdentityProfile(pointer.From(props.IdentityProfile))
-					if err != nil {
-						return fmt.Errorf("flattening `kubelet_identity`: %+v", err)
-					}
-					state.KubeletIdentity = kubeletIdentity
-
-					state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
-					state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
-
-					state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile)
-
-					state.WorkloadAutoscalerProfile = flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
-					state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
-					state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
-
-					state.BootstrapProfile = flattenKubernetesAutomaticClusterBootstrapProfile(props.BootstrapProfile)
-					state.UpgradeOverride = flattenKubernetesAutomaticClusterUpgradeOverride(props.UpgradeSettings)
-
-					if props.StorageProfile != nil {
-						state.StorageProfile = flattenKubernetesAutomaticClusterStorageProfile(props.StorageProfile)
-					}
-
-					state.WebAppRouting = flattenKubernetesAutomaticClusterWebAppRouting(props.IngressProfile)
-					state.MicrosoftDefender = flattenKubernetesAutomaticClusterMicrosoftDefender(props.SecurityProfile)
-
-					// if props.SecurityProfile != nil && props.SecurityProfile.AzureKeyVaultKms != nil {
-					state.KeyManagementService = flattenKubernetesAutomaticClusterKeyManagementService(props.SecurityProfile.AzureKeyVaultKms)
-					//}
-
-					state.CostAnalysisEnabled = flattenKubernetesAutomaticClusterMetricsProfile(props.MetricsProfile)
-
-					rbacEnabled := true
-					if props.EnableRBAC != nil {
-						rbacEnabled = *props.EnableRBAC
-					}
-					state.RoleBasedAccessControlEnabled = rbacEnabled
-
-					state.AzureActiveDirectoryRBAC = flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(props.AadProfile, props.DisableLocalAccounts)
-
-					if props.ServicePrincipalProfile != nil &&
-						props.ServicePrincipalProfile.ClientId != "" &&
-						props.ServicePrincipalProfile.ClientId != "msi" {
-						state.ServicePrincipal = []ServicePrincipalModel{{
-							ClientID: props.ServicePrincipalProfile.ClientId,
-							// ClientSecret is not returned by the API
-						}}
-					}
-
-					if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
-						if props.SecurityProfile.ImageCleaner.Enabled != nil {
-							state.ImageCleanerEnabled = *props.SecurityProfile.ImageCleaner.Enabled
-						}
-						if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
-							state.ImageCleanerIntervalHours = *props.SecurityProfile.ImageCleaner.IntervalHours
-						}
-					}
-
-					state.OIDCIssuerEnabled, state.OIDCIssuerURL = flattenKubernetesAutomaticClusterOidcIssuerProfile(props.OidcIssuerProfile)
-
-					workloadIdentity := false
-					if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
-						workloadIdentity = pointer.From(props.SecurityProfile.WorkloadIdentity.Enabled)
-					}
-					state.WorkloadIdentityEnabled = workloadIdentity
-
-					aiToolchainOperatorEnabled := false
-					if props.AiToolchainOperatorProfile != nil {
-						aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
-					}
-					state.AIToolchainOperatorEnabled = aiToolchainOperatorEnabled
-
-					state.SupportPlan = string(pointer.From(props.SupportPlan))
-
-					if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-						adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
-						if err != nil {
-							return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
-						}
-						adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(adminCredentials.Model, "clusterAdmin")
-						state.KubeAdminConfigRaw = pointer.From(adminKubeConfigRaw)
-						for _, item := range adminKubeConfig {
-							if config, ok := item.(map[string]interface{}); ok {
-								state.KubeAdminConfig = append(state.KubeAdminConfig, KubeConfigModel{
-									Host:                 config["host"].(string),
-									Username:             config["username"].(string),
-									Password:             config["password"].(string),
-									ClientCertificate:    config["client_certificate"].(string),
-									ClientKey:            config["client_key"].(string),
-									ClusterCACertificate: config["cluster_ca_certificate"].(string),
-								})
-							}
-						}
-					}
+			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
+				if accessProfile.EnablePrivateCluster != nil {
+					enablePrivateCluster = *accessProfile.EnablePrivateCluster
 				}
+				if accessProfile.EnablePrivateClusterPublicFQDN != nil {
+					enablePrivateClusterPublicFQDN = *accessProfile.EnablePrivateClusterPublicFQDN
+				}
+				if accessProfile.DisableRunCommand != nil {
+					runCommandEnabled = !*accessProfile.DisableRunCommand
+				}
+				switch {
+				case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
+					privateDnsZoneId = "System"
+				case accessProfile.PrivateDNSZone != nil && strings.EqualFold("None", *accessProfile.PrivateDNSZone):
+					privateDnsZoneId = "None"
+				default:
+					privateDnsZoneId = pointer.From(accessProfile.PrivateDNSZone)
+				}
+			}
+			state.PrivateDNSZoneID = privateDnsZoneId
+			state.PrivateClusterEnabled = enablePrivateCluster
+			state.PrivateClusterPublicFQDNEnabled = enablePrivateClusterPublicFQDN
+			state.RunCommandEnabled = runCommandEnabled
 
-				state.Identity = flattenIdentityModel(resp.Model.Identity)
+			if props.AddonProfiles != nil {
+				state.ACIConnectorLinux,
+					state.AzurePolicyEnabled,
+					state.ConfidentialComputing,
+					state.HTTPApplicationRoutingEnabled,
+					state.HTTPApplicationRoutingZoneName,
+					state.IngressApplicationGateway,
+					state.KeyVaultSecretsProvider,
+					state.OMSAgent,
+					state.OpenServiceMeshEnabled = flattenKubernetesAddOnsTyped(*props.AddonProfiles)
+			}
 
-				kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(credentials.Model, "clusterUser")
-				state.KubeConfigRaw = pointer.From(kubeConfigRaw)
-				for _, item := range kubeConfig {
+			autoScalerProfile, err := flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
+			if err != nil {
+				return fmt.Errorf("flattening `auto_scaler_profile`: %+v", err)
+			}
+			state.AutoScalerProfile = autoScalerProfile
+			state.MonitorMetrics = flattenKubernetesAutomaticClusterAzureMonitorProfile(props.AzureMonitorProfile)
+			state.ServiceMeshProfile = flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
+
+			if props.AgentPoolProfiles != nil {
+				defaultNodePool, err := FlattenDefaultNodePoolTyped(props.AgentPoolProfiles, &metadata)
+				if err != nil {
+					return fmt.Errorf("flattening `default_node_pool`: %+v", err)
+				}
+				state.DefaultNodePool = defaultNodePool
+			}
+
+			kubeletIdentity, err := flattenKubernetesAutomaticClusterIdentityProfile(pointer.From(props.IdentityProfile))
+			if err != nil {
+				return fmt.Errorf("flattening `kubelet_identity`: %+v", err)
+			}
+			state.KubeletIdentity = kubeletIdentity
+
+			state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
+			state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
+
+			state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, config)
+
+			state.WorkloadAutoscalerProfile = flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
+			state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
+			state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
+
+			state.BootstrapProfile = flattenKubernetesAutomaticClusterBootstrapProfile(props.BootstrapProfile)
+			state.UpgradeOverride = flattenKubernetesAutomaticClusterUpgradeOverride(props.UpgradeSettings)
+
+			if props.StorageProfile != nil {
+				state.StorageProfile = flattenKubernetesAutomaticClusterStorageProfile(props.StorageProfile)
+			}
+
+			state.WebAppRouting = flattenKubernetesAutomaticClusterWebAppRouting(props.IngressProfile)
+			state.MicrosoftDefender = flattenKubernetesAutomaticClusterMicrosoftDefender(props.SecurityProfile)
+
+			// if props.SecurityProfile != nil && props.SecurityProfile.AzureKeyVaultKms != nil {
+			state.KeyManagementService = flattenKubernetesAutomaticClusterKeyManagementService(props.SecurityProfile.AzureKeyVaultKms)
+			//}
+
+			state.CostAnalysisEnabled = flattenKubernetesAutomaticClusterMetricsProfile(props.MetricsProfile)
+
+			rbacEnabled := true
+			if props.EnableRBAC != nil {
+				rbacEnabled = *props.EnableRBAC
+			}
+			state.RoleBasedAccessControlEnabled = rbacEnabled
+
+			state.AzureActiveDirectoryRBAC = flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(props.AadProfile, props.DisableLocalAccounts)
+
+			if props.ServicePrincipalProfile != nil &&
+				props.ServicePrincipalProfile.ClientId != "" &&
+				props.ServicePrincipalProfile.ClientId != "msi" {
+				state.ServicePrincipal = []ServicePrincipalModel{{
+					ClientID: props.ServicePrincipalProfile.ClientId,
+					// ClientSecret is not returned by the API
+				}}
+			}
+
+			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+				if props.SecurityProfile.ImageCleaner.Enabled != nil {
+					state.ImageCleanerEnabled = *props.SecurityProfile.ImageCleaner.Enabled
+				}
+				if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
+					state.ImageCleanerIntervalHours = *props.SecurityProfile.ImageCleaner.IntervalHours
+				}
+			}
+
+			state.OIDCIssuerEnabled, state.OIDCIssuerURL = flattenKubernetesAutomaticClusterOidcIssuerProfile(props.OidcIssuerProfile)
+
+			workloadIdentity := false
+			if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
+				workloadIdentity = pointer.From(props.SecurityProfile.WorkloadIdentity.Enabled)
+			}
+			state.WorkloadIdentityEnabled = workloadIdentity
+
+			aiToolchainOperatorEnabled := false
+			if props.AiToolchainOperatorProfile != nil {
+				aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
+			}
+			state.AIToolchainOperatorEnabled = aiToolchainOperatorEnabled
+
+			state.SupportPlan = string(pointer.From(props.SupportPlan))
+
+			if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
+				adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
+				if err != nil {
+					return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
+				}
+				adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(adminCredentials.Model, "clusterAdmin")
+				state.KubeAdminConfigRaw = pointer.From(adminKubeConfigRaw)
+				for _, item := range adminKubeConfig {
 					if config, ok := item.(map[string]interface{}); ok {
-						state.KubeConfig = append(state.KubeConfig, KubeConfigModel{
+						state.KubeAdminConfig = append(state.KubeAdminConfig, KubeConfigModel{
 							Host:                 config["host"].(string),
 							Username:             config["username"].(string),
 							Password:             config["password"].(string),
@@ -2558,46 +2570,67 @@ func (r KubernetesAutomaticClusterResource) Read() sdk.ResourceFunc {
 						})
 					}
 				}
-
-				maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
-
-				maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
-				configResp, _ := maintenanceClient.Get(ctx, maintenanceId)
-				if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
-					state.MaintenanceWindow = flattenKubernetesAutomaticClusterMaintenanceConfigurationDefault(configurationBody.Properties)
-				}
-
-				maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
-				configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
-				if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-					state.MaintenanceWindowAutoUpgrade = flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
-				}
-
-				maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
-				configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
-				if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
-					autoUpgradeConfig := flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
-					if len(autoUpgradeConfig) > 0 {
-						au := autoUpgradeConfig[0]
-						state.MaintenanceWindowNodeOS = []MaintenanceWindowNodeOSModel{{
-							Frequency:  au.Frequency,
-							Interval:   au.Interval,
-							DayOfWeek:  au.DayOfWeek,
-							Duration:   au.Duration,
-							WeekIndex:  au.WeekIndex,
-							DayOfMonth: au.DayOfMonth,
-							StartDate:  au.StartDate,
-							StartTime:  au.StartTime,
-							UTCOffset:  au.UTCOffset,
-							NotAllowed: au.NotAllowed,
-						}}
-					}
-				}
 			}
+		}
 
-			return metadata.Encode(&state)
-		},
+		state.Identity = flattenIdentityModel(model.Identity)
+
+		kubeConfigRaw, kubeConfig := flattenKubernetesClusterCredentials(credentials.Model, "clusterUser")
+		state.KubeConfigRaw = pointer.From(kubeConfigRaw)
+		for _, item := range kubeConfig {
+			if config, ok := item.(map[string]interface{}); ok {
+				state.KubeConfig = append(state.KubeConfig, KubeConfigModel{
+					Host:                 config["host"].(string),
+					Username:             config["username"].(string),
+					Password:             config["password"].(string),
+					ClientCertificate:    config["client_certificate"].(string),
+					ClientKey:            config["client_key"].(string),
+					ClusterCACertificate: config["cluster_ca_certificate"].(string),
+				})
+			}
+		}
+
+		maintenanceClient := metadata.Client.Containers.MaintenanceConfigurationsClient
+
+		maintenanceId := maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "default")
+		configResp, _ := maintenanceClient.Get(ctx, maintenanceId)
+		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil {
+			state.MaintenanceWindow = flattenKubernetesAutomaticClusterMaintenanceConfigurationDefault(configurationBody.Properties)
+		}
+
+		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedAutoUpgradeSchedule")
+		configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
+		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
+			state.MaintenanceWindowAutoUpgrade = flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
+		}
+
+		maintenanceId = maintenanceconfigurations.NewMaintenanceConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.ManagedClusterName, "aksManagedNodeOSUpgradeSchedule")
+		configResp, _ = maintenanceClient.Get(ctx, maintenanceId)
+		if configurationBody := configResp.Model; configurationBody != nil && configurationBody.Properties != nil && configurationBody.Properties.MaintenanceWindow != nil {
+			autoUpgradeConfig := flattenKubernetesAutomaticClusterMaintenanceConfiguration(configurationBody.Properties.MaintenanceWindow)
+			if len(autoUpgradeConfig) > 0 {
+				au := autoUpgradeConfig[0]
+				state.MaintenanceWindowNodeOS = []MaintenanceWindowNodeOSModel{{
+					Frequency:  au.Frequency,
+					Interval:   au.Interval,
+					DayOfWeek:  au.DayOfWeek,
+					Duration:   au.Duration,
+					WeekIndex:  au.WeekIndex,
+					DayOfMonth: au.DayOfMonth,
+					StartDate:  au.StartDate,
+					StartTime:  au.StartTime,
+					UTCOffset:  au.UTCOffset,
+					NotAllowed: au.NotAllowed,
+				}}
+			}
+		}
 	}
+
+	if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+		return err
+	}
+
+	return metadata.Encode(&state)
 }
 
 func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
@@ -3309,12 +3342,17 @@ func expandKubernetesAutomaticClusterWindowsProfile(input []WindowsProfileModel)
 	}
 }
 
-func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile) []WindowsProfileModel {
+func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.ManagedClusterWindowsProfile, config KubernetesAutomaticClusterModel) []WindowsProfileModel {
 	if profile == nil {
 		return []WindowsProfileModel{}
 	}
 
 	adminUsername := profile.AdminUsername
+
+	adminPassword := ""
+	if len(config.WindowsProfile) != 0 {
+		adminPassword = config.WindowsProfile[0].AdminPassword
+	}
 
 	license := ""
 	if profile.LicenseType != nil && pointer.From(profile.LicenseType) != managedclusters.LicenseTypeNone {
@@ -3326,6 +3364,7 @@ func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.Ma
 	return []WindowsProfileModel{
 		{
 			AdminUsername: adminUsername,
+			AdminPassword: adminPassword,
 			License:       license,
 			GMSA:          gmsaProfile,
 		},
@@ -3333,20 +3372,15 @@ func flattenKubernetesAutomaticClusterWindowsProfile(profile *managedclusters.Ma
 }
 
 func expandAutomaticGMSAProfile(input []GMSAModel) *managedclusters.WindowsGmsaProfile {
-	if len(input) == 0 {
+	if input == nil || len(input) == 0 {
 		return nil
 	}
 
 	config := input[0]
 
-	// If the model has empty values, return enabled profile with empty strings
-	// if config.DNSServer == "vnet" && config.RootDomain == "vnet" {
-	//	return &managedclusters.WindowsGmsaProfile{
-	//		Enabled:        pointer.To(true),
-	//		DnsServer:      pointer.To(""),
-	//		RootDomainName: pointer.To(""),
-	//	}
-	// }
+	if !config.GMSAProfileEnabled {
+		return nil
+	}
 
 	return &managedclusters.WindowsGmsaProfile{
 		Enabled:        pointer.To(true),
@@ -3360,20 +3394,11 @@ func flattenAutomaticGMSAProfile(profile *managedclusters.WindowsGmsaProfile) []
 		return []GMSAModel{}
 	}
 
-	dnsServer := "vnet"
-	if dns := profile.DnsServer; dns != nil {
-		dnsServer = pointer.From(dns)
-	}
-
-	rootDomainName := "vnet"
-	if domain := profile.RootDomainName; domain != nil {
-		rootDomainName = pointer.From(domain)
-	}
-
 	return []GMSAModel{
 		{
-			DNSServer:  dnsServer,
-			RootDomain: rootDomainName,
+			GMSAProfileEnabled: pointer.From(profile.Enabled),
+			DNSServer:          pointer.From(profile.DnsServer),
+			RootDomain:         pointer.From(profile.RootDomainName),
 		},
 	}
 }
