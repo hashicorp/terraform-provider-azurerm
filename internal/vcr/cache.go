@@ -29,7 +29,7 @@ func updateDynamicSidecar(testName string, newTargets map[string]string) {
 	}
 
 	if data, err := json.MarshalIndent(cache, "", "  "); err == nil {
-		_ = os.WriteFile(cachePath, data, 0644)
+		_ = os.WriteFile(cachePath, data, 0o644)
 	}
 }
 
