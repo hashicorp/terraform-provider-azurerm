@@ -110,11 +110,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_web_app" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "F0"
-  microsoft_app_id    = azuread_application_registration.test.client_id
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  sku                     = "F0"
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 
   tags = {
     environment = "production"
@@ -142,11 +144,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_web_app" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "F0"
-  microsoft_app_id    = azuread_application_registration.test.client_id
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  sku                     = "F0"
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 
   tags = {
     environment = "production"
@@ -187,11 +191,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_web_app" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = azuread_application_registration.test.client_id
-  sku                 = "F0"
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  sku                     = "F0"
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key

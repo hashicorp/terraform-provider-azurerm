@@ -43,6 +43,14 @@ The following arguments are supported:
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Web App Bot. Changing this forces a new resource to be created.
 
+* `microsoft_app_type` - (Optional) The Microsoft Application Type for the Web App Bot. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+
+~> **Note:** Creation of `azurerm_bot_web_app` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
+
+* `microsoft_app_tenant_id` - (Optional) The Microsoft Application Tenant ID for the Web App Bot. Changing this forces a new resource to be created.
+
+* `microsoft_app_user_assigned_identity_id` - (Optional) The ID of Microsoft Application User Assigned Identity for the Web App Bot. Changing this forces a new resource to be created.
+
 * `display_name` - (Optional) The name of the Web App Bot will be displayed as. This defaults to `name` if not specified.
 
 * `endpoint` - (Optional) The Web App Bot endpoint.
