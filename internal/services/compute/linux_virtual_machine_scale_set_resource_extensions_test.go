@@ -891,10 +891,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   tags = {
     accTest = "true"
   }
-
-  lifecycle {
-    ignore_changes = [rolling_upgrade_policy]
-  }
 }
 `, r.template(data), data.RandomInteger)
 }
