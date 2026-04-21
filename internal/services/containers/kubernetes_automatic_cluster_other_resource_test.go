@@ -2126,6 +2126,15 @@ resource "azurerm_capacity_reservation" "test2" {
   }
 }
 
+resource "azurerm_capacity_reservation" "test3" {
+  name                          = "acctest-ccr3-%[1]d"
+  capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  zone                          = "3"
+  sku {
+    name     = "Standard_DS3_v2"
+    capacity = 2
+  }
+}
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest%[1]d"

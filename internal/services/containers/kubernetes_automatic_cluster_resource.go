@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
+	dnsValidate "github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -549,7 +550,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					// 	Default:      managedclusters.NodeProvisioningModeAuto,
 					//	ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
 					//	AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
-					//},
+					// },
 					"default_node_pools": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -599,7 +600,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		//		string(managedclusters.ManagedClusterSKUTierStandard),
 		//		string(managedclusters.ManagedClusterSKUTierPremium),
 		//	}, false),
-		//},
+		// },
 
 		// "sku_name": {
 		// 	Type:     pluginsdk.TypeString,
@@ -608,7 +609,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		//	ValidateFunc: validation.StringInSlice([]string{
 		//		string(managedclusters.ManagedClusterSKUNameAutomatic),
 		//	}, false),
-		//},
+		// },
 
 		"disk_encryption_set_id": {
 			Type:         pluginsdk.TypeString,
@@ -628,7 +629,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		//		string(managedclusters.UpgradeChannelStable),
 		//	}, false),
 		//	Default: string(managedclusters.UpgradeChannelStable),
-		//},
+		// },
 
 		"node_os_upgrade_channel": {
 			Type:     pluginsdk.TypeString,
@@ -662,7 +663,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		// 	Type:     pluginsdk.TypeBool,
 		// 	Optional: true,
 		// 	Default:  true,
-		//},
+		// },
 
 		"image_cleaner_interval_hours": {
 			Type:         pluginsdk.TypeInt,
@@ -682,7 +683,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		// 	Optional: true,
 		// 	ForceNew: true,
 		//	Default:  true,
-		//},
+		// },
 
 		"private_cluster_public_fqdn_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -709,7 +710,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		// 	Optional: true,
 		// 	Default:  true,
 		//	ForceNew: true,
-		//},
+		// },
 
 		"run_command_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -737,7 +738,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		// 	Type:     pluginsdk.TypeBool,
 		// 	Optional: true,
 		// 	Default:  true,
-		//},
+		// },
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
@@ -831,7 +832,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					// 	Type:     pluginsdk.TypeBool,
 					// 	Optional: true,
 					// 	Default:  true,
-					//},
+					// },
 					"admin_group_object_ids": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -925,7 +926,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					//		string(managedclusters.NetworkPluginKubenet),
 					//		string(managedclusters.NetworkPluginNone),
 					//	}, false),
-					//},
+					// },
 					"network_mode": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -959,7 +960,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 					//	ValidateFunc: validation.StringInSlice(
 					//		managedclusters.PossibleValuesForNetworkDataplane(),
 					//		false),
-					//},
+					// },
 					"network_plugin_mode": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -1468,6 +1469,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 							ValidateFunc: validation.Any(
+								dnsValidate.ValidateDnsZoneID,
 								privatezones.ValidatePrivateDnsZoneID,
 								validation.StringIsEmpty,
 							),
@@ -1841,7 +1843,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		//			},
 		//		},
 		//	},
-		//},
+		// },
 
 		"upgrade_override": {
 			Type:     pluginsdk.TypeList,
@@ -2054,7 +2056,7 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			httpProxyConfig := expandKubernetesAutomaticClusterHttpProxyConfig(model.HTTPProxyConfig)
 
-			apiAccessProfile := expandKubernetesAutomaticClusterAPIAccessProfile(&model)
+			apiAccessProfile := expandKubernetesAutomaticClusterAPIAccessProfile(model)
 			// if !(*apiAccessProfile.EnablePrivateCluster) && model.DNSPrefix == "" {
 			// 	return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
 			// }
@@ -2876,7 +2878,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("api_server_access_profile") ||
 				metadata.ResourceData.HasChange("run_command_enabled") ||
 				metadata.ResourceData.HasChange("private_cluster_public_fqdn_enabled") {
-				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(&model)
+				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(model)
 				updateCluster = true
 			}
 
@@ -3127,7 +3129,7 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandKubernetesAutomaticClusterAPIAccessProfile(model *KubernetesAutomaticClusterModel) *managedclusters.ManagedClusterAPIServerAccessProfile {
+func expandKubernetesAutomaticClusterAPIAccessProfile(model KubernetesAutomaticClusterModel) *managedclusters.ManagedClusterAPIServerAccessProfile {
 	apiAccessProfile := &managedclusters.ManagedClusterAPIServerAccessProfile{
 		// EnablePrivateCluster:           pointer.To(model.PrivateClusterEnabled),
 		EnablePrivateClusterPublicFQDN: pointer.To(model.PrivateClusterPublicFQDNEnabled),
@@ -3140,8 +3142,7 @@ func expandKubernetesAutomaticClusterAPIAccessProfile(model *KubernetesAutomatic
 
 	config := model.APIServerAccessProfile[0]
 	apiAccessProfile.AuthorizedIPRanges = pointer.To(config.AuthorizedIPRanges)
-
-	apiAccessProfile.EnableVnetIntegration = pointer.To(true)
+	// apiAccessProfile.EnableVnetIntegration = pointer.To(true)
 
 	if config.SubnetID != "" {
 		apiAccessProfile.SubnetId = pointer.To(config.SubnetID)

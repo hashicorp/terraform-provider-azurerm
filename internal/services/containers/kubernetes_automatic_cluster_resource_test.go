@@ -132,21 +132,21 @@ func TestAccKubernetesAutomaticCluster_nodeProvisioningProfileUpdate(t *testing.
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.nodeProvisioningProfile(data, "Auto", "Auto"),
+			Config: r.nodeProvisioningProfile(data, "Auto"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.nodeProvisioningProfile(data, "Auto", "None"),
+			Config: r.nodeProvisioningProfile(data, "None"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.nodeProvisioningProfile(data, "Auto", "Auto"),
+			Config: r.nodeProvisioningProfile(data, "Auto"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -516,7 +516,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion, runCommandEnabled)
 }
 
-func (KubernetesAutomaticClusterResource) nodeProvisioningProfile(data acceptance.TestData, mode, defaultNodePools string) string {
+func (KubernetesAutomaticClusterResource) nodeProvisioningProfile(data acceptance.TestData, defaultNodePools string) string {
 	return fmt.Sprintf(`provider "azurerm" {
   features {}
 }
@@ -532,8 +532,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%[1]d"
   node_provisioning_profile {
-    mode               = "%[3]s"
-    default_node_pools = "%[4]s"
+    default_node_pools = "%[3]s"
   }
   default_node_pool {
     name       = "default"
@@ -547,7 +546,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, mode, defaultNodePools)
+`, data.RandomInteger, data.Locations.Primary, defaultNodePools)
 }
 
 func (KubernetesAutomaticClusterResource) nodeProvisioningProfileRemoved(data acceptance.TestData) string {

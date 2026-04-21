@@ -119,7 +119,7 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 		// 	Type:     pluginsdk.TypeBool,
 		// 	Optional: true,
 		//	Default:  true,
-		//},
+		// },
 		"confidential_computing": {
 			Type:     pluginsdk.TypeList,
 			MaxItems: 1,

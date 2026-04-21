@@ -52,7 +52,7 @@ func TestAccKubernetesAutomaticCluster_managedClusterIdentity(t *testing.T) {
 			Config: r.managedClusterIdentityConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
 				check.That(data.ResourceName).Key("kubelet_identity.0.client_id").Exists(),
 				check.That(data.ResourceName).Key("kubelet_identity.0.object_id").Exists(),
 				check.That(data.ResourceName).Key("kubelet_identity.0.user_assigned_identity_id").Exists(),
@@ -130,84 +130,6 @@ func TestAccKubernetesAutomaticCluster_roleBasedAccessControl(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAAD(t *testing.T) {
-	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-	clientData := data.Client()
-	auth := clientData.Default
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-		{
-			// should be no changes since the default for Tenant ID comes from the Provider block
-			Config:   r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, clientData.TenantID),
-			PlanOnly: true,
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADUpdate(t *testing.T) {
-	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-
-	clientData := data.Client()
-	auth := clientData.Default
-	altAlt := clientData.Alternate
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, clientData.TenantID),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-		{
-			Config: r.roleBasedAccessControlAADUpdateConfig(data, altAlt.ClientID, altAlt.ClientSecret, clientData.TenantID),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-	})
-}
-
-func TestAccKubernetesAutomaticCluster_roleBasedAccessControlAADUpdateToManaged(t *testing.T) {
-	t.Skip("Azure AD Integration (legacy) (https://aka.ms/aks/aad-legacy) is deprecated, the cluster could not be created with the Azure AD integration (legacy) enabled.")
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
-	r := KubernetesAutomaticClusterResource{}
-	clientData := data.Client()
-	auth := clientData.Default
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.roleBasedAccessControlAADConfig(data, auth.ClientID, auth.ClientSecret, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
-		{
-			Config: r.roleBasedAccessControlAADManagedConfig(data, ""),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("azure_active_directory_role_based_access_control.0.server_app_secret"),
 	})
 }
 
@@ -505,6 +427,12 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   name                = "test_identity"
+}
+
+resource "azurerm_role_assignment" "test1" {
+  scope                = azurerm_virtual_network.test.id
+  role_definition_name = "Network Contributor"
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
 resource "azurerm_virtual_network" "test" {

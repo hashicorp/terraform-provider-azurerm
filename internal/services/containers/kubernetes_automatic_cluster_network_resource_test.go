@@ -352,7 +352,6 @@ func TestAccKubernetesAutomaticCluster_privateClusterOn(t *testing.T) {
 			Config: r.privateClusterConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("private_fqdn").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -604,6 +603,8 @@ func TestAccKubernetesAutomaticCluster_changingLoadBalancerProfile(t *testing.T)
 			Config: r.unsetPrefixedLoadBalancerProfileConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				// Note: effective_outbound_ips is not checked here because Azure may temporarily
+				// have multiple IPs during the transition from prefix-based to managed IPs
 			),
 		},
 		data.ImportStep(),

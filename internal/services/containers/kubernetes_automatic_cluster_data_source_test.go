@@ -229,7 +229,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_addOnProfileAzureKeyvaultSecret
 		{
 			Config: r.addOnProfileAzureKeyvaultSecretsProviderConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("key_vault_secrets_provider.0.secret_rotation_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("key_vault_secrets_provider.0.secret_rotation_interval").HasValue("2m"),
 			),
 		},
@@ -506,7 +505,7 @@ data "azurerm_kubernetes_automatic_cluster" "test" {
   name                = azurerm_kubernetes_automatic_cluster.test.name
   resource_group_name = azurerm_kubernetes_automatic_cluster.test.resource_group_name
 }
-`, KubernetesAutomaticClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, true, "2m"))
+`, KubernetesAutomaticClusterResource{}.addonProfileAzureKeyVaultSecretsProviderConfig(data, "2m"))
 }
 
 func (KubernetesAutomaticClusterDataSource) nodeLabelsConfig(data acceptance.TestData, labels map[string]string) string {

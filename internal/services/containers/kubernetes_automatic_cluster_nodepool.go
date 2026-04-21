@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/applicationsecuritygroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
@@ -177,9 +178,9 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 					ValidateFunc: capacityreservationgroups.ValidateCapacityReservationGroupID,
 				},
 
-				"kubelet_config": schemaNodePoolKubeletConfig(),
+				"kubelet_config": schemaAutomaticNodePoolKubeletConfig(),
 
-				"linux_os_config": schemaNodePoolLinuxOSConfig(),
+				"linux_os_config": schemaAutomaticNodePoolLinuxOSConfig(),
 
 				"fips_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -235,9 +236,9 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 				// 	Optional:     true,
 				// 	Computed:     true,
 				// 	ValidateFunc: validation.IntBetween(1, 1000),
-				//},
+				// },
 
-				"node_network_profile": schemaNodePoolNetworkProfile(),
+				"node_network_profile": schemaAutomaticNodePoolNetworkProfile(),
 
 				"node_count": {
 					Type:         pluginsdk.TypeInt,
@@ -279,7 +280,7 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 				//	ValidateFunc: validation.StringInSlice([]string{
 				//		string(managedclusters.OSDiskTypeEphemeral),
 				//	}, false),
-				//},
+				// },
 
 				"os_sku": {
 					Type:     pluginsdk.TypeString,
@@ -340,7 +341,7 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 				// 	ValidateFunc: validation.StringInSlice([]string{
 				//		string(managedclusters.ScaleDownModeDelete),
 				//	}, false),
-				//},
+				// },
 
 				"snapshot_id": {
 					Type:         pluginsdk.TypeString,
@@ -380,7 +381,7 @@ func SchemaDefaultAutomaticClusterNodePoolTyped() *pluginsdk.Schema {
 				// 	Type:     pluginsdk.TypeBool,
 				// 	Optional: true,
 				// 	Default:  false,
-				//},
+				// },
 
 				"node_public_ip_enabled": {
 					Type:     pluginsdk.TypeBool,
@@ -423,6 +424,183 @@ func upgradeSettingsSchemaAutomaticClusterDefaultNodePool() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForUndrainableNodeBehavior(), true),
+				},
+			},
+		},
+	}
+}
+
+func schemaAutomaticNodePoolKubeletConfig() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"cpu_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"static",
+					}, false),
+				},
+
+				"cpu_cfs_quota_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Default:  true,
+					Optional: true,
+				},
+
+				"cpu_cfs_quota_period": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"image_gc_high_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"image_gc_low_threshold": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(0, 100),
+				},
+
+				"topology_manager_policy": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"none",
+						"best-effort",
+						"restricted",
+						"single-numa-node",
+					}, false),
+				},
+
+				"allowed_unsafe_sysctls": {
+					Type:     pluginsdk.TypeSet,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
+				},
+
+				"container_log_max_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+
+				"container_log_max_files": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntAtLeast(2),
+				},
+
+				"pod_max_pid": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaAutomaticNodePoolLinuxOSConfig() *pluginsdk.Schema {
+	s := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"sysctl_config": schemaNodePoolSysctlConfig(),
+
+				"transparent_huge_page": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"transparent_huge_page_defrag": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"always",
+						"defer",
+						"defer+madvise",
+						"madvise",
+						"never",
+					}, false),
+				},
+
+				"swap_file_size_mb": {
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+				},
+			},
+		},
+	}
+	return s
+}
+
+func schemaAutomaticNodePoolNetworkProfile() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"allowed_host_ports": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"port_start": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"port_end": {
+								Type:         pluginsdk.TypeInt,
+								Optional:     true,
+								ValidateFunc: validation.IntBetween(1, 65535),
+							},
+
+							"protocol": {
+								Type:     pluginsdk.TypeString,
+								Optional: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									string(agentpools.ProtocolTCP),
+									string(agentpools.ProtocolUDP),
+								}, false),
+							},
+						},
+					},
+				},
+
+				"application_security_group_ids": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Schema{
+						Type:         pluginsdk.TypeString,
+						ValidateFunc: applicationsecuritygroups.ValidateApplicationSecurityGroupID,
+					},
+				},
+
+				"node_public_ip_tags": {
+					Type:     pluginsdk.TypeMap,
+					Optional: true,
+					ForceNew: true,
+					Elem: &pluginsdk.Schema{
+						Type: pluginsdk.TypeString,
+					},
 				},
 			},
 		},
@@ -635,12 +813,12 @@ func flattenClusterNodePoolKubeletConfigTyped(input *managedclusters.KubeletConf
 
 	cpuCfsQuotaEnabled := false
 	if input.CpuCfsQuota != nil {
-		cpuCfsQuotaEnabled = *input.CpuCfsQuota
+		cpuCfsQuotaEnabled = pointer.From(input.CpuCfsQuota)
 	}
 
 	allowedUnsafeSysctls := []string{}
 	if input.AllowedUnsafeSysctls != nil {
-		allowedUnsafeSysctls = *input.AllowedUnsafeSysctls
+		allowedUnsafeSysctls = pointer.From(input.AllowedUnsafeSysctls)
 	}
 
 	result := KubeletConfigModel{
@@ -649,25 +827,25 @@ func flattenClusterNodePoolKubeletConfigTyped(input *managedclusters.KubeletConf
 	}
 
 	if input.CpuManagerPolicy != nil {
-		result.CPUManagerPolicy = *input.CpuManagerPolicy
+		result.CPUManagerPolicy = pointer.From(input.CpuManagerPolicy)
 	}
 	if input.CpuCfsQuotaPeriod != nil {
-		result.CPUCfsQuotaPeriod = *input.CpuCfsQuotaPeriod
+		result.CPUCfsQuotaPeriod = pointer.From(input.CpuCfsQuotaPeriod)
 	}
 	if input.ImageGcHighThreshold != nil {
-		result.ImageGcHighThreshold = *input.ImageGcHighThreshold
+		result.ImageGcHighThreshold = pointer.From(input.ImageGcHighThreshold)
 	}
 	if input.ImageGcLowThreshold != nil {
-		result.ImageGcLowThreshold = *input.ImageGcLowThreshold
+		result.ImageGcLowThreshold = pointer.From(input.ImageGcLowThreshold)
 	}
 	if input.TopologyManagerPolicy != nil {
-		result.TopologyManagerPolicy = *input.TopologyManagerPolicy
+		result.TopologyManagerPolicy = pointer.From(input.TopologyManagerPolicy)
 	}
 	if input.ContainerLogMaxSizeMB != nil {
-		result.ContainerLogMaxSizeMB = *input.ContainerLogMaxSizeMB
+		result.ContainerLogMaxSizeMB = pointer.From(input.ContainerLogMaxSizeMB)
 	}
 	if input.ContainerLogMaxFiles != nil {
-		result.ContainerLogMaxFiles = *input.ContainerLogMaxFiles
+		result.ContainerLogMaxFiles = pointer.From(input.ContainerLogMaxFiles)
 	}
 	if input.PodMaxPids != nil {
 		result.PodMaxPid = *input.PodMaxPids
@@ -688,13 +866,13 @@ func flattenAutomaticClusterNodePoolLinuxOSConfig(input *managedclusters.LinuxOS
 	}
 
 	if input.TransparentHugePageEnabled != nil {
-		result.TransparentHugePage = *input.TransparentHugePageEnabled
+		result.TransparentHugePage = pointer.From(input.TransparentHugePageEnabled)
 	}
 	if input.TransparentHugePageDefrag != nil {
-		result.TransparentHugePageDefrag = *input.TransparentHugePageDefrag
+		result.TransparentHugePageDefrag = pointer.From(input.TransparentHugePageDefrag)
 	}
 	if input.SwapFileSizeMB != nil {
-		result.SwapFileSizeMB = *input.SwapFileSizeMB
+		result.SwapFileSizeMB = pointer.From(input.SwapFileSizeMB)
 	}
 
 	return []LinuxOSConfigModel{result}
@@ -707,7 +885,7 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 
 	netIPv4TcpTwReuse := false
 	if input.NetIPv4TcpTwReuse != nil {
-		netIPv4TcpTwReuse = *input.NetIPv4TcpTwReuse
+		netIPv4TcpTwReuse = pointer.From(input.NetIPv4TcpTwReuse)
 	}
 
 	result := SysctlConfigModel{
@@ -715,43 +893,43 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 	}
 
 	if input.NetCoreSomaxconn != nil {
-		result.NetCoreSomaxconn = *input.NetCoreSomaxconn
+		result.NetCoreSomaxconn = pointer.From(input.NetCoreSomaxconn)
 	}
 	if input.NetCoreNetdevMaxBacklog != nil {
-		result.NetCoreNetdevMaxBacklog = *input.NetCoreNetdevMaxBacklog
+		result.NetCoreNetdevMaxBacklog = pointer.From(input.NetCoreNetdevMaxBacklog)
 	}
 	if input.NetCoreRmemDefault != nil {
-		result.NetCoreRmemDefault = *input.NetCoreRmemDefault
+		result.NetCoreRmemDefault = pointer.From(input.NetCoreRmemDefault)
 	}
 	if input.NetCoreRmemMax != nil {
-		result.NetCoreRmemMax = *input.NetCoreRmemMax
+		result.NetCoreRmemMax = pointer.From(input.NetCoreRmemMax)
 	}
 	if input.NetCoreWmemDefault != nil {
-		result.NetCoreWmemDefault = *input.NetCoreWmemDefault
+		result.NetCoreWmemDefault = pointer.From(input.NetCoreWmemDefault)
 	}
 	if input.NetCoreWmemMax != nil {
-		result.NetCoreWmemMax = *input.NetCoreWmemMax
+		result.NetCoreWmemMax = pointer.From(input.NetCoreWmemMax)
 	}
 	if input.NetCoreOptmemMax != nil {
-		result.NetCoreOptmemMax = *input.NetCoreOptmemMax
+		result.NetCoreOptmemMax = pointer.From(input.NetCoreOptmemMax)
 	}
 	if input.NetIPv4TcpMaxSynBacklog != nil {
-		result.NetIPv4TCPMaxSynBacklog = *input.NetIPv4TcpMaxSynBacklog
+		result.NetIPv4TCPMaxSynBacklog = pointer.From(input.NetIPv4TcpMaxSynBacklog)
 	}
 	if input.NetIPv4TcpMaxTwBuckets != nil {
-		result.NetIPv4TCPMaxTwBuckets = *input.NetIPv4TcpMaxTwBuckets
+		result.NetIPv4TCPMaxTwBuckets = pointer.From(input.NetIPv4TcpMaxTwBuckets)
 	}
 	if input.NetIPv4TcpFinTimeout != nil {
-		result.NetIPv4TCPFinTimeout = *input.NetIPv4TcpFinTimeout
+		result.NetIPv4TCPFinTimeout = pointer.From(input.NetIPv4TcpFinTimeout)
 	}
 	if input.NetIPv4TcpKeepaliveTime != nil {
-		result.NetIPv4TCPKeepaliveTime = *input.NetIPv4TcpKeepaliveTime
+		result.NetIPv4TCPKeepaliveTime = pointer.From(input.NetIPv4TcpKeepaliveTime)
 	}
 	if input.NetIPv4TcpKeepaliveProbes != nil {
-		result.NetIPv4TCPKeepaliveProbes = *input.NetIPv4TcpKeepaliveProbes
+		result.NetIPv4TCPKeepaliveProbes = pointer.From(input.NetIPv4TcpKeepaliveProbes)
 	}
 	if input.NetIPv4TcpkeepaliveIntvl != nil {
-		result.NetIPv4TCPKeepaliveIntvl = *input.NetIPv4TcpkeepaliveIntvl
+		result.NetIPv4TCPKeepaliveIntvl = pointer.From(input.NetIPv4TcpkeepaliveIntvl)
 	}
 
 	if input.NetIPv4IPLocalPortRange != nil {
@@ -764,43 +942,43 @@ func flattenClusterNodePoolSysctlConfigTyped(input *managedclusters.SysctlConfig
 	}
 
 	if input.NetIPv4NeighDefaultGcThresh1 != nil {
-		result.NetIPv4NeighDefaultGcThresh1 = *input.NetIPv4NeighDefaultGcThresh1
+		result.NetIPv4NeighDefaultGcThresh1 = pointer.From(input.NetIPv4NeighDefaultGcThresh1)
 	}
 	if input.NetIPv4NeighDefaultGcThresh2 != nil {
-		result.NetIPv4NeighDefaultGcThresh2 = *input.NetIPv4NeighDefaultGcThresh2
+		result.NetIPv4NeighDefaultGcThresh2 = pointer.From(input.NetIPv4NeighDefaultGcThresh2)
 	}
 	if input.NetIPv4NeighDefaultGcThresh3 != nil {
-		result.NetIPv4NeighDefaultGcThresh3 = *input.NetIPv4NeighDefaultGcThresh3
+		result.NetIPv4NeighDefaultGcThresh3 = pointer.From(input.NetIPv4NeighDefaultGcThresh3)
 	}
 	if input.NetNetfilterNfConntrackMax != nil {
-		result.NetNetfilterNfConntrackMax = *input.NetNetfilterNfConntrackMax
+		result.NetNetfilterNfConntrackMax = pointer.From(input.NetNetfilterNfConntrackMax)
 	}
 	if input.NetNetfilterNfConntrackBuckets != nil {
-		result.NetNetfilterNfConntrackBuckets = *input.NetNetfilterNfConntrackBuckets
+		result.NetNetfilterNfConntrackBuckets = pointer.From(input.NetNetfilterNfConntrackBuckets)
 	}
 	if input.FsAioMaxNr != nil {
-		result.FsAioMaxNr = *input.FsAioMaxNr
+		result.FsAioMaxNr = pointer.From(input.FsAioMaxNr)
 	}
 	if input.FsInotifyMaxUserWatches != nil {
-		result.FsInotifyMaxUserWatches = *input.FsInotifyMaxUserWatches
+		result.FsInotifyMaxUserWatches = pointer.From(input.FsInotifyMaxUserWatches)
 	}
 	if input.FsFileMax != nil {
-		result.FsFileMax = *input.FsFileMax
+		result.FsFileMax = pointer.From(input.FsFileMax)
 	}
 	if input.FsNrOpen != nil {
-		result.FsNrOpen = *input.FsNrOpen
+		result.FsNrOpen = pointer.From(input.FsNrOpen)
 	}
 	if input.KernelThreadsMax != nil {
-		result.KernelThreadsMax = *input.KernelThreadsMax
+		result.KernelThreadsMax = pointer.From(input.KernelThreadsMax)
 	}
 	if input.VMMaxMapCount != nil {
-		result.VMMaxMapCount = *input.VMMaxMapCount
+		result.VMMaxMapCount = pointer.From(input.VMMaxMapCount)
 	}
 	if input.VMSwappiness != nil {
-		result.VMSwappiness = *input.VMSwappiness
+		result.VMSwappiness = pointer.From(input.VMSwappiness)
 	}
 	if input.VMVfsCachePressure != nil {
-		result.VMVfsCachePressure = *input.VMVfsCachePressure
+		result.VMVfsCachePressure = pointer.From(input.VMVfsCachePressure)
 	}
 
 	return []SysctlConfigModel{result}
@@ -867,7 +1045,7 @@ func flattenClusterPoolNetworkProfileTyped(input *managedclusters.AgentPoolNetwo
 	}
 
 	if input.ApplicationSecurityGroups != nil {
-		result.ApplicationSecurityGroupIDs = *input.ApplicationSecurityGroups
+		result.ApplicationSecurityGroupIDs = pointer.From(input.ApplicationSecurityGroups)
 	}
 	results = append(results, result)
 	return results
@@ -918,7 +1096,7 @@ func expandClusterPoolNetworkProfileTyped(input []NodeNetworkProfileModel) *mana
 	profile := input[0]
 	result := &managedclusters.AgentPoolNetworkProfile{
 		AllowedHostPorts:          expandClusterPoolNetworkProfileAllowedHostPortsTyped(profile.AllowedHostPorts),
-		ApplicationSecurityGroups: &profile.ApplicationSecurityGroupIDs,
+		ApplicationSecurityGroups: pointer.To(profile.ApplicationSecurityGroupIDs),
 		NodePublicIPTags:          expandClusterPoolNetworkProfileNodePublicIPTagsTyped(profile.NodePublicIPTags),
 	}
 
@@ -998,10 +1176,12 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 
 		UpgradeSettings: expandClusterNodePoolUpgradeSettingsTyped(raw.UpgradeSettings),
 	}
+
+	//s := make([]string, 2)
+	//s[0] = "1"
+	//s[1] = "2"
 	//
-	// if len(raw.Zones) > 0 {
-	// 	profile.AvailabilityZones = &raw.Zones
-	// }
+	//profile.AvailabilityZones = pointer.To(s)
 
 	if raw.MaxPods > 0 {
 		profile.MaxPods = pointer.To(raw.MaxPods)

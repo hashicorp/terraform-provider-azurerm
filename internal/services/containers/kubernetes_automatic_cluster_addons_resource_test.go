@@ -1091,7 +1091,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, enabled)
 }
 
-func (KubernetesAutomaticClusterResource) addonProfileAzureKeyVaultSecretsProviderConfig(data acceptance.TestData, secretRotation bool, rotationInterval string) string {
+func (KubernetesAutomaticClusterResource) addonProfileAzureKeyVaultSecretsProviderConfig(data acceptance.TestData, rotationInterval string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1126,7 +1126,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   key_vault_secrets_provider {
-    secret_rotation_enabled  = %t
     secret_rotation_interval = "%s"
   }
 
@@ -1134,7 +1133,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, secretRotation, rotationInterval)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, rotationInterval)
 }
 
 func (KubernetesAutomaticClusterResource) addonProfileConfidentialComputingConfig(data acceptance.TestData, enabled bool) string {
@@ -1495,7 +1494,6 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 
   key_vault_secrets_provider {
-    secret_rotation_enabled = true
   }
 
   service_mesh_profile {
