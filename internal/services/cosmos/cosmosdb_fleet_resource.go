@@ -65,7 +65,7 @@ func (CosmosDbFleetResource) Attributes() map[string]*pluginsdk.Schema {
 }
 
 func (CosmosDbFleetResource) ModelObject() interface{} {
-	return &CosmosDbFleetResource{}
+	return &CosmosDbFleetModel{}
 }
 
 func (CosmosDbFleetResource) ResourceType() string {
