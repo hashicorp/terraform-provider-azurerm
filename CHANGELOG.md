@@ -1,6 +1,7 @@
 ## 4.70.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_postgresql_flexible_server` - add support for confidential compute server type SKU [GH-32209]
 * `azurerm_nat_gateway_public_ip_association` - add support for IPv6 public IP addresses [GH-32176]
 * `azurerm_nat_gateway_public_ip_prefix_association` - add support for IPv6 public IP prefixes [GH-32195]
 * `azurerm_dashboard_grafana`- add support for the `sku_size` property [GH-31047]
