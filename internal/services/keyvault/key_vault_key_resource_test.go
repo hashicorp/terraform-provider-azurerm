@@ -462,7 +462,7 @@ func (r KeyVaultKeyResource) Exists(ctx context.Context, clients *clients.Client
 		return nil, fmt.Errorf("checking if key vault %q for Certificate %q in Vault at url %q exists: %v", *keyVaultId, id.Name, id.KeyVaultBaseUrl, err)
 	}
 
-	keysClient := client.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl)
+	keysClient := client.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseUrl)
 	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
 	resp, err := keysClient.GetKey(ctx, keyVersionId)
 	if err != nil {
@@ -511,7 +511,7 @@ func (KeyVaultKeyResource) updateExpiryDate(expiryDate string) acceptance.Client
 		if err != nil {
 			return err
 		}
-		keysClient := clients.KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*vaultBaseUrl)
+		keysClient := clients.KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*vaultBaseUrl)
 		keyVersionId := keys.NewKeyversionID(*vaultBaseUrl, name, "")
 		update := keys.KeyUpdateParameters{
 			Attributes: &keys.KeyAttributes{
@@ -538,7 +538,7 @@ func (KeyVaultKeyResource) Destroy(ctx context.Context, client *clients.Client, 
 		return nil, fmt.Errorf("looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 	}
 
-	keysClient := client.KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*vaultBaseUrl)
+	keysClient := client.KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*vaultBaseUrl)
 	keyId := keys.NewKeyID(*vaultBaseUrl, name)
 	if _, err := keysClient.DeleteKey(ctx, keyId); err != nil {
 		return nil, fmt.Errorf("deleting key vault key: %+v", err)

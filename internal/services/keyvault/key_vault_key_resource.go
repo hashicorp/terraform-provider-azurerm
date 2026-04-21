@@ -292,7 +292,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err != nil {
 		return fmt.Errorf("looking up Key %q vault url from id %q: %+v", name, *keyVaultId, err)
 	}
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyvaultClient.Keys.Clone(*keyVaultBaseUri)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Keys.Clone(*keyVaultBaseUri)
 	keyId := keys.NewKeyID(*keyVaultBaseUri, name)
 	keyVersionId := keys.NewKeyversionID(keyId.BaseURI, keyId.KeyName, "")
 
@@ -349,7 +349,7 @@ func resourceKeyVaultKeyCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if resp, err := client.CreateKey(ctx, keyId, parameters); err != nil {
 		if meta.(*clients.Client).Features.KeyVault.RecoverSoftDeletedKeys && response.WasConflict(resp.HttpResponse) {
-			deletedKeysClient := meta.(*clients.Client).KeyVault.DataPlaneKeyvaultClient.DeletedKeys.Clone(*keyVaultBaseUri)
+			deletedKeysClient := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.DeletedKeys.Clone(*keyVaultBaseUri)
 			deletedKeyId := deletedkeys.NewDeletedkeyID(*keyVaultBaseUri, name)
 			recoveredKey, err := deletedKeysClient.RecoverDeletedKey(ctx, deletedKeyId)
 			if err != nil {
@@ -434,7 +434,7 @@ func resourceKeyVaultKeyUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseUrl)
 	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
 	keyId := keys.NewKeyID(id.KeyVaultBaseUrl, id.Name)
 	keyOptions := expandKeyVaultKeyOptions(d)
@@ -510,7 +510,7 @@ func resourceKeyVaultKeyRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		return nil
 	}
 
-	client := meta.(*clients.Client).KeyVault.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl)
+	client := meta.(*clients.Client).KeyVault.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseUrl)
 	keyVersionId := keys.NewKeyversionID(id.KeyVaultBaseUrl, id.Name, "")
 	resp, err := client.GetKey(ctx, keyVersionId)
 	if err != nil {
@@ -692,8 +692,8 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	description := fmt.Sprintf("Key %q (Key Vault %q)", id.Name, id.KeyVaultBaseUrl)
 	deleter := deleteAndPurgeKey{
-		keysClient:        keyVaultsClient.DataPlaneKeyvaultClient.Keys.Clone(id.KeyVaultBaseUrl),
-		deletedKeysClient: keyVaultsClient.DataPlaneKeyvaultClient.DeletedKeys.Clone(id.KeyVaultBaseUrl),
+		keysClient:        keyVaultsClient.DataPlaneKeyVaultClient.Keys.Clone(id.KeyVaultBaseUrl),
+		deletedKeysClient: keyVaultsClient.DataPlaneKeyVaultClient.DeletedKeys.Clone(id.KeyVaultBaseUrl),
 		keyVaultUri:       id.KeyVaultBaseUrl,
 		name:              id.Name,
 	}
