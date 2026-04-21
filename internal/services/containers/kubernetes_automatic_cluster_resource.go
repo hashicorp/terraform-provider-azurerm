@@ -2415,10 +2415,10 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 				// 	enablePrivateCluster = *accessProfile.EnablePrivateCluster
 				// }
 				if accessProfile.EnablePrivateClusterPublicFQDN != nil {
-					enablePrivateClusterPublicFQDN = *accessProfile.EnablePrivateClusterPublicFQDN
+					enablePrivateClusterPublicFQDN = pointer.From(accessProfile.EnablePrivateClusterPublicFQDN)
 				}
 				if accessProfile.DisableRunCommand != nil {
-					runCommandEnabled = !*accessProfile.DisableRunCommand
+					runCommandEnabled = !pointer.From(accessProfile.DisableRunCommand)
 				}
 				switch {
 				case accessProfile.PrivateDNSZone != nil && strings.EqualFold("System", *accessProfile.PrivateDNSZone):
