@@ -152,6 +152,7 @@ locals {
   recovery_vault_name  = "acctest-nested-recovery-vault-%[1]d"
   recovery_site_name   = "acctest-nested-recovery-site-%[1]d"
   admin_name           = "acctestadmin"
+  admin_password       = "#D33p-7h0uGH7~42!"
   cert_name            = "acctestcert"
   storage_account_name = "acctestsa%[3]s"
 }
@@ -376,7 +377,7 @@ resource "azurerm_windows_virtual_machine" "host" {
   location            = azurerm_resource_group.hybrid.location
   size                = "Standard_D8as_v5"
   admin_username      = local.admin_name
-  admin_password      = "#D33p-7h0uGH7~42!"
+  admin_password      = local.admin_password
 
   computer_name = "nested-Host"
 
@@ -402,7 +403,7 @@ resource "azurerm_windows_virtual_machine" "host" {
 
   additional_unattend_content {
     setting = "AutoLogon"
-    content = "<AutoLogon><Password><Value>%[2]s</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount><Username>${local.admin_name}</Username></AutoLogon>"
+    content = "<AutoLogon><Password><Value>${local.admin_password}</Value></Password><Enabled>true</Enabled><LogonCount>1</LogonCount><Username>${local.admin_name}</Username></AutoLogon>"
   }
 
   winrm_listener {
