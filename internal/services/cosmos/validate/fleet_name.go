@@ -8,6 +8,7 @@ import (
 	"regexp"
 )
 
+// Validate according to https://learn.microsoft.com/en-us/rest/api/cosmos-db-resource-provider/fleet/get?view=rest-cosmos-db-resource-provider-2025-10-15&tabs=HTTP
 func FleetName(v interface{}, k string) (warnings []string, errors []error) {
 	name := v.(string)
 	if len(name) < 3 || len(name) > 50 {
