@@ -74,8 +74,8 @@ type KubernetesAutomaticClusterModel struct {
 	NodeResourceGroup            string                              `tfschema:"node_resource_group"`
 	// OIDCIssuerEnabled               bool                                `tfschema:"oidc_issuer_enabled"`
 	// PrivateClusterEnabled           bool                      `tfschema:"private_cluster_enabled"`
-	PrivateClusterPublicFQDNEnabled bool   `tfschema:"private_cluster_public_fqdn_enabled"`
-	PrivateDNSZoneID                string `tfschema:"private_dns_zone_id"`
+	// PrivateClusterPublicFQDNEnabled bool   `tfschema:"private_cluster_public_fqdn_enabled"`
+	PrivateDNSZoneID string `tfschema:"private_dns_zone_id"`
 	// RoleBasedAccessControlEnabled   bool                      `tfschema:"role_based_access_control_enabled"`
 	RunCommandEnabled  bool                      `tfschema:"run_command_enabled"`
 	ServiceMeshProfile []ServiceMeshProfileModel `tfschema:"service_mesh_profile"`
@@ -685,11 +685,11 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		//	Default:  true,
 		// },
 
-		"private_cluster_public_fqdn_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
+		//"private_cluster_public_fqdn_enabled": {
+		//	Type:     pluginsdk.TypeBool,
+		//	Optional: true,
+		//	Default:  false,
+		//},
 
 		"private_dns_zone_id": {
 			Type:     pluginsdk.TypeString,
@@ -2403,7 +2403,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			}
 
 			// enablePrivateCluster := false
-			enablePrivateClusterPublicFQDN := false
+			// enablePrivateClusterPublicFQDN := false
 			runCommandEnabled := true
 			privateDnsZoneId := ""
 
@@ -2414,9 +2414,9 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 				// if accessProfile.EnablePrivateCluster != nil {
 				// 	enablePrivateCluster = *accessProfile.EnablePrivateCluster
 				// }
-				if accessProfile.EnablePrivateClusterPublicFQDN != nil {
-					enablePrivateClusterPublicFQDN = pointer.From(accessProfile.EnablePrivateClusterPublicFQDN)
-				}
+				//if accessProfile.EnablePrivateClusterPublicFQDN != nil {
+				//	enablePrivateClusterPublicFQDN = pointer.From(accessProfile.EnablePrivateClusterPublicFQDN)
+				//}
 				if accessProfile.DisableRunCommand != nil {
 					runCommandEnabled = !pointer.From(accessProfile.DisableRunCommand)
 				}
@@ -2431,7 +2431,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			}
 			state.PrivateDNSZoneID = privateDnsZoneId
 			// state.PrivateClusterEnabled = enablePrivateCluster
-			state.PrivateClusterPublicFQDNEnabled = enablePrivateClusterPublicFQDN
+			// state.PrivateClusterPublicFQDNEnabled = enablePrivateClusterPublicFQDN
 			state.RunCommandEnabled = runCommandEnabled
 
 			if props.AddonProfiles != nil {
@@ -2876,8 +2876,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("api_server_access_profile") ||
-				metadata.ResourceData.HasChange("run_command_enabled") ||
-				metadata.ResourceData.HasChange("private_cluster_public_fqdn_enabled") {
+				metadata.ResourceData.HasChange("run_command_enabled") {
 				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(model)
 				updateCluster = true
 			}
