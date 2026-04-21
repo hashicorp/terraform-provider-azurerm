@@ -409,14 +409,20 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 						}
 					}
 
-					state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
 					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
-					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
+
+					if props.CustomDomainConfiguration != nil {
+						state.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
+					}
+
+					if props.PeerAuthentication != nil && props.PeerAuthentication.Mtls != nil {
+						state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
+					}
 				}
 			}
 

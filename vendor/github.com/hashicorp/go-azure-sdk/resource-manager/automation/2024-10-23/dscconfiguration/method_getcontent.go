@@ -15,7 +15,7 @@ import (
 type GetContentOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *[]byte
+	Model        *string
 }
 
 // GetContent ...
@@ -44,7 +44,7 @@ func (c DscConfigurationClient) GetContent(ctx context.Context, id Configuration
 		return
 	}
 
-	var model []byte
+	var model string
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

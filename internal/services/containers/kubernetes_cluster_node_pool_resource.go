@@ -88,6 +88,32 @@ func resourceKubernetesClusterNodePool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, meta interface{}) error {
+				priority := d.Get("priority").(string)
+				isSpot := priority == string(agentpools.ScaleSetPrioritySpot)
+
+				upgradeSettingsRaw := d.Get("upgrade_settings").([]interface{})
+				if len(upgradeSettingsRaw) == 0 || upgradeSettingsRaw[0] == nil {
+					return nil
+				}
+
+				upgradeSettings := upgradeSettingsRaw[0].(map[string]interface{})
+				maxSurgeRaw := upgradeSettings["max_surge"].(string)
+				maxUnavailableRaw := upgradeSettings["max_unavailable"].(string)
+
+				if isSpot {
+					if maxSurgeRaw != "" {
+						return fmt.Errorf("`max_surge` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_surge`")
+					}
+					if maxUnavailableRaw != "" {
+						return fmt.Errorf("`max_unavailable` cannot be set when `priority` is set to `Spot`. Spot pools do not support `max_unavailable`")
+					}
+				} else if maxSurgeRaw == "" && maxUnavailableRaw == "" {
+					return fmt.Errorf("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`")
+				}
+
+				return nil
+			},
 		),
 	}
 
@@ -274,6 +300,11 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
+		"node_image_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"orchestrator_version": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -307,6 +338,7 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(agentpools.OSSKUAzureLinuxThree),
 				string(agentpools.OSSKUUbuntu),
 				string(agentpools.OSSKUUbuntuTwoTwoZeroFour),
+				string(agentpools.OSSKUUbuntuTwoFourZeroFour),
 				string(agentpools.OSSKUWindowsTwoZeroOneNine),
 				string(agentpools.OSSKUWindowsTwoZeroTwoTwo),
 			}, false),
@@ -623,20 +655,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
-	subnetsToLock := make([]string, 0)
+	subnetIDsToLock := make([]string, 0)
 	if podSubnetID != nil {
 		// Lock pod subnet to avoid race condition with AKS
 		profile.PodSubnetID = pointer.To(podSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, podSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, podSubnetID.ID())
 	}
 
 	if nodeSubnetID != nil {
 		// Lock node subnet to avoid race condition with AKS
 		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
-		subnetsToLock = append(subnetsToLock, nodeSubnetID.SubnetName)
+		subnetIDsToLock = append(subnetIDsToLock, nodeSubnetID.ID())
 	}
-	locks.MultipleByName(&subnetsToLock, network.SubnetResourceName)
-	defer locks.UnlockMultipleByName(&subnetsToLock, network.SubnetResourceName)
+	locks.MultipleByID(&subnetIDsToLock)
+	defer locks.UnlockMultipleByID(&subnetIDsToLock)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = pointer.To(hostGroupID)
@@ -1176,6 +1208,8 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 			return fmt.Errorf("setting `node_taints`: %+v", err)
 		}
 
+		d.Set("node_image_version", props.NodeImageVersion)
+
 		// NOTE: workaround for migration from 2022-01-02-preview (<3.12.0) to 2022-03-02-preview (>=3.12.0). Before terraform apply is run against the new API, Azure will respond only with currentOrchestratorVersion, orchestratorVersion will be absent. More details: https://github.com/hashicorp/terraform-provider-azurerm/issues/17833#issuecomment-1227583353
 		if props.OrchestratorVersion != nil {
 			d.Set("orchestrator_version", props.OrchestratorVersion)
@@ -1265,10 +1299,10 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_unavailable"},
 				},
 				"drain_timeout_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1276,10 +1310,10 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 					ValidateFunc: validation.IntAtLeast(0),
 				},
 				"max_unavailable": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-					ExactlyOneOf: []string{"upgrade_settings.0.max_surge", "upgrade_settings.0.max_unavailable"},
+					Type:          pluginsdk.TypeString,
+					Optional:      true,
+					ValidateFunc:  validation.StringIsNotEmpty,
+					ConflictsWith: []string{"upgrade_settings.0.max_surge"},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1375,11 +1409,14 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	}
 
 	v := input[0].(map[string]interface{})
-	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
+	maxSurgeRaw := v["max_surge"].(string)
+	maxUnavailableRaw := v["max_unavailable"].(string)
+
+	if maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
 		setting.MaxUnavailable = pointer.To("0")
 	}
-	if maxUnavailableRaw := v["max_unavailable"].(string); maxUnavailableRaw != "" {
+	if maxUnavailableRaw != "" {
 		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
 		setting.MaxSurge = pointer.To("0")
 	}

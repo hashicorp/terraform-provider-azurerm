@@ -411,12 +411,13 @@ for _, item := range items {
 ctx := context.TODO()
 id := containerinstance.NewLocationID("12345678-1234-9876-4563-123456789012", "locationName")
 
-read, err := client.LocationListUsage(ctx, id)
+// alternatively `client.LocationListUsage(ctx, id)` can be used to do batched pagination
+items, err := client.LocationListUsageComplete(ctx, id)
 if err != nil {
 	// handle the error
 }
-if model := read.Model; model != nil {
-	// do something with the model/response object
+for _, item := range items {
+	// do something
 }
 ```
 

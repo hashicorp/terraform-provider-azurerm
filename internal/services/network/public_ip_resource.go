@@ -5,6 +5,7 @@ package network
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -109,10 +110,7 @@ func resourcePublicIp() *pluginsdk.Resource {
 				ForceNew: true,
 				Default:  string(publicipaddresses.PublicIPAddressSkuNameStandard),
 				// https://azure.microsoft.com/en-us/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/
-				ValidateFunc: validation.StringInSlice([]string{
-					string(publicipaddresses.PublicIPAddressSkuNameBasic),
-					string(publicipaddresses.PublicIPAddressSkuNameStandard),
-				}, false),
+				ValidateFunc: validation.StringInSlice(publicipaddresses.PossibleValuesForPublicIPAddressSkuName(), false),
 			},
 
 			"sku_tier": {
@@ -182,12 +180,30 @@ func resourcePublicIp() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				sku := d.Get("sku").(string)
+				if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameBasic)) && d.HasChanges("name", "resource_group_name", "location", "allocation_method", "edge_zone", "ip_version", "sku", "sku_tier", "public_ip_prefix_id", "ip_tags", "zones") {
+					return errors.New(publicIPBasicSkuCreateDeprecationMessage)
+				}
+
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+				skuTier := d.Get("sku_tier").(string)
+				sku := d.Get("sku").(string)
+				if strings.EqualFold(skuTier, string(publicipaddresses.PublicIPAddressSkuTierGlobal)) && !strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) {
+					return errors.New("`sku` must be set to `Standard` when `sku_tier` is set to `Global`")
+				}
+				return nil
+			}),
 			pluginsdk.ForceNewIfChange("domain_name_label_scope", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(string) != "" || new.(string) == ""
 			}),
 		),
 	}
 }
+
+const publicIPBasicSkuCreateDeprecationMessage = "creation of new `Basic` SKU public IP addresses is no longer permitted following its deprecation on March 31, 2025. This also affects `allocation_method` set to `Dynamic`, as it is only available with the `Basic` SKU. For more information, see https://azure.microsoft.com/updates/upgrade-to-standard-sku-public-ip-addresses-in-azure-by-30-september-2025-basic-sku-will-be-retired/"
 
 func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.PublicIPAddresses
@@ -213,9 +229,9 @@ func resourcePublicIpCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	sku := d.Get("sku").(string)
 	ipAllocationMethod := d.Get("allocation_method").(string)
 
-	if strings.EqualFold(sku, "standard") {
-		if !strings.EqualFold(ipAllocationMethod, "static") {
-			return fmt.Errorf("static IP allocation must be used when creating Standard SKU public IP addresses")
+	if strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandard)) || strings.EqualFold(sku, string(publicipaddresses.PublicIPAddressSkuNameStandardVTwo)) {
+		if !strings.EqualFold(ipAllocationMethod, string(publicipaddresses.IPAllocationMethodStatic)) {
+			return fmt.Errorf("`allocation_method` must be set to `Static` when `sku` is set to `Standard` or `StandardV2`")
 		}
 	}
 
@@ -365,25 +381,30 @@ func resourcePublicIpUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		payload.Properties.IdleTimeoutInMinutes = pointer.To(int64(d.Get("idle_timeout_in_minutes").(int)))
 	}
 
-	if d.HasChange("domain_name_label") {
-		if payload.Properties.DnsSettings == nil {
-			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
-		}
-		payload.Properties.DnsSettings.DomainNameLabel = pointer.To(d.Get("domain_name_label").(string))
-	}
+	if d.HasChanges("domain_name_label", "domain_name_label_scope", "reverse_fqdn") {
+		dnl, dnlOk := d.GetOk("domain_name_label")
+		rfqdn, rfqdnOk := d.GetOk("reverse_fqdn")
+		dnlc, dnlcOk := d.GetOk("domain_name_label_scope")
 
-	if d.HasChange("domain_name_label_scope") {
-		if payload.Properties.DnsSettings == nil {
-			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
-		}
-		payload.Properties.DnsSettings.DomainNameLabelScope = pointer.To(publicipaddresses.PublicIPAddressDnsSettingsDomainNameLabelScope(d.Get("domain_name_label_scope").(string)))
-	}
+		if dnlOk || rfqdnOk || dnlcOk {
+			dnsSettings := publicipaddresses.PublicIPAddressDnsSettings{}
 
-	if d.HasChange("reverse_fqdn") {
-		if payload.Properties.DnsSettings == nil {
-			payload.Properties.DnsSettings = &publicipaddresses.PublicIPAddressDnsSettings{}
+			if rfqdnOk {
+				dnsSettings.ReverseFqdn = pointer.To(rfqdn.(string))
+			}
+
+			if dnlOk {
+				dnsSettings.DomainNameLabel = pointer.To(dnl.(string))
+			}
+
+			if dnlcOk {
+				dnsSettings.DomainNameLabelScope = pointer.ToEnum[publicipaddresses.PublicIPAddressDnsSettingsDomainNameLabelScope](dnlc.(string))
+			}
+
+			payload.Properties.DnsSettings = &dnsSettings
+		} else {
+			payload.Properties.DnsSettings = nil
 		}
-		payload.Properties.DnsSettings.ReverseFqdn = pointer.To(d.Get("reverse_fqdn").(string))
 	}
 
 	if d.HasChanges("tags") {
@@ -441,12 +462,21 @@ func resourcePublicIpFlatten(d *pluginsdk.ResourceData, id *commonids.PublicIPAd
 				d.Set("public_ip_prefix_id", publicIpPrefix.Id)
 			}
 
+			fqdn := ""
+			reverseFqdn := ""
+			domainNameLabel := ""
+			domainNameLabelScope := ""
 			if settings := props.DnsSettings; settings != nil {
-				d.Set("fqdn", settings.Fqdn)
-				d.Set("reverse_fqdn", settings.ReverseFqdn)
-				d.Set("domain_name_label", settings.DomainNameLabel)
-				d.Set("domain_name_label_scope", string(pointer.From(settings.DomainNameLabelScope)))
+				fqdn = pointer.From(settings.Fqdn)
+				reverseFqdn = pointer.From(settings.ReverseFqdn)
+				domainNameLabel = pointer.From(settings.DomainNameLabel)
+				domainNameLabelScope = pointer.FromEnum(settings.DomainNameLabelScope)
 			}
+
+			d.Set("fqdn", fqdn)
+			d.Set("reverse_fqdn", reverseFqdn)
+			d.Set("domain_name_label", domainNameLabel)
+			d.Set("domain_name_label_scope", domainNameLabelScope)
 
 			ddosProtectionMode := string(publicipaddresses.DdosSettingsProtectionModeVirtualNetworkInherited)
 			if ddosSetting := props.DdosSettings; ddosSetting != nil {

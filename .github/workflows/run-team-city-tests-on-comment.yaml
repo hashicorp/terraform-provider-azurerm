@@ -1,0 +1,143 @@
+---
+name: Run TeamCity Tests on Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-team-membership:
+    runs-on: ubuntu-latest
+    # Only run on pull request comments that starts with /test
+    if: github.event.issue.pull_request && startsWith(github.event.comment.body, '/test')
+    outputs:
+      is-team-member: ${{ steps.check-membership.outputs.is-member }}
+    env:
+      AUTHORIZED_TEAM: terraform-azure
+    steps:
+      - name: Check team membership
+        id: check-membership
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GH_MEMEBERSHIP_CHECK_TOKEN }}
+          script: |
+            const teamSlug = "${{ env.AUTHORIZED_TEAM }}";
+            const org = context.repo.owner;
+            const username = context.actor;
+
+            try {
+              const response = await github.rest.teams.getMembershipForUserInOrg({
+                org: org,
+                team_slug: teamSlug,
+                username: username,
+              });
+
+              const isMember = response.data.state === 'active';
+              core.setOutput('is-member', isMember);
+
+              if (isMember) {
+                core.info(`User ${username} is a member of team ${teamSlug}`);
+              } else {
+                core.warning(`User ${username} is not an active member of team ${teamSlug}`);
+              }
+
+              return isMember;
+            } catch (error) {
+              if (error.status === 404) {
+                core.warning(`User ${username} is not a member of team ${teamSlug}`);
+                core.setOutput('is-member', false);
+                return false;
+              }
+              throw error;
+            }
+
+  run-tests:
+    runs-on: ubuntu-latest
+    needs: check-team-membership
+    if: needs.check-team-membership.outputs.is-team-member == 'true'
+    env:
+      TCTEST_SERVER: ${{ secrets.TCTEST_SERVER }}
+      TCTEST_FILEREGEX: 'internal/services/[a-z]*/[_a-zA-Z]*(resource|data_source)'
+      TCTEST_SKIP_QUEUE: 'true'
+      TCTEST_TOKEN_TC: ${{ secrets.TCTEST_TOKEN_TC }}
+      TCTEST_BUILDTYPEID: TF_AzureRM_AZURERM_SERVICE_PUBLIC
+      TCTEST_REPO: terraform-providers/terraform-provider-azurerm
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.2.0
+        with:
+          go-version: '1.25'
+
+      - name: Get tctest version
+        id: tctest-version
+        run: |
+          LATEST_RELEASE=$(curl -s https://api.github.com/repos/katbyte/tctest/releases/latest | grep "tag_name" | cut -d '"' -f 4)
+          echo "version=${LATEST_RELEASE}" >> $GITHUB_OUTPUT
+          echo "Latest tctest release: $LATEST_RELEASE"
+
+      - name: Cache tctest binary
+        id: cache-tctest
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/go/bin/tctest
+          key: tctest-${{ runner.os }}-${{ steps.tctest-version.outputs.version }}
+
+      - name: Install tctest
+        if: steps.cache-tctest.outputs.cache-hit != 'true'
+        run: |
+          go install github.com/katbyte/tctest@latest
+
+      - name: Run tctest
+        run: |
+          PR_NUMBER=${{ github.event.issue.number }}
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          echo "Running tctest for PR #${PR_NUMBER}"
+          tctest pr ${PR_NUMBER} --properties "POST_GITHUB_COMMENT=true"
+
+      - name: Comment on success
+        if: success()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+
+      - name: Comment on failure
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '❌ Failed to trigger TeamCity tests. Please check the workflow logs for details.'
+            });
+
+  unauthorized-comment:
+    runs-on: ubuntu-latest
+    needs: check-team-membership
+    if: needs.check-team-membership.outputs.is-team-member == 'false'
+    steps:
+      - name: Comment unauthorized
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '⚠️ You are not authorized to run tests. Only members of the designated team can trigger test runs.'
+            });

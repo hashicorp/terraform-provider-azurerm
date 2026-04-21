@@ -55,7 +55,7 @@ func TestAccBackupProtectionPolicyVMWorkload_update(t *testing.T) {
 	})
 }
 
-func (t BackupProtectionPolicyVMWorkloadResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r BackupProtectionPolicyVMWorkloadResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
 		return nil, err
