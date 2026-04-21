@@ -70,6 +70,11 @@ func dataSourceBastionHost() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"private_only_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
 			"scale_units": {
 				Type:     pluginsdk.TypeInt,
 				Computed: true,
@@ -146,6 +151,7 @@ func dataSourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("shareable_link_enabled", props.EnableShareableLink)
 			d.Set("tunneling_enabled", props.EnableTunneling)
 			d.Set("session_recording_enabled", props.EnableSessionRecording)
+			d.Set("private_only_enabled", props.EnablePrivateOnlyBastion)
 
 			copyPasteEnabled := true
 			if props.DisableCopyPaste != nil {
