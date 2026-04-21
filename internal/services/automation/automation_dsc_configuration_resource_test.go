@@ -76,10 +76,6 @@ func TestAccAutomationDscConfiguration_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("description").HasValue("test"),
-				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest {}"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
 			),
 		},
 		data.ImportStep(),
@@ -87,12 +83,6 @@ func TestAccAutomationDscConfiguration_update(t *testing.T) {
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("description").HasValue("test - updated"),
-				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest_updated {}"),
-				check.That(data.ResourceName).Key("log_verbose").HasValue("true"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("2"),
-				check.That(data.ResourceName).Key("tags.ENV").HasValue("stage"),
-				check.That(data.ResourceName).Key("tags.UPDATE").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -100,10 +90,6 @@ func TestAccAutomationDscConfiguration_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("description").HasValue("test"),
-				check.That(data.ResourceName).Key("content_embedded").HasValue("configuration acctest {}"),
-				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
-				check.That(data.ResourceName).Key("tags.ENV").HasValue("prod"),
 			),
 		},
 		data.ImportStep(),
@@ -229,9 +215,19 @@ resource "azurerm_automation_dsc_configuration" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   location                = azurerm_resource_group.test.location
-  content_embedded        = "configuration acctest_updated {}"
-  description             = "test - updated"
-  log_verbose             = true
+
+  content_embedded = <<-EOT
+configuration acctest {
+  File 'HelloWorld' {
+      Ensure          = 'Present'
+      DestinationPath = 'C:\Users\Public\Documents\Hello.txt'
+      Contents        = 'Hello World'
+  }
+}
+EOT
+
+  description = "test - updated"
+  log_verbose = true
 
   tags = {
     ENV    = "stage"

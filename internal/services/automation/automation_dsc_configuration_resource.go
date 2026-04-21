@@ -149,15 +149,24 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving existing %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	if existing.Model == nil {
-		return fmt.Errorf("retrieving existing %s: model was nil", *id)
+		return fmt.Errorf("retrieving %s: model was nil", *id)
 	}
 
 	if existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving existing %s: properties was nil", *id)
+		return fmt.Errorf("retrieving %s: properties was nil", *id)
+	}
+
+	content, err := client.GetContent(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving content for %s: %+v", *id, err)
+	}
+
+	if content.Model == nil {
+		return fmt.Errorf("retrieving content for %s: response was nil", *id)
 	}
 
 	// NOTE: We use CreateOrUpdate (PUT) rather than Update (PATCH) here because the
@@ -167,17 +176,18 @@ func resourceAutomationDscConfigurationUpdate(d *pluginsdk.ResourceData, meta in
 		Properties: dscconfiguration.DscConfigurationCreateOrUpdateProperties{
 			LogVerbose:  existing.Model.Properties.LogVerbose,
 			Description: existing.Model.Properties.Description,
-			Source:      pointer.From(existing.Model.Properties.Source),
+			// The GET response does not contain source, so we must set it based on the retrieved content to prevent 400s
+			Source: dscconfiguration.ContentSource{
+				Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
+				Value: pointer.To(string(*content.Model)),
+			},
 		},
 		Location: pointer.To(existing.Model.Location),
 		Tags:     existing.Model.Tags,
 	}
 
 	if d.HasChange("content_embedded") {
-		parameters.Properties.Source = dscconfiguration.ContentSource{
-			Type:  pointer.To(dscconfiguration.ContentSourceTypeEmbeddedContent),
-			Value: pointer.To(d.Get("content_embedded").(string)),
-		}
+		parameters.Properties.Source.Value = pointer.To(d.Get("content_embedded").(string))
 	}
 
 	if d.HasChange("log_verbose") {
