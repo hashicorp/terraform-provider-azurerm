@@ -248,6 +248,7 @@ resource "azurerm_palo_alto_next_generation_firewall_virtual_network_local_rules
   name                = "acctest-ngfwvn-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   rulestack_id        = azurerm_palo_alto_local_rulestack.test.id
+  plan_id             = "panw-cngfw-payg"
 
   network_profile {
     public_ip_address_ids = [azurerm_public_ip.test.id]
