@@ -208,9 +208,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 				string(botservice.MsaAppTypeUserAssignedMSI),
 			}, false),
 		}
-
 	}
-
 	return resource
 }
 
