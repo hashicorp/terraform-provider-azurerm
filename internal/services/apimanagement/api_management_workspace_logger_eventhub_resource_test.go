@@ -34,18 +34,18 @@ func TestAccApiManagementWorkspaceLoggerEventhub_basic(t *testing.T) {
 }
 
 func TestAccApiManagementWorkspaceLoggerEventhub_requiresImport(t *testing.T) {
-  data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_eventhub", "test")
-  r := ApiManagementWorkspaceLoggerEventhubResource{}
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_eventhub", "test")
+	r := ApiManagementWorkspaceLoggerEventhubResource{}
 
-  data.ResourceTest(t, r, []acceptance.TestStep{
-    {
-      Config: r.basic(data),
-      Check: acceptance.ComposeTestCheckFunc(
-        check.That(data.ResourceName).ExistsInAzure(r),
-      ),
-    },
-    data.RequiresImportErrorStep(r.requiresImport),
-  })
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
 }
 
 func TestAccApiManagementWorkspaceLoggerEventhub_systemAssignedIdentity(t *testing.T) {
