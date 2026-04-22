@@ -77,35 +77,6 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 	})
 }
 
-func TestAccDataFactoryPipeline_migrateDeprecatedToNewField(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skip("skipping since `moniter_metrics_after_duration` is removed in 5.0")
-	}
-
-	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
-	r := PipelineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.monitorMetricsDeprecated(data, "00:01:00"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("moniter_metrics_after_duration").HasValue("00:01:00"),
-				check.That(data.ResourceName).Key("monitor_metrics_after_duration").HasValue("00:01:00"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.monitorMetricsNew(data, "00:02:00"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("monitor_metrics_after_duration").HasValue("00:02:00"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccDataFactoryPipeline_activities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 	r := PipelineResource{}
@@ -424,30 +395,6 @@ resource "azurerm_data_factory_pipeline" "test" {
 JSON
 }
 `, r.template(data), data.RandomInteger, headerBlock)
-}
-
-func (r PipelineResource) monitorMetricsDeprecated(data acceptance.TestData, duration string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_data_factory_pipeline" "test" {
-  name                           = "acctest%[2]d"
-  data_factory_id                = azurerm_data_factory.test.id
-  moniter_metrics_after_duration = %[3]q
-}
-`, r.template(data), data.RandomInteger, duration)
-}
-
-func (r PipelineResource) monitorMetricsNew(data acceptance.TestData, duration string) string {
-	return fmt.Sprintf(`
-%[1]s
-
-resource "azurerm_data_factory_pipeline" "test" {
-  name                           = "acctest%[2]d"
-  data_factory_id                = azurerm_data_factory.test.id
-  monitor_metrics_after_duration = %[3]q
-}
-`, r.template(data), data.RandomInteger, duration)
 }
 
 func (r PipelineResource) activitiesUpdated(data acceptance.TestData) string {
