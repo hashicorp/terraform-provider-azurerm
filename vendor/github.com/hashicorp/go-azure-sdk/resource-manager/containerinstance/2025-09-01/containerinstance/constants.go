@@ -743,47 +743,6 @@ func parseOperatingSystemTypes(input string) (*OperatingSystemTypes, error) {
 	return &out, nil
 }
 
-type Priority string
-
-const (
-	PriorityRegular Priority = "Regular"
-	PrioritySpot    Priority = "Spot"
-)
-
-func PossibleValuesForPriority() []string {
-	return []string{
-		string(PriorityRegular),
-		string(PrioritySpot),
-	}
-}
-
-func (s *Priority) UnmarshalJSON(bytes []byte) error {
-	var decoded string
-	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling: %+v", err)
-	}
-	out, err := parsePriority(decoded)
-	if err != nil {
-		return fmt.Errorf("parsing %q: %+v", decoded, err)
-	}
-	*s = *out
-	return nil
-}
-
-func parsePriority(input string) (*Priority, error) {
-	vals := map[string]Priority{
-		"regular": PriorityRegular,
-		"spot":    PrioritySpot,
-	}
-	if v, ok := vals[strings.ToLower(input)]; ok {
-		return &v, nil
-	}
-
-	// otherwise presume it's an undefined value and best-effort it
-	out := Priority(input)
-	return &out, nil
-}
-
 type Scheme string
 
 const (
