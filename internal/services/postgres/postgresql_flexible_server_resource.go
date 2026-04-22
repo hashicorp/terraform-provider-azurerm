@@ -536,6 +536,13 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			}
 
 			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			if diff.HasChange("sku_name") {
+				skuOld, skuNew := diff.GetChange("sku_name")
+				return validate.FlexibleServerSkuNameChange(skuOld.(string), skuNew.(string))
+			}
+
+			return nil
 		},
 		),
 	}
