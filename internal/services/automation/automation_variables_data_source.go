@@ -145,8 +145,7 @@ func (v AutomationVariablesDataSource) Read() sdk.ResourceFunc {
 			var var_str []helper.StringVariable
 
 			for _, v := range variableList.Items {
-				_, err := variable.ParseVariableID(pointer.From(v.Id))
-				if err != nil {
+				if _, err := variable.ParseVariableID(pointer.From(v.Id)); err != nil {
 					return err
 				}
 

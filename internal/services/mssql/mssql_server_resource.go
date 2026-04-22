@@ -457,8 +457,7 @@ func resourceMsSqlServerUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 				return fmt.Errorf("updating Azure Active Directory Administrator %s: %+v", id, err)
 			}
 		} else {
-			_, err := adminClient.Get(ctx, *id)
-			if err != nil {
+			if _, err := adminClient.Get(ctx, *id); err != nil {
 				return fmt.Errorf("retrieving Azure Active Directory Administrator %s: %+v", id, err)
 			}
 

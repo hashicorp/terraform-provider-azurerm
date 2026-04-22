@@ -131,60 +131,62 @@ func datasourceAutomationVariableCommonSchema(attType pluginsdk.ValueType) map[s
 	}
 }
 
-func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
+func formatAutomationVariableValue(d *pluginsdk.ResourceData, varType string) (string, error) {
+	switch strings.ToLower(varType) {
+	case "datetime":
+		vTime, err := time.Parse(time.RFC3339, d.Get("value").(string))
+		if err != nil {
+			return "", fmt.Errorf("invalid time format: %+v", err)
+		}
+		return fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000), nil
+	case "bool":
+		return strconv.FormatBool(d.Get("value").(bool)), nil
+	case "int":
+		return strconv.Itoa(d.Get("value").(int)), nil
+	case "object":
+		// We don't quote the object so it gets saved as a JSON object
+		return d.Get("value").(string), nil
+	case "string":
+		return strconv.Quote(d.Get("value").(string)), nil
+	default:
+		return "", nil
+	}
+}
+
+func resourceAutomationVariableCreate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*clients.Client).Automation.Variable
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	varTypeLower := strings.ToLower(varType)
 
 	id := variable.NewVariableID(subscriptionId, d.Get("resource_group_name").(string), d.Get("automation_account_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing Automation %s Variable %s: %+v", varType, id, err)
-			}
-		}
-
+	resp, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), id.ID())
+			return fmt.Errorf("checking for presence of existing Automation %s Variable %s: %+v", varType, id, err)
 		}
 	}
 
-	description := d.Get("description").(string)
-	encrypted := d.Get("encrypted").(bool)
-	value := ""
-
-	switch varTypeLower {
-	case "datetime":
-		vTime, parseErr := time.Parse(time.RFC3339, d.Get("value").(string))
-		if parseErr != nil {
-			return fmt.Errorf("invalid time format: %+v", parseErr)
-		}
-		value = fmt.Sprintf("\"\\/Date(%d)\\/\"", vTime.UnixNano()/1000000)
-	case "bool":
-		value = strconv.FormatBool(d.Get("value").(bool))
-	case "int":
-		value = strconv.Itoa(d.Get("value").(int))
-	case "object":
-		// We don't quote the object so it gets saved as a JSON object
-		value = d.Get("value").(string)
-	case "string":
-		value = strconv.Quote(d.Get("value").(string))
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError(fmt.Sprintf("azurerm_automation_variable_%s", varTypeLower), id.ID())
 	}
 
 	parameters := variable.VariableCreateOrUpdateParameters{
 		Name: id.VariableName,
 		Properties: variable.VariableCreateOrUpdateProperties{
-			Description: pointer.To(description),
-			IsEncrypted: pointer.To(encrypted),
+			Description: pointer.To(d.Get("description").(string)),
+			IsEncrypted: pointer.To(d.Get("encrypted").(bool)),
 		},
 	}
 
 	if varTypeLower != "null" {
+		value, err := formatAutomationVariableValue(d, varType)
+		if err != nil {
+			return err
+		}
 		parameters.Properties.Value = pointer.To(value)
 	}
 
@@ -193,6 +195,64 @@ func resourceAutomationVariableCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+
+	return resourceAutomationVariableRead(d, meta, varType)
+}
+
+func resourceAutomationVariableUpdate(d *pluginsdk.ResourceData, meta interface{}, varType string) error {
+	client := meta.(*clients.Client).Automation.Variable
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := variable.ParseVariableID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	// The PATCH endpoint (Update) does not support changing `encrypted`, so we use
+	// the PUT endpoint (CreateOrUpdate) and overlay changed fields on the existing resource.
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving existing Automation %s Variable %s: %+v", varType, id, err)
+	}
+
+	if existing.Model == nil || existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving existing Automation %s Variable %s: model or properties were nil", varType, id)
+	}
+
+	existingProps := existing.Model.Properties
+
+	parameters := variable.VariableCreateOrUpdateParameters{
+		Name: id.VariableName,
+		Properties: variable.VariableCreateOrUpdateProperties{
+			Description: existingProps.Description,
+			IsEncrypted: existingProps.IsEncrypted,
+			Value:       existingProps.Value,
+		},
+	}
+
+	if d.HasChange("description") {
+		parameters.Properties.Description = pointer.To(d.Get("description").(string))
+	}
+
+	if d.HasChange("encrypted") {
+		parameters.Properties.IsEncrypted = pointer.To(d.Get("encrypted").(bool))
+	}
+
+	if d.HasChange("value") {
+		varTypeLower := strings.ToLower(varType)
+		if varTypeLower != "null" {
+			value, err := formatAutomationVariableValue(d, varType)
+			if err != nil {
+				return err
+			}
+			parameters.Properties.Value = pointer.To(value)
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating Automation %s Variable %s: %+v", varType, id, err)
+	}
 
 	return resourceAutomationVariableRead(d, meta, varType)
 }
