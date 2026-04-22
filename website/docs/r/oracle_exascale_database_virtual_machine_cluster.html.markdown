@@ -143,7 +143,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Exadata VM Cluster.
 
- `time_zone` - (Optional) The time zone of the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
+* `time_zone` - (Optional) The time zone of the Exadata VM Cluster. Changing this forces a new Exadata VM Cluster to be created.
 
 -> **Note:** For more information on `time_zone`, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm).
 
