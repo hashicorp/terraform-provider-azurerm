@@ -5,9 +5,14 @@ package storage
 
 import (
 	"fmt"
+	"log"
+	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	rmTables "github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,7 +35,7 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 			"storage_table_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: storageValidate.StorageTableDataPlaneID,
+				ValidateFunc: rmTables.ValidateTableID,
 			},
 
 			"partition_key": {
@@ -55,6 +60,10 @@ func dataSourceStorageTableEntity() *pluginsdk.Resource {
 		},
 	}
 
+	if !features.FivePointOh() {
+		resource.Schema["storage_table_id"].ValidateFunc = validation.Any(rmTables.ValidateTableID, storageValidate.StorageTableDataPlaneID)
+	}
+
 	return resource
 }
 
@@ -67,25 +76,63 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 	partitionKey := d.Get("partition_key").(string)
 	rowKey := d.Get("row_key").(string)
 
-	var storageTableId *tables.TableId
+	var tableName string
+	var accountName string
+	var account *client.AccountDetails
 	var err error
-	if v, ok := d.GetOk("storage_table_id"); ok && v.(string) != "" {
-		storageTableId, err = tables.ParseTableID(v.(string), storageClient.StorageDomainSuffix)
+
+	tableIdRaw, ok := d.GetOk("storage_table_id")
+	if !ok || tableIdRaw.(string) == "" {
+		return fmt.Errorf("`storage_table_id` is required")
+	}
+	storageTableIdRaw := tableIdRaw.(string)
+	storageTableIdFmtd := ""
+
+	if !features.FivePointOh() {
+		if strings.HasPrefix(strings.ToLower(storageTableIdRaw), "/subscriptions/") {
+			storageTableId, err := rmTables.ParseTableID(storageTableIdRaw)
+			if err != nil {
+				return err
+			}
+			storageTableIdFmtd = storageTableId.ID()
+			tableName = storageTableId.TableName
+			accountName = storageTableId.StorageAccountName
+			storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+			account, err = storageClient.GetAccount(ctx, storageAccountId)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
+			}
+		} else {
+			log.Printf("[WARN] `storage_table_id` is currently configured as a Data Plane URL. This legacy behavior has been deprecated and will be removed in version 5.0 of the AzureRM Provider. Please migrate to the Management Plane ID format.")
+			storageTableId, err := tables.ParseTableID(storageTableIdRaw, storageClient.StorageDomainSuffix)
+			if err != nil {
+				return err
+			}
+			storageTableIdFmtd = storageTableId.ID()
+			tableName = storageTableId.TableName
+			accountName = storageTableId.AccountId.AccountName
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
+			}
+		}
+	} else {
+		storageTableId, err := rmTables.ParseTableID(storageTableIdRaw)
 		if err != nil {
 			return err
 		}
+		storageTableIdFmtd = storageTableId.ID()
+		tableName = storageTableId.TableName
+		accountName = storageTableId.StorageAccountName
+		storageAccountId := commonids.NewStorageAccountID(storageTableId.SubscriptionId, storageTableId.ResourceGroupName, storageTableId.StorageAccountName)
+		account, err = storageClient.GetAccount(ctx, storageAccountId)
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for Table %q: %v", accountName, tableName, err)
+		}
 	}
 
-	if storageTableId == nil {
-		return fmt.Errorf("determining storage table ID")
-	}
-
-	account, err := storageClient.FindAccount(ctx, subscriptionId, storageTableId.AccountId.AccountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Table %q: %v", storageTableId.AccountId.AccountName, storageTableId.TableName, err)
-	}
 	if account == nil {
-		return fmt.Errorf("the parent Storage Account %s was not found", storageTableId.AccountId.AccountName)
+		return fmt.Errorf("the parent Storage Account %s was not found", accountName)
 	}
 
 	dataPlaneClient, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
@@ -103,7 +150,7 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("parsing Account ID: %v", err)
 	}
 
-	id := entities.NewEntityID(*accountId, storageTableId.TableName, partitionKey, rowKey)
+	id := entities.NewEntityID(*accountId, tableName, partitionKey, rowKey)
 
 	input := entities.GetEntityInput{
 		PartitionKey:  partitionKey,
@@ -111,12 +158,12 @@ func dataSourceStorageTableEntityRead(d *pluginsdk.ResourceData, meta interface{
 		MetaDataLevel: entities.NoMetaData,
 	}
 
-	result, err := dataPlaneClient.Get(ctx, storageTableId.TableName, input)
+	result, err := dataPlaneClient.Get(ctx, tableName, input)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %v", id, err)
 	}
 
-	d.Set("storage_table_id", storageTableId.ID())
+	d.Set("storage_table_id", storageTableIdFmtd)
 	d.Set("partition_key", partitionKey)
 	d.Set("row_key", rowKey)
 

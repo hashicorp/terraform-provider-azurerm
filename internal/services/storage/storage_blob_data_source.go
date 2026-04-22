@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -19,7 +21,7 @@ import (
 )
 
 func dataSourceStorageBlob() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Read: dataSourceStorageBlobRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -30,15 +32,9 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 			"name": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				// TODO: add validation
 			},
 
-			"storage_account_name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"storage_container_name": {
+			"storage_container_id": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 			},
@@ -76,6 +72,31 @@ func dataSourceStorageBlob() *pluginsdk.Resource {
 			"metadata": MetaDataComputedSchema(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["storage_container_id"].Required = false
+		r.Schema["storage_container_id"].Optional = true
+		r.Schema["storage_container_id"].Computed = true
+		r.Schema["storage_container_id"].ConflictsWith = []string{"storage_account_name", "storage_container_name"}
+
+		r.Schema["storage_account_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"storage_container_id"},
+			Deprecated:    "`storage_account_name` has been deprecated in favour of `storage_container_id` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		r.Schema["storage_container_name"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"storage_container_id"},
+			Deprecated:    "`storage_container_name` has been deprecated in favour of `storage_container_id` and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -84,14 +105,51 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	accountName := d.Get("storage_account_name").(string)
-	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	account, err := storageClient.FindAccount(ctx, subscriptionId, accountName)
-	if err != nil {
-		return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+	var accountName string
+	var containerName string
+	var account *client.AccountDetails
+	var err error
+
+	if !features.FivePointOh() {
+		if containerIdStr, ok := d.GetOk("storage_container_id"); ok && containerIdStr.(string) != "" {
+			containerId, err := commonids.ParseStorageContainerID(containerIdStr.(string))
+			if err != nil {
+				return err
+			}
+			accountName = containerId.StorageAccountName
+			containerName = containerId.ContainerName
+			account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+			}
+		} else {
+			accountName = d.Get("storage_account_name").(string)
+			containerName = d.Get("storage_container_name").(string)
+			if accountName == "" || containerName == "" {
+				return fmt.Errorf("`storage_account_name` and `storage_container_name` must be specified when `storage_container_id` is omitted")
+			}
+
+			account, err = storageClient.FindAccount(ctx, subscriptionId, accountName)
+			if err != nil {
+				return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+			}
+		}
+	} else {
+		containerIdStr := d.Get("storage_container_id").(string)
+		containerId, err := commonids.ParseStorageContainerID(containerIdStr)
+		if err != nil {
+			return err
+		}
+		accountName = containerId.StorageAccountName
+		containerName = containerId.ContainerName
+		account, err = storageClient.GetAccount(ctx, commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName))
+		if err != nil {
+			return fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %v", accountName, name, containerName, err)
+		}
 	}
+
 	if account == nil {
 		return fmt.Errorf("locating Storage Account %q", accountName)
 	}
@@ -125,8 +183,12 @@ func dataSourceStorageBlobRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	d.Set("name", name)
-	d.Set("storage_container_name", containerName)
-	d.Set("storage_account_name", accountName)
+	d.Set("storage_container_id", commonids.NewStorageContainerID(subscriptionId, account.StorageAccountId.ResourceGroupName, accountName, containerName).ID())
+
+	if !features.FivePointOh() {
+		d.Set("storage_container_name", containerName)
+		d.Set("storage_account_name", accountName)
+	}
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
