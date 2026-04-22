@@ -33,14 +33,17 @@ func (s synapseManagedPrivateEndpointCreatePoller) Poll(ctx context.Context) (*p
 		return nil, fmt.Errorf("checking `provisioningState` for %s", s.id)
 	}
 
-	if *resp.Model.Properties.ProvisioningState == "Succeeded" {
+	switch *resp.Model.Properties.ProvisioningState {
+	case string(pollers.PollingStatusSucceeded):
 		return &pollers.PollResult{
 			Status: pollers.PollingStatusSucceeded,
 		}, nil
+	case string(pollers.PollingStatusFailed):
+		return nil, fmt.Errorf("provisioningState was `%s`", pollers.PollingStatusFailed)
+	case string(pollers.PollingStatusCancelled):
+		return nil, fmt.Errorf("provisioningState was `%s`", pollers.PollingStatusCancelled)
 	}
 
-	// The API spec doesn't document the provisioning states, so unless it's `Succeeded` we'll continue polling
-	// ideally we'd exit early on any terminal states that are not `Succeeded` but they are unknown.
 	return &pollers.PollResult{
 		PollInterval: 10 * time.Second,
 		Status:       pollers.PollingStatusInProgress,
