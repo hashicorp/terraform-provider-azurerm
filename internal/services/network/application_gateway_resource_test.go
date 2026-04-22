@@ -632,7 +632,7 @@ func TestAccApplicationGateway_backendHttpSettingsValidateInvalid(t *testing.T) 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.backendHttpSettingValidateInvalid(data),
-			ExpectError: regexp.MustCompile("`sni_name` can only be set when `sni_validation_enabled` is set to `true` in backend_http_settings block"),
+			ExpectError: regexp.MustCompile("`sni_name` can only be set when `sni_validation_enabled` is set to `true` in `backend_http_settings` block `"),
 		},
 	})
 }
