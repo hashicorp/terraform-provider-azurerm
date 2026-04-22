@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -30,6 +31,10 @@ func TestAccFederatedIdentityCredential_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("user_assigned_identity_id").Exists(),
+				check.That(data.ResourceName).Key("audience.0").HasValue("foo"),
+				check.That(data.ResourceName).Key("issuer").HasValue("https://foo"),
+				check.That(data.ResourceName).Key("subject").HasValue("foo"),
 			),
 		},
 		data.ImportStep(),
@@ -42,6 +47,26 @@ func TestAccFederatedIdentityCredential_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("subject").MatchesRegex(&rg),
 			),
 		},
+	})
+}
+
+func TestAccFederatedIdentityCredential_deprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("this test is only valid in versions prior to 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_federated_identity_credential", "test")
+	r := FederatedIdentityCredentialTestResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("parent_id").Exists(),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -78,11 +103,11 @@ func (r FederatedIdentityCredentialTestResource) basic(data acceptance.TestData)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience  = ["foo"]
-  issuer    = "https://foo"
-  name      = "acctest-${local.random_integer}"
-  parent_id = azurerm_user_assigned_identity.test.id
-  subject   = "foo"
+  audience                  = ["foo"]
+  issuer                    = "https://foo"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo"
 }
 `, r.template(data))
 }
@@ -91,11 +116,11 @@ func (r FederatedIdentityCredentialTestResource) update(data acceptance.TestData
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "test" {
-  audience  = ["foo-updated"]
-  issuer    = "https://foo-updated"
-  name      = "acctest-${local.random_integer}"
-  parent_id = azurerm_user_assigned_identity.test.id
-  subject   = "foo-updated"
+  audience                  = ["foo-updated"]
+  issuer                    = "https://foo-updated"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo-updated"
 }
 `, r.template(data))
 }
@@ -104,13 +129,26 @@ func (r FederatedIdentityCredentialTestResource) requiresImport(data acceptance.
 	return fmt.Sprintf(`
 %s
 resource "azurerm_federated_identity_credential" "import" {
+  audience                  = ["foo"]
+  issuer                    = "https://foo"
+  name                      = "acctest-${local.random_integer}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  subject                   = "foo"
+}
+`, r.basic(data))
+}
+
+func (r FederatedIdentityCredentialTestResource) deprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_federated_identity_credential" "test" {
   audience  = ["foo"]
   issuer    = "https://foo"
   name      = "acctest-${local.random_integer}"
   parent_id = azurerm_user_assigned_identity.test.id
   subject   = "foo"
 }
-`, r.basic(data))
+`, r.template(data))
 }
 
 func (r FederatedIdentityCredentialTestResource) template(data acceptance.TestData) string {

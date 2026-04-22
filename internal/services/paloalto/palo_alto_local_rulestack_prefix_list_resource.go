@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/localrulestacks"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29/prefixlistlocalrulestack"
+	localrulestacks "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/localrulestackresources"
+	prefixlistlocalrulestack "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/prefixlistresources"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -89,8 +89,8 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.PrefixListResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 			model := LocalRuleStackPrefixListModel{}
 
 			if err := metadata.Decode(&model); err != nil {
@@ -106,7 +106,7 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 
 			id := prefixlistlocalrulestack.NewLocalRulestackPrefixListID(rulestackId.SubscriptionId, rulestackId.ResourceGroupName, rulestackId.LocalRulestackName, model.Name)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.PrefixListLocalRulestackGet(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -133,13 +133,13 @@ func (r LocalRuleStackPrefixList) Create() sdk.ResourceFunc {
 				Properties: props,
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, prefixList); err != nil {
+			if err = client.PrefixListLocalRulestackCreateOrUpdateThenPoll(ctx, id, prefixList); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
 
-			if err = rulestackClient.CommitThenPoll(ctx, *rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, *rulestackId); err != nil {
 				return fmt.Errorf("committing Local RuleStack config for %s: %+v", id, err)
 			}
 
@@ -152,7 +152,7 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
+			client := metadata.Client.PaloAlto.PrefixListResources
 
 			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -161,7 +161,7 @@ func (r LocalRuleStackPrefixList) Read() sdk.ResourceFunc {
 
 			var state LocalRuleStackPrefixListModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.PrefixListLocalRulestackGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -188,8 +188,8 @@ func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.PrefixListResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -200,11 +200,11 @@ func (r LocalRuleStackPrefixList) Delete() sdk.ResourceFunc {
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.PrefixListLocalRulestackDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 
@@ -217,8 +217,8 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PrefixListLocalRulestack
-			rulestackClient := metadata.Client.PaloAlto.LocalRulestacks
+			client := metadata.Client.PaloAlto.PrefixListResources
+			rulestackClient := metadata.Client.PaloAlto.LocalRulestackResources
 
 			id, err := prefixlistlocalrulestack.ParseLocalRulestackPrefixListID(metadata.ResourceData.Id())
 			if err != nil {
@@ -235,7 +235,7 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 			locks.ByID(rulestackId.ID())
 			defer locks.UnlockByID(rulestackId.ID())
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.PrefixListLocalRulestackGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -257,11 +257,11 @@ func (r LocalRuleStackPrefixList) Update() sdk.ResourceFunc {
 				prefixList.Properties.Description = pointer.To(model.Description)
 			}
 
-			if _, err = client.CreateOrUpdate(ctx, *id, prefixList); err != nil {
+			if _, err = client.PrefixListLocalRulestackCreateOrUpdate(ctx, *id, prefixList); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
-			if err = rulestackClient.CommitThenPoll(ctx, rulestackId); err != nil {
+			if err = rulestackClient.LocalRulestackscommitThenPoll(ctx, rulestackId); err != nil {
 				return fmt.Errorf("committing Local Rulestack config for %s: %+v", id, err)
 			}
 

@@ -11,15 +11,15 @@ import (
 var _ CopySource = BlobSource{}
 
 type BlobSource struct {
-	Recursive           *bool  `json:"recursive,omitempty"`
-	SkipHeaderLineCount *int64 `json:"skipHeaderLineCount,omitempty"`
-	TreatEmptyAsNull    *bool  `json:"treatEmptyAsNull,omitempty"`
+	Recursive           *interface{} `json:"recursive,omitempty"`
+	SkipHeaderLineCount *interface{} `json:"skipHeaderLineCount,omitempty"`
+	TreatEmptyAsNull    *interface{} `json:"treatEmptyAsNull,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	DisableMetricsCollection *interface{} `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *interface{} `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *interface{} `json:"sourceRetryCount,omitempty"`
 	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 	Type                     string       `json:"type"`
 }

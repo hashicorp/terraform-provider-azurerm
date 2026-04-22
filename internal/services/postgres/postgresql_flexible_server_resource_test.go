@@ -733,6 +733,28 @@ func TestAccPostgresqlFlexibleServer_cluster(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_basicConfidential(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	// @toddgiguere confidential type is only available in westeurope at time of this test creation
+	data.Locations.Primary = "westeurope"
+	data.Locations.Secondary = "westeurope"
+	data.Locations.Ternary = "westeurope"
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfidential(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("fqdn").Exists(),
+				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
+				check.That(data.ResourceName).Key("storage_mb").HasValue("32768"),
+				check.That(data.ResourceName).Key("storage_tier").HasValue("P4"),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -837,6 +859,23 @@ resource "azurerm_postgresql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) basicConfidential(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_DC2ads_v5"
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)

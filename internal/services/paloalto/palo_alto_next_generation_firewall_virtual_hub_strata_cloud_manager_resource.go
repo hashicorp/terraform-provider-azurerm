@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23/firewalls"
+	firewalls "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-10-08/firewallresources"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/paloalto/validate"
@@ -25,17 +25,17 @@ import (
 type NextGenerationFirewallVHubStrataCloudManagerResource struct{}
 
 type NextGenerationFirewallVHubStrataCloudManagerModel struct {
-	Name                         string                       `tfschema:"name"`
-	ResourceGroupName            string                       `tfschema:"resource_group_name"`
-	Location                     string                       `tfschema:"location"`
-	NetworkProfile               []schema.NetworkProfileVHub  `tfschema:"network_profile"`
-	StrataCloudManagerTenantName string                       `tfschema:"strata_cloud_manager_tenant_name"`
-	DNSSettings                  []schema.DNSSettings         `tfschema:"dns_settings"`
-	FrontEnd                     []schema.DestinationNAT      `tfschema:"destination_nat"`
-	MarketplaceOfferId           string                       `tfschema:"marketplace_offer_id"`
-	PlanId                       string                       `tfschema:"plan_id"`
-	Identity                     []identity.ModelUserAssigned `tfschema:"identity"`
-	Tags                         map[string]interface{}       `tfschema:"tags"`
+	Name                         string                                     `tfschema:"name"`
+	ResourceGroupName            string                                     `tfschema:"resource_group_name"`
+	Location                     string                                     `tfschema:"location"`
+	NetworkProfile               []schema.NetworkProfileVHub                `tfschema:"network_profile"`
+	StrataCloudManagerTenantName string                                     `tfschema:"strata_cloud_manager_tenant_name"`
+	DNSSettings                  []schema.DNSSettings                       `tfschema:"dns_settings"`
+	FrontEnd                     []schema.DestinationNAT                    `tfschema:"destination_nat"`
+	MarketplaceOfferId           string                                     `tfschema:"marketplace_offer_id"`
+	PlanId                       string                                     `tfschema:"plan_id"`
+	Identity                     []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	Tags                         map[string]interface{}                     `tfschema:"tags"`
 }
 
 var _ sdk.ResourceWithUpdate = NextGenerationFirewallVHubStrataCloudManagerResource{}
@@ -104,7 +104,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			var model NextGenerationFirewallVHubStrataCloudManagerModel
 
@@ -114,7 +114,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 
 			id := firewalls.NewFirewallID(metadata.Client.Account.SubscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := client.Get(ctx, id)
+			existing, err := client.FirewallsGet(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
@@ -122,7 +122,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			identity, err := identity.ExpandUserAssignedMapFromModel(model.Identity)
+			identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(model.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding `identity`: %+v", err)
 			}
@@ -150,7 +150,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Create() sdk.Resou
 				Tags:     tags.Expand(model.Tags),
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, id, firewall); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -165,7 +165,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.Resourc
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -174,7 +174,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.Resourc
 
 			var state NextGenerationFirewallVHubStrataCloudManagerModel
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -201,11 +201,11 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Read() sdk.Resourc
 				state.MarketplaceOfferId = props.MarketplaceDetails.OfferId
 				state.PlanId = props.PlanData.PlanId
 
-				identity, err := identity.FlattenUserAssignedMapToModel(model.Identity)
+				identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = pointer.From(identity)
+				state.Identity = identity
 
 				state.Tags = tags.Flatten(model.Tags)
 
@@ -223,14 +223,14 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Delete() sdk.Resou
 	return sdk.ResourceFunc{
 		Timeout: 2 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			if err = client.DeleteThenPoll(ctx, *id); err != nil {
+			if err = client.FirewallsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -247,7 +247,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 	return sdk.ResourceFunc{
 		Timeout: 3 * time.Hour,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.PaloAltoClient_v2025_05_23.Firewalls
+			client := metadata.Client.PaloAlto.FirewallResources
 
 			id, err := firewalls.ParseFirewallID(metadata.ResourceData.Id())
 			if err != nil {
@@ -259,7 +259,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 				return fmt.Errorf("decoding model: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, *id)
+			existing, err := client.FirewallsGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
@@ -300,7 +300,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 			firewall.Properties = props
 
 			if metadata.ResourceData.HasChange("identity") {
-				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
+				identityValue, err := identity.ExpandLegacySystemAndUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
@@ -311,7 +311,7 @@ func (r NextGenerationFirewallVHubStrataCloudManagerResource) Update() sdk.Resou
 				firewall.Tags = tags.Expand(model.Tags)
 			}
 
-			if err = client.CreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
+			if err = client.FirewallsCreateOrUpdateThenPoll(ctx, *id, firewall); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 

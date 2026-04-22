@@ -42,6 +42,10 @@ func TestNestedItemName(t *testing.T) {
 			Input:       "ABC123!@£",
 			ExpectError: true,
 		},
+		{
+			Input:       "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
+			ExpectError: true,
+		},
 	}
 
 	for _, tc := range cases {

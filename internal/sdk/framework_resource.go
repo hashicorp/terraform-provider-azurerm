@@ -15,23 +15,21 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/list"
-	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
-var IDPath = path.Root("id")
+const removedSummary = "Resource removed from state"
 
-func (r *ResourceMetadata) MarkAsGone(idFormatter resourceids.Id, state *tfsdk.State, diags *diag.Diagnostics) {
-	diags.Append(diag.NewWarningDiagnostic(fmt.Sprintf("[DEBUG] %s was not found - removing from state", idFormatter), ""))
-	state.SetAttribute(context.Background(), IDPath, nil)
+func (r *ResourceMetadata) MarkAsGone(ctx context.Context, idFormatter resourceids.Id, resp *resource.ReadResponse, diags *diag.Diagnostics) {
+	diags.Append(diag.NewWarningDiagnostic(removedSummary, fmt.Sprintf("%s was not found", idFormatter)))
+	resp.State.RemoveResource(ctx)
 }
 
 func (r *ResourceMetadata) ResourceRequiresImport(resourceName string, idFormatter resourceids.Id, resp *resource.CreateResponse) {
 	msg := "A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
-	resp.Diagnostics.AddError("Existing Resource Error", fmt.Sprintf(msg, idFormatter.ID(), resourceName))
+	resp.Diagnostics.AddError("Resource already exists", fmt.Sprintf(msg, idFormatter.ID(), resourceName))
 }
 
 type ResourceMetadata struct {
@@ -292,7 +290,7 @@ type FrameworkWrappedResource interface {
 
 	ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse, metadata ResourceMetadata)
 
-	Identity() (id resourceids.ResourceId, idType ResourceTypeForIdentity)
+	Identity() (resourceids.ResourceId, ResourceTypeForIdentity)
 }
 
 // FrameworkWrappedResourceWithUpdate provides an extension to the base resource for resources that can be updated.
