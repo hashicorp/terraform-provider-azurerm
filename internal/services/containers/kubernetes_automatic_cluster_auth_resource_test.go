@@ -212,10 +212,11 @@ resource "azurerm_role_assignment" "network" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  private_cluster_enabled = "false"
 
   default_node_pool {
     name           = "default"
@@ -302,10 +303,11 @@ resource "azurerm_role_assignment" "network" {
 }
 
 resource "azurerm_kubernetes_automatic_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_prefix          = "acctestaks%d"
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  private_cluster_enabled = "false"
 
   default_node_pool {
     name           = "default"
@@ -617,12 +619,6 @@ resource "azurerm_role_assignment" "manage_kubelet_identity" {
   role_definition_name             = "Managed Identity Operator"
   principal_id                     = azurerm_user_assigned_identity.aks_identity_test.principal_id
   skip_service_principal_aad_check = false
-}
-
-resource "azurerm_user_assigned_identity" "test" {
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  name                = "test_identity"
 }
 
 resource "azurerm_virtual_network" "test" {
