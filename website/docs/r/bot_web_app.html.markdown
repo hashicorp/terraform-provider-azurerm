@@ -55,6 +55,8 @@ The following arguments are supported:
 
 * `microsoft_app_user_assigned_identity_id` - (Optional) The ID of Microsoft Application User Assigned Identity for the Web App Bot. Changing this forces a new resource to be created.
 
+~> **Note:** `microsoft_app_user_assigned_identity_id` must be set when `microsoft_app_type` is set to `UserAssignedMSI`.
+
 * `display_name` - (Optional) The name of the Web App Bot will be displayed as. This defaults to `name` if not specified.
 
 * `endpoint` - (Optional) The Web App Bot endpoint.

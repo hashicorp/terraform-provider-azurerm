@@ -175,13 +175,20 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			// No state yet, a new resource being created.
 			if d.GetRawState().IsNull() {
 				if appType, ok := d.GetOk("microsoft_app_type"); !ok || appType == "MultiTenant" {
-					return errors.New("`microsoft_app_type` must be set to `SingleTenant` or `UserAssignedMSI` for new resources.")
+					return errors.New("`microsoft_app_type` must be set to `SingleTenant` or `UserAssignedMSI` for new resources")
 				}
 			}
 
-			if _, ok := d.GetOk("microsoft_app_tenant_id"); !ok {
-				if appType, ok := d.GetOk("microsoft_app_type"); ok && (appType == "SingleTenant" || appType == "UserAssignedMSI") {
-					return errors.New("`microsoft_app_tenant_id` must be set when app type is SingleTenant or UserAssignedMSI.")
+			rawConfig := d.GetRawConfig()
+			if rawConfig.GetAttr("microsoft_app_tenant_id").IsNull() {
+				if appType := d.Get("microsoft_app_type"); appType == "SingleTenant" || appType == "UserAssignedMSI" {
+					return errors.New("`microsoft_app_tenant_id` must be set when app type is SingleTenant or UserAssignedMSI")
+				}
+			}
+
+			if rawConfig.GetAttr("microsoft_app_user_assigned_identity_id").IsNull() {
+				if d.Get("microsoft_app_type") == "UserAssignedMSI" {
+					return errors.New("`microsoft_app_user_assigned_identity_id` must be set when app type is UserAssignedMSI")
 				}
 			}
 			return nil

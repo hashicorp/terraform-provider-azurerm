@@ -78,13 +78,35 @@ func TestAccBotWebApp_complete(t *testing.T) {
 	})
 }
 
-func TestAccBotWebApp_msaAppType(t *testing.T) {
+func TestAccBotWebApp_appTypeMultiTenantNotSupportedForNewResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
+	r := BotWebAppResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withAppTypeMultiTenant(data),
+			ExpectError: regexp.MustCompile("`microsoft_app_type` must be set to `SingleTenant` or `UserAssignedMSI` for new resources"),
+		},
+	})
+}
+
+func TestAccBotWebApp_appTenantIdMustNotBeNullOrEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
+	r := BotWebAppResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withEmptyAppTenantID(data),
+			ExpectError: regexp.MustCompile("`microsoft_app_tenant_id` must be set when app type is SingleTenant or UserAssignedMSI"),
+		},
+	})
+}
+
+func TestAccBotWebApp_appTypeUserAssignedMSI(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 	r := BotWebAppResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.msaAppType(data),
+			Config: r.withAppTypeUserAssignedMSI(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -93,24 +115,13 @@ func TestAccBotWebApp_msaAppType(t *testing.T) {
 	})
 }
 
-func TestAccBotWebApp_MsaAppTypeMultiTenantNotSupportedForNewResources(t *testing.T) {
+func TestAccBotWebApp_userAssignedMSIRequiresIdentityId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
 	r := BotWebAppResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.withMsaAppTypeMultiTenant(data),
-			ExpectError: regexp.MustCompile("`microsoft_app_type` must be set to `SingleTenant` or `UserAssignedMSI` for new resources"),
-		},
-	})
-}
-
-func TestAccBotWebApp_MsaAppTenantIdMustNotBeNullOrEmpty(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
-	r := BotWebAppResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.withEmptyMsaAppTenantID(data),
-			ExpectError: regexp.MustCompile("`microsoft_app_tenant_id` must be set when app type is SingleTenant or UserAssignedMSI"),
+			Config:      r.withUserAssignedMSIMissingIdentityId(data),
+			ExpectError: regexp.MustCompile("`microsoft_app_user_assigned_identity_id` must be set when app type is UserAssignedMSI"),
 		},
 	})
 }
@@ -207,7 +218,7 @@ resource "azurerm_bot_web_app" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r BotWebAppResource) msaAppType(data acceptance.TestData) string {
+func (r BotWebAppResource) withAppTypeUserAssignedMSI(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -234,7 +245,7 @@ resource "azurerm_bot_web_app" "test" {
 `, r.template(data), data.RandomInteger, data.RandomInteger)
 }
 
-func (r BotWebAppResource) withMsaAppTypeMultiTenant(data acceptance.TestData) string {
+func (r BotWebAppResource) withAppTypeMultiTenant(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -254,7 +265,7 @@ resource "azurerm_bot_web_app" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r BotWebAppResource) withEmptyMsaAppTenantID(data acceptance.TestData) string {
+func (r BotWebAppResource) withEmptyAppTenantID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -265,6 +276,26 @@ resource "azurerm_bot_web_app" "test" {
   sku                 = "F0"
   microsoft_app_id    = azuread_application_registration.test.client_id
   microsoft_app_type  = "SingleTenant"
+
+  tags = {
+    environment = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BotWebAppResource) withUserAssignedMSIMissingIdentityId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_bot_web_app" "test" {
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  sku                     = "F0"
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "UserAssignedMSI"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 
   tags = {
     environment = "Test"
