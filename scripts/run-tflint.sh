@@ -3,7 +3,17 @@
 # SPDX-License-Identifier: MPL-2.0
 
 
-set -e
+
+
+function on_failure {
+  echo ""
+  echo "==> tflint failed!"
+  echo "    Common causes:"
+  echo "    - Schema definition issues (e.g. missing Required/Optional, invalid types)"
+  echo "    - Acceptance test formatting issues (run: terrafmt fmt -f <file>)"
+  echo "    - tfproviderlint rule violations (see https://github.com/bflad/tfproviderlint)"
+  echo ""
+}
 
 function runTests {
   echo "==> Checking source code against terraform provider linters..."
@@ -19,7 +29,8 @@ function runTests {
 }
 
 function main {
-  runTests
+  runTests || { on_failure; exit 1; }
 }
 
 main
+

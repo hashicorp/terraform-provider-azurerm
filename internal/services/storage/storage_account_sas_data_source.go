@@ -127,58 +127,58 @@ func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
 
 			"permissions": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"read": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"write": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"delete": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"list": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"add": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"create": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"update": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"process": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"tag": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"filter": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -206,7 +206,11 @@ func dataSourceStorageAccountSasRead(d *pluginsdk.ResourceData, _ interface{}) e
 
 	resourceTypes := BuildResourceTypesString(resourceTypesIface[0].(map[string]interface{}))
 	services := BuildServicesString(servicesIface[0].(map[string]interface{}))
-	permissions := BuildPermissionsString(permissionsIface[0].(map[string]interface{}))
+
+	permissions := ""
+	if len(permissionsIface) > 0 && permissionsIface[0] != nil {
+		permissions = BuildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
+	}
 
 	// Parse the connection string
 	kvp, err := storage.ParseAccountSASConnectionString(connString)

@@ -360,7 +360,6 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%d"
 }
@@ -445,8 +444,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -508,7 +505,6 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%[1]d"
 }
@@ -595,8 +591,6 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 
   immutability = "Unlocked"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -654,7 +648,6 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%d"
 }
@@ -739,8 +732,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -802,7 +793,6 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%d"
 }
@@ -820,8 +810,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -879,7 +867,6 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%d"
 }
@@ -967,8 +954,6 @@ resource "azurerm_recovery_services_vault" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-
-  soft_delete_enabled = true
 }
 
 resource "azurerm_backup_policy_vm" "test" {
@@ -1061,7 +1046,6 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%d"
 }
@@ -1162,8 +1146,6 @@ resource "azurerm_recovery_services_vault" "test2" {
   location            = azurerm_resource_group.test2.location
   resource_group_name = azurerm_resource_group.test2.name
   sku                 = "Standard"
-
-  soft_delete_enabled = false
 }
 
 resource "azurerm_backup_policy_vm" "test2" {
@@ -1347,7 +1329,6 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-ip"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "Basic"
   allocation_method   = "Dynamic"
   domain_name_label   = "acctestip%[1]d"
 }
@@ -1433,8 +1414,7 @@ resource "azurerm_recovery_services_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
 
-  soft_delete_enabled = false
-  immutability        = "Unlocked"
+  immutability = "Unlocked"
 }
 
 %[4]s
