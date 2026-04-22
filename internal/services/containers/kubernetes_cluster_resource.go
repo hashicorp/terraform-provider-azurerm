@@ -66,6 +66,10 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("default_node_pool.0.upgrade_settings.0.undrainable_node_behavior", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old != "" && new == ""
 			}),
+			pluginsdk.ForceNewIfChange("oidc_issuer_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+				// The API does not allow disabling OIDC after it has been enabled
+				return old.(bool) && !new.(bool)
+			}),
 			// Migration of `identity` to `service_principal` is not allowed, the other way around is
 			pluginsdk.ForceNewIfChange("service_principal.0.client_id", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old == "msi" || old == ""
@@ -1401,6 +1405,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 
 			"oidc_issuer_url": {
@@ -1760,6 +1765,15 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 		}
 
 		resource.Schema["key_management_service"].Elem.(*pluginsdk.Resource).Schema["key_vault_key_id"].ValidateFunc = keyvault.ValidateNestedItemID(keyvault.VersionTypeVersioned, keyvault.NestedItemTypeAny)
+
+		resource.Schema["oidc_issuer_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			// Note: O+C because the default value depends on the version
+			// in 5.0 this will default to `true` given that is the default on later AKS versions (1.34+)
+			// and presumably will stay that way.
+			Computed: true,
+		}
 	}
 
 	return resource
@@ -1870,11 +1884,13 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
-	enableOidcIssuer := false
-	var oidcIssuerProfile *managedclusters.ManagedClusterOIDCIssuerProfile
-	if v, ok := d.GetOk("oidc_issuer_enabled"); ok {
-		enableOidcIssuer = v.(bool)
-		oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	enableOidcIssuer := d.Get("oidc_issuer_enabled").(bool)
+	oidcIssuerProfile := expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+	if !features.FivePointOh() {
+		oidcIssuerProfile = nil // preserves 4.x default of `nil`, meaning Azure decides
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "oidc_issuer_enabled") {
+			oidcIssuerProfile = expandKubernetesClusterOidcIssuerProfile(enableOidcIssuer)
+		}
 	}
 
 	storageProfileRaw := d.Get("storage_profile").([]interface{})

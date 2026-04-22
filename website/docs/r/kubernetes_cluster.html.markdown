@@ -173,7 +173,9 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 ~> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
 
-* `oidc_issuer_enabled` - (Optional) Enable or Disable the [OIDC issuer URL](https://learn.microsoft.com/en-gb/azure/aks/use-oidc-issuer)
+* `oidc_issuer_enabled` - (Optional) Whether to enable the [OIDC issuer feature](https://learn.microsoft.com/en-gb/azure/aks/use-oidc-issuer).
+
+!> **Note:** Once enabled, this feature cannot be disabled, doing so forces a new resource to be created.
 
 * `oms_agent` - (Optional) A `oms_agent` block as defined below.
 
