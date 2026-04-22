@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -203,6 +204,14 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"high_availability_replica_count": {
+				Type: pluginsdk.TypeInt,
+				// NOTE: O+C can only be set for Hyperscale skus, which have a default value of 1
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(0, 4),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -210,6 +219,17 @@ func resourceMsSqlElasticPool() *pluginsdk.Resource {
 			func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				if err := helper.MSSQLElasticPoolValidateSKU(diff); err != nil {
 					return err
+				}
+
+				if v, ok := diff.GetOk("high_availability_replica_count"); ok && v.(int) > 0 {
+					skuRaw := diff.Get("sku").([]interface{})
+					if len(skuRaw) > 0 {
+						sku := skuRaw[0].(map[string]interface{})
+						tier := sku["tier"].(string)
+						if !strings.EqualFold(tier, "Hyperscale") {
+							return fmt.Errorf("`high_availability_replica_count` can only be set when `sku.tier` is `Hyperscale`, got %q", tier)
+						}
+					}
 				}
 
 				return nil
@@ -269,6 +289,10 @@ func resourceMsSqlElasticPoolCreateUpdate(d *pluginsdk.ResourceData, meta interf
 			MaintenanceConfigurationId: pointer.To(maintenanceConfigId.ID()),
 			PreferredEnclaveType:       nil,
 		},
+	}
+
+	if !d.GetRawConfig().AsValueMap()["high_availability_replica_count"].IsNull() {
+		elasticPool.Properties.HighAvailabilityReplicaCount = pointer.To(int64(d.Get("high_availability_replica_count").(int)))
 	}
 
 	// NOTE: The service default is actually nil/empty which indicates enclave is disabled. the value `Default` is NOT the default.
@@ -345,6 +369,7 @@ func resourceMssqlElasticPoolSetFlatten(d *pluginsdk.ResourceData, id *commonids
 				licenseType = string(*props.LicenseType)
 			}
 			d.Set("license_type", licenseType)
+			d.Set("high_availability_replica_count", pointer.From(props.HighAvailabilityReplicaCount))
 
 			if err := d.Set("per_database_settings", flattenMsSqlElasticPoolPerDatabaseSettings(props.PerDatabaseSettings)); err != nil {
 				return fmt.Errorf("setting `per_database_settings`: %+v", err)

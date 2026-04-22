@@ -160,7 +160,7 @@ func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	dstResp, err := client.Storage.ResourceManager.ObjectReplicationPolicies.Get(ctx, id.Dst)
+	dstResp, err := client.Storage.ResourceManager.ObjectReplicationPolicyOperationGroup.ObjectReplicationPoliciesGet(ctx, id.Dst)
 	if err != nil {
 		if response.WasNotFound(dstResp.HttpResponse) {
 			return pointer.To(false), nil
@@ -168,7 +168,7 @@ func (r StorageObjectReplicationResource) Exists(ctx context.Context, client *cl
 		return nil, fmt.Errorf("retrieving %q: %+v", id, err)
 	}
 
-	srcResp, err := client.Storage.ResourceManager.ObjectReplicationPolicies.Get(ctx, id.Src)
+	srcResp, err := client.Storage.ResourceManager.ObjectReplicationPolicyOperationGroup.ObjectReplicationPoliciesGet(ctx, id.Src)
 	if err != nil {
 		if response.WasNotFound(srcResp.HttpResponse) {
 			return pointer.To(false), nil

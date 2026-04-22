@@ -991,7 +991,7 @@ func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface
 		}
 	}
 
-	if d.HasChange("default_storage_firewall_enabled") {
+	if d.HasChanges("default_storage_firewall_enabled", "access_connector_id") {
 		defaultStorageFirewallEnabled := workspaces.DefaultStorageFirewallDisabled
 		defaultStorageFirewallEnabledRaw := d.Get("default_storage_firewall_enabled").(bool)
 
