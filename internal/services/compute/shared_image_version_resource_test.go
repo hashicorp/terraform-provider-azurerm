@@ -474,7 +474,7 @@ func (SharedImageVersionResource) setup(data acceptance.TestData) string {
 	return ImageResource{}.setupUnmanagedDisks(data)
 }
 
-func (SharedImageVersionResource) provision(data acceptance.TestData, hyperVGen string, trustedLaunch string, confidentialVm string) string {
+func (SharedImageVersionResource) provision(data acceptance.TestData, hyperVGen string, trustedLaunch string) string {
 	template := ImageResource{}.standaloneImageProvision(data, hyperVGen)
 	hyperVGenAtt := ""
 	if hyperVGen != "" {
@@ -483,10 +483,6 @@ func (SharedImageVersionResource) provision(data acceptance.TestData, hyperVGen 
 	trustedLaunchAtt := ""
 	if trustedLaunch != "" {
 		trustedLaunchAtt = fmt.Sprintf(`trusted_launch_%s = true`, trustedLaunch)
-	}
-	confidentialVmAtt := ""
-	if confidentialVm != "" {
-		confidentialVmAtt = fmt.Sprintf(`confidential_vm_%s = true`, confidentialVm)
 	}
 	return fmt.Sprintf(`
 %s
@@ -506,7 +502,6 @@ resource "azurerm_shared_image" "test" {
 
   %s
   %s
-  %s
 
   identifier {
     publisher = "AccTesPublisher%d"
@@ -514,11 +509,11 @@ resource "azurerm_shared_image" "test" {
     sku       = "AccTesSku%d"
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, hyperVGenAtt, trustedLaunchAtt, confidentialVmAtt, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomInteger, data.RandomInteger, hyperVGenAtt, trustedLaunchAtt, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SharedImageVersionResource) imageVersion(data acceptance.TestData) string {
-	template := r.provision(data, "", "", "")
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -586,7 +581,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionUefiSettingsTemplates(data acceptance.TestData, signatureTemplateNames string) string {
-	template := r.provision(data, "V2", "supported", "")
+	template := r.provision(data, "V2", "supported")
 	return fmt.Sprintf(`
 %s
 
@@ -611,7 +606,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionUefiSettingsDb(data acceptance.TestData, signatureTemplateNames string, keyType string, certDataDb string) string {
-	template := r.provision(data, "V2", "supported", "")
+	template := r.provision(data, "V2", "supported")
 	return fmt.Sprintf(`
 %[1]s
 
@@ -642,7 +637,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionUefiSettingsPk(data acceptance.TestData, signatureTemplateNames string, keyType string, certDataDb string, certDataDbx string, certDataKek string, certDataPk string) string {
-	template := r.provision(data, "V2", "supported", "")
+	template := r.provision(data, "V2", "supported")
 	return fmt.Sprintf(`
 %[1]s
 
@@ -773,7 +768,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionStorageAccountType(data acceptance.TestData, storageAccountType string) string {
-	template := r.provision(data, "", "", "")
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -815,7 +810,7 @@ resource "azurerm_shared_image_version" "import" {
 }
 
 func (r SharedImageVersionResource) imageVersionUpdated(data acceptance.TestData) string {
-	template := r.provision(data, "", "", "")
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -841,7 +836,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) diskEncryptionSetID(data acceptance.TestData) string {
-	template := r.provision(data, "", "", "")
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -944,7 +939,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) endOfLifeDate(data acceptance.TestData, endOfLifeDate string) string {
-	template := r.provision(data, "", "", "")
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -966,7 +961,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) replicationMode(data acceptance.TestData) string {
-	template := r.provision(data, "", "", "")
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
@@ -988,7 +983,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) replicatedRegionDeletion(data acceptance.TestData) string {
-	template := r.provision(data, "", "", "")
+	template := r.provision(data, "", "")
 	return fmt.Sprintf(`
 %s
 
