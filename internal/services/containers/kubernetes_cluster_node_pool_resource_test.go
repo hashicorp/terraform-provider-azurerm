@@ -36,6 +36,7 @@ func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 			Config: r.autoScaleConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_image_version").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
