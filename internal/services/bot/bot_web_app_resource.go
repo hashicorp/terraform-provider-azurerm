@@ -5,6 +5,7 @@ package bot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -169,6 +170,22 @@ func resourceBotWebApp() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			// No state yet, a new resource being created.
+			if d.GetRawState().IsNull() {
+				if appType, ok := d.GetOk("microsoft_app_type"); !ok || appType == "MultiTenant" {
+					return errors.New("`microsoft_app_type` must be set to `SingleTenant` or `UserAssignedMSI` for new resources.")
+				}
+			}
+
+			if _, ok := d.GetOk("microsoft_app_tenant_id"); !ok {
+				if appType, ok := d.GetOk("microsoft_app_type"); ok && (appType == "SingleTenant" || appType == "UserAssignedMSI") {
+					return errors.New("`microsoft_app_tenant_id` must be set when app type is SingleTenant or UserAssignedMSI.")
+				}
+			}
+			return nil
+		}),
 	}
 
 	if !features.FivePointOh() {
@@ -184,6 +201,7 @@ func resourceBotWebApp() *pluginsdk.Resource {
 				string(botservice.MsaAppTypeUserAssignedMSI),
 			}, false),
 		}
+
 	}
 
 	return resource

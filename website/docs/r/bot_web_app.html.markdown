@@ -21,11 +21,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_bot_web_app" "example" {
-  name                = "example"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  name                    = "example"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.example.name
+  sku                     = "F0"
+  microsoft_app_id        = data.azurerm_client_config.current.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 }
 ```
 
@@ -48,6 +50,8 @@ The following arguments are supported:
 ~> **Note:** Creation of `azurerm_bot_web_app` resources using the `MultiTenant` type is no longer supported by Azure, existing resources can continue using this type.
 
 * `microsoft_app_tenant_id` - (Optional) The Microsoft Application Tenant ID for the Web App Bot. Changing this forces a new resource to be created.
+
+~> **Note:** `microsoft_app_tenant_id` must be set when `microsoft_app_type` is set to `SingleTenant` or `UserAssignedMSI`.
 
 * `microsoft_app_user_assigned_identity_id` - (Optional) The ID of Microsoft Application User Assigned Identity for the Web App Bot. Changing this forces a new resource to be created.
 

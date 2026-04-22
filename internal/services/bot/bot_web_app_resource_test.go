@@ -6,6 +6,7 @@ package bot_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -92,6 +93,28 @@ func TestAccBotWebApp_msaAppType(t *testing.T) {
 	})
 }
 
+func TestAccBotWebApp_MsaAppTypeMultiTenantNotSupportedForNewResources(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
+	r := BotWebAppResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withMsaAppTypeMultiTenant(data),
+			ExpectError: regexp.MustCompile("`microsoft_app_type` must be set to `SingleTenant` or `UserAssignedMSI` for new resources"),
+		},
+	})
+}
+
+func TestAccBotWebApp_MsaAppTenantIdMustNotBeNullOrEmpty(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_bot_web_app", "test")
+	r := BotWebAppResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.withEmptyMsaAppTenantID(data),
+			ExpectError: regexp.MustCompile("`microsoft_app_tenant_id` must be set when app type is SingleTenant or UserAssignedMSI"),
+		},
+	})
+}
+
 func (t BotWebAppResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.BotServiceID(state.ID)
 	if err != nil {
@@ -106,7 +129,7 @@ func (t BotWebAppResource) Exists(ctx context.Context, clients *clients.Client, 
 	return pointer.To(resp.Properties != nil), nil
 }
 
-func (BotWebAppResource) basicConfig(data acceptance.TestData) string {
+func (BotWebAppResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -123,6 +146,12 @@ resource "azurerm_resource_group" "test" {
 resource "azuread_application_registration" "test" {
   display_name = "acctestReg-%d"
 }
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r BotWebAppResource) basicConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
 
 resource "azurerm_bot_web_app" "test" {
   name                    = "acctestdf%d"
@@ -137,22 +166,12 @@ resource "azurerm_bot_web_app" "test" {
     environment = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (BotWebAppResource) completeConfig(data acceptance.TestData) string {
+func (r BotWebAppResource) completeConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_application_insights" "test" {
   name                = "acctestappinsights-%d"
@@ -165,10 +184,6 @@ resource "azurerm_application_insights_api_key" "test" {
   name                    = "acctestappinsightsapikey-%d"
   application_insights_id = azurerm_application_insights.test.id
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
-}
-
-resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
 }
 
 resource "azurerm_bot_web_app" "test" {
@@ -189,31 +204,17 @@ resource "azurerm_bot_web_app" "test" {
     environment = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (BotWebAppResource) msaAppType(data acceptance.TestData) string {
+func (r BotWebAppResource) msaAppType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-}
-
-resource "azuread_application_registration" "test" {
-  display_name = "acctestReg-%d"
 }
 
 resource "azurerm_bot_web_app" "test" {
@@ -230,5 +231,44 @@ resource "azurerm_bot_web_app" "test" {
     environment = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (r BotWebAppResource) withMsaAppTypeMultiTenant(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_bot_web_app" "test" {
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  sku                     = "F0"
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "MultiTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+
+  tags = {
+    environment = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BotWebAppResource) withEmptyMsaAppTenantID(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_bot_web_app" "test" {
+  name                = "acctestdf%d"
+  location            = "global"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "F0"
+  microsoft_app_id    = azuread_application_registration.test.client_id
+  microsoft_app_type  = "SingleTenant"
+
+  tags = {
+    environment = "Test"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
