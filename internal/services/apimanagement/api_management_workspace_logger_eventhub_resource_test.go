@@ -33,6 +33,21 @@ func TestAccApiManagementWorkspaceLoggerEventhub_basic(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementWorkspaceLoggerEventhub_requiresImport(t *testing.T) {
+  data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_eventhub", "test")
+  r := ApiManagementWorkspaceLoggerEventhubResource{}
+
+  data.ResourceTest(t, r, []acceptance.TestStep{
+    {
+      Config: r.basic(data),
+      Check: acceptance.ComposeTestCheckFunc(
+        check.That(data.ResourceName).ExistsInAzure(r),
+      ),
+    },
+    data.RequiresImportErrorStep(r.requiresImport),
+  })
+}
+
 func TestAccApiManagementWorkspaceLoggerEventhub_systemAssignedIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_logger_eventhub", "test")
 	r := ApiManagementWorkspaceLoggerEventhubResource{}
@@ -138,6 +153,22 @@ resource "azurerm_api_management_workspace_logger_eventhub" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceLoggerEventhubResource) requiresImport(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_workspace_logger_eventhub" "import" {
+  name                        = azurerm_api_management_workspace_logger_eventhub.test.name
+  api_management_workspace_id = azurerm_api_management_workspace_logger_eventhub.test.api_management_workspace_id
+
+  eventhub {
+    name              = azurerm_eventhub.test.name
+    connection_string = azurerm_eventhub_namespace.test.default_primary_connection_string
+  }
+}
+`, r.basic(data))
 }
 
 func (r ApiManagementWorkspaceLoggerEventhubResource) managedIdentity(data acceptance.TestData) string {

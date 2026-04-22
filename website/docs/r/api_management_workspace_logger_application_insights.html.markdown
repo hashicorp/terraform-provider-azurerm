@@ -101,7 +101,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 API Management Workspace Application Insights Loggers can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_workspace_logger_application_insights.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/instance1/workspaces/workspace1/loggers/logger1
+terraform import azurerm_api_management_workspace_logger_application_insights.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ApiManagement/service/service1/workspaces/workspace1/loggers/logger1
 ```
 
 ## API Providers
