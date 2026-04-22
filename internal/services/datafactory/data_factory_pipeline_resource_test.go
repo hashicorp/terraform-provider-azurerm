@@ -77,6 +77,35 @@ func TestAccDataFactoryPipeline_update(t *testing.T) {
 	})
 }
 
+func TestAccDataFactoryPipeline_migrateDeprecatedToNewField(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("skipping since `moniter_metrics_after_duration` is removed in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
+	r := PipelineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.monitorMetricsDeprecated(data, "00:01:00"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("moniter_metrics_after_duration").HasValue("00:01:00"),
+				check.That(data.ResourceName).Key("monitor_metrics_after_duration").HasValue("00:01:00"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.monitorMetricsNew(data, "00:02:00"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("monitor_metrics_after_duration").HasValue("00:02:00"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccDataFactoryPipeline_activities(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_data_factory_pipeline", "test")
 	r := PipelineResource{}
@@ -160,7 +189,7 @@ func (t PipelineResource) appendVariableActivityNameIs(expected string) func(inp
 	}
 }
 
-func (PipelineResource) basic(data acceptance.TestData) string {
+func (PipelineResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -177,124 +206,35 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r PipelineResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (PipelineResource) complete(data acceptance.TestData) string {
+func (r PipelineResource) complete(data acceptance.TestData) string {
+	metricsFieldName := "monitor_metrics_after_duration"
 	if !features.FivePointOh() {
-		return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
-
-resource "azurerm_data_factory_pipeline" "test" {
-  name                           = "acctest%d"
-  data_factory_id                = azurerm_data_factory.test.id
-  annotations                    = ["test1", "test2", "test3"]
-  description                    = "test description"
-  moniter_metrics_after_duration = "00:01:00"
-
-  parameters = {
-    test = "testparameter"
-  }
-
-  variables = {
-    foo = "test1"
-    bar = "test2"
-  }
-
-  activities_json = <<JSON
-[
-  {
-    "name": "test append variable",
-    "type": "AppendVariable",
-    "dependsOn": [],
-    "userProperties": [],
-    "typeProperties": {
-      "variableName": "bob",
-      "value": "something"
-    }
-  },
-  {
-    "name": "test web activity",
-    "type": "WebActivity",
-    "dependsOn": [],
-    "userProperties": [],
-    "typeProperties": {
-	  "url": "https://test.com",
-	  "method": "POST",
-      "headers": {
-        "authorization": {
-          "value": "foo",
-          "type": "Expression"
-        },
-        "content_type": "application/x-www-form-urlencoded"
-      }
-    }
-  },
-  {
-    "name": "test filter",
-    "type": "Filter",
-    "dependsOn": [
-      {
-        "activity": "Filter something",
-        "dependencyConditions": ["Succeeded"]
-      }
-    ],
-    "userProperties": [],
-    "typeProperties": {
-      "items": {
-        "value": "@json(activity('Filter Something').output.response)",
-        "type": "Expression"
-      },
-      "condition": {
-        "value": "@equals(coalesce(item().Authorised, 0), 1)",
-        "type": "Expression"
-      }
-    }
-  }
-]
-JSON
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+		metricsFieldName = "moniter_metrics_after_duration"
 	}
+
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                           = "acctest%d"
-  data_factory_id                = azurerm_data_factory.test.id
-  annotations                    = ["test1", "test2", "test3"]
-  description                    = "test description"
-  monitor_metrics_after_duration = "00:01:00"
+  name            = "acctest%[2]d"
+  data_factory_id = azurerm_data_factory.test.id
+  annotations     = ["test1", "test2", "test3"]
+  description     = "test description"
+  %[3]s           = "00:01:00"
 
   parameters = {
     test = "testparameter"
@@ -358,32 +298,24 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, metricsFieldName)
 }
 
-func (PipelineResource) update(data acceptance.TestData) string {
+func (r PipelineResource) update(data acceptance.TestData) string {
+	metricsFieldName := "monitor_metrics_after_duration"
+	if !features.FivePointOh() {
+		metricsFieldName = "moniter_metrics_after_duration"
+	}
+
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-df-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name                           = "acctest%d"
-  data_factory_id                = azurerm_data_factory.test.id
-  annotations                    = ["test1", "test2"]
-  description                    = "updated description"
-  monitor_metrics_after_duration = "00:02:00"
+  name            = "acctest%[2]d"
+  data_factory_id = azurerm_data_factory.test.id
+  annotations     = ["test1", "test2"]
+  description     = "updated description"
+  %[3]s           = "00:02:00"
 
   parameters = {
     test  = "testparameter"
@@ -421,28 +353,15 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger, metricsFieldName)
 }
 
-func (PipelineResource) activities(data acceptance.TestData) string {
+func (r PipelineResource) activities(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
@@ -462,10 +381,10 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
+func (r PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader bool) string {
 	headerBlock := `
       "headers": {
         "authorization": {
@@ -480,23 +399,10 @@ func (PipelineResource) webActivityHeaders(data acceptance.TestData, withHeader 
 	}
 
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
@@ -509,7 +415,7 @@ resource "azurerm_data_factory_pipeline" "test" {
     "dependsOn": [],
     "userProperties": [],
     "typeProperties": {
-    %s
+    %[3]s
 	  "url": "https://test.com",
 	  "method": "POST"
     }
@@ -517,28 +423,39 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, headerBlock)
+`, r.template(data), data.RandomInteger, headerBlock)
 }
 
-func (PipelineResource) activitiesUpdated(data acceptance.TestData) string {
+func (r PipelineResource) monitorMetricsDeprecated(data acceptance.TestData, duration string) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_data_factory" "test" {
-  name                = "acctestdfv2%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-}
+%[1]s
 
 resource "azurerm_data_factory_pipeline" "test" {
-  name            = "acctest%d"
+  name                           = "acctest%[2]d"
+  data_factory_id                = azurerm_data_factory.test.id
+  moniter_metrics_after_duration = %[3]q
+}
+`, r.template(data), data.RandomInteger, duration)
+}
+
+func (r PipelineResource) monitorMetricsNew(data acceptance.TestData, duration string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name                           = "acctest%[2]d"
+  data_factory_id                = azurerm_data_factory.test.id
+  monitor_metrics_after_duration = %[3]q
+}
+`, r.template(data), data.RandomInteger, duration)
+}
+
+func (r PipelineResource) activitiesUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_data_factory_pipeline" "test" {
+  name            = "acctest%[2]d"
   data_factory_id = azurerm_data_factory.test.id
   variables = {
     "bob" = "item1"
@@ -558,5 +475,5 @@ resource "azurerm_data_factory_pipeline" "test" {
 ]
 JSON
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
