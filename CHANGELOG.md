@@ -1,6 +1,7 @@
 ## 4.70.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `azurerm_synapse_managed_private_endpoint` - update to API version `2021-06-01-preview` [GH-32153]
 * `azurerm_synapse_managed_private_endpoint` - migrate to `go-azure-sdk` [GH-32153]
 * `azurerm_synapse_managed_private_endpoint` - add support for the `fully_qualified_domain_names` property [GH-32153]
 * `azurerm_bot_web_app` - add support for the `microsoft_app_type`, `microsoft_app_tenant_id`, and `microsoft_app_user_assigned_identity_id` properties [GH-30459]
