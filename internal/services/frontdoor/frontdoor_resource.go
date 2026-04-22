@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -10,11 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontDoor() *pluginsdk.Resource {
@@ -101,9 +101,9 @@ func resourceFrontDoorCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 	t := d.Get("tags").(map[string]interface{})
 
 	frontDoorParameters := frontdoors.FrontDoor{
-		Location: utils.String("Global"),
+		Location: pointer.To("Global"),
 		Properties: &frontdoors.FrontDoorProperties{
-			FriendlyName:          utils.String(friendlyName),
+			FriendlyName:          pointer.To(friendlyName),
 			RoutingRules:          expandFrontDoorRoutingRule(routingRules, id, nil),
 			BackendPools:          expandFrontDoorBackendPools(backendPools, id),
 			BackendPoolsSettings:  expandFrontDoorBackendPoolsSettings(backendCertNameCheck, backendPoolsSendReceiveTimeoutSeconds),
@@ -138,26 +138,26 @@ func resourceFrontDoorUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 	// remove in 3.0
 	// due to a change in the RP, if a Frontdoor exists in a location other than 'Global' it may continue to
 	// exist in that location, if this is a brand new Frontdoor it must be created in the 'Global' location
-	var location string
+	var loc string
 
 	exists, err := client.Get(ctx, id)
 	if err != nil || exists.Model == nil {
 		return fmt.Errorf("locating %s: %+v", id, err)
 	} else {
-		location = azure.NormalizeLocation(*exists.Model.Location)
+		loc = location.Normalize(*exists.Model.Location)
 	}
 
 	cfgLocation, hasLocation := d.GetOk("location")
 	if hasLocation {
-		if location != azure.NormalizeLocation(cfgLocation) {
-			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, location, cfgLocation)
+		if loc != location.Normalize(cfgLocation.(string)) {
+			return fmt.Errorf("the Front Door %q (Resource Group %q) already exists in %q and cannot be moved to the %q location", name, resourceGroup, loc, cfgLocation)
 		}
 	}
 
 	existingModel := *exists.Model
 
 	if d.HasChange("friendly_name") {
-		existingModel.Properties.FriendlyName = utils.String(d.Get("friendly_name").(string))
+		existingModel.Properties.FriendlyName = pointer.To(d.Get("friendly_name").(string))
 	}
 
 	routingRules := d.Get("routing_rule").([]interface{})
@@ -407,7 +407,9 @@ func resourceFrontDoorRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -449,15 +451,15 @@ func expandFrontDoorBackendPools(input []interface{}, frontDoorId frontdoors.Fro
 		loadBalancingId := parse.NewLoadBalancingID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, backendPoolLoadBalancingName).ID()
 
 		result := frontdoors.BackendPool{
-			Id:   utils.String(backendPoolId),
-			Name: utils.String(backendPoolName),
+			Id:   pointer.To(backendPoolId),
+			Name: pointer.To(backendPoolName),
 			Properties: &frontdoors.BackendPoolProperties{
 				Backends: expandFrontDoorBackend(backends),
 				HealthProbeSettings: &frontdoors.SubResource{
-					Id: utils.String(healthProbeId),
+					Id: pointer.To(healthProbeId),
 				},
 				LoadBalancingSettings: &frontdoors.SubResource{
-					Id: utils.String(loadBalancingId),
+					Id: pointer.To(loadBalancingId),
 				},
 			},
 		}
@@ -485,13 +487,13 @@ func expandFrontDoorBackend(input []interface{}) *[]frontdoors.Backend {
 		weight := int64(backend["weight"].(int))
 
 		result := frontdoors.Backend{
-			Address:           utils.String(address),
-			BackendHostHeader: utils.String(hostHeader),
+			Address:           pointer.To(address),
+			BackendHostHeader: pointer.To(hostHeader),
 			EnabledState:      &enabled,
-			HTTPPort:          utils.Int64(httpPort),
-			HTTPSPort:         utils.Int64(httpsPort),
-			Priority:          utils.Int64(priority),
-			Weight:            utils.Int64(weight),
+			HTTPPort:          pointer.To(httpPort),
+			HTTPSPort:         pointer.To(httpsPort),
+			Priority:          pointer.To(priority),
+			Weight:            pointer.To(weight),
 		}
 		output = append(output, result)
 	}
@@ -515,7 +517,7 @@ func expandFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool, backe
 
 	result := frontdoors.BackendPoolsSettings{
 		EnforceCertificateNameCheck: &enforceCheck,
-		SendRecvTimeoutSeconds:      utils.Int64(backendPoolsSendReceiveTimeoutSeconds),
+		SendRecvTimeoutSeconds:      pointer.To(backendPoolsSendReceiveTimeoutSeconds),
 	}
 
 	return &result
@@ -543,18 +545,18 @@ func expandFrontDoorFrontendEndpoint(input []interface{}, frontDoorId frontdoors
 		}
 
 		result := frontdoors.FrontendEndpoint{
-			Id:   utils.String(id),
-			Name: utils.String(name),
+			Id:   pointer.To(id),
+			Name: pointer.To(name),
 			Properties: &frontdoors.FrontendEndpointProperties{
-				HostName:                    utils.String(hostName),
+				HostName:                    pointer.To(hostName),
 				SessionAffinityEnabledState: &sessionAffinityEnabled,
-				SessionAffinityTtlSeconds:   utils.Int64(sessionAffinityTtlSeconds),
+				SessionAffinityTtlSeconds:   pointer.To(sessionAffinityTtlSeconds),
 			},
 		}
 
 		if waf != "" {
 			result.Properties.WebApplicationFirewallPolicyLink = &frontdoors.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink{
-				Id: utils.String(waf),
+				Id: pointer.To(waf),
 			}
 		}
 		output = append(output, result)
@@ -587,11 +589,11 @@ func expandFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorId fr
 		probeMethod := frontdoors.FrontDoorHealthProbeMethod(v["probe_method"].(string))
 
 		result := frontdoors.HealthProbeSettingsModel{
-			Id:   utils.String(healthProbeId),
-			Name: utils.String(name),
+			Id:   pointer.To(healthProbeId),
+			Name: pointer.To(name),
 			Properties: &frontdoors.HealthProbeSettingsProperties{
-				IntervalInSeconds: utils.Int64(intervalInSeconds),
-				Path:              utils.String(path),
+				IntervalInSeconds: pointer.To(intervalInSeconds),
+				Path:              pointer.To(path),
 				Protocol:          &protocol,
 				HealthProbeMethod: &probeMethod,
 				EnabledState:      &healthProbeEnabled,
@@ -620,12 +622,12 @@ func expandFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorId 
 		loadBalancingId := parse.NewLoadBalancingID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, name).ID()
 
 		result := frontdoors.LoadBalancingSettingsModel{
-			Id:   utils.String(loadBalancingId),
-			Name: utils.String(name),
+			Id:   pointer.To(loadBalancingId),
+			Name: pointer.To(name),
 			Properties: &frontdoors.LoadBalancingSettingsProperties{
-				SampleSize:                    utils.Int64(sampleSize),
-				SuccessfulSamplesRequired:     utils.Int64(successfulSamplesRequired),
-				AdditionalLatencyMilliseconds: utils.Int64(additionalLatencyMilliseconds),
+				SampleSize:                    pointer.To(sampleSize),
+				SuccessfulSamplesRequired:     pointer.To(successfulSamplesRequired),
+				AdditionalLatencyMilliseconds: pointer.To(additionalLatencyMilliseconds),
 			},
 		}
 		output = append(output, result)
@@ -663,8 +665,8 @@ func expandFrontDoorRoutingRule(input []interface{}, frontDoorId frontdoors.Fron
 		routingRuleId := parse.NewRoutingRuleID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, name).ID()
 
 		currentRoutingRule := frontdoors.RoutingRule{
-			Id:   utils.String(routingRuleId),
-			Name: utils.String(name),
+			Id:   pointer.To(routingRuleId),
+			Name: pointer.To(name),
 			Properties: &frontdoors.RoutingRuleProperties{
 				FrontendEndpoints:  expandFrontDoorFrontEndEndpoints(frontendEndpoints, frontDoorId),
 				AcceptedProtocols:  expandFrontDoorAcceptedProtocols(acceptedProtocols),
@@ -716,7 +718,7 @@ func expandFrontDoorFrontEndEndpoints(input []interface{}, frontDoorId frontdoor
 	for _, name := range input {
 		frontendEndpointId := parse.NewFrontendEndpointID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, name.(string)).ID()
 		result := frontdoors.SubResource{
-			Id: utils.String(frontendEndpointId),
+			Id: pointer.To(frontendEndpointId),
 		}
 		output = append(output, result)
 	}
@@ -745,23 +747,23 @@ func expandFrontDoorRedirectConfiguration(input []interface{}) frontdoors.Redire
 	customQueryString := v["custom_query_string"].(string)
 
 	redirectConfiguration := frontdoors.RedirectConfiguration{
-		CustomHost:       utils.String(customHost),
+		CustomHost:       pointer.To(customHost),
 		RedirectType:     &redirectType,
 		RedirectProtocol: &redirectProtocol,
 	}
 	// The way the API works is if you don't include the attribute in the structure
 	// it is treated as Preserve instead of Replace...
 	if customHost != "" {
-		redirectConfiguration.CustomHost = utils.String(customHost)
+		redirectConfiguration.CustomHost = pointer.To(customHost)
 	}
 	if customPath != "" {
-		redirectConfiguration.CustomPath = utils.String(customPath)
+		redirectConfiguration.CustomPath = pointer.To(customPath)
 	}
 	if customFragment != "" {
-		redirectConfiguration.CustomFragment = utils.String(customFragment)
+		redirectConfiguration.CustomFragment = pointer.To(customFragment)
 	}
 	if customQueryString != "" {
-		redirectConfiguration.CustomQueryString = utils.String(customQueryString)
+		redirectConfiguration.CustomQueryString = pointer.To(customQueryString)
 	}
 	return redirectConfiguration
 }
@@ -790,7 +792,7 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId fro
 
 	backendPoolId := parse.NewBackendPoolID(frontDoorId.SubscriptionId, frontDoorId.ResourceGroupName, frontDoorId.FrontDoorName, backendPoolName).ID()
 	backend := &frontdoors.SubResource{
-		Id: utils.String(backendPoolId),
+		Id: pointer.To(backendPoolId),
 	}
 
 	forwardingConfiguration := frontdoors.ForwardingConfiguration{
@@ -819,19 +821,19 @@ func expandFrontDoorForwardingConfiguration(input []interface{}, frontDoorId fro
 		if cacheDuration == "" {
 			duration = nil
 		} else {
-			duration = utils.String(cacheDuration)
+			duration = pointer.To(cacheDuration)
 		}
 
 		forwardingConfiguration.CacheConfiguration = &frontdoors.CacheConfiguration{
 			DynamicCompression:           &dynamicCompression,
 			QueryParameterStripDirective: &cacheQueryParameterStripDirective,
-			QueryParameters:              utils.String(queryParametersString),
+			QueryParameters:              pointer.To(queryParametersString),
 			CacheDuration:                duration,
 		}
 	}
 
 	if customForwardingPath != "" {
-		forwardingConfiguration.CustomForwardingPath = utils.String(customForwardingPath)
+		forwardingConfiguration.CustomForwardingPath = pointer.To(customForwardingPath)
 	}
 
 	return forwardingConfiguration
@@ -1603,7 +1605,7 @@ func flattenRoutingRuleForwardingConfiguration(config frontdoors.RouteConfigurat
 							ofc := oldConfigs[0].(map[string]interface{})
 							cacheQueryParameterStripDirective = ofc["cache_query_parameter_strip_directive"].(string)
 							cacheUseDynamicCompression = ofc["cache_use_dynamic_compression"].(bool)
-							cacheDuration = utils.String(ofc["cache_duration"].(string))
+							cacheDuration = pointer.To(ofc["cache_duration"].(string))
 
 							cacheQueryParameters = ofc["cache_query_parameters"].([]interface{})
 							for _, p := range cacheQueryParameters {

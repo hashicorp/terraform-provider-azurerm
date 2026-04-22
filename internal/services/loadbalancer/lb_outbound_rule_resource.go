@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package loadbalancer
@@ -329,6 +329,13 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *loadba
 	properties := loadbalancers.OutboundRulePropertiesFormat{
 		Protocol:               loadbalancers.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
 		AllocatedOutboundPorts: pointer.To(int64(d.Get("allocated_outbound_ports").(int))),
+		EnableTcpReset:         pointer.To(d.Get("tcp_reset_enabled").(bool)),
+	}
+
+	if !features.FivePointOh() {
+		if !pluginsdk.IsExplicitlyNullInConfig(d, "enable_tcp_reset") {
+			properties.EnableTcpReset = pointer.To(d.Get("enable_tcp_reset").(bool))
+		}
 	}
 
 	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
@@ -358,14 +365,6 @@ func expandAzureRmLoadBalancerOutboundRule(d *pluginsdk.ResourceData, lb *loadba
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
 		properties.IdleTimeoutInMinutes = pointer.To(int64(v.(int)))
-	}
-	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
-		properties.EnableTcpReset = pointer.To(v.(bool))
-	}
-	if !features.FivePointOh() {
-		if v, ok := d.GetOk("enable_tcp_reset"); ok {
-			properties.EnableTcpReset = pointer.To(v.(bool))
-		}
 	}
 
 	return &loadbalancers.OutboundRule{

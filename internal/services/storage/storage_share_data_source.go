@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/fileshares"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
@@ -77,6 +77,11 @@ func dataSourceStorageShare() *pluginsdk.Resource {
 
 			"quota": {
 				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
+
+			"rbac_scope_id": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 		},
@@ -173,6 +178,7 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 			resourceManagerId := parse.NewStorageShareResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", shareName)
 			d.Set("resource_manager_id", resourceManagerId.ID())
+			d.Set("rbac_scope_id", resourceManagerId.ID())
 
 			return nil
 		}
@@ -204,6 +210,8 @@ func dataSourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if !features.FivePointOh() {
 		d.Set("resource_manager_id", id.ID())
 	}
+
+	d.Set("rbac_scope_id", parse.NewStorageShareResourceManagerID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, "default", id.ShareName).ID())
 
 	d.SetId(id.ID())
 

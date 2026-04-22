@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package frontdoor
@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
@@ -19,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceFrontDoorRulesEngine() *pluginsdk.Resource {
@@ -281,7 +281,7 @@ func resourceFrontDoorRulesEngineCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	frontdoorRulesEngine := frontdoors.RulesEngine{
-		Name:       utils.String(rulesEngineName),
+		Name:       pointer.To(rulesEngineName),
 		Properties: &frontdoorRulesEngineProperties,
 	}
 
@@ -326,7 +326,7 @@ func expandHeaderAction(input []interface{}) *[]frontdoors.HeaderAction {
 
 		frontdoorRulesEngineRuleHeaderAction := frontdoors.HeaderAction{
 			HeaderName:       headerName,
-			Value:            utils.String(value),
+			Value:            pointer.To(value),
 			HeaderActionType: frontdoors.HeaderActionType(headerActionType),
 		}
 
@@ -387,7 +387,7 @@ func expandFrontDoorRulesEngineMatchCondition(input []interface{}) *[]frontdoors
 
 		matchCondition := frontdoors.RulesEngineMatchCondition{
 			RulesEngineMatchVariable: frontdoors.RulesEngineMatchVariable(matchVariable),
-			Selector:                 utils.String(selector),
+			Selector:                 pointer.To(selector),
 			RulesEngineOperator:      frontdoors.RulesEngineOperator(operator),
 			NegateCondition:          &negateCondition,
 			RulesEngineMatchValue:    matchValueArray,

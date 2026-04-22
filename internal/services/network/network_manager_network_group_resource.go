@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package network
@@ -10,17 +10,17 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/networkgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagerNetworkGroupModel struct {
 	Name             string `tfschema:"name"`
 	NetworkManagerId string `tfschema:"network_manager_id"`
 	Description      string `tfschema:"description"`
+	MemberType       string `tfschema:"member_type"`
 }
 
 type ManagerNetworkGroupResource struct{}
@@ -59,6 +59,13 @@ func (r ManagerNetworkGroupResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 		},
+
+		"member_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(networkgroups.GroupMemberTypeVirtualNetwork),
+			ValidateFunc: validation.StringInSlice(networkgroups.PossibleValuesForGroupMemberType(), false),
+		},
 	}
 }
 
@@ -92,7 +99,9 @@ func (r ManagerNetworkGroupResource) Create() sdk.ResourceFunc {
 			}
 
 			group := networkgroups.NetworkGroup{
-				Properties: &networkgroups.NetworkGroupProperties{},
+				Properties: &networkgroups.NetworkGroupProperties{
+					MemberType: pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType),
+				},
 			}
 
 			if model.Description != "" {
@@ -145,6 +154,10 @@ func (r ManagerNetworkGroupResource) Update() sdk.ResourceFunc {
 				}
 			}
 
+			if metadata.ResourceData.HasChange("member_type") {
+				properties.MemberType = pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType)
+			}
+
 			if _, err := client.CreateOrUpdate(ctx, *id, *existing.Model, networkgroups.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
@@ -185,6 +198,7 @@ func (r ManagerNetworkGroupResource) Read() sdk.ResourceFunc {
 				Name:             id.NetworkGroupName,
 				NetworkManagerId: networkgroups.NewNetworkManagerID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName).ID(),
 				Description:      pointer.From(properties.Description),
+				MemberType:       pointer.FromEnum(properties.MemberType),
 			}
 
 			return metadata.Encode(&state)
@@ -204,7 +218,7 @@ func (r ManagerNetworkGroupResource) Delete() sdk.ResourceFunc {
 			}
 
 			err = client.DeleteThenPoll(ctx, *id, networkgroups.DeleteOperationOptions{
-				Force: utils.Bool(true),
+				Force: pointer.To(true),
 			})
 			if err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)

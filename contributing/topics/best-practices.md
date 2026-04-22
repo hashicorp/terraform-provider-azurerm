@@ -13,7 +13,7 @@ For example, whilst a Create method may look similar to below:
 ```go
 payload := resources.Group{
     Location: location.Normalize(d.Get("location").(string)),
-    Tags: tags.Expand(d.Get("tags").(map[string]interface{}),
+    Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 }
 
 if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -31,7 +31,7 @@ A patch/delta update would look similar to below:
 payload := resources.GroupUpdate{}
 if d.HasChanges("tags") {
   // this uses `pointer.To` since all fields are optional in a patch/delta update, so they'll only be updated if specified
-  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{}))
+  payload.Tags = pointer.To(tags.Expand(d.Get("tags").(map[string]interface{})))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -53,7 +53,7 @@ if resp.Model == nil {
 
 payload := *resp.Model
 if d.HasChanges("tags") {
-  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{})
+  payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 }
 
 if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
@@ -221,9 +221,17 @@ In version 5 of the Terraform Protocol, if a field is created with one value at 
 
 To work around situations where we need to expose the default value from the Azure API - we've historically marked fields as both `Optional` and `Computed` - meaning that a value will be returned from the API when it's not defined.
 
-Whilst this works, a side effect is that it's hard for users to reset a field to its default value when this is done - as such some fields today (such as the subnets block within the azurerm_virtual_network resource) require that an explicit empty list is specified (for example `subnets = []`) to remove this value, where this field is `Optional` and `Computed`.
+Whilst this works, there are some side effects, for example:
 
-Due to some of the issues surrounding `Optional` + `Computed` properties, avoid this usage where other options exist, e.g. specifying a `Default` if Azure consistently sets the same value. However, if no other options exist, we should mark the property `Optional` + `Computed` in favour of having users specify `ignore_changes`.
+1. It's hard for users to reset a field to its default value, for example: subnets block within the azurerm_virtual_network resource require that an explicit empty list is specified (`subnets = []`) to remove
+2. The default value set by the Azure API cannot be documented because it is not set in the Terraform schema, and not possible for [document-lint](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/internal/tools/document-lint) to statically check
+
+Avoid `Optional` + `Computed` properties usage where other options exist, e.g:
+
+1. Specifying a `Default` if Azure consistently sets the same value
+2. Setting the property `Required` and force user to specify a value at creation
+
+However, if no other options exist, we can use `Optional` + `Computed` in favour of having users specify `ignore_changes`.
 
 If you encounter a field that must be `Optional` and `Computed`, make sure it follows the following conventions:
 * The properties are in this sequence: Optional, Explanatory Comment, Computed
@@ -238,4 +246,125 @@ Example:
 		// NOTE: O+C Azure generates a new value every time this resource is updated
 		Computed: true,
 	},
+```
+
+## Consider the use of `GetRawConfig()` in CustomizeDiff to handle known-after-apply values
+
+Known-after-apply values can cause false-positives when using `(*schema.ResourceDiff).Get()` or the `(sdk.ResourceMetaData).DecodeDiff()` functions. For example, when checking that two properties are both set by comparing the returned values against an empty string, a `d.Get()` on an unknown value will return an empty string which then triggers the error, regardless of whether the value was set in config.
+
+Given the following configuration:
+
+```hcl
+resource "azurerm_user_assigned_identity" "example" {
+	name                = "example-uai"
+	resource_group_name = "example-rg"
+	location            = "West Europe"
+}
+
+resource "azurerm_foo" "example" {
+	name                = "example-foo"
+	location            = "West Europe"
+	resource_group_name = "example-rg"
+
+	customer_managed_key_id          = "https://my-kv.vault.azure.net/keys/my-key-1/00000000000000000000000000000000"
+	customer_managed_key_identity_id = azurerm_user_assigned_identity.example.id
+}
+```
+
+The following CustomizeDiff validation that asserts `customize_managed_key_identity_id` has to be provided when `customer_managed_key_id` is provided will fail during creation, because `azurerm_user_assigned_identity.example.id` is not known until apply time:
+
+```go
+func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			var model FooModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				if model.CustomerManagedKeyID != "" && model.CustomerManagedKeyIdentityID == "" {
+					// This error will be returned since model.CustomerManagedKeyIdentityID is not known until apply time
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+```
+
+Instead, the CustomizeDiff function can use `metadata.ResourceDiff.GetRawConfig()`:
+
+```go
+func (r FooResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff == nil {
+				return nil
+			}
+
+			if metadata.ResourceDiff.HasChanges("customer_managed_key_id", "customer_managed_key_identity_id") {
+				rawConfig := metadata.ResourceDiff.GetRawConfig().AsValueMap()
+
+				rawCMK := rawConfig["customer_managed_key_id"]
+				rawCMKIdentity := rawConfig["customer_managed_key_identity_id"]
+
+				if !rawCMK.IsNull() && rawCMKIdentity.IsNull() {
+					return fmt.Errorf("customer_managed_key_identity_id must be specified when customer_managed_key_id is specified")
+				}
+			}
+
+			return nil
+		},
+	}
+}
+```
+
+However if the logic depends on the known-after-apply value itself, then CustomizeDiff has to abstain.
+
+## Go File Header Comments
+
+When adding or updating the licensing header at the top of a Go source file, always use the exact format below and place it at the very beginning of the file with no preceding blank lines:
+
+```go
+// Copyright IBM Corp. 2014, 2025
+// SPDX-License-Identifier: MPL-2.0
+```
+
+## Pointer Helpers
+
+- `pointer.From` returns the dereferenced value or the *zero* value if the pointer is `nil`. Use `pointer.From` instead of manual `nil` checks.
+
+:white_check_mark: **DO**
+
+```go
+output.Name = pointer.From(input.Name)
+```
+
+- Use `pointer.To` to take the address of a value without declaring temporary variables.
+
+:white_check_mark: **DO**
+
+```go
+if _, err := client.Delete(ctx, newId, apirelease.DeleteOperationOptions{IfMatch: pointer.To("*")}); err != nil {
+    return fmt.Errorf("deleting %s: %+v", newId, err)
+}
+```
+
+- Use `pointer.ToEnum` to convert Enum type instead of explicitly type conversion.
+
+:white_check_mark: **DO**
+
+```go
+return &managedclusters.ManagedClusterBootstrapProfile{
+    ArtifactSource: pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
+}
 ```

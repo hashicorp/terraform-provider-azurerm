@@ -153,6 +153,7 @@ func NewAuthorizerFromCredentials(ctx context.Context, c Credentials, api enviro
 			TenantId:           c.TenantID,
 			AuxTenantIds:       c.AuxiliaryTenantIDs,
 			SubscriptionIdHint: c.AzureCliSubscriptionIDHint,
+			ForceAuthAtTenant:  c.ForceAuthAtTenant,
 		}
 		a, err := NewAzureCliAuthorizer(ctx, opts)
 		if err != nil {

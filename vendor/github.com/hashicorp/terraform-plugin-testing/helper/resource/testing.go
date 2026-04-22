@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+
 	"github.com/mitchellh/go-testing-interface"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -640,6 +642,10 @@ type TestStep struct {
 	// Custom state checks can be created by implementing the [statecheck.StateCheck] interface, or by using a StateCheck implementation from the provided [statecheck] package.
 	ConfigStateChecks []statecheck.StateCheck
 
+	// QueryResultChecks allow assertions to be made against a collection of found resources that were returned by a query using a query check.
+	// Custom query checks can be created by implementing the [querycheck.QueryResultCheck] interface, or by using a QueryResultCheck implementation from the provided [querycheck] package.
+	QueryResultChecks []querycheck.QueryResultCheck
+
 	// PlanOnly can be set to only run `plan` with this configuration, and not
 	// actually apply it. This is useful for ensuring config changes result in
 	// no-op plans
@@ -664,6 +670,10 @@ type TestStep struct {
 	//
 	// SkipFunc is called after PreConfig but before applying the Config.
 	SkipFunc func() (bool, error)
+
+	// PostApplyFunc is called after the Config is applied and after all plan/apply checks are run.
+	// This can be used to perform assertions against API values that are not stored in Terraform state.
+	PostApplyFunc func()
 
 	//---------------------------------------------------------------
 	// ImportState testing
@@ -835,6 +845,9 @@ type TestStep struct {
 	// for performing import testing where the prior TestStep configuration
 	// contained a provider outside the one under test.
 	ExternalProviders map[string]ExternalProvider
+
+	// If true, the test step will run the query command
+	Query bool
 }
 
 // ConfigPlanChecks defines the different points in a Config TestStep when plan checks can be run.

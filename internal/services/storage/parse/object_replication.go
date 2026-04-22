@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package parse
@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/objectreplicationpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/objectreplicationpolicyoperationgroup"
 )
 
 // This is manual for concat two ids are not supported in auto-generation
@@ -16,11 +16,11 @@ import (
 var _ resourceids.Id = ObjectReplicationId{}
 
 type ObjectReplicationId struct {
-	Src objectreplicationpolicies.ObjectReplicationPolicyId
-	Dst objectreplicationpolicies.ObjectReplicationPolicyId
+	Src objectreplicationpolicyoperationgroup.ObjectReplicationPolicyId
+	Dst objectreplicationpolicyoperationgroup.ObjectReplicationPolicyId
 }
 
-func NewObjectReplicationID(srcId, dstId objectreplicationpolicies.ObjectReplicationPolicyId) ObjectReplicationId {
+func NewObjectReplicationID(srcId, dstId objectreplicationpolicyoperationgroup.ObjectReplicationPolicyId) ObjectReplicationId {
 	return ObjectReplicationId{
 		Src: srcId,
 		Dst: dstId,
@@ -46,12 +46,12 @@ func ObjectReplicationID(input string) (*ObjectReplicationId, error) {
 	if len(ids) != 2 {
 		return nil, fmt.Errorf("storage Object Replication Id is composed as format `sourceId;destinationId`")
 	}
-	srcId, err := objectreplicationpolicies.ParseObjectReplicationPolicyID(ids[0])
+	srcId, err := objectreplicationpolicyoperationgroup.ParseObjectReplicationPolicyID(ids[0])
 	if err != nil {
 		return nil, err
 	}
 
-	dstId, err := objectreplicationpolicies.ParseObjectReplicationPolicyID(strings.TrimSuffix(ids[1], ";"))
+	dstId, err := objectreplicationpolicyoperationgroup.ParseObjectReplicationPolicyID(strings.TrimSuffix(ids[1], ";"))
 	if err != nil {
 		return nil, err
 	}

@@ -1,7 +1,11 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package markdown
+
+import (
+	"regexp"
+)
 
 type TitleSection struct {
 	heading Heading
@@ -11,7 +15,7 @@ type TitleSection struct {
 var _ SectionWithTemplate = &TitleSection{}
 
 func (s *TitleSection) Match(line string) bool {
-	panic("todo")
+	return regexp.MustCompile(`#+\s*([a-zA-Z0-9\s]*:\s*)?\w*_[\w_]*`).MatchString(line)
 }
 
 func (s *TitleSection) SetHeading(line string) {
@@ -31,6 +35,11 @@ func (s *TitleSection) GetContent() []string {
 }
 
 func (s *TitleSection) Template() string {
-	// TODO implement me
-	panic("implement me")
+	return `# {{ if eq .Type.String "Data Source" }}Data Source: {{ end }}{{ .Name }}
+{{ if eq .Type.String "Data Source" }}
+Use this data source to access information about an existing <brandName>.
+{{- else }}
+Manages a <brandName>.
+{{- end }}
+`
 }

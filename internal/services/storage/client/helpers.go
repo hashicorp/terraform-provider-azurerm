@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package client
@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
 )
 
 var (
@@ -70,7 +70,7 @@ func (ad *AccountDetails) AccountKey(ctx context.Context, client Client) (*strin
 
 	log.Printf("[DEBUG] Cache Miss - looking up the account key for %s..", ad.StorageAccountId)
 	opts := storageaccounts.DefaultListKeysOperationOptions()
-	opts.Expand = pointer.To(storageaccounts.ListKeyExpandKerb)
+	opts.Expand = pointer.To(storageaccounts.ExpandKerb)
 	listKeysResp, err := client.ResourceManager.StorageAccounts.ListKeys(ctx, ad.StorageAccountId, opts)
 	if err != nil {
 		return nil, fmt.Errorf("listing Keys for %s: %+v", ad.StorageAccountId, err)
@@ -94,7 +94,9 @@ func (ad *AccountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	}
 
 	// force-cache this
+	cacheAccountsLock.Lock()
 	storageAccountsCache[ad.StorageAccountId.StorageAccountName] = *ad
+	cacheAccountsLock.Unlock()
 
 	return ad.accountKey, nil
 }

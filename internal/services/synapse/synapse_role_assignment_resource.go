@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package synapse
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	frsUUID "github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -174,7 +175,7 @@ func resourceSynapseRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interfa
 	roleAssignment := accesscontrol.RoleAssignmentRequest{
 		RoleID:      roleId,
 		PrincipalID: &principalID,
-		Scope:       utils.String(scope),
+		Scope:       pointer.To(scope),
 	}
 
 	if v, ok := d.GetOk("principal_type"); ok {

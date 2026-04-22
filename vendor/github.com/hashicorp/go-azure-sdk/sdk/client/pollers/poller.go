@@ -5,10 +5,13 @@ package pollers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 )
 
@@ -22,6 +25,8 @@ type Poller struct {
 
 	// latestError contains the error returned from the latest poll.
 	latestError error
+
+	retryOnError *bool
 
 	// latestResponse contains the polling status from the latest response.
 	latestResponse *PollResult
@@ -42,20 +47,36 @@ func NewPoller(pollerType PollerType, initialDelayDuration time.Duration, maxNum
 	}
 }
 
+func NewRetryOnErrorPoller(pollerType PollerType, initialDelayDuration time.Duration, maxNumberOfDroppedConnections int, retryOnError bool) Poller {
+	return Poller{
+		initialDelayDuration:          initialDelayDuration,
+		maxNumberOfDroppedConnections: maxNumberOfDroppedConnections,
+		poller:                        pollerType,
+		retryOnError:                  pointer.To(retryOnError),
+	}
+}
+
+func (p *Poller) AllowRetryOnError(allow bool) {
+	p.retryOnError = &allow
+}
+
 // LatestResponse returns the latest HTTP Response returned when polling
 func (p *Poller) LatestResponse() *client.Response {
 	if p.latestError != nil {
-		if v, ok := p.latestError.(PollingCancelledError); ok {
-			return v.HttpResponse
+		var c PollingCancelledError
+		if errors.As(p.latestError, &c) {
+			return c.HttpResponse
 		}
-		if _, ok := p.latestError.(PollingDroppedConnectionError); ok {
+		var dc PollingDroppedConnectionError
+		if errors.As(p.latestError, &dc) {
 			return nil
 		}
-		if v, ok := p.latestError.(PollingFailedError); ok {
-			return v.HttpResponse
+		var f PollingFailedError
+		if errors.As(p.latestError, &f) {
+			return f.HttpResponse
 		}
 
-		if p.latestError == context.DeadlineExceeded {
+		if errors.Is(p.latestError, context.DeadlineExceeded) {
 			return nil
 		}
 	}
@@ -70,18 +91,21 @@ func (p *Poller) LatestResponse() *client.Response {
 // LatestStatus returns the latest status returned when polling
 func (p *Poller) LatestStatus() PollingStatus {
 	if p.latestError != nil {
-		if _, ok := p.latestError.(PollingCancelledError); ok {
+		if errors.As(p.latestError, &PollingCancelledError{}) {
 			return PollingStatusCancelled
 		}
-		if _, ok := p.latestError.(PollingDroppedConnectionError); ok {
+
+		if errors.As(p.latestError, &PollingDroppedConnectionError{}) {
 			// we could look to expose a status for this, but we likely wouldn't handle this any differently
 			// to it being unknown, so I (@tombuildsstuff) think this is reasonable for now?
 			return PollingStatusUnknown
 		}
-		if _, ok := p.latestError.(PollingFailedError); ok {
+
+		if errors.As(p.latestError, &PollingFailedError{}) {
 			return PollingStatusFailed
 		}
-		if p.latestError == context.DeadlineExceeded {
+
+		if errors.Is(p.latestError, context.DeadlineExceeded) {
 			return PollingStatusUnknown
 		}
 	}
@@ -113,14 +137,14 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 			if p.latestResponse != nil {
 				retryDuration = p.latestResponse.PollInterval
 			}
+
+			if p.skipPollingDelay(ctx) {
+				retryDuration = 0
+			}
+
 			endTime := time.Now().Add(retryDuration)
 
-			select { // nolint: gosimple
-			case <-time.After(time.Until(endTime)):
-				{
-					break
-				}
-			}
+			<-time.After(time.Until(endTime))
 
 			p.latestResponse, p.latestError = p.poller.Poll(ctx)
 
@@ -129,7 +153,7 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 			if p.latestResponse == nil && p.latestError == nil {
 				// connection drops can either have no response/error (where we have no context)
 				connectionHasBeenDropped = true
-			} else if _, ok := p.latestError.(PollingDroppedConnectionError); ok {
+			} else if errors.As(p.latestError, &PollingDroppedConnectionError{}) {
 				// or have an error with more details (e.g. server not found, connection reset etc.)
 				connectionHasBeenDropped = true
 			}
@@ -148,7 +172,9 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 			}
 
 			if p.latestError != nil {
-				break
+				if !pointer.From(p.retryOnError) {
+					break
+				}
 			}
 
 			if response := p.latestResponse; response != nil {
@@ -196,6 +222,9 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 		break
 	case <-ctx.Done():
 		{
+			if pointer.From(p.retryOnError) {
+				return p.latestError
+			}
 			p.latestResponse = nil
 			p.latestError = ctx.Err()
 			return p.latestError
@@ -219,4 +248,26 @@ func (p *Poller) FinalResult(model interface{}) error {
 	}
 
 	return nil
+}
+
+func (p *Poller) skipPollingDelay(ctx context.Context) bool {
+	if ShouldSkipPollingDelay(ctx) {
+		return true
+	}
+
+	if os.Getenv("GO_AZURE_SDK_SKIP_POLLING_DELAY") == "true" {
+		return true
+	}
+
+	if skipper, ok := p.poller.(delaySkipper); ok && skipper.SkipDelay() {
+		return true
+	}
+
+	if p.latestResponse != nil && p.latestResponse.HttpResponse != nil && p.latestResponse.HttpResponse.Response != nil && p.latestResponse.HttpResponse.Header != nil {
+		if p.latestResponse.HttpResponse.Header.Get("X-Go-Azure-SDK-Skip-Polling-Delay") == "true" {
+			return true
+		}
+	}
+
+	return false
 }

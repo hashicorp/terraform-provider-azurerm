@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -242,10 +242,7 @@ func (r KubernetesClusterExtensionResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			autoUpgradeMinorVersion := false
-			if model.Version == "" {
-				autoUpgradeMinorVersion = true
-			}
+			autoUpgradeMinorVersion := model.Version == ""
 
 			properties := &extensions.Extension{
 				Plan: expandPlanModel(model.Plan),

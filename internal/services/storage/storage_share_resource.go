@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package storage
@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileshares"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/fileshares"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2025-06-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -153,6 +153,11 @@ func resourceStorageShare() *pluginsdk.Resource {
 						string(shares.CoolAccessTier),
 						string(shares.TransactionOptimizedAccessTier),
 					}, false),
+			},
+
+			"rbac_scope_id": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -401,6 +406,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		resourceManagerId := parse.NewStorageShareResourceManagerID(account.StorageAccountId.SubscriptionId, account.StorageAccountId.ResourceGroupName, account.StorageAccountId.StorageAccountName, "default", id.ShareName)
 		d.Set("resource_manager_id", resourceManagerId.ID())
+		d.Set("rbac_scope_id", resourceManagerId.ID())
 
 		return nil
 	}
@@ -478,6 +484,7 @@ func resourceStorageShareRead(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	d.Set("url", shares.NewShareID(*accountId, id.ShareName).ID())
+	d.Set("rbac_scope_id", parse.NewStorageShareResourceManagerID(id.SubscriptionId, id.ResourceGroupName, id.StorageAccountName, "default", id.ShareName).ID())
 
 	return nil
 }

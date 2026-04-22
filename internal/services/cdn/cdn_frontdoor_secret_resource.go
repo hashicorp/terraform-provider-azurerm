@@ -1,4 +1,4 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package cdn
@@ -11,13 +11,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	cdnFrontDoorsecretparams "github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/frontdoorsecretparams"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
-	keyValutValidation "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -73,7 +73,7 @@ func resourceCdnFrontDoorSecret() *pluginsdk.Resource {
 										Type:         pluginsdk.TypeString,
 										Required:     true,
 										ForceNew:     true,
-										ValidateFunc: keyValutValidation.KeyVaultChildIDWithOptionalVersion,
+										ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeCertificate),
 									},
 
 									"subject_alternative_names": {
@@ -262,7 +262,7 @@ func flattenSecretParametersResource(ctx context.Context, input cdn.BasicSecretP
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
 		}
 
-		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, keyVaultParse.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
+		keyVaultCertificateId, err := keyvault.NewNestedItemID(*keyVaultBaseUri, keyvault.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
 		if err != nil {
 			return nil, err
 		}
@@ -326,7 +326,7 @@ func flattenSecretParametersDataSource(ctx context.Context, input cdn.BasicSecre
 			return nil, fmt.Errorf("looking up Base URI for Certificate %q in %s: %+v", secretSourceId.SecretName, keyVaultId, err)
 		}
 
-		keyVaultCertificateId, err := keyVaultParse.NewNestedItemID(*keyVaultBaseUri, "certificates", secretSourceId.SecretName, certificateVersion)
+		keyVaultCertificateId, err := keyvault.NewNestedItemID(*keyVaultBaseUri, keyvault.NestedItemTypeCertificate, secretSourceId.SecretName, certificateVersion)
 		if err != nil {
 			return nil, err
 		}
