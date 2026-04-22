@@ -18,15 +18,15 @@ const (
 type SchemaValidateFunc func(interface{}, string) ([]string, []error)
 
 type Schema struct {
-	Type          ValueType
-	Required      bool
-	Optional      bool
-	Computed      bool
-	ForceNew      bool
-	ValidateFunc  SchemaValidateFunc
-	MaxItems      int
-	Elem          interface{}
-	AtLeastOneOf  []string
+	Type         ValueType
+	Required     bool
+	Optional     bool
+	Computed     bool
+	ForceNew     bool
+	ValidateFunc SchemaValidateFunc
+	MaxItems     int
+	Elem         interface{}
+	AtLeastOneOf []string
 }
 
 type Resource struct {
