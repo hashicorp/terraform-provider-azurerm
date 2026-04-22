@@ -1,6 +1,7 @@
 ## 4.70.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20260417.1195006` [GH-31974]
 * dependencies: `cosmosdb/mongorbacs` - update to API version `2025-10-15` [GH-32164]
 * `azurerm_postgresql_flexible_server` - add support for confidential compute server type SKU [GH-32209]
 * `azurerm_nat_gateway_public_ip_association` - add support for IPv6 public IP addresses [GH-32176]
@@ -8,10 +9,12 @@ ENHANCEMENTS:
 * `azurerm_dashboard_grafana`- add support for the `sku_size` property [GH-31047]
 * `azurerm_key_vault_key` - updated to use `go-azure-sdk` [GH-31806]
 * `azurerm_backup_policy_vm` - add support for the `consistency_type` property [GH-32203]
-* `dependencies` - `giovanni` update to `v0.29.0` [GH-32188]
+* dependencies - `giovanni` update to `v0.29.0` [GH-32188]
 
 FEATURES:
 * **New List Resource**: `azurerm_storage_mover` [GH-32165]
+* **New List Resource**: `azurerm_storage_mover_agent` [GH-32166]
+* **New List Resource**: `azurerm_storage_mover_source_endpoint` [GH-32167]
 
 BUG FIXES:
 * `azurerm_container_app_environment` - fix potential nil pointer dereferences to prevent panics [GH-32198]
