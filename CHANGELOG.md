@@ -1,6 +1,7 @@
 ## 4.70.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_bot_web_app` - add support for the `microsoft_app_type`, `microsoft_app_tenant_id`, and `microsoft_app_user_assigned_identity_id` properties [GH-30459]
 * `azurerm_bot_channel_directline` - export the `extension_key_1` and `extension_key_2` properties [GH-30242]
 * dependencies: `go-azure-sdk` - update to `v0.20260417.1195006` [GH-31974]
 * dependencies: `cosmosdb/mongorbacs` - update to API version `2025-10-15` [GH-32164]
