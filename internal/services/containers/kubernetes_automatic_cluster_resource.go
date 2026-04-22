@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/edgezones"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -54,9 +53,9 @@ type KubernetesAutomaticClusterModel struct {
 	DiskEncryptionSetID             string                          `tfschema:"disk_encryption_set_id"`
 	DNSPrefix                       string                          `tfschema:"dns_prefix"`
 	DNSPrefixPrivateCluster         string                          `tfschema:"dns_prefix_private_cluster"`
-	EdgeZone                        string                          `tfschema:"edge_zone"`
-	HTTPProxyConfig                 []HTTPProxyConfigModel          `tfschema:"http_proxy_config"`
-	Identity                        []IdentityModel                 `tfschema:"identity"`
+	// EdgeZone                        string                          `tfschema:"edge_zone"`
+	HTTPProxyConfig []HTTPProxyConfigModel `tfschema:"http_proxy_config"`
+	Identity        []IdentityModel        `tfschema:"identity"`
 	// ImageCleanerEnabled             bool                                `tfschema:"image_cleaner_enabled"`
 	ImageCleanerIntervalHours    int64                               `tfschema:"image_cleaner_interval_hours"`
 	KeyManagementService         []KeyManagementServiceModel         `tfschema:"key_management_service"`
@@ -73,13 +72,13 @@ type KubernetesAutomaticClusterModel struct {
 	NodeProvisioningProfile      []NodeProvisioningProfileModel      `tfschema:"node_provisioning_profile"`
 	NodeResourceGroup            string                              `tfschema:"node_resource_group"`
 	// OIDCIssuerEnabled               bool                                `tfschema:"oidc_issuer_enabled"`
-	// PrivateClusterEnabled           bool                      `tfschema:"private_cluster_enabled"`
-	// PrivateClusterPublicFQDNEnabled bool   `tfschema:"private_cluster_public_fqdn_enabled"`
-	PrivateDNSZoneID string `tfschema:"private_dns_zone_id"`
+	PrivateClusterEnabled           bool   `tfschema:"private_cluster_enabled"`
+	PrivateClusterPublicFQDNEnabled bool   `tfschema:"private_cluster_public_fqdn_enabled"`
+	PrivateDNSZoneID                string `tfschema:"private_dns_zone_id"`
 	// RoleBasedAccessControlEnabled   bool                      `tfschema:"role_based_access_control_enabled"`
 	RunCommandEnabled  bool                      `tfschema:"run_command_enabled"`
 	ServiceMeshProfile []ServiceMeshProfileModel `tfschema:"service_mesh_profile"`
-	ServicePrincipal   []ServicePrincipalModel   `tfschema:"service_principal"`
+	// ServicePrincipal   []ServicePrincipalModel   `tfschema:"service_principal"`
 	// SKUTier                         string                              `tfschema:"sku_tier"`
 	// SKUName                         string                              `tfschema:"sku_name"`
 	StorageProfile  []StorageProfileModel  `tfschema:"storage_profile"`
@@ -301,10 +300,10 @@ type CertificateAuthorityModel struct {
 	KeyObjectName       string `tfschema:"key_object_name"`
 }
 
-type ServicePrincipalModel struct {
-	ClientID     string `tfschema:"client_id"`
-	ClientSecret string `tfschema:"client_secret"`
-}
+// type ServicePrincipalModel struct {
+//	ClientID     string `tfschema:"client_id"`
+//	ClientSecret string `tfschema:"client_secret"`
+// }
 
 type StorageProfileModel struct {
 	BlobDriverEnabled         bool `tfschema:"blob_driver_enabled"`
@@ -414,13 +413,13 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 
 				// Migration of `identity` to `service_principal` is not allowed
-				if rd.HasChange("service_principal.0.client_id") {
-					old, _ := rd.GetChange("service_principal.0.client_id")
-					oldStr := old.(string)
-					if oldStr == "msi" || oldStr == "" {
-						return fmt.Errorf("changing `service_principal.client_id` from MSI requires recreation")
-					}
-				}
+				// if rd.HasChange("service_principal.0.client_id") {
+				//	old, _ := rd.GetChange("service_principal.0.client_id")
+				//	oldStr := old.(string)
+				//	if oldStr == "msi" || oldStr == "" {
+				//		return fmt.Errorf("changing `service_principal.client_id` from MSI requires recreation")
+				//	}
+				// }
 
 				// Check windows_profile gmsa changes
 				if rd.HasChange("windows_profile.0.gmsa") {
@@ -618,7 +617,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: computeValidate.DiskEncryptionSetID,
 		},
 
-		"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
+		// "edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
 		"tags": commonschema.Tags(),
 
@@ -678,18 +677,18 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 		// 	Default:  true,
 		// },
 
-		// "private_cluster_enabled": {
-		// 	Type:     pluginsdk.TypeBool,
-		// 	Optional: true,
-		// 	ForceNew: true,
-		//	Default:  true,
-		// },
+		"private_cluster_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Default:  true,
+		},
 
-		//"private_cluster_public_fqdn_enabled": {
-		//	Type:     pluginsdk.TypeBool,
-		//	Optional: true,
-		//	Default:  false,
-		//},
+		"private_cluster_public_fqdn_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"private_dns_zone_id": {
 			Type:     pluginsdk.TypeString,
@@ -742,27 +741,27 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
-		"service_principal": {
-			Type:         pluginsdk.TypeList,
-			Optional:     true,
-			ExactlyOneOf: []string{"identity", "service_principal"},
-			MaxItems:     1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"client_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: containerValidate.ClientID,
-					},
-					"client_secret": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						Sensitive:    true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
-				},
-			},
-		},
+		// "service_principal": {
+		//	Type:         pluginsdk.TypeList,
+		//	Optional:     true,
+		//	ExactlyOneOf: []string{"identity", "service_principal"},
+		//	MaxItems:     1,
+		//	Elem: &pluginsdk.Resource{
+		//		Schema: map[string]*pluginsdk.Schema{
+		//			"client_id": {
+		//				Type:         pluginsdk.TypeString,
+		//				Required:     true,
+		//				ValidateFunc: containerValidate.ClientID,
+		//			},
+		//			"client_secret": {
+		//				Type:         pluginsdk.TypeString,
+		//				Required:     true,
+		//				Sensitive:    true,
+		//				ValidateFunc: validation.StringIsNotEmpty,
+		//			},
+		//		},
+		//	},
+		// },
 
 		"kubelet_identity": {
 			Type:     pluginsdk.TypeList,
@@ -2170,8 +2169,8 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			parameters := managedclusters.ManagedCluster{
-				ExtendedLocation: expandKubernetesAutomaticClusterEdgeZone(model.EdgeZone),
-				Location:         location,
+				// ExtendedLocation: expandKubernetesAutomaticClusterEdgeZone(model.EdgeZone),
+				Location: location,
 				Sku: &managedclusters.ManagedClusterSKU{
 					Name: pointer.To(managedclusters.ManagedClusterSKUName("automatic")),
 					Tier: pointer.To(managedclusters.ManagedClusterSKUTier("standard")),
@@ -2224,18 +2223,18 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				parameters.Properties.IdentityProfile = expandKubernetesAutomaticClusterIdentityProfile(model.KubeletIdentity)
 			}
 
-			servicePrincipalSet := false
-			if len(model.ServicePrincipal) > 0 {
-				sp := model.ServicePrincipal[0]
-				parameters.Properties.ServicePrincipalProfile = &managedclusters.ManagedClusterServicePrincipalProfile{
-					ClientId: sp.ClientID,
-					Secret:   pointer.To(sp.ClientSecret),
-				}
-				servicePrincipalSet = true
-			}
+			// servicePrincipalSet := false
+			// if len(model.ServicePrincipal) > 0 {
+			//	sp := model.ServicePrincipal[0]
+			//	parameters.Properties.ServicePrincipalProfile = &managedclusters.ManagedClusterServicePrincipalProfile{
+			//		ClientId: sp.ClientID,
+			//		Secret:   pointer.To(sp.ClientSecret),
+			//	}
+			//	servicePrincipalSet = true
+			// }
 
 			if model.PrivateDNSZoneID != "" {
-				if (parameters.Identity == nil && !servicePrincipalSet) || (model.PrivateDNSZoneID != "System" && model.PrivateDNSZoneID != "None" && (!servicePrincipalSet && parameters.Identity.Type != identity.TypeUserAssigned)) {
+				if (parameters.Identity == nil) || (model.PrivateDNSZoneID != "System" && model.PrivateDNSZoneID != "None" && (parameters.Identity.Type != identity.TypeUserAssigned)) {
 					return fmt.Errorf("a user assigned identity or a service principal must be used when using a custom private dns zone")
 				}
 				apiAccessProfile.PrivateDNSZone = pointer.To(model.PrivateDNSZoneID)
@@ -2351,7 +2350,7 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 	if model != nil {
 		state.Location = location.Normalize(model.Location)
-		state.EdgeZone = flattenKubernetesAutomaticClusterEdgeZone(model.ExtendedLocation)
+		// state.EdgeZone = flattenKubernetesAutomaticClusterEdgeZone(model.ExtendedLocation)
 		// Only set tags if non-empty to avoid empty map in state
 		// if model.Tags != nil {
 		state.Tags = tags.Flatten(model.Tags)
@@ -2402,8 +2401,8 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 				state.CustomCATrustCertificatesBase64 = *props.SecurityProfile.CustomCATrustCertificates
 			}
 
-			// enablePrivateCluster := false
-			// enablePrivateClusterPublicFQDN := false
+			enablePrivateCluster := false
+			enablePrivateClusterPublicFQDN := false
 			runCommandEnabled := true
 			privateDnsZoneId := ""
 
@@ -2411,12 +2410,12 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			state.APIServerAccessProfile = apiServerAccessProfile
 
 			if accessProfile := props.ApiServerAccessProfile; accessProfile != nil {
-				// if accessProfile.EnablePrivateCluster != nil {
-				// 	enablePrivateCluster = *accessProfile.EnablePrivateCluster
-				// }
-				//if accessProfile.EnablePrivateClusterPublicFQDN != nil {
-				//	enablePrivateClusterPublicFQDN = pointer.From(accessProfile.EnablePrivateClusterPublicFQDN)
-				//}
+				if accessProfile.EnablePrivateCluster != nil {
+					enablePrivateCluster = *accessProfile.EnablePrivateCluster
+				}
+				if accessProfile.EnablePrivateClusterPublicFQDN != nil {
+					enablePrivateClusterPublicFQDN = pointer.From(accessProfile.EnablePrivateClusterPublicFQDN)
+				}
 				if accessProfile.DisableRunCommand != nil {
 					runCommandEnabled = !pointer.From(accessProfile.DisableRunCommand)
 				}
@@ -2430,8 +2429,8 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 				}
 			}
 			state.PrivateDNSZoneID = privateDnsZoneId
-			// state.PrivateClusterEnabled = enablePrivateCluster
-			// state.PrivateClusterPublicFQDNEnabled = enablePrivateClusterPublicFQDN
+			state.PrivateClusterEnabled = enablePrivateCluster
+			state.PrivateClusterPublicFQDNEnabled = enablePrivateClusterPublicFQDN
 			state.RunCommandEnabled = runCommandEnabled
 
 			if props.AddonProfiles != nil {
@@ -2500,23 +2499,25 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.AzureActiveDirectoryRBAC = flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(props.AadProfile)
 
-			if props.ServicePrincipalProfile != nil &&
-				props.ServicePrincipalProfile.ClientId != "" &&
-				props.ServicePrincipalProfile.ClientId != "msi" {
-				state.ServicePrincipal = []ServicePrincipalModel{{
-					ClientID: props.ServicePrincipalProfile.ClientId,
-					// ClientSecret is not returned by the API
-				}}
-			}
+			// if props.ServicePrincipalProfile != nil &&
+			//	props.ServicePrincipalProfile.ClientId != "" &&
+			//	props.ServicePrincipalProfile.ClientId != "msi" {
+			//	state.ServicePrincipal = []ServicePrincipalModel{{
+			//		ClientID: props.ServicePrincipalProfile.ClientId,
+			//		// ClientSecret is not returned by the API
+			//	}}
+			// }
 
 			// if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
 			// if props.SecurityProfile.ImageCleaner.Enabled != nil {
 			// 	state.ImageCleanerEnabled = *props.SecurityProfile.ImageCleaner.Enabled
 			// }
 			// if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
-			state.ImageCleanerIntervalHours = pointer.From(props.SecurityProfile.ImageCleaner.IntervalHours)
-			//}
-			//}
+			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
+				state.ImageCleanerIntervalHours = pointer.From(props.SecurityProfile.ImageCleaner.IntervalHours)
+			}
+			// }
+			// }
 
 			// state.OIDCIssuerEnabled, state.OIDCIssuerURL = flattenKubernetesAutomaticClusterOidcIssuerProfile(props.OidcIssuerProfile)
 
@@ -2655,26 +2656,26 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("service_principal") && !metadata.ResourceData.HasChange("identity") {
-				if len(model.ServicePrincipal) > 0 {
-					sp := model.ServicePrincipal[0]
-					params := managedclusters.ManagedClusterServicePrincipalProfile{
-						ClientId: sp.ClientID,
-						Secret:   pointer.To(sp.ClientSecret),
-					}
-					if err := clusterClient.ResetServicePrincipalProfileThenPoll(ctx, *id, params); err != nil {
-						return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
-					}
-
-					existing, err = clusterClient.Get(ctx, *id)
-					if err != nil {
-						return fmt.Errorf("retrieving updated %s: %+v", *id, err)
-					}
-					if existing.Model == nil || existing.Model.Properties == nil {
-						return fmt.Errorf("retrieving updated %s: properties was nil", *id)
-					}
-				}
-			}
+			// if metadata.ResourceData.HasChange("service_principal") && !metadata.ResourceData.HasChange("identity") {
+			//	if len(model.ServicePrincipal) > 0 {
+			//		sp := model.ServicePrincipal[0]
+			//		params := managedclusters.ManagedClusterServicePrincipalProfile{
+			//			ClientId: sp.ClientID,
+			//			Secret:   pointer.To(sp.ClientSecret),
+			//		}
+			//		if err := clusterClient.ResetServicePrincipalProfileThenPoll(ctx, *id, params); err != nil {
+			//			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
+			//		}
+			//
+			//		existing, err = clusterClient.Get(ctx, *id)
+			//		if err != nil {
+			//			return fmt.Errorf("retrieving updated %s: %+v", *id, err)
+			//		}
+			//		if existing.Model == nil || existing.Model.Properties == nil {
+			//			return fmt.Errorf("retrieving updated %s: properties was nil", *id)
+			//		}
+			//	}
+			//}
 
 			updateCluster := false
 			props := existing.Model.Properties
@@ -2691,7 +2692,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			//	tier := managedclusters.ManagedClusterSKUTier(model.SKUTier)
 			//	existing.Model.Sku.Tier = &tier
 			//	updateCluster = true
-			//}
+			// }
 
 			if metadata.ResourceData.HasChange("kubernetes_version") {
 				props.KubernetesVersion = pointer.To(model.KubernetesVersion)
@@ -2876,6 +2877,8 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("api_server_access_profile") ||
+				metadata.ResourceData.HasChange("private_cluster_enabled") ||
+				metadata.ResourceData.HasChange("private_cluster_public_fqdn_enabled") ||
 				metadata.ResourceData.HasChange("run_command_enabled") {
 				props.ApiServerAccessProfile = expandKubernetesAutomaticClusterAPIAccessProfile(model)
 				updateCluster = true
@@ -3130,7 +3133,7 @@ func (r KubernetesAutomaticClusterResource) Delete() sdk.ResourceFunc {
 
 func expandKubernetesAutomaticClusterAPIAccessProfile(model KubernetesAutomaticClusterModel) *managedclusters.ManagedClusterAPIServerAccessProfile {
 	apiAccessProfile := &managedclusters.ManagedClusterAPIServerAccessProfile{
-		// EnablePrivateCluster:           pointer.To(model.PrivateClusterEnabled),
+		EnablePrivateCluster:           pointer.To(model.PrivateClusterEnabled),
 		EnablePrivateClusterPublicFQDN: pointer.To(model.PrivateClusterPublicFQDNEnabled),
 		DisableRunCommand:              pointer.To(!model.RunCommandEnabled),
 	}
@@ -5094,23 +5097,23 @@ func flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(profile *managedc
 //	return enabled, issuerURL
 //}
 
-func expandKubernetesAutomaticClusterEdgeZone(input string) *edgezones.Model {
-	normalized := edgezones.Normalize(input)
-	if normalized == "" {
-		return nil
-	}
+// func expandKubernetesAutomaticClusterEdgeZone(input string) *edgezones.Model {
+//	normalized := edgezones.Normalize(input)
+//	if normalized == "" {
+//		return nil
+//	}
+//
+//	return &edgezones.Model{
+//		Name: normalized,
+//	}
+// }
 
-	return &edgezones.Model{
-		Name: normalized,
-	}
-}
-
-func flattenKubernetesAutomaticClusterEdgeZone(input *edgezones.Model) string {
-	if input == nil || input.Name == "" {
-		return ""
-	}
-	return edgezones.NormalizeNilable(&input.Name)
-}
+// func flattenKubernetesAutomaticClusterEdgeZone(input *edgezones.Model) string {
+//	if input == nil || input.Name == "" {
+//		return ""
+//	}
+//	return edgezones.NormalizeNilable(&input.Name)
+// }
 
 func expandIdentityModel(input []IdentityModel) *identity.SystemOrUserAssignedMap {
 	if len(input) == 0 {

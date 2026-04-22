@@ -303,6 +303,28 @@ func TestAccKubernetesAutomaticCluster_tags(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesAutomaticCluster_privateClusterPublicFqdn(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
+	r := KubernetesAutomaticClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateClusterPublicFqdn(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateClusterPublicFqdn(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesAutomaticCluster_windowsProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_automatic_cluster", "test")
 	r := KubernetesAutomaticClusterResource{}
@@ -319,7 +341,7 @@ func TestAccKubernetesAutomaticCluster_windowsProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("windows_profile.0.admin_username").Exists(),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("windows_profile.0.admin_password"),
 	})
 }
 
@@ -334,7 +356,7 @@ func TestAccKubernetesAutomaticCluster_windowsProfileGMSA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("windows_profile.0.admin_password"),
 	})
 }
 
@@ -349,7 +371,7 @@ func TestAccKubernetesAutomaticCluster_windowsProfileLicense(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("windows_profile.0.admin_password"),
 	})
 }
 
@@ -2558,6 +2580,40 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, osSKu)
+}
+
+func (KubernetesAutomaticClusterResource) privateClusterPublicFqdn(data acceptance.TestData, privateClusterPublicFqdnEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+resource "azurerm_kubernetes_automatic_cluster" "test" {
+  name                    = "acctestaks%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  dns_prefix              = "acctestaks%d"
+  private_cluster_enabled = "true"
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS3_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+  network_profile {
+    load_balancer_sku = "standard"
+  }
+  private_cluster_public_fqdn_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, privateClusterPublicFqdnEnabled)
 }
 
 func (KubernetesAutomaticClusterResource) microsoftDefender(data acceptance.TestData) string {

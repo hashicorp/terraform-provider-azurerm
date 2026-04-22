@@ -1177,12 +1177,6 @@ func ExpandDefaultNodePoolTyped(input []DefaultNodePoolModel) (*[]managedcluster
 		UpgradeSettings: expandClusterNodePoolUpgradeSettingsTyped(raw.UpgradeSettings),
 	}
 
-	//s := make([]string, 2)
-	//s[0] = "1"
-	//s[1] = "2"
-	//
-	//profile.AvailabilityZones = pointer.To(s)
-
 	if raw.MaxPods > 0 {
 		profile.MaxPods = pointer.To(raw.MaxPods)
 	}

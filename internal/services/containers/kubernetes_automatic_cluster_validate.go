@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/managedclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/client"
@@ -49,61 +48,30 @@ func validateKubernetesAutomaticClusterTyped(model *KubernetesAutomaticClusterMo
 	//}
 	//}
 
-	servicePrincipalExists := len(model.ServicePrincipal) > 0
+	// servicePrincipalExists := len(model.ServicePrincipal) > 0
 	identityExists := len(model.Identity) > 0
 
 	if cluster == nil {
-		if servicePrincipalExists && identityExists {
-			return fmt.Errorf("either an `identity` or `service_principal` block must be specified, but not both")
-		}
-		if !servicePrincipalExists && !identityExists {
+		if !identityExists {
 			return fmt.Errorf("either an `identity` or `service_principal` block must be specified for cluster authentication")
 		}
 	} else {
-		// For an existing cluster - check if there's currently a SP used on this cluster that isn't defined locally
-		if !servicePrincipalExists {
-			servicePrincipalExistsOnCluster := false
-			if props := cluster.Properties; props != nil {
-				if sp := props.ServicePrincipalProfile; sp != nil {
-					if cid := sp.ClientId; cid != "" {
-						// if it's MSI we ignore the block
-						servicePrincipalExistsOnCluster = !strings.EqualFold(cid, "msi")
-					}
+		servicePrincipalExistsOnCluster := false
+		if props := cluster.Properties; props != nil {
+			if sp := props.ServicePrincipalProfile; sp != nil {
+				if cid := sp.ClientId; cid != "" {
+					// if it's MSI we ignore the block
+					servicePrincipalExistsOnCluster = !strings.EqualFold(cid, "msi")
 				}
-			}
-
-			// a non-MI Service Principal exists on the cluster, but not locally
-			if servicePrincipalExistsOnCluster {
-				return fmt.Errorf("the Service Principal block cannot be removed once it has been set")
 			}
 		}
 
+		// a non-MI Service Principal exists on the cluster, but not locally
+		if servicePrincipalExistsOnCluster {
+			return fmt.Errorf("the Service Principal block cannot be removed once it has been set")
+		}
 		// Check if the user has a Service Principal block defined, but the Cluster's been upgraded to use MSI
-		if servicePrincipalExists {
-			servicePrincipalIsMsi := false
-			if props := cluster.Properties; props != nil {
-				if sp := props.ServicePrincipalProfile; sp != nil {
-					if cid := sp.ClientId; cid != "" {
-						servicePrincipalIsMsi = strings.EqualFold(cid, "msi")
-					}
-				}
-			}
-
-			if servicePrincipalIsMsi {
-				return fmt.Errorf("the cluster has been upgraded to use Managed Identity - please remove the `service_principal` block")
-			}
-
-			hasIdentity := false
-			if clusterIdentity := cluster.Identity; clusterIdentity != nil {
-				hasIdentity = clusterIdentity.Type != identity.TypeNone
-			}
-
-			if hasIdentity {
-				return fmt.Errorf("the cluster has both a Service Principal and Managed Identity configured - please migrate to using Managed Identity by removing the `service_principal` block")
-			}
-		}
 	}
-
 	return nil
 }
 
