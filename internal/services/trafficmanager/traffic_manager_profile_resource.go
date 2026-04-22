@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/trafficmanager/2022-04-01/profiles"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -26,6 +27,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name traffic_manager_profile -service-package-name trafficmanager -properties "name,resource_group_name" -test-params "Geographic" -known-values "subscription_id:data.Subscriptions.Primary"
+
+const azureTrafficManagerProfileResourceName = "azurerm_traffic_manager_profile"
+
 func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceArmTrafficManagerProfileCreate,
@@ -33,10 +38,11 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 		Update: resourceArmTrafficManagerProfileUpdate,
 		Delete: resourceArmTrafficManagerProfileDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := profiles.ParseTrafficManagerProfileID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&profiles.TrafficManagerProfileId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&profiles.TrafficManagerProfileId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -256,6 +262,10 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
+
 	return resourceArmTrafficManagerProfileRead(d, meta)
 }
 
@@ -278,10 +288,14 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	return resourceArmTrafficManagerProfileFlatten(d, id, resp.Model)
+}
+
+func resourceArmTrafficManagerProfileFlatten(d *pluginsdk.ResourceData, id *profiles.TrafficManagerProfileId, model *profiles.Profile) error {
 	d.Set("name", id.TrafficManagerProfileName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
+	if model != nil {
 		if profile := model.Properties; profile != nil {
 			profileStatus := ""
 			if profile.ProfileStatus != nil {
@@ -308,9 +322,12 @@ func resourceArmTrafficManagerProfileRead(d *pluginsdk.ResourceData, meta interf
 				d.Set("fqdn", dns.Fqdn)
 			}
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceArmTrafficManagerProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -403,12 +420,12 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	}
 
 	if v, ok := monitor["expected_status_code_ranges"].([]interface{}); ok {
-		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesInlined, 0)
+		ranges := make([]profiles.MonitorConfigExpectedStatusCodeRangesItem, 0)
 		for _, r := range v {
 			parts := strings.Split(r.(string), "-")
 			min, _ := strconv.Atoi(parts[0])
 			max, _ := strconv.Atoi(parts[1])
-			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesInlined{
+			ranges = append(ranges, profiles.MonitorConfigExpectedStatusCodeRangesItem{
 				Min: pointer.To(int64(min)),
 				Max: pointer.To(int64(max)),
 			})
@@ -419,16 +436,16 @@ func expandArmTrafficManagerMonitorConfig(d *pluginsdk.ResourceData) *profiles.M
 	return &cfg
 }
 
-func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersInlined {
+func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.MonitorConfigCustomHeadersItem {
 	if len(d) == 0 || d[0] == nil {
 		return nil
 	}
 
-	customHeaders := make([]profiles.MonitorConfigCustomHeadersInlined, len(d))
+	customHeaders := make([]profiles.MonitorConfigCustomHeadersItem, len(d))
 
 	for i, v := range d {
 		ch := v.(map[string]interface{})
-		customHeaders[i] = profiles.MonitorConfigCustomHeadersInlined{
+		customHeaders[i] = profiles.MonitorConfigCustomHeadersItem{
 			Name:  pointer.To(ch["name"].(string)),
 			Value: pointer.To(ch["value"].(string)),
 		}
@@ -437,7 +454,7 @@ func expandArmTrafficManagerCustomHeadersConfig(d []interface{}) *[]profiles.Mon
 	return &customHeaders
 }
 
-func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersInlined) []interface{} {
+func flattenArmTrafficManagerCustomHeadersConfig(input *[]profiles.MonitorConfigCustomHeadersItem) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result

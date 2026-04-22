@@ -57,9 +57,8 @@ resource "azurerm_subnet" "example" {
 resource "azurerm_nginx_deployment" "example" {
   name                      = "example-nginx"
   resource_group_name       = azurerm_resource_group.example.name
-  sku                       = "standardv2_Monthly"
+  sku                       = "standardv3_Monthly"
   location                  = azurerm_resource_group.example.location
-  diagnose_support_enabled  = true
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -85,7 +84,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the NGINX Deployment should exist. Changing this forces a new NGINX Deployment to be created.
 
-* `sku` - (Required) Specifies the NGINX Deployment SKU. Possible values are `standardv2_Monthly`, `basic_Monthly`.
+* `sku` - (Required) Specifies the NGINX Deployment SKU.
+
+-> **Note:** For a list of available SKUs, please reference the [NGINXaaS for Azure documentation](https://docs.nginx.com/nginxaas/azure/billing/overview)
 
 -> **Note:** If you are setting the `sku` to `basic_Monthly`, you cannot specify a `capacity` or `auto_scale_profile`; basic plans do not support scaling. Other `sku`s require either `capacity` or `auto_scale_profile`. If you're using `basic_Monthly` with deployments created before v4.0, you may need to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to the `capacity` field.
 
@@ -96,8 +97,6 @@ The following arguments are supported:
 -> **Note:** For more information on NGINX capacity units, please refer to the [NGINX scaling guidance documentation](https://docs.nginx.com/nginxaas/azure/quickstart/scaling/)
 
 * `auto_scale_profile` - (Optional) An `auto_scale_profile` block as defined below.
-
-* `diagnose_support_enabled` - (Optional) Should the metrics be exported to Azure Monitor?
 
 * `email` - (Optional) Specify the preferred support contact email address for receiving alerts and notifications.
 

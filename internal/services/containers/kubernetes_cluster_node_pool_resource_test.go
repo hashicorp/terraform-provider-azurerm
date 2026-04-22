@@ -6,6 +6,7 @@ package containers_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -13,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-10-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -35,6 +36,7 @@ func TestAccKubernetesClusterNodePool_autoScale(t *testing.T) {
 			Config: r.autoScaleConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_image_version").Exists(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
 			),
 		},
@@ -539,6 +541,57 @@ func TestAccKubernetesClusterNodePool_spot(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.spotConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccKubernetesClusterNodePool_spotWithMaxSurge(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.spotWithMaxSurgeConfig(data),
+			ExpectError: regexp.MustCompile("`max_surge` cannot be set when `priority` is set to `Spot`"),
+		},
+	})
+}
+
+func TestAccKubernetesClusterNodePool_spotWithMaxUnavailable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.spotWithMaxUnavailableConfig(data),
+			ExpectError: regexp.MustCompile("`max_unavailable` cannot be set when `priority` is set to `Spot`"),
+		},
+	})
+}
+
+func TestAccKubernetesClusterNodePool_upgradeSettingsWithoutMaxSurgeOrMaxUnavailable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.upgradeSettingsWithoutMaxSurgeOrMaxUnavailableConfig(data),
+			ExpectError: regexp.MustCompile("either `max_surge` or `max_unavailable` must be specified in `upgrade_settings` when `priority` is not `Spot`"),
+		},
+	})
+}
+
+func TestAccKubernetesClusterNodePool_spotWithOtherUpgradeSettings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.spotWithOtherUpgradeSettingsConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1104,8 +1157,7 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 							},
 						},
 					}
-					_, err = client.CreateOrUpdate(ctx, id, snapshot)
-					if err != nil {
+					if _, err = client.CreateOrUpdate(ctx, id, snapshot); err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
@@ -1134,8 +1186,7 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 						return err
 					}
 					id := snapshots.NewSnapshotID(poolId.SubscriptionId, poolId.ResourceGroupName, data.RandomString)
-					_, err = client.Delete(ctx, id)
-					if err != nil {
+					if _, err = client.Delete(ctx, id); err != nil {
 						return fmt.Errorf("creating %s: %+v", id, err)
 					}
 					return nil
@@ -2331,6 +2382,115 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, r.templateConfig(data))
 }
 
+func (r KubernetesClusterNodePoolResource) spotWithMaxSurgeConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  priority              = "Spot"
+  eviction_policy       = "Delete"
+  spot_max_price        = 0.5
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+  node_labels = {
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) spotWithMaxUnavailableConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  priority              = "Spot"
+  eviction_policy       = "Delete"
+  spot_max_price        = 0.5
+  upgrade_settings {
+    max_unavailable = "1"
+  }
+  node_labels = {
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) upgradeSettingsWithoutMaxSurgeOrMaxUnavailableConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  upgrade_settings {
+    drain_timeout_in_minutes = 15
+  }
+}
+`, r.templateConfig(data))
+}
+
+func (r KubernetesClusterNodePoolResource) spotWithOtherUpgradeSettingsConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  priority              = "Spot"
+  eviction_policy       = "Delete"
+  spot_max_price        = 0.5
+  upgrade_settings {
+    drain_timeout_in_minutes      = 15
+    node_soak_duration_in_minutes = 5
+    undrainable_node_behavior     = "Schedule"
+  }
+  node_labels = {
+    "kubernetes.azure.com/scalesetpriority" = "spot"
+  }
+  node_taints = [
+    "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
+  ]
+}
+`, r.templateConfig(data))
+}
+
 func (r KubernetesClusterNodePoolResource) completeUpgradeSettingsWithMaxSurge(data acceptance.TestData, maxSurge string, drainTimeout int, nodeSoakDuration int, undrainableBehavior string) string {
 	template := r.templateConfig(data)
 	return fmt.Sprintf(`
@@ -2527,7 +2687,43 @@ provider "azurerm" {
   features {}
 }
 
-%s
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  kubernetes_version  = "1.32.9"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  windows_profile {
+    admin_username = "azureuser"
+    admin_password = "P@55W0rd1234!h@2h1C0rP"
+  }
+
+  network_profile {
+    network_plugin = "azure"
+    network_policy = "azure"
+    dns_service_ip = "10.10.0.10"
+    service_cidr   = "10.10.0.0/16"
+  }
+}
 
 resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "windoz"
@@ -2543,7 +2739,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_surge = "10%%"
   }
 }
-`, r.templateWindowsConfig(data))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
 func (r KubernetesClusterNodePoolResource) windows2022Config(data acceptance.TestData) string {
@@ -3120,7 +3316,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
   os_type               = "Windows"
-  os_sku                = "Windows2019"
+  os_sku                = "Windows2022"
   windows_profile {
     outbound_nat_enabled = true
   }
@@ -3661,4 +3857,130 @@ resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
 		data.RandomInteger,     // kubernetes_cluster name
 		data.RandomInteger,     // kubernetes_cluster dns_prefix
 	)
+}
+
+func TestAccKubernetesClusterNodePool_parallelCrossVNetSameSubnetName(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.parallelCrossVNetSameSubnetNameConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_kubernetes_cluster_node_pool.pool1").ExistsInAzure(r),
+				check.That("azurerm_kubernetes_cluster_node_pool.pool2").ExistsInAzure(r),
+			),
+		},
+		data.ImportStepFor("azurerm_kubernetes_cluster_node_pool.pool1"),
+		data.ImportStepFor("azurerm_kubernetes_cluster_node_pool.pool2"),
+	})
+}
+
+func (KubernetesClusterNodePoolResource) parallelCrossVNetSameSubnetNameConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test1" {
+  name                = "acctestnw1-%[1]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "nodesubnet1" {
+  name                 = "nodesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test1.name
+  address_prefixes     = ["10.240.0.0/16"]
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestnw2-%[1]d"
+  address_space       = ["172.16.0.0/12"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "nodesubnet2" {
+  name                 = "nodesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test2.name
+  address_prefixes     = ["172.16.0.0/16"]
+}
+
+resource "azurerm_kubernetes_cluster" "test1" {
+  name                = "acctestaks1%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks1%[1]d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.nodesubnet1.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  network_profile {
+    network_plugin = "azure"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test2" {
+  name                = "acctestaks2%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks2%[1]d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.nodesubnet2.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  network_profile {
+    network_plugin = "azure"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "pool1" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test1.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.nodesubnet1.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
+  name                  = "pool2"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test2.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  vnet_subnet_id        = azurerm_subnet.nodesubnet2.id
+  upgrade_settings {
+    max_surge = "10%%"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -769,10 +769,11 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if diskAccessID := d.Get("disk_access_id").(string); d.HasChange("disk_access_id") {
+		networkAccessPolicy := disks.NetworkAccessPolicy(d.Get("network_access_policy").(string))
 		switch {
-		case *diskUpdate.Properties.NetworkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
+		case networkAccessPolicy == disks.NetworkAccessPolicyAllowPrivate:
 			diskUpdate.Properties.DiskAccessId = pointer.To(diskAccessID)
-		case diskAccessID != "" && *diskUpdate.Properties.NetworkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
+		case diskAccessID != "" && networkAccessPolicy != disks.NetworkAccessPolicyAllowPrivate:
 			return fmt.Errorf("[ERROR] disk_access_id is only available when network_access_policy is set to AllowPrivate")
 		default:
 			diskUpdate.Properties.DiskAccessId = nil

@@ -127,7 +127,7 @@ func validRFC3339DateOnly(s string) bool {
 	return err == nil
 }
 
-var githubHandleRegex = regexp.MustCompile(`(?i)^github.com/[a-z0-9-_]+$`)
+var githubHandleRegex = regexp.MustCompile(`(?i)^github\.com/[a-z0-9-_]+$`)
 
 func validResponsibleIndividual(s string) bool {
 	_, err := mail.ParseAddress(s)

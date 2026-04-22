@@ -413,7 +413,9 @@ func resourceStreamAnalyticsJobRead(d *pluginsdk.ResourceData, meta interface{})
 					d.Set("transformation_query", pointer.From(transformProps.Query))
 				}
 			}
-			return tags.FlattenAndSet(d, model.Tags)
+			if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

@@ -1076,7 +1076,7 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				}
 				osManagedDiskId := ""
 				if profile.OsDisk != nil && profile.OsDisk.ManagedDisk != nil && profile.OsDisk.ManagedDisk.Id != nil {
-					osDiskId, err := commonids.ParseManagedDiskID(*profile.OsDisk.ManagedDisk.Id)
+					osDiskId, err := commonids.ParseManagedDiskIDInsensitively(*profile.OsDisk.ManagedDisk.Id)
 					if err != nil {
 						return err
 					}
@@ -1143,7 +1143,9 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 			isWindows := false
 			setConnectionInformation(d, connectionInfo, isWindows)
 		}
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1841,7 +1843,7 @@ func resourceLinuxVirtualMachineDelete(d *pluginsdk.ResourceData, meta interface
 			}
 		}
 		if managedDiskId != "" {
-			diskId, err := commonids.ParseManagedDiskID(managedDiskId)
+			diskId, err := commonids.ParseManagedDiskIDInsensitively(managedDiskId)
 			if err != nil {
 				return err
 			}

@@ -73,6 +73,10 @@ The following arguments are supported:
 
 * `backup` - (Required) Configures the Policy backup frequency, times & days as documented in the `backup` block below.
 
+* `consistency_type` - (Optional) The consistency type for the backup policy. The only possible value is `OnlyCrashConsistent`.
+
+~> **Note:** `consistency_type` can only be specified when `policy_type` is `V2`.
+
 * `policy_type` - (Optional) Type of the Backup Policy. Possible values are `V1` and `V2` where `V2` stands for the Enhanced Policy. Defaults to `V1`. Changing this forces a new resource to be created.
 
 * `timezone` - (Optional) Specifies the timezone. [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Defaults to `UTC`

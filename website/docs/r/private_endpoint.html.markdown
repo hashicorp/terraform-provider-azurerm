@@ -304,7 +304,7 @@ A `private_dns_zone_configs` block exports:
 
 * `id` - The ID of the Private DNS Zone Config.
 
-* `private_dns_zone_id` - A list of IP Addresses
+* `private_dns_zone_id` - The ID of the Private DNS Zone that the config belongs to.
 
 * `record_sets` - A `record_sets` block as defined below.
 

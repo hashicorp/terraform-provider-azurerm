@@ -29,6 +29,8 @@ import (
 	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name attestation_provider -service-package-name attestation -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name basicForResourceIdentity
+
 func resourceAttestationProvider() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceAttestationProviderCreate,
@@ -43,10 +45,11 @@ func resourceAttestationProvider() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := attestationproviders.ParseAttestationProvidersID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&attestationproviders.AttestationProvidersId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&attestationproviders.AttestationProvidersId{}),
+		},
 
 		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 			if o, n := diff.GetChange("open_enclave_policy_base64"); o.(string) != "" && n.(string) == "" {
@@ -172,6 +175,9 @@ func resourceAttestationProviderCreate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 	d.SetId(id.ID())
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
+		return err
+	}
 
 	dataPlaneUri, err := attestationClients.DataPlaneEndpointForProvider(ctx, id)
 	if err != nil {
@@ -293,7 +299,7 @@ func resourceAttestationProviderRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 	d.Set("sev_snp_policy_base64", pointer.From(sevSnpPolicyData))
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceAttestationProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

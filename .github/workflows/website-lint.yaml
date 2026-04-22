@@ -3,7 +3,7 @@ name: Website Linting
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 on:
   pull_request:
@@ -18,13 +18,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5.6.0
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
       - run: make tools
       - run: make website-lint
       - run: make document-validate
+      - name: Guidance on failure
+        if: failure()
+        run: |
+          echo "::error::Website Linting failed."
+          echo ""
+          echo "Run 'make website-lint' and 'make document-validate' locally."
+          echo "Check your documentation files under website/ for formatting or validation issues."
+          echo "Common issues include: missing required frontmatter fields, incorrect markdown formatting,"
+          echo "or mismatched resource documentation with the schema definition."
   save-artifacts-on-fail:
     needs: website-lint
     if: ${{ failure() }}

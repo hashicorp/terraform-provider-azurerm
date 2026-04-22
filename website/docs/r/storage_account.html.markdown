@@ -104,7 +104,7 @@ The following arguments are supported:
 
 * `https_traffic_only_enabled` - (Optional) Boolean flag which forces HTTPS if enabled, see [here](https://docs.microsoft.com/azure/storage/storage-require-secure-transfer/) for more information. Defaults to `true`.
 
-* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1`, `TLS1_2` and `TLS1_3`. Defaults to `TLS1_2` for new storage accounts.
+* `min_tls_version` - (Optional) The minimum supported TLS version for the storage account. Possible values are `TLS1_0`, `TLS1_1` and `TLS1_2`. Defaults to `TLS1_2` for new storage accounts.
 
 ~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
@@ -255,9 +255,7 @@ A `custom_domain` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
-
-* `managed_hsm_key_id` - (Optional) The ID of the managed HSM Key. Exactly one of `key_vault_key_id` and `managed_hsm_key_id` may be specified.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key, supplying a version-less key ID will enable auto-rotation of this key.
 
 * `user_assigned_identity_id` - (Required) The ID of a user assigned identity.
 
@@ -654,4 +652,4 @@ terraform import azurerm_storage_account.storageAcc1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage` - 2023-05-01
+* `Microsoft.Storage` - 2025-06-01
