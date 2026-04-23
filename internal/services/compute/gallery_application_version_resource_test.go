@@ -133,8 +133,8 @@ func TestAccGalleryApplicationVersion_endOfLifeDate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_gallery_application_version", "test")
 	r := GalleryApplicationVersionResource{}
 
-	endOfLifeDate := time.Now().Add(time.Hour * 10).Format(time.RFC3339)
-	endOfLifeDateUpdated := time.Now().Add(time.Hour * 20).Format(time.RFC3339)
+	endOfLifeDate := data.RandomTimeInFuture(10 * time.Hour).UTC().Format(time.RFC3339)
+	endOfLifeDateUpdated := data.RandomTimeInFuture(20 * time.Hour).UTC().Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -457,7 +457,7 @@ resource "azurerm_gallery_application_version" "test" {
     ENV = "Test"
   }
 }
-`, template, time.Now().Add(time.Hour*10).Format(time.RFC3339))
+`, template, data.RandomTimeInFuture(10 * time.Hour).UTC().Format(time.RFC3339))
 }
 
 func (r GalleryApplicationVersionResource) update(data acceptance.TestData) string {
