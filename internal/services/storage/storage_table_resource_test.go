@@ -6,6 +6,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -18,7 +19,28 @@ import (
 
 type StorageTableResource struct{}
 
+func TestAccStorageTable_basicDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageTable_basic(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -33,7 +55,28 @@ func TestAccStorageTable_basic(t *testing.T) {
 	})
 }
 
+func TestAccStorageTable_requiresImportDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccStorageTable_requiresImport(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -48,7 +91,10 @@ func TestAccStorageTable_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccStorageTable_disappears(t *testing.T) {
+func TestAccStorageTable_disappearsDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -60,7 +106,50 @@ func TestAccStorageTable_disappears(t *testing.T) {
 	})
 }
 
+func TestAccStorageTable_disappears(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		data.DisappearsStep(acceptance.DisappearsStepData{
+			Config:       r.basic,
+			TestResource: r,
+		}),
+	})
+}
+
+func TestAccStorageTable_aclDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
+	r := StorageTableResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aclDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.aclUpdatedDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccStorageTable_acl(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_storage_table", "test")
 	r := StorageTableResource{}
 
@@ -132,7 +221,7 @@ func (r StorageTableResource) Destroy(ctx context.Context, client *clients.Clien
 	return pointer.To(true), nil
 }
 
-func (r StorageTableResource) basic(data acceptance.TestData) string {
+func (r StorageTableResource) basicDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -162,8 +251,38 @@ resource "azurerm_storage_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
-	template := r.basic(data)
+func (r StorageTableResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r StorageTableResource) requiresImportDeprecated(data acceptance.TestData) string {
+	template := r.basicDeprecated(data)
 	return fmt.Sprintf(`
 %s
 
@@ -174,7 +293,19 @@ resource "azurerm_storage_table" "import" {
 `, template)
 }
 
-func (r StorageTableResource) acl(data acceptance.TestData) string {
+func (r StorageTableResource) requiresImport(data acceptance.TestData) string {
+	template := r.basic(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_table" "import" {
+  name                 = azurerm_storage_table.test.name
+  storage_account_id = azurerm_storage_account.test.id
+}
+`, template)
+}
+
+func (r StorageTableResource) aclDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -213,7 +344,46 @@ resource "azurerm_storage_table" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
 }
 
-func (r StorageTableResource) aclUpdated(data acceptance.TestData) string {
+func (r StorageTableResource) acl(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  storage_account_id = azurerm_storage_account.test.id
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r StorageTableResource) aclUpdatedDeprecated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -239,6 +409,55 @@ resource "azurerm_storage_account" "test" {
 resource "azurerm_storage_table" "test" {
   name                 = "acctestst%d"
   storage_account_name = azurerm_storage_account.test.name
+
+  acl {
+    id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+}
+
+func (r StorageTableResource) aclUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  storage_account_id = azurerm_storage_account.test.id
 
   acl {
     id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"

@@ -9,11 +9,32 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 type StorageTableEntityDataSource struct{}
 
+func TestAccDataSourceStorageTableEntity_basicDeprecated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Deprecated test skipping in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entity", "test")
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntityDataSource{}.basicWithDataSourceDeprecated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("entity.%").HasValue("1"),
+				check.That(data.ResourceName).Key("entity.testkey").HasValue("testval"),
+			),
+		},
+	})
+}
+
 func TestAccDataSourceStorageTableEntity_basic(t *testing.T) {
+	if !features.FivePointOh() {
+		t.Skip("5.0 test skipping in 4.x")
+	}
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entity", "test")
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -25,6 +46,44 @@ func TestAccDataSourceStorageTableEntity_basic(t *testing.T) {
 			),
 		},
 	})
+}
+
+func (d StorageTableEntityDataSource) basicDeprecated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "tableentitydstest-%s"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "acctesttedsc%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "tabletesttedsc%s"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+
+  partition_key = "testpartition"
+  row_key       = "testrow"
+
+  entity = {
+    testkey = "testval"
+  }
+}
+`, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
 }
 
 func (d StorageTableEntityDataSource) basic(data acceptance.TestData) string {
@@ -63,6 +122,19 @@ resource "azurerm_storage_table_entity" "test" {
   }
 }
 `, data.RandomString, data.Locations.Primary, data.RandomString, data.RandomString)
+}
+
+func (d StorageTableEntityDataSource) basicWithDataSourceDeprecated(data acceptance.TestData) string {
+	config := d.basicDeprecated(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_storage_table_entity" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+  partition_key    = azurerm_storage_table_entity.test.partition_key
+  row_key          = azurerm_storage_table_entity.test.row_key
+}
+`, config)
 }
 
 func (d StorageTableEntityDataSource) basicWithDataSource(data acceptance.TestData) string {
