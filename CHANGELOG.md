@@ -1,6 +1,7 @@
 ## 4.70.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_machine_learning_datastore_blobstorage` - improved storage account retrieval [GH-32222]
 * dependencies: `azurerm_synapse_managed_private_endpoint` - update to API version `2021-06-01-preview` [GH-32153]
 * `azurerm_synapse_managed_private_endpoint` - migrate to `go-azure-sdk` [GH-32153]
 * `azurerm_synapse_managed_private_endpoint` - add support for the `fully_qualified_domain_names` property [GH-32153]
