@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -135,9 +134,9 @@ func TestAccCosmosDBAccount_ManagedHSMUri(t *testing.T) {
 
 	// Due to the additional test steps, these UUIDs need to be consistent
 	// can be moved back into the config func in 5.x
-	raName1, _ := uuid.GenerateUUID()
-	raName2, _ := uuid.GenerateUUID()
-	raName3, _ := uuid.GenerateUUID()
+	raName1 := data.RandomUUID()
+	raName2 := data.RandomUUID()
+	raName3 := data.RandomUUID()
 	uuids := []string{raName1, raName2, raName3}
 
 	steps := []acceptance.TestStep{

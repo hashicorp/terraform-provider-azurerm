@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/rbacs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -52,7 +51,7 @@ func TestAccCosmosDbSQLRoleDefinition_requiresImport(t *testing.T) {
 func TestAccCosmosDbSQLRoleDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_definition", "test")
 	r := CosmosDbSQLRoleDefinitionResource{}
-	roleDefinitionId := uuid.New().String()
+	roleDefinitionId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +67,7 @@ func TestAccCosmosDbSQLRoleDefinition_complete(t *testing.T) {
 func TestAccCosmosDbSQLRoleDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_role_definition", "test")
 	r := CosmosDbSQLRoleDefinitionResource{}
-	roleDefinitionId := uuid.New().String()
+	roleDefinitionId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
