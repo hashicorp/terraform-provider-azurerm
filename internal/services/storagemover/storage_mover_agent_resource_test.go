@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagemover/2023-03-01/agents"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -102,8 +101,7 @@ func (r StorageMoverAgentResource) Exists(ctx context.Context, clients *clients.
 }
 
 func (r StorageMoverAgentResource) template(data acceptance.TestData) string {
-	clientData := data.Client()
-	randomUUID, _ := uuid.GenerateUUID()
+	randomUUID := data.RandomUUID()
 	return fmt.Sprintf(`
 
 data "azurerm_client_config" "current" {}
@@ -256,7 +254,7 @@ data "azurerm_arc_machine" "test" {
 }
 
 
-`, data.RandomInteger, data.Locations.Primary, randomUUID, clientData.Default.ClientID, clientData.Default.ClientSecret)
+`, data.RandomInteger, data.Locations.Primary, randomUUID, data.Client().Default.ClientID, data.Client().Default.ClientSecret)
 }
 
 func (r StorageMoverAgentResource) basic(data acceptance.TestData) string {
