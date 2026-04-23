@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -96,7 +95,7 @@ resource "azurerm_bot_channel_alexa" "test" {
   resource_group_name = azurerm_resource_group.test.name
   skill_id            = "amzn1.ask.skill.%s"
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), uuid.New().String())
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomUUID())
 }
 
 func (r BotChannelAlexaResource) requiresImport(data acceptance.TestData) string {
@@ -122,5 +121,5 @@ resource "azurerm_bot_channel_alexa" "test" {
   resource_group_name = azurerm_resource_group.test.name
   skill_id            = "amzn1.ask.skill.%s"
 }
-`, BotChannelsRegistrationResource{}.basicConfig(data), uuid.New().String())
+`, BotChannelsRegistrationResource{}.basicConfig(data), data.RandomUUID())
 }
