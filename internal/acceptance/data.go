@@ -11,7 +11,9 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/vcr"
 )
@@ -184,6 +186,53 @@ func (td *TestData) RandomStringOfLength(length int) string {
 	}
 
 	return randString(length)
+}
+
+// RandomUUID returns a UUID string that is deterministic in VCR mode (derived
+// from the shared seeded rng so successive calls within the same test produce
+// different but stable values), or a genuinely random UUID in live mode.
+func (td *TestData) RandomUUID() string {
+	if td.rng != nil {
+		// Build a UUID v4 from two rng-sourced uint64 values.
+		var b [16]byte
+		u1 := td.rng.Uint64()
+		u2 := td.rng.Uint64()
+		b[0] = byte(u1 >> 56)
+		b[1] = byte(u1 >> 48)
+		b[2] = byte(u1 >> 40)
+		b[3] = byte(u1 >> 32)
+		b[4] = byte(u1 >> 24)
+		b[5] = byte(u1 >> 16)
+		b[6] = byte(u1 >> 8)
+		b[7] = byte(u1)
+		b[8] = byte(u2 >> 56)
+		b[9] = byte(u2 >> 48)
+		b[10] = byte(u2 >> 40)
+		b[11] = byte(u2 >> 32)
+		b[12] = byte(u2 >> 24)
+		b[13] = byte(u2 >> 16)
+		b[14] = byte(u2 >> 8)
+		b[15] = byte(u2)
+		// Set version (4) and variant bits.
+		b[6] = (b[6] & 0x0f) | 0x40
+		b[8] = (b[8] & 0x3f) | 0x80
+		return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
+			b[0:4], b[4:6], b[6:8], b[8:10], b[10:16])
+	}
+	return uuid.New().String()
+}
+
+// RandomTimeInFuture returns a time.Time offset from now by the given duration.
+// In VCR mode the "now" anchor is fixed to 2045-01-01T00:00:00Z so the result
+// is deterministic regardless of when the test is replayed. In live mode it
+// uses the real time.Now().
+func (td *TestData) RandomTimeInFuture(offset time.Duration) time.Time {
+	if td.rng != nil {
+		// Fixed anchor: 2045-01-01T00:00:00Z — same epoch as vcrRandTimeInt.
+		anchor := time.Date(2045, 1, 1, 0, 0, 0, 0, time.UTC)
+		return anchor.Add(offset)
+	}
+	return time.Now().UTC().Add(offset)
 }
 
 // randString generates a random alphanumeric string of the length specified
