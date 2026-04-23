@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -361,9 +360,9 @@ resource "azurerm_kusto_cluster_customer_managed_key" "test" {
 }
 
 func (KustoClusterCustomerManagedKeyResource) hsmKeyTemplate(data acceptance.TestData) string {
-	raName1, _ := uuid.GenerateUUID()
-	raName2, _ := uuid.GenerateUUID()
-	raName3, _ := uuid.GenerateUUID()
+	raName1 := data.RandomUUID()
+	raName2 := data.RandomUUID()
+	raName3 := data.RandomUUID()
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
