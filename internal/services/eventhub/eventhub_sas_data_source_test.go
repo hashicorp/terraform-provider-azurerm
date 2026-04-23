@@ -17,7 +17,7 @@ type EventHubSharedAccessSignatureDataSource struct{}
 func TestAccEventHubSharedAccessSignatureDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_eventhub_sas", "test")
 	r := EventHubSharedAccessSignatureDataSource{}
-	utcNow := time.Now().UTC()
+	utcNow := data.RandomTimeInFuture(0)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
 	data.DataSourceTest(t, []acceptance.TestStep{
