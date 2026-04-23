@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/databases"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -1171,9 +1170,9 @@ resource "azurerm_mssql_server" "test" {
 }
 
 func (r MssqlDatabaseResource) templateHSM(data acceptance.TestData) string {
-	uuid1, _ := uuid.GenerateUUID()
-	uuid2, _ := uuid.GenerateUUID()
-	uuid3, _ := uuid.GenerateUUID()
+	uuid1 := data.RandomUUID()
+	uuid2 := data.RandomUUID()
+	uuid3 := data.RandomUUID()
 
 	return fmt.Sprintf(`
 provider "azurerm" {
