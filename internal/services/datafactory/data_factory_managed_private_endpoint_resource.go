@@ -129,7 +129,7 @@ func resourceDataFactoryManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, 
 		}
 	} else {
 		if len(strings.TrimSpace(subResourceName)) < 3 {
-			return fmt.Errorf("`subresource_name` must be at least 3 character in length")
+			return fmt.Errorf("`subresource_name` must be at least 3 characters in length")
 		}
 
 		if len(fqdns) > 0 {
