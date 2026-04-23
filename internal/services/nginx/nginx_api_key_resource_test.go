@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxapikey"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -35,7 +34,7 @@ func (a APIKeyResource) Exists(ctx context.Context, client *clients.Client, stat
 
 func TestAccAPIKeyResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.APIKeyResource{}.ResourceType(), "test")
-	secretText := uuid.NewString()
+	secretText := data.RandomUUID()
 	endDateTime := getEndDateTime(3)
 	r := APIKeyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -54,8 +53,8 @@ func TestAccAPIKeyResource_complete(t *testing.T) {
 
 func TestAccAPIKeyResource_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.APIKeyResource{}.ResourceType(), "test")
-	secretTextCreate := uuid.NewString()
-	secretTextUpdate := uuid.NewString()
+	secretTextCreate := data.RandomUUID()
+	secretTextUpdate := data.RandomUUID()
 	endDateTimeCreate := getEndDateTime(3)
 	endDateTimeUpdate := getEndDateTime(6)
 	r := APIKeyResource{}
@@ -85,7 +84,7 @@ func TestAccAPIKeyResource_update(t *testing.T) {
 
 func TestAccAPIKeyResource_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.APIKeyResource{}.ResourceType(), "test")
-	secretText := uuid.NewString()
+	secretText := data.RandomUUID()
 	endDateTime := getEndDateTime(3)
 	r := APIKeyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -117,7 +116,7 @@ resource "azurerm_nginx_api_key" "test" {
 }
 
 func (a APIKeyResource) requiresImport(data acceptance.TestData) string {
-	secretText := uuid.NewString()
+	secretText := data.RandomUUID()
 	endDateTime := getEndDateTime(3)
 	return fmt.Sprintf(`
 %s

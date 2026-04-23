@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -16,7 +15,7 @@ type APIKeyDataSource struct{}
 
 func TestAccAPIKeyDataSource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_nginx_api_key", "test")
-	secretText := uuid.NewString()
+	secretText := data.RandomUUID()
 	endDateTime := getEndDateTime(3)
 	r := APIKeyDataSource{}
 
