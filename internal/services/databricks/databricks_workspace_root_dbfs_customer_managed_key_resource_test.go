@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2026-01-01/workspaces"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -442,9 +441,9 @@ resource "azurerm_key_vault_access_policy" "databricks" {
 }
 
 func (r DatabricksWorkspaceRootDbfsCustomerManagedKeyResource) managedHSMVaultTemplate(data acceptance.TestData) string {
-	roleAssignmentName1, _ := uuid.GenerateUUID()
-	roleAssignmentName2, _ := uuid.GenerateUUID()
-	roleAssignmentName3, _ := uuid.GenerateUUID()
+	roleAssignmentName1 := data.RandomUUID()
+	roleAssignmentName2 := data.RandomUUID()
+	roleAssignmentName3 := data.RandomUUID()
 
 	return fmt.Sprintf(`
 %[1]s
