@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2024-10-23/hybridrunbookworker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -134,7 +133,7 @@ resource "azurerm_automation_hybrid_runbook_worker" "test" {
   worker_id               = "%s"
   vm_resource_id          = azurerm_linux_virtual_machine.test.id
 }
-`, a.template(data), uuid.New().String())
+`, a.template(data), data.RandomUUID())
 }
 
 func TestAccHybridRunbookWorker_basic(t *testing.T) {

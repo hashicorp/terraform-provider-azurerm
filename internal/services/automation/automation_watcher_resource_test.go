@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2020-01-13-preview/watcher"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -236,5 +235,5 @@ CONTENT
     ENV = "runbook_test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, uuid.New().String())
+`, data.RandomInteger, data.Locations.Primary, data.RandomUUID())
 }
