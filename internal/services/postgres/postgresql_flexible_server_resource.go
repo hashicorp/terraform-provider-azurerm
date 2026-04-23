@@ -849,7 +849,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			}
 
 			if backup := props.Backup; backup != nil {
-				d.Set("backup_retention_days", backup.BackupRetentionDays)
+				d.Set("backup_retention_days", int(pointer.From(backup.BackupRetentionDays)))
 
 				geoRedundantBackup := false
 				if backup.GeoRedundantBackup != nil {
@@ -1231,8 +1231,8 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 func expandArmServerBackupForPatch(d *pluginsdk.ResourceData) *servers.BackupForPatch {
 	backup := servers.BackupForPatch{}
 
-	if v, ok := d.GetOk("backup_retention_days"); ok {
-		backup.BackupRetentionDays = pointer.To(int64(v.(int)))
+	if v := d.Get("backup_retention_days").(int); v > 0 {
+		backup.BackupRetentionDays = pointer.To(int64(v))
 	}
 
 	geoRedundantEnabled := servers.GeographicallyRedundantBackupDisabled

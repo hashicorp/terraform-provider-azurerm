@@ -815,7 +815,7 @@ func resourcePostgreSQLServerRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			if storage := props.StorageProfile; storage != nil {
 				d.Set("storage_mb", storage.StorageMB)
-				d.Set("backup_retention_days", storage.BackupRetentionDays)
+				d.Set("backup_retention_days", int(pointer.From(storage.BackupRetentionDays)))
 
 				autoGrow := false
 				if storage.StorageAutogrow != nil {

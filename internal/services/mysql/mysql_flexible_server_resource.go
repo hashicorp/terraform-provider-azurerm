@@ -615,7 +615,7 @@ func resourceMysqlFlexibleServerFlatten(d *pluginsdk.ResourceData, id *servers.F
 			}
 
 			if backup := props.Backup; backup != nil {
-				d.Set("backup_retention_days", backup.BackupRetentionDays)
+				d.Set("backup_retention_days", int(pointer.From(backup.BackupRetentionDays)))
 				d.Set("geo_redundant_backup_enabled", *backup.GeoRedundantBackup == servers.EnableStatusEnumEnabled)
 			}
 
@@ -975,9 +975,7 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 		GeoRedundantBackup: &geoRedundantBackup,
 	}
 
-	if v, ok := d.GetOk("backup_retention_days"); ok {
-		backup.BackupRetentionDays = pointer.To(int64(v.(int)))
-	}
+	backup.BackupRetentionDays = pointer.To(int64(d.Get("backup_retention_days").(int)))
 
 	return &backup
 }
