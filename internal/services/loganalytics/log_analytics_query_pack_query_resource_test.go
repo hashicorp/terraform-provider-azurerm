@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypackqueries"
@@ -38,7 +37,7 @@ func (r LogAnalyticsQueryPackQueryResource) Exists(ctx context.Context, client *
 
 func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
-	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
+	r := LogAnalyticsQueryPackQueryResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +52,7 @@ func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {
 
 func TestAccLogAnalyticsQueryPackQuery_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
-	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
+	r := LogAnalyticsQueryPackQueryResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -68,7 +67,7 @@ func TestAccLogAnalyticsQueryPackQuery_requiresImport(t *testing.T) {
 
 func TestAccLogAnalyticsQueryPackQuery_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
-	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
+	r := LogAnalyticsQueryPackQueryResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -83,7 +82,7 @@ func TestAccLogAnalyticsQueryPackQuery_complete(t *testing.T) {
 
 func TestAccLogAnalyticsQueryPackQuery_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
-	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
+	r := LogAnalyticsQueryPackQueryResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
