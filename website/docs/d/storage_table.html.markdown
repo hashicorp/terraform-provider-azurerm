@@ -25,7 +25,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Table.
 
-* `storage_account_name` - (Required) The name of the Storage Account where the Table exists.
+* `storage_account_name` - (Optional) The name of the Storage Account where the Table exists.
+
+~> **NOTE:** This property is deprecated in favour of `storage_account_id` and will be removed in version 5.0 of the AzureRM Provider.
+
+* `storage_account_id` - (Optional) The ID of the Storage Account where the Table exists.
 
 ## Attributes Reference
 
