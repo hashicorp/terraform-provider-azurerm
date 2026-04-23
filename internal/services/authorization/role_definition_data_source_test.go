@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -18,7 +17,7 @@ type RoleDefinitionDataSource struct{}
 
 func TestAccRoleDefinitionDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -42,7 +41,7 @@ func TestAccRoleDefinitionDataSource_basic(t *testing.T) {
 
 func TestAccRoleDefinitionDataSource_basicByName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_role_definition", "byName")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{

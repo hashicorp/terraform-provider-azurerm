@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
@@ -23,10 +22,11 @@ type RoleDefinitionResource struct{}
 func TestAccRoleDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(uuid.New().String(), data),
+			Config: r.basic(id, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -37,7 +37,7 @@ func TestAccRoleDefinition_basic(t *testing.T) {
 
 func TestAccRoleDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleDefinitionResource{}
 
@@ -57,10 +57,11 @@ func TestAccRoleDefinition_requiresImport(t *testing.T) {
 func TestAccRoleDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(uuid.New().String(), data),
+			Config: r.complete(id, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -72,7 +73,7 @@ func TestAccRoleDefinition_complete(t *testing.T) {
 func TestAccRoleDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -148,10 +149,11 @@ func TestAccRoleDefinition_emptyPermissions(t *testing.T) {
 func TestAccRoleDefinition_managementGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.managementGroup(uuid.New().String(), data),
+			Config: r.managementGroup(id, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -163,10 +165,11 @@ func TestAccRoleDefinition_managementGroup(t *testing.T) {
 func TestAccRoleDefinition_assignToSmallerScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
 	r := RoleDefinitionResource{}
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.assignToSmallerScope(uuid.New().String(), data),
+			Config: r.assignToSmallerScope(id, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -177,12 +180,13 @@ func TestAccRoleDefinition_assignToSmallerScope(t *testing.T) {
 
 func TestAccRoleDefinition_noAssignableScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_definition", "test")
+	id := data.RandomUUID()
 
 	r := RoleDefinitionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.noAssignableScope(uuid.New().String(), data),
+			Config: r.noAssignableScope(id, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

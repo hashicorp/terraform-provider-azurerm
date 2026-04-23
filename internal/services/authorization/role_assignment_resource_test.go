@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -38,7 +37,7 @@ func TestAccRoleAssignment_emptyName(t *testing.T) {
 
 func TestAccRoleAssignment_roleName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -57,7 +56,7 @@ func TestAccRoleAssignment_roleName(t *testing.T) {
 
 func TestAccRoleAssignment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -79,7 +78,7 @@ func TestAccRoleAssignment_requiresImport(t *testing.T) {
 
 func TestAccRoleAssignment_dataActions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -97,7 +96,7 @@ func TestAccRoleAssignment_dataActions(t *testing.T) {
 
 func TestAccRoleAssignment_builtin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -114,8 +113,8 @@ func TestAccRoleAssignment_builtin(t *testing.T) {
 
 func TestAccRoleAssignment_custom(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	roleDefinitionId := uuid.New().String()
-	roleAssignmentId := uuid.New().String()
+	roleDefinitionId := data.RandomUUID()
+	roleAssignmentId := data.RandomUUID()
 	rInt := acceptance.RandTimeInt()
 
 	r := RoleAssignmentResource{}
@@ -134,7 +133,7 @@ func TestAccRoleAssignment_custom(t *testing.T) {
 func TestAccRoleAssignment_ServicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -152,7 +151,7 @@ func TestAccRoleAssignment_ServicePrincipal(t *testing.T) {
 func TestAccRoleAssignment_ServicePrincipalWithType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -169,7 +168,7 @@ func TestAccRoleAssignment_ServicePrincipalWithType(t *testing.T) {
 func TestAccRoleAssignment_ServicePrincipalGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -200,7 +199,7 @@ func TestAccRoleAssignment_managementGroup(t *testing.T) {
 
 func TestAccRoleAssignment_condition(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -217,7 +216,7 @@ func TestAccRoleAssignment_condition(t *testing.T) {
 
 func TestAccRoleAssignment_implicitCondition(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 
@@ -234,7 +233,7 @@ func TestAccRoleAssignment_implicitCondition(t *testing.T) {
 
 func TestAccRoleAssignment_resourceScoped(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentResource{}
 

@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -47,7 +46,7 @@ func TestAccRoleAssignmentMarketplace_emptyName(t *testing.T) {
 
 func TestAccRoleAssignmentMarketplace_roleName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentMarketplaceResource{}
 	roleName := "Log Analytics Reader"
@@ -69,7 +68,7 @@ func TestAccRoleAssignmentMarketplace_roleName(t *testing.T) {
 
 func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentMarketplaceResource{}
 	roleName := "ContainerApp Reader"
@@ -94,7 +93,7 @@ func TestAccRoleAssignmentMarketplace_requiresImport(t *testing.T) {
 
 func TestAccRoleAssignmentMarketplace_builtin(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentMarketplaceResource{}
 	roleName := "Monitoring Reader"
@@ -115,7 +114,7 @@ func TestAccRoleAssignmentMarketplace_builtin(t *testing.T) {
 func TestAccRoleAssignmentMarketplace_ServicePrincipal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentMarketplaceResource{}
 	roleName := "Contributor"
@@ -136,7 +135,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipal(t *testing.T) {
 func TestAccRoleAssignmentMarketplace_ServicePrincipalWithType(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentMarketplaceResource{}
 	roleName := "Log Analytics Contributor"
@@ -156,7 +155,7 @@ func TestAccRoleAssignmentMarketplace_ServicePrincipalWithType(t *testing.T) {
 func TestAccRoleAssignmentMarketplace_ServicePrincipalGroup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_marketplace_role_assignment", "test")
 	ri := acceptance.RandTimeInt()
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	r := RoleAssignmentMarketplaceResource{}
 	roleName := "Monitoring Contributor"
