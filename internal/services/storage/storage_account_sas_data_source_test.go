@@ -18,7 +18,7 @@ type StorageAccountSasDataSource struct{}
 func TestAccDataSourceStorageAccountSas_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_sas", "test")
 	ipAddresses := "10.0.0.1-10.0.0.4"
-	utcNow := time.Now().UTC()
+	utcNow := data.RandomTimeInFuture(0)
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 
@@ -40,7 +40,7 @@ func TestAccDataSourceStorageAccountSas_basic(t *testing.T) {
 func TestAccDataSourceStorageAccountSas_noPermissions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_storage_account_sas", "test")
 	ipAddresses := "10.0.0.1-10.0.0.4"
-	utcNow := time.Now().UTC()
+	utcNow := data.RandomTimeInFuture(0)
 	startDate := utcNow.Format(time.RFC3339)
 	endDate := utcNow.Add(time.Hour * 24).Format(time.RFC3339)
 

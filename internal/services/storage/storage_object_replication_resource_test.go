@@ -71,7 +71,7 @@ func TestAccStorageObjectReplication_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_object_replication", "test")
 	r := StorageObjectReplicationResource{}
 	loc, _ := time.LoadLocation("Australia/Perth")
-	copyTime := time.Now().UTC().Add(time.Hour * 7).In(loc).Format("2006-01-02T15:04:00Z")
+	copyTime := data.RandomTimeInFuture(7 * time.Hour).In(loc).Format("2006-01-02T15:04:00Z")
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
