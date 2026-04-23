@@ -11,7 +11,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2025-07-01/backupvaultresources"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -376,9 +375,9 @@ resource "azurerm_data_protection_backup_vault_customer_managed_key" "test" {
 }
 
 func (r DataProtectionBackupVaultCustomerManagedKeyResource) templateManagedHSM(data acceptance.TestData) string {
-	uuid1, _ := uuid.GenerateUUID()
-	uuid2, _ := uuid.GenerateUUID()
-	uuid3, _ := uuid.GenerateUUID()
+	uuid1 := data.RandomUUID()
+	uuid2 := data.RandomUUID()
+	uuid3 := data.RandomUUID()
 
 	return fmt.Sprintf(`
 resource "azurerm_key_vault" "test" {
