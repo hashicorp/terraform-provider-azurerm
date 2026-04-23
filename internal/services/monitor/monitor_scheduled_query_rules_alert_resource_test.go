@@ -23,7 +23,7 @@ type MonitorScheduledQueryRulesAlertResource struct{}
 func TestAccMonitorScheduledQueryRules_AlertingActionBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 	r := MonitorScheduledQueryRulesAlertResource{}
-	ts := time.Now().Format(time.RFC3339)
+	ts := data.RandomTimeInFuture(0).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionQueryTypeNumber(t *testing.
 func TestAccMonitorScheduledQueryRules_AlertingActionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 	r := MonitorScheduledQueryRulesAlertResource{}
-	ts := time.Now().Format(time.RFC3339)
+	ts := data.RandomTimeInFuture(0).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -107,7 +107,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T)
 func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
 	r := MonitorScheduledQueryRulesAlertResource{}
-	ts := time.Now().Format(time.RFC3339)
+	ts := data.RandomTimeInFuture(0).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -331,7 +331,7 @@ QUERY
 }
 
 func (MonitorScheduledQueryRulesAlertResource) AlertingActionConfigComplete(data acceptance.TestData) string {
-	ts := time.Now().Format(time.RFC3339)
+	ts := data.RandomTimeInFuture(0).Format(time.RFC3339)
 
 	return fmt.Sprintf(`
 provider "azurerm" {
