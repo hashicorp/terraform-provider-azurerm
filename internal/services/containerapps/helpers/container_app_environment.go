@@ -141,6 +141,225 @@ func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []Wor
 	return result
 }
 
+type IngressConfigurationModel struct {
+	WorkloadProfileName             string `tfschema:"workload_profile_name"`
+	WorkloadProfileType             string `tfschema:"workload_profile_type"`
+	MinimumNodeCount                int64  `tfschema:"minimum_node_count"`
+	MaximumNodeCount                int64  `tfschema:"maximum_node_count"`
+	TerminationGracePeriodMinutes   int64  `tfschema:"termination_grace_period_minutes"`
+	RequestIdleTimeout              int64  `tfschema:"request_idle_timeout"`
+	HeaderCountLimit                int64  `tfschema:"header_count_limit"`
+}
+
+func IngressConfigurationSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:        pluginsdk.TypeList,
+		Optional:    true,
+		MaxItems:    1,
+		Description: "An `ingress_configuration` block as defined below. Configures Premium Ingress with a dedicated workload profile for ingress proxies.",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"workload_profile_name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Default:      "premium-ingress",
+					ValidateFunc: validation.StringIsNotEmpty,
+					Description:  "The name of the dedicated workload profile for premium ingress. Defaults to `premium-ingress`.",
+				},
+
+				"workload_profile_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "D4",
+					ValidateFunc: validation.StringInSlice([]string{
+						string(WorkloadProfileSkuD4),
+						string(WorkloadProfileSkuD8),
+						string(WorkloadProfileSkuD16),
+						string(WorkloadProfileSkuD32),
+					}, false),
+					Description: "The workload profile type for the dedicated ingress profile. Possible values are `D4`, `D8`, `D16`, and `D32`. Defaults to `D4`.",
+				},
+
+				"minimum_node_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      2,
+					ValidateFunc: validation.IntAtLeast(2),
+					Description:  "The minimum number of nodes for the dedicated ingress workload profile. Must be at least `2`. Defaults to `2`.",
+				},
+
+				"maximum_node_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      10,
+					ValidateFunc: validation.IntAtLeast(2),
+					Description:  "The maximum number of nodes for the dedicated ingress workload profile. Defaults to `10`.",
+				},
+
+				"termination_grace_period_minutes": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(1, 60),
+					Description:  "The termination grace period in minutes. The provider converts this to seconds for the API. If omitted, the backend default is used.",
+				},
+
+				"request_idle_timeout": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(4, 30),
+					Description:  "The request idle timeout in minutes. If omitted, the backend default is used.",
+				},
+
+				"header_count_limit": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(1),
+					Description:  "The maximum number of HTTP headers allowed per request. If omitted, the backend default is used.",
+				},
+			},
+		},
+	}
+}
+
+func IngressConfigurationSchemaComputed() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:        pluginsdk.TypeList,
+		Computed:    true,
+		Description: "An `ingress_configuration` block as defined below.",
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"workload_profile_name": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The name of the dedicated workload profile for premium ingress.",
+				},
+				"workload_profile_type": {
+					Type:        pluginsdk.TypeString,
+					Computed:    true,
+					Description: "The workload profile type for the dedicated ingress profile.",
+				},
+				"minimum_node_count": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The minimum number of nodes for the dedicated ingress workload profile.",
+				},
+				"maximum_node_count": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The maximum number of nodes for the dedicated ingress workload profile.",
+				},
+				"termination_grace_period_minutes": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The termination grace period in minutes.",
+				},
+				"request_idle_timeout": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The request idle timeout in minutes.",
+				},
+				"header_count_limit": {
+					Type:        pluginsdk.TypeInt,
+					Computed:    true,
+					Description: "The maximum number of HTTP headers allowed per request.",
+				},
+			},
+		},
+	}
+}
+
+func ExpandIngressConfiguration(input []IngressConfigurationModel) (*managedenvironments.IngressConfiguration, *managedenvironments.WorkloadProfile) {
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	v := input[0]
+
+	ingressConfig := &managedenvironments.IngressConfiguration{
+		WorkloadProfileName: pointer.To(v.WorkloadProfileName),
+	}
+
+	// Only set these if explicitly configured; passing nil lets the backend use its own defaults
+	if v.TerminationGracePeriodMinutes != 0 {
+		ingressConfig.TerminationGracePeriodSeconds = pointer.To(v.TerminationGracePeriodMinutes * 60)
+	}
+	if v.RequestIdleTimeout != 0 {
+		ingressConfig.RequestIdleTimeout = pointer.To(v.RequestIdleTimeout)
+	}
+	if v.HeaderCountLimit != 0 {
+		ingressConfig.HeaderCountLimit = pointer.To(v.HeaderCountLimit)
+	}
+
+	workloadProfile := &managedenvironments.WorkloadProfile{
+		Name:                v.WorkloadProfileName,
+		WorkloadProfileType: v.WorkloadProfileType,
+		MinimumCount:        pointer.To(v.MinimumNodeCount),
+		MaximumCount:        pointer.To(v.MaximumNodeCount),
+	}
+
+	return ingressConfig, workloadProfile
+}
+
+func FlattenIngressConfiguration(ingressConfig *managedenvironments.IngressConfiguration, workloadProfiles *[]managedenvironments.WorkloadProfile) []IngressConfigurationModel {
+	if ingressConfig == nil || ingressConfig.WorkloadProfileName == nil || *ingressConfig.WorkloadProfileName == "" {
+		return []IngressConfigurationModel{}
+	}
+
+	result := IngressConfigurationModel{
+		WorkloadProfileName:           pointer.From(ingressConfig.WorkloadProfileName),
+		TerminationGracePeriodMinutes: pointer.From(ingressConfig.TerminationGracePeriodSeconds) / 60,
+		RequestIdleTimeout:            pointer.From(ingressConfig.RequestIdleTimeout),
+		HeaderCountLimit:              pointer.From(ingressConfig.HeaderCountLimit),
+	}
+
+	if workloadProfiles != nil && result.WorkloadProfileName != "" {
+		for _, wp := range *workloadProfiles {
+			if wp.Name == result.WorkloadProfileName {
+				result.WorkloadProfileType = wp.WorkloadProfileType
+				result.MinimumNodeCount = pointer.From(wp.MinimumCount)
+				result.MaximumNodeCount = pointer.From(wp.MaximumCount)
+				break
+			}
+		}
+	}
+
+	return []IngressConfigurationModel{result}
+}
+
+func MergeIngressWorkloadProfile(profiles *[]managedenvironments.WorkloadProfile, ingressProfile *managedenvironments.WorkloadProfile) *[]managedenvironments.WorkloadProfile {
+	if ingressProfile == nil {
+		return profiles
+	}
+
+	result := make([]managedenvironments.WorkloadProfile, 0)
+	if profiles != nil {
+		for _, p := range *profiles {
+			if p.Name != ingressProfile.Name {
+				result = append(result, p)
+			}
+		}
+	}
+	result = append(result, *ingressProfile)
+	return &result
+}
+
+func FilterIngressWorkloadProfile(profiles []WorkloadProfileModel, ingressProfileName string) []WorkloadProfileModel {
+	if ingressProfileName == "" {
+		return profiles
+	}
+
+	result := make([]WorkloadProfileModel, 0)
+	for _, p := range profiles {
+		if p.Name != ingressProfileName {
+			result = append(result, p)
+		}
+	}
+	return result
+}
+
 func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfiles *pluginsdk.Set) bool {
 	// if 1 more profile is returned by the API than is defined, then check if it is a consumption profile
 	if returnedProfiles.Len() == definedProfiles.Len()+1 {

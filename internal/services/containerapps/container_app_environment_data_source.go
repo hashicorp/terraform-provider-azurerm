@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -32,6 +33,7 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
+	IngressConfiguration        []helpers.IngressConfigurationModel `tfschema:"ingress_configuration"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -131,6 +133,8 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 			Computed:    true,
 			Description: "The Static IP Address of the Environment.",
 		},
+
+		"ingress_configuration": helpers.IngressConfigurationSchemaComputed(),
 	}
 }
 
@@ -184,6 +188,7 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
 					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 					environment.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
+					environment.IngressConfiguration = helpers.FlattenIngressConfiguration(props.IngressConfiguration, props.WorkloadProfiles)
 				}
 			}
 

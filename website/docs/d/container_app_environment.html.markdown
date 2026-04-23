@@ -46,6 +46,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ~> **Note:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
+* `ingress_configuration` - An `ingress_configuration` block as defined below.
+
 * `internal_load_balancer_enabled` - Does the Container App Environment operate in Internal Load Balancing Mode?
 
 * `location` - The Azure Location where this Container App Environment exists.
@@ -69,6 +71,26 @@ In addition to the Arguments listed above - the following Attributes are exporte
 ~> **Note:** If `internal_load_balancer_enabled` is true, this will be a Private IP in the subnet, otherwise this will be allocated a Public IPv4 address.
 
 * `tags` - A mapping of tags assigned to the resource.
+
+---
+
+An `ingress_configuration` block exports the following:
+
+* `workload_profile_name` - The name of the dedicated ingress workload profile.
+
+* `workload_profile_type` - The workload profile SKU.
+
+* `minimum_node_count` - The minimum number of ingress nodes.
+
+* `maximum_node_count` - The maximum number of ingress nodes.
+
+* `termination_grace_period_minutes` - The termination grace period in minutes.
+
+* `request_idle_timeout` - The request idle timeout in minutes.
+
+* `header_count_limit` - The maximum number of HTTP headers per request.
+
+~> **Note:** `termination_grace_period_minutes`, `request_idle_timeout`, and `header_count_limit` are `0` when not explicitly configured. The Azure API returns `null` for these fields when backend defaults are in use.
 
 ## Timeouts
 
