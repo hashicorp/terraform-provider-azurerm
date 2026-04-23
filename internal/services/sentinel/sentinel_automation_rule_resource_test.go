@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2024-09-01/automationrules"
@@ -25,7 +24,7 @@ type SentinelAutomationRuleResource struct {
 
 func TestAccSentinelAutomationRule_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
-	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+	r := SentinelAutomationRuleResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -40,7 +39,7 @@ func TestAccSentinelAutomationRule_basic(t *testing.T) {
 
 func TestAccSentinelAutomationRule_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
-	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+	r := SentinelAutomationRuleResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,7 +54,7 @@ func TestAccSentinelAutomationRule_complete(t *testing.T) {
 
 func TestAccSentinelAutomationRule_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
-	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+	r := SentinelAutomationRuleResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +83,7 @@ func TestAccSentinelAutomationRule_update(t *testing.T) {
 
 func TestAccSentinelAutomationRule_trigger(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
-	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+	r := SentinelAutomationRuleResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +113,7 @@ func TestAccSentinelAutomationRule_trigger(t *testing.T) {
 
 func TestAccSentinelAutomationRule_actionIncidentTask(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
-	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+	r := SentinelAutomationRuleResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -157,7 +156,7 @@ func TestAccSentinelAutomationRule_actionIncidentTask(t *testing.T) {
 
 func TestAccSentinelAutomationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
-	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+	r := SentinelAutomationRuleResource{uuid: data.RandomUUID()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
