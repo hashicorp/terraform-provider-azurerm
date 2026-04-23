@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2025-10-10/scalingplan"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -22,7 +21,7 @@ type VirtualDesktopScalingPlanResource struct{}
 func TestAccVirtualDesktopScalingPlan_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan", "test")
 	r := VirtualDesktopScalingPlanResource{}
-	roleAssignmentId := uuid.New().String()
+	roleAssignmentId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +37,7 @@ func TestAccVirtualDesktopScalingPlan_basic(t *testing.T) {
 func TestAccVirtualDesktopScalingPlan_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan", "test")
 	r := VirtualDesktopScalingPlanResource{}
-	roleAssignmentId := uuid.New().String()
+	roleAssignmentId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +53,7 @@ func TestAccVirtualDesktopScalingPlan_complete(t *testing.T) {
 func TestAccVirtualDesktopScalingPlan_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan", "test")
 	r := VirtualDesktopScalingPlanResource{}
-	roleAssignmentId := uuid.New().String()
+	roleAssignmentId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -84,7 +83,7 @@ func TestAccVirtualDesktopScalingPlan_update(t *testing.T) {
 func TestAccVirtualDesktopScalingPlan_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan", "test")
 	r := VirtualDesktopScalingPlanResource{}
-	roleAssignmentId := uuid.New().String()
+	roleAssignmentId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

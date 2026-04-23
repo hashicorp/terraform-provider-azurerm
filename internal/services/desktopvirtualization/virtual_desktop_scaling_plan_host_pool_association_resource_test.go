@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -23,7 +22,7 @@ type VirtualDesktopScalingPlanAssociationResource struct{}
 func TestAccVirtualDesktopScalingPlanAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan_host_pool_association", "test")
 	r := VirtualDesktopScalingPlanAssociationResource{}
-	roleAssignmentId := uuid.New().String()
+	roleAssignmentId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -39,7 +38,7 @@ func TestAccVirtualDesktopScalingPlanAssociation_basic(t *testing.T) {
 func TestAccVirtualDesktopScalingPlanAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_desktop_scaling_plan_host_pool_association", "test")
 	r := VirtualDesktopScalingPlanAssociationResource{}
-	roleAssignmentId := uuid.New().String()
+	roleAssignmentId := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
