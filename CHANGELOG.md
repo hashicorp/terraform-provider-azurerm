@@ -23,6 +23,7 @@ FEATURES:
 * **New List Resource**: `azurerm_storage_mover_source_endpoint` [GH-32167]
 
 BUG FIXES:
+* Data Source: `azurerm_storage_account_sas` - fix a regression that caused missing permissions in the `sas` property [GH-32234]
 * `azurerm_container_app_environment` - fix potential nil pointer dereferences to prevent panics [GH-32198]
 
 ## 4.69.0 (April 16, 2026)
