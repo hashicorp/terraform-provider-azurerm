@@ -26,7 +26,7 @@ func TestAccNewRelicMonitor_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
-	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	effectiveDate := data.RandomTimeInFuture(7 * time.Hour).UTC().Format(time.RFC3339)
 	email := "d327e362-8431-4df1-8d99-8dc1c383a4f3@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -44,7 +44,7 @@ func TestAccNewRelicMonitor_requiresImport(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
-	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	effectiveDate := data.RandomTimeInFuture(7 * time.Hour).UTC().Format(time.RFC3339)
 	email := "15f0c06e-0cda-4a46-8baa-f6ec19f0ff94@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -76,7 +76,7 @@ func TestAccNewRelicMonitor_complete(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
-	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	effectiveDate := data.RandomTimeInFuture(7 * time.Hour).UTC().Format(time.RFC3339)
 	email := "b9ba4f77-5e63-4f1e-9445-b982d35f635b@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -94,7 +94,7 @@ func TestAccNewRelicMonitor_identity(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_new_relic_monitor", "test")
 	r := NewRelicMonitorResource{}
-	effectiveDate := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	effectiveDate := data.RandomTimeInFuture(7 * time.Hour).UTC().Format(time.RFC3339)
 	email := "fdfc9282-8817-442f-9f32-605ab174b610@example.com"
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
