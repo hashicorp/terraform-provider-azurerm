@@ -10,7 +10,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2020-05-01/privatelinkassociation"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,7 +22,7 @@ type ResourceManagementPrivateLinkAssociationTestResource struct {
 
 func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	randomUUID, _ := uuid.GenerateUUID()
+	randomUUID := data.RandomUUID()
 	r := ResourceManagementPrivateLinkAssociationTestResource{
 		uuid: randomUUID,
 	}
@@ -41,7 +40,7 @@ func TestAccResourceManagementPrivateLinkAssociation_basic(t *testing.T) {
 
 func TestAccResourceManagementPrivateLinkAssociation_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_management_private_link_association", "test")
-	randomUUID, _ := uuid.GenerateUUID()
+	randomUUID := data.RandomUUID()
 	r := ResourceManagementPrivateLinkAssociationTestResource{
 		uuid: randomUUID,
 	}
