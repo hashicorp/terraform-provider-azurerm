@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hybridcompute/2022-11-10/machineextensions"
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -192,7 +191,7 @@ resource "azurerm_arc_machine_extension" "test" {
 
 func (r ArcMachineExtensionResource) template(data acceptance.TestData) string {
 	secret := os.Getenv("ARM_CLIENT_SECRET")
-	randomUUID, _ := uuid.GenerateUUID()
+	randomUUID := data.RandomUUID()
 	password := generateRandomPassword(10)
 	return fmt.Sprintf(`
 provider "azurerm" {

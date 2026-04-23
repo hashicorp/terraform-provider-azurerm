@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -42,7 +41,7 @@ func TestAccArcMachine_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_arc_machine", "test")
 	d := ArcMachineDataSource{}
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	randomUUID, _ := uuid.GenerateUUID()
+	randomUUID := data.RandomUUID()
 	password := generateRandomPassword(15)
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
