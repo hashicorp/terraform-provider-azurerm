@@ -32,7 +32,7 @@ func TestAccDataShareDataSource_basic(t *testing.T) {
 func TestAccDataShareDataSource_snapshotSchedule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_data_share", "test")
 	r := DataShareDataSource{}
-	startTime := time.Now().Add(time.Hour * 7).Format(time.RFC3339)
+	startTime := data.RandomTimeInFuture(7 * time.Hour).UTC().Format(time.RFC3339)
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
