@@ -38,7 +38,7 @@ func TestAccAzureRMResourcePolicyExemption_basic(t *testing.T) {
 func TestAccAzureRMResourcePolicyExemption_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_policy_exemption", "test")
 	r := ResourcePolicyExemptionResource{}
-	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
+	endDate := data.RandomTimeInFuture(24 * time.Hour).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccAzureRMResourcePolicyExemption_complete(t *testing.T) {
 func TestAccAzureRMResourcePolicyExemption_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_policy_exemption", "test")
 	r := ResourcePolicyExemptionResource{}
-	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
+	endDate := data.RandomTimeInFuture(24 * time.Hour).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{

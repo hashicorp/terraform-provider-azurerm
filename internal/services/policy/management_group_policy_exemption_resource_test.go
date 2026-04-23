@@ -39,7 +39,7 @@ func TestAccAzureRMManagementGroupPolicyExemption_basic(t *testing.T) {
 func TestAccAzureRMManagementGroupPolicyExemption_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_exemption", "test")
 	r := ManagementGroupPolicyExemptionResource{}
-	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
+	endDate := data.RandomTimeInFuture(24 * time.Hour).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,7 +55,7 @@ func TestAccAzureRMManagementGroupPolicyExemption_complete(t *testing.T) {
 func TestAccAzureRMManagementGroupPolicyExemption_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_management_group_policy_exemption", "test")
 	r := ManagementGroupPolicyExemptionResource{}
-	endDate := time.Now().UTC().Add(time.Hour * 24).Format(time.RFC3339)
+	endDate := data.RandomTimeInFuture(24 * time.Hour).Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
