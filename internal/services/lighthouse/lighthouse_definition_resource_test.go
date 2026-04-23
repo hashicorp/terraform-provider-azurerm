@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/managedservices/2022-10-01/registrationdefinitions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -32,10 +31,11 @@ func TestAccLighthouseDefinition_basic(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(uuid.New().String(), secondTenantID, principalID, data),
+			Config: r.basic(id, secondTenantID, principalID, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -55,7 +55,7 @@ func TestAccLighthouseDefinition_requiresImport(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -82,10 +82,11 @@ func TestAccLighthouseDefinition_complete(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.complete(uuid.New().String(), secondTenantID, principalID, data),
+			Config: r.complete(id, secondTenantID, principalID, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("scope").Exists(),
@@ -106,7 +107,7 @@ func TestAccLighthouseDefinition_update(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
-	id := uuid.New().String()
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -205,10 +206,11 @@ func TestAccLighthouseDefinition_eligibleAuthorization(t *testing.T) {
 
 	data := acceptance.BuildTestData(t, "azurerm_lighthouse_definition", "test")
 	r := LighthouseDefinitionResource{}
+	id := data.RandomUUID()
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.eligibleAuthorization(uuid.New().String(), secondTenantID, principalID, data),
+			Config: r.eligibleAuthorization(id, secondTenantID, principalID, data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
