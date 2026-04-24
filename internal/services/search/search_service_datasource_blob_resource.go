@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	searchSchema "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/schema"
 	searchValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/search/validate"
@@ -25,16 +26,16 @@ type SearchServiceDatasourceBlobResource struct{}
 var _ sdk.ResourceWithUpdate = SearchServiceDatasourceBlobResource{}
 
 type SearchServiceDatasourceBlobModel struct {
-	Name                  string                                            `tfschema:"name"`
-	SearchServiceEndpoint string                                            `tfschema:"search_service_endpoint"`
-	ContainerName         string                                            `tfschema:"container_name"`
-	ConnectionString      string                                            `tfschema:"connection_string"`
-	Description           string                                            `tfschema:"description"`
-	ContainerQuery        string                                            `tfschema:"container_query"`
-	SoftDeleteColumnName  string                                            `tfschema:"soft_delete_column_name"`
-	SoftDeleteMarkerValue string                                            `tfschema:"soft_delete_marker_value"`
-	EncryptionKey         []searchSchema.SearchDatasourceEncryptionKeyModel `tfschema:"encryption_key"`
-	Etag                  string                                            `tfschema:"etag"`
+	Name                      string                                            `tfschema:"name"`
+	SearchServiceEndpoint     string                                            `tfschema:"search_service_endpoint"`
+	ContainerName             string                                            `tfschema:"container_name"`
+	ConnectionString          string                                            `tfschema:"connection_string"`
+	ConnectionStringWOVersion int64                                             `tfschema:"connection_string_wo_version"`
+	Description               string                                            `tfschema:"description"`
+	ContainerQuery            string                                            `tfschema:"container_query"`
+	SoftDeleteColumnName      string                                            `tfschema:"soft_delete_column_name"`
+	SoftDeleteMarkerValue     string                                            `tfschema:"soft_delete_marker_value"`
+	EncryptionKey             []searchSchema.SearchDatasourceEncryptionKeyModel `tfschema:"encryption_key"`
 }
 
 func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.Schema {
@@ -57,10 +58,28 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 		},
 
 		"connection_string": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			Sensitive:    true,
-			ValidateFunc: searchValidate.SearchDatasourceStorageConnectionString,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Sensitive:     true,
+			ValidateFunc:  searchValidate.SearchDatasourceStorageConnectionString,
+			ConflictsWith: []string{"connection_string_wo"},
+			AtLeastOneOf:  []string{"connection_string", "connection_string_wo"},
+		},
+
+		"connection_string_wo": {
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			WriteOnly:     true,
+			ValidateFunc:  searchValidate.SearchDatasourceStorageConnectionString,
+			ConflictsWith: []string{"connection_string"},
+			RequiredWith:  []string{"connection_string_wo_version"},
+			AtLeastOneOf:  []string{"connection_string", "connection_string_wo"},
+		},
+
+		"connection_string_wo_version": {
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			RequiredWith: []string{"connection_string_wo"},
 		},
 
 		"container_name": {
@@ -99,12 +118,7 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 }
 
 func (r SearchServiceDatasourceBlobResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"etag": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-	}
+	return map[string]*pluginsdk.Schema{}
 }
 
 func (r SearchServiceDatasourceBlobResource) ResourceType() string {
@@ -141,6 +155,16 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			woConnectionString, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "connection_string_wo", cty.String)
+			if err != nil {
+				return err
+			}
+
+			connectionString := model.ConnectionString
+			if !woConnectionString.IsNull() {
+				connectionString = woConnectionString.AsString()
+			}
+
 			parameters := datasources.SearchIndexerDataSource{
 				Name: model.Name,
 				Type: datasources.SearchIndexerDataSourceTypeAzureblob,
@@ -148,7 +172,7 @@ func (r SearchServiceDatasourceBlobResource) Create() sdk.ResourceFunc {
 					Name: model.ContainerName,
 				},
 				Credentials: datasources.DataSourceCredentials{
-					ConnectionString: pointer.To(model.ConnectionString),
+					ConnectionString: pointer.To(connectionString),
 				},
 				EncryptionKey: searchSchema.ExpandSearchDatasourceEncryptionKey(model.EncryptionKey),
 			}
@@ -208,8 +232,6 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 				state.ContainerName = respModel.Container.Name
 				state.ContainerQuery = pointer.From(respModel.Container.Query)
 				state.Description = pointer.From(respModel.Description)
-				state.Etag = pointer.From(respModel.OdataEtag)
-
 				if policy, ok := respModel.DataDeletionDetectionPolicy.(datasources.SoftDeleteColumnDeletionDetectionPolicy); ok {
 					state.SoftDeleteColumnName = pointer.From(policy.SoftDeleteColumnName)
 					state.SoftDeleteMarkerValue = pointer.From(policy.SoftDeleteMarkerValue)
@@ -218,9 +240,7 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 				state.EncryptionKey = searchSchema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
 			}
 
-			if v := metadata.ResourceData.Get("connection_string").(string); v != "" {
-				state.ConnectionString = v
-			}
+			state.ConnectionStringWOVersion = int64(metadata.ResourceData.Get("connection_string_wo_version").(int))
 
 			return metadata.Encode(&state)
 		},
@@ -266,6 +286,16 @@ func (r SearchServiceDatasourceBlobResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("connection_string") {
 				existing.Credentials.ConnectionString = pointer.To(state.ConnectionString)
+			}
+
+			if metadata.ResourceData.HasChange("connection_string_wo_version") {
+				woConnectionString, err := pluginsdk.GetWriteOnly(metadata.ResourceData, "connection_string_wo", cty.String)
+				if err != nil {
+					return err
+				}
+				if !woConnectionString.IsNull() {
+					existing.Credentials.ConnectionString = pointer.To(woConnectionString.AsString())
+				}
 			}
 
 			if metadata.ResourceData.HasChange("description") {

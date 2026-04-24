@@ -57,7 +57,11 @@ The following arguments are supported:
 
 * `search_service_endpoint` - (Required) The endpoint of the Search Service in which this Blob Data Source should be created. Changing this forces a new resource to be created.
 
-* `connection_string` - (Required) The connection string to the Azure Blob Storage account.
+* `connection_string` - (Optional) The connection string to the Azure Blob Storage account.
+
+* `connection_string_wo` - (Optional, Write-Only) The connection string to the Azure Blob Storage account.
+
+* `connection_string_wo_version` - (Optional) An integer value used to trigger an update for `connection_string_wo`. This property should be incremented when updating `connection_string_wo`.
 
 * `container_name` - (Required) The name of the Azure Blob Storage container from which to read data.
 
@@ -77,25 +81,21 @@ The following arguments are supported:
 
 An `encryption_key` block supports the following:
 
-* `key_name` - (Required) The name of the Key Vault key used for encryption.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key used for encryption.
 
-* `key_vault_uri` - (Required) The URI of the Key Vault. Must be an HTTPS URL.
+* `client_id` - (Optional) The Client ID of the Microsoft Entra ID application used for authentication.
 
-* `application_id` - (Optional) The Application ID of the Azure Active Directory application used for authentication.
+~> **Note:** `client_id` and `client_secret` must be specified together.
 
-~> **Note:** `application_id` and `application_secret` must be specified together.
+* `client_secret` - (Optional) The Client Secret of the Microsoft Entra ID application used for authentication.
 
-* `application_secret` - (Optional) The Application Secret of the Azure Active Directory application used for authentication.
-
-* `key_version` - (Optional) The version of the Key Vault key.
+-> **Note:** If `client_id` and `client_secret` are not specified, the system-assigned managed identity of the Search Service is used for authentication. User-assigned managed identity is not supported at this time.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Search Service Blob Data Source.
-
-* `etag` - The ETag of the Search Service Blob Data Source.
 
 ## Timeouts
 

@@ -5,18 +5,16 @@ package schema
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/keyvault"
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type SearchDatasourceEncryptionKeyModel struct {
-	KeyName           string `tfschema:"key_name"`
-	KeyVersion        string `tfschema:"key_version"`
-	KeyVaultUri       string `tfschema:"key_vault_uri"`
-	ApplicationId     string `tfschema:"application_id"`
-	ApplicationSecret string `tfschema:"application_secret"`
+	KeyVaultKeyId string `tfschema:"key_vault_key_id"`
+	ClientId      string `tfschema:"client_id"`
+	ClientSecret  string `tfschema:"client_secret"`
 }
 
 func SearchDatasourceEncryptionKeySchema() *pluginsdk.Schema {
@@ -27,37 +25,25 @@ func SearchDatasourceEncryptionKeySchema() *pluginsdk.Schema {
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
-				"key_name": {
+				"key_vault_key_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: keyVaultValidate.NestedItemName,
+					ValidateFunc: keyvault.ValidateNestedItemID(keyvault.VersionTypeAny, keyvault.NestedItemTypeKey),
 				},
 
-				"key_vault_uri": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ValidateFunc: validation.IsURLWithHTTPS,
-				},
-
-				"key_version": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-
-				"application_id": {
+				"client_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ValidateFunc: validation.IsUUID,
-					RequiredWith: []string{"encryption_key.0.application_secret"},
+					RequiredWith: []string{"encryption_key.0.client_secret"},
 				},
 
-				"application_secret": {
+				"client_secret": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					Sensitive:    true,
 					ValidateFunc: validation.StringIsNotEmpty,
-					RequiredWith: []string{"encryption_key.0.application_id"},
+					RequiredWith: []string{"encryption_key.0.client_id"},
 				},
 			},
 		},
@@ -70,16 +56,20 @@ func ExpandSearchDatasourceEncryptionKey(input []SearchDatasourceEncryptionKeyMo
 	}
 
 	ek := input[0]
+	keyVaultKeyId, err := keyvault.ParseNestedItemID(ek.KeyVaultKeyId, keyvault.VersionTypeAny, keyvault.NestedItemTypeKey)
+	if err != nil {
+		return nil
+	}
 	result := &datasources.SearchResourceEncryptionKey{
-		KeyVaultKeyName:    ek.KeyName,
-		KeyVaultKeyVersion: ek.KeyVersion,
-		KeyVaultUri:        ek.KeyVaultUri,
+		KeyVaultKeyName:    keyVaultKeyId.Name,
+		KeyVaultKeyVersion: keyVaultKeyId.Version,
+		KeyVaultUri:        keyVaultKeyId.KeyVaultBaseURL,
 	}
 
-	if ek.ApplicationId != "" {
+	if ek.ClientId != "" {
 		result.AccessCredentials = &datasources.AzureActiveDirectoryApplicationCredentials{
-			ApplicationId:     ek.ApplicationId,
-			ApplicationSecret: pointer.To(ek.ApplicationSecret),
+			ApplicationId:     ek.ClientId,
+			ApplicationSecret: pointer.To(ek.ClientSecret),
 		}
 	}
 
@@ -91,16 +81,19 @@ func FlattenSearchDatasourceEncryptionKey(input *datasources.SearchResourceEncry
 		return []SearchDatasourceEncryptionKeyModel{}
 	}
 
+	keyVaultKeyId, err := keyvault.NewNestedItemID(input.KeyVaultUri, keyvault.NestedItemTypeKey, input.KeyVaultKeyName, input.KeyVaultKeyVersion)
+	if err != nil {
+		return []SearchDatasourceEncryptionKeyModel{}
+	}
+
 	ekModel := SearchDatasourceEncryptionKeyModel{
-		KeyName:     input.KeyVaultKeyName,
-		KeyVersion:  input.KeyVaultKeyVersion,
-		KeyVaultUri: input.KeyVaultUri,
+		KeyVaultKeyId: keyVaultKeyId.ID(),
 	}
 
 	if ac := input.AccessCredentials; ac != nil {
-		ekModel.ApplicationId = ac.ApplicationId
-		if v, ok := d.GetOk("encryption_key.0.application_secret"); ok {
-			ekModel.ApplicationSecret = v.(string)
+		ekModel.ClientId = ac.ApplicationId
+		if v, ok := d.GetOk("encryption_key.0.client_secret"); ok {
+			ekModel.ClientSecret = v.(string)
 		}
 	}
 

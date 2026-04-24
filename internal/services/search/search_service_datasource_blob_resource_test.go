@@ -12,9 +12,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/data-plane/search/2025-09-01/datasources"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -126,9 +130,64 @@ func TestAccSearchServiceDatasourceBlob_encryptionKeyWithAppCredentials(t *testi
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("connection_string", "encryption_key.0.application_secret"),
+		data.ImportStep("connection_string", "encryption_key.0.client_secret"),
 	})
 }
+
+
+func TestAccSearchServiceDatasourceBlob_writeOnlyConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyConnectionString(data, 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("connection_string_wo_version"),
+			{
+				Config: r.writeOnlyConnectionString(data, 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("connection_string_wo_version"),
+		},
+	})
+}
+
+func TestAccSearchServiceDatasourceBlob_updateToWriteOnlyConnectionString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
+	r := SearchServiceDatasourceBlobResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("connection_string"),
+			{
+				Config: r.writeOnlyConnectionString(data, 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("connection_string", "connection_string_wo_version"),
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("connection_string"),
+		},
+	})
+}
+
 
 func (r SearchServiceDatasourceBlobResource) Exists(ctx context.Context, c *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := datasources.ParseDatasourceID(state.ID)
@@ -308,9 +367,7 @@ resource "azurerm_search_service_datasource_blob" "test" {
   connection_string       = azurerm_storage_account.test.primary_connection_string
 
   encryption_key {
-    key_name      = azurerm_key_vault_key.test.name
-    key_version   = azurerm_key_vault_key.test.version
-    key_vault_uri = azurerm_key_vault.test.vault_uri
+    key_vault_key_id = azurerm_key_vault_key.test.id
   }
 
   depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault]
@@ -339,14 +396,66 @@ resource "azurerm_search_service_datasource_blob" "test" {
   connection_string       = azurerm_storage_account.test.primary_connection_string
 
   encryption_key {
-    key_name           = azurerm_key_vault_key.test.name
-    key_version        = azurerm_key_vault_key.test.version
-    key_vault_uri      = azurerm_key_vault.test.vault_uri
-    application_id     = %q
-    application_secret = %q
+    key_vault_key_id = azurerm_key_vault_key.test.id
+    client_id        = %q
+    client_secret    = %q
   }
 
   depends_on = [azurerm_role_assignment.current_user_search, azurerm_role_assignment.search_keyvault, azurerm_role_assignment.app_keyvault]
 }
 `, r.encryptionKeyTemplate(data), data.RandomInteger, appClientId, appClientSecret)
+}
+
+func (r SearchServiceDatasourceBlobResource) writeOnlyConnectionString(data acceptance.TestData, version int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_key_vault" "wo_test" {
+  name                       = "accwotest%s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Get",
+      "Delete",
+      "List",
+      "Purge",
+      "Recover",
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_secret" "wo_test" {
+  name         = "connection-string"
+  value        = azurerm_storage_account.test.primary_connection_string
+  key_vault_id = azurerm_key_vault.wo_test.id
+}
+
+ephemeral "azurerm_key_vault_secret" "wo_test" {
+  name         = azurerm_key_vault_secret.wo_test.name
+  key_vault_id = azurerm_key_vault.wo_test.id
+}
+
+resource "azurerm_search_service_datasource_blob" "test" {
+  name                         = "acctestds%d"
+  search_service_endpoint      = azurerm_search_service.test.endpoint
+  container_name               = azurerm_storage_container.test.name
+  connection_string_wo         = ephemeral.azurerm_key_vault_secret.wo_test.value
+  connection_string_wo_version = %d
+
+  depends_on = [azurerm_role_assignment.current_user_search]
+}
+`, r.template(data), data.RandomString, data.RandomInteger, version)
 }
