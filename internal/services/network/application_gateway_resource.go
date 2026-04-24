@@ -196,12 +196,9 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"cookie_based_affinity": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(applicationgateways.ApplicationGatewayCookieBasedAffinityEnabled),
-								string(applicationgateways.ApplicationGatewayCookieBasedAffinityDisabled),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(applicationgateways.PossibleValuesForApplicationGatewayCookieBasedAffinity(), false),
 						},
 
 						"port": {
@@ -276,13 +273,15 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"host_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
 						"path": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringStartsWithOneOf("/"),
 						},
 
 						"pick_host_name_from_backend_address": {
