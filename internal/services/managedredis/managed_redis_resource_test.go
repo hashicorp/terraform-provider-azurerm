@@ -60,17 +60,6 @@ func TestAccManagedRedis_complete(t *testing.T) {
 		data.ImportStep(),
 	})
 }
-func TestAccManagedRedis_completePreflightPlan(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
-	r := ManagedRedisResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:             r.completePreflightPlan(data),
-			PlanOnly:           true,
-			ExpectNonEmptyPlan: true,
-		},
-	})
-}
 
 func TestAccManagedRedis_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
@@ -300,6 +289,18 @@ func TestAccManagedRedis_recreateDefaultDbForTroubleshooting(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedis_completePreflightPlan(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis", "test")
+	r := ManagedRedisResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:             r.completePreflightPlan(data),
+			PlanOnly:           true,
+			ExpectNonEmptyPlan: true,
+		},
 	})
 }
 

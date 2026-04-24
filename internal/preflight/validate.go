@@ -25,9 +25,13 @@ type ValidationRequest struct {
 }
 
 // NewValidationRequest constructs a new ValidationRequest. It dynamically extracts
-// Provider, Type, and Resource.Type/Resource.Name from the provided resourceId.
-func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersion string, properties any) (ValidationRequest, error) {
-	scope, provider, resourceType, resourceName, err := parseResourceId(id)
+// Resource.Name, Provider, and Scope from the provided resourceId. We require the
+// resourceType (e.g. "redis") explicitly since the validation type may differ from
+// the ARM ID type (e.g., redisEnterprise) due to differing resource types being
+// offered by many namespaces and an incorrect "type" causes the incorrect validation
+// to occur.
+func NewValidationRequest(location *string, id resourceids.ResourceId, resourceType, apiVersion string, properties any) (ValidationRequest, error) {
+	scope, provider, _, resourceName, err := parseResourceId(id)
 	if err != nil {
 		return ValidationRequest{}, fmt.Errorf("parsing resource ID for preflight validation: %w", err)
 	}
@@ -36,12 +40,12 @@ func NewValidationRequest(location *string, id resourceids.ResourceId, apiVersio
 		Location:   location,
 		Provider:   provider,
 		ResourceId: id,
-		Type:       strings.TrimPrefix(resourceType, provider+"/"),
+		Type:       resourceType,
 		Scope:      scope,
 		Resource: preflightvalidation.ResourceValidationRequestResource{
 			ApiVersion: apiVersion,
 			Name:       resourceName,
-			Type:       resourceType,
+			Type:       fmt.Sprintf("%s/%s", provider, resourceType),
 			Properties: properties,
 		},
 	}, nil
@@ -108,15 +112,18 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 
 	for i := providerIdx + 1; i < len(segments); i++ {
 		s := segments[i]
-		if s.Type == resourceids.ConstantSegmentType || s.Type == resourceids.StaticSegmentType {
-			if val, ok := parsed.SegmentNamed(s.Name, true); ok && val != nil {
+		switch s.Type {
+		case resourceids.ConstantSegmentType, resourceids.StaticSegmentType:
+			val, ok := parsed.SegmentNamed(s.Name, true)
+			switch {
+			case ok && val != nil:
 				typeSegs = append(typeSegs, *val)
-			} else if s.FixedValue != nil {
+			case s.FixedValue != nil:
 				typeSegs = append(typeSegs, *s.FixedValue)
-			} else if s.PossibleValues != nil && len(*s.PossibleValues) > 0 {
+			case s.PossibleValues != nil && len(*s.PossibleValues) > 0:
 				typeSegs = append(typeSegs, (*s.PossibleValues)[0])
 			}
-		} else if s.Type == resourceids.UserSpecifiedSegmentType {
+		case resourceids.UserSpecifiedSegmentType:
 			if val, ok := parsed.SegmentNamed(s.Name, true); ok && val != nil {
 				nameSegs = append(nameSegs, *val)
 			}
@@ -139,11 +146,13 @@ func parseResourceId(id resourceids.ResourceId) (scope, provider, resourceType, 
 
 	for i := 0; i < cutOffIndex; i++ {
 		s := segments[i]
-		if val, ok := parsed.SegmentNamed(s.Name, true); ok && val != nil {
+		val, ok := parsed.SegmentNamed(s.Name, true)
+		switch {
+		case ok && val != nil:
 			scopeSegments = append(scopeSegments, *val)
-		} else if s.FixedValue != nil {
+		case s.FixedValue != nil:
 			scopeSegments = append(scopeSegments, *s.FixedValue)
-		} else if s.PossibleValues != nil && len(*s.PossibleValues) > 0 {
+		case s.PossibleValues != nil && len(*s.PossibleValues) > 0:
 			scopeSegments = append(scopeSegments, (*s.PossibleValues)[0])
 		}
 	}
