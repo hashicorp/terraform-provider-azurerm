@@ -63,38 +63,78 @@ func dataSourceStorageAccountBlobContainerSharedAccessSignature() *pluginsdk.Res
 
 			"permissions": {
 				Type:     pluginsdk.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"read": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"add": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"create": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"write": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 
 						"delete": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
+						},
+
+						"delete_version": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 
 						"list": {
 							Type:     pluginsdk.TypeBool,
-							Required: true,
+							Optional: true,
+						},
+
+						"tags": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"find": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"move": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"execute": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"ownership": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"permissions": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"set_immutability_policy": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -150,7 +190,10 @@ func dataSourceStorageContainerSasRead(d *pluginsdk.ResourceData, _ interface{})
 	contentLanguage := d.Get("content_language").(string)
 	contentType := d.Get("content_type").(string)
 
-	permissions := BuildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
+	permissions := ""
+	if len(permissionsIface) > 0 && permissionsIface[0] != nil {
+		permissions = BuildContainerPermissionsString(permissionsIface[0].(map[string]interface{}))
+	}
 
 	// Parse the connection string
 	kvp, err := storage.ParseAccountSASConnectionString(connString)
@@ -184,30 +227,32 @@ func dataSourceStorageContainerSasRead(d *pluginsdk.ResourceData, _ interface{})
 }
 
 func BuildContainerPermissionsString(perms map[string]interface{}) string {
+	orderedPermissions := []struct {
+		name   string
+		letter string
+	}{
+		{"read", "r"},
+		{"add", "a"},
+		{"create", "c"},
+		{"write", "w"},
+		{"delete", "d"},
+		{"delete_version", "x"},
+		{"list", "l"},
+		{"tags", "t"},
+		{"find", "f"},
+		{"move", "m"},
+		{"execute", "e"},
+		{"ownership", "o"},
+		{"permissions", "p"},
+		{"set_immutability_policy", "i"},
+	}
+
 	retVal := ""
 
-	if val, pres := perms["read"].(bool); pres && val {
-		retVal += "r"
-	}
-
-	if val, pres := perms["add"].(bool); pres && val {
-		retVal += "a"
-	}
-
-	if val, pres := perms["create"].(bool); pres && val {
-		retVal += "c"
-	}
-
-	if val, pres := perms["write"].(bool); pres && val {
-		retVal += "w"
-	}
-
-	if val, pres := perms["delete"].(bool); pres && val {
-		retVal += "d"
-	}
-
-	if val, pres := perms["list"].(bool); pres && val {
-		retVal += "l"
+	for _, perm := range orderedPermissions {
+		if val, pres := perms[perm.name].(bool); pres && val {
+			retVal += perm.letter
+		}
 	}
 
 	return retVal
