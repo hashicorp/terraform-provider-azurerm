@@ -1612,7 +1612,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
-    revisions                        = ["asm-1-26"]
+    revisions                        = ["asm-1-28"]
   }
 
 }
