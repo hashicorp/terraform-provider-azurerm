@@ -43,7 +43,7 @@ resource "azurerm_search_service_datasource_blob" "example" {
   name                    = "example-search-service-datasource-blob"
   search_service_endpoint = azurerm_search_service.example.endpoint
   container_name          = azurerm_storage_container.example.name
-  connection_string_wo       = azurerm_storage_account.example.primary_connection_string
+  connection_string_wo    = azurerm_storage_account.example.primary_connection_string
 }
 ```
 

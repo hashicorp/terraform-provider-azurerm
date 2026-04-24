@@ -134,7 +134,6 @@ func TestAccSearchServiceDatasourceBlob_encryptionKeyWithAppCredentials(t *testi
 	})
 }
 
-
 func TestAccSearchServiceDatasourceBlob_writeOnlyConnectionString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_search_service_datasource_blob", "test")
 	r := SearchServiceDatasourceBlobResource{}
@@ -187,7 +186,6 @@ func TestAccSearchServiceDatasourceBlob_updateToWriteOnlyConnectionString(t *tes
 		},
 	})
 }
-
 
 func (r SearchServiceDatasourceBlobResource) Exists(ctx context.Context, c *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := datasources.ParseDatasourceID(state.ID)
