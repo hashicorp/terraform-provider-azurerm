@@ -1,6 +1,7 @@
 ## 4.71.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `storage` - update API version to `2025-08-01` [GH-32218]
 
 FEATURES:
 
