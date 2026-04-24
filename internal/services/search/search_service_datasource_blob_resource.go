@@ -240,6 +240,7 @@ func (r SearchServiceDatasourceBlobResource) Read() sdk.ResourceFunc {
 				state.EncryptionKey = searchSchema.FlattenSearchDatasourceEncryptionKey(respModel.EncryptionKey, metadata.ResourceData)
 			}
 
+			state.ConnectionString = metadata.ResourceData.Get("connection_string").(string)
 			state.ConnectionStringWOVersion = int64(metadata.ResourceData.Get("connection_string_wo_version").(int))
 
 			return metadata.Encode(&state)
