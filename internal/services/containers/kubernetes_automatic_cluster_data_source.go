@@ -928,7 +928,7 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 
 			var state KubernetesAutomaticClusterDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
+				return fmt.Errorf("decoding: %w", err)
 			}
 
 			id := commonids.NewKubernetesClusterID(subscriptionId, state.ResourceGroupName, state.Name)
@@ -938,12 +938,12 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)
 				}
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %w", id, err)
 			}
 
 			userCredentialsResp, err := client.ListClusterUserCredentials(ctx, id, managedclusters.ListClusterUserCredentialsOperationOptions{})
 			if err != nil && !response.WasStatusCode(userCredentialsResp.HttpResponse, http.StatusForbidden) {
-				return fmt.Errorf("retrieving User Credentials for %s: %+v", id, err)
+				return fmt.Errorf("retrieving User Credentials for %s: %w", id, err)
 			}
 
 			metadata.SetID(id)
@@ -1015,7 +1015,7 @@ func (KubernetesAutomaticClusterDataSource) Read() sdk.ResourceFunc {
 				if model.Properties != nil && model.Properties.IdentityProfile != nil {
 					kubeletIdentity, err := flattenKubernetesAutomaticClusterDataSourceIdentityProfile(model.Properties.IdentityProfile)
 					if err != nil {
-						return fmt.Errorf("flattening `kubelet_identity`: %+v", err)
+						return fmt.Errorf("flattening `kubelet_identity`: %w", err)
 					}
 					state.KubeletIdentity = kubeletIdentity
 				}

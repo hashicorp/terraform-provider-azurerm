@@ -75,7 +75,7 @@ func validateNodePoolAutomaticSupportsVersion(ctx context.Context, client *clien
 	clusterId := commonids.NewKubernetesClusterID(defaultNodePoolId.SubscriptionId, defaultNodePoolId.ResourceGroupName, defaultNodePoolId.ManagedClusterName)
 	resp, err := client.AgentPoolsClient.GetAvailableAgentPoolVersions(ctx, clusterId)
 	if err != nil {
-		return fmt.Errorf("retrieving Available Agent Pool Versions for %s: %+v", defaultNodePoolId, err)
+		return fmt.Errorf("retrieving Available Agent Pool Versions for %s: %w", defaultNodePoolId, err)
 	}
 	versionExists := false
 	supportedVersions := make([]string, 0)
@@ -106,7 +106,7 @@ func validateNodePoolAutomaticSupportsVersion(ctx context.Context, client *clien
 		cluster, err := client.KubernetesClustersClient.Get(ctx, clusterId)
 		if err != nil {
 			if !response.WasStatusCode(cluster.HttpResponse, http.StatusUnauthorized) {
-				return fmt.Errorf("retrieving %s: %+v", clusterId, err)
+				return fmt.Errorf("retrieving %s: %w", clusterId, err)
 			}
 		}
 

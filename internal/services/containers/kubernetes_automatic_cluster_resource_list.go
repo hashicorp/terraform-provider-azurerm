@@ -1,4 +1,4 @@
-// Copyright IBM Corp.
+// Copyright IBM Corp. 2014, 2025
 // SPDX-License-Identifier: MPL-2.0
 
 package containers
@@ -82,7 +82,7 @@ func (KubernetesAutomaticClusterListResource) List(ctx context.Context, request 
 
 			id, err := commonids.ParseKubernetesClusterIDInsensitively(pointer.From(item.Id))
 			if err != nil {
-				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Example ID", err)
+				sdk.SetErrorDiagnosticAndPushListResult(result, push, "parsing Kubernetes Cluster ID", err)
 				return
 			}
 
