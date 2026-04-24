@@ -57,6 +57,12 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			ValidateFunc: validation.IsURLWithHTTPS,
 		},
 
+		"container_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: storageValidate.StorageContainerName,
+		},
+
 		"connection_string": {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
@@ -80,12 +86,6 @@ func (r SearchServiceDatasourceBlobResource) Arguments() map[string]*pluginsdk.S
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			RequiredWith: []string{"connection_string_wo"},
-		},
-
-		"container_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: storageValidate.StorageContainerName,
 		},
 
 		"container_query": {
