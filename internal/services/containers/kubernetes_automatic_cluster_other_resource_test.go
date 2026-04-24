@@ -399,8 +399,6 @@ func TestAccKubernetesAutomaticCluster_upgradeChannel(t *testing.T) {
 
 	nodeOsUpgradeChannel := "node_os_upgrade_channel"
 
-	// Note: Automatic clusters only support "stable" for automatic_upgrade_channel
-	// Other values like "rapid", "patch", "node-image", and "" (none) are not allowed
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.upgradeChannelConfig(data, olderKubernetesAutomaticVersion),
@@ -3028,7 +3026,7 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
   default_node_pool {
     name         = "default"
     node_count   = 1
-    vm_size      = "Standard_NC24ads_A100_v4"
+    vm_size      = "Standard_NC12s_v3"
     gpu_instance = "MIG1g"
     gpu_driver   = "Install"
     upgrade_settings {

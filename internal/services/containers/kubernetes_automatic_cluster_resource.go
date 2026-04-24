@@ -39,61 +39,50 @@ import (
 )
 
 type KubernetesAutomaticClusterModel struct {
-	Name                   string                        `tfschema:"name"`
-	Location               string                        `tfschema:"location"`
-	ResourceGroupName      string                        `tfschema:"resource_group_name"`
-	APIServerAccessProfile []APIServerAccessProfileModel `tfschema:"api_server_access_profile"`
-	// AutomaticUpgradeChannel         string                              `tfschema:"automatic_upgrade_channel"`
-	AutoScalerProfile               []AutoScalerProfileModel        `tfschema:"auto_scaler_profile"`
-	AzureActiveDirectoryRBAC        []AzureActiveDirectoryRBACModel `tfschema:"azure_active_directory_role_based_access_control"`
-	BootstrapProfile                []BootstrapProfileModel         `tfschema:"bootstrap_profile"`
-	CostAnalysisEnabled             bool                            `tfschema:"cost_analysis_enabled"`
-	CustomCATrustCertificatesBase64 []string                        `tfschema:"custom_ca_trust_certificates_base64"`
-	DefaultNodePool                 []DefaultNodePoolModel          `tfschema:"default_node_pool"`
-	DiskEncryptionSetID             string                          `tfschema:"disk_encryption_set_id"`
-	DNSPrefix                       string                          `tfschema:"dns_prefix"`
-	DNSPrefixPrivateCluster         string                          `tfschema:"dns_prefix_private_cluster"`
-	// EdgeZone                        string                          `tfschema:"edge_zone"`
-	HTTPProxyConfig []HTTPProxyConfigModel `tfschema:"http_proxy_config"`
-	Identity        []IdentityModel        `tfschema:"identity"`
-	// ImageCleanerEnabled             bool                                `tfschema:"image_cleaner_enabled"`
-	ImageCleanerIntervalHours    int64                               `tfschema:"image_cleaner_interval_hours"`
-	KeyManagementService         []KeyManagementServiceModel         `tfschema:"key_management_service"`
-	KubeletIdentity              []KubeletIdentityModel              `tfschema:"kubelet_identity"`
-	KubernetesVersion            string                              `tfschema:"kubernetes_version"`
-	LinuxProfile                 []LinuxProfileModel                 `tfschema:"linux_profile"`
-	MaintenanceWindow            []MaintenanceWindowModel            `tfschema:"maintenance_window"`
-	MaintenanceWindowAutoUpgrade []MaintenanceWindowAutoUpgradeModel `tfschema:"maintenance_window_auto_upgrade"`
-	MaintenanceWindowNodeOS      []MaintenanceWindowNodeOSModel      `tfschema:"maintenance_window_node_os"`
-	MicrosoftDefender            []MicrosoftDefenderModel            `tfschema:"microsoft_defender"`
-	MonitorMetrics               []MonitorMetricsModel               `tfschema:"monitor_metrics"`
-	NetworkProfile               []NetworkProfileModel               `tfschema:"network_profile"`
-	NodeOSUpgradeChannel         string                              `tfschema:"node_os_upgrade_channel"`
-	NodeProvisioningProfile      []NodeProvisioningProfileModel      `tfschema:"node_provisioning_profile"`
-	NodeResourceGroup            string                              `tfschema:"node_resource_group"`
-	// OIDCIssuerEnabled               bool                                `tfschema:"oidc_issuer_enabled"`
-	PrivateClusterEnabled           bool   `tfschema:"private_cluster_enabled"`
-	PrivateClusterPublicFQDNEnabled bool   `tfschema:"private_cluster_public_fqdn_enabled"`
-	PrivateDNSZoneID                string `tfschema:"private_dns_zone_id"`
-	// RoleBasedAccessControlEnabled   bool                      `tfschema:"role_based_access_control_enabled"`
-	RunCommandEnabled  bool                      `tfschema:"run_command_enabled"`
-	ServiceMeshProfile []ServiceMeshProfileModel `tfschema:"service_mesh_profile"`
-	// ServicePrincipal   []ServicePrincipalModel   `tfschema:"service_principal"`
-	// SKUTier                         string                              `tfschema:"sku_tier"`
-	// SKUName                         string                              `tfschema:"sku_name"`
-	StorageProfile  []StorageProfileModel  `tfschema:"storage_profile"`
-	SupportPlan     string                 `tfschema:"support_plan"`
-	Tags            map[string]interface{} `tfschema:"tags"`
-	UpgradeOverride []UpgradeOverrideModel `tfschema:"upgrade_override"`
-	WebAppRouting   []WebAppRoutingModel   `tfschema:"web_app_routing"`
-	WindowsProfile  []WindowsProfileModel  `tfschema:"windows_profile"`
-	// WorkloadAutoscalerProfile  []WorkloadAutoscalerProfileModel `tfschema:"workload_autoscaler_profile"`
-	AIToolchainOperatorEnabled bool `tfschema:"ai_toolchain_operator_enabled"`
-	// WorkloadIdentityEnabled    bool                             `tfschema:"workload_identity_enabled"`
+	Name                            string                              `tfschema:"name"`
+	Location                        string                              `tfschema:"location"`
+	ResourceGroupName               string                              `tfschema:"resource_group_name"`
+	APIServerAccessProfile          []APIServerAccessProfileModel       `tfschema:"api_server_access_profile"`
+	AutoScalerProfile               []AutoScalerProfileModel            `tfschema:"auto_scaler_profile"`
+	AzureActiveDirectoryRBAC        []AzureActiveDirectoryRBACModel     `tfschema:"azure_active_directory_role_based_access_control"`
+	BootstrapProfile                []BootstrapProfileModel             `tfschema:"bootstrap_profile"`
+	CostAnalysisEnabled             bool                                `tfschema:"cost_analysis_enabled"`
+	CustomCATrustCertificatesBase64 []string                            `tfschema:"custom_ca_trust_certificates_base64"`
+	DefaultNodePool                 []DefaultNodePoolModel              `tfschema:"default_node_pool"`
+	DiskEncryptionSetID             string                              `tfschema:"disk_encryption_set_id"`
+	DNSPrefix                       string                              `tfschema:"dns_prefix"`
+	DNSPrefixPrivateCluster         string                              `tfschema:"dns_prefix_private_cluster"`
+	HTTPProxyConfig                 []HTTPProxyConfigModel              `tfschema:"http_proxy_config"`
+	Identity                        []IdentityModel                     `tfschema:"identity"`
+	ImageCleanerIntervalHours       int64                               `tfschema:"image_cleaner_interval_hours"`
+	KeyManagementService            []KeyManagementServiceModel         `tfschema:"key_management_service"`
+	KubeletIdentity                 []KubeletIdentityModel              `tfschema:"kubelet_identity"`
+	KubernetesVersion               string                              `tfschema:"kubernetes_version"`
+	LinuxProfile                    []LinuxProfileModel                 `tfschema:"linux_profile"`
+	MaintenanceWindow               []MaintenanceWindowModel            `tfschema:"maintenance_window"`
+	MaintenanceWindowAutoUpgrade    []MaintenanceWindowAutoUpgradeModel `tfschema:"maintenance_window_auto_upgrade"`
+	MaintenanceWindowNodeOS         []MaintenanceWindowNodeOSModel      `tfschema:"maintenance_window_node_os"`
+	MicrosoftDefender               []MicrosoftDefenderModel            `tfschema:"microsoft_defender"`
+	MonitorMetrics                  []MonitorMetricsModel               `tfschema:"monitor_metrics"`
+	NetworkProfile                  []NetworkProfileModel               `tfschema:"network_profile"`
+	NodeOSUpgradeChannel            string                              `tfschema:"node_os_upgrade_channel"`
+	NodeProvisioningProfile         []NodeProvisioningProfileModel      `tfschema:"node_provisioning_profile"`
+	NodeResourceGroup               string                              `tfschema:"node_resource_group"`
+	PrivateClusterEnabled           bool                                `tfschema:"private_cluster_enabled"`
+	PrivateClusterPublicFQDNEnabled bool                                `tfschema:"private_cluster_public_fqdn_enabled"`
+	PrivateDNSZoneID                string                              `tfschema:"private_dns_zone_id"`
+	RunCommandEnabled               bool                                `tfschema:"run_command_enabled"`
+	ServiceMeshProfile              []ServiceMeshProfileModel           `tfschema:"service_mesh_profile"`
+	StorageProfile                  []StorageProfileModel               `tfschema:"storage_profile"`
+	SupportPlan                     string                              `tfschema:"support_plan"`
+	Tags                            map[string]interface{}              `tfschema:"tags"`
+	UpgradeOverride                 []UpgradeOverrideModel              `tfschema:"upgrade_override"`
+	WebAppRouting                   []WebAppRoutingModel                `tfschema:"web_app_routing"`
+	WindowsProfile                  []WindowsProfileModel               `tfschema:"windows_profile"`
+	AIToolchainOperatorEnabled      bool                                `tfschema:"ai_toolchain_operator_enabled"`
 
 	// Addon fields
-	ACIConnectorLinux []ACIConnectorLinuxModel `tfschema:"aci_connector_linux"`
-	// AzurePolicyEnabled            bool                             `tfschema:"azure_policy_enabled"`
+	ACIConnectorLinux             []ACIConnectorLinuxModel         `tfschema:"aci_connector_linux"`
 	ConfidentialComputing         []ConfidentialComputingModel     `tfschema:"confidential_computing"`
 	HTTPApplicationRoutingEnabled bool                             `tfschema:"http_application_routing_enabled"`
 	IngressApplicationGateway     []IngressApplicationGatewayModel `tfschema:"ingress_application_gateway"`
@@ -123,8 +112,7 @@ type IdentityModel struct {
 
 type APIServerAccessProfileModel struct {
 	AuthorizedIPRanges []string `tfschema:"authorized_ip_ranges"`
-	// VirtualNetworkIntegrationEnabled bool     `tfschema:"virtual_network_integration_enabled"`
-	SubnetID string `tfschema:"subnet_id"`
+	SubnetID           string   `tfschema:"subnet_id"`
 }
 
 type AutoScalerProfileModel struct {
@@ -151,8 +139,7 @@ type AutoScalerProfileModel struct {
 }
 
 type AzureActiveDirectoryRBACModel struct {
-	TenantID string `tfschema:"tenant_id"`
-	// AzureRBACEnabled    bool     `tfschema:"azure_rbac_enabled"`
+	TenantID            string   `tfschema:"tenant_id"`
 	AdminGroupObjectIDs []string `tfschema:"admin_group_object_ids"`
 }
 
@@ -240,10 +227,8 @@ type MonitorMetricsModel struct {
 }
 
 type NetworkProfileModel struct {
-	// NetworkPlugin       string                     `tfschema:"network_plugin"`
-	NetworkPluginMode string `tfschema:"network_plugin_mode"`
-	NetworkPolicy     string `tfschema:"network_policy"`
-	// NetworkDataPlane    string                     `tfschema:"network_data_plane"`
+	NetworkPluginMode   string                     `tfschema:"network_plugin_mode"`
+	NetworkPolicy       string                     `tfschema:"network_policy"`
 	NetworkMode         string                     `tfschema:"network_mode"`
 	DNSServiceIP        string                     `tfschema:"dns_service_ip"`
 	PodCIDR             string                     `tfschema:"pod_cidr"`
@@ -280,7 +265,6 @@ type AdvancedNetworkingModel struct {
 }
 
 type NodeProvisioningProfileModel struct {
-	// Mode             string `tfschema:"mode"`
 	DefaultNodePools string `tfschema:"default_node_pools"`
 }
 
@@ -299,11 +283,6 @@ type CertificateAuthorityModel struct {
 	CertChainObjectName string `tfschema:"cert_chain_object_name"`
 	KeyObjectName       string `tfschema:"key_object_name"`
 }
-
-// type ServicePrincipalModel struct {
-//	ClientID     string `tfschema:"client_id"`
-//	ClientSecret string `tfschema:"client_secret"`
-// }
 
 type StorageProfileModel struct {
 	BlobDriverEnabled         bool `tfschema:"blob_driver_enabled"`
@@ -341,11 +320,6 @@ type GMSAModel struct {
 	RootDomain         string `tfschema:"root_domain"`
 	GMSAProfileEnabled bool   `tfschema:"gmsa_profile_enabled"`
 }
-
-// type WorkloadAutoscalerProfileModel struct {
-// 	KEDAEnabled                  bool `tfschema:"keda_enabled"`
-// 	VerticalPodAutoscalerEnabled bool `tfschema:"vertical_pod_autoscaler_enabled"`
-// }
 
 type KubeConfigModel struct {
 	Host                 string `tfschema:"host"`
@@ -412,15 +386,6 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 					}
 				}
 
-				// Migration of `identity` to `service_principal` is not allowed
-				// if rd.HasChange("service_principal.0.client_id") {
-				//	old, _ := rd.GetChange("service_principal.0.client_id")
-				//	oldStr := old.(string)
-				//	if oldStr == "msi" || oldStr == "" {
-				//		return fmt.Errorf("changing `service_principal.client_id` from MSI requires recreation")
-				//	}
-				// }
-
 				// Check windows_profile gmsa changes
 				if rd.HasChange("windows_profile.0.gmsa") {
 					old, new := rd.GetChange("windows_profile.0.gmsa")
@@ -476,29 +441,11 @@ func (r KubernetesAutomaticClusterResource) CustomizeDiff() sdk.ResourceFunc {
 						}
 					}
 				}
-
-				// Check pod_cidr changes
-				if rd.HasChange("network_profile.0.pod_cidr") {
-					old, _ := rd.GetChange("network_profile.0.pod_cidr")
-					if old.(string) != "" {
-						return fmt.Errorf("changing `network_profile.pod_cidr` requires recreation")
-					}
-				}
-
-				// Check pod_cidrs changes
-				if rd.HasChange("network_profile.0.pod_cidrs") {
-					old, _ := rd.GetChange("network_profile.0.pod_cidrs")
-					oldList := old.([]interface{})
-					if len(oldList) > 0 {
-						return fmt.Errorf("changing `network_profile.pod_cidrs` requires recreation")
-					}
-				}
 			}
 
 			// Validate outbound_type and bootstrap_profile artifact_source
 			outboundType := rd.Get("network_profile.0.outbound_type").(string)
 			artifactSource := rd.Get("bootstrap_profile.0.artifact_source").(string)
-
 			if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
 				return fmt.Errorf("when `network_profile.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
 			}
@@ -543,13 +490,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// "mode": {
-					// 	Type:         pluginsdk.TypeString,
-					// 	Optional:     true,
-					// 	Default:      managedclusters.NodeProvisioningModeAuto,
-					//	ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
-					//	AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
-					// },
 					"default_node_pools": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -591,25 +531,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ForceNew: true,
 		},
 
-		// "sku_tier": {
-		// 	Type:     pluginsdk.TypeString,
-		// 	Optional: true,
-		// 	Default:  string(managedclusters.ManagedClusterSKUTierStandard),
-		//	ValidateFunc: validation.StringInSlice([]string{
-		//		string(managedclusters.ManagedClusterSKUTierStandard),
-		//		string(managedclusters.ManagedClusterSKUTierPremium),
-		//	}, false),
-		// },
-
-		// "sku_name": {
-		// 	Type:     pluginsdk.TypeString,
-		// 	Optional: true,
-		// 	Default:  string(managedclusters.ManagedClusterSKUNameAutomatic),
-		//	ValidateFunc: validation.StringInSlice([]string{
-		//		string(managedclusters.ManagedClusterSKUNameAutomatic),
-		//	}, false),
-		// },
-
 		"disk_encryption_set_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -617,18 +538,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			ValidateFunc: computeValidate.DiskEncryptionSetID,
 		},
 
-		// "edge_zone": commonschema.EdgeZoneOptionalForceNew(),
-
 		"tags": commonschema.Tags(),
-
-		// "automatic_upgrade_channel": {
-		// 	Type:     pluginsdk.TypeString,
-		// 	Optional: true,
-		// 	ValidateFunc: validation.StringInSlice([]string{
-		//		string(managedclusters.UpgradeChannelStable),
-		//	}, false),
-		//	Default: string(managedclusters.UpgradeChannelStable),
-		// },
 
 		"node_os_upgrade_channel": {
 			Type:     pluginsdk.TypeString,
@@ -658,24 +568,12 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		// "image_cleaner_enabled": {
-		// 	Type:     pluginsdk.TypeBool,
-		// 	Optional: true,
-		// 	Default:  true,
-		// },
-
 		"image_cleaner_interval_hours": {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(168, 2160),
 			Default:      168,
+			ValidateFunc: validation.IntBetween(168, 2160),
 		},
-
-		// "oidc_issuer_enabled": {
-		// 	Type:     pluginsdk.TypeBool,
-		// 	Optional: true,
-		// 	Default:  true,
-		// },
 
 		"private_cluster_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -704,13 +602,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			),
 		},
 
-		// "role_based_access_control_enabled": {
-		// 	Type:     pluginsdk.TypeBool,
-		// 	Optional: true,
-		// 	Default:  true,
-		//	ForceNew: true,
-		// },
-
 		"run_command_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -733,35 +624,7 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			Default:  false,
 		},
 
-		// "workload_identity_enabled": {
-		// 	Type:     pluginsdk.TypeBool,
-		// 	Optional: true,
-		// 	Default:  true,
-		// },
-
 		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
-
-		// "service_principal": {
-		//	Type:         pluginsdk.TypeList,
-		//	Optional:     true,
-		//	ExactlyOneOf: []string{"identity", "service_principal"},
-		//	MaxItems:     1,
-		//	Elem: &pluginsdk.Resource{
-		//		Schema: map[string]*pluginsdk.Schema{
-		//			"client_id": {
-		//				Type:         pluginsdk.TypeString,
-		//				Required:     true,
-		//				ValidateFunc: containerValidate.ClientID,
-		//			},
-		//			"client_secret": {
-		//				Type:         pluginsdk.TypeString,
-		//				Required:     true,
-		//				Sensitive:    true,
-		//				ValidateFunc: validation.StringIsNotEmpty,
-		//			},
-		//		},
-		//	},
-		// },
 
 		"kubelet_identity": {
 			Type:     pluginsdk.TypeList,
@@ -827,11 +690,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							"azure_active_directory_role_based_access_control.0.admin_group_object_ids",
 						},
 					},
-					// "azure_rbac_enabled": {
-					// 	Type:     pluginsdk.TypeBool,
-					// 	Optional: true,
-					// 	Default:  true,
-					// },
 					"admin_group_object_ids": {
 						Type:     pluginsdk.TypeList,
 						Optional: true,
@@ -864,10 +722,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 							ValidateFunc: validate.CIDR,
 						},
 					},
-					// "virtual_network_integration_enabled": {
-					// 	Type:     pluginsdk.TypeBool,
-					// 	Optional: true,
-					// },
 					"subnet_id": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
@@ -915,17 +769,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// "network_plugin": {
-					// 	Type:     pluginsdk.TypeString,
-					// 	Optional: true,
-					// 	ForceNew: true,
-					//	Default:  managedclusters.NetworkPluginAzure,
-					//	ValidateFunc: validation.StringInSlice([]string{
-					//		string(managedclusters.NetworkPluginAzure),
-					//		string(managedclusters.NetworkPluginKubenet),
-					//		string(managedclusters.NetworkPluginNone),
-					//	}, false),
-					// },
 					"network_mode": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -952,14 +795,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 						ForceNew:     true,
 						ValidateFunc: validate.IPv4Address,
 					},
-					// "network_data_plane": {
-					// 	Type:     pluginsdk.TypeString,
-					// 	Optional: true,
-					// 	Default:  string(managedclusters.NetworkDataplaneCilium),
-					//	ValidateFunc: validation.StringInSlice(
-					//		managedclusters.PossibleValuesForNetworkDataplane(),
-					//		false),
-					// },
 					"network_plugin_mode": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -1823,27 +1658,6 @@ func (r KubernetesAutomaticClusterResource) Arguments() map[string]*pluginsdk.Sc
 			},
 		},
 
-		// "workload_autoscaler_profile": {
-		// 	Type:     pluginsdk.TypeList,
-		// 	Optional: true,
-		// 	Computed: true,
-		//	MaxItems: 1,
-		//	Elem: &pluginsdk.Resource{
-		//		Schema: map[string]*pluginsdk.Schema{
-		//			"keda_enabled": {
-		//				Type:     pluginsdk.TypeBool,
-		//				Optional: true,
-		//				Default:  true,
-		//			},
-		//			"vertical_pod_autoscaler_enabled": {
-		//				Type:     pluginsdk.TypeBool,
-		//				Optional: true,
-		//				Computed: true,
-		//			},
-		//		},
-		//	},
-		// },
-
 		"upgrade_override": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -2047,8 +1861,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding network profile: %+v", err)
 			}
 
-			// workloadAutoscalerProfile := expandKubernetesAutomaticClusterWorkloadAutoscalerProfile(model.WorkloadAutoscalerProfile)
-
 			nodeProvisioningProfile := expandKubernetesAutomaticClusterNodeProvisioningProfile(model.NodeProvisioningProfile)
 
 			azureMonitorProfile := expandKubernetesAutomaticClusterAzureMonitorProfile(model.MonitorMetrics)
@@ -2056,15 +1868,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			httpProxyConfig := expandKubernetesAutomaticClusterHttpProxyConfig(model.HTTPProxyConfig)
 
 			apiAccessProfile := expandKubernetesAutomaticClusterAPIAccessProfile(model)
-			// if !(*apiAccessProfile.EnablePrivateCluster) && model.DNSPrefix == "" {
-			// 	return fmt.Errorf("`dns_prefix` should be set if it is not a private cluster")
-			// }
-
-			// enableOidcIssuer := model.OIDCIssuerEnabled
-			// var oidcIssuerProfile *managedclusters.ManagedClusterOIDCIssuerProfile
-			// if enableOidcIssuer {
-			// 	oidcIssuerProfile = expandKubernetesAutomaticClusterOidcIssuerProfile(enableOidcIssuer)
-			//}
 
 			storageProfile := expandKubernetesAutomaticClusterStorageProfile(model.StorageProfile)
 
@@ -2074,22 +1877,10 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			securityProfile.Defender = expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, false)
 
-			// workloadIdentity := model.WorkloadIdentityEnabled
-			// if workloadIdentity {
-			// 	if !enableOidcIssuer {
-			// 		return fmt.Errorf("`oidc_issuer_enabled` must be set to `true` to enable Azure AD Workload Identity")
-			//	}
-			//	securityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{
-			//		Enabled: &workloadIdentity,
-			//	}
-			//}
-
-			// if model.ImageCleanerEnabled {
 			securityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{
 				Enabled:       pointer.To(true),
 				IntervalHours: pointer.To(model.ImageCleanerIntervalHours),
 			}
-			//}
 
 			securityProfile.AzureKeyVaultKms, err = expandKubernetesAutomaticClusterKeyManagementService(model.KeyManagementService, ctx, keyVaultsClient, subscriptionId)
 			if err != nil {
@@ -2097,40 +1888,26 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.CustomCATrustCertificatesBase64) > 0 {
-				securityProfile.CustomCATrustCertificates = &model.CustomCATrustCertificatesBase64
+				securityProfile.CustomCATrustCertificates = pointer.To(model.CustomCATrustCertificatesBase64)
 			}
 
 			autoUpgradeProfile := &managedclusters.ManagedClusterAutoUpgradeProfile{}
-			// autoChannelUpgrade := model.AutomaticUpgradeChannel
 			nodeOsChannelUpgrade := model.NodeOSUpgradeChannel
-			//
-			// if nodeOsChannelUpgrade != "" && autoChannelUpgrade != "" {
-			// 	if autoChannelUpgrade == string(managedclusters.UpgradeChannelNodeNegativeimage) && nodeOsChannelUpgrade != string(managedclusters.NodeOSUpgradeChannelNodeImage) {
-			// 		return fmt.Errorf("`node_os_upgrade_channel` cannot be set to a value other than `NodeImage` if `automatic_upgrade_channel` is set to `node-image`")
-			// 	}
-			// }
-
-			// if autoChannelUpgrade != "" {
-			// 	autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannel(autoChannelUpgrade))
-			// } else {
-			// 	autoUpgradeProfile.UpgradeChannel = pointer.To(managedclusters.UpgradeChannelNone)
-			//}
-
 			if nodeOsChannelUpgrade != "" {
 				autoUpgradeProfile.NodeOSUpgradeChannel = pointer.To(managedclusters.NodeOSUpgradeChannel(nodeOsChannelUpgrade))
 			}
 
 			metricsProfile := expandKubernetesAutomaticClusterMetricsProfile(model.CostAnalysisEnabled)
 
-			var ingressProfile *managedclusters.ManagedClusterIngressProfile
-			if len(model.WebAppRouting) > 0 {
-				ingressProfile = expandKubernetesAutomaticClusterWebAppRouting(model.WebAppRouting, false)
-			}
+			// var ingressProfile *managedclusters.ManagedClusterIngressProfile
+			// if len(model.WebAppRouting) > 0 {
+			ingressProfile := expandKubernetesAutomaticClusterWebAppRouting(model.WebAppRouting, false)
+			//}
 
-			var serviceMeshProfile *managedclusters.ServiceMeshProfile
-			if len(model.ServiceMeshProfile) > 0 {
-				serviceMeshProfile = expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil)
-			}
+			// var serviceMeshProfile *managedclusters.ServiceMeshProfile
+			// if len(model.ServiceMeshProfile) > 0 {
+			serviceMeshProfile := expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, nil)
+			//}
 
 			agentProfiles, err := ExpandDefaultNodePoolTyped(model.DefaultNodePool)
 			if err != nil {
@@ -2151,10 +1928,6 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding addons: %+v", err)
 			}
 
-			if addonProfiles == nil {
-				addonProfiles = &map[string]managedclusters.ManagedClusterAddonProfile{}
-			}
-
 			(*addonProfiles)["azurepolicy"] = managedclusters.ManagedClusterAddonProfile{
 				Enabled: true,
 			}
@@ -2162,14 +1935,12 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 			var azureADProfile *managedclusters.ManagedClusterAADProfile
 			if len(model.AzureActiveDirectoryRBAC) > 0 {
 				azureADProfile = &managedclusters.ManagedClusterAADProfile{
-					Managed: pointer.To(true),
-					// EnableAzureRBAC:     pointer.To(model.RoleBasedAccessControlEnabled),
+					Managed:             pointer.To(true),
 					AdminGroupObjectIDs: &model.AzureActiveDirectoryRBAC[0].AdminGroupObjectIDs,
 				}
 			}
 
 			parameters := managedclusters.ManagedCluster{
-				// ExtendedLocation: expandKubernetesAutomaticClusterEdgeZone(model.EdgeZone),
 				Location: location,
 				Sku: &managedclusters.ManagedClusterSKU{
 					Name: pointer.To(managedclusters.ManagedClusterSKUName("automatic")),
@@ -2184,24 +1955,19 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					AutoScalerProfile:       autoScalerProfile,
 					AutoUpgradeProfile:      autoUpgradeProfile,
 					AzureMonitorProfile:     azureMonitorProfile,
-					DnsPrefix:               pointer.To(model.DNSPrefix),
-					// EnableRBAC:              pointer.To(model.RoleBasedAccessControlEnabled),
-					KubernetesVersion: pointer.To(kubernetesVersion),
-					BootstrapProfile:  bootstrapProfile,
-					LinuxProfile:      linuxProfile,
-					WindowsProfile:    windowsProfile,
-					MetricsProfile:    metricsProfile,
-					NetworkProfile:    networkProfile,
-					NodeResourceGroup: pointer.To(model.NodeResourceGroup),
-					// DisableLocalAccounts:      pointer.To(requiredValues.DisableLocalAccounts),
-					HTTPProxyConfig: httpProxyConfig,
-					// OidcIssuerProfile:         oidcIssuerProfile,
-					SecurityProfile: securityProfile,
-					StorageProfile:  storageProfile,
-					UpgradeSettings: upgradeOverrideSetting,
-					// WorkloadAutoScalerProfile: workloadAutoscalerProfile,
-					IngressProfile:     ingressProfile,
-					ServiceMeshProfile: serviceMeshProfile,
+					KubernetesVersion:       pointer.To(kubernetesVersion),
+					BootstrapProfile:        bootstrapProfile,
+					LinuxProfile:            linuxProfile,
+					WindowsProfile:          windowsProfile,
+					MetricsProfile:          metricsProfile,
+					NetworkProfile:          networkProfile,
+					NodeResourceGroup:       pointer.To(model.NodeResourceGroup),
+					HTTPProxyConfig:         httpProxyConfig,
+					SecurityProfile:         securityProfile,
+					StorageProfile:          storageProfile,
+					UpgradeSettings:         upgradeOverrideSetting,
+					IngressProfile:          ingressProfile,
+					ServiceMeshProfile:      serviceMeshProfile,
 				},
 				Tags: tags.Expand(model.Tags),
 			}
@@ -2214,24 +1980,11 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 
 			if len(model.Identity) > 0 {
 				parameters.Identity = expandIdentityModel(model.Identity)
-				parameters.Properties.ServicePrincipalProfile = &managedclusters.ManagedClusterServicePrincipalProfile{
-					ClientId: "msi",
-				}
 			}
 
 			if len(model.KubeletIdentity) > 0 {
 				parameters.Properties.IdentityProfile = expandKubernetesAutomaticClusterIdentityProfile(model.KubeletIdentity)
 			}
-
-			// servicePrincipalSet := false
-			// if len(model.ServicePrincipal) > 0 {
-			//	sp := model.ServicePrincipal[0]
-			//	parameters.Properties.ServicePrincipalProfile = &managedclusters.ManagedClusterServicePrincipalProfile{
-			//		ClientId: sp.ClientID,
-			//		Secret:   pointer.To(sp.ClientSecret),
-			//	}
-			//	servicePrincipalSet = true
-			// }
 
 			if model.PrivateDNSZoneID != "" {
 				if (parameters.Identity == nil) || (model.PrivateDNSZoneID != "System" && model.PrivateDNSZoneID != "None" && (parameters.Identity.Type != identity.TypeUserAssigned)) {
@@ -2245,6 +1998,8 @@ func (r KubernetesAutomaticClusterResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("`dns_prefix_private_cluster` should only be set for private cluster with custom private dns zone")
 				}
 				parameters.Properties.FqdnSubdomain = pointer.To(model.DNSPrefixPrivateCluster)
+			} else {
+				parameters.Properties.DnsPrefix = pointer.To(model.DNSPrefix)
 			}
 
 			if model.DiskEncryptionSetID != "" {
@@ -2384,17 +2139,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 				state.NodeResourceGroupID = commonids.NewResourceGroupID(id.SubscriptionId, state.NodeResourceGroup).ID()
 			}
 
-			// upgradeChannel := ""
-			// nodeOSUpgradeChannel := ""
-			// if profile := props.AutoUpgradeProfile; profile != nil {
-			//	if profile.UpgradeChannel != nil && *profile.UpgradeChannel != managedclusters.UpgradeChannelNone {
-			//		upgradeChannel = string(*profile.UpgradeChannel)
-			//	}
-			//	if profile.NodeOSUpgradeChannel != nil {
-			//		nodeOSUpgradeChannel = string(*profile.NodeOSUpgradeChannel)
-			//	}
-			//}
-			// state.AutomaticUpgradeChannel = string(*props.AutoUpgradeProfile.UpgradeChannel)
 			state.NodeOSUpgradeChannel = string(*props.AutoUpgradeProfile.NodeOSUpgradeChannel)
 
 			if props.SecurityProfile != nil && props.SecurityProfile.CustomCATrustCertificates != nil {
@@ -2444,20 +2188,20 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 					state.OpenServiceMeshEnabled = flattenKubernetesAddOnsTyped(*props.AddonProfiles)
 			}
 
-			autoScalerProfile, err := flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
+			state.AutoScalerProfile, err = flattenKubernetesAutomaticClusterAutoScalerProfile(props.AutoScalerProfile)
 			if err != nil {
 				return fmt.Errorf("flattening `auto_scaler_profile`: %+v", err)
 			}
-			state.AutoScalerProfile = autoScalerProfile
+
 			state.MonitorMetrics = flattenKubernetesAutomaticClusterAzureMonitorProfile(props.AzureMonitorProfile)
+
 			state.ServiceMeshProfile = flattenKubernetesAutomaticClusterServiceMeshProfile(props.ServiceMeshProfile)
 
 			if props.AgentPoolProfiles != nil {
-				defaultNodePool, err := FlattenDefaultNodePoolTyped(props.AgentPoolProfiles, &metadata)
+				state.DefaultNodePool, err = FlattenDefaultNodePoolTyped(props.AgentPoolProfiles, &metadata)
 				if err != nil {
 					return fmt.Errorf("flattening `default_node_pool`: %+v", err)
 				}
-				state.DefaultNodePool = defaultNodePool
 			}
 
 			kubeletIdentity, err := flattenKubernetesAutomaticClusterIdentityProfile(pointer.From(props.IdentityProfile))
@@ -2467,22 +2211,25 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			state.KubeletIdentity = kubeletIdentity
 
 			state.LinuxProfile = flattenKubernetesAutomaticClusterLinuxProfile(props.LinuxProfile)
+
 			state.NetworkProfile = flattenKubernetesAutomaticClusterNetworkProfile(props.NetworkProfile)
 
 			state.WindowsProfile = flattenKubernetesAutomaticClusterWindowsProfile(props.WindowsProfile, config)
 
-			// state.WorkloadAutoscalerProfile = flattenKubernetesAutomaticClusterWorkloadAutoscalerProfile(props.WorkloadAutoScalerProfile)
 			state.NodeProvisioningProfile = flattenKubernetesAutomaticClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
+
 			state.HTTPProxyConfig = flattenKubernetesAutomaticClusterHttpProxyConfig(props.HTTPProxyConfig)
 
 			state.BootstrapProfile = flattenKubernetesAutomaticClusterBootstrapProfile(props.BootstrapProfile)
+
 			state.UpgradeOverride = flattenKubernetesAutomaticClusterUpgradeOverride(props.UpgradeSettings)
 
-			if props.StorageProfile != nil {
-				state.StorageProfile = flattenKubernetesAutomaticClusterStorageProfile(props.StorageProfile)
-			}
+			// if props.StorageProfile != nil {
+			state.StorageProfile = flattenKubernetesAutomaticClusterStorageProfile(props.StorageProfile)
+			//}
 
 			state.WebAppRouting = flattenKubernetesAutomaticClusterWebAppRouting(props.IngressProfile)
+
 			state.MicrosoftDefender = flattenKubernetesAutomaticClusterMicrosoftDefender(props.SecurityProfile)
 
 			// if props.SecurityProfile != nil && props.SecurityProfile.AzureKeyVaultKms != nil {
@@ -2491,41 +2238,11 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 
 			state.CostAnalysisEnabled = flattenKubernetesAutomaticClusterMetricsProfile(props.MetricsProfile)
 
-			// rbacEnabled := true
-			// if props.EnableRBAC != nil {
-			// 	rbacEnabled = *props.EnableRBAC
-			// }
-			// state.RoleBasedAccessControlEnabled = rbacEnabled
-
 			state.AzureActiveDirectoryRBAC = flattenKubernetesAutomaticClusterAzureActiveDirectoryRBAC(props.AadProfile)
 
-			// if props.ServicePrincipalProfile != nil &&
-			//	props.ServicePrincipalProfile.ClientId != "" &&
-			//	props.ServicePrincipalProfile.ClientId != "msi" {
-			//	state.ServicePrincipal = []ServicePrincipalModel{{
-			//		ClientID: props.ServicePrincipalProfile.ClientId,
-			//		// ClientSecret is not returned by the API
-			//	}}
-			// }
-
 			// if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
-			// if props.SecurityProfile.ImageCleaner.Enabled != nil {
-			// 	state.ImageCleanerEnabled = *props.SecurityProfile.ImageCleaner.Enabled
-			// }
-			// if props.SecurityProfile.ImageCleaner.IntervalHours != nil {
-			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
-				state.ImageCleanerIntervalHours = pointer.From(props.SecurityProfile.ImageCleaner.IntervalHours)
-			}
-			// }
-			// }
-
-			// state.OIDCIssuerEnabled, state.OIDCIssuerURL = flattenKubernetesAutomaticClusterOidcIssuerProfile(props.OidcIssuerProfile)
-
-			// workloadIdentity := false
-			// if props.SecurityProfile != nil && props.SecurityProfile.WorkloadIdentity != nil {
-			// 	workloadIdentity = pointer.From(props.SecurityProfile.WorkloadIdentity.Enabled)
-			// }
-			// state.WorkloadIdentityEnabled = workloadIdentity
+			state.ImageCleanerIntervalHours = pointer.From(props.SecurityProfile.ImageCleaner.IntervalHours)
+			//}
 
 			aiToolchainOperatorEnabled := false
 			if props.AiToolchainOperatorProfile != nil {
@@ -2534,27 +2251,6 @@ func (r KubernetesAutomaticClusterResource) flatten(ctx context.Context, metadat
 			state.AIToolchainOperatorEnabled = aiToolchainOperatorEnabled
 
 			state.SupportPlan = string(pointer.From(props.SupportPlan))
-
-			// if props.AadProfile != nil && (props.DisableLocalAccounts == nil || !*props.DisableLocalAccounts) {
-			// 	adminCredentials, err := client.ListClusterAdminCredentials(ctx, *id, managedclusters.ListClusterAdminCredentialsOperationOptions{})
-			// 	if err != nil {
-			// 		return fmt.Errorf("retrieving Admin Credentials for %s: %+v", id, err)
-			//	}
-			//	adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterCredentials(adminCredentials.Model, "clusterAdmin")
-			//	state.KubeAdminConfigRaw = pointer.From(adminKubeConfigRaw)
-			//	for _, item := range adminKubeConfig {
-			//		if config, ok := item.(map[string]interface{}); ok {
-			//			state.KubeAdminConfig = append(state.KubeAdminConfig, KubeConfigModel{
-			//				Host:                 config["host"].(string),
-			//				Username:             config["username"].(string),
-			//				Password:             config["password"].(string),
-			//				ClientCertificate:    config["client_certificate"].(string),
-			//				ClientKey:            config["client_key"].(string),
-			//				ClusterCACertificate: config["cluster_ca_certificate"].(string),
-			//			})
-			//		}
-			//	}
-			//}
 		}
 
 		state.Identity = flattenIdentityModel(model.Identity)
@@ -2656,27 +2352,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			// if metadata.ResourceData.HasChange("service_principal") && !metadata.ResourceData.HasChange("identity") {
-			//	if len(model.ServicePrincipal) > 0 {
-			//		sp := model.ServicePrincipal[0]
-			//		params := managedclusters.ManagedClusterServicePrincipalProfile{
-			//			ClientId: sp.ClientID,
-			//			Secret:   pointer.To(sp.ClientSecret),
-			//		}
-			//		if err := clusterClient.ResetServicePrincipalProfileThenPoll(ctx, *id, params); err != nil {
-			//			return fmt.Errorf("updating Service Principal for %s: %+v", *id, err)
-			//		}
-			//
-			//		existing, err = clusterClient.Get(ctx, *id)
-			//		if err != nil {
-			//			return fmt.Errorf("retrieving updated %s: %+v", *id, err)
-			//		}
-			//		if existing.Model == nil || existing.Model.Properties == nil {
-			//			return fmt.Errorf("retrieving updated %s: properties was nil", *id)
-			//		}
-			//	}
-			//}
-
 			updateCluster := false
 			props := existing.Model.Properties
 
@@ -2684,15 +2359,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				existing.Model.Tags = tags.Expand(model.Tags)
 				updateCluster = true
 			}
-
-			// if metadata.ResourceData.HasChange("sku_tier") {
-			// 	if existing.Model.Sku == nil {
-			// 		existing.Model.Sku = &managedclusters.ManagedClusterSKU{}
-			// 	}
-			//	tier := managedclusters.ManagedClusterSKUTier(model.SKUTier)
-			//	existing.Model.Sku.Tier = &tier
-			//	updateCluster = true
-			// }
 
 			if metadata.ResourceData.HasChange("kubernetes_version") {
 				props.KubernetesVersion = pointer.To(model.KubernetesVersion)
@@ -2713,11 +2379,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 				props.ServiceMeshProfile = expandKubernetesAutomaticClusterServiceMeshProfile(model.ServiceMeshProfile, props.ServiceMeshProfile)
 				updateCluster = true
 			}
-
-			// if metadata.ResourceData.HasChange("workload_autoscaler_profile") {
-			// 	props.WorkloadAutoScalerProfile = expandKubernetesAutomaticClusterWorkloadAutoscalerProfile(model.WorkloadAutoscalerProfile)
-			// 	updateCluster = true
-			// }
 
 			if metadata.ResourceData.HasChange("node_provisioning_profile") {
 				props.NodeProvisioningProfile = expandKubernetesAutomaticClusterNodeProvisioningProfile(model.NodeProvisioningProfile)
@@ -2762,13 +2423,11 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					"default_node_pool.0.max_pods",
 					"default_node_pool.0.only_critical_addons_enabled",
 					"default_node_pool.0.os_disk_size_gb",
-					// "default_node_pool.0.os_disk_type",
 					"default_node_pool.0.pod_subnet_id",
 					"default_node_pool.0.snapshot_id",
 					"default_node_pool.0.ultra_ssd_enabled",
 					"default_node_pool.0.vnet_subnet_id",
 					"default_node_pool.0.vm_size",
-					// "default_node_pool.0.zones",
 				}
 
 				// if the default node pool name has changed, it means the initial attempt at resizing failed
@@ -2861,7 +2520,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("aci_connector_linux") ||
-				// metadata.ResourceData.HasChange("azure_policy_enabled") ||
 				metadata.ResourceData.HasChange("confidential_computing") ||
 				metadata.ResourceData.HasChange("http_application_routing_enabled") ||
 				metadata.ResourceData.HasChange("oms_agent") ||
@@ -2944,8 +2602,6 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("microsoft_defender") ||
-				// metadata.ResourceData.HasChange("workload_identity_enabled") ||
-				// metadata.ResourceData.HasChange("image_cleaner_enabled") ||
 				metadata.ResourceData.HasChange("image_cleaner_interval_hours") ||
 				metadata.ResourceData.HasChange("key_management_service") ||
 				metadata.ResourceData.HasChange("custom_ca_trust_certificates_base64") {
@@ -2957,17 +2613,7 @@ func (r KubernetesAutomaticClusterResource) Update() sdk.ResourceFunc {
 					props.SecurityProfile.Defender = expandKubernetesAutomaticClusterMicrosoftDefender(model.MicrosoftDefender, metadata.ResourceData.HasChange("microsoft_defender"))
 				}
 
-				// if metadata.ResourceData.HasChange("workload_identity_enabled") {
-				// 	if props.SecurityProfile.WorkloadIdentity == nil {
-				// 		props.SecurityProfile.WorkloadIdentity = &managedclusters.ManagedClusterSecurityProfileWorkloadIdentity{}
-				// 	}
-				// 	props.SecurityProfile.WorkloadIdentity.Enabled = pointer.To(model.WorkloadIdentityEnabled)
-				// }
-
 				if metadata.ResourceData.HasChange("image_cleaner_interval_hours") {
-					// if props.SecurityProfile.ImageCleaner == nil {
-					// 	props.SecurityProfile.ImageCleaner = &managedclusters.ManagedClusterSecurityProfileImageCleaner{}
-					// }
 					props.SecurityProfile.ImageCleaner.Enabled = pointer.To(true)
 					if model.ImageCleanerIntervalHours > 0 {
 						props.SecurityProfile.ImageCleaner.IntervalHours = pointer.To(model.ImageCleanerIntervalHours)

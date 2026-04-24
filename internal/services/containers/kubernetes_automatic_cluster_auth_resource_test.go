@@ -20,12 +20,6 @@ func TestAccKubernetesAutomaticCluster_apiServerAuthorizedIPRanges(t *testing.T)
 			Config: r.apiServerAuthorizedIPRangesConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
 				check.That(data.ResourceName).Key("default_node_pool.0.max_pods").Exists(),

@@ -21,12 +21,6 @@ func TestAccDataSourceKubernetesAutomaticCluster_basic(t *testing.T) {
 		{
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				// check.That(data.ResourceName).Key("kube_config.0.client_key").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.client_certificate").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.cluster_ca_certificate").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.host").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.username").Exists(),
-				// check.That(data.ResourceName).Key("kube_config.0.password").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").HasValue(""),
 				check.That(data.ResourceName).Key("kubelet_identity.0.object_id").Exists(),
@@ -45,9 +39,10 @@ func TestAccDataSourceKubernetesAutomaticCluster_privateCluster(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: KubernetesAutomaticClusterResource{}.privateClusterConfig(data),
+			Config: KubernetesAutomaticClusterResource{}.privateClusterConfig(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("private_fqdn").Exists(),
+				check.That(data.ResourceName).Key("private_cluster_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("service_principal.0.client_secret"),
