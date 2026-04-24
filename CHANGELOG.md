@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * dependencies: `storage` - update API version to `2025-08-01` [GH-32218]
 * `azurerm_storage_account` - add support for the `Smart` value to `access_tier` [GH-32218]
 * `azurerm_storage_account` - add support for the `All` value to `allowed_copy_scope` [GH-32218]
+* List Resource: `azurerm_storage_account` - skip resource data retrieval when `include_resource` is `false` [GH-31898]
 
 FEATURES:
 
