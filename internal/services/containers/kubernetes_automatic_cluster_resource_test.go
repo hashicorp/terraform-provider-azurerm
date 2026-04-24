@@ -298,6 +298,10 @@ resource "azurerm_kubernetes_automatic_cluster" "test" {
     node_count = 1
   }
 
+  network_profile {
+
+  }
+
   identity {
     type = "SystemAssigned"
   }

@@ -289,7 +289,7 @@ func schemaKubernetesAutomaticClusterAddOnsTyped() map[string]*pluginsdk.Schema 
 	}
 }
 
-func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
+func expandKubernetesAutomaticClusterAddOns(input *KubernetesAutomaticClusterModel, env environments.Environment) (*map[string]managedclusters.ManagedClusterAddonProfile, error) {
 	addonProfiles := map[string]managedclusters.ManagedClusterAddonProfile{}
 
 	addonProfiles[openServiceMeshKey] = managedclusters.ManagedClusterAddonProfile{
@@ -329,7 +329,7 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 		if oms.LogAnalyticsWorkspaceID != "" {
 			lawid, err := workspaces.ParseWorkspaceIDInsensitively(oms.LogAnalyticsWorkspaceID)
 			if err != nil {
-				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %+v", err)
+				return nil, fmt.Errorf("parsing Log Analytics Workspace ID: %w", err)
 			}
 			config["logAnalyticsWorkspaceResourceID"] = lawid.ID()
 		}
@@ -406,7 +406,7 @@ func expandKubernetesAddOnsTyped(input *KubernetesAutomaticClusterModel, env env
 	return filterUnsupportedKubernetesAddOns(addonProfiles, env)
 }
 
-func flattenKubernetesAddOnsTyped(profile map[string]managedclusters.ManagedClusterAddonProfile) (
+func flattenKubernetesAutomaticClusterAddOns(profile map[string]managedclusters.ManagedClusterAddonProfile) (
 	aciConnectorLinux []ACIConnectorLinuxModel,
 	confidentialComputing []ConfidentialComputingModel,
 	httpApplicationRoutingEnabled bool,
